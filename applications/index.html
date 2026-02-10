@@ -399,7 +399,7 @@
                 <div style="position: sticky; top: 80px; max-height: calc(100vh - 80px); overflow-y: auto; overflow-x: hidden; padding-bottom: 1rem; will-change: transform;">
                     <h4 style="font-size: 0.9rem; margin-bottom: 1rem; font-weight: 700; padding: 1rem 1rem 0 1rem;">Applications</h4>
                     <nav class="sidebar-nav" data-page-type="applications" style="display: flex; flex-direction: column; gap: 0;">
-                        <a href="#all" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('all'); return true;">All (101)</a>
+                        <a href="#all" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('all'); return true;">All (103)</a>
                         <a href="#computer-vision-and-perception" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Computer Vision and Perception'); return true;">Computer Vision (31)</a>
                         <a href="#extended-reality" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Extended Reality'); return true;">Extended Reality (6)</a>
                         <a href="#healthcare-ai" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Healthcare AI'); return true;">Healthcare AI (33)</a>
@@ -412,9 +412,9 @@
                         <a href="#robotics" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Robotics'); return true;">Robotics (5)</a>
                         <a href="#scheduler" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Scheduler'); return true;">Scheduler (1)</a>
                         <a href="#signal-processing" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Signal Processing'); return true;">Signal Processing (12)</a>
-                        <a href="#streaming" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Streaming'); return true;">Streaming (12)</a>
-                        <a href="#video" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Video'); return true;">Video (52)</a>
-                        <a href="#visualization" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Visualization'); return true;">Visualization (42)</a>
+                        <a href="#streaming" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Streaming'); return true;">Streaming (14)</a>
+                        <a href="#video" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Video'); return true;">Video (54)</a>
+                        <a href="#visualization" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Visualization'); return true;">Visualization (43)</a>
                     </nav>
                 </div>
             </div>
@@ -433,6 +433,28 @@
                     </div>
                     
             
+ <div class="col-xl-4 col-lg-6 col-sm-12 mb-1 feature-box" data-recent="true">
+                <div class="shadow padding-feature-box-item text-center d-block match-height app-card" style="cursor: pointer; position: relative;" onclick="window.location.href='/holohub/applications/gstreamer/holo_to_gst';">
+                    <span class="new-badge" style="position: absolute; top: 10px; right: 10px; background-color: #76b900; color: white; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 0.65rem; font-weight: 600;">New</span>
+                    <img src="https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/applications/gstreamer/holo_to_gst/docs/pipeline_diagram.png" alt="Holoscan to GStreamer" width="120" height="120">
+                    <h3 class="mb-1 mt-0" style="font-size: 0.8rem;">Holoscan to GStreamer</h3>
+                    <span style="display: inline-block; background-color: var(--md-code-bg-color); color: var(--md-code-fg-color); padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 0.65rem; font-weight: 600; margin-bottom: 0.5rem;">C++</span>
+                    <p class="feature-card-desc">Push Holoscan video data into GStreamer pipelines. Supports V4L2 cameras and pattern generators. Bridge data from Holoscan to GStreamer for encoding, streaming, or processing.</p>
+                    <div class="md-tags md-nav__link md-typeset" style="line-height: 1.5; display: block;" onclick="event.stopPropagation();"><a href="/holohub/tags/#tag:streaming" class="md-tag" style="display: none;">streaming</a> <a href="/holohub/tags/#tag:video" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">video</a> <a href="/holohub/tags/#tag:gstreamer" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">gstreamer</a> <a href="/holohub/tags/#tag:source" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">source</a> <a href="/holohub/tags/#tag:camera" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">camera</a> <a href="/holohub/tags/#tag:v4l2" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">v4l2</a></div>
+                    <!-- <p class="nv-teaser-text-link">Learn More <i class="fa-solid fa-angle-right"></i></p> -->
+                </div>
+            </div>
+ <div class="col-xl-4 col-lg-6 col-sm-12 mb-1 feature-box" data-recent="true">
+                <div class="shadow padding-feature-box-item text-center d-block match-height app-card" style="cursor: pointer; position: relative;" onclick="window.location.href='/holohub/applications/gstreamer/gst_to_holo';">
+                    <span class="new-badge" style="position: absolute; top: 10px; right: 10px; background-color: #76b900; color: white; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 0.65rem; font-weight: 600;">New</span>
+                    <img src="https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/applications/gstreamer/gst_to_holo/docs/pipeline_diagram.png" alt="GStreamer to Holoscan" width="120" height="120">
+                    <h3 class="mb-1 mt-0" style="font-size: 0.8rem;">GStreamer to Holoscan</h3>
+                    <span style="display: inline-block; background-color: var(--md-code-bg-color); color: var(--md-code-fg-color); padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 0.65rem; font-weight: 600; margin-bottom: 0.5rem;">C++</span>
+                    <p class="feature-card-desc">Bridge GStreamer pipelines into Holoscan for visualization with Holoviz. Supports CPU and GPU memory paths, multiple video formats (RGBA, I420, NV12), and dynamic pipelines with automatic format detection. Can display from files (MP4, etc.), cameras (V4L2), streams (RTSP), test patterns, and more.</p>
+                    <div class="md-tags md-nav__link md-typeset" style="line-height: 1.5; display: block;" onclick="event.stopPropagation();"><a href="/holohub/tags/#tag:streaming" class="md-tag" style="display: none;">streaming</a> <a href="/holohub/tags/#tag:gstreamer" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">gstreamer</a> <a href="/holohub/tags/#tag:visualization" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">visualization</a> <a href="/holohub/tags/#tag:holoviz" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">holoviz</a> <a href="/holohub/tags/#tag:video" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">video</a></div>
+                    <!-- <p class="nv-teaser-text-link">Learn More <i class="fa-solid fa-angle-right"></i></p> -->
+                </div>
+            </div>
  <div class="col-xl-4 col-lg-6 col-sm-12 mb-1 feature-box" data-recent="true">
                 <div class="shadow padding-feature-box-item text-center d-block match-height app-card" style="cursor: pointer; position: relative;" onclick="window.location.href='/holohub/applications/holocat';">
                     <span class="new-badge" style="position: absolute; top: 10px; right: 10px; background-color: #76b900; color: white; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 0.65rem; font-weight: 600;">New</span>
@@ -4459,6 +4481,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -4530,6 +4556,74 @@
         
           
           <div class="md-nav__link md-nav__container">
+            <a href="gstreamer/gst_to_holo/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GStreamer to Holoscan
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_23_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_23_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    GStreamer to Holoscan
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_23_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
             <a href="gstreamer/gst_video_recorder/" class="md-nav__link ">
               
   
@@ -4549,12 +4643,80 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_23_1_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_23_1">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_23_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_23_2">
             <span class="md-nav__icon md-icon"></span>
             
   
     GStreamer Video Recorder
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_23_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="gstreamer/holo_to_gst/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Holoscan to GStreamer
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_23_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_23_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Holoscan to GStreamer
   
 
           </label>

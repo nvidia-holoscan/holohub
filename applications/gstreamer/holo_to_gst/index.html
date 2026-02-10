@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://nvidia-holoscan.github.io/holohub/operators/medical_imaging/monai_seg_inference_operator/">
+        <link rel="canonical" href="https://nvidia-holoscan.github.io/holohub/applications/gstreamer/holo_to_gst/">
       
       
-        <link rel="prev" href="../monai_bundle_inference_operator/">
+        <link rel="prev" href="../gst_video_recorder/">
       
       
-        <link rel="next" href="../nii_data_loader_operator/">
+        <link rel="next" href="../../h264/h264_endoscopy_tool_tracking/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>MonaiSegInferenceOperator (latest) - NVIDIA Holoscan Reference Applications</title>
+        <title>Holoscan to GStreamer (latest) - NVIDIA Holoscan Reference Applications</title>
       
     
     
@@ -96,7 +96,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#monai-segmentation-inference-operator" class="md-skip">
+        <a href="#holoscan-to-gstreamer" class="md-skip">
           Skip to content
         </a>
       
@@ -142,7 +142,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              MonaiSegInferenceOperator (latest)
+              Holoscan to GStreamer (latest)
             
           </span>
         </div>
@@ -294,11 +294,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../../applications/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../" class="md-tabs__link">
           
   
   
@@ -316,13 +318,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../../" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../../operators/" class="md-tabs__link">
           
   
   
@@ -606,6 +606,8 @@
       
   
   
+    
+  
   
   
     
@@ -775,18 +777,21 @@
     
     
       
+        
+        
+      
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/" class="md-nav__link ">
+            <a href="../../" class="md-nav__link ">
               
   
   
@@ -804,13 +809,13 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
@@ -851,7 +856,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/adv_networking_bench/" class="md-nav__link ">
+            <a href="../../adv_networking_bench/" class="md-nav__link ">
               
   
   
@@ -919,7 +924,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/aja_video_capture/" class="md-nav__link ">
+            <a href="../../aja_video_capture/" class="md-nav__link ">
               
   
   
@@ -987,7 +992,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/async_buffer_deadline/" class="md-nav__link ">
+            <a href="../../async_buffer_deadline/" class="md-nav__link ">
               
   
   
@@ -1055,7 +1060,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/basic_networking_ping/" class="md-nav__link ">
+            <a href="../../basic_networking_ping/" class="md-nav__link ">
               
   
   
@@ -1123,7 +1128,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/simple_pdw_pipeline/" class="md-nav__link ">
+            <a href="../../simple_pdw_pipeline/" class="md-nav__link ">
               
   
   
@@ -1191,7 +1196,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/body_pose_estimation/" class="md-nav__link ">
+            <a href="../../body_pose_estimation/" class="md-nav__link ">
               
   
   
@@ -1259,7 +1264,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/colonoscopy_segmentation/" class="md-nav__link ">
+            <a href="../../colonoscopy_segmentation/" class="md-nav__link ">
               
   
   
@@ -1327,7 +1332,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/cuda_quantum/" class="md-nav__link ">
+            <a href="../../cuda_quantum/" class="md-nav__link ">
               
   
   
@@ -1449,7 +1454,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/dds/dds_video/" class="md-nav__link ">
+            <a href="../../dds/dds_video/" class="md-nav__link ">
               
   
   
@@ -1525,7 +1530,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/deltacast_receiver/" class="md-nav__link ">
+            <a href="../../deltacast_receiver/" class="md-nav__link ">
               
   
   
@@ -1593,7 +1598,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/deltacast_transmitter/" class="md-nav__link ">
+            <a href="../../deltacast_transmitter/" class="md-nav__link ">
               
   
   
@@ -1661,7 +1666,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/depth_anything_v2/" class="md-nav__link ">
+            <a href="../../depth_anything_v2/" class="md-nav__link ">
               
   
   
@@ -1841,7 +1846,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/distributed/grpc/grpc_endoscopy_tool_tracking/" class="md-nav__link ">
+            <a href="../../distributed/grpc/grpc_endoscopy_tool_tracking/" class="md-nav__link ">
               
   
   
@@ -1909,7 +1914,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/distributed/grpc/grpc_h264_endoscopy_tool_tracking/" class="md-nav__link ">
+            <a href="../../distributed/grpc/grpc_h264_endoscopy_tool_tracking/" class="md-nav__link ">
               
   
   
@@ -2041,7 +2046,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/distributed/ucx/ucx_h264_endoscopy_tool_tracking/" class="md-nav__link ">
+            <a href="../../distributed/ucx/ucx_h264_endoscopy_tool_tracking/" class="md-nav__link ">
               
   
   
@@ -2113,7 +2118,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/distributed/ucx/ucx_endoscopy_tool_tracking/" class="md-nav__link ">
+            <a href="../../distributed/ucx/ucx_endoscopy_tool_tracking/" class="md-nav__link ">
               
   
   
@@ -2178,7 +2183,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/distributed/ucx/ucx_endoscopy_tool_tracking/cpp/" class="md-nav__link ">
+            <a href="../../distributed/ucx/ucx_endoscopy_tool_tracking/cpp/" class="md-nav__link ">
               
   
   
@@ -2246,7 +2251,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/distributed/ucx/ucx_endoscopy_tool_tracking/python/" class="md-nav__link ">
+            <a href="../../distributed/ucx/ucx_endoscopy_tool_tracking/python/" class="md-nav__link ">
               
   
   
@@ -2394,7 +2399,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/ehr_query_llm/lmm/" class="md-nav__link ">
+            <a href="../../ehr_query_llm/lmm/" class="md-nav__link ">
               
   
   
@@ -2462,7 +2467,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/ehr_query_llm/fhir/" class="md-nav__link ">
+            <a href="../../ehr_query_llm/fhir/" class="md-nav__link ">
               
   
   
@@ -2538,7 +2543,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/endoscopy_depth_estimation/" class="md-nav__link ">
+            <a href="../../endoscopy_depth_estimation/" class="md-nav__link ">
               
   
   
@@ -2610,7 +2615,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/endoscopy_out_of_body_detection/" class="md-nav__link ">
+            <a href="../../endoscopy_out_of_body_detection/" class="md-nav__link ">
               
   
   
@@ -2675,7 +2680,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/endoscopy_out_of_body_detection/cpp/" class="md-nav__link ">
+            <a href="../../endoscopy_out_of_body_detection/cpp/" class="md-nav__link ">
               
   
   
@@ -2743,7 +2748,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/endoscopy_out_of_body_detection/python/" class="md-nav__link ">
+            <a href="../../endoscopy_out_of_body_detection/python/" class="md-nav__link ">
               
   
   
@@ -2819,7 +2824,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/monai_endoscopic_tool_seg/" class="md-nav__link ">
+            <a href="../../monai_endoscopic_tool_seg/" class="md-nav__link ">
               
   
   
@@ -2891,7 +2896,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/endoscopy_tool_tracking/" class="md-nav__link ">
+            <a href="../../endoscopy_tool_tracking/" class="md-nav__link ">
               
   
   
@@ -2956,7 +2961,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/endoscopy_tool_tracking/cpp/" class="md-nav__link ">
+            <a href="../../endoscopy_tool_tracking/cpp/" class="md-nav__link ">
               
   
   
@@ -3024,7 +3029,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/endoscopy_tool_tracking/python/" class="md-nav__link ">
+            <a href="../../endoscopy_tool_tracking/python/" class="md-nav__link ">
               
   
   
@@ -3100,7 +3105,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/florence-2-vision/" class="md-nav__link ">
+            <a href="../../florence-2-vision/" class="md-nav__link ">
               
   
   
@@ -3168,7 +3173,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/fm_asr/" class="md-nav__link ">
+            <a href="../../fm_asr/" class="md-nav__link ">
               
   
   
@@ -3236,7 +3241,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/orthorectification_with_optix/" class="md-nav__link ">
+            <a href="../../orthorectification_with_optix/" class="md-nav__link ">
               
   
   
@@ -3280,8 +3285,10 @@
                 
   
   
+    
   
   
+  
     
     
       
@@ -3298,11 +3305,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_23" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_23" checked>
         
           
           <label class="md-nav__link" for="__nav_3_23" id="__nav_3_23_label" tabindex="0">
@@ -3323,7 +3330,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_23_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_23_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3_23">
             <span class="md-nav__icon md-icon"></span>
             
@@ -3362,7 +3369,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/gstreamer/gst_to_holo/" class="md-nav__link ">
+            <a href="../gst_to_holo/" class="md-nav__link ">
               
   
   
@@ -3430,7 +3437,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/gstreamer/gst_video_recorder/" class="md-nav__link ">
+            <a href="../gst_video_recorder/" class="md-nav__link ">
               
   
   
@@ -3474,6 +3481,8 @@
                 
   
   
+    
+  
   
   
     
@@ -3490,15 +3499,15 @@
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_23_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_23_3" checked>
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/gstreamer/holo_to_gst/" class="md-nav__link ">
+            <a href="./" class="md-nav__link md-nav__link--active">
               
   
   
@@ -3517,7 +3526,7 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_23_3_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_23_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3_23_3">
             <span class="md-nav__icon md-icon"></span>
             
@@ -3630,7 +3639,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/h264/h264_endoscopy_tool_tracking/" class="md-nav__link ">
+            <a href="../../h264/h264_endoscopy_tool_tracking/" class="md-nav__link ">
               
   
   
@@ -3698,7 +3707,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/h264/h264_video_decode/" class="md-nav__link ">
+            <a href="../../h264/h264_video_decode/" class="md-nav__link ">
               
   
   
@@ -3778,7 +3787,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/high_speed_endoscopy/" class="md-nav__link ">
+            <a href="../../high_speed_endoscopy/" class="md-nav__link ">
               
   
   
@@ -3843,7 +3852,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/high_speed_endoscopy/cpp/" class="md-nav__link ">
+            <a href="../../high_speed_endoscopy/cpp/" class="md-nav__link ">
               
   
   
@@ -3911,7 +3920,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/high_speed_endoscopy/python/" class="md-nav__link ">
+            <a href="../../high_speed_endoscopy/python/" class="md-nav__link ">
               
   
   
@@ -3987,7 +3996,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/holocat/" class="md-nav__link ">
+            <a href="../../holocat/" class="md-nav__link ">
               
   
   
@@ -4055,7 +4064,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/holochat/" class="md-nav__link ">
+            <a href="../../holochat/" class="md-nav__link ">
               
   
   
@@ -4179,7 +4188,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/holoscan_ros2/pubsub/" class="md-nav__link ">
+            <a href="../../holoscan_ros2/pubsub/" class="md-nav__link ">
               
   
   
@@ -4247,7 +4256,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/holoscan_ros2/vb1940/" class="md-nav__link ">
+            <a href="../../holoscan_ros2/vb1940/" class="md-nav__link ">
               
   
   
@@ -4385,7 +4394,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/holoviz/holoviz_hdr/" class="md-nav__link ">
+            <a href="../../holoviz/holoviz_hdr/" class="md-nav__link ">
               
   
   
@@ -4453,7 +4462,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/holoviz/holoviz_srgb/" class="md-nav__link ">
+            <a href="../../holoviz/holoviz_srgb/" class="md-nav__link ">
               
   
   
@@ -4521,7 +4530,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/holoviz/holoviz_ui/" class="md-nav__link ">
+            <a href="../../holoviz/holoviz_ui/" class="md-nav__link ">
               
   
   
@@ -4589,7 +4598,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/holoviz/holoviz_vsync/" class="md-nav__link ">
+            <a href="../../holoviz/holoviz_vsync/" class="md-nav__link ">
               
   
   
@@ -4657,7 +4666,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/holoviz/holoviz_yuv/" class="md-nav__link ">
+            <a href="../../holoviz/holoviz_yuv/" class="md-nav__link ">
               
   
   
@@ -4733,7 +4742,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/hyperspectral_segmentation/" class="md-nav__link ">
+            <a href="../../hyperspectral_segmentation/" class="md-nav__link ">
               
   
   
@@ -4801,7 +4810,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/imaging_ai_segmentator/" class="md-nav__link ">
+            <a href="../../imaging_ai_segmentator/" class="md-nav__link ">
               
   
   
@@ -4869,7 +4878,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/iio/" class="md-nav__link ">
+            <a href="../../iio/" class="md-nav__link ">
               
   
   
@@ -4937,7 +4946,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/realsense_visualizer/" class="md-nav__link ">
+            <a href="../../realsense_visualizer/" class="md-nav__link ">
               
   
   
@@ -5005,7 +5014,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/isaac_sim_holoscan_bridge/" class="md-nav__link ">
+            <a href="../../isaac_sim_holoscan_bridge/" class="md-nav__link ">
               
   
   
@@ -5073,7 +5082,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/bci_visualization/" class="md-nav__link ">
+            <a href="../../bci_visualization/" class="md-nav__link ">
               
   
   
@@ -5199,7 +5208,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/laser_detection_latency/evt_cam_calibration/" class="md-nav__link ">
+            <a href="../../laser_detection_latency/evt_cam_calibration/" class="md-nav__link ">
               
   
   
@@ -5267,7 +5276,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/laser_detection_latency/laser_detection/" class="md-nav__link ">
+            <a href="../../laser_detection_latency/laser_detection/" class="md-nav__link ">
               
   
   
@@ -5335,7 +5344,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/laser_detection_latency/usb_cam_calibration/" class="md-nav__link ">
+            <a href="../../laser_detection_latency/usb_cam_calibration/" class="md-nav__link ">
               
   
   
@@ -5411,7 +5420,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/pipeline_visualization/" class="md-nav__link ">
+            <a href="../../pipeline_visualization/" class="md-nav__link ">
               
   
   
@@ -5535,7 +5544,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/matlab_gpu_coder/matlab_image_processing/" class="md-nav__link ">
+            <a href="../../matlab_gpu_coder/matlab_image_processing/" class="md-nav__link ">
               
   
   
@@ -5603,7 +5612,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/matlab_gpu_coder/matlab_beamform/" class="md-nav__link ">
+            <a href="../../matlab_gpu_coder/matlab_beamform/" class="md-nav__link ">
               
   
   
@@ -5683,7 +5692,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/volume_rendering_xr/" class="md-nav__link ">
+            <a href="../../volume_rendering_xr/" class="md-nav__link ">
               
   
   
@@ -5808,7 +5817,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/volume_rendering_xr/operators/XrTransformOp/" class="md-nav__link ">
+            <a href="../../volume_rendering_xr/operators/XrTransformOp/" class="md-nav__link ">
               
   
   
@@ -5873,7 +5882,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/volume_rendering_xr/operators/XrTransformOp/XrTransformControlOp/" class="md-nav__link ">
+            <a href="../../volume_rendering_xr/operators/XrTransformOp/XrTransformControlOp/" class="md-nav__link ">
               
   
   
@@ -5941,7 +5950,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/volume_rendering_xr/operators/XrTransformOp/XrTransformRenderOp/" class="md-nav__link ">
+            <a href="../../volume_rendering_xr/operators/XrTransformOp/XrTransformRenderOp/" class="md-nav__link ">
               
   
   
@@ -6023,7 +6032,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/volume_rendering_xr/operators/XrFrameOp/" class="md-nav__link ">
+            <a href="../../volume_rendering_xr/operators/XrFrameOp/" class="md-nav__link ">
               
   
   
@@ -6088,7 +6097,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/volume_rendering_xr/operators/XrFrameOp/convert_depth/" class="md-nav__link ">
+            <a href="../../volume_rendering_xr/operators/XrFrameOp/convert_depth/" class="md-nav__link ">
               
   
   
@@ -6156,7 +6165,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/volume_rendering_xr/operators/XrFrameOp/begin_frame/" class="md-nav__link ">
+            <a href="../../volume_rendering_xr/operators/XrFrameOp/begin_frame/" class="md-nav__link ">
               
   
   
@@ -6224,7 +6233,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/volume_rendering_xr/operators/XrFrameOp/end_frame/" class="md-nav__link ">
+            <a href="../../volume_rendering_xr/operators/XrFrameOp/end_frame/" class="md-nav__link ">
               
   
   
@@ -6364,7 +6373,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/volume_rendering_xr/utils/xr_hello_holoscan/" class="md-nav__link ">
+            <a href="../../volume_rendering_xr/utils/xr_hello_holoscan/" class="md-nav__link ">
               
   
   
@@ -6429,7 +6438,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/volume_rendering_xr/utils/xr_hello_holoscan/xr_basic_render/" class="md-nav__link ">
+            <a href="../../volume_rendering_xr/utils/xr_hello_holoscan/xr_basic_render/" class="md-nav__link ">
               
   
   
@@ -6521,7 +6530,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/multiai_endoscopy/" class="md-nav__link ">
+            <a href="../../multiai_endoscopy/" class="md-nav__link ">
               
   
   
@@ -6595,7 +6604,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/multiai_ultrasound/" class="md-nav__link ">
+            <a href="../../multiai_ultrasound/" class="md-nav__link ">
               
   
   
@@ -6660,7 +6669,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/multiai_ultrasound/cpp/" class="md-nav__link ">
+            <a href="../../multiai_ultrasound/cpp/" class="md-nav__link ">
               
   
   
@@ -6728,7 +6737,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/multiai_ultrasound/python/" class="md-nav__link ">
+            <a href="../../multiai_ultrasound/python/" class="md-nav__link ">
               
   
   
@@ -6850,7 +6859,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/multiai_ultrasound/operators/visualizer_icardio/" class="md-nav__link ">
+            <a href="../../multiai_ultrasound/operators/visualizer_icardio/" class="md-nav__link ">
               
   
   
@@ -6992,7 +7001,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/nvidia_nim/nvidia_nim_chat/" class="md-nav__link ">
+            <a href="../../nvidia_nim/nvidia_nim_chat/" class="md-nav__link ">
               
   
   
@@ -7060,7 +7069,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/nvidia_nim/nvidia_nim_imaging/" class="md-nav__link ">
+            <a href="../../nvidia_nim/nvidia_nim_imaging/" class="md-nav__link ">
               
   
   
@@ -7128,7 +7137,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/nvidia_nim/nvidia_nim_nvclip/" class="md-nav__link ">
+            <a href="../../nvidia_nim/nvidia_nim_nvclip/" class="md-nav__link ">
               
   
   
@@ -7264,7 +7273,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/nvidia_video_codec/nvc_encode_decode/" class="md-nav__link ">
+            <a href="../../nvidia_video_codec/nvc_encode_decode/" class="md-nav__link ">
               
   
   
@@ -7332,7 +7341,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/nvidia_video_codec/nvc_endoscopy_tool_tracking/" class="md-nav__link ">
+            <a href="../../nvidia_video_codec/nvc_endoscopy_tool_tracking/" class="md-nav__link ">
               
   
   
@@ -7400,7 +7409,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/nvidia_video_codec/nvc_decode/" class="md-nav__link ">
+            <a href="../../nvidia_video_codec/nvc_decode/" class="md-nav__link ">
               
   
   
@@ -7468,7 +7477,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/nvidia_video_codec/nvc_encode_writer/" class="md-nav__link ">
+            <a href="../../nvidia_video_codec/nvc_encode_writer/" class="md-nav__link ">
               
   
   
@@ -7544,7 +7553,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/object_detection_torch/" class="md-nav__link ">
+            <a href="../../object_detection_torch/" class="md-nav__link ">
               
   
   
@@ -7612,7 +7621,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/openigtlink_3dslicer/" class="md-nav__link ">
+            <a href="../../openigtlink_3dslicer/" class="md-nav__link ">
               
   
   
@@ -7738,7 +7747,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/orsi/orsi_in_out_body/" class="md-nav__link ">
+            <a href="../../orsi/orsi_in_out_body/" class="md-nav__link ">
               
   
   
@@ -7806,7 +7815,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/orsi/orsi_multi_ai_ar/" class="md-nav__link ">
+            <a href="../../orsi/orsi_multi_ai_ar/" class="md-nav__link ">
               
   
   
@@ -7874,7 +7883,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/orsi/orsi_segmentation_ar/" class="md-nav__link ">
+            <a href="../../orsi/orsi_segmentation_ar/" class="md-nav__link ">
               
   
   
@@ -7950,7 +7959,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/polyp_detection/" class="md-nav__link ">
+            <a href="../../polyp_detection/" class="md-nav__link ">
               
   
   
@@ -8018,7 +8027,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/cunumeric_integration/" class="md-nav__link ">
+            <a href="../../cunumeric_integration/" class="md-nav__link ">
               
   
   
@@ -8086,7 +8095,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/prohawk_video_replayer/" class="md-nav__link ">
+            <a href="../../prohawk_video_replayer/" class="md-nav__link ">
               
   
   
@@ -8154,7 +8163,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/pva_video_filter/" class="md-nav__link ">
+            <a href="../../pva_video_filter/" class="md-nav__link ">
               
   
   
@@ -8222,7 +8231,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/qt_video_replayer/" class="md-nav__link ">
+            <a href="../../qt_video_replayer/" class="md-nav__link ">
               
   
   
@@ -8290,7 +8299,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/network_radar_pipeline/" class="md-nav__link ">
+            <a href="../../network_radar_pipeline/" class="md-nav__link ">
               
   
   
@@ -8358,7 +8367,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/video_deidentification/" class="md-nav__link ">
+            <a href="../../video_deidentification/" class="md-nav__link ">
               
   
   
@@ -8426,7 +8435,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/asr_to_llm/" class="md-nav__link ">
+            <a href="../../asr_to_llm/" class="md-nav__link ">
               
   
   
@@ -8494,7 +8503,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/sam2/" class="md-nav__link ">
+            <a href="../../sam2/" class="md-nav__link ">
               
   
   
@@ -8562,7 +8571,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/cvcuda_basic/" class="md-nav__link ">
+            <a href="../../cvcuda_basic/" class="md-nav__link ">
               
   
   
@@ -8686,7 +8695,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/simple_radar_pipeline/cpp/" class="md-nav__link ">
+            <a href="../../simple_radar_pipeline/cpp/" class="md-nav__link ">
               
   
   
@@ -8754,7 +8763,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/simple_radar_pipeline/python/" class="md-nav__link ">
+            <a href="../../simple_radar_pipeline/python/" class="md-nav__link ">
               
   
   
@@ -8886,7 +8895,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/slang/slang_gamma_correction/" class="md-nav__link ">
+            <a href="../../slang/slang_gamma_correction/" class="md-nav__link ">
               
   
   
@@ -8954,7 +8963,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/slang/slang_simple/" class="md-nav__link ">
+            <a href="../../slang/slang_simple/" class="md-nav__link ">
               
   
   
@@ -9030,7 +9039,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/sdr_fm_demodulation/" class="md-nav__link ">
+            <a href="../../sdr_fm_demodulation/" class="md-nav__link ">
               
   
   
@@ -9098,7 +9107,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/speech_to_text_llm/" class="md-nav__link ">
+            <a href="../../speech_to_text_llm/" class="md-nav__link ">
               
   
   
@@ -9166,7 +9175,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/ssd_detection_endoscopy_tools/" class="md-nav__link ">
+            <a href="../../ssd_detection_endoscopy_tools/" class="md-nav__link ">
               
   
   
@@ -9234,7 +9243,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/stereo_vision/" class="md-nav__link ">
+            <a href="../../stereo_vision/" class="md-nav__link ">
               
   
   
@@ -9302,7 +9311,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/synthetic_aperture_radar/" class="md-nav__link ">
+            <a href="../../synthetic_aperture_radar/" class="md-nav__link ">
               
   
   
@@ -9370,7 +9379,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/surgical_scene_recon/" class="md-nav__link ">
+            <a href="../../surgical_scene_recon/" class="md-nav__link ">
               
   
   
@@ -9438,7 +9447,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/tao_peoplenet/" class="md-nav__link ">
+            <a href="../../tao_peoplenet/" class="md-nav__link ">
               
   
   
@@ -9510,7 +9519,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/ultrasound_segmentation/" class="md-nav__link ">
+            <a href="../../ultrasound_segmentation/" class="md-nav__link ">
               
   
   
@@ -9575,7 +9584,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/ultrasound_segmentation/cpp/" class="md-nav__link ">
+            <a href="../../ultrasound_segmentation/cpp/" class="md-nav__link ">
               
   
   
@@ -9643,7 +9652,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/ultrasound_segmentation/python/" class="md-nav__link ">
+            <a href="../../ultrasound_segmentation/python/" class="md-nav__link ">
               
   
   
@@ -9719,7 +9728,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/ultrasound_postprocessing/" class="md-nav__link ">
+            <a href="../../ultrasound_postprocessing/" class="md-nav__link ">
               
   
   
@@ -9787,7 +9796,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/velodyne_lidar_app/" class="md-nav__link ">
+            <a href="../../velodyne_lidar_app/" class="md-nav__link ">
               
   
   
@@ -9855,7 +9864,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/vila_live/" class="md-nav__link ">
+            <a href="../../vila_live/" class="md-nav__link ">
               
   
   
@@ -9925,7 +9934,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/psd_pipeline/" class="md-nav__link ">
+            <a href="../../psd_pipeline/" class="md-nav__link ">
               
   
   
@@ -9990,7 +9999,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/psd_pipeline/data_writer/" class="md-nav__link ">
+            <a href="../../psd_pipeline/data_writer/" class="md-nav__link ">
               
   
   
@@ -10070,7 +10079,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/video_streaming/" class="md-nav__link ">
+            <a href="../../video_streaming/" class="md-nav__link ">
               
   
   
@@ -10135,7 +10144,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/video_streaming/video_streaming_client/" class="md-nav__link ">
+            <a href="../../video_streaming/video_streaming_client/" class="md-nav__link ">
               
   
   
@@ -10203,7 +10212,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/video_streaming/video_streaming_server/" class="md-nav__link ">
+            <a href="../../video_streaming/video_streaming_server/" class="md-nav__link ">
               
   
   
@@ -10279,7 +10288,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/volume_rendering/" class="md-nav__link ">
+            <a href="../../volume_rendering/" class="md-nav__link ">
               
   
   
@@ -10347,7 +10356,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/vpi_stereo/" class="md-nav__link ">
+            <a href="../../vpi_stereo/" class="md-nav__link ">
               
   
   
@@ -10415,7 +10424,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/webrtc_holoviz_server/" class="md-nav__link ">
+            <a href="../../webrtc_holoviz_server/" class="md-nav__link ">
               
   
   
@@ -10483,7 +10492,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/webrtc_video_client/" class="md-nav__link ">
+            <a href="../../webrtc_video_client/" class="md-nav__link ">
               
   
   
@@ -10551,7 +10560,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/webrtc_video_server/" class="md-nav__link ">
+            <a href="../../webrtc_video_server/" class="md-nav__link ">
               
   
   
@@ -10619,7 +10628,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/xr_gsplat/" class="md-nav__link ">
+            <a href="../../xr_gsplat/" class="md-nav__link ">
               
   
   
@@ -10687,7 +10696,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/xr_holoviz/" class="md-nav__link ">
+            <a href="../../xr_holoviz/" class="md-nav__link ">
               
   
   
@@ -10755,7 +10764,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/yolo_model_deployment/" class="md-nav__link ">
+            <a href="../../yolo_model_deployment/" class="md-nav__link ">
               
   
   
@@ -10806,8 +10815,6 @@
       
   
   
-    
-  
   
   
     
@@ -10913,21 +10920,18 @@
     
     
       
-        
-        
-      
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../" class="md-nav__link ">
+            <a href="../../../operators/" class="md-nav__link ">
               
   
   
@@ -10945,13 +10949,13 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
@@ -10992,7 +10996,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../advanced_network/" class="md-nav__link ">
+            <a href="../../../operators/advanced_network/" class="md-nav__link ">
               
   
   
@@ -11060,7 +11064,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../aja_source/" class="md-nav__link ">
+            <a href="../../../operators/aja_source/" class="md-nav__link ">
               
   
   
@@ -11128,7 +11132,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../apriltag_detector/" class="md-nav__link ">
+            <a href="../../../operators/apriltag_detector/" class="md-nav__link ">
               
   
   
@@ -11196,7 +11200,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../basic_network/" class="md-nav__link ">
+            <a href="../../../operators/basic_network/" class="md-nav__link ">
               
   
   
@@ -11264,7 +11268,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../lstm_tensor_rt_inference/" class="md-nav__link ">
+            <a href="../../../operators/lstm_tensor_rt_inference/" class="md-nav__link ">
               
   
   
@@ -11332,7 +11336,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../cvcuda_holoscan_interop/" class="md-nav__link ">
+            <a href="../../../operators/cvcuda_holoscan_interop/" class="md-nav__link ">
               
   
   
@@ -11406,7 +11410,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../dds/" class="md-nav__link ">
+            <a href="../../../operators/dds/" class="md-nav__link ">
               
   
   
@@ -11471,7 +11475,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../dds/base/" class="md-nav__link ">
+            <a href="../../../operators/dds/base/" class="md-nav__link ">
               
   
   
@@ -11539,7 +11543,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../dds/dds_shapes_subscriber/" class="md-nav__link ">
+            <a href="../../../operators/dds/dds_shapes_subscriber/" class="md-nav__link ">
               
   
   
@@ -11607,7 +11611,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../dds/video/" class="md-nav__link ">
+            <a href="../../../operators/dds/video/" class="md-nav__link ">
               
   
   
@@ -11683,7 +11687,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../deltacast_videomaster/" class="md-nav__link ">
+            <a href="../../../operators/deltacast_videomaster/" class="md-nav__link ">
               
   
   
@@ -11805,7 +11809,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../deidentification/pixelator/" class="md-nav__link ">
+            <a href="../../../operators/deidentification/pixelator/" class="md-nav__link ">
               
   
   
@@ -11889,7 +11893,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../ehr_query_llm/" class="md-nav__link ">
+            <a href="../../../operators/ehr_query_llm/" class="md-nav__link ">
               
   
   
@@ -11954,7 +11958,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../ehr_query_llm/fhir_client_op/" class="md-nav__link ">
+            <a href="../../../operators/ehr_query_llm/fhir_client_op/" class="md-nav__link ">
               
   
   
@@ -12022,7 +12026,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../ehr_query_llm/fhir_resource_sanitizer_op/" class="md-nav__link ">
+            <a href="../../../operators/ehr_query_llm/fhir_resource_sanitizer_op/" class="md-nav__link ">
               
   
   
@@ -12090,7 +12094,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../ehr_query_llm/zero_mq_publisher_op/" class="md-nav__link ">
+            <a href="../../../operators/ehr_query_llm/zero_mq_publisher_op/" class="md-nav__link ">
               
   
   
@@ -12158,7 +12162,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../ehr_query_llm/zero_mq_subscriber_op/" class="md-nav__link ">
+            <a href="../../../operators/ehr_query_llm/zero_mq_subscriber_op/" class="md-nav__link ">
               
   
   
@@ -12234,7 +12238,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../emergent_source/" class="md-nav__link ">
+            <a href="../../../operators/emergent_source/" class="md-nav__link ">
               
   
   
@@ -12302,7 +12306,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../fft/" class="md-nav__link ">
+            <a href="../../../operators/fft/" class="md-nav__link ">
               
   
   
@@ -12370,7 +12374,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../gamma_correction/" class="md-nav__link ">
+            <a href="../../../operators/gamma_correction/" class="md-nav__link ">
               
   
   
@@ -12438,7 +12442,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../gstreamer/" class="md-nav__link ">
+            <a href="../../../operators/gstreamer/" class="md-nav__link ">
               
   
   
@@ -12506,7 +12510,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../tensor_to_video_buffer/" class="md-nav__link ">
+            <a href="../../../operators/tensor_to_video_buffer/" class="md-nav__link ">
               
   
   
@@ -12574,7 +12578,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../high_rate_psd/" class="md-nav__link ">
+            <a href="../../../operators/high_rate_psd/" class="md-nav__link ">
               
   
   
@@ -12642,7 +12646,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../grpc_operators/" class="md-nav__link ">
+            <a href="../../../operators/grpc_operators/" class="md-nav__link ">
               
   
   
@@ -12710,7 +12714,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../holoscan_ros2/" class="md-nav__link ">
+            <a href="../../../operators/holoscan_ros2/" class="md-nav__link ">
               
   
   
@@ -12778,7 +12782,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../iio_controller/" class="md-nav__link ">
+            <a href="../../../operators/iio_controller/" class="md-nav__link ">
               
   
   
@@ -12846,7 +12850,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../realsense_camera/" class="md-nav__link ">
+            <a href="../../../operators/realsense_camera/" class="md-nav__link ">
               
   
   
@@ -12914,7 +12918,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../low_rate_psd/" class="md-nav__link ">
+            <a href="../../../operators/low_rate_psd/" class="md-nav__link ">
               
   
   
@@ -12958,8 +12962,6 @@
                 
   
   
-    
-  
   
   
     
@@ -13004,15 +13006,15 @@
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_23" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_23" >
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../" class="md-nav__link ">
+            <a href="../../../operators/medical_imaging/" class="md-nav__link ">
               
   
   
@@ -13036,7 +13038,7 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_23_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_23_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4_23">
             <span class="md-nav__icon md-icon"></span>
             
@@ -13077,7 +13079,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../clara_viz_operator/" class="md-nav__link ">
+            <a href="../../../operators/medical_imaging/clara_viz_operator/" class="md-nav__link ">
               
   
   
@@ -13145,7 +13147,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../dicom_data_loader_operator/" class="md-nav__link ">
+            <a href="../../../operators/medical_imaging/dicom_data_loader_operator/" class="md-nav__link ">
               
   
   
@@ -13213,7 +13215,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../dicom_encapsulated_pdf_writer_operator/" class="md-nav__link ">
+            <a href="../../../operators/medical_imaging/dicom_encapsulated_pdf_writer_operator/" class="md-nav__link ">
               
   
   
@@ -13281,7 +13283,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../dicom_seg_writer_operator/" class="md-nav__link ">
+            <a href="../../../operators/medical_imaging/dicom_seg_writer_operator/" class="md-nav__link ">
               
   
   
@@ -13349,7 +13351,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../dicom_series_selector_operator/" class="md-nav__link ">
+            <a href="../../../operators/medical_imaging/dicom_series_selector_operator/" class="md-nav__link ">
               
   
   
@@ -13417,7 +13419,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../dicom_series_to_volume_operator/" class="md-nav__link ">
+            <a href="../../../operators/medical_imaging/dicom_series_to_volume_operator/" class="md-nav__link ">
               
   
   
@@ -13485,7 +13487,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../dicom_text_sr_writer_operator/" class="md-nav__link ">
+            <a href="../../../operators/medical_imaging/dicom_text_sr_writer_operator/" class="md-nav__link ">
               
   
   
@@ -13553,7 +13555,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../inference_operator/" class="md-nav__link ">
+            <a href="../../../operators/medical_imaging/inference_operator/" class="md-nav__link ">
               
   
   
@@ -13621,7 +13623,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../monai_bundle_inference_operator/" class="md-nav__link ">
+            <a href="../../../operators/medical_imaging/monai_bundle_inference_operator/" class="md-nav__link ">
               
   
   
@@ -13665,8 +13667,6 @@
                 
   
   
-    
-  
   
   
     
@@ -13683,15 +13683,15 @@
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_23_11" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_23_11" >
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="./" class="md-nav__link md-nav__link--active">
+            <a href="../../../operators/medical_imaging/monai_seg_inference_operator/" class="md-nav__link ">
               
   
   
@@ -13710,7 +13710,7 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_23_11_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_23_11_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4_23_11">
             <span class="md-nav__icon md-icon"></span>
             
@@ -13759,7 +13759,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../nii_data_loader_operator/" class="md-nav__link ">
+            <a href="../../../operators/medical_imaging/nii_data_loader_operator/" class="md-nav__link ">
               
   
   
@@ -13827,7 +13827,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../png_converter_operator/" class="md-nav__link ">
+            <a href="../../../operators/medical_imaging/png_converter_operator/" class="md-nav__link ">
               
   
   
@@ -13895,7 +13895,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../publisher_operator/" class="md-nav__link ">
+            <a href="../../../operators/medical_imaging/publisher_operator/" class="md-nav__link ">
               
   
   
@@ -13963,7 +13963,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../stl_conversion_operator/" class="md-nav__link ">
+            <a href="../../../operators/medical_imaging/stl_conversion_operator/" class="md-nav__link ">
               
   
   
@@ -14039,7 +14039,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../mesh_to_usd/" class="md-nav__link ">
+            <a href="../../../operators/mesh_to_usd/" class="md-nav__link ">
               
   
   
@@ -14107,7 +14107,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../npp_filter/" class="md-nav__link ">
+            <a href="../../../operators/npp_filter/" class="md-nav__link ">
               
   
   
@@ -14175,7 +14175,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../nvidia_video_codec/" class="md-nav__link ">
+            <a href="../../../operators/nvidia_video_codec/" class="md-nav__link ">
               
   
   
@@ -14243,7 +14243,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../openigtlink/" class="md-nav__link ">
+            <a href="../../../operators/openigtlink/" class="md-nav__link ">
               
   
   
@@ -14311,7 +14311,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../xr/" class="md-nav__link ">
+            <a href="../../../operators/xr/" class="md-nav__link ">
               
   
   
@@ -14379,7 +14379,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../orsi/" class="md-nav__link ">
+            <a href="../../../operators/orsi/" class="md-nav__link ">
               
   
   
@@ -14447,7 +14447,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../prohawk_video_processing/" class="md-nav__link ">
+            <a href="../../../operators/prohawk_video_processing/" class="md-nav__link ">
               
   
   
@@ -14515,7 +14515,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../qt_video/" class="md-nav__link ">
+            <a href="../../../operators/qt_video/" class="md-nav__link ">
               
   
   
@@ -14583,7 +14583,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../slang_shader/" class="md-nav__link ">
+            <a href="../../../operators/slang_shader/" class="md-nav__link ">
               
   
   
@@ -14651,7 +14651,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../streaming_server/" class="md-nav__link ">
+            <a href="../../../operators/streaming_server/" class="md-nav__link ">
               
   
   
@@ -14719,7 +14719,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../streaming_client/" class="md-nav__link ">
+            <a href="../../../operators/streaming_client/" class="md-nav__link ">
               
   
   
@@ -14787,7 +14787,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../tensor_to_file/" class="md-nav__link ">
+            <a href="../../../operators/tensor_to_file/" class="md-nav__link ">
               
   
   
@@ -14855,7 +14855,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../tool_tracking_postprocessor/" class="md-nav__link ">
+            <a href="../../../operators/tool_tracking_postprocessor/" class="md-nav__link ">
               
   
   
@@ -14923,7 +14923,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../unzip/" class="md-nav__link ">
+            <a href="../../../operators/unzip/" class="md-nav__link ">
               
   
   
@@ -15045,7 +15045,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../velodyne_lidar/cpp/" class="md-nav__link ">
+            <a href="../../../operators/velodyne_lidar/cpp/" class="md-nav__link ">
               
   
   
@@ -15121,7 +15121,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../vita49_psd_packetizer/" class="md-nav__link ">
+            <a href="../../../operators/vita49_psd_packetizer/" class="md-nav__link ">
               
   
   
@@ -15243,7 +15243,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../video_encoder/video_encoder_request/" class="md-nav__link ">
+            <a href="../../../operators/video_encoder/video_encoder_request/" class="md-nav__link ">
               
   
   
@@ -15323,7 +15323,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../video_streaming/" class="md-nav__link ">
+            <a href="../../../operators/video_streaming/" class="md-nav__link ">
               
   
   
@@ -15388,7 +15388,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../video_streaming/video_streaming_server/" class="md-nav__link ">
+            <a href="../../../operators/video_streaming/video_streaming_server/" class="md-nav__link ">
               
   
   
@@ -15456,7 +15456,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../video_streaming/video_streaming_client/" class="md-nav__link ">
+            <a href="../../../operators/video_streaming/video_streaming_client/" class="md-nav__link ">
               
   
   
@@ -15532,7 +15532,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../volume_loader/" class="md-nav__link ">
+            <a href="../../../operators/volume_loader/" class="md-nav__link ">
               
   
   
@@ -15600,7 +15600,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../volume_renderer/" class="md-nav__link ">
+            <a href="../../../operators/volume_renderer/" class="md-nav__link ">
               
   
   
@@ -15668,7 +15668,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../vtk_renderer/" class="md-nav__link ">
+            <a href="../../../operators/vtk_renderer/" class="md-nav__link ">
               
   
   
@@ -15736,7 +15736,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../webrtc_client/" class="md-nav__link ">
+            <a href="../../../operators/webrtc_client/" class="md-nav__link ">
               
   
   
@@ -15804,7 +15804,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../webrtc_server/" class="md-nav__link ">
+            <a href="../../../operators/webrtc_server/" class="md-nav__link ">
               
   
   
@@ -15872,7 +15872,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../yuan_qcap/" class="md-nav__link ">
+            <a href="../../../operators/yuan_qcap/" class="md-nav__link ">
               
   
   
@@ -17931,13 +17931,30 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
+  <a href="#description" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Overview
+        Description
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Description">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-feature-custom-pipeline-construction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Feature: Custom Pipeline Construction
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -17953,10 +17970,238 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#example-usage" class="md-nav__link">
+  <a href="#quick-start" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Example Usage
+        Quick Start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#building" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Building
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Building">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#option-1-containerized-build-recommended" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option 1: Containerized Build (Recommended)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-2-local-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option 2: Local Build
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Options
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#v4l2-camera-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        V4L2 Camera Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pattern-generator-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pattern Generator Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#video-sources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Video Sources
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-bridge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output Bridge
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pipeline-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pipeline Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Notes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#video-sources_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Video Sources
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gstreamer-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GStreamer Pipeline
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
       
     </span>
   </a>
@@ -18009,7 +18254,7 @@
         <a href="../../" class="md-path__link">
           
   <span class="md-ellipsis">
-    Operators
+    Applications
   </span>
 
         </a>
@@ -18023,15 +18268,23 @@
   
     
     
+      
+  
+  
+    
+    
       <li class="md-path__item">
-        <a href="../" class="md-path__link">
+        <a href="../gst_to_holo/" class="md-path__link">
           
   <span class="md-ellipsis">
-    Medical Imaging
+    Gstreamer
   </span>
 
         </a>
       </li>
+    
+  
+
     
   
 
@@ -18045,7 +18298,7 @@
         <a href="./" class="md-path__link">
           
   <span class="md-ellipsis">
-    MONAI Segmentation Inference
+    Holoscan to GStreamer
   </span>
 
         </a>
@@ -18068,83 +18321,328 @@
       
       
       
-        <a href="../../../tags/#tag:inference" class="md-tag">Inference</a>
+        <a href="../../../tags/#tag:camera" class="md-tag">Camera</a>
       
     
       
       
       
       
-        <a href="../../../tags/#tag:monai" class="md-tag">MONAI</a>
+        <a href="../../../tags/#tag:gstreamer" class="md-tag">GStreamer</a>
       
     
       
       
       
       
-        <a href="../../../tags/#tag:medical-imaging" class="md-tag">Medical Imaging</a>
+        <a href="../../../tags/#tag:source" class="md-tag">Source</a>
       
     
       
       
       
       
-        <a href="../../../tags/#tag:segmentation" class="md-tag">Segmentation</a>
+        <a href="../../../tags/#tag:streaming" class="md-tag">Streaming</a>
+      
+    
+      
+      
+      
+      
+        <a href="../../../tags/#tag:v4l2" class="md-tag">V4L2</a>
+      
+    
+      
+      
+      
+      
+        <a href="../../../tags/#tag:video" class="md-tag">Video</a>
       
     
   </nav>
 
 
 
-<h1 id="monai-segmentation-inference-operator"><a href="https://github.com/nvidia-holoscan/holohub/blob/main/operators/medical_imaging/monai_seg_inference_operator">MONAI Segmentation Inference Operator</a><a class="headerlink" href="#monai-segmentation-inference-operator" title="Permanent link">#</a></h1>
-<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/></svg></span> <strong>Authors:</strong> Holoscan SDK Team (NVIDIA)<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"/></svg></span> <strong>Supported platforms:</strong> x86_64, aarch64<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"/><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"/></svg></span> <strong>Language:</strong> Python<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> <strong>Last modified:</strong> August 5, 2025<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> <strong>Latest version:</strong> 1.1.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"/><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/></svg></span> <strong>Minimum Holoscan SDK version:</strong> 1.0.3<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"/></svg></span> <strong>Tested Holoscan SDK versions:</strong> 2.2.0, 3.2.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"/></svg></span> <strong>Contribution metric:</strong> Level 2 - Trusted<br><br></p>
-<p>This segmentation operator uses MONAI transforms and Sliding Window Inference to segment medical images.</p>
-<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h2>
-<p>The <code>MonaiSegInferenceOperator</code> performs pre-transforms on input images, runs segmentation inference using a specified model, and applies post-transforms. The segmentation result is returned as an in-memory image object and can optionally be saved to disk.</p>
+<h1 id="holoscan-to-gstreamer"><a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/gstreamer/holo_to_gst">Holoscan to GStreamer</a><a class="headerlink" href="#holoscan-to-gstreamer" title="Permanent link">#</a></h1>
+<p><button class="run-locally-button"
+    data-app-name="Holoscan to GStreamer"
+    data-app-short-name="holo_to_gst"
+    data-app-language="C++"
+    data-component-type="application"
+    data-needs-language-flag="false"
+    data-modes="[{&quot;name&quot;: &quot;pattern&quot;, &quot;description&quot;: &quot;Stream pattern generator video to GStreamer&quot;}, {&quot;name&quot;: &quot;v4l2&quot;, &quot;description&quot;: &quot;Stream video from a V4L2 camera to GStreamer&quot;}]">
+    ▶ Run Locally
+</button>
+<span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/></svg></span> <strong>Authors:</strong> Holoscan Team (NVIDIA)<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"/></svg></span> <strong>Supported platforms:</strong> aarch64, x86_64<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"/><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"/></svg></span> <strong>Language:</strong> C++<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> <strong>Last modified:</strong> February 10, 2026<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> <strong>Latest version:</strong> 1.0.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"/><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/></svg></span> <strong>Minimum Holoscan SDK version:</strong> 3.8.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"/></svg></span> <strong>Tested Holoscan SDK versions:</strong> 3.8.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"/></svg></span> <strong>Contribution metric:</strong> Level 2 - Trusted<br><br></p>
+<p>A Holoscan application that pushes video data from Holoscan operators into GStreamer pipelines for processing, encoding, and streaming.</p>
+<p><img alt="Holoscan to GStreamer Pipeline" src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/gstreamer/holo_to_gst/docs/pipeline_diagram.png?raw=true" /></p>
+<p>Fig. 1: Application architecture showing the integration of Holoscan operators with GStreamer's flexible processing pipeline</p>
+<h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">#</a></h2>
+<p>This application showcases how to:</p>
+<ul>
+<li>Capture video from V4L2 cameras (USB webcams, MIPI cameras, etc.) or generate test patterns</li>
+<li>Push video frames from Holoscan to GStreamer for processing</li>
+<li><strong>Build custom GStreamer pipelines</strong> for your specific use case (encoding, streaming, effects, etc.)</li>
+<li>Stream or record video using any combination of GStreamer's 1000+ plugins</li>
+<li>Use different video codecs and effects through GStreamer plugins</li>
+<li>Support both host and CUDA device memory for zero-copy operation</li>
+</ul>
+<h3 id="key-feature-custom-pipeline-construction">Key Feature: Custom Pipeline Construction<a class="headerlink" href="#key-feature-custom-pipeline-construction" title="Permanent link">#</a></h3>
+<p>The application provides a flexible bridge between Holoscan and GStreamer. You can construct <strong>any GStreamer pipeline</strong> you want - the examples provided are just demonstrations. This enables unlimited possibilities:
+- Video encoding (H.264, H.265, VP8, VP9, AV1, etc.)
+- Live streaming (RTP, RTSP, WebRTC, HLS, etc.)
+- Video effects and filters (flip, rotate, color correction, etc.)
+- Format conversion (resize, colorspace, etc.)
+- Multi-output (tee to multiple destinations)
+- Custom plugins (use your own GStreamer plugins)</p>
+<p><strong>Supported Video Sources:</strong></p>
+<ul>
+<li><strong>V4L2 Camera</strong> - Capture from any V4L2-compatible camera (USB webcams, MIPI cameras, etc.)</li>
+<li><strong>Pattern Generator</strong> - Generate animated test patterns (gradient, checkerboard, color bars)</li>
+</ul>
 <h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h2>
 <ul>
-<li>Holoscan SDK Python package</li>
-<li>MONAI</li>
-<li>torch</li>
+<li>NVIDIA Holoscan SDK</li>
+<li>GStreamer 1.0 with the following plugins:</li>
+<li>gstreamer1.0-plugins-base (videoconvert for host memory support)</li>
+<li>gstreamer1.0-plugins-bad (cudaconvert, cudadownload, nvh264enc, nvh265enc for NVIDIA hardware encoding)</li>
+<li>gstreamer1.0-plugins-good (mp4mux, matroskamux for container formats, autovideosink for display)</li>
+<li>gstreamer1.0-plugins-ugly (x264enc for CPU-based H.264 encoding)</li>
+<li>Additional codecs available through gstreamer1.0-libav if needed</li>
+<li>V4L2-compatible camera (optional, for camera capture mode)</li>
+<li>USB webcams, MIPI CSI cameras, or any V4L2 video device</li>
+<li>Use <code>v4l2-ctl --list-devices</code> to see available cameras</li>
 </ul>
-<h2 id="example-usage">Example Usage<a class="headerlink" href="#example-usage" title="Permanent link">#</a></h2>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">monai.transforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">Compose</span><span class="p">,</span> <span class="n">LoadImage</span><span class="p">,</span> <span class="n">ScaleIntensity</span><span class="p">,</span> <span class="n">EnsureChannelFirst</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">holoscan.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Fragment</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">operators.medical_imaging.monai_segmentation_inference_operator</span><span class="w"> </span><span class="kn">import</span> <span class="n">MonaiSegInferenceOperator</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">operators.medical_imaging.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AppContext</span><span class="p">,</span> <span class="n">IOMapping</span><span class="p">,</span> <span class="n">IOType</span><span class="p">,</span> <span class="n">Image</span>
-
-<span class="c1"># Initialize the fragment</span>
-<span class="n">fragment</span> <span class="o">=</span> <span class="n">Fragment</span><span class="p">()</span>
-
-<span class="c1"># Create app context</span>
-<span class="n">app_context</span> <span class="o">=</span> <span class="n">AppContext</span><span class="p">({})</span>
-
-<span class="c1"># Define transforms</span>
-<span class="n">pre_transforms</span> <span class="o">=</span> <span class="n">Compose</span><span class="p">([</span>
-    <span class="n">LoadImage</span><span class="p">(</span><span class="n">image_only</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-    <span class="n">EnsureChannelFirst</span><span class="p">(),</span>
-    <span class="n">ScaleIntensity</span><span class="p">(),</span>
-<span class="p">])</span>
-
-<span class="n">post_transforms</span> <span class="o">=</span> <span class="n">Compose</span><span class="p">([</span>
-    <span class="c1"># Add your post-processing transforms here</span>
-<span class="p">])</span>
-
-<span class="c1"># Initialize the segmentation operator</span>
-<span class="n">seg_op</span> <span class="o">=</span> <span class="n">MonaiSegInferenceOperator</span><span class="p">(</span>
-    <span class="n">fragment</span><span class="p">,</span>
-    <span class="n">roi_size</span><span class="o">=</span><span class="p">(</span><span class="mi">96</span><span class="p">,</span> <span class="mi">96</span><span class="p">,</span> <span class="mi">96</span><span class="p">),</span>  <span class="c1"># Example ROI size for 3D images</span>
-    <span class="n">pre_transforms</span><span class="o">=</span><span class="n">pre_transforms</span><span class="p">,</span>
-    <span class="n">post_transforms</span><span class="o">=</span><span class="n">post_transforms</span><span class="p">,</span>
-    <span class="n">app_context</span><span class="o">=</span><span class="n">app_context</span><span class="p">,</span>
-    <span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;unet&quot;</span><span class="p">,</span>  <span class="c1"># Example model name</span>
-    <span class="n">overlap</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>
-    <span class="n">sw_batch_size</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-    <span class="n">model_path</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;/path/to/your/model.pt&quot;</span><span class="p">)</span>  <span class="c1"># Replace with your model path</span>
-<span class="p">)</span>
+<h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">#</a></h2>
+<p>To run the application with the default settings, simply run one of the following commands:</p>
+<p>A. Using the <strong>V4L2 camera</strong>:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>v4l2
 </code></pre></div>
+<p>B. Generating test patterns:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>pattern
+</code></pre></div>
+<p>These single-line commands will build and run the customized container for this application with all the dependencies installed, and then build and start the application using the default settings.</p>
+<h2 id="building">Building<a class="headerlink" href="#building" title="Permanent link">#</a></h2>
+<h3 id="option-1-containerized-build-recommended">Option 1: Containerized Build (Recommended)<a class="headerlink" href="#option-1-containerized-build-recommended" title="Permanent link">#</a></h3>
+<p>No setup required - all dependencies are included in the container:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>holo_to_gst
+</code></pre></div>
+<h3 id="option-2-local-build">Option 2: Local Build<a class="headerlink" href="#option-2-local-build" title="Permanent link">#</a></h3>
+<p>For faster builds and easier debugging. First install dependencies, then build locally:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Install dependencies (from workspace root)</span>
+./applications/gstreamer/install_deps.sh
+
+<span class="c1"># Then build locally</span>
+./holohub<span class="w"> </span>build<span class="w"> </span>--local<span class="w"> </span>holo_to_gst
+</code></pre></div>
+<p>The <code>install_deps.sh</code> script installs:</p>
+<ul>
+<li>pkg-config (required for CMake)</li>
+<li>GStreamer development libraries</li>
+<li>All necessary GStreamer plugins for processing and encoding</li>
+</ul>
+<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">#</a></h2>
+<p>The recommended way to run the application is through the <code>holohub</code> launcher with predefined modes:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span><span class="o">[</span>MODE<span class="o">]</span><span class="w"> </span><span class="o">[</span>--run-args<span class="o">=</span><span class="s2">&quot;[OPTIONS]&quot;</span><span class="o">]</span>
+</code></pre></div>
+<p>Available modes:
+- <code>v4l2</code> - Display live feed from V4L2 camera
+- <code>pattern</code> - Display animated gradient pattern</p>
+<p>You can override or extend mode settings with <code>--run-args</code>:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>v4l2<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--count 300 --pipeline &#39;...&#39;&quot;</span>
+</code></pre></div>
+<p>Alternatively, if you know the binary location, you can run it directly:</p>
+<div class="highlight"><pre><span></span><code>holo-to-gst<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</code></pre></div>
+<h3 id="options">Options<a class="headerlink" href="#options" title="Permanent link">#</a></h3>
+<p><strong>General Options:</strong></p>
+<ul>
+<li><code>--source &lt;type&gt;</code> - Video source: <code>pattern</code> or <code>v4l2</code> (default: pattern)</li>
+<li><code>-c, --count &lt;number&gt;</code> - Number of frames to capture/generate (default: unlimited)</li>
+<li><code>-f, --framerate &lt;fps&gt;</code> - Frame rate in frames per second (default: 30)</li>
+<li><code>-p, --pipeline &lt;desc&gt;</code> - GStreamer pipeline description (default: <code>cudadownload name=src ! videoconvert ! autovideosink sync=false</code>)</li>
+<li><strong>IMPORTANT</strong>: Your pipeline MUST name the first element as 'src'</li>
+<li><strong>Build any pipeline you want</strong>: The examples are just suggestions - you have full access to GStreamer's 1000+ plugins</li>
+<li><strong>Examples</strong>: encoding, streaming, effects, filters, multi-output, custom plugins, etc.</li>
+<li><code>--caps &lt;caps_string&gt;</code> - GStreamer capabilities for the source (default: <code>video/x-raw,format=RGBA</code>)</li>
+<li><code>--help</code> - Show help message</li>
+</ul>
+<p><strong>Resolution Options:</strong></p>
+<ul>
+<li><code>-w, --width &lt;pixels&gt;</code> - Frame width (default: 1920)</li>
+<li>For V4L2: Must match a supported camera resolution</li>
+<li>For pattern: Any reasonable resolution (64-8192 pixels)</li>
+<li><code>-h, --height &lt;pixels&gt;</code> - Frame height (default: 1080)</li>
+<li>For V4L2: Must match a supported camera resolution</li>
+<li>For pattern: Any reasonable resolution (64-8192 pixels)</li>
+</ul>
+<p><strong>V4L2 Camera Options:</strong></p>
+<ul>
+<li><code>--device &lt;path&gt;</code> - V4L2 device path (default: /dev/video0)</li>
+<li>Use <code>v4l2-ctl --list-devices</code> to find the correct device</li>
+<li>Some devices (like <code>/dev/video1</code>) may be metadata-only and won't work</li>
+<li><code>--pixel-format &lt;format&gt;</code> - V4L2 pixel format (default: auto)</li>
+<li>Must use 4-character FourCC codes: <code>YUYV</code>, <code>MJPG</code>, <code>NV12</code></li>
+<li><code>YUYV</code>/<code>NV12</code>: Uncompressed, typically max 1920x1080</li>
+<li><code>MJPG</code>: Compressed, supports higher resolutions (4K on some cameras)</li>
+<li><code>auto</code>: Automatically selects format (usually YUYV for lower resolutions)</li>
+<li><code>--storage &lt;type&gt;</code> - Must be set to <code>1</code> for V4L2 (FormatConverterOp outputs GPU memory)</li>
+</ul>
+<p><strong>Pattern Generator Options:</strong></p>
+<ul>
+<li><code>--pattern &lt;type&gt;</code> - Pattern type (default: 0)</li>
+<li>0 = animated gradient</li>
+<li>1 = animated checkerboard</li>
+<li>2 = color bars (SMPTE style)</li>
+<li><code>--storage &lt;type&gt;</code> - Memory storage type (default: 1)</li>
+<li>0 = host memory</li>
+<li>1 = device/CUDA memory</li>
+</ul>
+<h3 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">#</a></h3>
+<p><strong>Note</strong>: The following examples demonstrate common use cases. You can construct <strong>any GStreamer pipeline</strong> you want by using the <code>--pipeline</code> parameter. These are just starting points - feel free to combine, modify, or create entirely new pipelines using GStreamer's extensive plugin ecosystem.</p>
+<h4 id="v4l2-camera-examples">V4L2 Camera Examples<a class="headerlink" href="#v4l2-camera-examples" title="Permanent link">#</a></h4>
+<p><strong>Important Note</strong>: V4L2 cameras expose multiple <code>/dev/videoX</code> devices. Use <code>v4l2-ctl --list-devices</code> to identify the main video capture device (usually <code>/dev/video0</code>). Some devices like <code>/dev/video1</code> may be metadata-only and won't work for video capture.</p>
+<p><strong>Display live camera feed (default 1920x1080):</strong></p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>v4l2
+</code></pre></div>
+<p><strong>Record from default V4L2 camera (30 seconds at 30 FPS, 1080p):</strong></p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>v4l2<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--count 900 --pipeline &#39;cudadownload name=src ! videoconvert ! x264enc ! mp4mux ! filesink location=/workspace/holohub/camera.mp4&#39;&quot;</span>
+</code></pre></div>
+<p>The output file will be available at <code>holohub/camera.mp4</code> on your host.</p>
+<p><strong>Record at 720p resolution with GPU encoder:</strong></p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>v4l2<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--width 1280 --height 720 --count 600 --pipeline &#39;cudaconvert name=src ! nvh264enc ! h264parse ! mp4mux ! filesink location=/workspace/holohub/camera_720p.mp4&#39;&quot;</span>
+</code></pre></div>
+<p><strong>Record in 4K (may require MJPG format for high resolution):</strong></p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>v4l2<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--width 3840 --height 2160 --pixel-format MJPG --count 300 --pipeline &#39;cudaconvert name=src ! nvh264enc ! h264parse ! mp4mux ! filesink location=/workspace/holohub/camera_4k.mp4&#39;&quot;</span>
+</code></pre></div>
+<p><strong>Stream camera over network (RTP):</strong></p>
+<p><strong>Important:</strong> For UDP streaming, start the receiver FIRST, then the sender. UDP is connectionless - packets sent before the receiver is ready are lost.</p>
+<p>Terminal 1 - Start receiver first:
+<div class="highlight"><pre><span></span><code>gst-launch-1.0<span class="w"> </span>udpsrc<span class="w"> </span><span class="nv">port</span><span class="o">=</span><span class="m">5000</span><span class="w"> </span><span class="nv">caps</span><span class="o">=</span><span class="s2">&quot;application/x-rtp,encoding-name=H264&quot;</span><span class="w"> </span>!<span class="w"> </span>rtph264depay<span class="w"> </span>!<span class="w"> </span>h264parse<span class="w"> </span>!<span class="w"> </span>avdec_h264<span class="w"> </span>!<span class="w"> </span>videoconvert<span class="w"> </span>!<span class="w"> </span>autovideosink
+</code></pre></div></p>
+<p>Terminal 2 - Then start streaming (no --count for continuous streaming):
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>v4l2<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--pipeline &#39;cudaconvert name=src ! nvh264enc ! h264parse ! rtph264pay ! udpsink host=127.0.0.1 port=5000&#39;&quot;</span>
+</code></pre></div></p>
+<p><strong>Checking Camera Capabilities:</strong></p>
+<p>Before running, check your camera's supported formats and resolutions:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># List all V4L2 devices</span>
+v4l2-ctl<span class="w"> </span>--list-devices
+
+<span class="c1"># Check supported formats for a specific device (usually /dev/video0)</span>
+v4l2-ctl<span class="w"> </span>--list-formats-ext<span class="w"> </span>-d<span class="w"> </span>/dev/video0
+</code></pre></div>
+<h4 id="pattern-generator-examples">Pattern Generator Examples<a class="headerlink" href="#pattern-generator-examples" title="Permanent link">#</a></h4>
+<p><strong>Display animated gradient (default):</strong></p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>pattern
+</code></pre></div>
+<p><strong>Display checkerboard pattern:</strong></p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>pattern<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--pattern 1&quot;</span>
+</code></pre></div>
+<p><strong>Record pattern to file (10 seconds at 30 FPS):</strong></p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>pattern<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--count 300 --pipeline &#39;cudadownload name=src ! videoconvert ! x264enc ! mp4mux ! filesink location=/workspace/holohub/output.mp4&#39;&quot;</span>
+</code></pre></div>
+<p><strong>Record 720p video:</strong></p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>pattern<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--width 1280 --height 720 --count 300 --pipeline &#39;cudadownload name=src ! videoconvert ! x264enc ! mp4mux ! filesink location=/workspace/holohub/output_720p.mp4&#39;&quot;</span>
+</code></pre></div>
+<p><strong>Stream pattern over network:</strong></p>
+<p>Terminal 1 - Start receiver first:
+<div class="highlight"><pre><span></span><code>gst-launch-1.0<span class="w"> </span>udpsrc<span class="w"> </span><span class="nv">port</span><span class="o">=</span><span class="m">5000</span><span class="w"> </span><span class="nv">caps</span><span class="o">=</span><span class="s2">&quot;application/x-rtp,encoding-name=H264&quot;</span><span class="w"> </span>!<span class="w"> </span>rtph264depay<span class="w"> </span>!<span class="w"> </span>h264parse<span class="w"> </span>!<span class="w"> </span>avdec_h264<span class="w"> </span>!<span class="w"> </span>videoconvert<span class="w"> </span>!<span class="w"> </span>autovideosink
+</code></pre></div></p>
+<p>Terminal 2 - Then start streaming:
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>pattern<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--pipeline &#39;cudadownload name=src ! videoconvert ! x264enc ! rtph264pay ! udpsink host=127.0.0.1 port=5000&#39;&quot;</span>
+</code></pre></div></p>
+<h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">#</a></h2>
+<p>The application supports two video sources and uses GStreamer for output processing:</p>
+<h3 id="video-sources">Video Sources<a class="headerlink" href="#video-sources" title="Permanent link">#</a></h3>
+<ol>
+<li><strong>V4L2VideoCaptureOp</strong>: Captures video from V4L2-compatible cameras (USB webcams, MIPI CSI cameras, etc.)</li>
+<li><strong>PatternGenOperator</strong>: Generates animated test patterns as Holoscan entities with tensors</li>
+</ol>
+<h3 id="output-bridge">Output Bridge<a class="headerlink" href="#output-bridge" title="Permanent link">#</a></h3>
+<ul>
+<li><strong>GstSrcOp</strong>: Receives video frames and pushes them into GStreamer via GstSrcResource</li>
+</ul>
+<h3 id="pipeline-flow">Pipeline Flow<a class="headerlink" href="#pipeline-flow" title="Permanent link">#</a></h3>
+<p><strong>V4L2 Camera Pipeline:</strong></p>
+<div class="highlight"><pre><span></span><code>V4L2VideoCaptureOp → FormatConverterOp → GstSrcOp → GStreamer Pipeline → Output
+</code></pre></div>
+<p><strong>Pattern Generator Pipeline:</strong></p>
+<div class="highlight"><pre><span></span><code>PatternGenOperator → GstSrcOp → GStreamer Pipeline → Output
+</code></pre></div>
+<p>The GStreamer pipeline is user-defined and can include any GStreamer elements:</p>
+<ul>
+<li><strong>Display</strong>: <code>cudadownload name=src ! videoconvert ! autovideosink</code></li>
+<li><strong>CPU Encoding</strong>: <code>cudadownload name=src ! videoconvert ! x264enc ! h264parse ! mp4mux ! filesink location=/workspace/holohub/output.mp4</code></li>
+<li><strong>GPU Encoding</strong>: <code>cudaconvert name=src ! nvh264enc ! h264parse ! mp4mux ! filesink location=/workspace/holohub/output.mp4</code></li>
+<li><strong>Streaming</strong>: <code>cudaconvert name=src ! nvh264enc ! h264parse ! rtph264pay ! udpsink host=&lt;ip&gt; port=&lt;port&gt;</code></li>
+<li><strong>Effects</strong>: <code>cudadownload name=src ! videoconvert ! videoflip ! videobalance ! autovideosink</code></li>
+<li><strong>Multi-output</strong>: <code>cudadownload name=src ! videoconvert ! tee ! [multiple outputs]</code></li>
+<li><strong>Custom</strong>: Any combination of GStreamer plugins - the possibilities are endless!</li>
+</ul>
+<p><strong>Pipeline Flexibility</strong>: You have full access to GStreamer's ecosystem of 1000+ plugins. Build complex pipelines for your specific needs - these examples just scratch the surface.</p>
+<h2 id="performance">Performance<a class="headerlink" href="#performance" title="Permanent link">#</a></h2>
+<p>The application supports both host and device (CUDA) memory:</p>
+<ul>
+<li><strong>Device memory</strong> (<code>--storage 1</code>, default): Zero-copy operation for better performance when using NVIDIA hardware encoders or GPU effects</li>
+<li><strong>Host memory</strong> (<code>--storage 0</code>): Required for some CPU-based GStreamer elements</li>
+</ul>
+<p><strong>Important</strong>: V4L2 sources must use <code>--storage 1</code> as FormatConverterOp outputs GPU memory.</p>
+<h2 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">#</a></h2>
+<h3 id="video-sources_1">Video Sources<a class="headerlink" href="#video-sources_1" title="Permanent link">#</a></h3>
+<p><strong>V4L2 Camera:</strong></p>
+<ul>
+<li>Supports any V4L2-compatible camera (USB webcams, MIPI CSI cameras)</li>
+<li><strong>Important</strong>: V4L2 cameras expose multiple <code>/dev/videoX</code> devices</li>
+<li>Use <code>v4l2-ctl --list-devices</code> to identify your camera</li>
+<li>Main video capture device is usually <code>/dev/video0</code></li>
+<li>Other devices (like <code>/dev/video1</code>) may be metadata-only and won't work for video capture</li>
+<li><strong>Camera resolution MUST match a supported resolution</strong> - the default is 1920x1080</li>
+<li>Use <code>v4l2-ctl --list-formats-ext -d /dev/video0</code> to see supported resolutions and formats</li>
+<li><strong>Pixel format matters for resolution:</strong></li>
+<li>Uncompressed formats (<code>YUYV</code>, <code>NV12</code>): Typically max out at 1920x1080</li>
+<li>Compressed format (<code>MJPG</code>): Supports higher resolutions (up to 4K on capable cameras)</li>
+<li>Use <code>--pixel-format MJPG</code> for 4K/high-resolution recording</li>
+<li>Pixel format must be specified as 4-character FourCC codes (e.g., <code>MJPG</code>, not <code>MJPEG</code>)</li>
+<li>Common resolutions: 640x480, 1280x720, 1920x1080, 3840x2160 (check your specific camera)</li>
+<li>FormatConverterOp automatically converts camera output to RGBA on GPU</li>
+<li><strong>Must use <code>--storage 1</code></strong> as FormatConverterOp outputs GPU memory</li>
+</ul>
+<p><strong>Pattern Generator:</strong></p>
+<ul>
+<li>Supports three test patterns:</li>
+<li>Animated gradient (default): Colorful sine wave patterns</li>
+<li>Animated checkerboard: Moving checkerboard with variable square size</li>
+<li>Color bars: SMPTE-style color bars (7 colors)</li>
+<li>Useful for testing the pipeline without hardware dependencies</li>
+<li>Supports both host (<code>--storage 0</code>) and device (<code>--storage 1</code>) memory</li>
+</ul>
+<h3 id="gstreamer-pipeline">GStreamer Pipeline<a class="headerlink" href="#gstreamer-pipeline" title="Permanent link">#</a></h3>
+<ul>
+<li><strong>Pipeline element naming</strong>: The first element MUST be named 'src' for proper linking</li>
+<li><strong>Full customization</strong>: You can use ANY GStreamer elements and build any pipeline you need</li>
+<li><strong>Examples provided are starting points</strong>: Modify, combine, or create entirely new pipelines</li>
+<li><strong>GPU pipelines</strong>: Use <code>cudaconvert</code> to keep data on GPU (best for GPU encoders)</li>
+<li><strong>CPU pipelines</strong>: Use <code>cudadownload</code> to transfer to host memory (required for CPU encoders/effects)</li>
+<li><strong>Sync behavior</strong>: Use <code>sync=false</code> on <code>autovideosink</code> for real-time display without timestamp synchronization</li>
+<li><strong>Discover elements</strong>: Use <code>gst-inspect-1.0</code> to explore GStreamer's extensive plugin library (1000+ elements)</li>
+</ul>
+<h3 id="output">Output<a class="headerlink" href="#output" title="Permanent link">#</a></h3>
+<ul>
+<li>Frame count can be limited with <code>--count</code> or runs indefinitely if not specified</li>
+<li>The application manages GStreamer pipeline lifecycle and handles cleanup properly</li>
+<li>EOS (End-Of-Stream) signal is sent automatically when frame generation completes</li>
+</ul>
+<p><strong>File Output Paths:</strong></p>
+<p>When running through <code>holohub run</code> (in a container), use absolute paths for file output:
+- Inside container: <code>/workspace/holohub/filename.mp4</code>
+- On your host: <code>&lt;workspace_path&gt;/filename.mp4</code> (wherever your holohub workspace is located)</p>
+<p>The container mounts your workspace root at <code>/workspace/holohub</code>, so files written there are accessible on your host.</p>
+<h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">#</a></h2>
+<ul>
+<li><code>gst_video_recorder</code> - Records video to files using GStreamer encoding</li>
+<li><a href="https://gstreamer.freedesktop.org/">GStreamer documentation</a></li>
+<li><a href="https://docs.nvidia.com/holoscan/">Holoscan SDK documentation</a></li>
+</ul>
 
 
 
@@ -18185,7 +18683,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../monai_bundle_inference_operator/" class="md-footer__link md-footer__link--prev" aria-label="Previous: MonaiBundleInferenceOperator (latest)">
+          <a href="../gst_video_recorder/" class="md-footer__link md-footer__link--prev" aria-label="Previous: GStreamer Video Recorder (latest)">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -18195,20 +18693,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                MonaiBundleInferenceOperator (latest)
+                GStreamer Video Recorder (latest)
               </div>
             </div>
           </a>
         
         
           
-          <a href="../nii_data_loader_operator/" class="md-footer__link md-footer__link--next" aria-label="Next: NiftiDataLoader (latest)">
+          <a href="../../h264/h264_endoscopy_tool_tracking/" class="md-footer__link md-footer__link--next" aria-label="Next: H.264 Endoscopy Tool Tracking (latest)">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                NiftiDataLoader (latest)
+                H.264 Endoscopy Tool Tracking (latest)
               </div>
             </div>
             <div class="md-footer__button md-icon">
