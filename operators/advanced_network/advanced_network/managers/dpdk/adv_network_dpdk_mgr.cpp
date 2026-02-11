@@ -269,6 +269,39 @@ void DpdkMgr::create_dummy_rx_q() {
   }
 }
 
+// Newer versions of DPDK (25.11+) need a dummy TX queue even when not transmitting,
+// or the interface will fail to start.
+void DpdkMgr::create_dummy_tx_q() {
+  for (auto& intf : cfg_.ifs_) {
+    auto& tx = intf.tx_;
+
+    if (tx.queues_.size() == 0) {
+      HOLOSCAN_LOG_INFO("Port {} has no TX queues. Creating dummy queue.", intf.port_id_);
+      const std::string mr_name = "MR_Unused_TX_P" + std::to_string(intf.port_id_);
+      TxQueueConfig tmp_q;
+      tmp_q.common_.name_ = "UNUSED_P" + std::to_string(intf.port_id_) + "_Q0";
+      tmp_q.common_.id_ = 0;
+      tmp_q.common_.batch_size_ = 1;
+      tmp_q.common_.split_boundary_ = 0;
+      tmp_q.common_.cpu_core_ = "0";
+      tmp_q.common_.mrs_.push_back(mr_name);
+      tmp_q.common_.extra_queue_config_ = nullptr;
+      tx.queues_.push_back(tmp_q);
+
+      // Create unused MR
+      MemoryRegionConfig tmp_mr;
+      tmp_mr.name_ = mr_name;
+      tmp_mr.kind_ = MemoryKind::HUGE;
+      tmp_mr.affinity_ = 0;
+      tmp_mr.access_ = 0;
+      tmp_mr.buf_size_ = 64;
+      tmp_mr.num_bufs_ = 32768;
+      tmp_mr.owned_ = true;
+      cfg_.mrs_[mr_name] = tmp_mr;
+    }
+  }
+}
+
 void DpdkMgr::initialize() {
   int ret;
 
@@ -383,6 +416,7 @@ void DpdkMgr::initialize() {
   this->init_rx_core_q_map();
 
   create_dummy_rx_q();
+  create_dummy_tx_q();
 
   // Adjust the sizes to accommodate any padding/alignment restrictions by this library
   adjust_memory_regions();
@@ -1602,6 +1636,11 @@ void DpdkMgr::run() {
     if (intf.tx_.queues_.size() > 0) {
       const auto& tx = intf.tx_;
       for (auto& q : tx.queues_) {
+        // Dummy queue made to appease HWS. Don't launch worker
+        if (q.common_.name_.find("UNUSED") == 0) {
+          continue;
+        }
+
         uint32_t key = generate_queue_key(intf.port_id_, q.common_.id_);
         auto params = new TxWorkerParams;
         //  params->hds    = q.common_.hds_ > 0;
