@@ -1,0 +1,37 @@
+{
+    "operator": {
+        "name": "RawRadarCubeSourceOp",
+        "authors": [
+            {
+                "name": "Colin Tracey",
+                "affiliation": "NVIDIA"
+            }
+        ],
+        "version": "1.0.0",
+        "changelog": {
+            "1.0.0": "Initial Release"
+        },
+        "language": [
+            "C++"
+        ],
+        "platforms": [
+            "x86_64",
+            "aarch64"
+        ],
+        "tags": [
+            "Computer Vision and Perception",
+            "Optimization",
+            "PVA",
+            "RADAR"
+        ],
+        "holoscan_sdk": {
+            "minimum_required_version": "2.6.0",
+            "tested_versions": [
+                "2.6.0",
+                "3.11.0"
+            ]
+        },
+        "ranking": 1,
+        "requirements": {}
+    }
+}
