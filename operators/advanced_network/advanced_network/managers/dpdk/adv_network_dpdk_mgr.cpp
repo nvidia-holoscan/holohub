@@ -429,7 +429,7 @@ void DpdkMgr::initialize() {
     // Queue setup
     size_t max_pkt_size = 0;
     bool single_seg_rx_needs_scatter = false;
-    size_t min_single_seg_rx_buf_size = std::numeric_limits<size_t>::max();      
+    size_t min_single_seg_rx_buf_size = std::numeric_limits<size_t>::max();
     const auto& rx = intf.rx_;
 
     for (auto& q : rx.queues_) {
@@ -482,7 +482,7 @@ void DpdkMgr::initialize() {
         if (q_packet_size < static_cast<size_t>(RTE_ETHER_MIN_MTU + MAX_ETH_HDR_SIZE)) {
           single_seg_rx_needs_scatter = true;
         }
-      }        
+      }
       HOLOSCAN_LOG_INFO("Max packet size needed for RX: {}", max_pkt_size);
 
       // Multiple segments
@@ -570,9 +570,11 @@ void DpdkMgr::initialize() {
 
     // Subtract eth headers since driver adds them on, then clamp to a valid MTU range.
     max_pkt_size = std::max(max_pkt_size, 64UL);
-    const size_t requested_frame_size = std::min(max_pkt_size, static_cast<size_t>(JUMBOFRAME_SIZE));
-    const size_t requested_mtu = (requested_frame_size > (RTE_ETHER_CRC_LEN + RTE_ETHER_HDR_LEN))
-                                     ? (requested_frame_size - RTE_ETHER_CRC_LEN - RTE_ETHER_HDR_LEN)
+    const size_t requested_frame_size = std::min(max_pkt_size,
+                                         static_cast<size_t>(JUMBOFRAME_SIZE));
+    const size_t requested_mtu =
+      (requested_frame_size > (RTE_ETHER_CRC_LEN + RTE_ETHER_HDR_LEN))
+          ? (requested_frame_size - RTE_ETHER_CRC_LEN - RTE_ETHER_HDR_LEN)
                                      : 0;
     local_port_conf[intf.port_id_].rxmode.mtu =
         std::max(requested_mtu, static_cast<size_t>(RTE_ETHER_MIN_MTU));
@@ -580,10 +582,10 @@ void DpdkMgr::initialize() {
         local_port_conf[intf.port_id_].rxmode.mtu;
 
     // The mlx5 driver requires a minimum MTU of 68B, which is different from the Linux
-    // MTU setting. 68B MTU is what we use for packet sizes <= 68B. However, the driver 
-    // uses this value to compute how big the buffer size needs to be. This calculation 
-    // has an issue with the way we set our buffer size because it thinks a 64B buffer 
-    // won't have enough room with a 68B MTU. We need to turn on scatter mode in the driver 
+    // MTU setting. 68B MTU is what we use for packet sizes <= 68B. However, the driver
+    // uses this value to compute how big the buffer size needs to be. This calculation
+    // has an issue with the way we set our buffer size because it thinks a 64B buffer
+    // won't have enough room with a 68B MTU. We need to turn on scatter mode in the driver
     // to help with this even though we're not scattering the packets.
     if (single_seg_rx_needs_scatter) {
       if ((dev_info.rx_offload_capa & RTE_ETH_RX_OFFLOAD_SCATTER) == 0) {
@@ -604,7 +606,7 @@ void DpdkMgr::initialize() {
           intf.port_id_,
           min_single_seg_rx_buf_size,
           static_cast<size_t>(RTE_ETHER_MIN_MTU + MAX_ETH_HDR_SIZE));
-    }      
+    }
 
     HOLOSCAN_LOG_INFO("Setting port config for port {} mtu:{}",
                       intf.port_id_,
