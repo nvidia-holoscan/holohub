@@ -345,7 +345,7 @@ class HoloHubContainer:
 
     @property
     def image_names(self) -> List[str]:
-        """Return list of image tags to apply: sha-tag, branch-tag, and legacy tag."""
+        """Return list of image tags to apply: branch-tag, sha-tag, and legacy tag."""
         project = self.get_project_name()
         repo = f"{self.CONTAINER_PREFIX}-{project}" if project else self.CONTAINER_PREFIX
         sha_tag = f"{repo}:{get_git_short_sha()}"
