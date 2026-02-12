@@ -354,7 +354,7 @@ class HoloHubContainer:
         # Deduplicate while preserving order.
         seen = set()
         result = []
-        for tag in [sha_tag, branch_tag, legacy_tag]:
+        for tag in [branch_tag, sha_tag, legacy_tag]:
             if tag and tag not in seen:
                 result.append(tag)
                 seen.add(tag)
