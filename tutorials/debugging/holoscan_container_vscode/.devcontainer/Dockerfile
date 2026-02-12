@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ARG HOLOSCAN_SDK_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v2.2.0-dgpu
+ARG HOLOSCAN_SDK_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v3.11.0-dgpu
 FROM ${HOLOSCAN_SDK_IMAGE}
 
 # Resolve the one package that prompts on conffile (/etc/issue.net) so dev container
