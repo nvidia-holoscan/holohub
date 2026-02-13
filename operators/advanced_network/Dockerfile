@@ -212,7 +212,7 @@ FROM base-deps AS rivermax
 
 # Define Rivermax-specific build arguments and environment variables
 ARG RIVERMAX_VERSION=1.70.32
-ARG RIVERMAX_SDK_ZIP_PATH=./rivermax_ubuntu2204_${RIVERMAX_VERSION}.tar.gz
+ARG RIVERMAX_SDK_ZIP_PATH=./rivermax_ubuntu2404_${RIVERMAX_VERSION}.tar.gz
 ARG MAXPROC=8
 
 
