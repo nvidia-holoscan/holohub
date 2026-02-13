@@ -17,13 +17,13 @@
 
 # Define arguments for holoscan installation
 ARG HOLOSCAN_DEB_SRC="remote" # or "local"
-ARG HOLOSCAN_DEB_REMOTE_VERSION=3.4.0 # only used if HOLOSCAN_DEB_SRC is "remote"
+ARG HOLOSCAN_DEB_REMOTE_VERSION=3.11.0 # only used if HOLOSCAN_DEB_SRC is "remote"
 ARG HOLOSCAN_DEB_LOCAL_PATH="./holoscan.deb" # only used if HOLOSCAN_DEB_SRC is "local"
 
 # ============================================================
 # base: Base layer
 # ============================================================
-FROM nvcr.io/nvidia/cuda:12.6.3-base-ubuntu22.04 AS base
+FROM nvcr.io/nvidia/cuda:12.6.3-base-ubuntu24.04 AS base
 SHELL ["/bin/bash", "-eou", "pipefail", "-c"]
 
 # Basic system dependencies
@@ -104,7 +104,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # - pytest: test harness
 # - pyyaml: to parse yaml configs in tests
 # - scapy: for debugging and mocking network packets for tests
-RUN python3 -m pip install --no-cache-dir \
+RUN python3 -m pip install --no-cache-dir --break-system-packages \
         pytest \
         pyyaml \
         scapy
