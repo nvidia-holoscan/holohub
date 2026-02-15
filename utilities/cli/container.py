@@ -737,12 +737,12 @@ class HoloHubContainer:
                 port = int(port_str)
 
                 with socket.create_connection((host, port), timeout=5):
-                    print(f" > Using memcached endpoint {endpoint}")
+                    info(f" > Using memcached endpoint {endpoint}")
                     return True
 
             except Exception:
-                print(
-                    f" > Warning: Memcached endpoint {endpoint} is not reachable, "
+                warn(
+                    f" > Memcached endpoint {endpoint} is not reachable, "
                     "falling back to local caching."
                 )
 
