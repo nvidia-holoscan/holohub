@@ -192,6 +192,17 @@ def main():
     else:
         tak_host = tak_host_raw
 
+    # Start OpenTAKServer services if the startup script exists
+    ots_script = "/opt/ots/start_ots.sh"
+    if os.path.isfile(ots_script):
+        import subprocess
+        logging.getLogger("tak").info("Starting OpenTAKServer services...")
+        subprocess.Popen(
+            ["bash", ots_script],
+            stdout=open("/tmp/ots_start.log", "w"),
+            stderr=subprocess.STDOUT,
+        )
+
     app = TAKApp(
         video_dir=args.video_dir,
         data=args.data,

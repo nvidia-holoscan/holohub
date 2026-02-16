@@ -38,9 +38,10 @@ detector:
   bytetrack_config: "bytetrack.yaml"
 
 tak_cot:
-  tak_host: "10.2.0.207"
-  tak_user: "test"
-  tak_pass: "test@tech"
+  tak_host: "localhost"
+  tak_port: 18088
+  tak_user: "administrator"
+  tak_pass: "password"
   base_lat: 28.54770
   base_lon: -81.37942
 

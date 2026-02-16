@@ -40,7 +40,7 @@ class TakCotOp(Operator):
         fragment,
         *args,
         tak_host: str,
-        tak_port: int = 8088,
+        tak_port: int = 18088,
         tak_user: str = "",
         tak_pass: str = "",
         base_lat: float = 28.53830862,
@@ -65,6 +65,7 @@ class TakCotOp(Operator):
         self.connected = False
         self.detection_count = 0
         self.last_send_time = 0.0
+        self._presence_sent = False
 
         super().__init__(fragment, *args, **kwargs)
 
@@ -81,10 +82,17 @@ class TakCotOp(Operator):
         logger.info(
             "Connecting to TAK server at %s:%d", self.tak_host, self.tak_port
         )
-        self._connect()
-        if self.connected:
-            self._send_eud_presence()
-        else:
+        # Retry for up to 60 seconds to allow OTS services to start
+        import time
+        for attempt in range(12):
+            self._connect()
+            if self.connected:
+                break
+            logger.info(
+                "TAK server not ready yet, retrying in 5s... (%d/12)", attempt + 1
+            )
+            time.sleep(5)
+        if not self.connected:
             logger.warning(
                 "Could not connect to TAK server at %s:%d; "
                 "detections will still be visualized but not uploaded.",
@@ -137,10 +145,9 @@ class TakCotOp(Operator):
             takv.set("device", "NVIDIA Holoscan")
             takv.set("os", "Linux")
 
-            presence_cot = ET.tostring(
-                root, encoding="utf-8", xml_declaration=True
-            )
-            self.socket.sendall(presence_cot + b"\n")
+            presence_cot = ET.tostring(root, encoding="unicode")
+            self.socket.sendall(presence_cot.encode("utf-8") + b"\n")
+            self._presence_sent = True
             logger.info("EUD presence CoT sent successfully")
         except Exception as e:
             logger.error("Failed to send EUD presence: %s", e)
@@ -171,11 +178,13 @@ class TakCotOp(Operator):
         }
         ET.SubElement(root, "point", attrib=pt_attr)
 
+        # OTS creates markers only when <contact> and <takv> are ABSENT.
+        # Including either tag causes OTS to treat the CoT as an EUD instead.
         detail = ET.SubElement(root, "detail")
-        contact = ET.SubElement(detail, "contact")
-        contact.set("callsign", callsign)
+        remarks = ET.SubElement(detail, "remarks")
+        remarks.text = callsign
 
-        return ET.tostring(root, encoding="utf-8", xml_declaration=True)
+        return ET.tostring(root, encoding="unicode").encode("utf-8")
 
     def _send_cot_marker(
         self,
@@ -208,6 +217,11 @@ class TakCotOp(Operator):
             return
 
         self.last_send_time = current_time
+
+        # Send presence lazily — at startup RabbitMQ may not be ready yet,
+        # so we defer until compute() is running.
+        if not self._presence_sent and self.connected:
+            self._send_eud_presence()
 
         try:
             bbox_tensor = entity.get("bbox")
@@ -252,12 +266,16 @@ class TakCotOp(Operator):
 
                 if track_ids is not None and i < len(track_ids):
                     track_id = int(track_ids[i])
-                    detection_id = f"{cls_name}-{track_id}" if cls_name else f"Detection-{track_id}"
-                    detection_label = f"{cls_name} {track_id}" if cls_name else f"Detection {track_id}"
+                    detection_id = f"{
+                        cls_name}-{track_id}" if cls_name else f"Detection-{track_id}"
+                    detection_label = f"{cls_name} {
+                        track_id}" if cls_name else f"Detection {track_id}"
                 else:
                     slot_id = (self.detection_count % 100) + 1
-                    detection_id = f"{cls_name}-{slot_id}" if cls_name else f"Detection-{slot_id}"
-                    detection_label = f"{cls_name} {slot_id}" if cls_name else f"Detection {slot_id}"
+                    detection_id = f"{
+                        cls_name}-{slot_id}" if cls_name else f"Detection-{slot_id}"
+                    detection_label = f"{cls_name} {
+                        slot_id}" if cls_name else f"Detection {slot_id}"
 
                 lat = self.base_lat + lat_offset
                 lon = self.base_lon + lon_offset
