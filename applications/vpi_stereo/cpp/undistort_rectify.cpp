@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +21,56 @@
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 #include "stereo_depth_kernels.h"
+
+namespace {
+  // helper to initialize NppStreamContext struct.
+  // see NPP sample code for details
+  NppStreamContext InitNppStreamContext(cudaStream_t stream = 0) {
+    NppStreamContext nppStreamCtx = {};
+
+    nppStreamCtx.hStream = stream;
+
+    cudaError_t cudaError = cudaGetDevice(&nppStreamCtx.nCudaDeviceId);
+    if (cudaError != cudaSuccess) {
+      throw std::runtime_error("CUDA error: no devices supporting CUDA.");
+    }
+
+    cudaError = cudaDeviceGetAttribute(&nppStreamCtx.nCudaDevAttrComputeCapabilityMajor,
+                                       cudaDevAttrComputeCapabilityMajor,
+                                       nppStreamCtx.nCudaDeviceId);
+    if (cudaError != cudaSuccess) {
+      throw std::runtime_error(
+        "CUDA error: cudaDeviceGetAttribute Compute Capability Major failed.");
+    }
+
+    cudaError = cudaDeviceGetAttribute(&nppStreamCtx.nCudaDevAttrComputeCapabilityMinor,
+                                       cudaDevAttrComputeCapabilityMinor,
+                                       nppStreamCtx.nCudaDeviceId);
+    if (cudaError != cudaSuccess) {
+      throw std::runtime_error(
+        "CUDA error: cudaDeviceGetAttribute Compute Capability Minor failed.");
+    }
+
+    cudaError = cudaStreamGetFlags(nppStreamCtx.hStream, &nppStreamCtx.nStreamFlags);
+    if (cudaError != cudaSuccess) {
+      throw std::runtime_error("CUDA error: cudaStreamGetFlags failed.");
+    }
+
+    cudaDeviceProp oDeviceProperties;
+
+    cudaError = cudaGetDeviceProperties(&oDeviceProperties, nppStreamCtx.nCudaDeviceId);
+    if (cudaError != cudaSuccess) {
+      throw std::runtime_error("CUDA error: cudaGetDeviceProperties failed.");
+    }
+
+    nppStreamCtx.nMultiProcessorCount = oDeviceProperties.multiProcessorCount;
+    nppStreamCtx.nMaxThreadsPerMultiProcessor = oDeviceProperties.maxThreadsPerMultiProcessor;
+    nppStreamCtx.nMaxThreadsPerBlock = oDeviceProperties.maxThreadsPerBlock;
+    nppStreamCtx.nSharedMemPerBlock = oDeviceProperties.sharedMemPerBlock;
+
+    return nppStreamCtx;
+  }
+}  // namespace
 
 namespace holoscan::ops {
 
@@ -256,49 +306,62 @@ void UndistortRectifyOp::compute(InputContext& op_input, OutputContext& op_outpu
   });
 
   cudaMalloc(pointer.get(), width * height * nChannels * sizeof(uint8_t));
-  NppStatus status;
+  NppStatus status = NPP_SUCCESS;
+  NppStreamContext nppCtx = InitNppStreamContext();
   if (nChannels == 1) {
-    nppiRemap_8u_C1R(static_cast<Npp8u*>(tensor->data()),
-                     {width, height},
-                     width * nChannels * sizeof(Npp8u),
-                     {0, 0, width, height},
-                     rectification_map_->mapx_,
-                     width * sizeof(Npp32f),
-                     rectification_map_->mapy_,
-                     width * sizeof(Npp32f),
-                     static_cast<Npp8u*>(*pointer.get()),
-                     width * nChannels * sizeof(Npp8u),
-                     {width, height},
-                     NPPI_INTER_LINEAR);
+    status = nppiRemap_8u_C1R_Ctx(
+               static_cast<Npp8u*>(tensor->data()),
+               {width, height},
+               width * nChannels * sizeof(Npp8u),
+               {0, 0, width, height},
+               rectification_map_->mapx_,
+               width * sizeof(Npp32f),
+               rectification_map_->mapy_,
+               width * sizeof(Npp32f),
+               static_cast<Npp8u*>(*pointer.get()),
+               width * nChannels * sizeof(Npp8u),
+               {width, height},
+               NPPI_INTER_LINEAR,
+               nppCtx);
   } else if (nChannels == 3) {
-    status = nppiRemap_8u_C3R(static_cast<Npp8u*>(tensor->data()),
-                              {width, height},
-                              width * nChannels * sizeof(Npp8u),
-                              {0, 0, width, height},
-                              rectification_map_->mapx_,
-                              width * sizeof(Npp32f),
-                              rectification_map_->mapy_,
-                              width * sizeof(Npp32f),
-                              static_cast<Npp8u*>(*pointer.get()),
-                              width * nChannels * sizeof(Npp8u),
-                              {width, height},
-                              NPPI_INTER_LINEAR);
+    status = nppiRemap_8u_C3R_Ctx(
+               static_cast<Npp8u*>(tensor->data()),
+               {width, height},
+               width * nChannels * sizeof(Npp8u),
+               {0, 0, width, height},
+               rectification_map_->mapx_,
+               width * sizeof(Npp32f),
+               rectification_map_->mapy_,
+               width * sizeof(Npp32f),
+               static_cast<Npp8u*>(*pointer.get()),
+               width * nChannels * sizeof(Npp8u),
+               {width, height},
+               NPPI_INTER_LINEAR,
+               nppCtx);
   } else if (nChannels == 4) {
-    nppiRemap_8u_C4R(static_cast<Npp8u*>(tensor->data()),
-                     {width, height},
-                     width * nChannels * sizeof(Npp8u),
-                     {0, 0, width, height},
-                     rectification_map_->mapx_,
-                     width * sizeof(Npp32f),
-                     rectification_map_->mapy_,
-                     width * sizeof(Npp32f),
-                     static_cast<Npp8u*>(*pointer.get()),
-                     width * nChannels * sizeof(Npp8u),
-                     {width, height},
-                     NPPI_INTER_LINEAR);
+    status = nppiRemap_8u_C4R_Ctx(
+               static_cast<Npp8u*>(tensor->data()),
+               {width, height},
+               width * nChannels * sizeof(Npp8u),
+               {0, 0, width, height},
+               rectification_map_->mapx_,
+               width * sizeof(Npp32f),
+               rectification_map_->mapy_,
+               width * sizeof(Npp32f),
+               static_cast<Npp8u*>(*pointer.get()),
+               width * nChannels * sizeof(Npp8u),
+               {width, height},
+               NPPI_INTER_LINEAR,
+               nppCtx);
   } else {
     throw std::runtime_error("Number of channels in input must be 1, 3 or 4");
   }
+
+  if (status != NPP_SUCCESS) {
+    std::cerr << "NppStatus = " << (int)status << std::endl;
+    throw std::runtime_error("NPP returned error code");
+  }
+
   auto out_message = nvidia::gxf::Entity::New(context.context());
   auto gxf_tensor = out_message.value().add<nvidia::gxf::Tensor>("");
   nvidia::gxf::Shape shape = nvidia::gxf::Shape{height, width, nChannels};
