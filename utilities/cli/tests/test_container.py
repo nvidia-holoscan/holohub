@@ -101,14 +101,14 @@ class TestHoloHubContainer(unittest.TestCase):
 
     @patch("utilities.cli.container.get_current_branch_slug", return_value="main-branch")
     @patch("utilities.cli.container.get_git_short_sha", return_value="abcdef123456")
-    def test_image_names_contains_sha_branch_legacy(self, mock_sha, mock_branch):
-        """Test that image_names returns sha, branch, and legacy tags in order"""
+    def test_image_names_contains_branch_sha_legacy(self, mock_sha, mock_branch):
+        """Test that image_names returns branch, sha, and legacy tags in order"""
         names = self.container.image_names
         mock_sha.assert_called_once()
         mock_branch.assert_called_once()
         self.assertGreaterEqual(len(names), 3)
-        self.assertEqual(names[0], "holohub-test_project:abcdef123456")
-        self.assertEqual(names[1], "holohub-test_project:main-branch")
+        self.assertEqual(names[0], "holohub-test_project:main-branch")
+        self.assertEqual(names[1], "holohub-test_project:abcdef123456")
         self.assertEqual(names[2], "holohub:test_project")
 
     @patch("utilities.cli.container.get_current_branch_slug", return_value="dev-branch")

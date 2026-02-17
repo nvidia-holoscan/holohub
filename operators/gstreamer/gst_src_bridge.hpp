@@ -18,7 +18,6 @@
 #ifndef HOLOSCAN__GSTREAMER__GST_SRC_BRIDGE_HPP
 #define HOLOSCAN__GSTREAMER__GST_SRC_BRIDGE_HPP
 
-#include <gst/app/gstappsrc.h>
 #include <gst/gst.h>
 
 #include <chrono>
@@ -33,8 +32,6 @@
 #include "gst/buffer.hpp"
 #include "gst/caps.hpp"
 #include "gst/config.hpp"
-#include "gst/object.hpp"
-#include "gst/pad.hpp"
 
 namespace holoscan {
 
@@ -120,10 +117,15 @@ class GstSrcBridge {
   gst::Buffer create_buffer_from_tensor_map(const TensorMap& tensor_map);
 
   /**
-   * @brief Get the current negotiated caps from the source
-   * @return Caps with automatic reference counting
+   * @brief Get the current negotiated caps from the source pad
+   * 
+   * Returns the actual caps negotiated during pipeline setup, not the allowed caps
+   * set as a property. These are the fixed, fully-specified caps describing the
+   * actual data format flowing through the pipeline.
+   * 
+   * @return Negotiated caps with automatic reference counting, empty if not negotiated
    */
-  gst::Caps get_caps() const;
+  gst::Caps get_current_caps() const;
 
   // Forward declarations for nested classes
   class MemoryWrapper;
@@ -135,9 +137,7 @@ class GstSrcBridge {
  private:
   // Configuration
   std::string name_;
-  std::string caps_string_;
-  size_t max_buffers_;
-  bool block_;  // Whether push_buffer() should block when queue is full
+  gst::Caps caps_;
 
   // Framerate from caps (numerator/denominator)
   // Default to 0/1 (live mode - no framerate control)

@@ -50,7 +50,8 @@ Error Message::parse_error(std::string& debug_info) const {
   return Error(error);
 }
 
-void Message::parse_state_changed(GstState* oldstate, GstState* newstate, GstState* pending) const {
+void Message::parse_state_changed(::GstState* oldstate, ::GstState* newstate,
+                                   ::GstState* pending) const {
   if (!get()) {
     throw std::runtime_error("Attempted to parse state change from null GstMessage");
   }
