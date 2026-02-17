@@ -22,6 +22,7 @@
         "ghcr.io/devcontainers/features/common-utils:2": {
             "installZsh": true,
             "configureZshAsDefaultShell": true,
+            "upgradePackages": false,
             "userUid": 1000,
             "userGid": 1000
         },

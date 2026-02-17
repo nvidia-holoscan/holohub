@@ -103,7 +103,7 @@ class CudaAllocatorBase : public AllocatorBase<Derived, NativeType> {
    */
   Memory alloc_wrapped(const CudaContext& context, const VideoInfo& video_info,
                        CUdeviceptr device_ptr, void* user_data,
-                       GDestroyNotify destroy_notify) const {
+                       ::GDestroyNotify destroy_notify) const {
     return Memory(gst_cuda_allocator_alloc_wrapped(GST_CUDA_ALLOCATOR(this->get()),
                                                    context.get(),
                                                    nullptr,  // CUDA stream (nullptr = default)

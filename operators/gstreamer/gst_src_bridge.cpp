@@ -17,7 +17,6 @@
 
 #include "gst_src_bridge.hpp"
 
-#include <gst/app/gstappsrc.h>
 #include <gst/gst.h>
 #include <gst/video/video.h>
 
@@ -32,7 +31,7 @@
 #include <gst/cuda/gstcudacontext.h>
 #include <gst/cuda/gstcudamemory.h>
 #ifndef GST_MAP_READ_CUDA
-#define GST_MAP_READ_CUDA ((GstMapFlags)(GST_MAP_READ | GST_MAP_CUDA))
+#define GST_MAP_READ_CUDA (static_cast<::GstMapFlags>(GST_MAP_READ | GST_MAP_CUDA))
 #endif
 #endif  // HOLOSCAN_GSTREAMER_CUDA_SUPPORT
 
@@ -47,6 +46,7 @@
 #include "gst/allocator.hpp"
 #include "gst/cuda_context.hpp"
 #include "gst/memory.hpp"
+#include "gst/pad.hpp"
 #include "gst/video_info.hpp"
 
 namespace holoscan {
@@ -77,8 +77,23 @@ class GstSrcBridge::MemoryWrapper {
   MemoryWrapper& operator=(MemoryWrapper&&) = delete;
 
   /**
+   * @brief Validate that a tensor is acceptable for this wrapper
+   * 
+   * Checks tensor validity (non-null data, non-zero size) and device type compatibility.
+   * Logs detailed error messages if validation fails.
+   * 
+   * @param tensor Tensor to validate
+   * @return true if tensor is valid and acceptable, false otherwise
+   */
+  virtual bool validate(const holoscan::Tensor* tensor) const = 0;
+
+  /**
    * @brief Wrap a tensor into a GStreamer memory object
-   * @param tensor Tensor to wrap
+   * 
+   * Wraps the tensor's memory into a GStreamer memory object with appropriate lifetime management.
+   * Caller should call validate() first to ensure the tensor is acceptable.
+   * 
+   * @param tensor Tensor to wrap (must be validated first)
    * @param user_data User data to pass to the notify callback
    * @param destroy_notify Notify callback to free the user data when the memory is destroyed
    * @return GStreamer memory object (empty on failure)
@@ -86,7 +101,7 @@ class GstSrcBridge::MemoryWrapper {
    * only)
    */
   virtual gst::Memory wrap_memory(const holoscan::Tensor* tensor, void* user_data,
-                                  GDestroyNotify destroy_notify) = 0;
+                                  ::GDestroyNotify destroy_notify) = 0;
 
  protected:
   GstVideoFormat video_format_;  // Video format from caps.
@@ -99,13 +114,29 @@ class GstSrcBridge::HostMemoryWrapper : public MemoryWrapper {
  public:
   explicit HostMemoryWrapper(GstVideoFormat video_format) : MemoryWrapper(video_format) {}
 
-  gst::Memory wrap_memory(const holoscan::Tensor* tensor, void* user_data,
-                          GDestroyNotify destroy_notify) override {
+  bool validate(const holoscan::Tensor* tensor) const override {
+    // Check tensor validity
     if (!tensor->data() || tensor->nbytes() == 0) {
       HOLOSCAN_LOG_ERROR("Invalid tensor data or size for host memory wrapping");
-      return gst::Memory();
+      return false;
     }
 
+    // Check device type
+    DLDevice device = tensor->device();
+    if (device.device_type != kDLCPU && device.device_type != kDLCUDAHost) {
+      HOLOSCAN_LOG_ERROR(
+          "HostMemoryWrapper expects CPU memory (kDLCPU or kDLCUDAHost), but tensor is on "
+          "device type {}. Use caps with '{}' feature for GPU tensors.",
+          static_cast<int>(device.device_type),
+          GST_CAPS_FEATURE_MEMORY_CUDA_MEMORY);
+      return false;
+    }
+
+    return true;
+  }
+
+  gst::Memory wrap_memory(const holoscan::Tensor* tensor, void* user_data,
+                          ::GDestroyNotify destroy_notify) override {
     HOLOSCAN_LOG_DEBUG("Wrapping as host memory (zero-copy): size={} bytes", tensor->nbytes());
     return gst::Memory::create_wrapped(static_cast<GstMemoryFlags>(0),  // flags
                                        tensor->data(),                  // data pointer
@@ -148,18 +179,35 @@ class GstSrcBridge::CudaMemoryWrapper : public MemoryWrapper {
     HOLOSCAN_LOG_INFO("CUDA resources initialized successfully");
   }
 
+  bool validate(const holoscan::Tensor* tensor) const override {
+    // Check tensor validity
+    if (!tensor->data() || tensor->nbytes() == 0) {
+      HOLOSCAN_LOG_ERROR("Invalid tensor data or size for CUDA memory wrapping");
+      return false;
+    }
+
+    // Check device type
+    DLDevice device = tensor->device();
+    if (device.device_type != kDLCUDA && device.device_type != kDLCUDAManaged) {
+      HOLOSCAN_LOG_ERROR(
+          "CudaMemoryWrapper expects GPU memory (kDLCUDA or kDLCUDAManaged), but tensor is on "
+          "device type {}. Remove '{}' feature from caps for CPU tensors.",
+          static_cast<int>(device.device_type),
+          GST_CAPS_FEATURE_MEMORY_CUDA_MEMORY);
+      return false;
+    }
+
+    return true;
+  }
+
   gst::Memory wrap_memory(const holoscan::Tensor* tensor, void* user_data,
-                          GDestroyNotify destroy_notify) override {
+                          ::GDestroyNotify destroy_notify) override {
     void* tensor_data = tensor->data();
     size_t tensor_size = tensor->nbytes();
 
-    if (!tensor_data || tensor_size == 0) {
-      HOLOSCAN_LOG_ERROR("Invalid tensor data or size for CUDA memory wrapping");
-      return gst::Memory();
-    }
-
     // Detect CUDA device from tensor
-    gint cuda_device_id = tensor->device().device_id;
+    DLDevice device = tensor->device();
+    gint cuda_device_id = device.device_id;
 
     // Validate device ID
     if (cuda_device_id < 0 || cuda_device_id >= device_count_) {
@@ -263,52 +311,52 @@ struct TensorWrapper {
 };
 
 // Callback to free TensorWrapper when GstMemory is destroyed
-void free_tensor_wrapper(gpointer user_data) {
+void free_tensor_wrapper(::gpointer user_data) {
   auto* wrapper = static_cast<TensorWrapper*>(user_data);
   delete wrapper;
 }
 
 /**
- * @brief Create memory wrapper based on tensor storage type and caps
- * @param tensor Tensor to inspect for storage type
- * @param caps_string Capabilities string to check for CUDA memory request
+ * @brief Create memory wrapper based on caps
+ * @param caps Capabilities to check for CUDA memory request and extract video format
  * @return Shared pointer to the appropriate memory wrapper
  */
-std::shared_ptr<GstSrcBridge::MemoryWrapper> create_memory_wrapper(const holoscan::Tensor* tensor,
-                                                                   const std::string& caps_string) {
-  // Extract video format from caps.
+std::shared_ptr<GstSrcBridge::MemoryWrapper> create_memory_wrapper(const gst::Caps& caps) {
+  // Extract video format from caps
   GstVideoFormat video_format = GST_VIDEO_FORMAT_UNKNOWN;
-  gst::Caps caps(caps_string);
   if (!caps) {
-    HOLOSCAN_LOG_ERROR("Failed to parse caps string");
+    HOLOSCAN_LOG_ERROR("Invalid caps provided");
     return nullptr;
   }
-  video_format = caps.get_video_info()->get_format();
 
-  // Check if CUDA memory is requested in caps using proper GStreamer API.
+  // Safely extract video info from caps
+  auto video_info = caps.get_video_info();
+  if (!video_info) {
+    HOLOSCAN_LOG_ERROR("Caps do not contain valid video format information: {}",
+                       caps.to_string());
+    return nullptr;
+  }
+  video_format = video_info->get_format();
+
+  // Check if CUDA memory is requested in caps using proper GStreamer API
   bool cuda_requested = caps.has_feature(GST_CAPS_FEATURE_MEMORY_CUDA_MEMORY);
 
-  // Check device type from DLPack
-  DLDevice device = tensor->device();
-  bool is_device_memory = (device.device_type == kDLCUDA || device.device_type == kDLCUDAManaged);
-  auto storage_type_str = is_device_memory ? "GPU" : "CPU";
-
-  // Use CudaMemoryWrapper for GPU tensors when GStreamer requests CUDA memory
-  if (is_device_memory && cuda_requested) {
+  // Use CudaMemoryWrapper when GStreamer requests CUDA memory
+  if (cuda_requested) {
 #if HOLOSCAN_GSTREAMER_CUDA_SUPPORT
-    HOLOSCAN_LOG_INFO("Creating CUDA memory wrapper ({} memory)", storage_type_str);
+    HOLOSCAN_LOG_INFO("Creating CUDA memory wrapper (CUDA memory requested in caps)");
     return std::make_shared<GstSrcBridge::CudaMemoryWrapper>(video_format);
 #else
     HOLOSCAN_LOG_ERROR(
-        "CUDA memory requested in caps ('{}') for a GPU tensor, but the code was built without "
-        "HOLOSCAN_GSTREAMER_CUDA_SUPPORT. Cannot safely wrap device memory. "
+        "CUDA memory requested in caps ('{}'), but the code was built without "
+        "HOLOSCAN_GSTREAMER_CUDA_SUPPORT. Cannot wrap device memory. "
         "Rebuild with CUDA support or use host storage.",
-        caps);
+        caps.to_string());
     return nullptr;
 #endif  // HOLOSCAN_GSTREAMER_CUDA_SUPPORT
   }
-  // Use HostMemoryWrapper for CPU memory or when CUDA not requested
-  HOLOSCAN_LOG_INFO("Creating host memory wrapper ({} memory)", storage_type_str);
+  // Use HostMemoryWrapper for CPU memory
+  HOLOSCAN_LOG_INFO("Creating host memory wrapper (CPU memory)");
   return std::make_shared<GstSrcBridge::HostMemoryWrapper>(video_format);
 }
 
@@ -321,36 +369,33 @@ std::shared_ptr<GstSrcBridge::MemoryWrapper> create_memory_wrapper(const holosca
 GstSrcBridge::GstSrcBridge(const std::string& name, const std::string& caps_string,
                            size_t max_buffers, bool block)
     : name_(name),
-      caps_string_(caps_string),
-      max_buffers_(max_buffers),
-      block_(block),
+      caps_(caps_string),
       src_element_(gst::static_object_cast<gst::AppSrc>(
           gst::Element(gst_element_factory_make("appsrc", name_.empty() ? nullptr : name_.c_str()))
               .ref_sink())) {
   HOLOSCAN_LOG_INFO("Creating GstSrcBridge: name='{}', caps='{}', max_buffers={}, block={}",
                     name_,
-                    caps_string_,
-                    max_buffers_,
-                    block_);
+                    caps_string,
+                    max_buffers,
+                    block);
 
   if (!src_element_) {
     HOLOSCAN_LOG_ERROR("Failed to create appsrc element");
     throw std::runtime_error("Failed to create appsrc element");
   }
 
-  gst::Caps caps(caps_string_);
-  if (!caps) {
-    HOLOSCAN_LOG_ERROR("Failed to parse configured caps: '{}'", caps_string_);
+  if (!caps_) {
+    HOLOSCAN_LOG_ERROR("Failed to parse configured caps: '{}'", caps_string);
     throw std::runtime_error("Failed to parse caps");
   }
 
-  HOLOSCAN_LOG_INFO("Set appsrc caps: {}", caps.to_string());
+  HOLOSCAN_LOG_INFO("Set appsrc caps: {}", caps_.to_string());
 
   // Parse framerate from caps first to determine is-live mode
   bool is_live = false;
   // Extract framerate from caps
-  if (caps.get_size() > 0) {
-    const GValue* framerate_value = caps.get_structure_value("framerate");
+  if (caps_.get_size() > 0) {
+    const GValue* framerate_value = caps_.get_structure_value("framerate");
 
     if (framerate_value && GST_VALUE_HOLDS_FRACTION(framerate_value)) {
       framerate_num_ = gst_value_get_fraction_numerator(framerate_value);
@@ -381,17 +426,16 @@ GstSrcBridge::GstSrcBridge(const std::string& name, const std::string& caps_stri
       "is-live",
       is_live,  // Live mode - bool automatically converted
       "max-buffers",
-      max_buffers_,  // Buffer queue limit (0 = unlimited)
+      max_buffers,  // Buffer queue limit (0 = unlimited)
       "max-bytes",
       static_cast<guint64>(0),  // Byte limit (0 = unlimited, controlled by max-buffers)
       "block",
-      block_);  // Configurable blocking behavior
-
-  // Set caps using type-safe wrapper
-  src_element_.set_caps(caps);
+      block,  // Configurable blocking behavior
+      "caps",
+      caps_);  // Capabilities for the appsrc (automatically unwrapped)
 
   HOLOSCAN_LOG_INFO("GstSrcBridge initialized with appsrc (max_buffers: {}, framerate: {}/{})",
-                    max_buffers_,
+                    max_buffers,
                     framerate_num_,
                     framerate_den_);
 }
@@ -454,7 +498,7 @@ bool GstSrcBridge::send_eos() {
   return ret == GST_FLOW_OK;
 }
 
-gst::Caps GstSrcBridge::get_caps() const {
+gst::Caps GstSrcBridge::get_current_caps() const {
   gst::Pad pad = src_element_.get_static_pad("src");
   if (!pad)
     return gst::Caps();  // Return empty caps
@@ -493,17 +537,24 @@ gst::Buffer GstSrcBridge::create_buffer_from_tensor_map(const TensorMap& tensor_
     // Lazy initialization of memory wrapper on first tensor
     if (!memory_wrapper_) {
       try {
-        memory_wrapper_ = create_memory_wrapper(tensor_ptr.get(), caps_string_);
+        memory_wrapper_ = create_memory_wrapper(caps_);
         if (!memory_wrapper_) {
           HOLOSCAN_LOG_ERROR(
-              "Memory wrapper creation returned null for tensor '{}'; aborting buffer creation",
-              name);
+              "Memory wrapper creation returned null; aborting buffer creation");
           return buffer;
         }
       } catch (const std::exception& e) {
         HOLOSCAN_LOG_ERROR("Failed to create memory wrapper: {}", e.what());
         return buffer;
       }
+    }
+
+    // Validate tensor is acceptable for this wrapper
+    if (!memory_wrapper_->validate(tensor_ptr.get())) {
+      HOLOSCAN_LOG_ERROR(
+          "Tensor '{}' validation failed. All tensors in the map must have consistent storage "
+          "type. Aborting buffer creation to avoid partial/corrupt frames.", name);
+      return buffer;  // Return empty buffer instead of continuing with partial data
     }
 
     // Create a TensorWrapper with the shared_ptr to keep tensor memory alive
@@ -514,8 +565,8 @@ gst::Buffer GstSrcBridge::create_buffer_from_tensor_map(const TensorMap& tensor_
         memory_wrapper_->wrap_memory(tensor_ptr.get(), tensor_wrapper.get(), free_tensor_wrapper);
 
     if (!memory) {
-      HOLOSCAN_LOG_ERROR("Failed to wrap memory for tensor '{}'", name);
-      continue;
+      HOLOSCAN_LOG_ERROR("Failed to wrap memory for tensor '{}'. Aborting buffer creation.", name);
+      return buffer;  // Return empty buffer instead of continuing with partial data
     }
 
     // Release ownership - GStreamer now manages the wrapper lifetime

@@ -56,8 +56,18 @@ class ElementBase : public ObjectBase<Derived, NativeType> {
   /// @brief Set the state of this element
   /// @param state The target GstState (e.g., GST_STATE_NULL, GST_STATE_PLAYING)
   /// @returns The result of the state change operation
-  GstStateChangeReturn set_state(GstState state) {
+  ::GstStateChangeReturn set_state(::GstState state) {
     return gst_element_set_state(GST_ELEMENT(this->get()), state);
+  }
+
+  /// @brief Get the state of this element
+  /// @param state Pointer to store the current state (can be nullptr)
+  /// @param pending Pointer to store the pending state (can be nullptr)
+  /// @param timeout Timeout in nanoseconds (GST_CLOCK_TIME_NONE for infinite, 0 for immediate)
+  /// @returns The result of the state query operation
+  ::GstStateChangeReturn get_state(::GstState* state, ::GstState* pending,
+                                  ::GstClockTime timeout = GST_CLOCK_TIME_NONE) const {
+    return gst_element_get_state(GST_ELEMENT(this->get()), state, pending, timeout);
   }
 
   /// @brief Link this element to another element
@@ -83,6 +93,19 @@ class ElementBase : public ObjectBase<Derived, NativeType> {
     }
     return gst_element_link_many(
         GST_ELEMENT(this->get()), get_gst_element(std::forward<Elements>(elements))..., nullptr);
+  }
+
+  /// @brief Get the name of this element
+  /// @returns The name of the element as a string
+  /// @note Properly handles memory allocation from gst_element_get_name()
+  std::string get_name() const {
+    gchar* name = gst_element_get_name(GST_ELEMENT(this->get()));
+    if (!name) {
+      return "";
+    }
+    std::string result(name);
+    g_free(name);
+    return result;
   }
 
   /// @brief Get a static pad from this element
