@@ -15,8 +15,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ARG HOLOSCAN_SDK_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v2.2.0-dgpu
+ARG HOLOSCAN_SDK_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v3.11.0-dgpu
 FROM ${HOLOSCAN_SDK_IMAGE}
+
+# Resolve the one package that prompts on conffile (/etc/issue.net) so dev container
+# features (e.g. common-utils) never hit the prompt. Only upgrade that package.
+# - --force-confdef: use default for modified conffiles (no prompt)
+# - --force-confold: keep current conffile when unchanged
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update \
+    && apt-get install -y --only-upgrade -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" base-files \
+    && apt-get clean -y \
+    && rm -rf /var/lib/apt/lists/*
 
 ARG WORKSPACE_DIR=/workspace
 
