@@ -38,7 +38,7 @@
             "group": "none",
             "detail": "Clean the build cache"
         },
-       {
+        {
             "type": "shell",
             "label": "Build basic_networking_ping (Python)",
             "command": "./holohub",
