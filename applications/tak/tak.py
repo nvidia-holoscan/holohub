@@ -192,16 +192,39 @@ def main():
     else:
         tak_host = tak_host_raw
 
-    # Start OpenTAKServer services if the startup script exists
+    # Start OpenTAKServer services and wait until ready before launching the app
     ots_script = "/opt/ots/start_ots.sh"
     if os.path.isfile(ots_script):
+        import socket
         import subprocess
-        logging.getLogger("tak").info("Starting OpenTAKServer services...")
+        import time
+
+        tak_logger = logging.getLogger("tak")
+        tak_logger.info("Starting OpenTAKServer services...")
         subprocess.Popen(
             ["bash", ots_script],
             stdout=open("/tmp/ots_start.log", "w"),
             stderr=subprocess.STDOUT,
         )
+
+        # Wait for the TCP CoT port to be accepting connections
+        cot_port = 18088
+        tak_logger.info("Waiting for OTS TCP port %d to be ready...", cot_port)
+        for attempt in range(60):
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.settimeout(1.0)
+                s.connect(("localhost", cot_port))
+                s.close()
+                tak_logger.info("OTS is ready (port %d accepting connections)", cot_port)
+                break
+            except OSError:
+                s.close()
+                time.sleep(2)
+        else:
+            tak_logger.warning(
+                "OTS did not become ready within 120s; app will start anyway"
+            )
 
     app = TAKApp(
         video_dir=args.video_dir,

@@ -11,6 +11,11 @@ set -e
 OTS_VENV=/opt/ots/venv
 export OTS_DATA_FOLDER=/opt/ots/data
 
+# --- First-run setup (downloads OTS from PyPI if not already installed) ---
+if [ ! -f /opt/ots/.setup_complete ]; then
+    /opt/ots/setup_ots.sh
+fi
+
 # PostgreSQL cluster port (assigned by pg_createcluster)
 PG_PORT=5433
 

@@ -82,16 +82,7 @@ class TakCotOp(Operator):
         logger.info(
             "Connecting to TAK server at %s:%d", self.tak_host, self.tak_port
         )
-        # Retry for up to 60 seconds to allow OTS services to start
-        import time
-        for attempt in range(12):
-            self._connect()
-            if self.connected:
-                break
-            logger.info(
-                "TAK server not ready yet, retrying in 5s... (%d/12)", attempt + 1
-            )
-            time.sleep(5)
+        self._connect()
         if not self.connected:
             logger.warning(
                 "Could not connect to TAK server at %s:%d; "
