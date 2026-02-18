@@ -110,6 +110,14 @@ class TAKApp(Application):
             self,
             name="tak_cot",
             marker_type="a-h-G",
+            marker_type_map={
+                "person": "a-h-G-U-C",
+                "car": "a-h-G-E-V-C",
+                "truck": "a-h-G-E-V-T",
+                "bus": "a-h-G-E-V-U",
+                "motorcycle": "a-h-G-E-V-M",
+                "bicycle": "a-n-G",
+            },
             detector_op=detector,
             **self.kwargs("tak_cot"),
         )
@@ -200,30 +208,66 @@ def main():
         import time
 
         tak_logger = logging.getLogger("tak")
+        first_run = not os.path.isfile("/opt/ots/.setup_complete")
+        if first_run:
+            tak_logger.info(
+                "First run: OpenTAKServer will be downloaded and installed. "
+                "This may take 1-2 minutes. Subsequent launches will be faster."
+            )
         tak_logger.info("Starting OpenTAKServer services...")
+        ots_log = open("/tmp/ots_start.log", "w")
         subprocess.Popen(
-            ["bash", ots_script],
-            stdout=open("/tmp/ots_start.log", "w"),
+            ["bash", "-u", ots_script],
+            stdout=ots_log,
             stderr=subprocess.STDOUT,
         )
+        # Tail the log in a background thread so OTS progress is visible
+        import threading
+
+        def _tail_ots_log():
+            with open("/tmp/ots_start.log", "r") as f:
+                while True:
+                    line = f.readline()
+                    if line:
+                        tak_logger.info(line.rstrip())
+                    elif os.path.isfile("/tmp/ots_start.log"):
+                        time.sleep(0.2)
+                    else:
+                        break
+
+        log_thread = threading.Thread(target=_tail_ots_log, daemon=True)
+        log_thread.start()
 
         # Wait for the TCP CoT port to be accepting connections
         cot_port = 18088
-        tak_logger.info("Waiting for OTS TCP port %d to be ready...", cot_port)
+        tak_logger.info(
+            "Waiting for OTS to be ready (TCP port %d)...", cot_port
+        )
+        start_wait = time.time()
         for attempt in range(60):
             try:
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 s.settimeout(1.0)
                 s.connect(("localhost", cot_port))
                 s.close()
-                tak_logger.info("OTS is ready (port %d accepting connections)", cot_port)
+                elapsed = time.time() - start_wait
+                tak_logger.info(
+                    "OTS is ready (took %.0fs)", elapsed
+                )
                 break
             except OSError:
                 s.close()
+                elapsed = time.time() - start_wait
+                if attempt > 0 and attempt % 5 == 0:
+                    tak_logger.info(
+                        "Still waiting for OTS... (%.0fs elapsed)", elapsed
+                    )
                 time.sleep(2)
         else:
             tak_logger.warning(
-                "OTS did not become ready within 120s; app will start anyway"
+                "OTS did not become ready within 120s; "
+                "app will start anyway (TAK integration may not work). "
+                "Check /tmp/ots_start.log for details."
             )
 
     app = TAKApp(

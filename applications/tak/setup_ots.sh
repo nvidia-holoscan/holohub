@@ -23,20 +23,25 @@ fi
 OTS_VENV=/opt/ots/venv
 export OTS_DATA_FOLDER=/opt/ots/data
 
-echo "============================================================"
-echo "[OTS Setup] Installing OpenTAKServer (GPL-3.0) from PyPI..."
-echo "[OTS Setup] Source: https://github.com/brian7704/OpenTAKServer"
-echo "============================================================"
+echo ""
+echo "[OTS Setup] =========================================="
+echo "[OTS Setup] First-run installation of OpenTAKServer"
+echo "[OTS Setup] License: GPL-3.0"
+echo "[OTS Setup] Source:  https://github.com/brian7704/OpenTAKServer"
+echo "[OTS Setup] =========================================="
+echo ""
 
 # --------------------------------------------------------------------------
-# Install OTS and database adapter
+# Step 1: Install OTS and database adapter from PyPI
 # --------------------------------------------------------------------------
+echo "[OTS Setup] [1/6] Installing OpenTAKServer from PyPI (this is the slowest step)..."
 "$OTS_VENV/bin/pip" install --no-cache-dir opentakserver psycopg2-binary
+echo "[OTS Setup] [1/6] Done"
 
 # --------------------------------------------------------------------------
-# Patch OTS to use psycopg2 (psycopg v3 returns bytes that break Flask-Security)
+# Step 2: Patch psycopg2 compatibility
 # --------------------------------------------------------------------------
-echo "[OTS Setup] Applying psycopg2 compatibility patch..."
+echo "[OTS Setup] [2/6] Patching psycopg2 compatibility..."
 sed -i 's|postgresql+psycopg://|postgresql+psycopg2://|' \
     "$OTS_VENV"/lib/python3.*/site-packages/opentakserver/defaultconfig.py
 
@@ -44,54 +49,57 @@ SA_BASE=$(find "$OTS_VENV" -path '*/dialects/postgresql/base.py' | head -1)
 sed -i '/def _get_server_version_info/,/\.scalar()/{s/\.scalar()/\.scalar(); v = v.decode() if isinstance(v, bytes) else v/}' "$SA_BASE"
 find "$OTS_VENV" -name '__pycache__' -path '*/sqlalchemy/*' -exec rm -rf {} + 2>/dev/null || true
 find "$OTS_VENV" -name '__pycache__' -path '*/opentakserver/*' -exec rm -rf {} + 2>/dev/null || true
+echo "[OTS Setup] [2/6] Done"
 
 # --------------------------------------------------------------------------
-# Patch Flask-SocketIO init: increase ping_timeout and allow CORS origins
+# Step 3: Patch Flask-SocketIO (ping timeout + CORS)
 # --------------------------------------------------------------------------
-echo "[OTS Setup] Applying Flask-SocketIO patch..."
+echo "[OTS Setup] [3/6] Patching Flask-SocketIO settings..."
 OTS_APP_PY=$(find "$OTS_VENV" -path '*/opentakserver/app.py' | head -1)
 sed -i 's|ping_timeout=1,|ping_timeout=30, cors_allowed_origins="*",|' "$OTS_APP_PY"
 find "$OTS_VENV" -name '__pycache__' -path '*/opentakserver/*' -exec rm -rf {} + 2>/dev/null || true
+echo "[OTS Setup] [3/6] Done"
 
 # --------------------------------------------------------------------------
-# Patch cot_parser: allow nullable sender_uid and set marker callsign from
-# <remarks> text (markers cannot have a <contact> element).
+# Step 4: Patch cot_parser (nullable sender_uid + marker callsign)
 # --------------------------------------------------------------------------
-echo "[OTS Setup] Applying cot_parser patches..."
+echo "[OTS Setup] [4/6] Patching CoT parser for marker support..."
 COT_PARSER=$(find "$OTS_VENV" -path '*/cot_parser/cot_parser.py' | head -1)
 sed -i 's|uid = body\["uid"\] or event.attrs\["uid"\]|uid = body.get("uid") or None|' "$COT_PARSER"
 sed -i 's|marker.uid = event.attrs\["uid"\]|marker.uid = event.attrs["uid"]; _r = event.find("remarks"); marker.callsign = _r.text if _r and _r.text else event.attrs.get("uid", "")|' "$COT_PARSER"
 find "$OTS_VENV" -name '__pycache__' -path '*/cot_parser/*' -exec rm -rf {} + 2>/dev/null || true
 
-# --------------------------------------------------------------------------
-# Patch EUD.to_json() to include the latest point for map display
-# --------------------------------------------------------------------------
-echo "[OTS Setup] Applying EUD model patch..."
 EUD_MODEL=$(find "$OTS_VENV" -path '*/models/EUD.py' | head -1)
 sed -i 's|"last_point": None,.*# Setting to.*|"last_point": self.points[-1].to_json() if self.points else None,|' "$EUD_MODEL"
 find "$OTS_VENV" -name '__pycache__' -path '*/models/*' -exec rm -rf {} + 2>/dev/null || true
+echo "[OTS Setup] [4/6] Done"
 
 # --------------------------------------------------------------------------
-# Initialize OTS certificate authority
+# Step 5: Initialize certificate authority
 # --------------------------------------------------------------------------
-echo "[OTS Setup] Creating certificate authority..."
+echo "[OTS Setup] [5/6] Creating certificate authority..."
 mkdir -p "$OTS_DATA_FOLDER"
 OTS_APP=$(find "$OTS_VENV" -path '*/opentakserver/app.py' | head -1)
 "$OTS_VENV/bin/flask" --app "$OTS_APP" ots create-ca
+echo "[OTS Setup] [5/6] Done"
 
 # --------------------------------------------------------------------------
-# Download the OpenTAKServer Web UI
+# Step 6: Download the Web UI
 # --------------------------------------------------------------------------
-echo "[OTS Setup] Downloading OpenTAKServer Web UI..."
+echo "[OTS Setup] [6/6] Downloading OpenTAKServer Web UI from GitHub..."
 "$OTS_VENV/bin/pip" install --no-cache-dir lastversion
 mkdir -p /var/www/html/opentakserver
 cd /var/www/html/opentakserver
 "$OTS_VENV/bin/lastversion" --assets extract brian7704/OpenTAKServer-UI
+echo "[OTS Setup] [6/6] Done"
 
 # --------------------------------------------------------------------------
 # Mark setup as complete
 # --------------------------------------------------------------------------
 touch "$MARKER_FILE"
-echo "============================================================"
-echo "[OTS Setup] Complete."
-echo "============================================================"
+echo ""
+echo "[OTS Setup] =========================================="
+echo "[OTS Setup] Installation complete."
+echo "[OTS Setup] Subsequent launches will skip this step."
+echo "[OTS Setup] =========================================="
+echo ""

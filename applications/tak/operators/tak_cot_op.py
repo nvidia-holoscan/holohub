@@ -46,6 +46,7 @@ class TakCotOp(Operator):
         base_lat: float = 28.53830862,
         base_lon: float = -81.37923400,
         marker_type: str = "a-h-A-M-A",
+        marker_type_map: Optional[dict] = None,
         update_interval: float = 2.0,
         detector_op=None,
         **kwargs,
@@ -58,6 +59,7 @@ class TakCotOp(Operator):
         self.base_lat = base_lat
         self.base_lon = base_lon
         self.marker_type = marker_type
+        self.marker_type_map = marker_type_map or {}
         self.update_interval = update_interval
         self.detector_op = detector_op
 
@@ -150,10 +152,11 @@ class TakCotOp(Operator):
         lat: float,
         lon: float,
         stale_minutes: int = 5,
+        cot_type: str = "",
     ) -> bytes:
         root = ET.Element("event")
         root.set("version", "2.0")
-        root.set("type", self.marker_type)
+        root.set("type", cot_type or self.marker_type)
         root.set("uid", uid)
         root.set("how", "m-g")
         root.set("time", pytak.cot_time())
@@ -183,12 +186,15 @@ class TakCotOp(Operator):
         lat: float,
         lon: float,
         label: str = "Detection",
+        cot_type: str = "",
     ):
         if not self.connected or not self.socket:
             return False
 
         try:
-            cot_message = self._generate_cot_xml(detection_id, label, lat, lon)
+            cot_message = self._generate_cot_xml(
+                detection_id, label, lat, lon, cot_type=cot_type
+            )
             self.socket.sendall(cot_message + b"\n")
             logger.info(
                 "Sent CoT marker: %s at (%.6f, %.6f)", label, lat, lon
@@ -245,8 +251,10 @@ class TakCotOp(Operator):
             logger.debug("Processing %d detections", num_detections)
 
             for i in range(num_detections):
-                lat_offset = random.uniform(-0.01, 0.01)
-                lon_offset = random.uniform(-0.01, 0.01)
+                # ~150 feet ≈ 46 meters ≈ 0.000405 degrees
+                # Place detections south-east (bottom-right) of the base
+                lat_offset = random.uniform(-0.000405, 0)
+                lon_offset = random.uniform(0, 0.000405)
 
                 self.detection_count += 1
 
@@ -271,7 +279,10 @@ class TakCotOp(Operator):
                 lat = self.base_lat + lat_offset
                 lon = self.base_lon + lon_offset
 
-                self._send_cot_marker(detection_id, lat, lon, detection_label)
+                cot_type = self.marker_type_map.get(cls_name, "")
+                self._send_cot_marker(
+                    detection_id, lat, lon, detection_label, cot_type=cot_type
+                )
         except Exception as e:
             logger.error("Error processing detections: %s", e, exc_info=True)
 
