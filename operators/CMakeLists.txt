@@ -42,6 +42,7 @@ add_holohub_operator(streaming_client)
 add_holohub_operator(streaming_server)
 add_subdirectory(orsi)
 add_holohub_operator(slang_shader)
+add_holohub_operator(st2110_source)
 # Unified streaming operator
 add_subdirectory(video_streaming)
 add_holohub_operator(tensor_to_file)
