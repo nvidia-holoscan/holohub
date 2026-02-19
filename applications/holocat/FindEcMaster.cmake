@@ -33,15 +33,6 @@ find_path(ECMASTER_INCLUDE_DIR
     DOC "EC-Master include directory"
 )
 
-find_path(ECMASTER_LD_LIBRARY_DIR
-    NAMES libemllSockRaw.so
-    PATHS
-        ${ECMASTER_ROOT}/Bin/Linux/${ECMASTER_ARCH}
-        /opt/acontis/ecmaster/Bin/Linux/${ECMASTER_ARCH}
-        /usr/local/lib/ecmaster
-    DOC "EC-Master ld libraries directory"
-)
-
 set(TEMPARCH ${CMAKE_SYSTEM_PROCESSOR})
 # Determine library directory based on architecture
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -58,6 +49,16 @@ else()
         set(ECMASTER_ARCH "x86")
     endif()
 endif()
+
+find_path(ECMASTER_LD_LIBRARY_DIR
+    NAMES libemllSockRaw.so
+    PATHS
+        ${ECMASTER_ROOT}/Bin/Linux/${ECMASTER_ARCH}
+        /opt/acontis/ecmaster/Bin/Linux/${ECMASTER_ARCH}
+        /usr/local/lib/ecmaster
+    DOC "EC-Master ld libraries directory"
+)
+
 
 # Find main EC-Master library
 find_library(ECMASTER_LIBRARY
