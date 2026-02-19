@@ -76,6 +76,8 @@ target_link_libraries(holocat
 
 # Set RPATH for runtime library discovery and output directory
 set_target_properties(holocat PROPERTIES
+    BUILD_RPATH "${ECMASTER_LD_LIBRARY_DIR}"
+    INSTALL_RPATH "${ECMASTER_LD_LIBRARY_DIR}"
     INSTALL_RPATH_USE_LINK_PATH TRUE
     BUILD_WITH_INSTALL_RPATH FALSE
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/.."

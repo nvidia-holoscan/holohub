@@ -29,16 +29,24 @@ find_path(ECMASTER_INCLUDE_DIR
     PATHS
         ${ECMASTER_ROOT}/SDK/INC
         /opt/acontis/ecmaster/SDK/INC
-        ${CMAKE_SOURCE_DIR}/../ethercat/ecm/SDK/INC
         /usr/local/include/ecmaster
     DOC "EC-Master include directory"
+)
+
+find_path(ECMASTER_LD_LIBRARY_DIR
+    NAMES libemllSockRaw.so
+    PATHS
+        ${ECMASTER_ROOT}/Bin/Linux/${ECMASTER_ARCH}
+        /opt/acontis/ecmaster/Bin/Linux/${ECMASTER_ARCH}
+        /usr/local/lib/ecmaster
+    DOC "EC-Master ld libraries directory"
 )
 
 set(TEMPARCH ${CMAKE_SYSTEM_PROCESSOR})
 # Determine library directory based on architecture
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
     if(TEMPARCH MATCHES "aarch64|arm64|AARCH64|ARM64")
-        set(ECMASTER_ARCH "arm64")
+        set(ECMASTER_ARCH "aarch64")
     else()
         set(ECMASTER_ARCH "x64")
     endif()
@@ -131,7 +139,7 @@ find_package_handle_standard_args(EcMaster
 if(EcMaster_FOUND)
     set(ECMASTER_LIBRARIES ${ECMASTER_LIBRARY} ${ECMASTER_LINK_LIBRARIES})
     set(ECMASTER_INCLUDE_DIRS ${ECMASTER_INCLUDE_DIR})
-
+    
     # Also check for Linux-specific include directory
     if(EXISTS "${ECMASTER_INCLUDE_DIR}/Linux")
         list(APPEND ECMASTER_INCLUDE_DIRS "${ECMASTER_INCLUDE_DIR}/Linux")

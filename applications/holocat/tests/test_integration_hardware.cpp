@@ -164,7 +164,7 @@ class HardwareTest : public ::testing::Test {
   void SetUp() override {
     std::string error;
     if (!CheckPrerequisites(error)) {
-      GTEST_SKIP() << std::endl
+      GTEST_FAIL() << std::endl
                    << " >>> Hardware prerequisites not met: " << error << std::endl
                    << std::endl;
     }
