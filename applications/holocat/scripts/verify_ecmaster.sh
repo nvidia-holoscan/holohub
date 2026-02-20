@@ -76,7 +76,7 @@ fi
 # Determine architecture
 ARCH="x64"
 if [ "$(uname -m)" = "aarch64" ]; then
-    ARCH="arm64"
+    ARCH="aarch64"
 fi
 
 # Check for libraries

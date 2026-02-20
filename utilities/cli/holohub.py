@@ -1827,7 +1827,6 @@ class HoloHubCLI:
 
         if args.scripts:
             for script in args.scripts:
-                script_path = holohub_cli_util.get_holohub_setup_scripts_dir() / f"{script}.sh"
                 if any(sep in script for sep in ("/", "\\")):
                     holohub_cli_util.fatal(
                         f"Invalid script name '{script}': path separators are not allowed"
