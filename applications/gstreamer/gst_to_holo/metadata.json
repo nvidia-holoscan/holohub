@@ -1,0 +1,47 @@
+{
+	"application": {
+		"name": "GStreamer to Holoscan",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "C++",
+		"version": "1.0.0",
+		"changelog": {
+			"1.0.0": "Initial Release"
+		},
+		"requirements": {
+			"system_packages": [
+				"pkg-config",
+				"libgstreamer1.0-dev",
+				"libgstreamer-plugins-base1.0-dev",
+				"gstreamer1.0-plugins-base",
+				"gstreamer1.0-plugins-bad",
+				"gstreamer1.0-plugins-good",
+				"gstreamer1.0-plugins-ugly"
+			],
+			"optional_packages": [
+				"gstreamer1.0-cuda (for CUDA support, requires GStreamer 1.24+)"
+			]
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "3.8.0",
+			"tested_versions": [
+				"3.8.0"
+			]
+		},
+		"platforms": [
+			"aarch64",
+			"x86_64"
+		],
+		"tags": ["Streaming", "GStreamer", "Visualization", "Holoviz", "Video"],
+		"ranking": 2,
+		"description": "Bridge GStreamer pipelines into Holoscan for visualization with Holoviz. Supports CPU and GPU memory paths, multiple video formats (RGBA, I420, NV12), and dynamic pipelines with automatic format detection. Can display from files (MP4, etc.), cameras (V4L2), streams (RTSP), test patterns, and more.",
+		"run": {
+		"command": "applications/gstreamer/gst_to_holo/gst-to-holo",
+		"workdir": "holohub_bin"
+		}
+	}
+}

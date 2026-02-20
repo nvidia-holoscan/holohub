@@ -17,7 +17,6 @@
 
 #include <atomic>
 #include <cmath>
-#include <cuda.h>
 #include <complex>
 #include <chrono>
 #include <iostream>
@@ -29,7 +28,7 @@
 #include <unordered_set>
 #include <arpa/inet.h>
 
-#include "adv_network_dpdk_log.h"
+#include "advanced_network/dpdk_log.h"
 #include "adv_network_dpdk_mgr.h"
 #include "holoscan/holoscan.hpp"
 

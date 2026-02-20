@@ -15,6 +15,22 @@
 #
 # Usage (run from the holohub repo root or invoke ctest directly):
 #   ctest -DAPP=my_app -DTAG=<tag> -S utilities/testing/holohub.container.ctest -VV
+#
+# CTest -D variables:
+#   APP                   Project name (required unless OP/PKG/EXT is set)
+#   TAG                   Image tag / branch identifier (default: "latest")
+#   CTEST_SITE            CDash site name (default: "SITE_NA")
+#   PLATFORM_NAME         Platform portion of the build name (default: "linux")
+#   CONFIGURE_OPTIONS     Semicolon-separated list of extra cmake -D flags
+#   CTEST_SUBMIT_URL      CDash submit URL; omit to skip submission
+#   CTEST_TEST_INCLUDE    Regex filter passed to ctest_test(INCLUDE ...)
+#   DASHBOARD_MODEL       Nightly | Experimental (default: "Nightly")
+#   COVERAGE              Set to ON to enable coverage instrumentation
+#   TEST_FAILURES_FILE    If defined, write the test exit code to this path
+#                         instead of calling FATAL_ERROR. Lets the caller
+#                         distinguish test failures (exit 0, file present)
+#                         from infra failures (exit != 0).
+#
 #   ./holohub test [project] [options]
 #     Examples: ./holohub test app_name
 #               ./holohub test operator_name
@@ -108,10 +124,19 @@ endif()
 # Default nightly start time
 set(CTEST_NIGHTLY_START_TIME "06:00:00 UTC")
 
-ctest_start(Nightly)
+# Dashboard model: Nightly (scheduled), Experimental (manual), or Continuous (CI)
+if(NOT DASHBOARD_MODEL)
+  set(DASHBOARD_MODEL "Nightly")
+endif()
+
+ctest_start(${DASHBOARD_MODEL})
 ctest_configure(OPTIONS "${configure_options}")
 ctest_build()
-ctest_test(RETURN_VALUE test_result)
+if(CTEST_TEST_INCLUDE)
+  ctest_test(RETURN_VALUE test_result INCLUDE "${CTEST_TEST_INCLUDE}")
+else()
+  ctest_test(RETURN_VALUE test_result)
+endif()
 
 if(COVERAGE)
   # Generate the python coverage report as XML for CTest
@@ -127,5 +152,9 @@ if(CTEST_SUBMIT_URL)
 endif()
 
 if (test_result)
-  message(FATAL_ERROR "Tests failed with return value: ${test_result}")
+  if (DEFINED TEST_FAILURES_FILE)
+    file(WRITE "${TEST_FAILURES_FILE}" "${test_result}")
+  else()
+    message(FATAL_ERROR "Tests failed with return value: ${test_result}")
+  endif()
 endif()

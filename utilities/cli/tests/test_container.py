@@ -38,7 +38,7 @@ class TestHoloHubContainer(unittest.TestCase):
 
         # create a Dockerfile in the test directory
         self.dockerfile_path.write_text(
-            "FROM nvcr.io/nvidia/clara-holoscan/holoscan:3.10.0-cuda12-dgpu"
+            "FROM nvcr.io/nvidia/clara-holoscan/holoscan:3.11.0-cuda12-dgpu"
         )
 
         # create project metadata
@@ -101,14 +101,14 @@ class TestHoloHubContainer(unittest.TestCase):
 
     @patch("utilities.cli.container.get_current_branch_slug", return_value="main-branch")
     @patch("utilities.cli.container.get_git_short_sha", return_value="abcdef123456")
-    def test_image_names_contains_sha_branch_legacy(self, mock_sha, mock_branch):
-        """Test that image_names returns sha, branch, and legacy tags in order"""
+    def test_image_names_contains_branch_sha_legacy(self, mock_sha, mock_branch):
+        """Test that image_names returns branch, sha, and legacy tags in order"""
         names = self.container.image_names
         mock_sha.assert_called_once()
         mock_branch.assert_called_once()
         self.assertGreaterEqual(len(names), 3)
-        self.assertEqual(names[0], "holohub-test_project:abcdef123456")
-        self.assertEqual(names[1], "holohub-test_project:main-branch")
+        self.assertEqual(names[0], "holohub-test_project:main-branch")
+        self.assertEqual(names[1], "holohub-test_project:abcdef123456")
         self.assertEqual(names[2], "holohub:test_project")
 
     @patch("utilities.cli.container.get_current_branch_slug", return_value="dev-branch")
@@ -208,6 +208,28 @@ class TestHoloHubContainer(unittest.TestCase):
         mock_get_host_gpu.return_value = "igpu"
         self.assertEqual(get_cuda_tag("12", "3.7.0"), "cuda12-igpu")
         self.assertEqual(get_cuda_tag("12", "3.6.0"), "igpu")
+
+    @patch.dict(os.environ, {"NGC_CLI_API_KEY": "token"}, clear=True)
+    def test_get_ngc_options_defaults_org_when_missing(self):
+        """Default NGC org when API key set and org missing."""
+        options = self.container.get_ngc_options()
+        self.assertListEqual(["-e", "NGC_CLI_API_KEY", "-e", "NGC_CLI_ORG=nvidia"], options)
+
+    @patch.dict(
+        os.environ,
+        {"NGC_CLI_API_KEY": "token", "NGC_CLI_ORG": "custom-org"},
+        clear=True,
+    )
+    def test_get_ngc_options_prefers_user_org(self):
+        """Prefer user org when API key and org are set."""
+        options = self.container.get_ngc_options()
+        self.assertListEqual(["-e", "NGC_CLI_API_KEY", "-e", "NGC_CLI_ORG"], options)
+
+    @patch.dict(os.environ, {}, clear=True)
+    def test_get_ngc_options_no_default_without_api_key(self):
+        """No default org when API key is missing."""
+        options = self.container.get_ngc_options()
+        self.assertListEqual([], options)
 
     @patch("utilities.cli.util.run_info_command")
     @patch("utilities.cli.util.shutil.which")

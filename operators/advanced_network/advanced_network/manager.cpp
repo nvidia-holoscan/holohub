@@ -50,19 +50,17 @@ ManagerType ManagerFactory::ManagerType_ = ManagerType::UNKNOWN;
 extern void initialize_manager(Manager* _manager);
 
 ManagerType ManagerFactory::get_default_manager_type() {
-  ManagerType mgr_type = ManagerType::UNKNOWN;
 #if ANO_MGR_DPDK
-  mgr_type = ManagerType::DPDK;
+  return ManagerType::DPDK;
 #elif ANO_MGR_GPUNETIO
-  mgr_type = ManagerType::DOCA;
+  return ManagerType::DOCA;
 #elif ANO_MGR_RIVERMAX
-  mgr_type = ManagerType::RIVERMAX;
+  return ManagerType::RIVERMAX;
 #elif ANO_MGR_RDMA
-  mgr_type = ManagerType::RDMA;
+  return ManagerType::RDMA;
 #else
 #error "No Advanced Network manager defined"
 #endif
-  return mgr_type;
 }
 
 std::unique_ptr<Manager> ManagerFactory::create_instance(ManagerType type) {
@@ -91,10 +89,10 @@ std::unique_ptr<Manager> ManagerFactory::create_instance(ManagerType type) {
     case ManagerType::DEFAULT:
       _manager = create_instance(get_default_manager_type());
       return _manager;
-    case ManagerType::UNKNOWN:
-      throw std::invalid_argument("Unknown manager type");
     default:
-      throw std::invalid_argument("Invalid type");
+      throw std::invalid_argument(
+          "Manager type '" + manager_type_to_string(type) +
+          "' is not available in this build");
   }
 
   // Initialize the ADV Net Common API

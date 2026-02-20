@@ -743,10 +743,17 @@ struct YAML::convert<holoscan::advanced_network::NetworkConfig> {
           ifcfg.name_ = intf["name"].as<std::string>();
           ifcfg.address_ = intf["address"].as<std::string>();
 
-          // RDMA config
+          // RDMA config (only parsed for RDMA manager)
           holoscan::advanced_network::RDMAConfig rdma;
-          if (!parse_rdma_config(intf["rdma_config"], rdma)) {
-            HOLOSCAN_LOG_DEBUG("Failed to parse RDMA config");
+          if (rdma_used) {
+            if (!intf["rdma_config"].IsDefined()) {
+              HOLOSCAN_LOG_ERROR("Missing 'rdma_config' for interface '{}'", ifcfg.name_);
+              return false;
+            }
+            if (!parse_rdma_config(intf["rdma_config"], rdma)) {
+              HOLOSCAN_LOG_ERROR("Failed to parse 'rdma_config' for interface '{}'", ifcfg.name_);
+              return false;
+            }
           }
           ifcfg.rdma_ = rdma;
 

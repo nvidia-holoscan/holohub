@@ -148,13 +148,13 @@ std::string get_muxer_from_extension(std::string& filename) {
  * @param encoder The encoder element (e.g., nvh264enc, x265enc)
  * @return The corresponding parser element name (e.g., "h264parse", "h265parse")
  */
-std::string get_parser_from_encoder(GstElement* encoder) {
+std::string get_parser_from_encoder(::GstElement* encoder) {
   if (!encoder) {
     throw std::runtime_error("Encoder element is null");
   }
 
   // Get the encoder factory from the element
-  GstElementFactory* factory = gst_element_get_factory(encoder);
+  ::GstElementFactory* factory = gst_element_get_factory(encoder);
   if (!factory) {
     throw std::runtime_error("Could not get factory from encoder element");
   }
@@ -164,7 +164,7 @@ std::string get_parser_from_encoder(GstElement* encoder) {
   // Get the src pad template (encoder output)
   const GList* pad_templates = gst_element_factory_get_static_pad_templates(factory);
   for (const GList* item = pad_templates; item != nullptr; item = item->next) {
-    GstStaticPadTemplate* templ = static_cast<GstStaticPadTemplate*>(item->data);
+    ::GstStaticPadTemplate* templ = static_cast<::GstStaticPadTemplate*>(item->data);
 
     // Look for src pad (output)
     if (templ->direction != GST_PAD_SRC) {
@@ -176,7 +176,7 @@ std::string get_parser_from_encoder(GstElement* encoder) {
 
     // Get the first structure (media type)
     if (caps.get_size() > 0) {
-      GstStructure* structure = caps.get_structure(0);
+      ::GstStructure* structure = caps.get_structure(0);
       const char* media_type = gst_structure_get_name(structure);
 
       if (media_type) {
@@ -201,59 +201,6 @@ std::string get_parser_from_encoder(GstElement* encoder) {
   // If we couldn't determine the parser, fail explicitly
   throw std::runtime_error("Could not determine parser for encoder '" + encoder_name +
                            "'. The encoder may not output a video codec with a standard parser.");
-}
-
-/**
- * @brief Monitor the GStreamer pipeline bus for errors, EOS, and state changes
- *
- * This function runs in a separate thread and processes bus messages until
- * an EOS, error, or stop signal is received.
- *
- * @param pipeline The GStreamer pipeline to monitor (C++ wrapper)
- * @param stop_flag Atomic flag to signal the thread to stop (reference)
- */
-void monitor_pipeline_bus(holoscan::gst::Pipeline& pipeline, std::atomic<bool>& stop_flag) {
-  holoscan::gst::Bus bus = pipeline.get_bus();
-
-  while (!stop_flag.load()) {
-    holoscan::gst::Message msg =
-        bus.timed_pop_filtered(100 * GST_MSECOND,
-                               static_cast<GstMessageType>(GST_MESSAGE_ERROR | GST_MESSAGE_EOS |
-                                                           GST_MESSAGE_STATE_CHANGED));
-
-    if (msg) {
-      switch (GST_MESSAGE_TYPE(msg.get())) {
-        case GST_MESSAGE_ERROR: {
-          std::string debug_info;
-          auto error = msg.parse_error(debug_info);
-          HOLOSCAN_LOG_ERROR("GStreamer error: {}", error->message);
-          if (!debug_info.empty()) {
-            HOLOSCAN_LOG_DEBUG("Debug info: {}", debug_info);
-          }
-          return;
-        }
-        case GST_MESSAGE_EOS:
-          HOLOSCAN_LOG_INFO("End of stream reached");
-          return;
-        case GST_MESSAGE_STATE_CHANGED: {
-          // Only check state changes from the pipeline (not individual elements)
-          if (GST_MESSAGE_SRC(msg.get()) == GST_OBJECT(pipeline.get())) {
-            GstState old_state, new_state, pending_state;
-            msg.parse_state_changed(&old_state, &new_state, &pending_state);
-
-            // If pipeline transitions to NULL, stop monitoring
-            if (new_state == GST_STATE_NULL && old_state != GST_STATE_NULL) {
-              HOLOSCAN_LOG_INFO("Pipeline transitioned to NULL state");
-              return;
-            }
-          }
-          break;
-        }
-        default:
-          break;
-      }
-    }
-  }
 }
 
 /**
@@ -379,7 +326,7 @@ void add_and_link_source_converter(holoscan::gst::Pipeline& pipeline,
   pipeline.add_many(src_element, converter);
 
   // Set elements to PLAYING state to match the pipeline
-  GstStateChangeReturn ret = src_element.set_state(GST_STATE_PLAYING);
+  ::GstStateChangeReturn ret = src_element.set_state(GST_STATE_PLAYING);
   if (ret == GST_STATE_CHANGE_FAILURE) {
     throw std::runtime_error("Failed to set source element to PLAYING state");
   }
@@ -452,9 +399,6 @@ void GstVideoRecorderOp::start() {
 
   // Initialize frame counter
   frame_count_ = 0;
-
-  // Ensure bus monitor stop flag is cleared for a fresh run
-  stop_bus_monitor_.store(false);
 
   HOLOSCAN_LOG_INFO("GstVideoRecorderOp - Starting");
   HOLOSCAN_LOG_INFO("Output filename: '{}'", filename_.get());
@@ -547,7 +491,7 @@ void GstVideoRecorderOp::start() {
       "detected storage type");
 
   // Start the GStreamer pipeline
-  GstStateChangeReturn ret = pipeline_.set_state(GST_STATE_PLAYING);
+  ::GstStateChangeReturn ret = pipeline_.set_state(GST_STATE_PLAYING);
   if (ret == GST_STATE_CHANGE_FAILURE) {
     HOLOSCAN_LOG_ERROR("Failed to start GStreamer pipeline");
     throw std::runtime_error("Failed to start GStreamer pipeline");
@@ -556,8 +500,8 @@ void GstVideoRecorderOp::start() {
   HOLOSCAN_LOG_INFO("GStreamer pipeline started (waiting for source to be added)");
 
   // Start bus monitoring in a background thread
-  bus_monitor_future_ = std::async(
-      std::launch::async, monitor_pipeline_bus, std::ref(pipeline_), std::ref(stop_bus_monitor_));
+  bus_monitor_ = std::make_unique<gst::PipelineBusMonitor>(pipeline_);
+  bus_monitor_->start();
 
   HOLOSCAN_LOG_INFO("GstVideoRecorderOp::start() - Pipeline setup complete");
 }
@@ -572,7 +516,14 @@ void GstVideoRecorderOp::compute(InputContext& input, OutputContext& output,
       frame_count_);
 
   // Receive the video frame tensor map from the input port
-  auto tensor_map = input.receive<TensorMap>("input").value();
+  auto maybe_tensor_map = input.receive<TensorMap>("input");
+  if (!maybe_tensor_map) {
+    HOLOSCAN_LOG_DEBUG("Frame #{} - No tensor map available on input port, skipping frame",
+                       frame_count_);
+    return;
+  }
+
+  auto tensor_map = maybe_tensor_map.value();
   HOLOSCAN_LOG_DEBUG("Frame #{} - TensorMap received", frame_count_);
 
   // Initialize bridge on first frame
@@ -580,14 +531,27 @@ void GstVideoRecorderOp::compute(InputContext& input, OutputContext& output,
   if (!src_bridge_) {
     HOLOSCAN_LOG_INFO("Frame #{} - First frame, detecting video parameters from tensor",
                       frame_count_);
+
+    // Validate tensor map is not empty
+    if (tensor_map.empty()) {
+      HOLOSCAN_LOG_ERROR("Frame #{} - Received empty TensorMap, cannot initialize bridge",
+                         frame_count_);
+      return;
+    }
+
+    // Check tensor device type before creating bridge
+    // (caps negotiation hasn't happened yet, so we can't rely on current caps)
+    const auto& first_tensor_ptr = tensor_map.begin()->second;
+    auto device = first_tensor_ptr->device();
+    bool is_device_memory = (device.device_type == kDLCUDA || device.device_type == kDLCUDAManaged);
+
     // Create bridge from tensor map (detects video parameters automatically)
     src_bridge_ = create_src_bridge_from_tensor_map(
         tensor_map, name(), format_.get(), framerate_.get(), max_buffers_.get(), block_.get());
     HOLOSCAN_LOG_INFO("Bridge created");
 
-    // Create appropriate converter based on storage type and add to pipeline
-    auto converter = create_converter_element(
-        src_bridge_->get_caps().has_feature(GST_CAPS_FEATURE_MEMORY_CUDA_MEMORY));
+    // Create appropriate converter based on tensor storage type
+    auto converter = create_converter_element(is_device_memory);
     // Add source and converter to pipeline and link them to encoder
     gst::Element src_element = src_bridge_->get_gst_element();
     add_and_link_source_converter(pipeline_, src_element, converter, encoder_);
@@ -626,25 +590,22 @@ void GstVideoRecorderOp::stop() {
   }
 
   // Wait for the bus monitor thread to complete (it will exit when EOS is received)
-  // Do NOT signal stop_bus_monitor_ - let it exit naturally on EOS
-  if (bus_monitor_future_.valid()) {
+  if (bus_monitor_) {
     HOLOSCAN_LOG_INFO("GstVideoRecorderOp::stop() - Waiting for EOS to be processed");
-    auto status = bus_monitor_future_.wait_for(kEosTimeoutSeconds);
+    auto status = bus_monitor_->get_completion_future().wait_for(kEosTimeoutSeconds);
     if (status == std::future_status::ready) {
       HOLOSCAN_LOG_INFO("EOS processed, pipeline finished cleanly");
     } else {
       HOLOSCAN_LOG_WARN("EOS not processed within {} seconds, forcing shutdown",
                         kEosTimeoutSeconds.count());
-      stop_bus_monitor_.store(true);  // Force stop as fallback only
-      // Give it a bit more time to exit gracefully
-      bus_monitor_future_.wait_for(std::chrono::seconds(2));
+      bus_monitor_->stop();  // Force stop as fallback only
     }
   }
 
   // Now it's safe to set pipeline to NULL
   if (pipeline_) {
     HOLOSCAN_LOG_INFO("Setting pipeline to NULL state");
-    GstStateChangeReturn ret = pipeline_.set_state(GST_STATE_NULL);
+    ::GstStateChangeReturn ret = pipeline_.set_state(GST_STATE_NULL);
     if (ret == GST_STATE_CHANGE_FAILURE) {
       HOLOSCAN_LOG_WARN("Failed to set pipeline to NULL state");
     }

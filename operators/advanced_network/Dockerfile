@@ -17,13 +17,13 @@
 
 # Define arguments for holoscan installation
 ARG HOLOSCAN_DEB_SRC="remote" # or "local"
-ARG HOLOSCAN_DEB_REMOTE_VERSION=3.4.0 # only used if HOLOSCAN_DEB_SRC is "remote"
+ARG HOLOSCAN_DEB_REMOTE_VERSION=3.11.0 # only used if HOLOSCAN_DEB_SRC is "remote"
 ARG HOLOSCAN_DEB_LOCAL_PATH="./holoscan.deb" # only used if HOLOSCAN_DEB_SRC is "local"
 
 # ============================================================
 # base: Base layer
 # ============================================================
-FROM nvcr.io/nvidia/cuda:12.6.3-base-ubuntu22.04 AS base
+FROM nvcr.io/nvidia/cuda:12.6.3-base-ubuntu24.04 AS base
 SHELL ["/bin/bash", "-eou", "pipefail", "-c"]
 
 # Basic system dependencies
@@ -104,7 +104,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # - pytest: test harness
 # - pyyaml: to parse yaml configs in tests
 # - scapy: for debugging and mocking network packets for tests
-RUN python3 -m pip install --no-cache-dir \
+RUN python3 -m pip install --no-cache-dir --break-system-packages \
         pytest \
         pyyaml \
         scapy
@@ -174,6 +174,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # ==============================================================
+# rdma: Named target for consistent per-manager container builds.
+# Identical to dpdk (which already includes RDMA/ibverbs deps).
+# ==============================================================
+FROM dpdk AS rdma
+
+# ==============================================================
 # gpunetio: Add DOCA SDK packages for GPUNetIO support
 # ==============================================================
 FROM dpdk AS gpunetio
@@ -206,7 +212,7 @@ FROM base-deps AS rivermax
 
 # Define Rivermax-specific build arguments and environment variables
 ARG RIVERMAX_VERSION=1.70.32
-ARG RIVERMAX_SDK_ZIP_PATH=./rivermax_ubuntu2204_${RIVERMAX_VERSION}.tar.gz
+ARG RIVERMAX_SDK_ZIP_PATH=./rivermax_ubuntu2404_${RIVERMAX_VERSION}.tar.gz
 ARG MAXPROC=8
 
 
