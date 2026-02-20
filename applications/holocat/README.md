@@ -197,7 +197,7 @@ Use EtherCAT configuration tools to generate your ENI file.
    export ECMASTER_ROOT=/path/to/ecmaster/root
 
    # Add link layer libraries to library path (REQUIRED for runtime)
-   export LD_LIBRARY_PATH=$ECMASTER_ROOT/Linux/<arch>:$LD_LIBRARY_PATH
+   export LD_LIBRARY_PATH=$ECMASTER_ROOT/Bin/Linux/<arch>:$LD_LIBRARY_PATH
 
    # Verify installation
    ./applications/holocat/scripts/verify_ecmaster.sh
