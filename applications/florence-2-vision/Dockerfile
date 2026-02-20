@@ -43,7 +43,7 @@ RUN python3 -m pip install --no-cache-dir setuptools && \
     python3 -m pip install --no-cache-dir -r /tmp/requirements.txt
 
 # Download the Florence-2 model
-RUN huggingface-cli download microsoft/Florence-2-large-ft \
+RUN hf download microsoft/Florence-2-large-ft \
     --local-dir /workspace/volumes/models/microsoft/Florence-2-large-ft --cache-dir /workspace/volumes/models/microsoft/Florence-2-large-ft
 
 # Build/install flash-attention 2 (NOTE: on Arm64 this will take between 1-1.5 hours)

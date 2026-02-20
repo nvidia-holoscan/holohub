@@ -1059,13 +1059,14 @@ class HoloHubCLI:
                     "Install it (e.g., `./holohub setup`) or disable sccache."
                 )
             # Set CMake compiler launchers with -D
-            cmake_args.extend(
-                [
-                    f"-DCMAKE_C_COMPILER_LAUNCHER={sccache_bin}",
-                    f"-DCMAKE_CXX_COMPILER_LAUNCHER={sccache_bin}",
-                    f"-DCMAKE_CUDA_COMPILER_LAUNCHER={sccache_bin}",
-                ]
-            )
+            if language != "python":
+                cmake_args.extend(
+                    [
+                        f"-DCMAKE_C_COMPILER_LAUNCHER={sccache_bin}",
+                        f"-DCMAKE_CXX_COMPILER_LAUNCHER={sccache_bin}",
+                        f"-DCMAKE_CUDA_COMPILER_LAUNCHER={sccache_bin}",
+                    ]
+                )
             # Set default SCCACHE properties if not set
             build_env.setdefault("SCCACHE_DIR", holohub_cli_util.get_sccache_dir(build_env))
             build_env.setdefault("SCCACHE_CACHE_SIZE", "20G")
@@ -1826,7 +1827,6 @@ class HoloHubCLI:
 
         if args.scripts:
             for script in args.scripts:
-                script_path = holohub_cli_util.get_holohub_setup_scripts_dir() / f"{script}.sh"
                 if any(sep in script for sep in ("/", "\\")):
                     holohub_cli_util.fatal(
                         f"Invalid script name '{script}': path separators are not allowed"

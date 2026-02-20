@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,8 +15,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ARG HOLOSCAN_SDK_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v2.2.0-dgpu
+ARG HOLOSCAN_SDK_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v3.11.0-dgpu
 FROM ${HOLOSCAN_SDK_IMAGE}
+
+# Resolve the one package that prompts on conffile (/etc/issue.net) so dev container
+# features (e.g. common-utils) never hit the prompt. Only upgrade that package.
+# - --force-confdef: use default for modified conffiles (no prompt)
+# - --force-confold: keep current conffile when unchanged
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update \
+    && apt-get install -y --only-upgrade -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" base-files \
+    && apt-get clean -y \
+    && rm -rf /var/lib/apt/lists/*
 
 ARG WORKSPACE_DIR=/workspace
 
@@ -56,7 +66,7 @@ RUN mkdir -p $WORKSPACE_DIR/.vscode \
     && cp /opt/nvidia/holoscan/.vscode/debug_python $WORKSPACE_DIR/.vscode \
     && chown -R $USERNAME $WORKSPACE_DIR/.vscode \
     && sed -i 's|/opt/nvidia/holoscan/.vscode|/workspace/.vscode|g' $WORKSPACE_DIR/.vscode/* \
-    && mv $WORKSPACE_DIR/README.md $WORKSPACE_DIR/TensorRT-README.md 
+    && if [ -f "$WORKSPACE_DIR/README.md" ]; then mv "$WORKSPACE_DIR/README.md" "$WORKSPACE_DIR/TensorRT-README.md"; fi
 
 # Set the default user.
 # (See https://code.visualstudio.com/remote/advancedcontainers/add-nonroot-user)

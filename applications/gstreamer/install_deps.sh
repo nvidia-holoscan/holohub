@@ -14,16 +14,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# install_deps.sh - Install dependencies for gst_video_recorder local development
+# install_deps.sh - Install dependencies for GStreamer applications
 # 
-# This script installs all required dependencies for building gst_video_recorder
-# locally (with --local flag) instead of using the containerized build.
+# This script installs all required dependencies for building GStreamer-based
+# applications locally (with --local flag) instead of using the containerized build.
 #
 # Usage: ./install_deps.sh
 
 set -e  # Exit on any error
 
-echo "🔧 Installing GStreamer Video Recorder dependencies..."
+echo "🔧 Installing GStreamer dependencies..."
 
 # Detect if we need sudo (not root and sudo is available)
 USE_SUDO=""
@@ -75,8 +75,10 @@ $USE_SUDO rm -rf /var/lib/apt/lists/*
 
 echo "✅ All dependencies installed successfully!"
 echo ""
-echo "You can now build gst_video_recorder locally with:"
+echo "You can now build GStreamer applications locally with:"
 echo "  ./holohub build --local gst_video_recorder"
+echo "  ./holohub build --local holo_to_gst"
 echo ""
 echo "Or use the containerized build (no setup required):"
 echo "  ./holohub build gst_video_recorder"
+echo "  ./holohub build holo_to_gst"

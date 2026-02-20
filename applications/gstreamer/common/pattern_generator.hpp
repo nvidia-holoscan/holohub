@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef PATTERN_GENERATOR_HPP
-#define PATTERN_GENERATOR_HPP
+#ifndef APPLICATIONS_GSTREAMER_COMMON_PATTERN_GENERATOR_HPP
+#define APPLICATIONS_GSTREAMER_COMMON_PATTERN_GENERATOR_HPP
 
 #include <cstdint>
 #include <memory>
@@ -172,4 +172,4 @@ class PatternGenOperator : public Operator {
 
 }  // namespace holoscan
 
-#endif  // PATTERN_GENERATOR_HPP
+#endif  // APPLICATIONS_GSTREAMER_COMMON_PATTERN_GENERATOR_HPP
