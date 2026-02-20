@@ -95,21 +95,6 @@ class EndoNeRFLoaderOp(Operator):
         print("[EndoNeRFLoader] Loading file lists...")
         self._load_file_lists(data_path)
 
-        # Validate counts match
-        if not (
-            len(self.image_paths)
-            == len(self.depth_paths)
-            == len(self.mask_paths)
-            == self.num_frames
-        ):
-            raise ValueError(
-                f"Mismatch in data counts: "
-                f"images={len(self.image_paths)}, "
-                f"depths={len(self.depth_paths)}, "
-                f"masks={len(self.mask_paths)}, "
-                f"poses={self.num_frames}"
-            )
-
         print("[EndoNeRFLoader] Dataset loaded successfully!")
         print(f"[EndoNeRFLoader]   - Frames: {self.num_frames}")
         print(
@@ -205,10 +190,21 @@ class EndoNeRFLoaderOp(Operator):
 
         usable_frames = min(num_poses, num_images, num_depths, num_masks)
 
+        if usable_frames == 0:
+            raise ValueError(
+                f"[EndoNeRFLoader] No usable frames: "
+                f"poses={num_poses}, images={num_images}, "
+                f"depths={num_depths}, masks={num_masks}. "
+                f"Check dataset directory: {data_path}"
+            )
+
         if usable_frames < max(num_poses, num_images, num_depths, num_masks):
             print(
                 f"[EndoNeRFLoader] WARNING: Data source count mismatch detected. "
-                f"Using first {usable_frames} frames."
+                f"images={num_images}, depths={num_depths}, "
+                f"masks={num_masks}, poses={num_poses}. "
+                f"Using first {usable_frames} frames. "
+                f"Verify your dataset directory: {data_path}"
             )
             # Truncate to usable frames
             self.poses = self.poses[:usable_frames]
