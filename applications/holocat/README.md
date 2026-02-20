@@ -53,7 +53,7 @@ Modify `applications/holocat/configs/holocat_config.yaml`. Set `adapter_name` to
 
 ### Run Tests
 
-Note: Hardware integration tests require a live EtherCAT adapter with assumed devices, and will therefore fail (not skip) if hardware 
+Note: Hardware integration tests require a live EtherCAT adapter with assumed devices, and will therefore fail (not skip) if hardware
 prerequisites are not met.
 
 ```bash
@@ -181,12 +181,14 @@ Use EtherCAT configuration tools to generate your ENI file.
 ### Common Issues
 
 1. **Permission Denied**
+
    ```bash
    # Ensure capabilities are set
    sudo setcap 'cap_net_raw=ep' ./build/holocat/applications/holocat/holocat
    ```
 
 2. **EC-Master SDK Not Found**
+
    ```bash
    # Verify ECMASTER_ROOT environment variable
    echo $ECMASTER_ROOT
@@ -200,7 +202,8 @@ Use EtherCAT configuration tools to generate your ENI file.
    export ECMASTER_ROOT=/path/to/ecmaster/root
 
    # Add link layer libraries to library path (REQUIRED for runtime)
-   export LD_LIBRARY_PATH=$ECMASTER_ROOT/Bin/Linux/$(uname -m):$LD_LIBRARY_PATH
+   export LD_LIBRARY_PATH=$ECMASTER_ROOT/Bin/Linux/x64:$LD_LIBRARY_PATH # for x86_64
+   # export LD_LIBRARY_PATH=$ECMASTER_ROOT/Bin/Linux/aarch64:$LD_LIBRARY_PATH # for ARM64 (AArch64)
 
    # Verify installation
    ./applications/holocat/scripts/verify_ecmaster.sh
