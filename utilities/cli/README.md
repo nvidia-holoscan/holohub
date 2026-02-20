@@ -468,10 +468,11 @@ The CLI supports the following environment variables for customization:
 By default, the Dockerfile used to build a container image for your project is chosen in that order:
 
 1. Specified in your project's `metadata.json` file.
-2. `<app_source>/Dockerfile`
-3. `<app_source>/<language>/Dockerfile`
-4. `HOLOHUB_DEFAULT_DOCKERFILE` env variable
-5. `<HOLOHUB_ROOT>/Dockerfile`
+2. `<app_source>/<language>/Dockerfile`
+3. `<app_source>/Dockerfile`
+4. `<app_source>/../Dockerfile` (traverse up to `HOLOHUB_ROOT`)
+5. `HOLOHUB_DEFAULT_DOCKERFILE` env variable
+6. `<HOLOHUB_ROOT>/Dockerfile`
 
 This can be overridden by the `--docker-file` option.
 
