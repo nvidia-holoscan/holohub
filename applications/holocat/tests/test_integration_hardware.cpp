@@ -20,7 +20,7 @@
  * @brief Hardware Integration Test for HoloCat
  *
  * Simple test that verifies EtherCAT hardware communication with data loopback.
- * Test is automatically skipped if hardware is not available.
+ * Test fails if hardware is not available or env is not configured.
  *
  * Environment variables required:
  *   ECMASTER_ROOT - Path to EC-Master SDK
@@ -201,7 +201,7 @@ TEST_F(HardwareTest, DataLoopback) {
   if (app_failed.load(std::memory_order_acquire)) {
     if (app_thread.joinable())
       app_thread.join();
-    GTEST_SKIP() << "Hardware not available: " << error_msg;
+    GTEST_FAIL() << "Hardware not available: " << error_msg;
   }
 
   if (app_thread.joinable()) {
