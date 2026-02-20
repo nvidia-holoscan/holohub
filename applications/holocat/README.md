@@ -2,7 +2,7 @@
 
 <img src="ethercat.jpeg" width="400" alt="EtherCAT Setup">
 
-HoloCat is an EtherCAT master application that integrates the Acontis EC-Master SDK with NVIDIA's Holoscan platform.  As of this version it is a proof-of-concept using user-space Acontis drivers, which is not performance optimized.  Also, it is not a richly flexible example, but contains hard-coded assumptions around
+HoloCat is an EtherCAT master application that integrates the Acontis EC-Master SDK with NVIDIA's Holoscan platform. As of this version, it is a proof-of-concept using user-space Acontis drivers, which is not performance-optimized.  Also, it is not a richly flexible example, but contains hard-coded assumptions around
 your hardware; specifically, it targets a single DIO device.
 
 However, this is a starting point which you can tailor to your EtherCAT master application.
@@ -19,29 +19,49 @@ HoloCat provides EtherCAT communication capabilities using the Acontis EC-Master
 
 ### Prerequisites
 
+**Acontis EC-Master SDK** requires a download and evaluation license. See the [Required Dependencies](#required-dependencies) section below for details on obtaining and installing the SDK.
+
+After installing:
+
 ```bash
 # Set EC-Master SDK path
 export ECMASTER_ROOT=/path/to/ecmaster/root
 
-# Verify installation (optional)
+# Verify installation
 ./applications/holocat/scripts/verify_ecmaster.sh
 ```
-See [Required Dependencies](#required-dependencies) for more information.
 
-### Build Only
+### Build
 
 ```bash
+cd /path/to/holohub
+
 # Build using HoloHub CLI (recommended)
 ./holohub build holocat --local
 ```
 
 ### Set Raw Network Capability
+
 ```bash
 # Ensure capabilities are set
 sudo setcap 'cap_net_raw=ep' ./build/holocat/applications/holocat/holocat
 ```
 
+### Set Adapter Name
+
+Modify `applications/holocat/configs/holocat_config.yaml`. Set `adapter_name` to the Ethernet adapter connected to your EtherCAT network.
+
+### Run Tests
+
+Note: Hardware integration tests require a live EtherCAT adapter with assumed devices, and will therefore fail (not skip) if hardware
+prerequisites are not met.
+
+```bash
+ctest --test-dir build/holocat
+```
+
 ### Run Directly
+
 ```bash
 # Run with specified config file
 ./build/holocat/applications/holocat/holocat --config ./applications/holocat/configs/holocat_config.yaml
@@ -49,7 +69,7 @@ sudo setcap 'cap_net_raw=ep' ./build/holocat/applications/holocat/holocat
 
 ### Build and Run
 
-This will build and run combined. Note that this may not work if your system requires `sudo setcap 'cap_net_raw=ep'` to allow raw network access.  In that case, build first and set capabilities. Then run.
+This will build and run combined. Note that this may not work if your system requires `sudo setcap 'cap_net_raw=ep'` to allow raw network access. In that case, build first and set capabilities, then run.
 
 ```bash
 # Run with default configuration file
@@ -118,7 +138,7 @@ The architecture is configured through three primary parameters:
 
 This application requires the Acontis EC-Master SDK (version 3.2.3 or compatible) for EtherCAT communication. The SDK is commercial software available from Acontis at <https://www.acontis.com/en/ethercat-master.html>. Evaluation licenses are available for testing and development.
 
-Request access and download the EC-Master library from Acontis: `EC-Master-V3.2-<ARCH>.tar.gz`. Untar the library (note: it may be tarred but not gzipped) to your desired installation directory; for example, `/path/to/ecmaster/root`. Then verify your setup as described in [Quick Start](#quick-start).
+Request access and download the EC-Master library from Acontis: `EC-Master-V3.2-<ARCH>.tar.gz`. Extract the library (note: the archive may be in .tar format rather than .tar.gz) to your desired installation directory (for example, `/path/to/ecmaster/root`). Then verify your setup as described in [Quick Start](#quick-start).
 
 The current version uses the generic user-space driver which works with any Ethernet card, but is comparatively low-performance relative to available kernel-level EtherCAT drivers.
 
@@ -137,7 +157,7 @@ holocat:
   eni_file: "/tmp/holocat_config.xml"
   
   # Cycle time in microseconds
-  cycle_time_us: 1000  # 1ms cycle time
+  cycle_time_us: 10000  # 10ms cycle time
   
   # Real-time priorities (1-99)
   rt_priority: 39
@@ -161,15 +181,30 @@ Use EtherCAT configuration tools to generate your ENI file.
 ### Common Issues
 
 1. **Permission Denied**
+
    ```bash
    # Ensure capabilities are set
    sudo setcap 'cap_net_raw=ep' ./build/holocat/applications/holocat/holocat
    ```
 
 2. **EC-Master SDK Not Found**
+
    ```bash
    # Verify ECMASTER_ROOT environment variable
    echo $ECMASTER_ROOT
    ls -la $ECMASTER_ROOT/SDK/INC/EcMaster.h
    ```
 
+3. **dlopen returned error 'libemllSockRaw.so: cannot open shared object file: No such file or directory'**
+
+   ```bash
+   # Set EC-Master SDK path
+   export ECMASTER_ROOT=/path/to/ecmaster/root
+
+   # Add link layer libraries to library path (REQUIRED for runtime)
+   export LD_LIBRARY_PATH=$ECMASTER_ROOT/Bin/Linux/x64:$LD_LIBRARY_PATH # for x86_64
+   # export LD_LIBRARY_PATH=$ECMASTER_ROOT/Bin/Linux/aarch64:$LD_LIBRARY_PATH # for ARM64 (AArch64)
+
+   # Verify installation
+   ./applications/holocat/scripts/verify_ecmaster.sh
+   ```

@@ -118,7 +118,7 @@ To build and run the Dockerfile with `Rivermax` support, follow these steps:
 
 - Visit the [Rivermax SDK Page](https://developer.nvidia.com/networking/rivermax-getting-started) to download the Rivermax Release SDK.
 - Obtain a Rivermax developer license from the same page. This is necessary for using the SDK.
-- Copy the downloaded SDK tar file (e.g., `rivermax_ubuntu2204_1.70.31.tar.gz`) into your current working directory.
+- Copy the downloaded SDK tar file (e.g., `rivermax_ubuntu2404_1.70.32.tar.gz`) into your current working directory.
   - You can adjust the path using the `RIVERMAX_SDK_ZIP_PATH` build argument if needed.
   - Modify the version using the `RIVERMAX_VERSION` build argument if you're using a different SDK version.
 - Place the obtained Rivermax developer license file (`rivermax.lic`) into the `/opt/mellanox/rivermax/` directory.
