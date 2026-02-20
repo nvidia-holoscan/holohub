@@ -9,6 +9,7 @@
 #  ECMASTER_INCLUDE_DIRS - Include directories for EC-Master
 #  ECMASTER_LIBRARIES - Libraries to link against
 #  ECMASTER_VERSION - Version of EC-Master SDK
+#  ECMASTER_LD_LIBRARY_DIR - Directory containing EC-Master runtime shared libraries (.so files)
 #
 # Environment variables used:
 #  ECMASTER_ROOT - Root directory of EC-Master installation
@@ -29,7 +30,6 @@ find_path(ECMASTER_INCLUDE_DIR
     PATHS
         ${ECMASTER_ROOT}/SDK/INC
         /opt/acontis/ecmaster/SDK/INC
-        ${CMAKE_SOURCE_DIR}/../ethercat/ecm/SDK/INC
         /usr/local/include/ecmaster
     DOC "EC-Master include directory"
 )
@@ -38,7 +38,7 @@ set(TEMPARCH ${CMAKE_SYSTEM_PROCESSOR})
 # Determine library directory based on architecture
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
     if(TEMPARCH MATCHES "aarch64|arm64|AARCH64|ARM64")
-        set(ECMASTER_ARCH "arm64")
+        set(ECMASTER_ARCH "aarch64")
     else()
         set(ECMASTER_ARCH "x64")
     endif()
@@ -49,6 +49,21 @@ else()
     else()
         set(ECMASTER_ARCH "x86")
     endif()
+endif()
+
+find_path(ECMASTER_LD_LIBRARY_DIR
+    NAMES libemllSockRaw.so
+    PATHS
+        ${ECMASTER_ROOT}/Bin/Linux/${ECMASTER_ARCH}
+        /opt/acontis/ecmaster/Bin/Linux/${ECMASTER_ARCH}
+        /usr/local/lib/ecmaster
+    DOC "EC-Master ld libraries directory"
+)
+
+if(NOT ECMASTER_LD_LIBRARY_DIR)
+    message(STATUS "EC-Master: link-layer library directory (libemllSockRaw.so) not found; "
+            "BUILD_RPATH/INSTALL_RPATH will not include it. "
+            "Set LD_LIBRARY_PATH at runtime if needed.")
 endif()
 
 # Find main EC-Master library
@@ -165,6 +180,7 @@ mark_as_advanced(
     ECMASTER_INCLUDE_DIR
     ECMASTER_LIBRARY
     ECMASTER_LIBRARY_DIR
+    ECMASTER_LD_LIBRARY_DIR
 )
 
 foreach(lib_name IN LISTS ECMASTER_LINK_LAYER_NAMES)
