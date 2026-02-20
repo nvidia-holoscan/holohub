@@ -53,7 +53,7 @@ Modify `applications/holocat/configs/holocat_config.yaml`. Set `adapter_name` to
 
 ### Run Tests
 
-Note: Hardware integration tests require a live EtherCAT adapter with assumed devices, and will there fail (not skip) if hardware 
+Note: Hardware integration tests require a live EtherCAT adapter with assumed devices, and will therefore fail (not skip) if hardware 
 prerequisites are not met.
 
 ```bash
