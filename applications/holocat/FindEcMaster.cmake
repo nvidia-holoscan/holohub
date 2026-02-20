@@ -140,7 +140,7 @@ find_package_handle_standard_args(EcMaster
 if(EcMaster_FOUND)
     set(ECMASTER_LIBRARIES ${ECMASTER_LIBRARY} ${ECMASTER_LINK_LIBRARIES})
     set(ECMASTER_INCLUDE_DIRS ${ECMASTER_INCLUDE_DIR})
-    
+
     # Also check for Linux-specific include directory
     if(EXISTS "${ECMASTER_INCLUDE_DIR}/Linux")
         list(APPEND ECMASTER_INCLUDE_DIRS "${ECMASTER_INCLUDE_DIR}/Linux")
