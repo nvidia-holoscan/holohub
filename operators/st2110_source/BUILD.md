@@ -62,7 +62,7 @@ cd operators/st2110_source
 mkdir -p build && cd build
 
 cmake .. \
-  -DCMAKE_PREFIX_PATH="/opt/nvidia/holoscan/lib" \
+  -DCMAKE_PREFIX_PATH="/opt/nvidia/holoscan" \
   -DCMAKE_BUILD_TYPE=Release
 
 make -j$(nproc)
@@ -106,9 +106,10 @@ export CMAKE_PREFIX_PATH=/opt/nvidia/holoscan/lib:$CMAKE_PREFIX_PATH
 
 **Solution**: Install CMake 3.24+
 ```bash
-# Download and install locally
-wget https://github.com/Kitware/CMake/releases/download/v3.28.1/cmake-3.28.1-linux-aarch64.tar.gz
-tar -xzf cmake-3.28.1-linux-aarch64.tar.gz -C $HOME/.local/ --strip-components=1
+# Download and install locally (auto-detects architecture)
+ARCH=$(uname -m)
+wget https://github.com/Kitware/CMake/releases/download/v3.28.1/cmake-3.28.1-linux-${ARCH}.tar.gz
+tar -xzf cmake-3.28.1-linux-${ARCH}.tar.gz -C $HOME/.local/ --strip-components=1
 export PATH=$HOME/.local/bin:$PATH
 ```
 

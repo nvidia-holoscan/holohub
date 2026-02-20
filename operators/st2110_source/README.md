@@ -19,7 +19,7 @@ SMPTE ST 2110 is a suite of standards for the transmission of professional media
 
 The operator uses a triple-buffer architecture with CUDA pinned memory for efficient CPU-to-GPU transfer:
 
-```
+```text
 UDP Socket (multicast)
         │
         ▼

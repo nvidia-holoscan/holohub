@@ -15,7 +15,7 @@
 
 # ST2110 Demo Configuration
 # ==========================
-# RGBA output only for testing
+# Both RGBA and NV12 outputs enabled (default mode)
 
 st2110_source:
   # Network parameters - UPDATE THESE FOR YOUR SETUP

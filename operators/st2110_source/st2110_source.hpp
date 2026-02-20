@@ -169,43 +169,51 @@ class ST2110SourceOp : public holoscan::Operator {
   Parameter<std::shared_ptr<PeriodicCondition>> periodic_condition_;
 
   // Socket state
-  int socket_fd_;
+  int socket_fd_ = -1;
 
   // Internal state
-  uint16_t payload_size_;  // max_packet_size - header_size - rtp_header_size
-  int64_t total_bytes_received_;
-  int64_t total_packets_received_;
-  int64_t total_packets_dropped_;
+  uint16_t payload_size_ = 0;  // max_packet_size - header_size - rtp_header_size
+  int64_t total_bytes_received_ = 0;
+  int64_t total_packets_received_ = 0;
+  int64_t total_packets_dropped_ = 0;
 
   // Circular queue architecture (virtual queue - no memcpy)
   static constexpr int num_frame_buffers_ = 3;
   std::array<FrameBuffer, num_frame_buffers_> frame_buffers_;
-  std::atomic<int> assembling_index_;     // Index of buffer currently being assembled (-1 if none)
-  uint32_t last_emitted_rtp_timestamp_;   // RTP timestamp of last emitted frame
-  bool first_frame_emitted_;              // Track if we've emitted our first frame
-  uint32_t frames_dropped_;               // Count of frames dropped due to queue overflow
+  std::atomic<int> assembling_index_{-1};   // Index of buffer currently being assembled (-1 if none)
+  uint32_t last_emitted_rtp_timestamp_ = 0; // RTP timestamp of last emitted frame
+  bool first_frame_emitted_ = false;        // Track if we've emitted our first frame
+  uint32_t frames_dropped_ = 0;             // Count of frames dropped due to queue overflow
 
   // RTP sequence tracking for packet loss detection
-  uint16_t last_sequence_number_;
-  uint32_t last_timestamp_;
-  bool first_packet_received_;
+  uint16_t last_sequence_number_ = 0;
+  uint32_t last_timestamp_ = 0;
+  bool first_packet_received_ = false;
 
   // CUDA resources
-  void* gpu_raw_buffer_;           // GPU buffer for raw YCbCr-4:2:2-10bit data
-  void* gpu_rgba_buffer_;          // GPU buffer for RGBA 8-bit data (if RGBA output enabled)
-  void* gpu_nv12_buffer_;          // GPU buffer for NV12 8-bit data (if NV12 output enabled)
-  cudaStream_t cuda_stream_;       // CUDA stream for async H2D copy and conversions
+  void* gpu_raw_buffer_ = nullptr;       // GPU buffer for raw YCbCr-4:2:2-10bit data
+  void* gpu_rgba_buffer_ = nullptr;      // GPU buffer for RGBA 8-bit data (if RGBA output enabled)
+  void* gpu_nv12_buffer_ = nullptr;      // GPU buffer for NV12 8-bit data (if NV12 output enabled)
+  cudaStream_t cuda_stream_ = nullptr;   // CUDA stream for async H2D copy and conversions
 
   // GXF allocator for Tensor memory management (prevents race conditions)
   Parameter<std::shared_ptr<Allocator>> tensor_allocator_;
 
   // Video format info
-  size_t rgba_frame_size_;         // Size of RGBA frame buffer (if RGBA output enabled)
-  size_t nv12_frame_size_;         // Size of NV12 frame buffer (if NV12 output enabled)
+  size_t rgba_frame_size_ = 0;    // Size of RGBA frame buffer (if RGBA output enabled)
+  size_t nv12_frame_size_ = 0;    // Size of NV12 frame buffer (if NV12 output enabled)
 
   // Stream format detection
   StreamFormat detected_format_;
-  size_t raw_frame_size_;  // Size of raw frame buffer (based on stream_format)
+  size_t raw_frame_size_ = 0;  // Size of raw frame buffer (based on stream_format)
+
+  // Debug/stats counters (replaces static locals for multi-instance safety)
+  bool logged_first_packet_ = false;
+  int debug_packet_count_ = 0;
+  int rejected_count_ = 0;
+  int rgba_frame_count_ = 0;
+  int nv12_frame_count_ = 0;
+  uint64_t compute_count_ = 0;
 };
 
 }  // namespace holoscan::ops

@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import holoscan.core  # noqa: F401
+import holoscan.core  # noqa: F401 - required: registers C++ GXF types before _st2110_source is loaded
 
 from ._st2110_source import ST2110SourceOp
 

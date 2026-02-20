@@ -207,9 +207,6 @@ void ST2110SourceOp::initialize() {
     nv12_frame_size_ = 0;
   }
 
-  // Raw frame size calculated after format detection (default: 10-bit 4:2:2 = 2.5 bpp)
-  raw_frame_size_ = width_.get() * height_.get() * 3;  // Conservative: 3 bytes/pixel
-
   // UDP socket recv() gives us payload only (no Eth/IP/UDP headers)
   // Video payload per packet = total - RTP header - ST2110 header
   payload_size_ = max_packet_size_.get() - rtp_header_size_.get() - sizeof(ST2110Header);
@@ -243,7 +240,7 @@ void ST2110SourceOp::initialize() {
   }
   HOLOSCAN_LOG_INFO("  Payload size: {} bytes/packet", payload_size_);
 
-  // Initialize state
+  // Reset state (in-class initializers provide defaults, but initialize() may be called again)
   socket_fd_ = -1;
   total_bytes_received_ = 0;
   total_packets_received_ = 0;
@@ -254,7 +251,7 @@ void ST2110SourceOp::initialize() {
   gpu_raw_buffer_ = nullptr;
   gpu_rgba_buffer_ = nullptr;
   gpu_nv12_buffer_ = nullptr;
-  cuda_stream_ = 0;
+  cuda_stream_ = nullptr;
 
   assembling_index_.store(-1);
   last_emitted_rtp_timestamp_ = 0;
@@ -377,7 +374,7 @@ void ST2110SourceOp::free_buffers() {
   // Destroy CUDA stream
   if (cuda_stream_) {
     cudaStreamDestroy(cuda_stream_);
-    cuda_stream_ = 0;
+    cuda_stream_ = nullptr;
   }
 }
 
@@ -507,10 +504,9 @@ void ST2110SourceOp::parse_and_copy_packet(const uint8_t* packet_data, size_t pa
   // Packet structure: [RTP 12B][ST2110 12B][Payload ~1450B]
   constexpr size_t MIN_PACKET_SIZE = 24;
 
-  static bool logged_first_packet = false;
-  if (!logged_first_packet) {
+  if (!logged_first_packet_) {
     HOLOSCAN_LOG_INFO("First packet received: {} bytes", packet_size);
-    logged_first_packet = true;
+    logged_first_packet_ = true;
   }
 
   if (packet_size < MIN_PACKET_SIZE) {
@@ -553,14 +549,13 @@ void ST2110SourceOp::parse_and_copy_packet(const uint8_t* packet_data, size_t pa
   bool continuation_bit = (offset_and_cont & 0x8000) != 0;
 
   // Debug: Log ST2110 header values for first few packets
-  static int debug_packet_count = 0;
-  if (debug_packet_count < 5) {
+  if (debug_packet_count_ < 5) {
     HOLOSCAN_LOG_INFO("ST2110 header debug [packet {}]: line={}, offset={}, length={}, F={}, C={}",
-                      debug_packet_count, line_number, line_offset, line_length, field_bit, continuation_bit);
+                      debug_packet_count_, line_number, line_offset, line_length, field_bit, continuation_bit);
     HOLOSCAN_LOG_INFO("  Raw bytes at ST2110 start: {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x}",
                       st2110_start[0], st2110_start[1], st2110_start[2], st2110_start[3],
                       st2110_start[4], st2110_start[5], st2110_start[6], st2110_start[7]);
-    debug_packet_count++;
+    debug_packet_count_++;
   }
 
   // Skip to payload (after ST2110 header)
@@ -569,10 +564,9 @@ void ST2110SourceOp::parse_and_copy_packet(const uint8_t* packet_data, size_t pa
 
   // Validate line number and offset
   if (line_number >= height_.get()) {
-    static int rejected_count = 0;
-    if (rejected_count < 3) {
+    if (rejected_count_ < 3) {
       HOLOSCAN_LOG_WARN("Rejecting packet: line_number {} >= height {}", line_number, height_.get());
-      rejected_count++;
+      rejected_count_++;
     }
     return;
   }
@@ -624,11 +618,13 @@ void ST2110SourceOp::parse_and_copy_packet(const uint8_t* packet_data, size_t pa
     recv_buffer->current_timestamp = timestamp;
   }
 
-  // Calculate destination offset in frame buffer
-  // Use detected format's bytes_per_pixel for raw buffer
-  double bpp = detected_format_.detected ? detected_format_.bytes_per_pixel : 2.5;
-  size_t line_start = line_number * width_.get() * bpp;
-  size_t dest_offset = line_start + (line_offset * bpp);
+  // Calculate destination offset in frame buffer using integer pgroup arithmetic
+  // Each pgroup covers pgroup_pixels pixels in pgroup_bytes bytes (avoids floating-point truncation)
+  uint32_t pgroup_bytes = detected_format_.pgroup;
+  uint32_t pgroup_pixels = (detected_format_.sampling == "RGBA") ? 1 : 2;
+  size_t line_bytes = static_cast<size_t>(width_.get() / pgroup_pixels) * pgroup_bytes;
+  size_t line_start = line_number * line_bytes;
+  size_t dest_offset = line_start + static_cast<size_t>(line_offset / pgroup_pixels) * pgroup_bytes;
 
   // Bounds check (use raw_frame_size_ for raw buffer)
   if (dest_offset + payload_size <= raw_frame_size_) {
@@ -1000,10 +996,9 @@ void ST2110SourceOp::convert_and_emit_rgba(OutputContext& op_output) {
   // Step 4: Emit on rgba_output port
   op_output.emit(entity, "rgba_output");
 
-  static int rgba_frame_count = 0;
-  if (++rgba_frame_count % 100 == 0) {
+  if (++rgba_frame_count_ % 100 == 0) {
     HOLOSCAN_LOG_INFO("Emitted RGBA frame {}: {} total packets received, {} dropped",
-                      rgba_frame_count,
+                      rgba_frame_count_,
                       total_packets_received_,
                       total_packets_dropped_);
   }
@@ -1108,10 +1103,9 @@ void ST2110SourceOp::convert_and_emit_nv12(OutputContext& op_output) {
   // Step 4: Emit on nv12_output port
   op_output.emit(entity, "nv12_output");
 
-  static int nv12_frame_count = 0;
-  if (++nv12_frame_count % 100 == 0) {
+  if (++nv12_frame_count_ % 100 == 0) {
     HOLOSCAN_LOG_INFO("Emitted NV12 frame {}: {} total packets received, {} dropped",
-                      nv12_frame_count,
+                      nv12_frame_count_,
                       total_packets_received_,
                       total_packets_dropped_);
   }
@@ -1136,14 +1130,13 @@ void ST2110SourceOp::compute(InputContext& op_input, OutputContext& op_output,
   drain_socket();
 
   // Log stats periodically
-  static uint64_t compute_count = 0;
-  if (++compute_count % 50 == 0) {  // Every 50 calls (~1 second at 50Hz)
+  if (++compute_count_ % 50 == 0) {  // Every 50 calls (~1 second at 50Hz)
     int queue_depth = 0;
     for (int i = 0; i < num_frame_buffers_; i++) {
       if (frame_buffers_[i].frame_complete) queue_depth++;
     }
     HOLOSCAN_LOG_INFO("compute #{}: packets={}, dropped={}, frames_dropped={}, queue_depth={}",
-                      compute_count,
+                      compute_count_,
                       total_packets_received_,
                       total_packets_dropped_,
                       frames_dropped_,
@@ -1166,12 +1159,22 @@ void ST2110SourceOp::compute(InputContext& op_input, OutputContext& op_output,
 
   // Step 3: Optionally convert and emit RGBA
   if (enable_rgba_output_.get()) {
-    convert_and_emit_rgba(op_output);
+    if (detected_format_.depth != 10 || detected_format_.sampling != "YCbCr-4:2:2") {
+      HOLOSCAN_LOG_ERROR("RGBA conversion only supports YCbCr-4:2:2-10bit, got {}-{}bit",
+                         detected_format_.sampling, detected_format_.depth);
+    } else {
+      convert_and_emit_rgba(op_output);
+    }
   }
 
   // Step 4: Optionally convert and emit NV12
   if (enable_nv12_output_.get()) {
-    convert_and_emit_nv12(op_output);
+    if (detected_format_.depth != 10 || detected_format_.sampling != "YCbCr-4:2:2") {
+      HOLOSCAN_LOG_ERROR("NV12 conversion only supports YCbCr-4:2:2-10bit, got {}-{}bit",
+                         detected_format_.sampling, detected_format_.depth);
+    } else {
+      convert_and_emit_nv12(op_output);
+    }
   }
 }
 

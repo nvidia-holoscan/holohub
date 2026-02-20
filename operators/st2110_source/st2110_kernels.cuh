@@ -20,7 +20,7 @@
 #include <cuda_runtime.h>
 #include <cstdint>
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -127,6 +127,6 @@ void convert_ycbcr422_10bit_to_nv12(void* out,
                                      uint32_t height,
                                      cudaStream_t stream);
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif
