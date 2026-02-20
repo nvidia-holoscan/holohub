@@ -9,6 +9,7 @@
 #  ECMASTER_INCLUDE_DIRS - Include directories for EC-Master
 #  ECMASTER_LIBRARIES - Libraries to link against
 #  ECMASTER_VERSION - Version of EC-Master SDK
+#  ECMASTER_LD_LIBRARY_DIR - Directory containing EC-Master runtime shared libraries (.so files)
 #
 # Environment variables used:
 #  ECMASTER_ROOT - Root directory of EC-Master installation
@@ -59,6 +60,11 @@ find_path(ECMASTER_LD_LIBRARY_DIR
     DOC "EC-Master ld libraries directory"
 )
 
+if(NOT ECMASTER_LD_LIBRARY_DIR)
+    message(STATUS "EC-Master: link-layer library directory (libemllSockRaw.so) not found; "
+            "BUILD_RPATH/INSTALL_RPATH will not include it. "
+            "Set LD_LIBRARY_PATH at runtime if needed.")
+endif()
 
 # Find main EC-Master library
 find_library(ECMASTER_LIBRARY
@@ -174,6 +180,7 @@ mark_as_advanced(
     ECMASTER_INCLUDE_DIR
     ECMASTER_LIBRARY
     ECMASTER_LIBRARY_DIR
+    ECMASTER_LD_LIBRARY_DIR
 )
 
 foreach(lib_name IN LISTS ECMASTER_LINK_LAYER_NAMES)

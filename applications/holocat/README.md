@@ -53,6 +53,9 @@ Modify `applications/holocat/configs/holocat_config.yaml`. Set `adapter_name` to
 
 ### Run Tests
 
+Note: Hardware integration tests require a live EtherCAT adapter with assumed devices, and will there fail (not skip) if hardware 
+prerequisites are not met.
+
 ```bash
 ctest --test-dir build/holocat
 ```
@@ -197,7 +200,7 @@ Use EtherCAT configuration tools to generate your ENI file.
    export ECMASTER_ROOT=/path/to/ecmaster/root
 
    # Add link layer libraries to library path (REQUIRED for runtime)
-   export LD_LIBRARY_PATH=$ECMASTER_ROOT/Linux/<arch>:$LD_LIBRARY_PATH
+   export LD_LIBRARY_PATH=$ECMASTER_ROOT/Linux/$(uname -m):$LD_LIBRARY_PATH
 
    # Verify installation
    ./applications/holocat/scripts/verify_ecmaster.sh
