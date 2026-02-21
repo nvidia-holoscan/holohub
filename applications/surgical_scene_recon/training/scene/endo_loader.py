@@ -95,6 +95,7 @@ class EndoNeRF_Dataset(object):
         """
         Load meta data from the dataset.
         """
+
         # get paths of images, depths, masks first to determine frame count
         def get_file_paths(filetype):
             """Get sorted list of PNG files for a given data type."""
