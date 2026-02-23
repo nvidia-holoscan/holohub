@@ -75,11 +75,22 @@ target_link_libraries(holocat
 )
 
 # Set RPATH for runtime library discovery and output directory
-set_target_properties(holocat PROPERTIES
-    INSTALL_RPATH_USE_LINK_PATH TRUE
-    BUILD_WITH_INSTALL_RPATH FALSE
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/.."
-)
+if(ECMASTER_LD_LIBRARY_DIR)
+    set_target_properties(holocat PROPERTIES
+        BUILD_RPATH "${ECMASTER_LD_LIBRARY_DIR}"
+        INSTALL_RPATH "${ECMASTER_LD_LIBRARY_DIR}"
+        INSTALL_RPATH_USE_LINK_PATH TRUE
+        BUILD_WITH_INSTALL_RPATH FALSE
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/.."
+    )
+else()
+   message(WARNING "ECMASTER_LD_LIBRARY_DIR not found; BUILD_RPATH/INSTALL_RPATH for EC-Master link-layer libs will not be set. Set LD_LIBRARY_PATH at runtime.")
+    set_target_properties(holocat PROPERTIES
+        INSTALL_RPATH_USE_LINK_PATH TRUE
+        BUILD_WITH_INSTALL_RPATH FALSE
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/.."
+    )
+endif()
 
 # Optionally set capabilities for real-time operation
 # Set HOLOCAT_SET_CAPABILITIES=ON to enable this during build
