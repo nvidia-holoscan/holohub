@@ -279,7 +279,7 @@ void DpdkMgr::create_dummy_tx_q() {
       HOLOSCAN_LOG_INFO("Port {} has no TX queues. Creating dummy queue.", intf.port_id_);
       const std::string mr_name = "MR_Unused_TX_P" + std::to_string(intf.port_id_);
       TxQueueConfig tmp_q;
-      tmp_q.common_.name_ = "UNUSED_P" + std::to_string(intf.port_id_) + "_Q0";
+      tmp_q.common_.name_ = "UNUSED_TX_P" + std::to_string(intf.port_id_) + "_Q0";
       tmp_q.common_.id_ = 0;
       tmp_q.common_.batch_size_ = 1;
       tmp_q.common_.split_boundary_ = 0;
