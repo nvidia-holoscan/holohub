@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import functools
 import grp
 import json
 import os
@@ -28,11 +29,17 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional, Tuple, Union
 
+DEFAULT_BASE_SDK_VERSION = "3.11.0"
+
+DEFAULT_GIT_REF = "latest"
+
 PROJECT_PREFIXES = {
     "application": "APP",
     "benchmark": "APP",
+    "gxf_extension": "EXT",
     "operator": "OP",
     "package": "PKG",
+    "tutorial": "APP",
     "workflow": "APP",
     "default": "APP",  # specified type but not recognized
 }
@@ -148,6 +155,91 @@ def fatal(message: str) -> None:
     sys.exit(1)
 
 
+def warn(message: str) -> None:
+    print(f"{Color.yellow('WARNING:')} {message}")
+
+
+def _get_holohub_root() -> Path:
+    """Get the HoloHub repository root path."""
+    env_root = os.environ.get("HOLOHUB_ROOT")
+    if env_root:
+        env_path = Path(env_root).expanduser()
+        if env_path.exists() and env_path.is_dir():
+            return env_path
+        warn(
+            f"Environment variable HOLOHUB_ROOT='{env_root}' is invalid. "
+            f"Falling back to default path: {Path(__file__).parent.parent.parent}"
+        )
+    return Path(__file__).parent.parent.parent
+
+
+HOLOHUB_ROOT = _get_holohub_root()
+
+
+def get_holohub_root() -> Path:
+    return HOLOHUB_ROOT
+
+
+def get_component_search_paths(base_dir: Optional[Path] = None) -> tuple[Path, ...]:
+    """Return metadata search paths honoring HOLOHUB_SEARCH_PATH overrides."""
+    base_path = base_dir or HOLOHUB_ROOT
+    tokens = os.environ.get("HOLOHUB_SEARCH_PATH", "").split(",")
+    default_paths = (
+        "applications",
+        "benchmarks",
+        "gxf_extensions",
+        "operators",
+        "pkg",
+        "tutorials",
+        "workflows",
+    )
+    paths = [token.strip() for token in tokens if token.strip()] or default_paths
+    return tuple(
+        (Path(token) if Path(token).is_absolute() else base_path / token) for token in paths
+    )
+
+
+def _slugify(text: str, max_len: int = 63) -> str:
+    """Make a branch slug: lowercase, non-alnum to '-', trim dashes, max length."""
+    lowered = text.lower()
+    replaced = re.sub(r"[^a-z0-9]+", "-", lowered)
+    trimmed = replaced.strip("-")
+    return trimmed[:max_len]
+
+
+def get_git_short_sha(length: int = 12) -> str:
+    """Get short Git SHA for the current repository."""
+    try:
+        sha = run_info_command(
+            ["git", "rev-parse", f"--short={length}", "HEAD"], cwd=str(HOLOHUB_ROOT)
+        )
+        return sha or DEFAULT_GIT_REF
+    except Exception:
+        warn(f"Failed to get current git sha, defaulting to {DEFAULT_GIT_REF}")
+        return DEFAULT_GIT_REF
+
+
+def get_current_branch_slug() -> str:
+    """Get current branch name as a slug suitable for Docker tags."""
+    try:
+        # Prefer rev-parse for consistency with bash wrapper behavior.
+        branch = run_info_command(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=str(HOLOHUB_ROOT)
+        )
+        if not branch or branch in ["HEAD", "(no branch)"] or branch.startswith("(HEAD detached"):
+            return DEFAULT_GIT_REF
+        return _slugify(branch) or DEFAULT_GIT_REF
+    except Exception:
+        warn(f"Failed to get current branch, defaulting to {DEFAULT_GIT_REF}")
+        return DEFAULT_GIT_REF
+
+
+def get_holohub_setup_scripts_dir() -> Path:
+    return Path(
+        os.environ.get("HOLOHUB_SETUP_SCRIPTS_DIR", HOLOHUB_ROOT / "utilities" / "setup")
+    ).expanduser()
+
+
 def _get_maybe_sudo() -> str:
     """Get sudo command if available, with caching to avoid repeated subprocess calls"""
     global _sudo_available
@@ -233,15 +325,15 @@ def run_command(
     try:
         return subprocess.run(processed_cmd, check=check, **kwargs)
     except subprocess.CalledProcessError as e:
-        print(f"Error running command: {cmd_str}")
+        print(f"Non-zero exit code running command: {cmd_str}")
         print(f"Exit code: {e.returncode}")
         sys.exit(e.returncode)
 
 
-def run_info_command(cmd: List[str]) -> Optional[str]:
+def run_info_command(cmd: List[str], cwd: Optional[str] = None) -> Optional[str]:
     """Run a command for information gathering and return stripped output or None if failed"""
     try:
-        return subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL).strip()
+        return subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL, cwd=cwd).strip()
     except (subprocess.CalledProcessError, FileNotFoundError):
         return None
 
@@ -289,25 +381,107 @@ def check_nvidia_ctk(min_version: str = "1.12.0", recommended_version: str = "1.
         fatal(f"Could not determine nvidia-ctk version. Version {min_version}+ required.")
 
 
+def get_gpu_name() -> Optional[str]:
+    """
+    Helper function to get GPU name from nvidia-smi.  Returns None if nvidia-smi is not available.
+    """
+    if not shutil.which("nvidia-smi"):
+        return None
+    try:
+        output = subprocess.check_output(
+            ["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        )
+        return output.strip() if output else None
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return None
+
+
 def get_host_gpu() -> str:
     """Determine if running on dGPU or iGPU"""
-    if not shutil.which("nvidia-smi"):
+    gpu_name = get_gpu_name()
+    if gpu_name is None:
         print(
             "Could not find any GPU drivers on host. Defaulting build to target dGPU/CPU stack.",
             file=sys.stderr,
         )
         return "dgpu"
 
-    try:
-        output = subprocess.check_output(
-            ["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"]
-        )
-        if not output or "Orin (nvgpu)" in output.decode():
-            return "igpu"
-    except subprocess.CalledProcessError:
-        return "dgpu"
-
+    # Check for iGPU (Orin integrated GPU)
+    if "Orin (nvgpu)" in gpu_name:
+        return "igpu"
     return "dgpu"
+
+
+def get_default_cuda_version() -> str:
+    """
+    Get default CUDA version based on NVIDIA driver version.
+
+    Returns:
+        - "13" if driver version >= 580 or if nvidia-smi is not available
+        - "12" if driver version < 580
+    """
+    # Default to CUDA 13 if nvidia-smi is not available
+    if not shutil.which("nvidia-smi"):
+        warn("nvidia-smi not found, default CUDA version is 13")
+        return "13"
+
+    # Check the driver version using nvidia-smi
+    driver_version = run_info_command(
+        ["nvidia-smi", "--query-gpu=driver_version", "--format=csv,noheader"]
+    )
+
+    if not driver_version:
+        warn("Unable to detect NVIDIA driver version, default CUDA version is 13")
+        return "13"
+
+    try:
+        driver_major_version = int(driver_version.split(".")[0])
+        if driver_major_version >= 580:
+            return "13"
+        else:
+            return "12"
+    except (ValueError, IndexError):
+        warn(f"Unable to parse driver version '{driver_version}', default CUDA version is 13")
+        return "13"
+
+
+def get_cuda_tag(cuda_version: Optional[Union[str, int]] = None, sdk_version: str = "3.6.1") -> str:
+    """
+    Determine the CUDA container tag based on CUDA version and GPU type.
+
+    SDK version support:
+    - SDK < 3.6.1: Old format (dgpu/igpu)
+    - SDK == 3.6.1: only cuda13-dgpu available
+    - SDK >= 3.7.0: Full CUDA support
+      - cuda13: CUDA 13 (x86_64, Jetson Thor)
+      - cuda12-dgpu: CUDA 12 dGPU (x86_64, IGX Orin dGPU, Clara AGX dGPU, GH200)
+      - cuda12-igpu: CUDA 12 iGPU (Jetson Orin, IGX Orin iGPU, Clara AGX iGPU)
+
+    Args:
+        cuda_version: CUDA major version (e.g., 12, 13). If None, uses platform default.
+        sdk_version: SDK version string (e.g., "3.6.0", "3.6.1", "3.7.0").
+
+    Returns:
+        The appropriate container tag string
+    """
+    try:
+        sdk_ver = parse_semantic_version(sdk_version)
+    except (ValueError, IndexError):
+        sdk_ver = parse_semantic_version(DEFAULT_BASE_SDK_VERSION)
+    if sdk_ver < (3, 6, 1):
+        return get_host_gpu()
+    if sdk_ver == (3, 6, 1):
+        return "cuda13-dgpu"
+    if cuda_version is None:
+        cuda_version = get_default_cuda_version()
+    cuda_str = str(cuda_version)
+    if cuda_str == "13":
+        return "cuda13"
+    if cuda_str == "12":
+        return f"cuda12-{get_host_gpu()}"
+    return f"cuda{cuda_str}-{get_host_gpu()}"
 
 
 def get_host_arch() -> str:
@@ -405,14 +579,15 @@ def find_hsdk_build_rel_dir(local_sdk_root: Optional[Union[str, Path]] = None) -
 
 def get_compute_capacity() -> str:
     """Get GPU compute capacity"""
-    if not shutil.which("nvidia-smi"):
+    nvidia_smi = shutil.which("nvidia-smi")
+    if not nvidia_smi:
         return "0.0"
     try:
         output = subprocess.check_output(
-            ["nvidia-smi", "--query-gpu=compute_cap", "--format=csv,noheader"]
+            [nvidia_smi, "--query-gpu=compute_cap", "--format=csv,noheader"]
         )
         return output.decode().strip().split("\n")[0]
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, OSError):
         return "0.0"
 
 
@@ -422,33 +597,6 @@ def get_group_id(group: str) -> Optional[int]:
         return grp.getgrnam(group).gr_gid
     except KeyError:
         return None
-
-
-def normalize_language(language: str | None) -> str:
-    """Normalize language name"""
-    # Handle empty language
-    if not language:
-        return ""
-
-    # Handle invalid language type
-    if not isinstance(language, str):
-        print(f"WARNING: Language must be a string, got {type(language)}: {language}")
-        return ""
-
-    # Normalize language name
-    language = language.lower()
-    if language in ["cpp", "c++"]:
-        return "cpp"
-    if language in ["python", "py"]:
-        return "python"
-    raise ValueError(f"Invalid language: {language}")
-
-
-def list_normalized_languages(language: str | list[str] | None) -> list[str]:
-    """Make list of normalized languages from a single language or list of languages"""
-    if isinstance(language, list):
-        return [normalize_language(lang) for lang in language]
-    return [normalize_language(language)]
 
 
 def determine_project_prefix(project_type: str) -> str:
@@ -626,7 +774,11 @@ def install_cuda_dependencies_package(
         )
 
     target_version = matching_versions[0]
-    install_packages_if_missing([f"{package_name}={target_version}"], dry_run=dry_run)
+    install_packages_if_missing(
+        [f"{package_name}={target_version}"],
+        apt_options=["--no-install-recommends", "-y", "--allow-downgrades"],
+        dry_run=dry_run,
+    )
 
     return target_version
 
@@ -730,46 +882,78 @@ def list_cmake_dir_options(script_dir: Path, cmake_function: str) -> List[str]:
     return sorted(results)
 
 
+@functools.lru_cache(maxsize=32)
+def resolve_path_prefix(prefix: Optional[str] = None) -> str:
+    """Resolve the path prefix for HoloHub placeholders"""
+    if prefix is None:
+        prefix = os.environ.get("HOLOHUB_PATH_PREFIX", "holohub_")
+    if not prefix.endswith("_"):
+        prefix = prefix + "_"
+    return prefix
+
+
 def build_holohub_path_mapping(
     holohub_root: Path,
     project_data: Optional[dict] = None,
     build_dir: Optional[Path] = None,
     data_dir: Optional[Path] = None,
+    prefix: Optional[str] = None,
+    verbose: bool = False,
 ) -> dict[str, str]:
-    """Build a mapping of HoloHub placeholders to their resolved paths"""
+    """Build a mapping of HoloHub placeholders to their resolved paths
+
+    Args:
+        holohub_root: Root directory of HoloHub
+        project_data: Optional project metadata dictionary
+        build_dir: Optional build directory path
+        data_dir: Optional data directory path
+        prefix: Prefix for placeholder keys. If None, reads from HOLOHUB_PATH_PREFIX
+                environment variable (default: "holohub_")
+        verbose: Whether to print verbose output
+
+    Returns:
+        Dictionary mapping placeholder names to their resolved paths
+    """
+    prefix = resolve_path_prefix(prefix)
+
     if data_dir is None:
         data_dir = holohub_root / "data"
 
     path_mapping = {
-        "holohub_root": str(holohub_root),
-        "holohub_data_dir": str(data_dir),
+        f"{prefix}root": str(holohub_root),
+        f"{prefix}data_dir": str(data_dir),
     }
     if not project_data:
         return path_mapping
     # Add project-specific mappings if project_data is provided
     app_source_path = project_data.get("source_folder", "")
     if app_source_path:
-        path_mapping["holohub_app_source"] = str(app_source_path)
+        path_mapping[f"{prefix}app_source"] = str(app_source_path)
     if build_dir:
-        path_mapping["holohub_bin"] = str(build_dir)
+        path_mapping[f"{prefix}bin"] = str(build_dir)
         if app_source_path:
             try:
                 app_build_dir = build_dir / Path(app_source_path).relative_to(holohub_root)
-                path_mapping["holohub_app_bin"] = str(app_build_dir)
+                path_mapping[f"{prefix}app_bin"] = str(app_build_dir)
             except ValueError:
                 # Handle case where app_source_path is not relative to holohub_root
-                path_mapping["holohub_app_bin"] = str(build_dir)
+                path_mapping[f"{prefix}app_bin"] = str(build_dir)
     elif project_data.get("project_name"):
         # If no build_dir provided but we have project name, try to infer it
         project_name = project_data["project_name"]
         inferred_build_dir = holohub_root / "build" / project_name
-        path_mapping["holohub_bin"] = str(inferred_build_dir)
+        path_mapping[f"{prefix}bin"] = str(inferred_build_dir)
         if app_source_path:
             try:
                 app_build_dir = inferred_build_dir / Path(app_source_path).relative_to(holohub_root)
-                path_mapping["holohub_app_bin"] = str(app_build_dir)
+                path_mapping[f"{prefix}app_bin"] = str(app_build_dir)
             except ValueError:
-                path_mapping["holohub_app_bin"] = str(inferred_build_dir)
+                path_mapping[f"{prefix}app_bin"] = str(inferred_build_dir)
+
+    if verbose:
+        mapping_info = ";\n".join(f"<{key}>: {value}" for key, value in path_mapping.items())
+        print(format_cmd(f"Path mappings: \n{mapping_info}", is_dryrun=False))
+
     return path_mapping
 
 
@@ -834,14 +1018,17 @@ def get_container_entrypoint(img: str, dry_run: bool = False) -> Optional[List[s
     """Check if container image has an entrypoint defined"""
     if dry_run:
         print(
-            "Inspect docker image entrypoint: "
-            f"docker inspect --format={{{{json .Config.Entrypoint}}}} {img}"
+            Color.yellow(
+                "Inspect docker image entrypoint: "
+                f"docker inspect --format={{{{json .Config.Entrypoint}}}} {img}"
+            )
         )
         return None
 
     try:
+        docker_exe = os.environ.get("HOLOHUB_DOCKER_EXE", "docker")
         result = run_command(
-            ["docker", "inspect", "--format={{json .Config.Entrypoint}}", img],
+            [docker_exe, "inspect", "--format={{json .Config.Entrypoint}}", img],
             capture_output=True,
             check=False,
             dry_run=dry_run,
@@ -871,8 +1058,9 @@ def get_image_pythonpath(img: str, dry_run: bool = False) -> str:
         )
         return ""
     try:
+        docker_exe = os.environ.get("HOLOHUB_DOCKER_EXE", "docker")
         result = run_command(
-            ["docker", "inspect", "--format", "{{range .Config.Env}}{{println .}}{{end}}", img],
+            [docker_exe, "inspect", "--format", "{{range .Config.Env}}{{println .}}{{end}}", img],
             check=False,
             capture_output=True,
             dry_run=dry_run,
@@ -887,14 +1075,52 @@ def get_image_pythonpath(img: str, dry_run: bool = False) -> str:
     return ""
 
 
-def replace_placeholders(text: str, path_mapping: dict[str, str]) -> str:
-    """Replace placeholders in text using the provided path mapping"""
+def replace_placeholders(
+    text: str,
+    path_mapping: dict[str, str] | None = None,
+    env_mapping: dict[str, str] | None = None,
+) -> str:
+    """Replace placeholders in text using the provided path mapping and environment variables
+
+    Supports two types of placeholders:
+    1. Path mapping placeholders: <holohub_*> (e.g., <holohub_root>, <holohub_app_bin>)
+    2. Environment variable placeholders: All other placeholders (e.g., <PATH>, <HOME>, <USER>)
+
+    Resolution strategy:
+    - Placeholders starting with "holohub_" are resolved using path_mapping
+    - All other placeholders are resolved using environment variables
+
+    Args:
+        text: The text to replace placeholders in
+        path_mapping: The path mapping to use
+        env_mapping: The environment variables to use
+
+    Returns:
+        The text with placeholders replaced
+
+    """
     if not text:
         return text
     result = text
+    # Resolve path mapping placeholders
+    path_mapping = path_mapping or {}
     for placeholder, replacement in path_mapping.items():
         bracketed_placeholder = f"<{placeholder}>"
         result = result.replace(bracketed_placeholder, replacement)
+
+    # Resolve environment variable placeholders
+    if env_mapping:
+        # Find all environment variable placeholders in the result
+        env_placeholders = re.findall(r"<([^>]+)>", result)
+        for env_placeholder in env_placeholders:
+            # check if placeholder is in env_mapping otherwise warn and continue
+            if env_placeholder not in env_mapping:
+                warn(
+                    f"Placeholder <{env_placeholder}> is not in environment variables, defaulting to empty string."
+                )
+            bracketed_env_placeholder = f"<{env_placeholder}>"
+            result = result.replace(bracketed_env_placeholder, env_mapping.get(env_placeholder, ""))
+
     return result
 
 
@@ -1029,8 +1255,9 @@ def collect_git_info(holohub_root: Path) -> None:
 def collect_docker_info() -> None:
     """Collect and display Docker information"""
     print(f"\n{Color.blue('Docker Information:')}")
-    docker_version = run_info_command(["docker", "--version"])
-    docker_info = run_info_command(["docker", "info", "--format", "{{.ServerVersion}}"])
+    docker_exe = os.environ.get("HOLOHUB_DOCKER_EXE", "docker")
+    docker_version = run_info_command([docker_exe, "--version"])
+    docker_info = run_info_command([docker_exe, "info", "--format", "{{.ServerVersion}}"])
     if docker_version is None or docker_info is None:
         print("  Docker not available")
         return
@@ -1077,10 +1304,34 @@ def collect_environment_variables() -> None:
     holohub_env_vars = [
         "HOLOHUB_CMD_NAME",
         "HOLOHUB_BUILD_LOCAL",
+        "HOLOHUB_ALWAYS_BUILD",
+        "HOLOHUB_ENABLE_SCCACHE",
+        "HOLOHUB_BUILD_PARENT_DIR",
+        "HOLOHUB_DATA_DIR",
+        "HOLOHUB_DEFAULT_HSDK_DIR",
+        "HOLOHUB_CTEST_SCRIPT",
+        "HOLOHUB_REPO_PREFIX",
+        "HOLOHUB_CONTAINER_PREFIX",
+        "HOLOHUB_WORKSPACE_NAME",
+        "HOLOHUB_HOSTNAME_PREFIX",
         "HOLOHUB_BASE_IMAGE",
+        "HOLOHUB_DOCKER_EXE",
+        "HOLOHUB_BASE_SDK_VERSION",
+        "HOLOHUB_BENCHMARKING_SUBDIR",
+        "HOLOHUB_DEFAULT_DOCKERFILE",
+        "HOLOHUB_BASE_IMAGE_FORMAT",
+        "HOLOHUB_DEFAULT_IMAGE_FORMAT",
+        "HOLOHUB_DEFAULT_DOCKER_BUILD_ARGS",
+        "HOLOHUB_DEFAULT_DOCKER_RUN_ARGS",
+        "HOLOHUB_DOCS_URL",
+        "HOLOHUB_CLI_DOCS_URL",
+        "HOLOHUB_DATA_PATH",
+        "HOLOHUB_SETUP_SCRIPTS_DIR",
+        "HOLOHUB_SEARCH_PATH",
+        # Legacy variables
         "HOLOHUB_APP_NAME",
         "HOLOHUB_CONTAINER_BASE_NAME",
-        "HOLOHUB_ALWAYS_BUILD",
+        "HOLOHUB_PATH_PREFIX",
     ]
     for var in sorted(holohub_env_vars):
         print(f"  {var}: {os.environ.get(var) or '(not set)'}")
@@ -1122,7 +1373,42 @@ def collect_env_info() -> None:
     collect_python_info()
     collect_docker_info()
     collect_cuda_gpu_info()
+    collect_sccache_info()
     collect_environment_variables()
+
+
+def get_sccache_dir(env: Optional[dict[str, str]] = None) -> str:
+    source_env: dict[str, str] = env if env is not None else os.environ  # type: ignore[assignment]
+    return source_env.get("SCCACHE_DIR") or str(Path.home() / ".cache" / "sccache")
+
+
+def collect_sccache_info() -> None:
+    """Collect and display sccache-related information"""
+    print(f"\n{Color.blue('sccache Information:')}")
+
+    enable_val, enabled = get_env_bool("HOLOHUB_ENABLE_SCCACHE", default=False)
+    print(f"  HOLOHUB_ENABLE_SCCACHE: {enable_val} ({'enabled' if enabled else 'disabled'})")
+
+    sccache_bin = shutil.which("sccache")
+    version = run_info_command(["sccache", "--version"]) if sccache_bin else None
+    print(f"  sccache binary: {sccache_bin or '(not found in PATH)'}")
+    print(f"  sccache version: {version or '(unavailable)'}")
+
+    effective_dir = get_sccache_dir()
+    print(f"  Local SCCACHE_DIR: {effective_dir}")
+
+    # Collect SCCACHE_* variables once, excluding SCCACHE_DIR which is already printed above.
+    sccache_items = [
+        (key, value or "(not set)")
+        for key, value in os.environ.items()
+        if key.startswith("SCCACHE_") and key != "SCCACHE_DIR"
+    ]
+    if sccache_items:
+        print("  SCCACHE_* environment variables:")
+        for key, value in sorted(sccache_items):
+            print(f"    {key}: {value}")
+    else:
+        print("  SCCACHE_* environment variables: (none set)")
 
 
 def normalize_args_str(args):
@@ -1195,8 +1481,11 @@ def setup_ngc_cli(dry_run: bool = False) -> None:
     ngc_filename = f"ngccli_{arch_suffix}.zip"
 
     try:
-        run_command(["wget", "--content-disposition", ngc_url, "-O", ngc_filename], dry_run=dry_run)
-        run_command(["unzip", ngc_filename], dry_run=dry_run)
+        run_command(
+            ["wget", "--quiet", "--content-disposition", ngc_url, "-O", ngc_filename],
+            dry_run=dry_run,
+        )
+        run_command(["unzip", "-q", ngc_filename], dry_run=dry_run)
         run_command(["chmod", "u+x", "ngc-cli/ngc"], dry_run=dry_run)
 
         # Use absolute path for symlink
@@ -1205,6 +1494,27 @@ def setup_ngc_cli(dry_run: bool = False) -> None:
 
     except Exception as e:
         fatal(f"Failed to install NGC CLI: {e}")
+
+
+def setup_sccache(min_version: str = "0.12.0-rapids.20", dry_run: bool = False) -> None:
+    """
+    Install RAPIDS sccache if missing or older than min_version; link into /usr/local/bin.
+
+    Requirements:
+        - Only RAPIDS-formatted versions are supported, e.g. "0.12.0-rapids.20".
+
+    Args:
+        min_version: Minimum required RAPIDS version string ("[v]MAJOR.MINOR.PATCH-rapids.CUSTOM").
+        dry_run: If True, print commands without executing them.
+    """
+    script_path = get_holohub_setup_scripts_dir() / "sccache.sh"
+    if not script_path.exists():
+        warn(f"sccache setup script not found: {script_path}")
+        return
+
+    env = os.environ.copy()
+    env["SCCACHE_MIN_VERSION"] = min_version
+    run_command(["bash", str(script_path)], dry_run=dry_run, env=env)
 
 
 def get_cuda_runtime_version() -> Optional[str]:
@@ -1288,6 +1598,7 @@ def setup_cuda_packages(cuda_major_version: str, dry_run: bool = False) -> None:
                 f"libnvinfer-dispatch10={installed_libnvinferversion}",
                 f"libnvonnxparsers10={installed_libnvinferversion}",
             ],
+            apt_options=["--no-install-recommends", "-y", "--allow-downgrades"],
             dry_run=dry_run,
         )
 
@@ -1306,3 +1617,34 @@ def setup_cuda_packages(cuda_major_version: str, dry_run: bool = False) -> None:
     except PackageInstallationError as e:
         info(f"TensorRT installation failed: {e}")
         info("Continuing with setup - TensorRT packages may need to be installed manually")
+
+
+def update_env(
+    env: dict[str, str],
+    new_env: dict[str, str],
+    path_mapping: dict[str, str] | None = None,
+    verbose: bool = False,
+) -> None:
+    """
+    Update the environment variable with the new value from the new environment dictionary.
+
+    Supports placeholder replacement for:
+    - Path mapping placeholders: <holohub_*> (e.g., <holohub_root>, <holohub_app_bin>)
+    - Environment variable placeholders: <VAR_NAME> (e.g., <PATH>, <HOME>, <USER>)
+      The variable name itself can be used as a placeholder to reference its current value.
+
+    Examples:
+    - "value:<VAR>" - prepend value to existing variable VAR
+    - "<VAR>:value" - append value to existing variable VAR
+    - "value:<VAR>:value2" - prepend and append to existing variable VAR
+    - "value" - replace existing variable
+
+    """
+    # Default to empty dictionaries if not provided
+    path_mapping = path_mapping or {}
+
+    # Update the environment variables
+    for key, value in new_env.items():
+        env[key] = replace_placeholders(value, path_mapping, env)
+        if verbose:
+            print(format_cmd(f"    export {key}={env[key]}", is_dryrun=False))
