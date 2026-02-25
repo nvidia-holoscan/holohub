@@ -50,7 +50,7 @@ Many commands inherit **container build** and/or **container run** options. They
 
 ### Container Build Options
 
-Used by: `build-container`, `run-container`, `build`, `run`, `install`, `vscode`.
+Used by: `build-container`, `run-container`, `build`, `run`, `install`, `test`, `vscode`.
 
 | Option | Description |
 |--------|-------------|
@@ -64,7 +64,7 @@ Used by: `build-container`, `run-container`, `build`, `run`, `install`, `vscode`
 
 ### Container Run Options
 
-Used by: `run-container`, `build`, `run`, `install`, `vscode`.
+Used by: `run-container`, `build`, `run`, `install`.
 
 | Option | Description |
 |--------|-------------|
