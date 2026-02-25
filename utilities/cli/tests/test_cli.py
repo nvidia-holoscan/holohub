@@ -321,6 +321,8 @@ class TestHoloHubCLI(unittest.TestCase):
         self.assertEqual(kwargs["extra_context"]["project_name"], "test_python_project")
         self.assertEqual(kwargs["extra_context"]["language"], "python")
 
+        self.assertEqual(mock_validate.call_count, 2)
+
     @unittest.skipIf(not is_cookiecutter_available(), "cookiecutter not installed")
     @unittest.skipIf(
         not os.path.exists(os.path.join(os.getcwd(), "applications", "template")),
