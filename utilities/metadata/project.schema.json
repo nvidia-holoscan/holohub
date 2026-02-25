@@ -233,6 +233,11 @@
           },
           "description": "Additional cmake options to pass to the local build step"
         },
+        "local_build": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether the project requires a local CMake build step. Set to false for Python-only projects or projects that don't use CMake."
+        },
         "env": {
           "type": "object",
           "additionalProperties": {

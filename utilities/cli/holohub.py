@@ -213,6 +213,11 @@ class HoloHubCLI:
             "--no-docker-build", action="store_true", help="Skip building the container"
         )
         build.add_argument(
+            "--no-local-build",
+            action="store_true",
+            help="Skip the local CMake build step",
+        )
+        build.add_argument(
             "--configure-args",
             action="append",
             help="Additional configuration arguments for cmake "
@@ -375,6 +380,11 @@ class HoloHubCLI:
         )
         install.add_argument(
             "--no-docker-build", action="store_true", help="Skip building the container"
+        )
+        install.add_argument(
+            "--no-local-build",
+            action="store_true",
+            help="Skip the local CMake build step",
         )
         install.add_argument(
             "--configure-args",
@@ -607,7 +617,7 @@ class HoloHubCLI:
 
         # Define valid keys for mode configuration
         valid_top_level_keys = ["description", "requirements", "build", "run", "env"]
-        valid_build_keys = ["depends", "docker_build_args", "cmake_options", "env"]
+        valid_build_keys = ["depends", "docker_build_args", "cmake_options", "env", "local_build"]
         valid_run_keys = ["command", "workdir", "docker_run_args", "env"]
 
         # Check top-level keys
@@ -967,10 +977,17 @@ class HoloHubCLI:
         benchmark: bool = False,
         configure_args: Optional[list[str]] = None,
         extra_env: Optional[dict] = None,
+        skip_cmake: bool = False,
     ) -> tuple[Path, dict]:
         """Helper method to build a project locally"""
         project_data = self.find_project(project_name=project_name, language=language)
         project_type = project_data.get("project_type", "application")
+
+        build_dir = HoloHubCLI.DEFAULT_BUILD_PARENT_DIR / project_name
+        if skip_cmake:
+            holohub_cli_util.info("Skipping local CMake build step")
+            build_dir.mkdir(parents=True, exist_ok=True)
+            return build_dir, project_data
 
         # Handle benchmark patching before building
         app_source_path = None
@@ -991,7 +1008,6 @@ class HoloHubCLI:
                 )
 
         build_type = holohub_cli_util.get_buildtype_str(build_type)
-        build_dir = HoloHubCLI.DEFAULT_BUILD_PARENT_DIR / project_name
         build_dir.mkdir(parents=True, exist_ok=True)
 
         # Prepare environment with extra env vars
@@ -1146,7 +1162,16 @@ class HoloHubCLI:
         mode_config = mode_config if mode_config is not None else {}
 
         # Check if build should be skipped
-        skip_docker_build, _ = holohub_cli_util.check_skip_builds(args)
+        skip_docker_build, skip_local_build = holohub_cli_util.check_skip_builds(args)
+
+        # Check metadata for local_build flag
+        metadata_local_build = mode_config.get("build", {}).get(
+            "local_build",
+            project_data.get("metadata", {}).get("build", {}).get("local_build", True),
+        )
+        if not metadata_local_build:
+            skip_local_build = True
+            holohub_cli_util.info("Skipping local build (project metadata has local_build: false)")
 
         if mode_config:
             print(f"Building {args.project} in '{mode_name}' mode")
@@ -1177,6 +1202,7 @@ class HoloHubCLI:
                 benchmark=getattr(args, "benchmark", False),
                 configure_args=build_args.get("configure_args"),
                 extra_env=build_mode_env,
+                skip_cmake=skip_local_build,
             )
         else:
             # Build in container
@@ -1220,6 +1246,8 @@ class HoloHubCLI:
                 build_cmd += " --verbose"
             if getattr(args, "benchmark", False):
                 build_cmd += " --benchmark"
+            if skip_local_build:
+                build_cmd += " --no-local-build"
             if getattr(args, "configure_args", None):
                 for configure_arg in args.configure_args:
                     build_cmd += f" --configure-args={shlex.quote(configure_arg)}"
@@ -1283,6 +1311,15 @@ class HoloHubCLI:
         # Check if builds should be skipped
         skip_docker_build, skip_local_build = holohub_cli_util.check_skip_builds(args)
 
+        # Check metadata for local_build flag
+        metadata_local_build = mode_config.get("build", {}).get(
+            "local_build",
+            project_data.get("metadata", {}).get("build", {}).get("local_build", True),
+        )
+        if not metadata_local_build:
+            skip_local_build = True
+            holohub_cli_util.info("Skipping local build (project metadata has local_build: false)")
+
         # Check if local mode is requested
         is_local_mode = (
             args.local
@@ -1305,12 +1342,7 @@ class HoloHubCLI:
             if skip_local_build:
                 # Skip building; reuse previously resolved project_data and build directory
                 build_dir = HoloHubCLI.DEFAULT_BUILD_PARENT_DIR / args.project
-                if not build_dir.is_dir() and not args.dryrun:
-                    holohub_cli_util.fatal(
-                        f"The build directory {build_dir} for this application does not exist.\n"
-                        f"Did you forget to build the application first? Try running:\n"
-                        f"  {self.script_name} build {args.project}"
-                    )
+                build_dir.mkdir(parents=True, exist_ok=True)
             else:
                 build_dir, project_data = self.build_project_locally(
                     project_name=args.project,
@@ -1900,7 +1932,16 @@ class HoloHubCLI:
         mode_config = mode_config if mode_config is not None else {}
 
         # Check if build should be skipped
-        skip_docker_build, _ = holohub_cli_util.check_skip_builds(args)
+        skip_docker_build, skip_local_build = holohub_cli_util.check_skip_builds(args)
+
+        # Check metadata for local_build flag
+        metadata_local_build = mode_config.get("build", {}).get(
+            "local_build",
+            project_data.get("metadata", {}).get("build", {}).get("local_build", True),
+        )
+        if not metadata_local_build:
+            skip_local_build = True
+            holohub_cli_util.info("Skipping local build (project metadata has local_build: false)")
 
         if mode_config:
             print(f"Installing {args.project} in '{mode_name}' mode")
@@ -1930,6 +1971,7 @@ class HoloHubCLI:
                 parallel=getattr(args, "parallel", None),
                 configure_args=build_args.get("configure_args"),
                 extra_env=build_mode_env,
+                skip_cmake=skip_local_build,
             )
 
             # Build path mapping
@@ -1989,6 +2031,8 @@ class HoloHubCLI:
                 install_cmd += f" --parallel {args.parallel}"
             if args.verbose:
                 install_cmd += " --verbose"
+            if skip_local_build:
+                install_cmd += " --no-local-build"
             if getattr(args, "configure_args", None):
                 for configure_arg in args.configure_args:
                     install_cmd += f" --configure-args={shlex.quote(configure_arg)}"
