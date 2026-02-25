@@ -261,7 +261,7 @@ Each mode is defined as a named object under the `modes` key:
   - Can be a single string: `"--privileged --net=host"`
   - Or an array: `["--privileged", "--net=host"]`
   - **Note**: These arguments apply to both the container that builds your application and the container that runs it
-  - **Common use cases**: GPU access (`--gpus=all`), device access (`--device=/dev/video0`), privileged operations (`--privileged`)
+  - **Common use cases**: GPU visibility (`-e NVIDIA_VISIBLE_DEVICES=...`, `--gpus=...`, or CDI `--device nvidia.com/gpu=...`), device access (`--device=/dev/video0`), privileged operations (`--privileged`)
 - **`env`** *(object)*: Environment variables to set **only for runtime** (local runs only)
   - Key-value pairs of environment variable names and values
   - Only applied during application execution, not during build
@@ -300,7 +300,7 @@ Each mode is defined as a named object under the `modes` key:
         "run": {
           "command": "python3 <holohub_app_source>/app.py --backend tensorrt --optimization-level 3",
           "workdir": "holohub_bin",
-          "docker_run_args": ["--gpus=all", "--shm-size=1g"],
+          "docker_run_args": ["-e", "NVIDIA_VISIBLE_DEVICES=1", "--shm-size=1g"],
           "env": {
             "LOG_LEVEL": "info",
             "RUNTIME_OPTIMIZATION": "max"
@@ -353,7 +353,7 @@ For cases where build and run containers need different Docker configurations, y
     "production_run": {
       "description": "Run production app with GPU access",
       "run": {
-        "docker_run_args": ["--gpus=all", "--shm-size=1g"],
+        "docker_run_args": ["-e", "NVIDIA_VISIBLE_DEVICES=1", "--shm-size=1g"],
         "command": "python3 <holohub_app_source>/app.py --gpu"
       }
     }
