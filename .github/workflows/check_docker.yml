@@ -10,8 +10,7 @@ permissions:
 env:
   CPU_CI_COMMANDS: |
     sed -i 's/check_nvidia_ctk()/pass  # nvidia-ctk not available/g' utilities/cli/container.py
-    sed -i 's/"--runtime",/# "--runtime",/g' utilities/cli/container.py
-    sed -i 's/"nvidia",/# "nvidia",/g' utilities/cli/container.py
+    sed -i 's/return \["--runtime", "nvidia"\]/return []/g' utilities/cli/container.py
 
 jobs:
   check-docker-build:
