@@ -871,7 +871,6 @@ exec {holohub_script} "$@"
         enhanced = self.cli.get_effective_run_config(mock_args_no_override, mode_config_with_docker)
         self.assertEqual(enhanced["docker_opts"], "--privileged --net=host")  # Uses mode config
 
-
     @patch("utilities.cli.holohub.HoloHubCLI._make_project_container")
     def test_test_command_coverage_flag_forwarding(self, mock_make_container):
         """Ensure --coverage is forwarded to CTest command"""
