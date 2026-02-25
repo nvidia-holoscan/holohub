@@ -696,12 +696,7 @@ class HoloHubContainer:
         return args
 
     def get_nvidia_runtime_args(self) -> List[str]:
-        return [
-            "--runtime",
-            "nvidia",
-            "--gpus",
-            "all",
-        ]
+        return ["--runtime", "nvidia"]
 
     def get_device_cgroup_args(self) -> List[str]:
         return [
@@ -728,9 +723,15 @@ class HoloHubContainer:
 
     def get_environment_args(self) -> List[str]:
         """Environment variable arguments"""
+        # Default GPU visibility is controlled via NVIDIA_VISIBLE_DEVICES (from the image and/or
+        # environment args). This keeps the default behavior ("all") while allowing users to
+        # override with `--gpus=...` or CDI `--device nvidia.com/gpu=...` in `--docker-opts`.
+        nvidia_visible_devices = os.environ.get("NVIDIA_VISIBLE_DEVICES", "all")
         args = [
             "-e",
             "NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display",
+            "-e",
+            f"NVIDIA_VISIBLE_DEVICES={nvidia_visible_devices}",
             "-e",
             f"HOME=/workspace/{self.WORKSPACE_NAME}",
             "-e",
