@@ -286,34 +286,17 @@ class TestHoloHubCLI(unittest.TestCase):
 
     @unittest.skipIf(not is_cookiecutter_available(), "cookiecutter not installed")
     @patch("utilities.cli.holohub.HoloHubCLI._install_template_deps")
-    @patch("cookiecutter.main.cookiecutter")
-    @patch("utilities.cli.holohub.HoloHubCLI.handle_create")
+    @patch("cookiecutter.main.cookiecutter", return_value="/tmp/dummy_project")
+    @patch("utilities.cli.holohub.HoloHubCLI.validate_generated_metadata")
     @patch("utilities.cli.holohub.HoloHubCLI._add_to_cmakelists")
     def test_language_passed_to_cookiecutter(
         self,
         mock_add_to_cmakelists,
-        mock_handle_create,
+        mock_validate,
         mock_cookiecutter,
         mock_install_template_deps,
     ):
         """Test that the correct language parameter is passed to cookiecutter during project creation."""
-
-        # Mock handle_create to call cookiecutter directly with the extra_context we want to test
-        def side_effect(args):
-            context = {
-                "project_name": args.project,
-                "language": args.language.lower() if args.language else "cpp",  # Default is cpp
-            }
-            # Call cookiecutter with our context
-            mock_cookiecutter(
-                "dummy_template_path",
-                no_input=True,
-                extra_context=context,
-                output_dir="dummy_output_dir",
-            )
-            return True  # Indicate success
-
-        mock_handle_create.side_effect = side_effect
 
         # Test CPP language
         args = self.cli.parser.parse_args("create test_cpp_project --language cpp".split())
@@ -337,6 +320,8 @@ class TestHoloHubCLI(unittest.TestCase):
         _, kwargs = mock_cookiecutter.call_args
         self.assertEqual(kwargs["extra_context"]["project_name"], "test_python_project")
         self.assertEqual(kwargs["extra_context"]["language"], "python")
+
+        self.assertEqual(mock_validate.call_count, 2)
 
     @unittest.skipIf(not is_cookiecutter_available(), "cookiecutter not installed")
     @unittest.skipIf(
