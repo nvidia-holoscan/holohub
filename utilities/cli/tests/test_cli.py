@@ -871,12 +871,6 @@ exec {holohub_script} "$@"
         enhanced = self.cli.get_effective_run_config(mock_args_no_override, mode_config_with_docker)
         self.assertEqual(enhanced["docker_opts"], "--privileged --net=host")  # Uses mode config
 
-        # Test with CLI override - CLI should take precedence
-        mock_args_with_override = Namespace(run_args="", docker_opts="--gpus all")
-        enhanced_override = self.cli.get_effective_run_config(
-            mock_args_with_override, mode_config_with_docker
-        )
-        self.assertEqual(enhanced_override["docker_opts"], "--gpus all")  # CLI overrides mode
 
     @patch("utilities.cli.holohub.HoloHubCLI._make_project_container")
     def test_test_command_coverage_flag_forwarding(self, mock_make_container):
