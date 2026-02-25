@@ -2,7 +2,7 @@ name: Check Docker
 
 on:
   push:
-    branches: [main, holoscan-sdk-lws2]
+    branches: [main, holoscan-sdk-lws2, wenqil/update-nv-flag]
 
 permissions:
   contents: read
@@ -12,8 +12,6 @@ env:
     sed -i 's/check_nvidia_ctk()/pass  # nvidia-ctk not available/g' utilities/cli/container.py
     sed -i 's/"--runtime",/# "--runtime",/g' utilities/cli/container.py
     sed -i 's/"nvidia",/# "nvidia",/g' utilities/cli/container.py
-    sed -i 's/"--gpus",/# "--gpus",/g' utilities/cli/container.py
-    sed -i 's/"all",/# "all",/g' utilities/cli/container.py
 
 jobs:
   check-docker-build:
