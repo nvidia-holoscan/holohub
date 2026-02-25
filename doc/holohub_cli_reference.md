@@ -1,6 +1,6 @@
 # HoloHub CLI Reference
 
-Quick reference for the HoloHub Python CLI (`./holohub`). For migration from the legacy bash scripts and detailed concepts, see [README.md](README.md).
+Quick reference for the HoloHub Python CLI (`./holohub`). For migration from the legacy bash scripts, see [CLI Migration Guide](../utilities/cli/README.md).
 
 ---
 
@@ -41,6 +41,7 @@ Run the CLI from the HoloHub repository root:
 | [test](#test) | Run tests for a project |
 | [clear-cache](#clear-cache) | Clear cache folders (build, data, install) |
 | [vscode](#vscode) | Launch VS Code in Dev Container |
+| [autocompletion_list](#autocompletion-list) | List targets for autocompletion (used internally) |
 
 ---
 
@@ -58,7 +59,7 @@ Used by: `build-container`, `run-container`, `build`, `run`, `install`, `test`, 
 | `--docker-file` | Path to Dockerfile to use |
 | `--img` | Fully qualified output container image name |
 | `--no-cache` | Do not use cache when building the image |
-| `--cuda <version>` | CUDA major version (for example `12`, `13`). Default: based on host driver |
+| `--cuda <version>` | CUDA major version (for example `12`, `13`). Default: `12` |
 | `--build-args` | Extra arguments to `docker build` (for example `--build-args '--network=host'`) |
 | `--extra-scripts <name>` | Run named setup scripts as Docker layers (search in `HOLOHUB_SETUP_SCRIPTS_DIR`). Can be repeated. Use `./holohub setup --list-scripts` to list. |
 
@@ -417,7 +418,7 @@ Build and install a project (container or local). Installs built artifacts (for 
 
 | Option | Description |
 |--------|-------------|
-| `--local` | Install from local build instead of container |
+| `--local` | Install locally instead of in container |
 | `--build-type` | `debug`, `release`, or `rel-debug` |
 | `--build-with <list>` | Semicolon-separated operators |
 | `--configure-args <arg>` | Extra CMake options; can be repeated |
@@ -544,17 +545,137 @@ Launch VS Code in a Dev Container for the given project.
 
 ---
 
+### Autocompletion List
+
+List targets for bash autocompletion. This command is used internally by the autocompletion script and is not intended for direct use.
+
+**Usage:**
+
+```bash
+./holohub autocompletion_list
+```
+
+No arguments or options.
+
+---
+
 ## Concepts
 
 ### Modes
 
-Applications can define **modes** in `metadata.json`: named configurations for different hardware, data sources, or deployment scenarios. When a mode is set, it supplies default run command, build options, Docker options, and env vars; CLI options override mode settings when provided.
+Applications can define **modes** in `metadata.json`: named configurations for different hardware, data sources, or deployment scenarios. When a mode is set, it supplies a default run command, build options, Docker options, and environment variables. CLI options override mode settings when provided.
 
-- Discover modes: `./holohub modes <project>`
-- Run with a mode: `./holohub run <project> <mode>`
-- Build with a mode: `./holohub build <project> <mode>`
+**Discovering and using modes:**
 
-CLI parameters (for example `--run-args`, `--build-with`, `--docker-opts`) always override the corresponding mode settings. For full mode structure, field reference, and examples, see [README.md — Application Modes](README.md#application-modes).
+```bash
+./holohub modes <project>                  # List available modes
+./holohub run <project> <mode>             # Run with a specific mode
+./holohub build <project> <mode>           # Build with a specific mode
+./holohub run <project>                    # Uses default_mode if defined
+```
+
+#### CLI Parameters Override Mode Settings
+
+When a CLI parameter is provided, it always overrides the corresponding mode setting. When a CLI parameter is not provided, the mode setting is used as the default:
+
+| Mode Field | CLI Override |
+|------------|--------------|
+| `run.docker_run_args` | `--docker-opts` |
+| `build.depends` | `--build-with` |
+| `build.docker_build_args` | `--build-args` |
+| `build.cmake_options` | `--configure-args` |
+
+```bash
+./holohub run holochat --run-args="--debug"            # appends to default_mode.run.command
+./holohub run myapp --build-with="ops"                 # overrides default_mode.build.depends
+./holohub build myapp standard --build-with="ops"      # overrides standard.build.depends
+```
+
+#### Mode Structure in metadata.json
+
+Each mode is defined under the `modes` key in `metadata.json`:
+
+```json
+{
+  "metadata": {
+    "default_mode": "mode_name",
+    "modes": {
+      "mode_name": { }
+    }
+  }
+}
+```
+
+**`default_mode`** *(string, optional)*: Which mode to use when none is specified on the command line. Required only when there are two or more modes; with a single mode it is selected automatically.
+
+**Fields for each mode:**
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `description` | Yes | Human-readable description |
+| `run` | Yes | Run configuration (see below) |
+| `requirements` | No | List of dependency IDs required for this mode |
+| `build` | No | Build configuration (see below) |
+| `env` | No | Environment variables applied to both build and run |
+
+**Run configuration (`run` object):**
+
+| Field | Description |
+|-------|-------------|
+| `command` | Complete command to execute including arguments |
+| `workdir` | Working directory for command execution |
+| `docker_run_args` | Docker run arguments (string or array); applies to both build and app containers. Equivalent to `--docker-opts` |
+| `env` | Environment variables for runtime only (local runs) |
+
+**Build configuration (`build` object):**
+
+| Field | Description |
+|-------|-------------|
+| `depends` | List of operators/dependencies to build with |
+| `docker_build_args` | Docker build arguments (string or array). Equivalent to `--build-args` |
+| `cmake_options` | Additional CMake configure arguments |
+| `env` | Environment variables for build operations only |
+
+**Example:**
+
+```json
+{
+  "metadata": {
+    "default_mode": "standard",
+    "modes": {
+      "standard": {
+        "description": "Standard camera input for development",
+        "requirements": ["camera", "model"],
+        "run": {
+          "command": "python3 <holohub_app_source>/app.py --source camera",
+          "workdir": "holohub_bin"
+        }
+      },
+      "production": {
+        "description": "High-performance mode with GPU acceleration",
+        "env": { "BUILD_ENV": "production" },
+        "build": {
+          "depends": ["tensorrt_backend"],
+          "docker_build_args": ["--build-arg", "TENSORRT_VERSION=8.6"],
+          "cmake_options": ["-DUSE_TENSORRT=ON"]
+        },
+        "run": {
+          "command": "python3 <holohub_app_source>/app.py --backend tensorrt",
+          "docker_run_args": ["-e", "NVIDIA_VISIBLE_DEVICES=1", "--shm-size=1g"],
+          "env": { "LOG_LEVEL": "info" }
+        }
+      }
+    }
+  }
+}
+```
+
+**Key points:**
+
+- Mode names must match `^[a-zA-Z_][a-zA-Z0-9_]*$` (alphanumeric and underscore, cannot start with a number).
+- **Environment variable precedence:** inner scope (`build.env` / `run.env`) overrides the top-level mode `env`, which overrides the CLI environment.
+- Path placeholders such as `<holohub_app_source>`, `<holohub_data_dir>`, and `<holohub_bin>` are supported in `command` and `workdir`.
+- When `--no-docker-build` is specified, `build.docker_build_args` is ignored.
 
 ### Local Versus Container
 
@@ -563,19 +684,27 @@ CLI parameters (for example `--run-args`, `--build-with`, `--docker-opts`) alway
 - **`--no-docker-build`:** Use an existing container image (skip image build).
 - **`--no-local-build`:** (run only) Skip app build; run existing binaries.
 
-Environment variable `HOLOHUB_BUILD_LOCAL` forces local mode (same as `--local`). See [README.md — Granular Build Control](README.md#granular-build-control) for details.
+Environment variable `HOLOHUB_BUILD_LOCAL` forces local mode (same as `--local`).
+
+**Default behavior of `./holohub run`:**
+
+1. Build the container image (unless skipped with `--no-docker-build`)
+2. Build the application inside the container
+3. Run the application inside the container
+
+Dedicated commands (`build`, `run`, `build-container`, `run-container`) allow clear workflow control when the full default pipeline is not needed.
 
 ---
 
 ## Environment Variables
 
-The CLI respects these variables. Defaults and behavior are summarized below; see [README.md — Granular Build Control](README.md#granular-build-control) for full detail.
+The CLI respects these variables. Defaults and behavior are summarized below.
 
 ### Build and Execution
 
 | Variable | Purpose |
 |----------|---------|
-| `HOLOHUB_BUILD_LOCAL` | Force local mode (like `--local`) |
+| `HOLOHUB_BUILD_LOCAL` | Force local mode (like `--local`); skips container build steps and runs on the host directly |
 | `HOLOHUB_ALWAYS_BUILD` | Set to `false` to skip builds when using `--no-local-build` / `--no-docker-build` |
 | `HOLOHUB_ENABLE_SCCACHE` | Set to `true` to enable sccache for builds; use with `--extra-scripts sccache` in container |
 
@@ -642,12 +771,8 @@ source ~/.bashrc
 
 ### Useful Tips
 
-- For options that look like arguments, use `=` to avoid ambiguity:  
+- For options that look like arguments, use `=` to avoid ambiguity:
   `--run-args="--verbose"` instead of `--run-args "--verbose"`.
 - All CLI options use **hyphens** (`-`), not underscores (for example `--base-img`, not `--base_img`).
 - `sudo ./holohub` may not work correctly due to environment filtering (for example `PATH`).
 - To free disk during development: `docker image prune`, `docker buildx prune`, `docker system prune` (see [Docker docs](https://docs.docker.com/reference/cli/)).
-
-### See Also
-
-- **[README.md](README.md)** — Migration guide from legacy scripts, application modes and metadata reference, and detailed environment variable and Docker image behavior.
