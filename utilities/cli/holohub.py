@@ -1449,7 +1449,9 @@ class HoloHubCLI:
             # Only add mode name if it was explicitly requested by user (not implicitly resolved)
             if mode_name and getattr(args, "mode", None) is not None:
                 run_cmd += f" {mode_name}"
-            run_cmd += f" --language {language} --local"
+            if language:
+                run_cmd += f" --language {language}"
+            run_cmd += " --local"
             if args.verbose:
                 run_cmd += " --verbose"
             if args.build_type:
