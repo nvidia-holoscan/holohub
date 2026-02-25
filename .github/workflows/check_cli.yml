@@ -30,6 +30,8 @@ jobs:
           python -m unittest utilities.cli.tests.test_cli
           python -m unittest utilities.cli.tests.test_container
           python -m unittest utilities.cli.tests.test_util
+          ./holohub setup --script template
+          python -m unittest utilities.cli.tests.test_cli
 
   check-cli-ctest:
     runs-on: ubuntu-22.04
