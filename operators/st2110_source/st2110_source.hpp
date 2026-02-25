@@ -140,8 +140,8 @@ class ST2110SourceOp : public holoscan::Operator {
   void parse_and_copy_packet(const uint8_t* packet_data, size_t packet_size);
   void configure_stream_format();  // Configure format from stream_format parameter
   void drain_socket();              // Aggressively drain socket into frame queue
-  bool emit_next_frame();           // Emit oldest complete frame in sequence (returns true if frame ready)
-  FrameBuffer* get_assembling_buffer();  // Get buffer currently being assembled
+  bool emit_next_frame();           // Emit oldest complete frame (true if frame ready)
+  FrameBuffer* get_assembling_buffer();   // Get buffer currently being assembled
   FrameBuffer* find_next_frame_to_emit();  // Find next frame in RTP sequence
   void mark_frame_emitted(int buffer_index);  // Mark frame as emitted and reusable
   void emit_raw_frame(OutputContext& op_output);
@@ -180,8 +180,8 @@ class ST2110SourceOp : public holoscan::Operator {
   // Circular queue architecture (virtual queue - no memcpy)
   static constexpr int num_frame_buffers_ = 3;
   std::array<FrameBuffer, num_frame_buffers_> frame_buffers_;
-  std::atomic<int> assembling_index_{-1};   // Index of buffer currently being assembled (-1 if none)
-  uint32_t last_emitted_rtp_timestamp_ = 0; // RTP timestamp of last emitted frame
+  std::atomic<int> assembling_index_{-1};  // Index of buffer being assembled (-1 if none)
+  uint32_t last_emitted_rtp_timestamp_ = 0;  // RTP timestamp of last emitted frame
   bool first_frame_emitted_ = false;        // Track if we've emitted our first frame
   uint32_t frames_dropped_ = 0;             // Count of frames dropped due to queue overflow
 

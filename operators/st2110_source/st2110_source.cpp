@@ -221,8 +221,9 @@ void ST2110SourceOp::initialize() {
         "st2110_periodic_condition",
         Arg("recess_period") = recess_period);
     add_arg(periodic_condition_.get());
-    HOLOSCAN_LOG_INFO("Created default PeriodicCondition at {}Hz ({}x framerate for greedy ingestion)",
-                      polling_rate, 10);
+    HOLOSCAN_LOG_INFO(
+        "Created default PeriodicCondition at {}Hz ({}x framerate for greedy ingestion)",
+        polling_rate, 10);
   }
 
   HOLOSCAN_LOG_INFO("ST2110 configuration:");
@@ -409,7 +410,8 @@ void ST2110SourceOp::create_socket() {
   struct ip_mreqn mreq = {};
   if (inet_pton(AF_INET, multicast_address_.get().c_str(), &mreq.imr_multiaddr) != 1) {
     close(socket_fd_);
-    throw std::runtime_error(fmt::format("Invalid multicast address: {}", multicast_address_.get()));
+    throw std::runtime_error(
+        fmt::format("Invalid multicast address: {}", multicast_address_.get()));
   }
 
   mreq.imr_address.s_addr = INADDR_ANY;
@@ -426,8 +428,10 @@ void ST2110SourceOp::create_socket() {
 
   // 256MB socket buffer for high-bandwidth streams (1080p50 @ ~3 Gbps)
   int socket_buffer_size = 256 * 1024 * 1024;
-  if (setsockopt(socket_fd_, SOL_SOCKET, SO_RCVBUF, &socket_buffer_size, sizeof(socket_buffer_size)) < 0) {
-    HOLOSCAN_LOG_WARN("Failed to set socket buffer size to {}: {}", socket_buffer_size, strerror(errno));
+  if (setsockopt(socket_fd_, SOL_SOCKET, SO_RCVBUF, &socket_buffer_size,
+                sizeof(socket_buffer_size)) < 0) {
+    HOLOSCAN_LOG_WARN("Failed to set socket buffer size to {}: {}",
+                     socket_buffer_size, strerror(errno));
   }
 
   int actual_buffer_size = 0;
@@ -510,7 +514,8 @@ void ST2110SourceOp::parse_and_copy_packet(const uint8_t* packet_data, size_t pa
   }
 
   if (packet_size < MIN_PACKET_SIZE) {
-    HOLOSCAN_LOG_WARN("Packet too small: {} bytes (need at least {})", packet_size, MIN_PACKET_SIZE);
+    HOLOSCAN_LOG_WARN("Packet too small: {} bytes (need at least {})",
+                     packet_size, MIN_PACKET_SIZE);
     return;
   }
 
@@ -550,11 +555,13 @@ void ST2110SourceOp::parse_and_copy_packet(const uint8_t* packet_data, size_t pa
 
   // Debug: Log ST2110 header values for first few packets
   if (debug_packet_count_ < 5) {
-    HOLOSCAN_LOG_INFO("ST2110 header debug [packet {}]: line={}, offset={}, length={}, F={}, C={}",
-                      debug_packet_count_, line_number, line_offset, line_length, field_bit, continuation_bit);
-    HOLOSCAN_LOG_INFO("  Raw bytes at ST2110 start: {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x}",
-                      st2110_start[0], st2110_start[1], st2110_start[2], st2110_start[3],
-                      st2110_start[4], st2110_start[5], st2110_start[6], st2110_start[7]);
+    HOLOSCAN_LOG_INFO(
+        "ST2110 header debug [packet {}]: line={}, offset={}, length={}, F={}, C={}",
+        debug_packet_count_, line_number, line_offset, line_length, field_bit, continuation_bit);
+    HOLOSCAN_LOG_INFO(
+        "  Raw bytes at ST2110 start: {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x}",
+        st2110_start[0], st2110_start[1], st2110_start[2], st2110_start[3],
+        st2110_start[4], st2110_start[5], st2110_start[6], st2110_start[7]);
     debug_packet_count_++;
   }
 
@@ -565,7 +572,8 @@ void ST2110SourceOp::parse_and_copy_packet(const uint8_t* packet_data, size_t pa
   // Validate line number and offset
   if (line_number >= height_.get()) {
     if (rejected_count_ < 3) {
-      HOLOSCAN_LOG_WARN("Rejecting packet: line_number {} >= height {}", line_number, height_.get());
+      HOLOSCAN_LOG_WARN("Rejecting packet: line_number {} >= height {}",
+                       line_number, height_.get());
       rejected_count_++;
     }
     return;
@@ -619,7 +627,8 @@ void ST2110SourceOp::parse_and_copy_packet(const uint8_t* packet_data, size_t pa
   }
 
   // Calculate destination offset in frame buffer using integer pgroup arithmetic
-  // Each pgroup covers pgroup_pixels pixels in pgroup_bytes bytes (avoids floating-point truncation)
+  // Each pgroup covers pgroup_pixels pixels in pgroup_bytes bytes
+  // (avoids floating-point truncation)
   uint32_t pgroup_bytes = detected_format_.pgroup;
   uint32_t pgroup_pixels = (detected_format_.sampling == "RGBA") ? 1 : 2;
   size_t line_bytes = static_cast<size_t>(width_.get() / pgroup_pixels) * pgroup_bytes;
@@ -972,8 +981,7 @@ void ST2110SourceOp::convert_and_emit_rgba(OutputContext& op_output) {
       1,
       nvidia::gxf::ComputeTrivialStrides(shape, 1),
       nvidia::gxf::MemoryStorageType::kDevice,
-      maybe_gxf_allocator.value()
-    );
+      maybe_gxf_allocator.value());
 
     if (!result) {
       HOLOSCAN_LOG_ERROR("Failed to allocate Tensor from pool");
@@ -985,8 +993,7 @@ void ST2110SourceOp::convert_and_emit_rgba(OutputContext& op_output) {
       gpu_rgba_buffer_,
       rgba_frame_size_,
       cudaMemcpyDeviceToDevice,
-      cuda_stream_
-    ));
+      cuda_stream_));
 
     CUDA_TRY(cudaStreamSynchronize(cuda_stream_));
 
@@ -1079,8 +1086,7 @@ void ST2110SourceOp::convert_and_emit_nv12(OutputContext& op_output) {
       1,
       nvidia::gxf::ComputeTrivialStrides(shape, 1),
       nvidia::gxf::MemoryStorageType::kDevice,
-      maybe_gxf_allocator.value()
-    );
+      maybe_gxf_allocator.value());
 
     if (!result) {
       HOLOSCAN_LOG_ERROR("Failed to allocate Tensor from pool");
@@ -1092,8 +1098,7 @@ void ST2110SourceOp::convert_and_emit_nv12(OutputContext& op_output) {
       gpu_nv12_buffer_,
       nv12_frame_size_,
       cudaMemcpyDeviceToDevice,
-      cuda_stream_
-    ));
+      cuda_stream_));
 
     CUDA_TRY(cudaStreamSynchronize(cuda_stream_));
 
