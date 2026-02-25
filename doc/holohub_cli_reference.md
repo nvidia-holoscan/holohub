@@ -1,4 +1,4 @@
-# HoloHub CLI Reference
+# HoloHub CLI Reference Guide
 
 Quick reference for the HoloHub Python CLI (`./holohub`). For migration from the legacy bash scripts, see [CLI Migration Guide](../utilities/cli/README.md).
 
@@ -15,11 +15,18 @@ Run the CLI from the HoloHub repository root:
 **Getting help:**
 
 ```bash
-./holohub --help                    # List all commands
-./holohub <command> --help          # Options for a specific command
+./holohub -h | --help                    # List all commands
+./holohub <command> -h | --help          # Options for a specific command
 ./holohub run myapp --verbose --dryrun   # Debug: print without executing
-./holohub list                      # List available projects
+./holohub list                           # List available projects
 ```
+
+**Conventions used in this guide:**
+
+- `<arg>` means a required positional argument.
+- `[arg]` means an optional positional argument.
+- `[options]` means one or more optional flags.
+- `--` marks the end of CLI options; anything after it is forwarded to the underlying command (for example `docker run`).
 
 ---
 
@@ -47,7 +54,7 @@ Run the CLI from the HoloHub repository root:
 
 ## Shared Options
 
-Many commands inherit **container build** and/or **container run** options. They are listed here once; see each command for which apply.
+Many commands inherit **container build** and/or **container run** options. They are listed here once; see each command section for applicability.
 
 ### Container Build Options
 
@@ -156,7 +163,7 @@ Build the development container image for a project (or the default image if no 
 
 ### Run Container
 
-Build (unless skipped) and launch the development container. Trailing args after ` -- ` are passed to `docker run`.
+Build (unless skipped) and launch the development container. Trailing arguments after ` -- ` are passed to `docker run`.
 
 **Usage:**
 
@@ -547,7 +554,7 @@ Launch VS Code in a Dev Container for the given project.
 
 ### Autocompletion List
 
-List targets for bash autocompletion. This command is used internally by the autocompletion script and is not intended for direct use.
+List targets for bash autocompletion. This command is primarily used by the autocompletion script.
 
 **Usage:**
 
@@ -673,16 +680,16 @@ Each mode is defined under the `modes` key in `metadata.json`:
 **Key points:**
 
 - Mode names must match `^[a-zA-Z_][a-zA-Z0-9_]*$` (alphanumeric and underscore, cannot start with a number).
-- **Environment variable precedence:** inner scope (`build.env` / `run.env`) overrides the top-level mode `env`, which overrides the CLI environment.
+- **Environment variable precedence:** inner scope (`build.env` / `run.env`) overrides the top-level mode `env`, which overrides the host shell environment.
 - Path placeholders such as `<holohub_app_source>`, `<holohub_data_dir>`, and `<holohub_bin>` are supported in `command` and `workdir`.
 - When `--no-docker-build` is specified, `build.docker_build_args` is ignored.
 
 ### Local Versus Container
 
-- **Default:** `./holohub run` and `./holohub build` use the **container**: build image (if needed), build app in container, run in container.
-- **`--local`:** Build and/or run on the **host** (no container for app build/run).
-- **`--no-docker-build`:** Use an existing container image (skip image build).
-- **`--no-local-build`:** (run only) Skip app build; run existing binaries.
+- **Default (`build` / `run`):** use the container workflow (build image if needed, build app in container, run in container).
+- **`--local`:** build and/or run on the host (skip containerized app build/run steps).
+- **`--no-docker-build`:** use an existing container image (skip image build).
+- **`--no-local-build`:** (`run` only) skip app build and run existing binaries/artifacts.
 
 Environment variable `HOLOHUB_BUILD_LOCAL` forces local mode (same as `--local`).
 
@@ -705,8 +712,8 @@ The CLI respects these variables. Defaults and behavior are summarized below.
 | Variable | Purpose |
 |----------|---------|
 | `HOLOHUB_BUILD_LOCAL` | Force local mode (like `--local`); skips container build steps and runs on the host directly |
-| `HOLOHUB_ALWAYS_BUILD` | Set to `false` to skip builds when using `--no-local-build` / `--no-docker-build` |
-| `HOLOHUB_ENABLE_SCCACHE` | Set to `true` to enable sccache for builds; use with `--extra-scripts sccache` in container |
+| `HOLOHUB_ALWAYS_BUILD` | Defaults to `true`. Set to `false` to allow skipping builds with `--no-local-build` / `--no-docker-build` |
+| `HOLOHUB_ENABLE_SCCACHE` | Defaults to `false`. Set to `true` to enable sccache for builds; use with `--extra-scripts sccache` in container |
 
 ### Paths and Directories
 
@@ -773,6 +780,8 @@ source ~/.bashrc
 
 - For options that look like arguments, use `=` to avoid ambiguity:
   `--run-args="--verbose"` instead of `--run-args "--verbose"`.
+- For `run-container`, pass raw `docker run` flags after `--`:
+  `./holohub run-container myapp -- --net=host --ipc=host`.
 - All CLI options use **hyphens** (`-`), not underscores (for example `--base-img`, not `--base_img`).
 - `sudo ./holohub` may not work correctly due to environment filtering (for example `PATH`).
 - To free disk during development: `docker image prune`, `docker buildx prune`, `docker system prune` (see [Docker docs](https://docs.docker.com/reference/cli/)).
