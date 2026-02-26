@@ -21,7 +21,7 @@ pdfminer==20191125
 pdfminer.six==20260107
 opencv-python==4.11.0.86
 pikepdf==9.5.2
-pypdf==6.7.1
+pypdf==6.7.2
 poppler-utils==0.1.0
 markdown==3.5.2
 fhir.resources~=7.1.0
