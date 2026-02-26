@@ -40,14 +40,16 @@
         },
         {
             "type": "shell",
-            "label": "Build basic_networking_ping",
+            "label": "Build basic_networking_ping (Python)",
             "command": "./holohub",
             "args": [
                 "build",
                 "basic_networking_ping",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "python"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -67,12 +69,62 @@
         },
         {
             "type": "shell",
-            "label": "Build basic_networking_ping (delay 3s)",
+            "label": "Build basic_networking_ping (C++)",
+            "command": "./holohub",
+            "args": [
+                "build",
+                "basic_networking_ping",
+                "--build-type",
+                "debug",
+                "--local",
+                "--language",
+                "cpp"
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": true,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": true,
+                "group": "basic_networking_ping"
+            }
+        },
+        {
+            "type": "shell",
+            "label": "Build basic_networking_ping (Python, delay 3s)",
             "command": "sleep 3",
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
             },
-            "dependsOn": "Build basic_networking_ping",
+            "dependsOn": "Build basic_networking_ping (Python)",
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": true,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": true,
+                "group": "basic_networking_ping"
+            }
+        },
+        {
+            "type": "shell",
+            "label": "Build basic_networking_ping (C++, delay 3s)",
+            "command": "sleep 3",
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "dependsOn": "Build basic_networking_ping (C++)",
             "group": "build",
             "problemMatcher": [],
             "detail": "CMake template build task",
@@ -95,7 +147,9 @@
                 "asr_to_llm",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "python"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -113,7 +167,9 @@
                 "sam2",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "python"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -131,7 +187,9 @@
                 "colonoscopy_segmentation",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "python"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -149,7 +207,9 @@
                 "cuda_quantum",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "python"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -160,14 +220,36 @@
         },
         {
             "type": "shell",
-            "label": "Build cvcuda_basic",
+            "label": "Build cvcuda_basic (Python)",
             "command": "./holohub",
             "args": [
                 "build",
                 "cvcuda_basic",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "python"
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task"
+        },
+        {
+            "type": "shell",
+            "label": "Build cvcuda_basic (C++)",
+            "command": "./holohub",
+            "args": [
+                "build",
+                "cvcuda_basic",
+                "--build-type",
+                "debug",
+                "--local",
+                "--language",
+                "cpp"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -185,7 +267,9 @@
                 "endoscopy_depth_estimation",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "python"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -243,7 +327,9 @@
                 "ucx_endoscopy_tool_tracking",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "cpp"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -333,7 +419,9 @@
                 "h264_endoscopy_tool_tracking",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "cpp"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -351,7 +439,9 @@
                 "ucx_h264_endoscopy_tool_tracking",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "cpp"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -378,7 +468,9 @@
                 "h264_video_decode",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "cpp"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -396,7 +488,9 @@
                 "grpc_endoscopy_tool_tracking",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "cpp"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -444,7 +538,9 @@
                 "grpc_h264_endoscopy_tool_tracking",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "cpp"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -492,7 +588,9 @@
                 "${input:remember_holoviz_example_name}",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "cpp"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -510,7 +608,9 @@
                 "multiai_ultrasound",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "cpp"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -528,7 +628,9 @@
                 "nvidia_nim_nvclip",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "python"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -559,14 +661,16 @@
         },
         {
             "type": "shell",
-            "label": "Build slang_simple",
+            "label": "Build slang_simple (Python)",
             "command": "./holohub",
             "args": [
                 "build",
                 "slang_simple",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "python"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -577,14 +681,56 @@
         },
         {
             "type": "shell",
-            "label": "Build slang_gamma_correction",
+            "label": "Build slang_simple (C++)",
+            "command": "./holohub",
+            "args": [
+                "build",
+                "slang_simple",
+                "--build-type",
+                "debug",
+                "--local",
+                "--language",
+                "cpp"
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task"
+        },
+        {
+            "type": "shell",
+            "label": "Build slang_gamma_correction (Python)",
             "command": "./holohub",
             "args": [
                 "build",
                 "slang_gamma_correction",
                 "--build-type",
                 "debug",
-                "--local"
+                "--local",
+                "--language",
+                "python"
+            ],
+            "options": {
+                "cwd": "${env:WORKSPACE_DIR}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task"
+        },
+        {
+            "type": "shell",
+            "label": "Build slang_gamma_correction (C++)",
+            "command": "./holohub",
+            "args": [
+                "build",
+                "slang_gamma_correction",
+                "--build-type",
+                "debug",
+                "--local",
+                "--language",
+                "cpp"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"

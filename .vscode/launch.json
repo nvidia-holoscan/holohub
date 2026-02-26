@@ -9,7 +9,7 @@
             "name": "(gdb) basic_networking_ping/cpp TX",
             "type": "cppdbg",
             "request": "launch",
-            "preLaunchTask": "Build basic_networking_ping (delay 3s)",
+            "preLaunchTask": "Build basic_networking_ping (C++, delay 3s)",
             "program": "${workspaceFolder}/build/basic_networking_ping/applications/basic_networking_ping/cpp/basic_networking_ping",
             "args": [
                 "./applications/basic_networking_ping/cpp/basic_networking_ping_tx.yaml"
@@ -36,7 +36,7 @@
             "name": "(gdb) basic_networking_ping/cpp RX",
             "type": "cppdbg",
             "request": "launch",
-            "preLaunchTask": "Build basic_networking_ping",
+            "preLaunchTask": "Build basic_networking_ping (C++)",
             "program": "${workspaceFolder}/build/basic_networking_ping/applications/basic_networking_ping/cpp/basic_networking_ping",
             "args": [
                 "./applications/basic_networking_ping/cpp/basic_networking_ping_rx.yaml"
@@ -63,7 +63,7 @@
             "name": "(debugpy) basic_networking_ping/python TX",
             "type": "debugpy",
             "request": "launch",
-            "preLaunchTask": "Build basic_networking_ping (delay 3s)",
+            "preLaunchTask": "Build basic_networking_ping (Python, delay 3s)",
             "program": "${workspaceFolder}/applications/basic_networking_ping/python/basic_networking_ping.py",
             "cwd": "${workspaceFolder}/applications/basic_networking_ping/",
             "env": {
@@ -94,7 +94,7 @@
             "name": "(debugpy) basic_networking_ping/python RX",
             "type": "debugpy",
             "request": "launch",
-            "preLaunchTask": "Build basic_networking_ping",
+            "preLaunchTask": "Build basic_networking_ping (Python)",
             "program": "${workspaceFolder}/applications/basic_networking_ping/python/basic_networking_ping.py",
             "cwd": "${workspaceFolder}/applications/basic_networking_ping/",
             "env": {
@@ -244,7 +244,7 @@
             "name": "(gdb) cvcuda_basic/cpp",
             "type": "cppdbg",
             "request": "launch",
-            "preLaunchTask": "Build cvcuda_basic",
+            "preLaunchTask": "Build cvcuda_basic (C++)",
             "program": "${workspaceFolder}/build/cvcuda_basic/applications/cvcuda_basic/cpp/cvcuda_basic",
             "args": [
                 "--data",
@@ -271,7 +271,7 @@
             "name": "(debugpy) cvcuda_basic/python",
             "type": "debugpy",
             "request": "launch",
-            "preLaunchTask": "Build cvcuda_basic",
+            "preLaunchTask": "Build cvcuda_basic (Python)",
             "program": "${workspaceFolder}/applications/cvcuda_basic/python/cvcuda_basic.py",
             "args": [
                 "--data",
@@ -726,13 +726,13 @@
             "name": "(gdb) gamma_correction_op test",
             "type": "cppdbg",
             "request": "launch",
-            "preLaunchTask": "Build slang_simple",
-            "program": "${workspaceFolder}/build/slang_simple/operators/gamma_correction/test/gamma_correction_test",
+            "preLaunchTask": "Build slang_gamma_correction (C++)",
+            "program": "${workspaceFolder}/build/slang_gamma_correction/operators/gamma_correction/test/gamma_correction_test",
             "args": [
                 "--gtest_filter=*"
             ],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/build/slang_simple/operators/gamma_correction/test/",
+            "cwd": "${workspaceFolder}/build/slang_gamma_correction/operators/gamma_correction/test/",
             "externalConsole": false,
             "MIMode": "gdb",
             "setupCommands": [
@@ -1071,7 +1071,7 @@
             "cppConfig": "default (gdb) Attach",
             "presentation": {
                 "hidden": false,
-                "group": "grpc_endoscopy_tool_tracking",,
+                "group": "grpc_endoscopy_tool_tracking",
                 "order": 3
             }
         },
@@ -1306,7 +1306,7 @@
             "name": "(gdb) slang_simple/cpp",
             "type": "cppdbg",
             "request": "launch",
-            "preLaunchTask": "Build slang_simple",
+            "preLaunchTask": "Build slang_simple (C++)",
             "program": "${workspaceFolder}/build/slang_simple/applications/slang/slang_simple/cpp/slang_simple",
             "args": [
             ],
@@ -1329,7 +1329,7 @@
             "name": "(debugpy) slang_simple/python",
             "type": "debugpy",
             "request": "launch",
-            "preLaunchTask": "Build slang_simple",
+            "preLaunchTask": "Build slang_simple (Python)",
             "program": "${workspaceFolder}/applications/slang/slang_simple/python/slang_simple.py",
             "cwd": "${workspaceFolder}/build/slang_simple/",
             "env": {
@@ -1345,7 +1345,7 @@
             "name": "(gdb) slang_gamma_correction/cpp",
             "type": "cppdbg",
             "request": "launch",
-            "preLaunchTask": "Build slang_gamma_correction",
+            "preLaunchTask": "Build slang_gamma_correction (C++)",
             "program": "${workspaceFolder}/build/slang_gamma_correction/applications/slang/slang_gamma_correction/cpp/slang_gamma_correction",
             "args": [
             ],
@@ -1368,7 +1368,7 @@
             "name": "(debugpy) slang_gamma_correction/python",
             "type": "debugpy",
             "request": "launch",
-            "preLaunchTask": "Build slang_gamma_correction",
+            "preLaunchTask": "Build slang_gamma_correction (Python)",
             "program": "${workspaceFolder}/applications/slang/slang_gamma_correction/python/slang_gamma_correction.py",
             "cwd": "${workspaceFolder}/build/slang_gamma_correction/",
             "env": {
@@ -1384,7 +1384,7 @@
             "name": "(gdb) slang_shader_op test",
             "type": "cppdbg",
             "request": "launch",
-            "preLaunchTask": "Build slang_simple",
+            "preLaunchTask": "Build slang_simple (C++)",
             "program": "${workspaceFolder}/build/slang_simple/operators/slang_shader/cpp/test/slang_shader_test",
             "args": [
                 "--gtest_filter=*"
@@ -1408,7 +1408,7 @@
             "name": "(gdb) slang_gamma_correction test",
             "type": "cppdbg",
             "request": "launch",
-            "preLaunchTask": "Build slang_gamma_correction",
+            "preLaunchTask": "Build slang_gamma_correction (C++)",
             "program": "${workspaceFolder}/build/slang_gamma_correction/operators/gamma_correction/test/gamma_correction_test",
             "args": [
                 "--gtest_filter=*"
@@ -1505,7 +1505,7 @@
                 "(gdb) basic_networking_ping/cpp RX",
                 "(gdb) basic_networking_ping/cpp TX"
             ],
-            "preLaunchTask": "Build basic_networking_ping",
+            "preLaunchTask": "Build basic_networking_ping (C++)",
             "stopAll": true,
             "presentation": {
                 "hidden": false,
@@ -1519,7 +1519,7 @@
                 "(debugpy) basic_networking_ping/python RX",
                 "(debugpy) basic_networking_ping/python TX"
             ],
-            "preLaunchTask": "Build basic_networking_ping",
+            "preLaunchTask": "Build basic_networking_ping (Python)",
             "stopAll": true,
             "presentation": {
                 "hidden": false,
