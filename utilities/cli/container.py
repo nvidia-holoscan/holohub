@@ -663,6 +663,7 @@ class HoloHubContainer:
         )
 
         for volume in add_volumes:
+            volume = os.path.abspath(volume)
             base = os.path.basename(volume)
             args.extend(["-v", f"{volume}:/workspace/volumes/{base}"])
 
