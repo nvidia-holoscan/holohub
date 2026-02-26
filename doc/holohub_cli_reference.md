@@ -784,4 +784,4 @@ source ~/.bashrc
   `./holohub run-container myapp -- --net=host --ipc=host`.
 - All CLI options use **hyphens** (`-`), not underscores (for example `--base-img`, not `--base_img`).
 - `sudo ./holohub` may not work correctly due to environment filtering (for example `PATH`).
-- To free disk during development: `docker image prune`, `docker buildx prune`, `docker system prune` (see [Docker docs](https://docs.docker.com/reference/cli/)).
+- To free disk during development: `docker image prune`, `docker buildx prune`, `docker system prune` (see [Docker docs](https://docs.docker.com/reference/cli/docker/)).
