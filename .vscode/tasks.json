@@ -149,7 +149,7 @@
                 "debug",
                 "--local",
                 "--language",
-                "cpp"
+                "python"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -169,7 +169,7 @@
                 "debug",
                 "--local",
                 "--language",
-                "cpp"
+                "python"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -209,7 +209,7 @@
                 "debug",
                 "--local",
                 "--language",
-                "cpp"
+                "python"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
@@ -630,7 +630,7 @@
                 "debug",
                 "--local",
                 "--language",
-                "cpp"
+                "python"
             ],
             "options": {
                 "cwd": "${env:WORKSPACE_DIR}"
