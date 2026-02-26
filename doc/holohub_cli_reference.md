@@ -32,23 +32,23 @@ Run the CLI from the HoloHub repository root:
 
 ## Command Index
 
-| Command | Description |
-|---------|-------------|
-| [create](#create) | Create a new Holoscan application from a template |
-| [build-container](#build-container) | Build the development container image |
-| [run-container](#run-container) | Build and launch the development container |
-| [build](#build) | Build a project (container or local) |
-| [run](#run) | Build and run a project (container or local) |
-| [list](#list) | List all available targets (applications, workflows, operators, and so on) |
-| [modes](#modes) | List available modes for an application |
-| [lint](#lint) | Run linting tools |
-| [setup](#setup) | Install HoloHub recommended packages for development |
-| [env-info](#env-info) | Display environment debugging information |
-| [install](#install) | Install a built project |
-| [test](#test) | Run tests for a project |
-| [clear-cache](#clear-cache) | Clear cache folders (build, data, install) |
-| [vscode](#vscode) | Launch VS Code in Dev Container |
-| [autocompletion_list](#autocompletion-list) | List targets for autocompletion (used internally) |
+| Command                                     | Description                                                                |
+| ------------------------------------------- | -------------------------------------------------------------------------- |
+| [create](#create)                           | Create a new Holoscan application from a template                          |
+| [build-container](#build-container)         | Build the development container image                                      |
+| [run-container](#run-container)             | Build and launch the development container                                 |
+| [build](#build)                             | Build a project (container or local)                                       |
+| [run](#run)                                 | Build and run a project (container or local)                               |
+| [list](#list)                               | List all available targets (applications, workflows, operators, and so on) |
+| [modes](#modes)                             | List available modes for an application                                    |
+| [lint](#lint)                               | Run linting tools                                                          |
+| [setup](#setup)                             | Install HoloHub recommended packages for development                       |
+| [env-info](#env-info)                       | Display environment debugging information                                  |
+| [install](#install)                         | Install a built project                                                    |
+| [test](#test)                               | Run tests for a project                                                    |
+| [clear-cache](#clear-cache)                 | Clear cache folders (build, data, install)                                 |
+| [vscode](#vscode)                           | Launch VS Code in Dev Container                                            |
+| [autocompletion_list](#autocompletion-list) | List targets for autocompletion (used internally)                          |
 
 ---
 
@@ -60,33 +60,33 @@ Many commands inherit **container build** and/or **container run** options. They
 
 Used by: `build-container`, `run-container`, `build`, `run`, `install`, `test`, `vscode`.
 
-| Option | Description |
-|--------|-------------|
-| `--base-img` | Fully qualified base image name for the container build |
-| `--docker-file` | Path to Dockerfile to use |
-| `--img` | Fully qualified output container image name |
-| `--no-cache` | Do not use cache when building the image |
-| `--cuda <version>` | CUDA major version (for example `12`, `13`). Default: `12` |
-| `--build-args` | Extra arguments to `docker build` (for example `--build-args '--network=host'`) |
+| Option                   | Description                                                                                                                                      |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `--base-img`             | Fully qualified base image name for the container build                                                                                          |
+| `--docker-file`          | Path to Dockerfile to use                                                                                                                        |
+| `--img`                  | Fully qualified output container image name                                                                                                      |
+| `--no-cache`             | Do not use cache when building the image                                                                                                         |
+| `--cuda <version>`       | CUDA major version (for example `12`, `13`). Default: `12`                                                                                       |
+| `--build-args`           | Extra arguments to `docker build` (for example `--build-args '--network=host'`)                                                                  |
 | `--extra-scripts <name>` | Run named setup scripts as Docker layers (search in `HOLOHUB_SETUP_SCRIPTS_DIR`). Can be repeated. Use `./holohub setup --list-scripts` to list. |
 
 ### Container Run Options
 
 Used by: `run-container`, `build`, `run`, `install`.
 
-| Option | Description |
-|--------|-------------|
-| `--docker-opts <opts>` | Additional options to `docker run` (for example `--docker-opts='--gpus=all'`) |
-| `--ssh-x11` | Enable X11 forwarding over SSH |
-| `--nsys-profile` | Support Nsight Systems profiling in container |
-| `--local-sdk-root <path>` | Path to Holoscan SDK on host for local SDK container |
-| `--init` | Use tini entry point |
-| `--persistent` | Do not delete container after it exits |
-| `--add-volume <path>` | Mount path at `/workspace/volumes`. Can be repeated |
-| `--as-root` | Run container as root |
-| `--nsys-location <path>` | Nsight Systems installation path on host |
-| `--mps` | Mount CUDA MPS host directories into container (if MPS enabled on host) |
-| `--enable-x11` | Enable X11 forwarding (default: true) |
+| Option                    | Description                                                                   |
+| ------------------------- | ----------------------------------------------------------------------------- |
+| `--docker-opts <opts>`    | Additional options to `docker run` (for example `--docker-opts='--gpus=all'`) |
+| `--ssh-x11`               | Enable X11 forwarding over SSH                                                |
+| `--nsys-profile`          | Support Nsight Systems profiling in container                                 |
+| `--local-sdk-root <path>` | Path to Holoscan SDK on host for local SDK container                          |
+| `--init`                  | Use tini entry point                                                          |
+| `--persistent`            | Do not delete container after it exits                                        |
+| `--add-volume <path>`     | Mount path at `/workspace/volumes`. Can be repeated                           |
+| `--as-root`               | Run container as root                                                         |
+| `--nsys-location <path>`  | Nsight Systems installation path on host                                      |
+| `--mps`                   | Mount CUDA MPS host directories into container (if MPS enabled on host)       |
+| `--enable-x11`            | Enable X11 forwarding (default: true)                                         |
 
 ---
 
@@ -104,20 +104,20 @@ Create a new Holoscan application from a template (for example, cookiecutter).
 
 **Arguments:**
 
-| Argument | Description |
-|----------|-------------|
+| Argument  | Description                   |
+| --------- | ----------------------------- |
 | `project` | Name of the project to create |
 
 **Options:**
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `--template <path>` | `applications/template` | Path to template directory |
-| `--language` | `cpp` | `cpp` or `python` |
-| `--directory <path>` | `applications` | Directory to create the project in |
-| `--context key=value` | — | Cookiecutter context; can be repeated |
-| `-i`, `--interactive` | true | Interactive mode; use `-i False` to disable |
-| `--dryrun` | — | Print commands without executing |
+| Option                | Default                                  | Description                                 |
+| --------------------- | ---------------------------------------- | ------------------------------------------- |
+| `--template <path>`   | `applications/template`                  | Path to template directory                  |
+| `--language`          | `python` (if both implementations exist) | `cpp` or `python`                           |
+| `--directory <path>`  | `applications`                           | Directory to create the project in          |
+| `--context key=value` | —                                        | Cookiecutter context; can be repeated       |
+| `-i`, `--interactive` | true                                     | Interactive mode; use `-i False` to disable |
+| `--dryrun`            | —                                        | Print commands without executing            |
 
 **Examples:**
 
@@ -140,17 +140,17 @@ Build the development container image for a project (or the default image if no 
 
 **Arguments:**
 
-| Argument | Description |
-|----------|-------------|
+| Argument  | Description                               |
+| --------- | ----------------------------------------- |
 | `project` | (Optional) Project to build container for |
 
 **Options:** All [container build](#container-build-options) options, plus:
 
-| Option | Description |
-|--------|-------------|
+| Option       | Description                                                   |
+| ------------ | ------------------------------------------------------------- |
 | `--language` | `cpp` or `python` (when project has multiple implementations) |
-| `--verbose` | Print variables passed to docker build |
-| `--dryrun` | Print commands without executing |
+| `--verbose`  | Print variables passed to docker build                        |
+| `--dryrun`   | Print commands without executing                              |
 
 **Examples:**
 
@@ -173,18 +173,18 @@ Build (unless skipped) and launch the development container. Trailing arguments 
 
 **Arguments:**
 
-| Argument | Description |
-|----------|-------------|
+| Argument  | Description                             |
+| --------- | --------------------------------------- |
 | `project` | (Optional) Project to run container for |
 
 **Options:** All [container build](#container-build-options) and [container run](#container-run-options) options, plus:
 
-| Option | Description |
-|--------|-------------|
+| Option              | Description                                     |
+| ------------------- | ----------------------------------------------- |
 | `--no-docker-build` | Skip building the container; use existing image |
-| `--language` | `cpp` or `python` |
-| `--verbose` | Print variables passed to docker run |
-| `--dryrun` | Print commands without executing |
+| `--language`        | `cpp` or `python`                               |
+| `--verbose`         | Print variables passed to docker run            |
+| `--dryrun`          | Print commands without executing                |
 
 **Examples:**
 
@@ -207,26 +207,26 @@ Build a project. By default builds inside the container; use `--local` to build 
 
 **Arguments:**
 
-| Argument | Description |
-|----------|-------------|
-| `project` | Project to build |
-| `mode` | (Optional) Mode from `metadata.json` |
+| Argument  | Description                          |
+| --------- | ------------------------------------ |
+| `project` | Project to build                     |
+| `mode`    | (Optional) Mode from `metadata.json` |
 
 **Options:** All [container build](#container-build-options) and [container run](#container-run-options) options, plus:
 
-| Option | Description |
-|--------|-------------|
-| `--local` | Build locally instead of in container |
-| `--build-type` | `debug`, `release`, or `rel-debug`. Default: `CMAKE_BUILD_TYPE` or `release` |
-| `--build-with <list>` | Semicolon-separated operators to build with |
+| Option                   | Description                                                                         |
+| ------------------------ | ----------------------------------------------------------------------------------- |
+| `--local`                | Build locally instead of in container                                               |
+| `--build-type`           | `debug`, `release`, or `rel-debug`. Default: `CMAKE_BUILD_TYPE` or `release`        |
+| `--build-with <list>`    | Semicolon-separated operators to build with                                         |
 | `--configure-args <arg>` | Extra CMake options; can be repeated (for example `--configure-args='-DCUSTOM=ON'`) |
-| `--parallel <n>` | Number of parallel build jobs |
-| `--pkg-generator` | `DEB` (default) or other cpack generator |
-| `--language` | `cpp` or `python` |
-| `--benchmark` | Build for Holoscan Flow Benchmarking (applications/workflows only) |
-| `--no-docker-build` | Skip building the container |
-| `--verbose` | Extra output |
-| `--dryrun` | Print commands without executing |
+| `--parallel <n>`         | Number of parallel build jobs                                                       |
+| `--pkg-generator`        | `DEB` (default) or other cpack generator                                            |
+| `--language`             | `cpp` or `python`                                                                   |
+| `--benchmark`            | Build for Holoscan Flow Benchmarking (applications/workflows only)                  |
+| `--no-docker-build`      | Skip building the container                                                         |
+| `--verbose`              | Extra output                                                                        |
+| `--dryrun`               | Print commands without executing                                                    |
 
 **Examples:**
 
@@ -250,27 +250,27 @@ Build and run a project. By default: build container (if needed), build app in c
 
 **Arguments:**
 
-| Argument | Description |
-|----------|-------------|
-| `project` | Project to run |
-| `mode` | (Optional) Mode from `metadata.json` (for example `replayer`, `standalone`) |
+| Argument  | Description                                                                 |
+| --------- | --------------------------------------------------------------------------- |
+| `project` | Project to run                                                              |
+| `mode`    | (Optional) Mode from `metadata.json` (for example `replayer`, `standalone`) |
 
 **Options:** All [container build](#container-build-options) and [container run](#container-run-options) options, plus:
 
-| Option | Description |
-|--------|-------------|
-| `--local` | Run locally instead of in container |
-| `--language` | `cpp` or `python` |
-| `--build-type` | `debug`, `release`, or `rel-debug` |
-| `--run-args <args>` | Arguments passed to the application (use `=` for example `--run-args="--config=config.json"`) |
-| `--build-with <list>` | Semicolon-separated operators to build with |
-| `--configure-args <arg>` | Extra CMake options; can be repeated |
-| `--parallel <n>` | Parallel build jobs |
-| `--pkg-generator` | `DEB` (default) or other |
-| `--no-local-build` | Skip build; only run the application |
-| `--no-docker-build` | Skip building the container |
-| `--verbose` | Extra output |
-| `--dryrun` | Print commands without executing |
+| Option                   | Description                                                                                   |
+| ------------------------ | --------------------------------------------------------------------------------------------- |
+| `--local`                | Run locally instead of in container                                                           |
+| `--language`             | `cpp` or `python`                                                                             |
+| `--build-type`           | `debug`, `release`, or `rel-debug`                                                            |
+| `--run-args <args>`      | Arguments passed to the application (use `=` for example `--run-args="--config=config.json"`) |
+| `--build-with <list>`    | Semicolon-separated operators to build with                                                   |
+| `--configure-args <arg>` | Extra CMake options; can be repeated                                                          |
+| `--parallel <n>`         | Parallel build jobs                                                                           |
+| `--pkg-generator`        | `DEB` (default) or other                                                                      |
+| `--no-local-build`       | Skip build; only run the application                                                          |
+| `--no-docker-build`      | Skip building the container                                                                   |
+| `--verbose`              | Extra output                                                                                  |
+| `--dryrun`               | Print commands without executing                                                              |
 
 **Examples:**
 
@@ -310,14 +310,14 @@ List available modes for an application (from `metadata.json`).
 
 **Arguments:**
 
-| Argument | Description |
-|----------|-------------|
+| Argument  | Description               |
+| --------- | ------------------------- |
 | `project` | Project to list modes for |
 
 **Options:**
 
-| Option | Description |
-|--------|-------------|
+| Option       | Description       |
+| ------------ | ----------------- |
 | `--language` | `cpp` or `python` |
 
 **Examples:**
@@ -340,17 +340,17 @@ Run linting tools on the codebase or a path.
 
 **Arguments:**
 
-| Argument | Description |
-|----------|-------------|
-| `path` | Path to lint (default: current directory) |
+| Argument | Description                               |
+| -------- | ----------------------------------------- |
+| `path`   | Path to lint (default: current directory) |
 
 **Options:**
 
-| Option | Description |
-|--------|-------------|
-| `--fix` | Auto-fix lint issues where possible |
+| Option                   | Description                                    |
+| ------------------------ | ---------------------------------------------- |
+| `--fix`                  | Auto-fix lint issues where possible            |
 | `--install-dependencies` | Install lint dependencies (may require `sudo`) |
-| `--dryrun` | Print commands without executing |
+| `--dryrun`               | Print commands without executing               |
 
 **Examples:**
 
@@ -374,11 +374,11 @@ Install HoloHub recommended packages and run setup scripts (for example for Holo
 
 **Options:**
 
-| Option | Description |
-|--------|-------------|
-| `--list-scripts` | List available scripts in `HOLOHUB_SETUP_SCRIPTS_DIR` |
+| Option             | Description                                                                 |
+| ------------------ | --------------------------------------------------------------------------- |
+| `--list-scripts`   | List available scripts in `HOLOHUB_SETUP_SCRIPTS_DIR`                       |
 | `--scripts <name>` | Run named script(s); can be repeated. Omit to run default recommended setup |
-| `--dryrun` | Print commands without executing |
+| `--dryrun`         | Print commands without executing                                            |
 
 **Examples:**
 
@@ -416,24 +416,24 @@ Build and install a project (container or local). Installs built artifacts (for 
 
 **Arguments:**
 
-| Argument | Description |
-|----------|-------------|
-| `project` | Project to install |
-| `mode` | (Optional) Mode from `metadata.json` |
+| Argument  | Description                          |
+| --------- | ------------------------------------ |
+| `project` | Project to install                   |
+| `mode`    | (Optional) Mode from `metadata.json` |
 
 **Options:** All [container build](#container-build-options) and [container run](#container-run-options) options, plus:
 
-| Option | Description |
-|--------|-------------|
-| `--local` | Install locally instead of in container |
-| `--build-type` | `debug`, `release`, or `rel-debug` |
-| `--build-with <list>` | Semicolon-separated operators |
-| `--configure-args <arg>` | Extra CMake options; can be repeated |
-| `--parallel <n>` | Parallel build jobs |
-| `--language` | `cpp` or `python` |
-| `--no-docker-build` | Skip building the container |
-| `--verbose` | Extra output |
-| `--dryrun` | Print commands without executing |
+| Option                   | Description                             |
+| ------------------------ | --------------------------------------- |
+| `--local`                | Install locally instead of in container |
+| `--build-type`           | `debug`, `release`, or `rel-debug`      |
+| `--build-with <list>`    | Semicolon-separated operators           |
+| `--configure-args <arg>` | Extra CMake options; can be repeated    |
+| `--parallel <n>`         | Parallel build jobs                     |
+| `--language`             | `cpp` or `python`                       |
+| `--no-docker-build`      | Skip building the container             |
+| `--verbose`              | Extra output                            |
+| `--dryrun`               | Print commands without executing        |
 
 **Examples:**
 
@@ -456,27 +456,27 @@ Run tests for a project (for example CTest in container or locally).
 
 **Arguments:**
 
-| Argument | Description |
-|----------|-------------|
+| Argument  | Description                |
+| --------- | -------------------------- |
 | `project` | (Optional) Project to test |
 
 **Options:** All [container build](#container-build-options) options, plus:
 
-| Option | Description |
-|--------|-------------|
-| `--local` | Test locally instead of in container |
-| `--coverage` | Enable code coverage (adds coverage flags, runs ctest_coverage) |
-| `--language` | `cpp` or `python` |
-| `--clear-cache` | Clear cache before running |
-| `--ctest-script <path>` | CTest script to use |
-| `--cmake-options <opt>` | CMake options; can be repeated |
-| `--ctest-options <opt>` | CTest options; can be repeated |
-| `--site-name`, `--cdash-url`, `--platform-name` | CDash/reporting options |
-| `--no-xvfb` | Do not use xvfb |
-| `--build-name-suffix` | Suffix for CTest build name (default: image tag) |
-| `--no-docker-build` | Skip building the container |
-| `--verbose` | Extra output |
-| `--dryrun` | Print commands without executing |
+| Option                                          | Description                                                     |
+| ----------------------------------------------- | --------------------------------------------------------------- |
+| `--local`                                       | Test locally instead of in container                            |
+| `--coverage`                                    | Enable code coverage (adds coverage flags, runs ctest_coverage) |
+| `--language`                                    | `cpp` or `python`                                               |
+| `--clear-cache`                                 | Clear cache before running                                      |
+| `--ctest-script <path>`                         | CTest script to use                                             |
+| `--cmake-options <opt>`                         | CMake options; can be repeated                                  |
+| `--ctest-options <opt>`                         | CTest options; can be repeated                                  |
+| `--site-name`, `--cdash-url`, `--platform-name` | CDash/reporting options                                         |
+| `--no-xvfb`                                     | Do not use xvfb                                                 |
+| `--build-name-suffix`                           | Suffix for CTest build name (default: image tag)                |
+| `--no-docker-build`                             | Skip building the container                                     |
+| `--verbose`                                     | Extra output                                                    |
+| `--dryrun`                                      | Print commands without executing                                |
 
 **Examples:**
 
@@ -500,12 +500,12 @@ Clear cache directories (build, data, install).
 
 **Options:**
 
-| Option | Description |
-|--------|-------------|
-| `--build` | Clear build folders only |
-| `--data` | Clear data folders only |
-| `--install` | Clear install folders only |
-| `--dryrun` | Print commands without executing |
+| Option      | Description                      |
+| ----------- | -------------------------------- |
+| `--build`   | Clear build folders only         |
+| `--data`    | Clear data folders only          |
+| `--install` | Clear install folders only       |
+| `--dryrun`  | Print commands without executing |
 
 If none of `--build`, `--data`, `--install` are given, all are cleared.
 
@@ -530,19 +530,19 @@ Launch VS Code in a Dev Container for the given project.
 
 **Arguments:**
 
-| Argument | Description |
-|----------|-------------|
+| Argument  | Description                                 |
+| --------- | ------------------------------------------- |
 | `project` | (Optional) Project to open in Dev Container |
 
 **Options:** All [container build](#container-build-options) options, plus:
 
-| Option | Description |
-|--------|-------------|
-| `--language` | `cpp` or `python` |
-| `--docker-opts <opts>` | Extra options for Docker launch |
-| `--no-docker-build` | Skip building the container |
-| `--verbose` | Print variables passed to docker run |
-| `--dryrun` | Print commands without executing |
+| Option                 | Description                          |
+| ---------------------- | ------------------------------------ |
+| `--language`           | `cpp` or `python`                    |
+| `--docker-opts <opts>` | Extra options for Docker launch      |
+| `--no-docker-build`    | Skip building the container          |
+| `--verbose`            | Print variables passed to docker run |
+| `--dryrun`             | Print commands without executing     |
 
 **Examples:**
 
@@ -585,12 +585,12 @@ Applications can define **modes** in `metadata.json`: named configurations for d
 
 When a CLI parameter is provided, it always overrides the corresponding mode setting. When a CLI parameter is not provided, the mode setting is used as the default:
 
-| Mode Field | CLI Override |
-|------------|--------------|
-| `run.docker_run_args` | `--docker-opts` |
-| `build.depends` | `--build-with` |
-| `build.docker_build_args` | `--build-args` |
-| `build.cmake_options` | `--configure-args` |
+| Mode Field                | CLI Override       |
+| ------------------------- | ------------------ |
+| `run.docker_run_args`     | `--docker-opts`    |
+| `build.depends`           | `--build-with`     |
+| `build.docker_build_args` | `--build-args`     |
+| `build.cmake_options`     | `--configure-args` |
 
 ```bash
 ./holohub run holochat --run-args="--debug"            # appends to default_mode.run.command
@@ -617,31 +617,31 @@ Each mode is defined under the `modes` key in `metadata.json`:
 
 **Fields for each mode:**
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| `description` | Yes | Human-readable description |
-| `run` | Yes | Run configuration (see below) |
-| `requirements` | No | List of dependency IDs required for this mode |
-| `build` | No | Build configuration (see below) |
-| `env` | No | Environment variables applied to both build and run |
+| Field          | Required | Description                                         |
+| -------------- | -------- | --------------------------------------------------- |
+| `description`  | Yes      | Human-readable description                          |
+| `run`          | Yes      | Run configuration (see below)                       |
+| `requirements` | No       | List of dependency IDs required for this mode       |
+| `build`        | No       | Build configuration (see below)                     |
+| `env`          | No       | Environment variables applied to both build and run |
 
 **Run configuration (`run` object):**
 
-| Field | Description |
-|-------|-------------|
-| `command` | Complete command to execute including arguments |
-| `workdir` | Working directory for command execution |
+| Field             | Description                                                                                                     |
+| ----------------- | --------------------------------------------------------------------------------------------------------------- |
+| `command`         | Complete command to execute including arguments                                                                 |
+| `workdir`         | Working directory for command execution                                                                         |
 | `docker_run_args` | Docker run arguments (string or array); applies to both build and app containers. Equivalent to `--docker-opts` |
-| `env` | Environment variables for runtime only (local runs) |
+| `env`             | Environment variables for runtime only (local runs)                                                             |
 
 **Build configuration (`build` object):**
 
-| Field | Description |
-|-------|-------------|
-| `depends` | List of operators/dependencies to build with |
+| Field               | Description                                                            |
+| ------------------- | ---------------------------------------------------------------------- |
+| `depends`           | List of operators/dependencies to build with                           |
 | `docker_build_args` | Docker build arguments (string or array). Equivalent to `--build-args` |
-| `cmake_options` | Additional CMake configure arguments |
-| `env` | Environment variables for build operations only |
+| `cmake_options`     | Additional CMake configure arguments                                   |
+| `env`               | Environment variables for build operations only                        |
 
 **Example:**
 
@@ -709,50 +709,50 @@ The CLI respects these variables. Defaults and behavior are summarized below.
 
 ### Build and Execution
 
-| Variable | Purpose |
-|----------|---------|
-| `HOLOHUB_BUILD_LOCAL` | Force local mode (like `--local`); skips container build steps and runs on the host directly |
-| `HOLOHUB_ALWAYS_BUILD` | Defaults to `true`. Set to `false` to allow skipping builds with `--no-local-build` / `--no-docker-build` |
+| Variable                 | Purpose                                                                                                          |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| `HOLOHUB_BUILD_LOCAL`    | Force local mode (like `--local`); skips container build steps and runs on the host directly                     |
+| `HOLOHUB_ALWAYS_BUILD`   | Defaults to `true`. Set to `false` to allow skipping builds with `--no-local-build` / `--no-docker-build`        |
 | `HOLOHUB_ENABLE_SCCACHE` | Defaults to `false`. Set to `true` to enable sccache for builds; use with `--extra-scripts sccache` in container |
 
 ### Paths and Directories
 
-| Variable | Default / purpose |
-|----------|-------------------|
-| `HOLOHUB_ROOT` | HoloHub repo root |
-| `HOLOHUB_BUILD_PARENT_DIR` | `<HOLOHUB_ROOT>/build` |
-| `HOLOHUB_DATA_DIR` | `<HOLOHUB_ROOT>/data` |
-| `HOLOHUB_SETUP_SCRIPTS_DIR` | `<HOLOHUB_ROOT>/utilities/setup` |
-| `HOLOHUB_PATH_PREFIX` | `holohub_` (prefix for path placeholders in metadata) |
-| `HOLOHUB_DEFAULT_HSDK_DIR` | `/opt/nvidia/holoscan` |
-| `HOLOSCAN_SDK_ROOT` | Local Holoscan SDK path (for mounting into containers) |
-| `HOLOHUB_SEARCH_PATH` | Comma-separated dirs to scan for metadata (for example `applications,workflows,...`) |
+| Variable                    | Default / purpose                                                                    |
+| --------------------------- | ------------------------------------------------------------------------------------ |
+| `HOLOHUB_ROOT`              | HoloHub repo root                                                                    |
+| `HOLOHUB_BUILD_PARENT_DIR`  | `<HOLOHUB_ROOT>/build`                                                               |
+| `HOLOHUB_DATA_DIR`          | `<HOLOHUB_ROOT>/data`                                                                |
+| `HOLOHUB_SETUP_SCRIPTS_DIR` | `<HOLOHUB_ROOT>/utilities/setup`                                                     |
+| `HOLOHUB_PATH_PREFIX`       | `holohub_` (prefix for path placeholders in metadata)                                |
+| `HOLOHUB_DEFAULT_HSDK_DIR`  | `/opt/nvidia/holoscan`                                                               |
+| `HOLOSCAN_SDK_ROOT`         | Local Holoscan SDK path (for mounting into containers)                               |
+| `HOLOHUB_SEARCH_PATH`       | Comma-separated dirs to scan for metadata (for example `applications,workflows,...`) |
 
 ### Container and Docker
 
-| Variable | Default / purpose |
-|----------|-------------------|
-| `HOLOHUB_REPO_PREFIX` | `holohub`; base for naming |
-| `HOLOHUB_CONTAINER_PREFIX` | Same as repo prefix; container name prefix |
-| `HOLOHUB_WORKSPACE_NAME` | Workspace dir name in container |
-| `HOLOHUB_HOSTNAME_PREFIX` | Container hostname prefix (for example for VSCode) |
-| `HOLOHUB_DOCKER_EXE` | `docker` |
-| `HOLOHUB_BASE_IMAGE`, `HOLOHUB_BASE_SDK_VERSION`, `HOLOHUB_BASE_IMAGE_FORMAT` | Base image for Dockerfiles |
-| `HOLOHUB_DEFAULT_IMAGE_FORMAT` | Default output image tag format |
-| `HOLOHUB_DEFAULT_DOCKER_BUILD_ARGS` | Extra default args for `docker build` |
-| `HOLOHUB_DEFAULT_DOCKER_RUN_ARGS` | Extra default args for `docker run` |
-| `HOLOHUB_DEFAULT_DOCKERFILE` | Default Dockerfile path |
-| `HOLOHUB_BENCHMARKING_SUBDIR` | Benchmarking subdir (for example for flow benchmarking) |
+| Variable                                                                      | Default / purpose                                       |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------- |
+| `HOLOHUB_REPO_PREFIX`                                                         | `holohub`; base for naming                              |
+| `HOLOHUB_CONTAINER_PREFIX`                                                    | Same as repo prefix; container name prefix              |
+| `HOLOHUB_WORKSPACE_NAME`                                                      | Workspace dir name in container                         |
+| `HOLOHUB_HOSTNAME_PREFIX`                                                     | Container hostname prefix (for example for VSCode)      |
+| `HOLOHUB_DOCKER_EXE`                                                          | `docker`                                                |
+| `HOLOHUB_BASE_IMAGE`, `HOLOHUB_BASE_SDK_VERSION`, `HOLOHUB_BASE_IMAGE_FORMAT` | Base image for Dockerfiles                              |
+| `HOLOHUB_DEFAULT_IMAGE_FORMAT`                                                | Default output image tag format                         |
+| `HOLOHUB_DEFAULT_DOCKER_BUILD_ARGS`                                           | Extra default args for `docker build`                   |
+| `HOLOHUB_DEFAULT_DOCKER_RUN_ARGS`                                             | Extra default args for `docker run`                     |
+| `HOLOHUB_DEFAULT_DOCKERFILE`                                                  | Default Dockerfile path                                 |
+| `HOLOHUB_BENCHMARKING_SUBDIR`                                                 | Benchmarking subdir (for example for flow benchmarking) |
 
 ### Other
 
-| Variable | Purpose |
-|----------|---------|
-| `HOLOHUB_CTEST_SCRIPT` | CTest script used by `./holohub test` |
-| `HOLOHUB_CMD_NAME` | Command name in help (default: `./holohub`) |
-| `HOLOHUB_CLI_DOCS_URL` | URL for CLI docs (for example for external forks) |
-| `CMAKE_BUILD_TYPE` | Default CMake build type when not set on CLI |
-| `CMAKE_BUILD_PARALLEL_LEVEL` | Default parallel build jobs |
+| Variable                     | Purpose                                           |
+| ---------------------------- | ------------------------------------------------- |
+| `HOLOHUB_CTEST_SCRIPT`       | CTest script used by `./holohub test`             |
+| `HOLOHUB_CMD_NAME`           | Command name in help (default: `./holohub`)       |
+| `HOLOHUB_CLI_DOCS_URL`       | URL for CLI docs (for example for external forks) |
+| `CMAKE_BUILD_TYPE`           | Default CMake build type when not set on CLI      |
+| `CMAKE_BUILD_PARALLEL_LEVEL` | Default parallel build jobs                       |
 
 ---
 
