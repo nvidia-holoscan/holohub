@@ -1,0 +1,68 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, XRlabs. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# ST2110 Demo Configuration
+# ==========================
+# Both RGBA and NV12 outputs enabled (default mode)
+
+st2110_source:
+  # Network parameters - UPDATE THESE FOR YOUR SETUP
+  multicast_address: "239.255.194.247"
+  port: 16388
+  interface_name: "mgbe0_0"
+
+  # Video parameters
+  width: 1920
+  height: 1080
+  framerate: 50
+  stream_format: "YCbCr-4:2:2-10bit"
+
+  # Output formats
+  enable_rgba_output: true
+  enable_nv12_output: true
+
+  # Performance settings
+  batch_size: 4320
+  max_packet_size: 1514
+  header_size: 42
+  rtp_header_size: 12
+
+# RGBA Holoviz Visualizer Configuration
+rgba_visualizer:
+  width: 1920
+  height: 1080
+  framerate: 50
+  use_exclusive_display: false
+  fullscreen: false
+  window_title: "ST2110 - RGBA Output"
+  tensors:
+    - name: video
+      type: color
+      opacity: 1.0
+      priority: 0
+
+# NV12 config (not used when enable_nv12_output: false)
+nv12_visualizer:
+  width: 1920
+  height: 1080
+  framerate: 50
+  use_exclusive_display: false
+  fullscreen: false
+  window_title: "ST2110 - NV12 Output"
+  tensors:
+    - name: video
+      type: color
+      opacity: 1.0
+      priority: 0
