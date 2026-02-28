@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +20,9 @@
 
 #include <cstddef>
 #include <iostream>
+#include <chrono>
+#include <atomic>
+#include <string>
 
 #include <holoscan/logger/logger.hpp>
 
@@ -84,7 +87,9 @@ class RivermaxBurst : public BurstParams {
    */
   inline uint16_t get_burst_id() const {
     auto burst_info = get_burst_info();
-    if (burst_info == nullptr) { return 0; }
+    if (burst_info == nullptr) {
+      return 0;
+    }
     return burst_info->burst_id;
   }
 
@@ -137,7 +142,9 @@ class RivermaxBurst : public BurstParams {
 
     auto burst_info = get_burst_info();
 
-    if (burst_info == nullptr) { return; }
+    if (burst_info == nullptr) {
+      return;
+    }
 
     burst_info->hds_on = hds_on;
     burst_info->header_stride_size = header_stride_size;
@@ -161,9 +168,7 @@ class RivermaxBurst : public BurstParams {
    *
    * @return The flags of the burst.
    */
-  inline BurstFlags get_burst_flags() const {
-    return static_cast<BurstFlags>(hdr.hdr.burst_flags);
-  }
+  inline BurstFlags get_burst_flags() const { return static_cast<BurstFlags>(hdr.hdr.burst_flags); }
 
   /**
    * @brief Gets the extended info of a burst.
@@ -311,8 +316,21 @@ class RivermaxBurst::BurstHandler {
  */
 class RxBurstsManager {
  public:
-  static constexpr uint32_t DEFAULT_NUM_RX_BURSTS = 64;
+  static constexpr uint32_t DEFAULT_NUM_RX_BURSTS = 256;
   static constexpr uint32_t GET_BURST_TIMEOUT_MS = 1000;
+
+  // Pool capacity monitoring thresholds (as percentage of total pool size)
+  // Default pool capacity thresholds (percentages) - can be overridden via configuration
+  static constexpr uint32_t DEFAULT_POOL_LOW_CAPACITY_THRESHOLD_PERCENT = 25;  // Warning level
+  static constexpr uint32_t DEFAULT_POOL_CRITICAL_CAPACITY_THRESHOLD_PERCENT =
+      10;                                                                  // Start dropping
+  static constexpr uint32_t DEFAULT_POOL_RECOVERY_THRESHOLD_PERCENT = 50;  // Stop dropping
+
+  // Burst dropping policies (simplified)
+  enum class BurstDropPolicy {
+    NONE = 0,               // No dropping
+    CRITICAL_THRESHOLD = 1  // Drop new bursts when critical, stop when recovered (default)
+  };
 
   /**
    * @brief Constructor for the RxBurstsManager class.
@@ -389,7 +407,9 @@ class RxBurstsManager {
 
     auto out_burst = rx_bursts_out_queue_->dequeue_burst().get();
     *burst = static_cast<BurstParams*>(out_burst);
-    if (*burst == nullptr) { return Status::NULL_PTR; }
+    if (*burst == nullptr) {
+      return Status::NULL_PTR;
+    }
     return Status::SUCCESS;
   }
 
@@ -400,6 +420,73 @@ class RxBurstsManager {
    */
   void rx_burst_done(RivermaxBurst* burst);
 
+  /**
+   * @brief Gets the current pool capacity utilization as a percentage.
+   *
+   * This monitors the MEMORY POOL where we allocate new bursts from.
+   * Lower percentage = fewer available bursts = higher memory pressure.
+   *
+   * @return Pool utilization percentage (0-100).
+   *         100% = all bursts available, 0% = no bursts available (pool exhausted)
+   */
+  inline uint32_t get_pool_utilization_percent() const {
+    if (initial_pool_size_ == 0)
+      return 0;
+    size_t available = rx_bursts_mempool_->available_bursts();
+    return static_cast<uint32_t>((available * 100) / initial_pool_size_);
+  }
+
+  /**
+   * @brief Checks if pool capacity is below the specified threshold.
+   *
+   * @param threshold_percent Threshold percentage (0-100).
+   * @return True if pool capacity is below threshold.
+   */
+  inline bool is_pool_capacity_below_threshold(uint32_t threshold_percent) const {
+    return get_pool_utilization_percent() < threshold_percent;
+  }
+
+  /**
+   * @brief Gets pool capacity status for monitoring.
+   *
+   * @return String description of current pool status.
+   */
+  std::string get_pool_status_string() const;
+
+  /**
+   * @brief Enables or disables adaptive burst dropping.
+   *
+   * @param enabled True to enable adaptive dropping.
+   * @param policy Burst dropping policy to use.
+   */
+  inline void set_adaptive_burst_dropping(
+      bool enabled, BurstDropPolicy policy = BurstDropPolicy::CRITICAL_THRESHOLD) {
+    adaptive_dropping_enabled_ = enabled;
+    burst_drop_policy_ = policy;
+  }
+
+  /**
+   * @brief Configure pool capacity thresholds for adaptive dropping.
+   *
+   * @param low_threshold_percent Pool capacity % that triggers low capacity warnings (0-100)
+   * @param critical_threshold_percent Pool capacity % that triggers burst dropping (0-100)
+   * @param recovery_threshold_percent Pool capacity % that stops burst dropping (0-100)
+   */
+  inline void configure_pool_thresholds(uint32_t low_threshold_percent,
+                                        uint32_t critical_threshold_percent,
+                                        uint32_t recovery_threshold_percent) {
+    pool_low_threshold_percent_ = low_threshold_percent;
+    pool_critical_threshold_percent_ = critical_threshold_percent;
+    pool_recovery_threshold_percent_ = recovery_threshold_percent;
+  }
+
+  /**
+   * @brief Gets burst dropping statistics.
+   *
+   * @return String with burst dropping statistics.
+   */
+  std::string get_burst_drop_statistics() const;
+
  protected:
   /**
    * @brief Allocates a new burst.
@@ -407,7 +494,30 @@ class RxBurstsManager {
    * @return Shared pointer to the allocated burst parameters.
    */
   inline std::shared_ptr<RivermaxBurst> allocate_burst() {
+    auto start_time = std::chrono::high_resolution_clock::now();
+
     auto burst = rx_bursts_mempool_->dequeue_burst();
+
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
+
+    if (burst != nullptr) {
+      HOLOSCAN_LOG_DEBUG(
+          "allocate_burst: dequeue_burst succeeded in {} μs (port_id: {}, queue_id: {}, burst_id: "
+          "{})",
+          duration.count(),
+          port_id_,
+          queue_id_,
+          burst->get_burst_id());
+    } else {
+      HOLOSCAN_LOG_WARN(
+          "allocate_burst: dequeue_burst FAILED (timeout/no bursts available) in {} μs (port_id: "
+          "{}, queue_id: {})",
+          duration.count(),
+          port_id_,
+          queue_id_);
+    }
+
     return burst;
   }
 
@@ -441,6 +551,15 @@ class RxBurstsManager {
       return Status::NULL_PTR;
     }
 
+    // Check if we should drop this COMPLETED burst due to critical pool capacity
+    if (should_drop_burst_due_to_capacity()) {
+      // Drop the completed burst by returning it to memory pool instead of enqueuing to output
+      // queue (counter is already incremented inside should_drop_burst_due_to_capacity)
+      rx_bursts_mempool_->enqueue_burst(cur_out_burst_);
+      reset_current_burst();
+      return Status::SUCCESS;
+    }
+
     bool res = rx_bursts_out_queue_->enqueue_burst(cur_out_burst_);
     reset_current_burst();
     if (!res) {
@@ -455,6 +574,28 @@ class RxBurstsManager {
    * @brief Resets the current burst.
    */
   inline void reset_current_burst() { cur_out_burst_ = nullptr; }
+
+  /**
+   * @brief Checks pool capacity and decides whether to drop bursts.
+   *
+   * @return True if burst should be dropped due to low capacity.
+   */
+  bool should_drop_burst_due_to_capacity();
+
+  /**
+   * @brief Logs pool capacity warnings and statistics.
+   *
+   * @param current_utilization Current pool utilization percentage.
+   */
+  void log_pool_capacity_status(uint32_t current_utilization) const;
+
+  /**
+   * @brief Implements generic adaptive burst dropping logic.
+   *
+   * @param current_utilization Current pool utilization percentage.
+   * @return True if burst should be dropped based on network-level policies.
+   */
+  bool should_drop_burst_adaptive(uint32_t current_utilization) const;
 
  protected:
   bool send_packet_ext_info_ = false;
@@ -472,6 +613,32 @@ class RxBurstsManager {
   std::shared_ptr<RivermaxBurst> cur_out_burst_ = nullptr;
   AnoBurstExtendedInfo burst_info_;
   std::unique_ptr<RivermaxBurst::BurstHandler> burst_handler_;
+
+  // Pool monitoring and adaptive dropping
+  size_t initial_pool_size_ = DEFAULT_NUM_RX_BURSTS;
+  bool adaptive_dropping_enabled_ = false;
+  BurstDropPolicy burst_drop_policy_ = BurstDropPolicy::CRITICAL_THRESHOLD;
+
+  // Configurable thresholds (defaults from constants)
+  uint32_t pool_low_threshold_percent_ = DEFAULT_POOL_LOW_CAPACITY_THRESHOLD_PERCENT;
+  uint32_t pool_critical_threshold_percent_ = DEFAULT_POOL_CRITICAL_CAPACITY_THRESHOLD_PERCENT;
+  uint32_t pool_recovery_threshold_percent_ = DEFAULT_POOL_RECOVERY_THRESHOLD_PERCENT;
+
+  // Critical threshold dropping state
+  mutable std::atomic<bool> in_critical_dropping_mode_ = false;  // Track if we're actively dropping
+
+  // Statistics for burst dropping
+  mutable std::atomic<uint64_t> total_bursts_dropped_{0};
+  mutable std::atomic<uint64_t> bursts_dropped_low_capacity_{0};
+  mutable std::atomic<uint64_t> bursts_dropped_critical_capacity_{0};
+  mutable std::atomic<uint64_t> pool_capacity_warnings_{0};
+  mutable std::atomic<uint64_t> pool_capacity_critical_events_{0};
+
+  // Performance monitoring
+  mutable std::chrono::steady_clock::time_point last_capacity_warning_time_ =
+      std::chrono::steady_clock::now();
+  mutable std::chrono::steady_clock::time_point last_capacity_critical_time_ =
+      std::chrono::steady_clock::now();
 };
 
 };  // namespace holoscan::advanced_network

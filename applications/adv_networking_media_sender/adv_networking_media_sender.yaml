@@ -1,0 +1,102 @@
+%YAML 1.2
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+scheduler:
+  check_recession_period_ms: 0
+  worker_thread_number: 5
+  stop_on_deadlock: true
+  stop_on_deadlock_timeout: 500
+
+dual_window: false
+
+replayer:
+  directory: "/media/video"
+  basename: "bunny"
+  frame_rate: 60   # as specified in timestamps
+  repeat: true    # default: false
+  realtime: true  # default: true
+  count: 0        # default: 0 (no frame count restriction)
+
+# Initial size below is set to 8 MB which is sufficient for
+# a 1920 * 1080 RGBA image (uint8_t).
+rmm_allocator:
+  device_memory_initial_size: "1024 MB"
+  device_memory_max_size: "1024 MB"
+  host_memory_initial_size: "1024 MB"
+  host_memory_max_size: "1024 MB"
+  dev_id: 0
+
+advanced_network:
+  cfg:
+    version: 1
+    manager: "rivermax"
+    master_core: 6              # Master CPU core
+    debug: 1
+    log_level: "debug"
+
+    memory_regions:
+    - name: "Data_TX_CPU"
+      kind: "huge"
+      affinity: 0
+      num_bufs: 43200
+      buf_size: 20
+    - name: "Data_TX_GPU"
+      kind: "device"
+      affinity: 0
+      num_bufs: 43200
+      buf_size: 1440
+
+    interfaces:
+    - name: "tx_port"
+      address: cc:00.1
+      tx:
+        queues:
+        - name: "tx_q_1"
+          id: 0
+          cpu_core:  "12"
+          batch_size: 4320
+          output_port: "bench_tx_out_1"
+          memory_regions:
+          - "Data_TX_CPU"
+          - "Data_TX_GPU"
+          rivermax_tx_settings:
+            settings_type: "media_sender"
+            memory_registration: true
+            memory_allocation: true
+            memory_pool_location: "device"
+            #allocator_type: "huge_page_2mb"
+            verbose: true
+            sleep_between_operations: false
+            local_ip_address: 2.1.0.12
+            destination_ip_address: 224.1.1.2
+            destination_port: 50001
+            stats_report_interval_ms: 1000
+            send_packet_ext_info: true
+            num_of_packets_in_chunk: 144
+            video_format: RGB
+            bit_depth: 8
+            frame_width: 1920
+            frame_height: 1080
+            frame_rate: 60
+            dummy_sender: false
+
+advanced_network_media_tx:
+  interface_name: cc:00.1
+  video_format: RGB888
+  frame_width: 1920
+  frame_height: 1080
+  bit_depth: 8
+

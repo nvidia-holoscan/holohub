@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -106,6 +106,12 @@ struct RivermaxCommonRxQueueConfig : public BaseQueueConfig {
   uint32_t stats_report_interval_ms;
   std::string cpu_cores;
   int master_core;
+
+  // Burst pool adaptive dropping configuration
+  bool burst_pool_adaptive_dropping_enabled = false;
+  uint32_t burst_pool_low_threshold_percent = 25;
+  uint32_t burst_pool_critical_threshold_percent = 10;
+  uint32_t burst_pool_recovery_threshold_percent = 50;
 };
 
 /**
@@ -264,6 +270,13 @@ class RivermaxQueueToIPOReceiverSettingsBuilder
  public:
   static constexpr int USECS_IN_SECOND = 1000000;
   bool send_packet_ext_info_ = false;
+
+  // Burst pool adaptive dropping configuration
+  bool burst_pool_adaptive_dropping_enabled_ = false;
+  uint32_t burst_pool_low_threshold_percent_ = 25;
+  uint32_t burst_pool_critical_threshold_percent_ = 10;
+  uint32_t burst_pool_recovery_threshold_percent_ = 50;
+
   IPOReceiverSettings built_settings_;
   bool settings_built_ = false;
 };
@@ -286,6 +299,13 @@ class RivermaxQueueToRTPReceiverSettingsBuilder
   static constexpr int USECS_IN_SECOND = 1000000;
   bool send_packet_ext_info_ = false;
   size_t max_chunk_size_ = 0;
+
+  // Burst pool adaptive dropping configuration
+  bool burst_pool_adaptive_dropping_enabled_ = false;
+  uint32_t burst_pool_low_threshold_percent_ = 25;
+  uint32_t burst_pool_critical_threshold_percent_ = 10;
+  uint32_t burst_pool_recovery_threshold_percent_ = 50;
+
   RTPReceiverSettings built_settings_;
   bool settings_built_ = false;
 };

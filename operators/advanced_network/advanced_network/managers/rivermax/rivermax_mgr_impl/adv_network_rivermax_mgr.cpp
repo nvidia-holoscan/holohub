@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -131,6 +131,7 @@ class RivermaxMgr::RivermaxMgrImpl {
   Status get_mac_addr(int port, char* mac);
 
  private:
+  void apply_burst_pool_configuration_to_service(uint32_t service_id);
   static void flush_packets(int port);
   void setup_accurate_send_scheduling_mask();
   int setup_pools_and_rings(int max_rx_batch, int max_tx_batch);
@@ -225,6 +226,7 @@ void RivermaxMgr::RivermaxMgrImpl::initialize() {
     burst_tx_pool[i].hdr.hdr.port_id = 0;
     burst_tx_pool[i].hdr.hdr.q_id = 0;
     burst_tx_pool[i].hdr.hdr.num_pkts = MAX_NUM_OF_FRAMES_IN_BURST;
+    burst_tx_pool[i].hdr.hdr.burst_flags = FLAGS_NONE;
     burst_tx_pool[i].pkts[0] = new void*[MAX_NUM_OF_FRAMES_IN_BURST];
     burst_tx_pool[i].pkt_lens[0] = new uint32_t[MAX_NUM_OF_FRAMES_IN_BURST];
     burst_tx_pool[i].pkt_extra_info = new void*[MAX_NUM_OF_FRAMES_IN_BURST];
@@ -299,6 +301,10 @@ bool RivermaxMgr::RivermaxMgrImpl::initialize_rx_service(
   }
 
   rx_services_[service_id] = std::move(rx_service);
+
+  // Apply burst pool adaptive dropping configuration
+  apply_burst_pool_configuration_to_service(service_id);
+
   return true;
 }
 
@@ -362,7 +368,9 @@ RivermaxMgr::RivermaxMgrImpl::~RivermaxMgrImpl() {}
 
 void RivermaxMgr::RivermaxMgrImpl::run() {
   std::size_t num_services = rx_services_.size();
-  if (num_services > 0) { HOLOSCAN_LOG_INFO("Starting {} RX Services", num_services); }
+  if (num_services > 0) {
+    HOLOSCAN_LOG_INFO("Starting {} RX Services", num_services);
+  }
 
   for (const auto& entry : rx_services_) {
     uint32_t key = entry.first;
@@ -372,7 +380,9 @@ void RivermaxMgr::RivermaxMgrImpl::run() {
   }
 
   num_services = tx_services_.size();
-  if (num_services > 0) { HOLOSCAN_LOG_INFO("Starting {} TX Services", num_services); }
+  if (num_services > 0) {
+    HOLOSCAN_LOG_INFO("Starting {} TX Services", num_services);
+  }
 
   for (const auto& entry : tx_services_) {
     uint32_t key = entry.first;
@@ -407,7 +417,8 @@ uint16_t RivermaxMgr::RivermaxMgrImpl::get_packet_length(BurstParams* burst, int
 
 void* RivermaxMgr::RivermaxMgrImpl::get_packet_extra_info(BurstParams* burst, int idx) {
   RivermaxBurst* rivermax_burst = static_cast<RivermaxBurst*>(burst);
-  if (rivermax_burst->is_packet_info_per_packet()) return burst->pkt_extra_info[idx];
+  if (rivermax_burst->is_packet_info_per_packet())
+    return burst->pkt_extra_info[idx];
   return nullptr;
 }
 
@@ -518,7 +529,9 @@ Status RivermaxMgr::RivermaxMgrImpl::get_rx_burst(BurstParams** burst, int port,
   }
 
   auto out_burst_shared = queue_it->second->dequeue_burst();
-  if (out_burst_shared == nullptr) { return Status::NULL_PTR; }
+  if (out_burst_shared == nullptr) {
+    return Status::NULL_PTR;
+  }
   *burst = out_burst_shared.get();
   return Status::SUCCESS;
 }
@@ -546,7 +559,9 @@ Status RivermaxMgr::RivermaxMgrImpl::send_tx_burst(BurstParams* burst) {
 }
 
 void RivermaxMgr::RivermaxMgrImpl::shutdown() {
-  if (force_quit.load()) { return; }
+  if (force_quit.load()) {
+    return;
+  }
   HOLOSCAN_LOG_INFO("Advanced Network Rivermax manager shutting down");
   force_quit.store(true);
   print_stats();
@@ -563,10 +578,14 @@ void RivermaxMgr::RivermaxMgrImpl::shutdown() {
   }
 
   for (auto& rx_service_thread : rx_service_threads_) {
-    if (rx_service_thread.joinable()) { rx_service_thread.join(); }
+    if (rx_service_thread.joinable()) {
+      rx_service_thread.join();
+    }
   }
   for (auto& tx_service_thread : tx_service_threads_) {
-    if (tx_service_thread.joinable()) { tx_service_thread.join(); }
+    if (tx_service_thread.joinable()) {
+      tx_service_thread.join();
+    }
   }
   HOLOSCAN_LOG_INFO("All service threads finished");
   rx_services_.clear();
@@ -599,6 +618,33 @@ BurstParams* RivermaxMgr::RivermaxMgrImpl::create_tx_burst_params() {
 
 Status RivermaxMgr::RivermaxMgrImpl::get_mac_addr(int port, char* mac) {
   return Status::NOT_SUPPORTED;
+}
+
+void RivermaxMgr::RivermaxMgrImpl::apply_burst_pool_configuration_to_service(uint32_t service_id) {
+  // Extract port_id and queue_id from service_id
+  int port_id = RivermaxBurst::burst_port_id_from_burst_tag(service_id);
+  int queue_id = RivermaxBurst::burst_queue_id_from_burst_tag(service_id);
+
+  // Find the service and apply configuration from parsed settings
+  auto it = rx_services_.find(service_id);
+  if (it != rx_services_.end()) {
+    auto service = it->second;
+    auto rx_service = std::dynamic_pointer_cast<RivermaxManagerRxService>(service);
+    if (rx_service) {
+      // Apply the burst pool configuration using the service's method
+      rx_service->apply_burst_pool_configuration();
+
+      HOLOSCAN_LOG_INFO("Applied burst pool configuration to service {} (port={}, queue={})",
+                        service_id,
+                        port_id,
+                        queue_id);
+    } else {
+      HOLOSCAN_LOG_ERROR("Failed to cast service to RivermaxManagerRxService for service {}",
+                         service_id);
+    }
+  } else {
+    HOLOSCAN_LOG_ERROR("Failed to find service {}", service_id);
+  }
 }
 
 RivermaxMgr::RivermaxMgr() : pImpl(std::make_unique<RivermaxMgrImpl>()) {}

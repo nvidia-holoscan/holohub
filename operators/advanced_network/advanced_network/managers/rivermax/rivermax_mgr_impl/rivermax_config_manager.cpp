@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -89,8 +89,9 @@ bool RivermaxConfigContainer::parse_configuration(const NetworkConfig& cfg) {
   set_rivermax_log_level(cfg.log_level_);
 
   if (rivermax_rx_config_found == 0 && rivermax_tx_config_found == 0) {
-    HOLOSCAN_LOG_ERROR("Failed to parse Rivermax advanced_network settings. "
-                       "No valid settings found");
+    HOLOSCAN_LOG_ERROR(
+        "Failed to parse Rivermax advanced_network settings. "
+        "No valid settings found");
     return false;
   }
 
@@ -112,12 +113,16 @@ int RivermaxConfigContainer::parse_rx_queues(uint16_t port_id,
   auto rx_config_manager = std::dynamic_pointer_cast<RxConfigManager>(
       get_config_manager(RivermaxConfigContainer::ConfigType::RX));
 
-  if (!rx_config_manager) { return 0; }
+  if (!rx_config_manager) {
+    return 0;
+  }
 
   rx_config_manager->set_configuration(cfg_);
 
   for (const auto& q : queues) {
-    if (!rx_config_manager->append_candidate_for_rx_queue(port_id, q)) { continue; }
+    if (!rx_config_manager->append_candidate_for_rx_queue(port_id, q)) {
+      continue;
+    }
     rivermax_rx_config_found++;
   }
 
@@ -208,7 +213,9 @@ bool RxConfigManager::append_ipo_receiver_candidate_for_rx_queue(
     return false;
   }
 
-  if (config_memory_allocator(rivermax_rx_config, q) == false) { return false; }
+  if (config_memory_allocator(rivermax_rx_config, q) == false) {
+    return false;
+  }
 
   rivermax_rx_config.cpu_cores = q.common_.cpu_core_;
   rivermax_rx_config.master_core = cfg_.common_.master_core_;
@@ -239,7 +246,9 @@ bool RxConfigManager::append_rtp_receiver_candidate_for_rx_queue(
     return false;
   }
 
-  if (config_memory_allocator(rivermax_rx_config, q) == false) { return false; }
+  if (config_memory_allocator(rivermax_rx_config, q) == false) {
+    return false;
+  }
 
   rivermax_rx_config.cpu_cores = q.common_.cpu_core_;
   rivermax_rx_config.master_core = cfg_.common_.master_core_;
@@ -270,12 +279,16 @@ int RivermaxConfigContainer::parse_tx_queues(uint16_t port_id,
   auto tx_config_manager = std::dynamic_pointer_cast<TxConfigManager>(
       get_config_manager(RivermaxConfigContainer::ConfigType::TX));
 
-  if (!tx_config_manager) { return 0; }
+  if (!tx_config_manager) {
+    return 0;
+  }
 
   tx_config_manager->set_configuration(cfg_);
 
   for (const auto& q : queues) {
-    if (!tx_config_manager->append_candidate_for_tx_queue(port_id, q)) { continue; }
+    if (!tx_config_manager->append_candidate_for_tx_queue(port_id, q)) {
+      continue;
+    }
     rivermax_tx_config_found++;
   }
 
@@ -355,7 +368,9 @@ bool TxConfigManager::append_media_sender_candidate_for_tx_queue(
     return false;
   }
 
-  if (config_memory_allocator(rivermax_tx_config, q) == false) { return false; }
+  if (config_memory_allocator(rivermax_tx_config, q) == false) {
+    return false;
+  }
 
   rivermax_tx_config.cpu_cores = q.common_.cpu_core_;
   rivermax_tx_config.master_core = cfg_.common_.master_core_;
@@ -546,6 +561,72 @@ bool RivermaxConfigParser::parse_common_rx_settings(
   rivermax_rx_config.stats_report_interval_ms =
       rx_settings["stats_report_interval_ms"].as<uint32_t>(0);
 
+  // Parse burst pool adaptive dropping configuration (optional)
+  const auto& burst_pool_config = rx_settings["burst_pool_adaptive_dropping"];
+  if (burst_pool_config) {
+    rivermax_rx_config.burst_pool_adaptive_dropping_enabled =
+        burst_pool_config["enabled"].as<bool>(false);
+    rivermax_rx_config.burst_pool_low_threshold_percent =
+        burst_pool_config["low_threshold_percent"].as<uint32_t>(25);
+    rivermax_rx_config.burst_pool_critical_threshold_percent =
+        burst_pool_config["critical_threshold_percent"].as<uint32_t>(10);
+    rivermax_rx_config.burst_pool_recovery_threshold_percent =
+        burst_pool_config["recovery_threshold_percent"].as<uint32_t>(50);
+
+    // Validate threshold percentages
+    uint32_t critical = rivermax_rx_config.burst_pool_critical_threshold_percent;
+    uint32_t low = rivermax_rx_config.burst_pool_low_threshold_percent;
+    uint32_t recovery = rivermax_rx_config.burst_pool_recovery_threshold_percent;
+
+    // Check valid range (0..100)
+    if (critical > 100 || low > 100 || recovery > 100) {
+      HOLOSCAN_LOG_ERROR(
+          "Invalid burst pool threshold percentages: all values must be in range 0..100 "
+          "(critical={}, low={}, recovery={})",
+          critical, low, recovery);
+      return false;
+    }
+
+    // Check for nonsensical zero values
+    if (critical == 0 || recovery == 0) {
+      HOLOSCAN_LOG_ERROR(
+          "Invalid burst pool threshold percentages: critical and recovery cannot be 0 "
+          "(critical={}, low={}, recovery={})",
+          critical, low, recovery);
+      return false;
+    }
+
+    // Check proper ordering: critical < low < recovery
+    if (critical >= low) {
+      HOLOSCAN_LOG_ERROR(
+          "Invalid burst pool threshold ordering: critical must be < low "
+          "(critical={}, low={})",
+          critical, low);
+      return false;
+    }
+
+    if (low >= recovery) {
+      HOLOSCAN_LOG_ERROR(
+          "Invalid burst pool threshold ordering: low must be < recovery "
+          "(low={}, recovery={})",
+          low, recovery);
+      return false;
+    }
+
+    HOLOSCAN_LOG_INFO(
+        "Parsed burst pool adaptive dropping config: enabled={}, thresholds={}%/{}%/{}%",
+        rivermax_rx_config.burst_pool_adaptive_dropping_enabled,
+        rivermax_rx_config.burst_pool_low_threshold_percent,
+        rivermax_rx_config.burst_pool_critical_threshold_percent,
+        rivermax_rx_config.burst_pool_recovery_threshold_percent);
+  } else {
+    // Use default values if not specified
+    rivermax_rx_config.burst_pool_adaptive_dropping_enabled = false;
+    rivermax_rx_config.burst_pool_low_threshold_percent = 25;
+    rivermax_rx_config.burst_pool_critical_threshold_percent = 10;
+    rivermax_rx_config.burst_pool_recovery_threshold_percent = 50;
+  }
+
   return true;
 }
 
@@ -631,8 +712,7 @@ bool RivermaxConfigParser::parse_common_tx_settings(
   rivermax_tx_config.print_parameters = tx_settings["verbose"].as<bool>(false);
   rivermax_tx_config.num_of_threads = tx_settings["num_of_threads"].as<size_t>(1);
   rivermax_tx_config.send_packet_ext_info = tx_settings["send_packet_ext_info"].as<bool>(true);
-  rivermax_tx_config.num_of_packets_in_chunk =
-    tx_settings["num_of_packets_in_chunk"].as<size_t>(
+  rivermax_tx_config.num_of_packets_in_chunk = tx_settings["num_of_packets_in_chunk"].as<size_t>(
       MediaSenderSettings::DEFAULT_NUM_OF_PACKETS_IN_CHUNK_FHD);
   rivermax_tx_config.sleep_between_operations =
       tx_settings["sleep_between_operations"].as<bool>(true);
@@ -653,9 +733,8 @@ bool RivermaxConfigParser::parse_media_sender_settings(
   rivermax_tx_config.use_internal_memory_pool =
       tx_settings["use_internal_memory_pool"].as<bool>(false);
   if (rivermax_tx_config.use_internal_memory_pool) {
-    rivermax_tx_config.memory_pool_location =
-      GetMemoryKindFromString(tx_settings["memory_pool_location"].template
-        as<std::string>("device"));
+    rivermax_tx_config.memory_pool_location = GetMemoryKindFromString(
+        tx_settings["memory_pool_location"].template as<std::string>("device"));
     if (rivermax_tx_config.memory_pool_location == MemoryKind::INVALID) {
       rivermax_tx_config.memory_pool_location = MemoryKind::DEVICE;
       HOLOSCAN_LOG_ERROR("Invalid memory pool location, setting to DEVICE");
@@ -760,7 +839,9 @@ bool ConfigManagerUtilities::validate_cores(const std::string& cores) {
 void ConfigManagerUtilities::set_allocator_type(AppSettings& app_settings_config,
                                                 const std::string& allocator_type) {
   auto setAllocatorType = [&](const std::string& allocatorTypeStr, AllocatorTypeUI allocatorType) {
-    if (allocator_type == allocatorTypeStr) { app_settings_config.allocator_type = allocatorType; }
+    if (allocator_type == allocatorTypeStr) {
+      app_settings_config.allocator_type = allocatorType;
+    }
   };
 
   app_settings_config.allocator_type = AllocatorTypeUI::Auto;
