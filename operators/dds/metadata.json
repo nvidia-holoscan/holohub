@@ -19,6 +19,7 @@
 				"2.0.0"
 			]
 		},
+		"dockerfile": "../../applications/dds/dds_video/Dockerfile",
 		"platforms": ["x86_64", "aarch64"],
 		"tags": ["Networking and Distributed Computing", "DDS", "RTI Connext"],
 		"ranking": 2,
