@@ -1,0 +1,55 @@
+{
+	"application": {
+		"name": "UCXX Endoscopy Tool Tracking",
+		"description": "Sample application demonstrating distributed execution with UCXX operators",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "C++",
+		"version": "0.1.0",
+		"changelog": {
+			"0.1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "3.8.0",
+			"tested_versions": [
+				"3.8.0",
+				"3.10.0"
+			]
+		},
+		"platforms": ["x86_64"],
+		"tags": ["Distributed", "UCXX", "Serialization"],
+		"ranking": 2,
+		"requirements": {},
+		"default_mode": "subscribe_holoviz",
+		"modes": {
+			"publish": {
+				"description": "Publisher mode",
+				"requirements": [],
+				"run": {
+					"command": "<holohub_app_bin>/ucxx_endoscopy_tool_tracking --mode publish --data <holohub_data_dir>/endoscopy --port 50008",
+					"workdir": "holohub_bin"
+				}
+			},
+			"subscribe_holoviz": {
+				"description": "Subscriber that receives and displays frames",
+				"requirements": [],
+				"run": {
+					"command": "<holohub_app_bin>/ucxx_endoscopy_tool_tracking --mode subscribe_holoviz --port 50008",
+					"workdir": "holohub_bin"
+				}
+			},
+			"overlay": {
+				"description": "Subscriber that draws a frame counter overlay and sends it back to publisher (connect to publisher port+1)",
+				"requirements": [],
+				"run": {
+					"command": "<holohub_app_bin>/ucxx_endoscopy_tool_tracking --mode overlay --port 50009",
+					"workdir": "holohub_bin"
+				}
+			}
+		}
+	}
+}
