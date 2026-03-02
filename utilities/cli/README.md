@@ -43,7 +43,7 @@ Commands flow through a pipeline of six components:
 
 2. **Project Resolution** — Scans `metadata.json` files across configured search paths to build a project index. Handles multi-language projects and suggests similar names on not-found.
 
-3. **Mode Resolution & Config Merge** — Resolves execution modes from `metadata.json` and merges with CLI flags. CLI flags always override mode settings. Modes define pre-configured setups for different hardware, data sources, or deployment scenarios.
+3. **Mode Resolution & Config Merge** — Resolves execution modes from `metadata.json` and merges with CLI flags. CLI flags generally override mode settings for most fields, while `--run-args` is appended to the mode's `run.command`. Modes define pre-configured setups for different hardware, data sources, or deployment scenarios.
 
 4. **Container Build & Run** — Builds Docker images with auto-detected hardware configuration and CUDA version. Composes docker run arguments from multiple sources (security, display, devices, user groups, UCX).
 

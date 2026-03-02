@@ -6,7 +6,7 @@ For command/flag docs, see the [CLI Reference](https://raw.githubusercontent.com
 ## Agent Safety Rules
 
 1. Always `--dryrun --verbose` before running any command for real.
-2. Never `build --local` or `run --local` without explicit user approval — they install packages and modify the host.
+2. Never `build --local` or `run --local` without explicit user approval — they run directly in the host workspace, may modify files there, and require host dependencies to already be installed (no automatic package installation).
 3. Never hardcode repo names, command names, or path prefixes — the CLI is reused across repos via env vars.
 4. Check the project's README and `metadata.json` for architecture/platform requirements before building.
 
@@ -15,7 +15,7 @@ For command/flag docs, see the [CLI Reference](https://raw.githubusercontent.com
 | # | Rule | Detail |
 |---|------|--------|
 | 1 | Container re-enters local | `build`/`run`/`install` in container mode build an image, then run the CLI with `--local` inside it. Local-mode changes affect both host and container execution. |
-| 2 | CLI flags override modes | Resolution: `resolve_mode` → `validate_mode` → `get_effective_build_config`/`get_effective_run_config`. Flags replace (not merge with) mode values. |
+| 2 | CLI flags override modes | Resolution: `resolve_mode` → `validate_mode` → `get_effective_build_config`/`get_effective_run_config`. Most flags override (do not merge with) mode values; `--run-args` is **appended** to the mode `run.command`. |
 | 3 | Expand placeholders first | Mode commands may contain `<holohub_app_source>`, `<holohub_data_dir>`, etc. Run through `build_holohub_path_mapping()` + `replace_placeholders()`. |
 | 4 | Use `run_command()` | Handles dry-run, sudo detection, fail-fast (`check=True`). Use `run_info_command()` for best-effort probes. |
 | 5 | Use `self.script_name` / `self.prefix` | `self.script_name` (from `HOLOHUB_CMD_NAME`) for user messages. `self.prefix` (from `HOLOHUB_PATH_PREFIX`) for placeholder resolution. |
