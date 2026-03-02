@@ -84,12 +84,14 @@ Build artifacts go to `./build/<component_name>/` (isolated per component). Data
 
 ## Every Component Requires metadata.json
 
-Every application, operator, workflow, tutorial, and GXF extension needs a `metadata.json` file. Schemas:
+Every application, operator, workflow, tutorial, benchmark, package, and GXF extension needs a `metadata.json` file. Schemas:
 - `applications/metadata.schema.json`
 - `operators/metadata.schema.json`
 - `workflows/metadata.schema.json`
 - `gxf_extensions/metadata.schema.json`
 - `tutorials/metadata.schema.json`
+- `benchmarks/metadata.schema.json`
+- `pkg/metadata.schema.json`
 
 The **first tag** in the `tags` array is the category. Valid categories are documented in `.github/copilot-instructions.md`. The `run.workdir` field is a string that may use CLI placeholders such as `<holohub_app_bin>`, `<holohub_app_source>`, or `<holohub_bin>` (including subpaths like `<holohub_bin>/output`), as well as literal and relative paths. See `doc/cli_reference.md` and `utilities/cli/README.md` for the full set of supported patterns.
 
