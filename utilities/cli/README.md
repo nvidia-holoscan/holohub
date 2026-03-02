@@ -80,11 +80,14 @@ Transform complex multi-command workflows into single, intuitive commands:
 ```bash
 # Container build
 # previous ./dev_container build --docker_file <path/to/myapp/Dockerfile> --img holohub:myapp
-./holohub build-container <my_project> [options]
+./holohub build-container <my_project> [mode] [options]
+
+# Container build with mode (applies mode's docker_build_args)
+./holohub build-container colonoscopy_segmentation aja
 
 # Container run
 # previous ./dev_container launch --img holohub:myapp
-./holohub run-container <my_project> --no-docker-build [options]
+./holohub run-container <my_project> [mode] --no-docker-build [options]
 
 # Development environment
 # previous ./dev_container vscode myapp
