@@ -91,7 +91,7 @@ Inside the shell: run cmake, ctest, or `./holohub <cmd> --local` directly.
 
 - [Base project schema](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/utilities/metadata/project.schema.json) — all valid fields, types, and constraints
 - [CLI Reference > Modes](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/doc/cli_reference.md) — mode fields, path placeholders, build/run config
-- Examples: [simple app](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/applications/endoscopy_tool_tracking/metadata.json), [multi-mode with docker opts](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/applications/isaac_sim_holoscan_bridge/metadata.json), [multi-mode with build deps](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/workflows/ai_surgical_video/python/metadata.json)
+- Examples: [simple app](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/applications/endoscopy_tool_tracking/python/metadata.json), [multi-mode with docker opts](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/applications/isaac_sim_holoscan_bridge/metadata.json), [multi-mode with build deps](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/workflows/ai_surgical_video/python/metadata.json)
 
 ## Source Layout
 
