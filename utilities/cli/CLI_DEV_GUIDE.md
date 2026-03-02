@@ -5,8 +5,8 @@ For command/flag docs, see the [CLI Reference](https://raw.githubusercontent.com
 
 ## Agent Safety Rules
 
-1. Always `--dryrun --verbose` before running any command for real.
-2. Never `build --local` or `run --local` without explicit user approval — they run directly in the host workspace, may modify files there, and require host dependencies to already be installed (no automatic package installation).
+1. Always `./holohub <cmd> --dryrun --verbose` before running any command for real.
+2. Never `./holohub build --local` or `./holohub run --local` without explicit user approval — they run directly in the host workspace, may modify files there, and require host dependencies to already be installed (no automatic package installation).
 3. Never hardcode repo names, command names, or path prefixes — the CLI is reused across repos via env vars.
 4. Check the project's README and `metadata.json` for architecture/platform requirements before building.
 
@@ -22,12 +22,14 @@ For command/flag docs, see the [CLI Reference](https://raw.githubusercontent.com
 
 ## Workflow
 
+> Examples use `./holohub`. Downstream repos have their own entrypoint (e.g. `./i4h`, `./isaac_os`) — set via `HOLOHUB_CMD_NAME`.
+
 ### Inspect before running
 
 ```bash
-build <app> --dryrun              # full Docker build command
-run <app> --dryrun --local        # cmake + app run with resolved placeholders
-test <app> --dryrun --verbose     # full test pipeline (docker, cmake, ctest)
+./holohub build <app> --dryrun              # full Docker build command
+./holohub run <app> --dryrun --local        # cmake + app run with resolved placeholders
+./holohub test <app> --dryrun --verbose     # full test pipeline (docker, cmake, ctest)
 ```
 
 `--verbose` adds variable dumps (build-args, docker-run flags, PYTHONPATH, data paths).
@@ -35,10 +37,10 @@ test <app> --dryrun --verbose     # full test pipeline (docker, cmake, ctest)
 ### Test
 
 ```bash
-test <app>                        # build + CTest in container (default)
-test <app> --language python      # select language for multi-lang projects
-test <app> --coverage             # enable coverage collection
-test <app> --ctest-options "-R unit_tests"   # filter tests by regex
+./holohub test <app>                        # build + CTest in container (default)
+./holohub test <app> --language python      # select language for multi-lang projects
+./holohub test <app> --coverage             # enable coverage collection
+./holohub test <app> --ctest-options "-R unit_tests"   # filter tests by regex
 ```
 
 Default CTest script: `utilities/testing/holohub.container.ctest`. Override with `--ctest-script` or `HOLOHUB_CTEST_SCRIPT`.
@@ -59,9 +61,9 @@ Check for existing images first: `docker images | grep <project>`.
 Prefer container over `--local` to avoid modifying the host.
 
 ```bash
-run-container <app>               # interactive shell, repo at /workspace/<name>
-run-container <app> -- <cmd>      # run a specific command (e.g. ./holohub env-info)
-env-info                          # GPU, CUDA, Docker, Python diagnostics
+./holohub run-container <app>               # interactive shell, repo at /workspace/<name>
+./holohub run-container <app> -- <cmd>      # run a specific command (e.g. ./holohub env-info)
+./holohub env-info                          # GPU, CUDA, Docker, Python diagnostics
 ```
 
 Inside the shell: run cmake, ctest, or `./holohub <cmd> --local` directly.
@@ -69,7 +71,7 @@ Inside the shell: run cmake, ctest, or `./holohub <cmd> --local` directly.
 ### Resource management
 
 - `CMAKE_BUILD_PARALLEL_LEVEL=N` — cap parallel jobs to prevent OOM.
-- `clear-cache --build` — reset build dir only. Bare `clear-cache` also deletes `data/` (models, datasets).
+- `./holohub clear-cache --build` — reset build dir only. Bare `./holohub clear-cache` also deletes `data/` (models, datasets).
 - `docker image prune` / `docker system prune` — reclaim disk.
 - Don't use `sudo ./holohub` — sudo filters `PATH` and other env vars.
 
