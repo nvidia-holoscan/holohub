@@ -40,7 +40,6 @@ CTestConfig.cmake
 
 # AI coding assistants
 .cursor/
-CLAUDE.md
 
 # Cache and temporary directories
 .cache/
