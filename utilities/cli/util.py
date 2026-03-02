@@ -365,7 +365,7 @@ def format_timing_summary() -> str:
         label = cmd_str.strip()
         if len(label) > 60:
             label = label[:57] + "..."
-        lines.append(f"  {label:<62} {elapsed:>6.1f}s")
+        lines.append(f"  {label:<60} {elapsed:>6.1f}s")
 
     return "\n".join(lines)
 
