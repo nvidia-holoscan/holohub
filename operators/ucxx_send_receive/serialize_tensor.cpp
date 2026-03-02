@@ -158,7 +158,7 @@ std::optional<BufferDescriptor> resolveEntityBuffer(
   }
 
   // 3. Try nvidia::gxf::VideoBuffer (packed RGB/RGBA, owned by entity)
-  auto maybe_vb = gxf_entity.get<nvidia::gxf::VideoBuffer>();
+  auto maybe_vb = gxf_entity.get<nvidia::gxf::VideoBuffer>(tensor_name);
   if (maybe_vb) {
     auto* vb = maybe_vb.value().get();
     TensorHeader header = buildTensorHeader(*vb);

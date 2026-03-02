@@ -282,7 +282,8 @@ void UcxxEndoscopyPublisherApp::compose() {
       "ucxx_sender_holoviz",
       Arg("tag", 1ul),
       Arg("endpoint") = ucxx_endpoint_holoviz,
-      Arg("blocking") = from_config("publisher.blocking").as<bool>());
+      Arg("blocking") = from_config("publisher.blocking").as<bool>(),
+      Arg("tensor_name") = "render_buffer_output");
 
   // -------------------------------------------------------------------------------------------
   // ---------------------------- Overlay Subscriber -------------------------------------------

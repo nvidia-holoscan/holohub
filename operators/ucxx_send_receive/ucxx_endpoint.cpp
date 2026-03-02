@@ -244,8 +244,21 @@ void UcxxEndpoint::initialize() {
         }
         ::close(client_fd);
 
-        auto remote_address = ::ucxx::createAddressFromString(remote_address_str);
-        activate_endpoint(worker_->createEndpointFromWorkerAddress(remote_address, true));
+        try {
+          auto remote_address = ::ucxx::createAddressFromString(remote_address_str);
+          activate_endpoint(worker_->createEndpointFromWorkerAddress(remote_address, true));
+        } catch (const std::exception& e) {
+          HOLOSCAN_LOG_ERROR("Failed to activate endpoint for {}:{}: {}",
+                             hostname_.get(),
+                             port_.get(),
+                             e.what());
+          continue;
+        } catch (...) {
+          HOLOSCAN_LOG_ERROR("Failed to activate endpoint for {}:{}: unknown error",
+                             hostname_.get(),
+                             port_.get());
+          continue;
+        }
       }
     });
   } else {
@@ -280,8 +293,21 @@ void UcxxEndpoint::initialize() {
           fmt::format("Failed to receive worker address from {}:{}", hostname_.get(), port_.get()));
     }
 
-    auto remote_address = ::ucxx::createAddressFromString(remote_address_str);
-    activate_endpoint(worker_->createEndpointFromWorkerAddress(remote_address, true));
+    try {
+      auto remote_address = ::ucxx::createAddressFromString(remote_address_str);
+      activate_endpoint(worker_->createEndpointFromWorkerAddress(remote_address, true));
+    } catch (const std::exception& e) {
+      HOLOSCAN_LOG_ERROR("Failed to activate endpoint for {}:{}: {}",
+                         hostname_.get(),
+                         port_.get(),
+                         e.what());
+      throw;
+    } catch (...) {
+      HOLOSCAN_LOG_ERROR("Failed to activate endpoint for {}:{}: unknown error",
+                         hostname_.get(),
+                         port_.get());
+      throw;
+    }
   }
 }
 

@@ -38,6 +38,11 @@ void UcxxSenderOp::setup(holoscan::OperatorSpec& spec) {
              "If true, do not execute until endpoint is connected. If false (default), drain "
              "inputs and drop sends while disconnected (prevents upstream backpressure).",
              false);
+  spec.param(tensor_name_,
+             "tensor_name",
+             "Tensor name",
+             "Name of the tensor to send, defaults to empty string.",
+             std::string{});
   spec.input<holoscan::gxf::Entity>("in");
 
   bool blocking_value = false;
@@ -138,7 +143,8 @@ void UcxxSenderOp::compute(holoscan::InputContext& input, holoscan::OutputContex
     return;
   }
 
-  auto resolved = holoscan::ops::ucxx::resolveEntityBuffer(in_message);
+  const std::string& tensor_name = tensor_name_.get();
+  auto resolved = holoscan::ops::ucxx::resolveEntityBuffer(in_message, tensor_name.c_str());
   if (!resolved) {
     HOLOSCAN_LOG_ERROR("No sendable buffer found in input message");
     return;

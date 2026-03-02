@@ -42,6 +42,7 @@ class UcxxSenderOp : public holoscan::Operator {
   holoscan::Parameter<bool> blocking_;
   // Cap number of in-flight requests to bound memory retention when the network/receiver stalls.
   holoscan::Parameter<uint64_t> max_in_flight_;
+  holoscan::Parameter<std::string> tensor_name_;  // Name of the tensor to send
 
   struct SendRequest {
     std::shared_ptr<::ucxx::Request> header_request;  // For header
