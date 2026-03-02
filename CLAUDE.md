@@ -91,7 +91,7 @@ Every application, operator, workflow, tutorial, and GXF extension needs a `meta
 - `gxf_extensions/metadata.schema.json`
 - `tutorials/metadata.schema.json`
 
-The **first tag** in the `tags` array is the category. Valid categories are documented in `.github/copilot-instructions.md`. The `run.workdir` field must be one of: `holohub_app_bin`, `holohub_app_source`, or `holohub_bin`.
+The **first tag** in the `tags` array is the category. Valid categories are documented in `.github/copilot-instructions.md`. The `run.workdir` field is a string that may use CLI placeholders such as `<holohub_app_bin>`, `<holohub_app_source>`, or `<holohub_bin>` (including subpaths like `<holohub_bin>/output`), as well as literal and relative paths. See `doc/cli_reference.md` and `utilities/cli/README.md` for the full set of supported patterns.
 
 ## Naming Conventions
 
