@@ -24,6 +24,7 @@ import shlex
 import shutil
 import subprocess
 import sys
+import time
 import traceback
 from datetime import datetime, timezone
 from pathlib import Path
@@ -96,6 +97,9 @@ class Color:
 
 _sudo_available = None  # Cache for sudo availability check
 _apt_updated = False  # track whether apt update has been called
+
+# ── Build Timing ──────────────────────────────────────────────────────────────
+_command_timings: list[tuple[str, float]] = []
 
 
 # Utility Functions
@@ -322,12 +326,48 @@ def run_command(
         return subprocess.CompletedProcess(cmd_str, 0)
 
     print(format_cmd(cmd_str))
+
+    t0 = time.monotonic()
     try:
-        return subprocess.run(processed_cmd, check=check, **kwargs)
+        result = subprocess.run(processed_cmd, check=check, **kwargs)
+        elapsed = time.monotonic() - t0
+        _command_timings.append((cmd_str, elapsed))
+        return result
     except subprocess.CalledProcessError as e:
+        elapsed = time.monotonic() - t0
+        _command_timings.append((cmd_str, elapsed))
         print(f"Non-zero exit code running command: {cmd_str}")
         print(f"Exit code: {e.returncode}")
         sys.exit(e.returncode)
+
+
+def get_command_timings() -> list[tuple[str, float]]:
+    """Retrieve collected command timings"""
+    return list(_command_timings)
+
+
+def clear_command_timings() -> None:
+    """Clear collected command timings"""
+    _command_timings.clear()
+
+
+def format_timing_summary() -> str:
+    """Format a table of command durations from the current session"""
+    timings = get_command_timings()
+    if not timings:
+        return ""
+
+    total = sum(t for _, t in timings)
+    lines = [f"\n{Color.blue(f'Completed in {total:.1f}s')}"]
+
+    for cmd_str, elapsed in timings:
+        # Shorten the command display
+        label = cmd_str.strip()
+        if len(label) > 60:
+            label = label[:57] + "..."
+        lines.append(f"  {label:<62} {elapsed:>6.1f}s")
+
+    return "\n".join(lines)
 
 
 def run_info_command(cmd: List[str], cwd: Optional[str] = None) -> Optional[str]:
