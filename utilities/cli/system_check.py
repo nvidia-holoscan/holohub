@@ -118,6 +118,12 @@ def check_docker() -> CheckResult:
     """Check Docker installation and runtime"""
     docker = shutil.which("docker")
     if not docker:
+        if is_running_in_docker():
+            return CheckResult(
+                status="SKIP",
+                name="Docker",
+                message="Not applicable (inside container)",
+            )
         return CheckResult(
             status="WARN",
             name="Docker",
@@ -334,11 +340,9 @@ def check_display() -> CheckResult:
 
     if is_running_in_docker():
         return CheckResult(
-            status="WARN",
+            status="SKIP",
             name="Display",
-            message="DISPLAY not set (in container)",
-            fix_suggestion="Pass display to container: "
-            "--docker-opts '-e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix'",
+            message="DISPLAY not set (pass -e DISPLAY for visualization apps)",
         )
 
     return CheckResult(
