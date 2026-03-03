@@ -143,11 +143,6 @@ For a quick start on the same machine, run these in separate terminals:
 
 ### Build the Application
 
-Clone the Holohub repository:
-
-```bash
-git clone https://github.com/nvidia-holoscan/holohub.git
-```
 
 Then, build and run the containerized application:
 
