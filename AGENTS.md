@@ -16,5 +16,5 @@ Projects live under `applications/`, `benchmarks/`, `operators/`, `gxf_extension
 ## References
 
 - [CLI Developer Guide](utilities/cli/CLI_DEV_GUIDE.md) — workflow tips, implementation invariants, and extension guide (portable across repos)
-- [CLI Reference](doc/cli_reference.md) — commands, flags, modes, environment variables
+- [CLI Reference](utilities/cli/README.md) — commands, flags, modes, environment variables
 - [Holoscan SDK User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/overview.html)

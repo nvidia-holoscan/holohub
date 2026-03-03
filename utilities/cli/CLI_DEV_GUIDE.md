@@ -1,14 +1,14 @@
 # CLI Developer Guide
 
 Reference for AI agents and developers working with or extending the CLI.
-For command/flag docs, see the [CLI Reference](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/doc/cli_reference.md).
+For command/flag docs, see the [CLI Reference](README.md).
 
 ## Agent Safety Rules
 
 1. Always `./holohub <cmd> --dryrun --verbose` before running any command for real.
 2. Never `./holohub build --local` or `./holohub run --local` without explicit user approval — they run directly in the host workspace, may modify files there, and require host dependencies to already be installed (no automatic package installation).
 3. Never hardcode repo names, command names, or path prefixes — the CLI is reused across repos via env vars.
-4. Check the project's README and `metadata.json` for architecture/platform requirements before building.
+4. Check the project's README and `metadata.json` for architecture/platform (e.g. x86_64, aarch64, IGX, Thor, DGX Spark) requirements before building.
 
 ## Implementation Invariants
 
@@ -62,7 +62,7 @@ Prefer container over `--local` to avoid modifying the host.
 
 ```bash
 ./holohub run-container <app>               # interactive shell, repo at /workspace/<name>
-./holohub run-container <app> -- <cmd>      # run a specific command (e.g. ./holohub env-info)
+./holohub run-container <app> -- <cmd>      # run a specific command inside the container (e.g. -- ./holohub env-info)
 ./holohub env-info                          # GPU, CUDA, Docker, Python diagnostics
 ```
 
@@ -71,7 +71,7 @@ Inside the shell: run cmake, ctest, or `./holohub <cmd> --local` directly.
 ### Resource management
 
 - `CMAKE_BUILD_PARALLEL_LEVEL=N` — cap parallel jobs to prevent OOM.
-- `./holohub clear-cache --build` — reset build dir only. Bare `./holohub clear-cache` also deletes `data/` (models, datasets).
+- `./holohub clear-cache --build` — reset build dir only. Bare `./holohub clear-cache` also deletes `data/` (models, datasets) and other cache directories (ask for approval before running).
 - `docker image prune` / `docker system prune` — reclaim disk.
 - Don't use `sudo ./holohub` — sudo filters `PATH` and other env vars.
 
@@ -85,6 +85,7 @@ Inside the shell: run cmake, ctest, or `./holohub <cmd> --local` directly.
 
 ### Project configuration
 
+- Each project's `metadata.json` drives automatic discovery, language selection, dependency tracking, Dockerfile resolution, run command templates, and mode definitions.
 - `metadata.json` modes must be self-contained (Docker opts, run opts, env vars).
 - `CMakeLists.txt` must guard inclusion behind `APP_<name>=ON` (or `OP_`/`EXT_`/`PKG_`).
 - Dockerfiles resolve by walking up parent dirs — siblings share a common-ancestor Dockerfile.
@@ -92,7 +93,7 @@ Inside the shell: run cmake, ctest, or `./holohub <cmd> --local` directly.
 **Metadata references** (for downstream repos without local access to HoloHub examples):
 
 - [Base project schema](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/utilities/metadata/project.schema.json) — all valid fields, types, and constraints
-- [CLI Reference > Modes](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/doc/cli_reference.md) — mode fields, path placeholders, build/run config
+- [CLI Reference > Modes](README.md#modes) — mode fields, path placeholders, build/run config
 - Examples: [simple app](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/applications/endoscopy_tool_tracking/python/metadata.json), [multi-mode with docker opts](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/applications/isaac_sim_holoscan_bridge/metadata.json), [multi-mode with build deps](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/workflows/ai_surgical_video/python/metadata.json)
 
 ## Source Layout
