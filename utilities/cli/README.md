@@ -197,7 +197,7 @@ Build (unless skipped) and launch the development container. Trailing arguments 
 **Usage:**
 
 ```bash
-./holohub run-container [project] [options] [-- docker run args...]
+./holohub run-container [project] [options] [-- command...]
 ```
 
 **Arguments:**
@@ -837,8 +837,8 @@ source ~/.bashrc
 
 - For options that look like arguments, use `=` to avoid ambiguity:
   `--run-args="--verbose"` instead of `--run-args "--verbose"`.
-- For `run-container`, pass raw `docker run` flags after `--`:
-  `./holohub run-container myapp -- --net=host --ipc=host`.
+- For `run-container`, pass a command to execute inside the container after `--`:
+  `./holohub run-container myapp -- ./holohub env-info`.
 - All CLI options use **hyphens** (`-`), not underscores (for example `--base-img`, not `--base_img`).
 - `sudo ./holohub` may not work correctly due to environment filtering (for example `PATH`).
 - To free disk during development: `docker image prune`, `docker buildx prune`, `docker system prune` (see [Docker docs](https://docs.docker.com/reference/cli/docker/)).

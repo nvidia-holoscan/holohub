@@ -151,7 +151,7 @@ class HoloHubCLI:
             "run-container",
             help="Build and launch the development container",
             parents=[container_build_argparse, container_run_argparse],
-            epilog="Any trailing arguments after ' -- ' are forwarded to 'docker run'",
+            epilog="Any arguments after ' -- ' are executed as a command inside the container",
         )
         self.subparsers["run-container"] = run_container
         run_container.add_argument("project", nargs="?", help="Project to run container for")

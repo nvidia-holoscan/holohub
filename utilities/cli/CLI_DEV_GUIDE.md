@@ -62,7 +62,7 @@ Prefer container over `--local` to avoid modifying the host.
 
 ```bash
 ./holohub run-container <app>               # interactive shell, repo at /workspace/<name>
-./holohub run-container <app> -- <cmd>      # run a specific command inside the container (e.g. -- ./holohub env-info)
+./holohub run-container <app> -- <cmd>      # run a one-off command instead of an interactive shell
 ./holohub env-info                          # GPU, CUDA, Docker, Python diagnostics
 ```
 
