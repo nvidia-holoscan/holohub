@@ -14,6 +14,22 @@ Each node is a Holoscan application.
 
 ![Endoscopy Image](docs/endoscopy_with_counter.png)
 
+## Quick Start
+
+Please refer to the [Build and Run](#build-and-run) section for detailed instructions on how to build and run the application.
+For a quick start on the same machine, run these in separate terminals:
+
+```bash
+# Terminal 1: Publisher (GPU + video data)
+./holohub run ucxx_endoscopy_tool_tracking publish
+
+# Terminal 2: Holoviz subscriber (displays rendered stream)
+./holohub run ucxx_endoscopy_tool_tracking subscribe_holoviz
+
+# Terminal 3: Overlay node (adds frame counter)
+./holohub run ucxx_endoscopy_tool_tracking overlay
+```
+
 ## Architecture
 
 ### Publisher Node (`publish`)
