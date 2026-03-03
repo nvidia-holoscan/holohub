@@ -305,8 +305,6 @@ class HoloHubContainer:
             options.extend(["--device", "/dev/nvhost-nvsched-gpu"])
         if os.path.exists("/dev/nvhost-sched-gpu"):
             options.extend(["--device", "/dev/nvhost-sched-gpu"])
-        if os.path.exists("/dev/nvidia0"):
-            options.extend(["--device", "/dev/nvidia0"])
         if os.path.exists("/dev/nvidia-modeset"):
             options.extend(["--device", "/dev/nvidia-modeset"])
         if os.path.exists("/usr/share/nvidia/nvoptix.bin"):
