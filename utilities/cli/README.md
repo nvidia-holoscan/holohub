@@ -192,7 +192,7 @@ Build the development container image for a project (or the default image if no 
 
 ### Run Container
 
-Build (unless skipped) and launch the development container. Trailing arguments after ` -- ` are passed to `docker run`.
+Build (unless skipped) and launch the development container. Trailing arguments after ` -- ` are joined into a single string and executed inside the container via `bash -c`.
 
 **Usage:**
 
