@@ -215,9 +215,18 @@ Build (unless skipped) and launch the development container. Trailing arguments 
 | `--verbose`         | Print variables passed to docker run            |
 | `--dryrun`          | Print commands without executing                |
 
+Without `-- command`, the container starts with the image's default entrypoint (typically an interactive shell). With `-- command`, the given command is executed inside the container instead.
+
 **Examples:**
 
 ```bash
+# Launch an interactive shell in the container (image default entrypoint)
+./holohub run-container
+
+# Execute a specific command inside the container
+./holohub run-container -- ./holohub lint
+
+# Skip rebuilding the container image
 ./holohub run-container myapp --no-docker-build
 ./holohub run-container --local-sdk-root /path/to/holoscan-sdk --img holohub:sdk-dev-latest
 ```

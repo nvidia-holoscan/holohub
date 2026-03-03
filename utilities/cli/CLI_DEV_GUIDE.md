@@ -3,6 +3,13 @@
 Reference for AI agents and developers working with or extending the CLI.
 For command/flag docs, see the [CLI Reference](README.md).
 
+> **Portability:** This guide applies to any repo built on the HoloHub CLI.
+> Examples use `./holohub`; downstream repos have their own entry point
+> (e.g. `./i4h`, `./isaac_os`), configured via `HOLOHUB_CMD_NAME`.
+> Currently `HOLOHUB_`-prefixed env vars are shared CLI infrastructure, not
+> HoloHub-specific. Substitute your repo's entry point wherever you
+> see `./holohub`.
+
 ## Agent Safety Rules
 
 1. Always `./holohub <cmd> --dryrun --verbose` before running any command for real.
@@ -16,7 +23,7 @@ For command/flag docs, see the [CLI Reference](README.md).
 |---|------|--------|
 | 1 | Container re-enters local | `build`/`run`/`install` in container mode build an image, then run the CLI with `--local` inside it. Local-mode changes affect both host and container execution. |
 | 2 | CLI flags override modes | Resolution: `resolve_mode` → `validate_mode` → `get_effective_build_config`/`get_effective_run_config`. Most flags override (do not merge with) mode values; `--run-args` is **appended** to the mode `run.command`. |
-| 3 | Expand placeholders first | Mode commands may contain `<holohub_app_source>`, `<holohub_data_dir>`, etc. Run through `build_holohub_path_mapping()` + `replace_placeholders()`. |
+| 3 | Expand placeholders first | Mode commands may contain `<{prefix}_app_source>`, `<{prefix}_data_dir>`, etc. (prefix = `HOLOHUB_PATH_PREFIX`, default `holohub`). Run through `build_holohub_path_mapping()` + `replace_placeholders()`. |
 | 4 | Use `run_command()` | Handles dry-run, sudo detection, fail-fast (`check=True`). Use `run_info_command()` for best-effort probes. |
 | 5 | Use `self.script_name` / `self.prefix` | `self.script_name` (from `HOLOHUB_CMD_NAME`) for user messages. `self.prefix` (from `HOLOHUB_PATH_PREFIX`) for placeholder resolution. |
 
@@ -27,7 +34,7 @@ For command/flag docs, see the [CLI Reference](README.md).
 **Phase 1 — Container setup (runs on host)**
 
 1. Build a Docker image with project dependencies (`docker build`). Skip with `--no-docker-build`.
-2. Launch a container (`docker run`) with the repo bind-mounted at `/workspace/holohub` and `HOLOHUB_BUILD_LOCAL=1` set in the environment.
+2. Launch a container (`docker run`) with the repo bind-mounted at `/workspace/<name>` (`HOLOHUB_WORKSPACE_NAME`, default `holohub`) and `HOLOHUB_BUILD_LOCAL=1` set in the environment.
 
 **Phase 2 — Build / run (runs inside the container)**
 
@@ -40,7 +47,7 @@ The container re-invokes the CLI with `--local` appended. For example, `./holohu
 | `install` | Same cmake build, then `cmake --install build/<app>` |
 | `test` | CTest via a CTest script |
 
-The cmake flag `-DAPP_<app>=ON` selects a single project (operators use `-DOP_<name>=ON`, extensions use `-DEXT_<name>=ON`). The build directory `build/<app>/` isolates per-project artifacts; this path is `HOLOHUB_BUILD_PARENT_DIR/<app>` (default parent is `<repo_root>/build`). Because the repo is bind-mounted, artifacts persist on the host after the container exits.
+The cmake flag `-DAPP_<app>=ON` selects a single project (operators use `-DOP_<name>=ON`, extensions use `-DEXT_<name>=ON`). The build directory `build/<app>/` isolates per-project artifacts; this path is `HOLOHUB_BUILD_PARENT_DIR/<app>` (default parent varies by repo; `<repo_root>/build` in HoloHub). Because the repo is bind-mounted, artifacts persist on the host after the container exits.
 
 `--local` bypasses both phases and runs cmake / the app directly on the host.
 
@@ -70,7 +77,7 @@ Use `--dryrun --local` on the host to see the exact cmake commands the CLI would
 
 ## Workflow
 
-> Examples use `./holohub`. Downstream repos have their own entrypoint (e.g. `./i4h`, `./isaac_os`) — set via `HOLOHUB_CMD_NAME`.
+> Examples use `./holohub` — substitute your repo's entry point (see portability note at top).
 
 ### Inspect before running
 
@@ -95,7 +102,7 @@ Add `--local` to bypass the Docker layer and see the underlying cmake / app comm
 ./holohub test <app> --ctest-options "-R unit_tests"   # filter tests by regex
 ```
 
-Default CTest script: `utilities/testing/holohub.container.ctest`. Override with `--ctest-script` or `HOLOHUB_CTEST_SCRIPT`.
+Default CTest script: `utilities/testing/holohub.container.ctest` (relative to the directory containing `utilities/`). Override with `--ctest-script` or `HOLOHUB_CTEST_SCRIPT`.
 
 ### Iterate fast
 
@@ -173,7 +180,7 @@ Everything after `--` is joined into a single string and executed via `bash -c`,
 
 ## Running CLI Tests
 
-Tests mock all hardware and Docker calls — no GPU or Docker required. CI runs them across Python 3.10–3.13.
+Tests mock all hardware and Docker calls — no GPU or Docker required. CI runs them across Python 3.10–3.13. Module paths below assume the working directory contains the `utilities/` package directly.
 
 ```bash
 python -m unittest utilities.cli.tests.test_cli
