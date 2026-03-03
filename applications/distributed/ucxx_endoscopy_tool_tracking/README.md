@@ -261,7 +261,7 @@ docker exec -it $(docker ps -q | head -n 1) \
 ## Related Applications
 
 - [**endoscopy_tool_tracking**](/applications/endoscopy_tool_tracking/README.md): Single-node version
-- [**ucx_endoscopy_tool_tracking**](/applications/distributed/ucxx_endoscopy_tool_tracking/): Two-node implementation with Holoscan SDK Fragments
+- [**ucx_endoscopy_tool_tracking**](/applications/distributed/ucx_endoscopy_tool_tracking/): Two-node implementation with Holoscan SDK Fragments
 - [**holoviz**](/applications/holoviz/): Visualization examples
 - [**ucxx_send_receive**](/operators/ucxx_send_receive/): UCXX operator examples
 
