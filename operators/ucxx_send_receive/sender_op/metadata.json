@@ -14,9 +14,9 @@
         },
         "language": ["C++"],
         "holoscan_sdk": {
-            "minimum_required_version": "3.8.0",
+            "minimum_required_version": "3.11.0",
             "tested_versions": [
-                "3.8.0"
+                "3.11.0"
             ]
         },
         "platforms": [

@@ -26,6 +26,21 @@
 #include <stdexcept>
 #include <vector>
 
+// UCXX connection setup uses a TCP socket handshake to exchange worker addresses before
+// creating the UCX endpoint. This is required because:
+//
+// 1) Out-of-band address exchange: UCX endpoints are created from a remote worker address
+//    (createEndpointFromWorkerAddress). That address must be obtained via some channel
+//    outside UCX—we cannot use UCX to send it until a connection exists. TCP sockets
+//    provide a simple, portable way to perform this bootstrap.
+//
+// 2) Transport selection: With UCX_TLS=all, UCX chooses the best transport(s) automatically.
+//    On systems where CUDA (or other non-TCP) transports are preferred, using this
+//    explicit handshake and then creating the endpoint from the exchanged address allows
+//    UCX to negotiate and enable all available transports correctly. Without it, the
+//    connection path can lead to suboptimal transport selection (e.g. CUDA not being
+//    used even when it is the best option).
+//
 namespace holoscan::ops {
 
 void UcxxEndpoint::add_close_callback(std::function<void(ucs_status_t)> callback) {
@@ -65,6 +80,7 @@ void UcxxEndpoint::setup(holoscan::ComponentSpec& spec) {
 
 namespace {
 
+// Control-plane socket for out-of-band worker address exchange (see file-level comment).
 int create_listen_socket(const std::string& hostname, int port) {
   int fd = ::socket(AF_INET, SOCK_STREAM, 0);
   if (fd < 0) {
@@ -98,6 +114,7 @@ int create_listen_socket(const std::string& hostname, int port) {
   return fd;
 }
 
+// Client-side control socket used only for the initial worker-address handshake.
 int connect_socket(const std::string& hostname, int port) {
   int fd = ::socket(AF_INET, SOCK_STREAM, 0);
   if (fd < 0) {
@@ -158,11 +175,13 @@ void set_handshake_timeout(int socket_fd, int timeout_seconds) {
   ::setsockopt(socket_fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
 }
 
+// Send local UCX worker address over the control socket so the peer can create an endpoint.
 bool send_worker_address(int fd, const std::string& address) {
   const uint64_t len = static_cast<uint64_t>(address.size());
   return send_all(fd, &len, sizeof(len)) && send_all(fd, address.data(), address.size());
 }
 
+// Receive peer's UCX worker address from the control socket for createEndpointFromWorkerAddress.
 std::string recv_worker_address(int fd) {
   constexpr uint64_t kMaxAddressLen = 64 * 1024;
   uint64_t len = 0;
@@ -210,6 +229,8 @@ void UcxxEndpoint::initialize() {
   is_alive_condition_->event_state(holoscan::AsynchronousEventState::EVENT_WAITING);
 
   if (listen_) {
+    // Listen on control port; each accepted connection does worker-address exchange then UCX
+    // endpoint creation, so UCX can use the full transport set (e.g. CUDA when appropriate).
     listen_fd_ = create_listen_socket(hostname_.get(), port_.get());
     const int saved_errno = errno;
     if (listen_fd_ < 0) {
@@ -262,6 +283,7 @@ void UcxxEndpoint::initialize() {
       }
     });
   } else {
+    // Connect over TCP to exchange worker addresses, then create UCX endpoint from peer address.
     int fd = connect_socket(hostname_.get(), port_.get());
     const int saved_errno = errno;
     if (fd < 0) {

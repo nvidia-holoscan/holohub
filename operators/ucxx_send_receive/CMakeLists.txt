@@ -17,7 +17,7 @@ cmake_minimum_required(VERSION 3.20)
 
 project(ucxx_send_receive_operators LANGUAGES CXX)
 
-find_package(holoscan 3.8 REQUIRED CONFIG)
+find_package(holoscan 3.11 REQUIRED CONFIG)
 
 add_library(ucxx_common STATIC
   ucxx_endpoint.cpp
