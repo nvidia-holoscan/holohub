@@ -20,19 +20,71 @@ For command/flag docs, see the [CLI Reference](README.md).
 | 4 | Use `run_command()` | Handles dry-run, sudo detection, fail-fast (`check=True`). Use `run_info_command()` for best-effort probes. |
 | 5 | Use `self.script_name` / `self.prefix` | `self.script_name` (from `HOLOHUB_CMD_NAME`) for user messages. `self.prefix` (from `HOLOHUB_PATH_PREFIX`) for placeholder resolution. |
 
+## Execution Model
+
+`build`, `run`, `install`, and `test` follow a two-phase container pattern by default (without `--local`):
+
+**Phase 1 — Container setup (runs on host)**
+
+1. Build a Docker image with project dependencies (`docker build`). Skip with `--no-docker-build`.
+2. Launch a container (`docker run`) with the repo bind-mounted at `/workspace/holohub` and `HOLOHUB_BUILD_LOCAL=1` set in the environment.
+
+**Phase 2 — Build / run (runs inside the container)**
+
+The container re-invokes the CLI with `--local` appended. For example, `./holohub build myapp` on the host becomes `./holohub build myapp --local` inside the container. The local handler runs the underlying tools:
+
+| Command | What runs inside the container |
+|---------|-------------------------------|
+| `build` | `cmake -B build/<app> -S . -DAPP_<app>=ON [opts] && cmake --build build/<app>` |
+| `run` | Same cmake build, then the mode's `run.command` with placeholders expanded |
+| `install` | Same cmake build, then `cmake --install build/<app>` |
+| `test` | CTest via a CTest script |
+
+The cmake flag `-DAPP_<app>=ON` selects a single project (operators use `-DOP_<name>=ON`, extensions use `-DEXT_<name>=ON`). The build directory `build/<app>/` isolates per-project artifacts; this path is `HOLOHUB_BUILD_PARENT_DIR/<app>` (default parent is `<repo_root>/build`). Because the repo is bind-mounted, artifacts persist on the host after the container exits.
+
+`--local` bypasses both phases and runs cmake / the app directly on the host.
+
+### Why this matters
+
+By default (without `--local` or relevant environment variables) every cmake, python, and application command executes **inside the container**, not on the host. To run those commands manually — customize the build directory, add cmake flags, or debug a failure — enter the container first, then run whatever you need:
+
+```bash
+# 1. Enter the container (builds the image if needed, then opens an interactive shell):
+./holohub run-container <app>
+
+# 2. Inside the container, HOLOHUB_BUILD_LOCAL=1 is already set, so all
+#    ./holohub commands behave as --local. Run the standard CLI build:
+./holohub build <app>
+
+# Or run cmake directly with custom options — e.g. a flat build directory:
+cmake -B build -S . -DAPP_<app>=ON -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_PREFIX_PATH=/opt/nvidia/holoscan/lib
+cmake --build build
+```
+
+Use `--dryrun --local` on the host to see the exact cmake commands the CLI would generate, then adapt them inside the container:
+
+```bash
+./holohub build <app> --dryrun --local    # prints: cmake -B build/<app> -S . -DAPP_<app>=ON ...
+```
+
 ## Workflow
 
 > Examples use `./holohub`. Downstream repos have their own entrypoint (e.g. `./i4h`, `./isaac_os`) — set via `HOLOHUB_CMD_NAME`.
 
 ### Inspect before running
 
+`--dryrun` prints every command (prefixed `[dryrun]`) without executing anything. It works with every CLI command.
+
+Add `--local` to bypass the Docker layer and see the underlying cmake / app commands directly. Without `--local`, you see the `docker build` + `docker run` wrapper instead.
+
 ```bash
-./holohub build <app> --dryrun              # full Docker build command
-./holohub run <app> --dryrun --local        # cmake + app run with resolved placeholders
-./holohub test <app> --dryrun --verbose     # full test pipeline (docker, cmake, ctest)
+./holohub build <app> --dryrun --local      # cmake configure + build commands
+./holohub run <app> [mode] --dryrun --local # cmake + build + app run (with resolved placeholders)
+./holohub build <app> --dryrun              # docker build + docker run wrapping the local build
 ```
 
-`--verbose` adds variable dumps (build-args, docker-run flags, PYTHONPATH, data paths).
+`--verbose` adds env variable dumps, path mappings, and Docker launch details. In local mode, `--dryrun` already implies the same env output as `--verbose`.
 
 ### Test
 
@@ -58,15 +110,20 @@ Check for existing images first: `docker images | grep <project>`.
 
 ### Debug inside the container
 
-Prefer container over `--local` to avoid modifying the host.
+Prefer container over `--local` to avoid modifying the host. See [Execution Model](#execution-model) for how `build`/`run` re-enter the container.
 
 ```bash
 ./holohub run-container <app>               # interactive shell, repo at /workspace/<name>
-./holohub run-container <app> -- <cmd>      # run a one-off command instead of an interactive shell
+./holohub run-container <app> -- <cmd>      # run a one-off command (passed to bash -c)
 ./holohub env-info                          # GPU, CUDA, Docker, Python diagnostics
 ```
 
-Inside the shell: run cmake, ctest, or `./holohub <cmd> --local` directly.
+Everything after `--` is joined into a single string and executed via `bash -c`, so standard shell syntax works inside quotes. Quote the command to use shell operators (`&&`, `|`, `;`), since the host shell would consume them otherwise:
+
+```bash
+./holohub run-container <app> -- "./holohub build <app> && ./holohub run <app>"
+./holohub run-container <app> -- "cmake -B build -S . -DAPP_<app>=ON && cmake --build build"
+```
 
 ### Resource management
 
