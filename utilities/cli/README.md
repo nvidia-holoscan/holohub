@@ -36,7 +36,7 @@ Run the CLI from the repository root:
 - `<arg>` means a required positional argument.
 - `[arg]` means an optional positional argument.
 - `[options]` means one or more optional flags.
-- `--` marks the end of CLI options; anything after it is forwarded to the underlying command (for example `docker run`).
+- `--` marks the end of CLI options; anything after it is executed as a command inside the container (supported by `run-container`).
 
 ---
 
