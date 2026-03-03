@@ -27,6 +27,8 @@ from pathlib import Path
 
 import mkdocs_gen_files
 
+from generate_api_docs import get_api_reference_for_operator
+
 # log stuff
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -798,6 +800,13 @@ def create_page(
 
     # Append the text to the output
     output_text += readme_text
+
+    # Append API Reference section for operator pages (non-archived only)
+    if not archive_version and len(relative_dir.parts) > 0 and relative_dir.parts[0] == "operators":
+        op_dir = str(relative_dir)
+        api_ref = get_api_reference_for_operator(op_dir, git_repo_path)
+        if api_ref:
+            output_text += "\n\n" + api_ref
 
     # Append the version selector script at the end
     if version_script_html:

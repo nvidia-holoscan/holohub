@@ -5,6 +5,7 @@ install/
 install-*/
 dist/
 _CPack_Packages/
+doc/website/_build/
 
 # Data
 data/
