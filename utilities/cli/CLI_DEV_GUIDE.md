@@ -15,7 +15,14 @@ For command/flag docs, see the [CLI Reference](README.md).
 1. Always `./holohub <cmd> --dryrun --verbose` before running any command for real.
 2. Never `./holohub build --local` or `./holohub run --local` without explicit user approval — they run directly in the host workspace, may modify files there, and require host dependencies to already be installed (no automatic package installation).
 3. Never hardcode repo names, command names, or path prefixes — the CLI is reused across repos via env vars.
-4. Check the project's README and `metadata.json` for architecture/platform (e.g. x86_64, aarch64, IGX, Thor, DGX Spark) requirements before building.
+4. Check the project's README and `metadata.json` for architecture/platform (e.g. x86_64, aarch64, IGX, Thor, DGX Spark) requirements before building.  The project may not support all platforms, do not suggest building on platforms that are not supported unless the user explicitly asks for it.
+5. By default, do not suggest running cmake, python, or application binaries directly on the host. The CLI runs everything inside a container by default. If a user needs to run commands manually (custom cmake flags, flat build directory, debugging), the answer is `./holohub run-container <app>` first, then run commands inside. Raw host commands require the same explicit user approval as `--local`.
+
+## Mental Model
+
+The CLI is a **container-first** build system. Every `build`, `run`, `install`, and `test` command builds a Docker image and then re-invokes itself with `--local` inside that container. The only host-side commands are `docker build` and `docker run`; cmake, python, and application processes execute inside the container where dependencies are guaranteed to exist.
+
+When a user asks how to customize a build or run — change the build directory, add cmake flags, use a different build type — the answer is `./holohub run-container <app>` first, then run commands inside (see [Why this matters](#why-this-matters) for examples).
 
 ## Implementation Invariants
 
