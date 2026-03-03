@@ -14,6 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# See CLI_DEV_GUIDE.md for more information about the CLI and how to use it.
+# See README.md for command and flag reference.
+
 import sys
 
 # Python version check - must be before other imports that use Python 3.10+ features
