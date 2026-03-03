@@ -92,7 +92,7 @@ Inside the shell: run cmake, ctest, or `./holohub <cmd> --local` directly.
 
 **Metadata references** (for downstream repos without local access to HoloHub examples):
 
-- [Base project schema](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/utilities/metadata/project.schema.json) — all valid fields, types, and constraints
+- [Base project schema](../metadata/project.schema.json) — all valid fields, types, and constraints
 - [CLI Reference > Modes](README.md#modes) — mode fields, path placeholders, build/run config
 - Examples: [simple app](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/applications/endoscopy_tool_tracking/python/metadata.json), [multi-mode with docker opts](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/applications/isaac_sim_holoscan_bridge/metadata.json), [multi-mode with build deps](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/workflows/ai_surgical_video/python/metadata.json)
 
@@ -128,4 +128,6 @@ If a container image is available, prefer running inside it for a clean environm
 
 ```bash
 ./holohub run-container --no-docker-build -- python -m unittest utilities.cli.tests.test_cli
+./holohub run-container --no-docker-build -- python -m unittest utilities.cli.tests.test_container
+./holohub run-container --no-docker-build -- python -m unittest utilities.cli.tests.test_util
 ```

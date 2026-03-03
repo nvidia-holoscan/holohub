@@ -19,16 +19,47 @@ from collections.abc import Iterable, Iterator, Sequence
 from pathlib import Path
 
 METADATA_DIRECTORY_CONFIG = {
-    "applications": {"ignore_patterns": ["template"], "metadata_is_required": True},
-    "benchmarks": {},
-    "gxf_extensions": {"ignore_patterns": ["utils"], "metadata_is_required": True},
-    "operators": {"ignore_patterns": ["template"], "metadata_is_required": True},
-    "pkg": {"metadata_is_required": False},
-    "tutorials": {"ignore_patterns": ["template"], "metadata_is_required": False},
-    "workflows": {"ignore_patterns": ["template"], "metadata_is_required": True},
+    "applications": {
+        "ignore_patterns": ["template"],
+        "metadata_is_required": True,
+        "schema": "application",
+    },
+    "benchmarks": {"schema": "benchmark"},
+    "gxf_extensions": {
+        "ignore_patterns": ["utils"],
+        "metadata_is_required": True,
+        "schema": "gxf_extension",
+    },
+    "operators": {
+        "ignore_patterns": ["template"],
+        "metadata_is_required": True,
+        "schema": "operator",
+    },
+    "pkg": {"metadata_is_required": False, "schema": "package"},
+    "tutorials": {
+        "ignore_patterns": ["template"],
+        "metadata_is_required": False,
+        "schema": "tutorial",
+    },
+    "workflows": {
+        "ignore_patterns": ["template"],
+        "metadata_is_required": True,
+        "schema": "workflow",
+    },
 }
 
+SCHEMA_DIR = Path(__file__).resolve().parent
+BASE_SCHEMA_PATH = SCHEMA_DIR / "project.schema.json"
+
 DEFAULT_INCLUDE_PATHS = tuple(METADATA_DIRECTORY_CONFIG.keys())
+
+
+def get_schema_path(directory: str | os.PathLike) -> Path:
+    """Return the schema file path for a given project directory name."""
+    dir_name = Path(directory).name
+    config = METADATA_DIRECTORY_CONFIG.get(dir_name, {})
+    schema_name = config.get("schema", dir_name)
+    return SCHEMA_DIR / f"{schema_name}.schema.json"
 
 
 def normalize_language(language: str | None, *, strict: bool = False) -> str:

@@ -57,7 +57,7 @@ class ProjectTypeData:
 
     @property
     def schema_filepath(self) -> str:
-        return f"{self.folder_name}/metadata.schema.json"
+        return f"utilities/metadata/{self.schema_name}.schema.json"
 
     @property
     def schema(self) -> dict:

@@ -25,15 +25,19 @@ from referencing.jsonschema import DRAFT4
 
 try:
     from utilities.metadata.utils import (
+        BASE_SCHEMA_PATH,
         DEFAULT_INCLUDE_PATHS,
         METADATA_DIRECTORY_CONFIG,
+        get_schema_path,
         iter_metadata_paths,
     )
 except ModuleNotFoundError:
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
     from utilities.metadata.utils import (
+        BASE_SCHEMA_PATH,
         DEFAULT_INCLUDE_PATHS,
         METADATA_DIRECTORY_CONFIG,
+        get_schema_path,
         iter_metadata_paths,
     )
 
@@ -131,14 +135,12 @@ def check_name_matches_readme(metadata_path, json_data):
 
 
 def validate_json(json_data, directory):
-    BASE_SCHEMA = "utilities/metadata/project.schema.json"
-
-    # Describe the schema.
-    with open(BASE_SCHEMA) as file:
+    with open(BASE_SCHEMA_PATH) as file:
         base_schema = json.load(file)
     registry = Registry().with_resource(base_schema["$id"], DRAFT4.create_resource(base_schema))
 
-    with open(directory + "/metadata.schema.json", "r") as file:
+    schema_path = get_schema_path(directory)
+    with open(schema_path, "r") as file:
         try:
             execute_api_schema = json.load(file)
         except json.decoder.JSONDecodeError as err:

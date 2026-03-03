@@ -45,7 +45,7 @@ import utilities.cli.util as holohub_cli_util
 import utilities.metadata.gather_metadata as metadata_util
 from utilities.cli.container import HoloHubContainer
 from utilities.cli.util import Color
-from utilities.metadata.utils import list_normalized_languages, normalize_language
+from utilities.metadata.utils import get_schema_path, list_normalized_languages, normalize_language
 
 
 class HoloHubCLI:
@@ -2114,13 +2114,12 @@ class HoloHubCLI:
                 f"Failed to read metadata.json ({exc}). File location: {metadata_path}"
             )
         is_valid, message = metadata_validator.validate_json(metadata_contents, str(schema_root))
+        schema_file = get_schema_path(schema_root)
         if not is_valid:
             holohub_cli_util.fatal(
-                f"Generated metadata.json failed validation against {schema_root / 'metadata.schema.json'}:\n{message}"
+                f"Generated metadata.json failed validation against {schema_file}:\n{message}"
             )
-        print(
-            Color.green(f"Validated metadata.json against {schema_root / 'metadata.schema.json'}")
-        )
+        print(Color.green(f"Validated metadata.json against {schema_file}"))
 
     def handle_vscode(self, args: argparse.Namespace) -> None:
         """Builds a dev container and launches VS Code with proper devcontainer configuration."""
@@ -2264,9 +2263,8 @@ class HoloHubCLI:
         metadata_path = project_dir / "metadata.json"
         src_dir = project_dir / "src"
         main_file = next(src_dir.glob(f"{actual_slug}.*"), None)
-        schema_root = Path(__file__).resolve().parents[2] / "applications"
-        if not (schema_root / "metadata.schema.json").exists():
-            schema_root = None
+        schema_path = get_schema_path("applications")
+        schema_root = "applications" if schema_path.exists() else None
         self.validate_generated_metadata(metadata_path, schema_root)
 
         msg_next = ""
