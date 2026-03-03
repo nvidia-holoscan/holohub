@@ -22,7 +22,7 @@ For command/flag docs, see the [CLI Reference](README.md).
 | # | Rule | Detail |
 |---|------|--------|
 | 1 | Container re-enters local | `build`/`run`/`install` in container mode build an image, then run the CLI with `--local` inside it. Local-mode changes affect both host and container execution. |
-| 2 | CLI flags override modes | Resolution: `resolve_mode` → `validate_mode` → `get_effective_build_config`/`get_effective_run_config`. Most flags override (do not merge with) mode values; `--run-args` is **appended** to the mode `run.command`. |
+| 2 | CLI flags override modes | Resolution: `resolve_mode` → `validate_mode` → `get_effective_build_config`/`get_effective_run_config`. Most flags override (do not merge with) mode values; `--run-args` is **appended** to the argument list passed to `docker run` or the application process (not inserted into the command string). |
 | 3 | Expand placeholders first | Mode commands may contain `<{prefix}_app_source>`, `<{prefix}_data_dir>`, etc. (prefix = `HOLOHUB_PATH_PREFIX`, default `holohub`). Run through `build_holohub_path_mapping()` + `replace_placeholders()`. |
 | 4 | Use `run_command()` | Handles dry-run, sudo detection, fail-fast (`check=True`). Use `run_info_command()` for best-effort probes. |
 | 5 | Use `self.script_name` / `self.prefix` | `self.script_name` (from `HOLOHUB_CMD_NAME`) for user messages. `self.prefix` (from `HOLOHUB_PATH_PREFIX`) for placeholder resolution. |
@@ -102,7 +102,7 @@ Add `--local` to bypass the Docker layer and see the underlying cmake / app comm
 ./holohub test <app> --ctest-options "-R unit_tests"   # filter tests by regex
 ```
 
-Default CTest script: `utilities/testing/holohub.container.ctest` (relative to the directory containing `utilities/`). Override with `--ctest-script` or `HOLOHUB_CTEST_SCRIPT`.
+Default CTest script: `utilities/testing/holohub.container.ctest` (relative to the directory containing `utilities/`). Override with `--ctest-script` or `HOLOHUB_CTEST_SCRIPT`. Downstream repos typically override this in their entry-point script — check the value of `HOLOHUB_CTEST_SCRIPT` there.
 
 ### Iterate fast
 
@@ -180,12 +180,18 @@ Everything after `--` is joined into a single string and executed via `bash -c`,
 
 ## Running CLI Tests
 
-Tests mock all hardware and Docker calls — no GPU or Docker required. CI runs them across Python 3.10–3.13. Module paths below assume the working directory contains the `utilities/` package directly.
+Tests mock all hardware and Docker calls — no GPU or Docker required. CI runs them across Python 3.10–3.13. Module paths below assume the working directory contains the `utilities/` package directly (the repo root in HoloHub). Downstream repos that vendor the CLI under a subdirectory (e.g. `tools/`) should set `PYTHONPATH` to the parent of `utilities/`:
 
 ```bash
+# HoloHub (utilities/ at repo root):
 python -m unittest utilities.cli.tests.test_cli
 python -m unittest utilities.cli.tests.test_container
 python -m unittest utilities.cli.tests.test_util
+
+# Downstream repos where utilities/ lives under tools/:
+PYTHONPATH=tools python -m unittest utilities.cli.tests.test_cli
+PYTHONPATH=tools python -m unittest utilities.cli.tests.test_container
+PYTHONPATH=tools python -m unittest utilities.cli.tests.test_util
 ```
 
 If a container image is available, prefer running inside it for a clean environment:
