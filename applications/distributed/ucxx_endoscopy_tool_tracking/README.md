@@ -139,16 +139,7 @@ For a quick start on the same machine, run these in separate terminals:
 
 - Endoscopy sample video dataset (automatically downloaded during build)
 
-## Build and Run
-
-### Build the Application
-
-
-Then, build and run the containerized application:
-
-```bash
-./holohub build ucxx_endoscopy_tool_tracking
-```
+## Run the Application
 
 ### Run Publisher Node
 
