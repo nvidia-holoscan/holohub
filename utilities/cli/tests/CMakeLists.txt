@@ -42,7 +42,7 @@ add_test(
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 set_tests_properties(test_holohub_lint PROPERTIES
-    PASS_REGULAR_EXPRESSION "ruff check --ignore.*isort -c.*black --check.*cpplint.*codespell.*cmakelint"
+    PASS_REGULAR_EXPRESSION "pre-commit run --all-files"
 )
 add_test(
     NAME test_holohub_lint_fix
@@ -50,7 +50,7 @@ add_test(
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 set_tests_properties(test_holohub_lint_fix PROPERTIES
-    PASS_REGULAR_EXPRESSION "ruff check --fix.*isort.*black.*codespell.*cpplint"  # TODO: cmakelint missing
+    PASS_REGULAR_EXPRESSION "pre-commit run --all-files"
 )
 
 add_test(
