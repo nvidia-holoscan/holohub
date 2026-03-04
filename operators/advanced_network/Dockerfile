@@ -107,7 +107,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN python3 -m pip install --no-cache-dir --break-system-packages \
         pytest \
         pyyaml \
-        scapy
+        scapy \
+        holoscan==${HOLOSCAN_DEB_REMOTE_VERSION} \
+    && SITE_PACKAGES=$(python3 -c "import site; print(site.getsitepackages()[0])") \
+    && chmod -R a+w ${SITE_PACKAGES}/holoscan-*.dist-info/ \
+    && chmod -R a+rw ${SITE_PACKAGES}/holoscan
 
 # ==============================================================
 # dpdk-deps: Build upstream DPDK from source
@@ -240,6 +244,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libglew-dev \
     cuda-nvml-dev-12-6 \
     cuda-nvtx-12-6 \
+    libvulkan1 \
+    xvfb \
+    x11vnc \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy and extract the Rivermax SDK
