@@ -14,7 +14,6 @@
 # limitations under the License.
 
 # import cupy as cp
-import pickle
 
 import numpy as np
 import scipy.io as sio

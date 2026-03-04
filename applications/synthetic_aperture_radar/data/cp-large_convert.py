@@ -15,11 +15,11 @@
 
 import os
 
-# import cupy as cp
-import pickle
-
 import numpy as np
 import scipy.io as sio
+
+# import cupy as cp
+
 
 prefix = "./GOTCHA-CP_Disc1/DATA/pass1/HH"
 output_filename = "gotcha-cp-td-os.dat"

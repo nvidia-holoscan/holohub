@@ -68,13 +68,6 @@ repos:
         exclude: ^applications/holoviz/template/cookiecutter
         pass_filenames: true
 
-      - id: clang-format
-        name: clang-format
-        entry: clang-format --style=file --sort-includes=0 -i
-        language: system
-        types_or: [c, c++, cuda]
-        pass_filenames: true
-
       # CMake linting
       - id: cmakelint
         name: cmakelint
