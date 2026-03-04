@@ -16,3 +16,8 @@ infor
 INFOR
 assertIn
 ABD
+bu
+dne
+unexpect
+activ
+
