@@ -151,7 +151,6 @@ def _parse_compound_file(xml_path: Path) -> dict | None:
     parameters = []
 
     for section in compounddef.findall("sectiondef"):
-        section_kind = section.get("kind", "")
         for member in section.findall("memberdef"):
             parsed = _parse_member_def(member)
             if parsed is None:
@@ -468,7 +467,6 @@ def _format_cpp_class_md(class_info: dict) -> str:
     """Format a single C++ class as Markdown API reference."""
     lines = []
     name = class_info["name"]
-    short_name = name.split("::")[-1]
     bases = class_info.get("base_classes", [])
     desc = class_info.get("description", "")
 
@@ -676,7 +674,6 @@ def build_api_reference_map(git_repo_path: Path) -> dict:
 
     for metadata_path in operators_dir.rglob("metadata.json"):
         metadata_dir = metadata_path.parent
-        op_rel = str(metadata_dir.relative_to(git_repo_path))
 
         # Look for pure Python sources
         python_dir = metadata_dir / "python"
