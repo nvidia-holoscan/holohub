@@ -364,11 +364,12 @@ def _parse_pydoc_hpp(pydoc_path: Path) -> dict | None:
         return None
 
     # Extract namespace to get class name: namespace ClassName {
-    ns_match = re.search(r"namespace\s+(\w+)\s*\{", content)
+    # Also handles C++17 inline nested namespace syntax, e.g. namespace holoscan::doc::AJASourceOp {
+    ns_match = re.search(r"namespace\s+([\w:]+)\s*\{", content)
     if not ns_match:
         return None
 
-    class_name = ns_match.group(1)
+    class_name = ns_match.group(1).split("::")[-1]
 
     # Extract PYDOC entries: PYDOC(name, R"doc(...)doc")
     pydoc_pattern = re.compile(
