@@ -64,11 +64,11 @@ By default (without `--local` or relevant environment variables) every cmake, py
 
 ```bash
 # 1. Enter the container (builds the image if needed, then opens an interactive shell):
-./holohub run-container <app>
+./holohub run-container <app> [mode]
 
 # 2. Inside the container, HOLOHUB_BUILD_LOCAL=1 is already set, so all
 #    ./holohub commands behave as --local. Run the standard CLI build:
-./holohub build <app>
+./holohub build <app> [mode]
 
 # Or run cmake directly with custom options — e.g. a flat build directory:
 cmake -B build -S . -DAPP_<app>=ON -DCMAKE_BUILD_TYPE=Release \
@@ -79,7 +79,7 @@ cmake --build build
 Use `--dryrun --local` on the host to see the exact cmake commands the CLI would generate, then adapt them inside the container:
 
 ```bash
-./holohub build <app> --dryrun --local    # prints: cmake -B build/<app> -S . -DAPP_<app>=ON ...
+./holohub build <app> [mode] --dryrun --local    # prints: cmake -B build/<app> -S . -DAPP_<app>=ON ...
 ```
 
 ## Workflow
@@ -93,9 +93,9 @@ Use `--dryrun --local` on the host to see the exact cmake commands the CLI would
 Add `--local` to bypass the Docker layer and see the underlying cmake / app commands directly. Without `--local`, you see the `docker build` + `docker run` wrapper instead.
 
 ```bash
-./holohub build <app> --dryrun --local      # cmake configure + build commands
+./holohub build <app> [mode] --dryrun --local      # cmake configure + build commands
 ./holohub run <app> [mode] --dryrun --local # cmake + build + app run (with resolved placeholders)
-./holohub build <app> --dryrun              # docker build + docker run wrapping the local build
+./holohub build <app> [mode] --dryrun              # docker build + docker run wrapping the local build
 ```
 
 `--verbose` adds env variable dumps, path mappings, and Docker launch details. In local mode, `--dryrun` already implies the same env output as `--verbose`.
