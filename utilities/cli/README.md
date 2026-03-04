@@ -164,14 +164,15 @@ Build the development container image for a project (or the default image if no 
 **Usage:**
 
 ```bash
-./holohub build-container [project] [options]
+./holohub build-container [project] [mode] [options]
 ```
 
 **Arguments:**
 
-| Argument  | Description                               |
-| --------- | ----------------------------------------- |
-| `project` | (Optional) Project to build container for |
+| Argument  | Description                                                                                     |
+| --------- | ----------------------------------------------------------------------------------------------- |
+| `project` | (Optional) Project to build container for                                                       |
+| `mode`    | (Optional) Mode from `metadata.json`. Applies mode's `build.docker_build_args` to docker build. |
 
 **Options:** All [container build](#container-build-options) options, plus:
 
@@ -185,6 +186,7 @@ Build the development container image for a project (or the default image if no 
 
 ```bash
 ./holohub build-container myapp
+./holohub build-container myapp aja           # Build with AJA mode's docker_build_args
 ./holohub build-container myapp --extra-scripts sccache --no-cache
 ```
 
@@ -197,14 +199,15 @@ Build (unless skipped) and launch the development container. Trailing arguments 
 **Usage:**
 
 ```bash
-./holohub run-container [project] [options] [-- command...]
+./holohub run-container [project] [mode] [options] [-- command...]
 ```
 
 **Arguments:**
 
-| Argument  | Description                             |
-| --------- | --------------------------------------- |
-| `project` | (Optional) Project to run container for |
+| Argument  | Description                                                                                                        |
+| --------- | ------------------------------------------------------------------------------------------------------------------ |
+| `project` | (Optional) Project to run container for                                                                            |
+| `mode`    | (Optional) Mode from `metadata.json`. Applies mode's `build.docker_build_args` and `run.docker_run_args` to container. |
 
 **Options:** All [container build](#container-build-options) and [container run](#container-run-options) options, plus:
 
@@ -233,6 +236,9 @@ Without `-- command`, the container starts with the image's default entrypoint (
 
 # Multi-statement Python: use semicolons and wrap in quotes
 ./holohub run-container myapp -- 'python3 -c "import os; print(os.environ.get(\"HOME\", \"NOT SET\"))"'
+
+# Use a mode's docker args
+./holohub run-container myapp aja
 
 # Skip rebuilding the container image
 ./holohub run-container myapp --no-docker-build
@@ -624,6 +630,8 @@ Applications can define **modes** in `metadata.json`: named configurations for d
 ./holohub modes <project>                  # List available modes
 ./holohub run <project> <mode>             # Run with a specific mode
 ./holohub build <project> <mode>           # Build with a specific mode
+./holohub build-container <project> <mode> # Build container with mode's docker_build_args
+./holohub run-container <project> <mode>   # Launch container with mode's docker args
 ./holohub run <project>                    # Uses default_mode if defined
 ```
 

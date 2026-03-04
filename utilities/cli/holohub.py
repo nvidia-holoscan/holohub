@@ -139,6 +139,9 @@ class HoloHubCLI:
         self.subparsers["build-container"] = build_container
         build_container.add_argument("project", nargs="?", help="Project to build container for")
         build_container.add_argument(
+            "mode", nargs="?", help="Mode to build container for (optional)"
+        )
+        build_container.add_argument(
             "--verbose", action="store_true", help="Print variables passed to docker build command"
         )
         build_container.add_argument(
@@ -158,6 +161,7 @@ class HoloHubCLI:
         )
         self.subparsers["run-container"] = run_container
         run_container.add_argument("project", nargs="?", help="Project to run container for")
+        run_container.add_argument("mode", nargs="?", help="Mode to run container for (optional)")
         run_container.add_argument(
             "--verbose", action="store_true", help="Print variables passed to docker run command"
         )
@@ -762,6 +766,20 @@ class HoloHubCLI:
 
     def handle_build_container(self, args: argparse.Namespace) -> None:
         """Handle build-container command"""
+        # Resolve mode for docker_build_args if a project with modes is specified
+        build_args = args.build_args
+        if args.project:
+            project_data = self.find_project(args.project, language=getattr(args, "language", None))
+            mode_name, mode_config = self.resolve_mode(project_data, getattr(args, "mode", None))
+            if mode_config:
+                self.validate_mode(
+                    args, mode_name, mode_config, project_data, getattr(args, "mode", None)
+                )
+                effective = self.get_effective_build_config(args, mode_config)
+                build_args = effective.get("build_args") or build_args
+                if mode_name:
+                    print(f"Building container for {args.project} in '{mode_name}' mode")
+
         container = self._make_project_container(
             project_name=args.project,
             language=args.language if hasattr(args, "language") else None,
@@ -772,13 +790,29 @@ class HoloHubCLI:
             base_img=args.base_img,
             img=args.img,
             no_cache=args.no_cache,
-            build_args=args.build_args,
+            build_args=build_args,
             cuda_version=getattr(args, "cuda", None),
             extra_scripts=getattr(args, "extra_scripts", []),
         )
 
     def handle_run_container(self, args: argparse.Namespace) -> None:
         """Handle run-container command"""
+        # Resolve mode for docker_build_args / docker_run_args if project with modes
+        build_args = args.build_args
+        docker_opts = args.docker_opts
+        if args.project:
+            project_data = self.find_project(args.project, language=getattr(args, "language", None))
+            mode_name, mode_config = self.resolve_mode(project_data, getattr(args, "mode", None))
+            if mode_config:
+                self.validate_mode(
+                    args, mode_name, mode_config, project_data, getattr(args, "mode", None)
+                )
+                effective_build = self.get_effective_build_config(args, mode_config)
+                build_args = effective_build.get("build_args") or build_args
+                docker_opts = effective_build.get("docker_opts") or docker_opts
+                if mode_name:
+                    print(f"Running container for {args.project} in '{mode_name}' mode")
+
         skip_docker_build, _ = holohub_cli_util.check_skip_builds(args)
         container = self._make_project_container(
             project_name=args.project, language=args.language if hasattr(args, "language") else None
@@ -791,7 +825,7 @@ class HoloHubCLI:
                 base_img=args.base_img,
                 img=args.img,
                 no_cache=args.no_cache,
-                build_args=args.build_args,
+                build_args=build_args,
                 cuda_version=getattr(args, "cuda", None),
                 extra_scripts=getattr(args, "extra_scripts", []),
             )
@@ -800,7 +834,6 @@ class HoloHubCLI:
                 container.cuda_version = args.cuda
 
         trailing_args = getattr(args, "_trailing_args", [])
-        docker_opts = args.docker_opts
         if trailing_args:  # additional commands requires a bash entrypoint
             command = holohub_cli_util.normalize_args_str(trailing_args)
             docker_opts_extra, extra_args = holohub_cli_util.get_entrypoint_command_args(
