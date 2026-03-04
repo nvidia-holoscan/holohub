@@ -967,6 +967,77 @@ exec {holohub_script} "$@"
         args = self.cli.parser.parse_args("build test_app --local".split())
         self.assertIsNone(args.mode)
 
+    def test_container_mode_argument_parsing(self):
+        """Test mode argument parsing for build-container/run-container"""
+        # build-container with mode
+        args = self.cli.parser.parse_args("build-container test_app aja".split())
+        self.assertEqual(args.project, "test_app")
+        self.assertEqual(args.mode, "aja")
+
+        # build-container without mode
+        args = self.cli.parser.parse_args("build-container test_app".split())
+        self.assertEqual(args.project, "test_app")
+        self.assertIsNone(args.mode)
+
+        # run-container with mode
+        args = self.cli.parser.parse_args("run-container test_app replayer".split())
+        self.assertEqual(args.project, "test_app")
+        self.assertEqual(args.mode, "replayer")
+
+        # run-container without mode
+        args = self.cli.parser.parse_args("run-container test_app".split())
+        self.assertIsNone(args.mode)
+
+    def test_container_mode_applies_docker_build_args(self):
+        """Test that build-container with mode applies docker_build_args from mode config"""
+        from argparse import Namespace
+
+        project_data = {
+            "project_name": "test_app",
+            "metadata": {
+                "modes": {
+                    "aja": {
+                        "description": "AJA mode",
+                        "build": {"docker_build_args": ["--target", "holohub-aja"]},
+                    }
+                }
+            },
+        }
+
+        mode_name, mode_config = self.cli.resolve_mode(project_data, "aja")
+        self.assertEqual(mode_name, "aja")
+
+        # No CLI override — mode docker_build_args should be used
+        mock_args = Namespace(
+            with_operators=None, docker_opts="", build_args="", configure_args=None
+        )
+        effective = self.cli.get_effective_build_config(mock_args, mode_config)
+        self.assertEqual(effective["build_args"], "--target holohub-aja")
+
+        # CLI override — CLI should win
+        mock_args_override = Namespace(
+            with_operators=None, docker_opts="", build_args="--network=host", configure_args=None
+        )
+        effective = self.cli.get_effective_build_config(mock_args_override, mode_config)
+        self.assertEqual(effective["build_args"], "--network=host")
+
+    def test_container_mode_applies_docker_run_args(self):
+        """Test that run-container with mode applies docker_run_args from mode config"""
+        from argparse import Namespace
+
+        mode_config = {
+            "run": {"command": "python3 app.py", "docker_run_args": ["--privileged"]},
+            "build": {"docker_build_args": ["--target", "holohub-aja"]},
+        }
+
+        # docker_run_args flows through get_effective_build_config as docker_opts
+        mock_args = Namespace(
+            with_operators=None, docker_opts="", build_args="", configure_args=None
+        )
+        effective = self.cli.get_effective_build_config(mock_args, mode_config)
+        self.assertEqual(effective["docker_opts"], "--privileged")
+        self.assertEqual(effective["build_args"], "--target holohub-aja")
+
     def test_mode_environment_variables(self):
         """Test environment variable definitions in mode configurations"""
 
