@@ -217,14 +217,22 @@ Build (unless skipped) and launch the development container. Trailing arguments 
 
 Without `-- command`, the container starts with the image's default entrypoint (typically an interactive shell). With `-- command`, the given command is executed inside the container instead.
 
+> **How `--` forwarding works:** all arguments after `--` are joined with spaces into a single string and executed via `bash -c "<string>"` inside the container. This means compound commands must be passed as a **single shell argument** (wrapped in quotes) so that argument boundaries survive the join. If you pass multiple unquoted arguments, they are concatenated with spaces which can break commands that rely on their own quoting or newlines.
+
 **Examples:**
 
 ```bash
 # Launch an interactive shell in the container (image default entrypoint)
 ./holohub run-container
 
-# Execute a specific command inside the container
+# Execute a simple command inside the container
 ./holohub run-container -- ./holohub lint
+
+# Compound command: wrap in quotes so it stays as one argument
+./holohub run-container -- './holohub lint && ./holohub build myapp'
+
+# Multi-statement Python: use semicolons and wrap in quotes
+./holohub run-container myapp -- 'python3 -c "import os; print(os.environ.get(\"HOME\", \"NOT SET\"))"'
 
 # Skip rebuilding the container image
 ./holohub run-container myapp --no-docker-build
@@ -848,6 +856,9 @@ source ~/.bashrc
   `--run-args="--verbose"` instead of `--run-args "--verbose"`.
 - For `run-container`, pass a command to execute inside the container after `--`:
   `./holohub run-container myapp -- ./holohub env-info`.
+  Compound or multi-argument commands must be quoted as a single argument:
+  `./holohub run-container -- './holohub lint && ./holohub build myapp'`.
+  Avoid multi-line strings after `--`; use semicolons instead.
 - All CLI options use **hyphens** (`-`), not underscores (for example `--base-img`, not `--base_img`).
 - `sudo ./holohub` may not work correctly due to environment filtering (for example `PATH`).
 - To free disk during development: `docker image prune`, `docker buildx prune`, `docker system prune` (see [Docker docs](https://docs.docker.com/reference/cli/docker/)).

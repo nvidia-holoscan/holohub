@@ -143,7 +143,7 @@ Everything after `--` is joined into a single string and executed via `bash -c`,
 
 - `CMAKE_BUILD_PARALLEL_LEVEL=N` — cap parallel jobs to prevent OOM.
 - `./holohub clear-cache --build` — reset build dir only. Bare `./holohub clear-cache` also deletes `data/` (models, datasets) and other cache directories (ask for approval before running).
-- `docker image prune` / `docker system prune` — reclaim disk.
+- `docker image prune` / `docker system prune` — reclaim disk (ask for approval before running).
 - Don't use `sudo ./holohub` — sudo filters `PATH` and other env vars.
 
 ### Gotchas
@@ -167,15 +167,6 @@ Everything after `--` is joined into a single string and executed via `bash -c`,
 - [CLI Reference > Modes](README.md#modes) — mode fields, path placeholders, build/run config
 - Examples: [simple app](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/applications/endoscopy_tool_tracking/python/metadata.json), [multi-mode with docker opts](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/applications/isaac_sim_holoscan_bridge/metadata.json), [multi-mode with build deps](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/workflows/ai_surgical_video/python/metadata.json)
 
-## Source Layout
-
-| File | Purpose |
-|------|---------|
-| `holohub.py` | Parser, metadata collection, mode resolution, command handlers |
-| `container.py` | Image naming/build/run, docker arg composition, device mounts |
-| `util.py` | Subprocess wrappers, env/path helpers, host capability detection |
-| `tests/` | `unittest` + `@patch` behavior tests |
-
 ## Extending the CLI
 
 1. Add parser entry in `_create_parser()` with `func=self.handle_<cmd>`.
@@ -187,7 +178,7 @@ Everything after `--` is joined into a single string and executed via `bash -c`,
 
 ## Running CLI Tests
 
-Tests mock all hardware and Docker calls — no GPU or Docker required. CI runs them across Python 3.10–3.13. Module paths below assume the working directory contains the `utilities/` package directly (the repo root in HoloHub). Downstream repos that vendor the CLI under a subdirectory (e.g. `tools/`) should set `PYTHONPATH` to the parent of `utilities/`:
+Tests mock all hardware and Docker calls —no GPU or Docker required. CI runs them across Python 3.10–3.13. Module paths below assume the working directory contains the `utilities/` package directly (the repo root in HoloHub). Downstream repos that vendor the CLI under a subdirectory (e.g. `tools/`) should set `PYTHONPATH` to the parent of `utilities/`:
 
 ```bash
 # HoloHub (utilities/ at repo root):
