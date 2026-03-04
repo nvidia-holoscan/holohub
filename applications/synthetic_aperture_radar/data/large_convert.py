@@ -84,7 +84,6 @@ for f in files:
     # this_phdata = np.fft.ifft (this_phdata, norm="forward")
     # this_phdata = np.fft.fftshift (this_phdata, axes=(1,))
 
-    C = np.float64(299792458.0)
     df = this_df
     print("df=", df)
 

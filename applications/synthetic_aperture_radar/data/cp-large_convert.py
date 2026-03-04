@@ -87,8 +87,6 @@ for f in files:
     this_phdata = np.fft.fftshift(this_phdata, axes=(1,))
     this_fp = this_phdata
 
-    C = np.float64(299792458.0)
-
     df = this_freq[1] - this_freq[0]
     print("df=", df)
     minf = this_freq[0]

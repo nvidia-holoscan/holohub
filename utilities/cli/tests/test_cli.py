@@ -39,24 +39,6 @@ def is_cookiecutter_available():
         return False
 
 
-def is_ruff_available():
-    try:
-        import ruff  # noqa: F401
-
-        return True
-    except ImportError:
-        return False
-
-
-def is_precommit_available():
-    try:
-        import pre_commit  # noqa: F401
-
-        return True
-    except ImportError:
-        return False
-
-
 class TestHoloHubCLI(unittest.TestCase):
     def setUp(self):
         self.cli = HoloHubCLI()
@@ -283,7 +265,7 @@ class TestHoloHubCLI(unittest.TestCase):
 
     @patch("utilities.cli.util.run_command")
     def test_lint_fix_command(self, mock_run_command):
-        """Test lint --fix uses pre-commit run --all-files"""
+        """Test lint --fix applies fixes then runs checks"""
         mock_result = MagicMock()
         mock_result.returncode = 0
         mock_run_command.return_value = mock_result
@@ -294,9 +276,14 @@ class TestHoloHubCLI(unittest.TestCase):
         except SystemExit as e:
             self.assertEqual(e.code, 0)
 
-        # Verify pre-commit was called
-        call_args = mock_run_command.call_args
-        self.assertIn("pre-commit", call_args[0][0])
+        # Verify pre-commit was called twice: once for fix stage, once for check
+        self.assertEqual(mock_run_command.call_count, 2)
+        all_calls = mock_run_command.call_args_list
+        # First call: fix stage
+        self.assertIn("--hook-stage", all_calls[0][0][0])
+        self.assertIn("manual", all_calls[0][0][0])
+        # Second call: check
+        self.assertNotIn("--hook-stage", all_calls[1][0][0])
 
     @unittest.skipIf(not is_cookiecutter_available(), "cookiecutter not installed")
     @patch("utilities.cli.holohub.HoloHubCLI._install_template_deps")

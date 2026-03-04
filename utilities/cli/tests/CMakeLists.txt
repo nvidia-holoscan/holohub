@@ -50,7 +50,7 @@ add_test(
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 set_tests_properties(test_holohub_lint_fix PROPERTIES
-    PASS_REGULAR_EXPRESSION "pre-commit run --all-files"
+    PASS_REGULAR_EXPRESSION "pre-commit run --all-files --hook-stage manual"
 )
 
 add_test(

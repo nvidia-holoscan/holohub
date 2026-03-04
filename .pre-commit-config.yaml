@@ -27,7 +27,7 @@ repos:
 
       - id: black
         name: black
-        entry: black
+        entry: black --check
         language: system
         types: [python]
         pass_filenames: true
@@ -35,7 +35,7 @@ repos:
 
       - id: isort
         name: isort
-        entry: isort
+        entry: isort -c
         language: system
         types: [python]
         pass_filenames: true
@@ -76,3 +76,31 @@ repos:
         files: (CMakeLists\.txt|\.cmake)$
         pass_filenames: true
         exclude: (^build|^install|^data|^\.)
+
+      # Fix hooks - only run when --fix is passed (holohub lint --fix)
+      - id: ruff-fix
+        name: ruff (fix)
+        entry: ruff check --fix --ignore E712
+        language: system
+        types: [python]
+        pass_filenames: true
+        stages: [manual]
+        exclude: ^cmake/pybind11/
+
+      - id: black-fix
+        name: black (fix)
+        entry: black
+        language: system
+        types: [python]
+        pass_filenames: true
+        stages: [manual]
+        exclude: ^cmake/pybind11/
+
+      - id: isort-fix
+        name: isort (fix)
+        entry: isort
+        language: system
+        types: [python]
+        pass_filenames: true
+        stages: [manual]
+        exclude: ^cmake/pybind11/

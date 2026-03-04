@@ -1627,9 +1627,9 @@ class HoloHubCLI:
         if not args.dryrun:
             os.chdir(HoloHubCLI.HOLOHUB_ROOT)
 
-        # Build pre-commit command
+        # Build pre-commit command args (shared between check and fix invocations)
         if args.path == ".":
-            precommit_cmd = ["pre-commit", "run", "--all-files"]
+            precommit_args = ["--all-files"]
         else:
             # Collect files under the given path for targeted linting
             target_path = Path(args.path)
@@ -1637,7 +1637,14 @@ class HoloHubCLI:
             if not files:
                 print(f"No files found under {args.path}")
                 sys.exit(0)
-            precommit_cmd = ["pre-commit", "run", "--files", *files]
+            precommit_args = ["--files", *files]
+
+        precommit_cmd = ["pre-commit", "run"] + precommit_args
+
+        if args.fix:
+            # Apply auto-fixes first via manual-stage hooks (ruff-fix, black-fix, isort-fix)
+            fix_cmd = ["pre-commit", "run"] + precommit_args + ["--hook-stage", "manual"]
+            holohub_cli_util.run_command(fix_cmd, check=False, dry_run=args.dryrun, env=env)
 
         result = holohub_cli_util.run_command(
             precommit_cmd, check=False, dry_run=args.dryrun, env=env
@@ -1666,10 +1673,17 @@ class HoloHubCLI:
             dry_run=dry_run,
         )
 
+        # Pass PRE_COMMIT_HOME to avoid permission issues inside Docker containers
+        # (write access to /tmp is guaranteed; the default ~/.cache/pre-commit may not be writable)
+        env = os.environ.copy()
+        if holohub_cli_util.is_running_in_docker():
+            env["PRE_COMMIT_HOME"] = "/tmp/.pre-commit"
+
         print("Install pre-commit hooks")
         holohub_cli_util.run_command(
             ["pre-commit", "install-hooks"],
             dry_run=dry_run,
+            env=env,
         )
 
     def _install_template_deps(self, dry_run: bool = False) -> None:
