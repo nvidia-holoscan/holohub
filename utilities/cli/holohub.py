@@ -34,10 +34,8 @@ import filecmp
 import os
 import shlex
 import shutil
-import subprocess
 import tempfile
 from collections import defaultdict
-from fnmatch import fnmatch
 from pathlib import Path
 from typing import List, Optional
 
@@ -1605,8 +1603,6 @@ class HoloHubCLI:
             self._install_lint_deps(args.dryrun)
             return
 
-        exit_code = 0
-
         # Add ~/.local/bin to PATH for pip-installed executables
         env = os.environ.copy()
         local_bin_path = Path.home() / ".local" / "bin"
@@ -1618,194 +1614,38 @@ class HoloHubCLI:
         if holohub_cli_util.is_running_in_docker():
             env["RUFF_CACHE_DIR"] = "/tmp/.ruff_cache"
             env["BLACK_CACHE_DIR"] = "/tmp/.black_cache"
-            print(f"Set cache directories to {env['RUFF_CACHE_DIR']} and {env['BLACK_CACHE_DIR']}")
+            env["PRE_COMMIT_HOME"] = "/tmp/.pre-commit"
+            print(
+                f"Set cache directories to {env['RUFF_CACHE_DIR']}, "
+                f"{env['BLACK_CACHE_DIR']}, and {env['PRE_COMMIT_HOME']}"
+            )
 
-        # Change to script directory
+        # Change to repository root (required for pre-commit)
         print(
             holohub_cli_util.format_cmd("cd " + str(HoloHubCLI.HOLOHUB_ROOT), is_dryrun=args.dryrun)
         )
         if not args.dryrun:
             os.chdir(HoloHubCLI.HOLOHUB_ROOT)
 
-        if args.fix:
-            # Fix Python
-            holohub_cli_util.run_command(
-                ["ruff", "check", "--fix", "--ignore", "E712", args.path],
-                check=False,
-                dry_run=args.dryrun,
-                env=env,
-            )
-            holohub_cli_util.run_command(
-                ["isort", args.path], check=False, dry_run=args.dryrun, env=env
-            )
-            holohub_cli_util.run_command(
-                ["black", args.path], check=False, dry_run=args.dryrun, env=env
-            )
-            holohub_cli_util.run_command(
-                [
-                    "codespell",
-                    "-w",
-                    "-i",
-                    "3",
-                    args.path,
-                    "--ignore-words",
-                    "codespell_ignore_words.txt",
-                    "--exclude-file",
-                    "codespell.txt",
-                    "--skip=*.onnx,*.min.js,*.min.js.map,Contrastive_learning_Notebook.ipynb,./data,./applications/holochat/models",
-                ],
-                check=False,
-                dry_run=args.dryrun,
-                env=env,
-            )
-
-            # Fix C++ with clang-format
-            try:
-                cmd = [
-                    sys.executable,
-                    "-m",
-                    "cpplint",
-                    "--quiet",
-                    "--exclude",
-                    "applications/holoviz/template/cookiecutter*",
-                    "--recursive",
-                    args.path,
-                ]
-                if args.dryrun:
-                    holohub_cli_util.run_command(cmd, dry_run=True)
-                    cpp_files = ""
-                else:
-                    cpp_files = subprocess.check_output(
-                        cmd, stderr=subprocess.PIPE, text=True, env=env
-                    )
-
-                for file in cpp_files.splitlines():
-                    if ":" in file:  # Only process files with issues
-                        file = file.split(":")[0]
-                        holohub_cli_util.run_command(
-                            [
-                                "clang-format",
-                                "--style=file",
-                                "--sort-includes=0",
-                                "--lines=20:10000",
-                                "-i",
-                                file,
-                            ],
-                            check=False,
-                            dry_run=args.dryrun,
-                            env=env,
-                        )
-            except subprocess.CalledProcessError:
-                pass
-
+        # Build pre-commit command
+        if args.path == ".":
+            precommit_cmd = ["pre-commit", "run", "--all-files"]
         else:
-            # Run linting checks
-            print(Color.blue("Linting Python"))
-            if (
-                holohub_cli_util.run_command(
-                    ["ruff", "check", "--ignore", "E712", args.path],
-                    check=False,
-                    dry_run=args.dryrun,
-                    env=env,
-                ).returncode
-                != 0
-            ):
-                exit_code = 1
-            if (
-                holohub_cli_util.run_command(
-                    ["isort", "-c", args.path], check=False, dry_run=args.dryrun, env=env
-                ).returncode
-                != 0
-            ):
-                exit_code = 1
-            if (
-                holohub_cli_util.run_command(
-                    ["black", "--check", args.path], check=False, dry_run=args.dryrun, env=env
-                ).returncode
-                != 0
-            ):
-                exit_code = 1
+            # Collect files under the given path for targeted linting
+            target_path = Path(args.path)
+            files = [str(f) for f in target_path.rglob("*") if f.is_file()]
+            if not files:
+                print(f"No files found under {args.path}")
+                sys.exit(0)
+            precommit_cmd = ["pre-commit", "run", "--files", *files]
 
-            print(Color.blue("Linting C++"))
-            if (
-                holohub_cli_util.run_command(
-                    [
-                        sys.executable,
-                        "-m",
-                        "cpplint",
-                        "--quiet",
-                        "--exclude",
-                        "applications/holoviz/template/cookiecutter*",
-                        "--recursive",
-                        args.path,
-                    ],
-                    check=False,
-                    dry_run=args.dryrun,
-                    env=env,
-                ).returncode
-                != 0
-            ):
-                exit_code = 1
+        result = holohub_cli_util.run_command(
+            precommit_cmd, check=False, dry_run=args.dryrun, env=env
+        )
 
-            print(Color.blue("Code spelling"))
-            if (
-                holohub_cli_util.run_command(
-                    [
-                        "codespell",
-                        args.path,
-                        "--skip=*.onnx,*.min.js,*.min.js.map,Contrastive_learning_Notebook.ipynb,./data",
-                        "--ignore-words",
-                        "codespell_ignore_words.txt",
-                        "--exclude-file",
-                        "codespell.txt",
-                    ],
-                    check=False,
-                    dry_run=args.dryrun,
-                    env=env,
-                ).returncode
-                != 0
-            ):
-                exit_code = 1
-
-            print(Color.blue("Linting CMake"))
-            cmake_files = list(Path(args.path).rglob("CMakeLists.txt"))
-            cmake_files.extend(Path(args.path).rglob("*.cmake"))
-            excluded_paths = ["build", "install", "data", "build-*", "install-*", "data-*", "tmp"]
-
-            cmake_files = [
-                f
-                for f in cmake_files
-                if not any(
-                    part.startswith(".")
-                    or any(fnmatch(part, pattern) for pattern in excluded_paths)
-                    for part in f.parts
-                )
-            ]
-            if cmake_files:
-                batch_size = 100
-                cmake_lint_failed = False
-                for i in range(0, len(cmake_files), batch_size):
-                    if (
-                        holohub_cli_util.run_command(
-                            [
-                                "cmakelint",
-                                "--filter=-whitespace/indent,-linelength,-readability/wonkycase,-convention/filename,-package/stdargs",
-                                *[str(f) for f in cmake_files[i : i + batch_size]],
-                            ],
-                            check=False,
-                            dry_run=args.dryrun,
-                            env=env,
-                        ).returncode
-                        != 0
-                    ):
-                        cmake_lint_failed = True
-
-                if cmake_lint_failed:
-                    exit_code = 1
-
-        if exit_code == 0 and not args.dryrun:
+        if result.returncode == 0 and not args.dryrun:
             print(Color.green("Everything looks good!"))
-        sys.exit(exit_code)
+        sys.exit(result.returncode)
 
     def _install_lint_deps(self, dry_run: bool = False) -> None:
         """Install linting dependencies"""
@@ -1823,6 +1663,12 @@ class HoloHubCLI:
                 "-r",
                 str(HoloHubCLI.HOLOHUB_ROOT / "utilities/requirements.lint.txt"),
             ],
+            dry_run=dry_run,
+        )
+
+        print("Install pre-commit hooks")
+        holohub_cli_util.run_command(
+            ["pre-commit", "install-hooks"],
             dry_run=dry_run,
         )
 

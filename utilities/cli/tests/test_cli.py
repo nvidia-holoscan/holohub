@@ -48,6 +48,15 @@ def is_ruff_available():
         return False
 
 
+def is_precommit_available():
+    try:
+        import pre_commit  # noqa: F401
+
+        return True
+    except ImportError:
+        return False
+
+
 class TestHoloHubCLI(unittest.TestCase):
     def setUp(self):
         self.cli = HoloHubCLI()
@@ -272,17 +281,22 @@ class TestHoloHubCLI(unittest.TestCase):
         # Verify that run_command was called at least once
         mock_run_command.assert_called()
 
-    def test_lint_fix_command(self):
+    @patch("utilities.cli.util.run_command")
+    def test_lint_fix_command(self, mock_run_command):
+        """Test lint --fix uses pre-commit run --all-files"""
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_run_command.return_value = mock_result
+
         args = self.cli.parser.parse_args("lint --fix".split())
         try:
             args.func(args)
-        except FileNotFoundError as e:
-            if is_ruff_available():
-                raise e
-            else:
-                self.assertIn("ruff", str(e))  # if not installed, it complains about ruff
         except SystemExit as e:
             self.assertEqual(e.code, 0)
+
+        # Verify pre-commit was called
+        call_args = mock_run_command.call_args
+        self.assertIn("pre-commit", call_args[0][0])
 
     @unittest.skipIf(not is_cookiecutter_available(), "cookiecutter not installed")
     @patch("utilities.cli.holohub.HoloHubCLI._install_template_deps")
