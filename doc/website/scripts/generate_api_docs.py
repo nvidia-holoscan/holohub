@@ -248,7 +248,9 @@ def run_doxygen_and_parse(website_dir: Path) -> dict:
         if header:
             header_to_classes.setdefault(header, []).append(class_info)
 
-    logger.info(f"Parsed {sum(len(v) for v in header_to_classes.values())} C++ classes from Doxygen XML")
+    logger.info(
+        f"Parsed {sum(len(v) for v in header_to_classes.values())} C++ classes from Doxygen XML"
+    )
     return header_to_classes
 
 
@@ -283,9 +285,7 @@ def _parse_python_source(py_path: Path) -> list[dict]:
                 base_names.append(ast.unparse(base))
 
         # Include classes that inherit from Operator or known base classes
-        is_operator = any(
-            "Operator" in b or "Op" in b for b in base_names
-        )
+        is_operator = any("Operator" in b or "Op" in b for b in base_names)
         if not is_operator:
             continue
 
@@ -309,12 +309,14 @@ def _parse_python_source(py_path: Path) -> list[dict]:
                 ann = ast.unparse(arg.annotation) if arg.annotation else ""
                 args.append({"name": arg.arg, "type": ann})
 
-            methods.append({
-                "name": item.name,
-                "description": method_doc.split("\n")[0] if method_doc else "",
-                "full_docstring": method_doc,
-                "params": args,
-            })
+            methods.append(
+                {
+                    "name": item.name,
+                    "description": method_doc.split("\n")[0] if method_doc else "",
+                    "full_docstring": method_doc,
+                    "params": args,
+                }
+            )
 
         # Extract class-level type annotations (operator parameters)
         parameters = []
@@ -323,21 +325,25 @@ def _parse_python_source(py_path: Path) -> list[dict]:
                 param_name = item.target.id
                 param_type = ast.unparse(item.annotation) if item.annotation else ""
                 default = ast.unparse(item.value) if item.value else ""
-                parameters.append({
-                    "name": param_name,
-                    "type": param_type,
-                    "default": default,
-                })
+                parameters.append(
+                    {
+                        "name": param_name,
+                        "type": param_type,
+                        "default": default,
+                    }
+                )
 
-        classes.append({
-            "name": node.name,
-            "base_classes": base_names,
-            "description": class_doc.split("\n\n")[0] if class_doc else "",
-            "full_docstring": class_doc,
-            "methods": methods,
-            "parameters": parameters,
-            "source_file": str(py_path),
-        })
+        classes.append(
+            {
+                "name": node.name,
+                "base_classes": base_names,
+                "description": class_doc.split("\n\n")[0] if class_doc else "",
+                "full_docstring": class_doc,
+                "methods": methods,
+                "parameters": parameters,
+                "source_file": str(py_path),
+            }
+        )
 
     return classes
 
@@ -550,9 +556,7 @@ def _format_python_class_md(class_info: dict) -> str:
         lines.append("| Method | Description |")
         lines.append("|--------|-------------|")
         for m in methods:
-            params_str = ", ".join(
-                p["name"] for p in m.get("params", [])
-            )
+            params_str = ", ".join(p["name"] for p in m.get("params", []))
             sig = f"`{m['name']}({params_str})`"
             mdesc = m.get("description", "").replace("\n", " ").replace("|", "\\|")
             lines.append(f"| {sig} | {mdesc} |")
@@ -717,7 +721,9 @@ def build_api_reference_map(git_repo_path: Path) -> dict:
     # ── Merge into final Markdown ──
     api_ref_map: dict[str, str] = {}
 
-    all_op_dirs = set(op_cpp_classes.keys()) | set(op_python_classes.keys()) | set(op_pydoc_classes.keys())
+    all_op_dirs = (
+        set(op_cpp_classes.keys()) | set(op_python_classes.keys()) | set(op_pydoc_classes.keys())
+    )
 
     for op_dir in sorted(all_op_dirs):
         cpp_classes = op_cpp_classes.get(op_dir, [])

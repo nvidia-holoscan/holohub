@@ -26,7 +26,6 @@ import urllib.parse
 from pathlib import Path
 
 import mkdocs_gen_files
-
 from generate_api_docs import get_api_reference_for_operator
 
 # log stuff
