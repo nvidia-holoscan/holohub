@@ -89,7 +89,7 @@ void LSTMTensorRTInferenceOp::setup(OperatorSpec& spec) {
              "max_workspace_size",
              "Max Workspace Size",
              "Size of working space in bytes. Default to 64MB",
-             67108864l);
+             int64_t(67108864));
   spec.param(dla_core_,
              "dla_core",
              "DLA Core",
@@ -119,6 +119,7 @@ void LSTMTensorRTInferenceOp::setup(OperatorSpec& spec) {
              "Ignore dimensions of 1 for input tensor dimension check.",
              true);
 
+  //spec.param(rx_, "rx", "RX", "List of receivers to take input tensors", {});
   spec.param(rx_, "rx", "RX", "List of receivers to take input tensors", {&in_tensor});
   spec.param(tx_, "tx", "TX", "Transmitter to publish output tensors", &out_tensor);
 
