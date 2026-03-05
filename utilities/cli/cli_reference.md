@@ -1,12 +1,12 @@
 # HoloHub CLI Reference Guide
 
-Quick reference for the HoloHub Python CLI (`./holohub`). For migration from the legacy bash scripts, see [CLI Migration Guide](../utilities/cli/README.md).
+Quick reference for the HoloHub CLI (`./holohub`). For a high-level overview see the [README](README.md). For implementation details and extension guide see the [CLI Developer Guide](cli_dev_guide.md).
 
 ---
 
 ## Quick Start
 
-Run the CLI from the HoloHub repository root:
+Run the CLI from the repository root:
 
 ```bash
 ./holohub <command> [options] [arguments]
@@ -26,7 +26,7 @@ Run the CLI from the HoloHub repository root:
 - `<arg>` means a required positional argument.
 - `[arg]` means an optional positional argument.
 - `[options]` means one or more optional flags.
-- `--` marks the end of CLI options; anything after it is forwarded to the underlying command (for example `docker run`).
+- `--` marks the end of CLI options; anything after it is executed as a command inside the container (supported by `run-container`).
 
 ---
 
@@ -94,7 +94,7 @@ Used by: `run-container`, `build`, `run`, `install`.
 
 ### Create
 
-Create a new Holoscan application from a template (for example, cookiecutter).
+Create a new Holoscan-based application from a template (for example, cookiecutter).
 
 **Usage:**
 
@@ -165,12 +165,12 @@ Build the development container image for a project (or the default image if no 
 
 ### Run Container
 
-Build (unless skipped) and launch the development container. Trailing arguments after ` -- ` are passed to `docker run`.
+Build (unless skipped) and launch the development container. Trailing arguments after ` -- ` are joined into a single string and executed inside the container via `bash -c`.
 
 **Usage:**
 
 ```bash
-./holohub run-container [project] [mode] [options] [-- docker run args...]
+./holohub run-container [project] [mode] [options] [-- command...]
 ```
 
 **Arguments:**
@@ -189,11 +189,30 @@ Build (unless skipped) and launch the development container. Trailing arguments 
 | `--verbose`         | Print variables passed to docker run            |
 | `--dryrun`          | Print commands without executing                |
 
+Without `-- command`, the container starts with the image's default entrypoint (typically an interactive shell). With `-- command`, the given command is executed inside the container instead.
+
+> **How `--` forwarding works:** all arguments after `--` are joined with spaces into a single string and executed via `bash -c "<string>"` inside the container. This means compound commands must be passed as a **single shell argument** (wrapped in quotes) so that argument boundaries survive the join. If you pass multiple unquoted arguments, they are concatenated with spaces which can break commands that rely on their own quoting or newlines.
+
 **Examples:**
 
 ```bash
+# Launch an interactive shell in the container (image default entrypoint)
+./holohub run-container
+
+# Execute a simple command inside the container
+./holohub run-container -- ./holohub lint
+
+# Compound command: wrap in quotes so it stays as one argument
+./holohub run-container -- './holohub lint && ./holohub build myapp'
+
+# Multi-statement Python: use semicolons and wrap in quotes
+./holohub run-container myapp -- 'python3 -c "import os; print(os.environ.get(\"HOME\", \"NOT SET\"))"'
+
+# Use a mode's docker args
+./holohub run-container myapp aja
+
+# Skip rebuilding the container image
 ./holohub run-container myapp --no-docker-build
-./holohub run-container myapp aja              # Use AJA mode's docker args
 ./holohub run-container --local-sdk-root /path/to/holoscan-sdk --img holohub:sdk-dev-latest
 ```
 
@@ -786,8 +805,11 @@ source ~/.bashrc
 
 - For options that look like arguments, use `=` to avoid ambiguity:
   `--run-args="--verbose"` instead of `--run-args "--verbose"`.
-- For `run-container`, pass raw `docker run` flags after `--`:
-  `./holohub run-container myapp -- --net=host --ipc=host`.
+- For `run-container`, pass a command to execute inside the container after `--`:
+  `./holohub run-container myapp -- ./holohub env-info`.
+  Compound or multi-argument commands must be quoted as a single argument:
+  `./holohub run-container -- './holohub lint && ./holohub build myapp'`.
+  Avoid multi-line strings after `--`; use semicolons instead.
 - All CLI options use **hyphens** (`-`), not underscores (for example `--base-img`, not `--base_img`).
 - `sudo ./holohub` may not work correctly due to environment filtering (for example `PATH`).
 - To free disk during development: `docker image prune`, `docker buildx prune`, `docker system prune` (see [Docker docs](https://docs.docker.com/reference/cli/docker/)).
