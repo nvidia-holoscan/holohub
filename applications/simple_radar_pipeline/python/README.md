@@ -1,6 +1,7 @@
 # Simple Radar Pipeline
 
 This demonstration walks the developer through building a simple radar signal processing pipeline, targeted towards detecting objects, with Holoscan. In this example, we generate random radar and waveform data, passing both through:
+
 1. Pulse Compression
 2. Moving Target Indication (MTI) Filtering
 3. Range-Doppler Map
@@ -11,6 +12,7 @@ While this example generates 'offline' complex-valued data, it could be extended
 The output of this demonstration is a measure of the number of pulses per second processed on GPU.
 
  The main objectives of this demonstration are to:
+
 - Highlight developer productivity in building an end-to-end streaming application with Holoscan and existing GPU-Accelerated Python libraries
 - Demonstrate how to construct and connect isolated units of work via Holoscan operators, particularly with handling multiple inputs and outputs into an Operator
 - Emphasize that operators created for this application can be reused in other ones doing similar tasks
@@ -27,6 +29,7 @@ pip install holoscan
 ```
 
 The simple radar signal processing pipeline example can then be run via
+
 ```
 python applications/simple_radar_pipeline/simple_radar_pipeline.py
 ```

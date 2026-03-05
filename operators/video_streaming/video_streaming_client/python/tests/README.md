@@ -22,18 +22,21 @@ The pytest tests verify the Python bindings of the StreamingClientOp operator, f
 ### TestStreamingClientOpBinding
 
 **Basic Tests:**
+
 - `test_operator_creation_basic` - Basic operator instantiation
 - `test_operator_name` - Name property validation
 - `test_operator_inheritance` - Inheritance from holoscan.Operator
 - `test_method_availability` - Required methods are exposed
 
 **Parametrized Tests:**
+
 - `test_video_parameters` - Various resolutions and frame rates (VGA, HD, Full HD, 4K)
 - `test_network_parameters` - Different IPs and ports
 - `test_streaming_mode_parameters` - All send/receive combinations
 - `test_frame_validation_parameter` - min_non_zero_bytes thresholds
 
 **Advanced Tests:**
+
 - `test_setup_method` - setup() method functionality
 - `test_memory_management` - Multiple operators, garbage collection
 - `test_operator_reuse` - Multiple instances with same parameters
@@ -52,6 +55,7 @@ The pytest tests verify the Python bindings of the StreamingClientOp operator, f
 ### TestStreamingClientOpWithMockData
 
 **Mock Data Tests:**
+
 - `test_operator_with_mock_frame_cupy` - CuPy array handling
 - `test_operator_with_mock_frame_numpy` - NumPy array handling
 - `test_operator_with_various_resolutions` - Multiple resolutions
@@ -62,6 +66,7 @@ The pytest tests verify the Python bindings of the StreamingClientOp operator, f
 ### TestStreamingClientOpCompute
 
 **Compute Method Tests:**
+
 - `test_compute_method_exists` - Method accessibility
 - `test_compute_with_mock_input_frame` - Basic compute functionality with mock input
 - `test_compute_with_various_frame_sizes` - Multiple frame sizes
@@ -133,14 +138,17 @@ test_streaming_client_op_bindings.py::TestStreamingClientOpCompute::test_compute
 Defined in `conftest.py`:
 
 **Module Fixtures:**
+
 - `streaming_client_module` - VideoStreamingClient Python module
 - `streaming_client_op_class` - VideoStreamingClientOp class
 
 **Factory Fixtures:**
+
 - `operator_factory` - Factory for creating operators with parameters
 - `default_operator` - Pre-configured operator with defaults
 
 **Common Fixtures** (copied from root conftest.py):
+
 - `app` - Holoscan Application instance
 - `fragment` - Holoscan Fragment for testing
 - `mock_image` - Factory for creating mock image tensors
@@ -155,6 +163,7 @@ Defined in `conftest.py`:
 To add new tests:
 
 1. Add test function in `test_streaming_client_op_bindings.py`:
+
 ```python
 def test_my_new_feature(self, operator_factory):
     """Test description."""
@@ -163,14 +172,16 @@ def test_my_new_feature(self, operator_factory):
     # Add assertions
 ```
 
-2. Use fixtures for setup:
+1. Use fixtures for setup:
+
 ```python
 def test_with_custom_setup(self, fragment, streaming_client_op_class):
     op = streaming_client_op_class(fragment, name="test", ...)
     # Test logic
 ```
 
-3. Use parametrize for multiple cases:
+1. Use parametrize for multiple cases:
+
 ```python
 @pytest.mark.parametrize("param1,param2", [
     (value1, value2),
@@ -186,4 +197,3 @@ def test_parametrized(self, operator_factory, param1, param2):
 - [C++ Unit Tests](../../tests/README.md) - C++ operator unit tests
 - [StreamingClientOp Documentation](../../README.md) - Operator documentation
 - [Integration Tests](../../../../../applications/video_streaming/TESTING.md) - End-to-end tests
-

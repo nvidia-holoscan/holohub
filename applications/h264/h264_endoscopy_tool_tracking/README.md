@@ -60,14 +60,12 @@ Open and edit the [Dockerfile](../Dockerfile) and uncomment line 66:
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/aarch64-linux-gnu/tegra/
 ```
 
-
 ## Enable recording of the output
 
 The recording of the output can be enabled by setting `record_output` flag in
 the config file
 `<build_dir>/applications/h264/endoscopy_tool_tracking/h264_endoscopy_tool_tracking.yaml`
 to `true`.
-
 
 ## Dev Container
 

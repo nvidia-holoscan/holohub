@@ -14,6 +14,7 @@ The client application inputs a video file and streams the video frames to the s
 From the diagram above, we can see that both the App Cloud (the server) and the App Edge (the client) are very similar to the standalone [Endoscopy Tool Tracking](../../../endoscopy_tool_tracking/) application. This section will only describe the differences; for details on inference and post-processing, please refer to the link above.
 
 On the client side, we provided two examples, one using a single fragment and another one using two fragments. When comparing the client side to the standalone [Endoscopy Tool Tracking](../../../endoscopy_tool_tracking/) application, the differences are the queues and the gRPC client. We added the following:
+
 - **Outgoing Requests** operator (`GrpcClientRequestOp`): It converts the video frames (GXF entities) received from the *Video Stream Replayer* operator into `EntityRequest` protobuf messages and queues each frame in the *Request Queue*.
 - **gRPC Service & Client** (`EntityClientService` & `EntityClient`): The gRPC Service is responsible for controlling the life cycle of the gRPC client. The client connects to the remote gRPC server and then sends the requests found in the *Request Queue*. When it receives a response, it converts it into a GXF entity and queues it in the *Response Queue*.
 - **Incoming Responses** operator (`GrpcClientResponseOp`): This operator is configured with an `AsynchronousCondition` condition to check the availability of the *Response Queue*. When notified of available responses in the queue, it dequeues each item and emits each to the output port.
@@ -156,10 +157,10 @@ The following launch profiles are available:
 > The `compound` profile uses the `debugpy` extension due to a limitation that prevents launching
 > the cloud and the edge apps together using `pythoncpp`.
 
-
 ## Limitations & Known Issues
 
 ### C++
+
 1. Connection Timeout:
    - The connection between the server and client is controlled by `rpc_timeout`
    - Default timeout is 5 seconds, configurable in [endoscopy_tool_tracking.yaml](./cpp/endoscopy_tool_tracking.yaml)
@@ -175,11 +176,13 @@ The following launch profiles are available:
 
 4. Expected Exit Behavior:
    - The client will exit with the following expected error when the video completes:
+
      ```bash
      [error] [program.cpp:614] Event notification 2 for entity [video_in__outgoing_requests] with id [33] received in an unexpected state [Origin]
      ```
 
 ### Python
+
 - The client may require manual termination (CTRL+C) if errors occur during execution
 
 ## Containerization
@@ -188,9 +191,11 @@ To containerize the application:
 
 1. Install [Holoscan CLI](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_packager.html)
 2. Build the application:
+
    ```bash
    ./holohub install grpc_endoscopy_tool_tracking
    ```
+
 3. Run the appropriate packaging script:
    - C++: [cpp/package-app.sh](./cpp/package-app.sh)
    - Python: [python/package-app.sh](./python/package-app.sh)

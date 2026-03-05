@@ -7,6 +7,7 @@ The IIO Controller provides a comprehensive set of operators for interfacing wit
 ## Description
 
 The IIO Controller operators abstract the complexities of the Linux IIO framework, providing high-performance, low-latency access to:
+
 - **Software Defined Radios (SDRs)** like ADALM-Pluto for RF signal processing
 - **Data Acquisition Systems** for high-speed analog/digital conversion
 - **Sensors** including accelerometers, gyroscopes, magnetometers, and environmental sensors
@@ -15,6 +16,7 @@ The IIO Controller operators abstract the complexities of the Linux IIO framewor
 ### What is IIO?
 
 The Industrial I/O (IIO) subsystem is a Linux kernel framework that provides:
+
 - Unified API for diverse hardware devices
 - High-performance data streaming
 - Real-time configuration of device parameters
@@ -23,6 +25,7 @@ The Industrial I/O (IIO) subsystem is a Linux kernel framework that provides:
 ## Requirements
 
 ### Software
+
 - libiio (version 0.X)
 - Holoscan SDK
 
@@ -31,31 +34,41 @@ The Industrial I/O (IIO) subsystem is a Linux kernel framework that provides:
 This package provides 5 specialized operators:
 
 ### 1. `IIOAttributeRead` - Device Parameter Reading
+
 Reads configuration parameters and real-time status from IIO devices. Use for:
+
 - Monitoring device temperature, gain, frequency settings
 - Reading calibration status
 - Checking signal strength indicators
 
 ### 2. `IIOAttributeWrite` - Device Parameter Control
+
 Writes configuration parameters to IIO devices. Use for:
+
 - Setting RF frequency, gain, bandwidth
 - Configuring sampling rates
 - Enabling/disabling device features
 
 ### 3. `IIOBufferRead` - High-Speed Data Acquisition
+
 Streams data from IIO device buffers with DMA support. Use for:
+
 - Capturing buffer samples from SDRs
 - Reading multi-channel ADC data
 - Acquiring sensor data streams
 
 ### 4. `IIOBufferWrite` - High-Speed Data Transmission
+
 Streams data to IIO device buffers for output. Use for:
+
 - Transmitting buffer samples through SDRs
 - Generating analog waveforms via DACs
 - Outputting test patterns
 
 ### 5. `IIOConfigurator` - Automated Device Setup
+
 Applies complex configurations from YAML files. Use for:
+
 - Initializing devices with multiple parameters
 - Switching between operational modes
 - Applying calibration profiles
@@ -277,6 +290,7 @@ add_flow(start_op(), pluto_config);
 ## Data Format and Buffer Structure
 
 ### Important Notes on Data Handling
+
 The IIO operators provide **direct access to raw device buffers** without any automatic data conversion or interpretation:
 
 1. **No Automatic Data Conversion**: The operators do not automatically interpret channels data (needs conversion in application)
@@ -285,7 +299,9 @@ The IIO operators provide **direct access to raw device buffers** without any au
 4. **Channel Independence**: Each channel (voltage0, voltage1, etc.) is an independent data stream
 
 ### Buffer Memory Layout
+
 When multiple channels are enabled, samples are interleaved in the buffer:
+
 ```
 Single channel: [Ch0_S0, Ch0_S1, Ch0_S2, ...]
 Dual channel:   [Ch0_S0, Ch1_S0, Ch0_S1, Ch1_S1, ...]

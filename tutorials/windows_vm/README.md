@@ -13,10 +13,10 @@ This tutorial enables Holoscan and Windows applications to run concurrently on t
 - [Windows VM Setup Instructions](#windows-vm-setup-instructions)
   - [Software Pre-requisites](#software-pre-requisites)
   - [GPU Passthrough](#gpu-passthrough)
-	- [Two Different GPUs (e.g., RTX A4000 and RTX A6000)](#two-different-gpus-eg-rtx-a4000-and-rtx-a6000)
-	- [Two Identical GPUs (e.g., 2x RTX A4000)](#two-identical-gpus-eg-2x-rtx-a4000)
+   	- [Two Different GPUs (e.g., RTX A4000 and RTX A6000)](#two-different-gpus-eg-rtx-a4000-and-rtx-a6000)
+   	- [Two Identical GPUs (e.g., 2x RTX A4000)](#two-identical-gpus-eg-2x-rtx-a4000)
   - [Windows VM Configuration for Passed-through GPU](#windows-vm-configuration-for-passed-through-gpu)
-	- [Install NVIDIA Driver in Windows VM](#install-nvidia-driver-in-windows-vm)
+   	- [Install NVIDIA Driver in Windows VM](#install-nvidia-driver-in-windows-vm)
 - [Communication Performance between Linux Host and Windows VM](#communication-performance-between-host-and-vm)
 - [Running Holoscan DDS App and Windows VM App](#running-holoscan-dds-app-and-windows-vm-app)
 
@@ -155,9 +155,9 @@ Reboot the system: `sudo reboot`. Now, check the loaded driver for RTX A4000:
 ```bash
 $ lspci -nnk -d 10de:24b0
 17:00.0 VGA compatible controller [0300]: NVIDIA Corporation [RTX A4000] [10de:24b0] (rev a1)
-	Subsystem: NVIDIA Corporation [RTX A4000] [10de:14ad]
-	Kernel driver in use: vfio-pci
-	Kernel modules: nvidiafb, nouveau, nvidia_drm, nvidia
+ Subsystem: NVIDIA Corporation [RTX A4000] [10de:14ad]
+ Kernel driver in use: vfio-pci
+ Kernel modules: nvidiafb, nouveau, nvidia_drm, nvidia
 ```
 
 #### Two Identical GPUs (e.g., 2x RTX A4000)
@@ -239,13 +239,13 @@ Reboot the system: `sudo reboot`. Now, check the loaded driver for RTX A4000:
 ```bash
 $ lspci -nnk -d 10de:24b0
 01:00.0 VGA compatible controller [0300]: NVIDIA Corporation GA104GL [RTX A4000] [10de:24b0] (rev a1)
-	Subsystem: NVIDIA Corporation GA104GL [RTX A4000] [10de:14ad]
-	Kernel driver in use: vfio-pci
-	Kernel modules: nvidiafb, nouveau, nvidia_drm, nvidia
+ Subsystem: NVIDIA Corporation GA104GL [RTX A4000] [10de:14ad]
+ Kernel driver in use: vfio-pci
+ Kernel modules: nvidiafb, nouveau, nvidia_drm, nvidia
 09:00.0 VGA compatible controller [0300]: NVIDIA Corporation GA104GL [RTX A4000] [10de:24b0] (rev a1)
-	Subsystem: NVIDIA Corporation GA104GL [RTX A4000] [10de:14ad]
-	Kernel driver in use: nvidia
-	Kernel modules: nvidiafb, nouveau, nvidia_drm, nvidia
+ Subsystem: NVIDIA Corporation GA104GL [RTX A4000] [10de:14ad]
+ Kernel driver in use: nvidia
+ Kernel modules: nvidiafb, nouveau, nvidia_drm, nvidia
 ```
 
 In the above output, we can see that different kernel drivers are loaded for the two RTX A4000 GPUs.
@@ -349,11 +349,13 @@ iperf3 -s -B 192.168.122.1
 ```
 
 In the Windows VM, run the following command for a 5 second test:
+
 ```
 iperf3.exe -c 192.168.122.1 -t 5
 ```
 
 Output in Linux should look like below:
+
 ```bash
 $ iperf3 -s -B 192.168.122.1
 -----------------------------------------------------------
@@ -417,5 +419,5 @@ In Windows VM, running the renderer application shows the camera input from Linu
 
 ## References
 
-- https://wiki.archlinux.org/title/PCI_passthrough_via_OVMF
-- https://www.makeuseof.com/create-windows-virtual-machine-in-linux-with-kvm/
+- <https://wiki.archlinux.org/title/PCI_passthrough_via_OVMF>
+- <https://www.makeuseof.com/create-windows-virtual-machine-in-linux-with-kvm/>

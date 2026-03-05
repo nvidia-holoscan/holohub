@@ -119,6 +119,7 @@ It uses `video_streaming_client_demo_replayer.yaml` and replays a pre-recorded v
   ```
 
 > **Note:**
+>
 > - The video streaming server and client are **cross-language compatible**. You can start the server in one language (C++ or Python) and then connect with a client running in either language.  
 > - You can **switch between the client modes** (replayer or V4L2 camera) at any time without restarting the server—just stop one client and start the other. The server automatically manages client connections.
 

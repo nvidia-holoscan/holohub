@@ -6,7 +6,8 @@ The `XrBeginFrameOp` operator initiates the rendering of a single OpenXR frame. 
 
 ##### Outputs
 
-Output for camera state 
+Output for camera state
+
 - **`left_camera_pose`**: camera pose for the left eye
   - type: `nvidia::gxf::Pose3D`
 - **`right_camera_pose`**: camera pose for the right eye
@@ -18,7 +19,8 @@ Output for camera state
 - **`depth_range`**: depth range
   - type: `nvidia::gxf::Vector2f`
 
-Output for input state 
+Output for input state
+
 - **`trigger_click`**: trigger click , values true/false
   - type: `bool`
 - **`shoulder_click`**: shoulder click , values true/false
@@ -29,22 +31,19 @@ Output for input state
   - type: `std::array<float, 2>`
 - **`aim_pose`**: aim pose for the controller specific for the right hand
   - type: `nvidia::gxf::Pose3D`
-- **`head_pose`**: head pose 
+- **`head_pose`**: head pose
   - type: `nvidia::gxf::Pose3D`
 - **`color_buffer`**: color buffer
   - type: `holoscan::gxf::Entity`
 - **`depth_buffer`**: depth buffer
   - type: `holoscan::gxf::Entity`
 
-
-##### Parameters 
+##### Parameters
 
 - **`XrSession`**: A class that encapsulates a single OpenXR session
   - type: `holoscan::openxr::XrSession`
- 
 
 Note:
 
 - **`XrCudaInteropSwapchain`**: A class that encapsulates the Vulkan buffers of the OpenXR runtime and compatible CUDA buffer to provide interoperability between ClaraViz and OpenXR
   
- 

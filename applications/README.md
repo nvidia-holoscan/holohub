@@ -1,7 +1,7 @@
 # HoloHub Applications
 
 This directory contains applications based on the Holoscan Platform.
-Some applications might require specific hardware and software packages which are described in the 
+Some applications might require specific hardware and software packages which are described in the
 metadata.json and/or README.md for each application.
 
 # Contributing to HoloHub Applications
@@ -13,6 +13,7 @@ Please review the [CONTRIBUTING.md file](https://github.com/nvidia-holoscan/holo
 ## Starting a New Project with HoloHub CLI (Recommended)
 
 Use the HoloHub CLI tool when starting a new project to generate a project folder with files in compliance with HoloHub conventions out of the box.
+
 ```bash
 ./holohub create
 ```
@@ -21,7 +22,7 @@ Use the HoloHub CLI tool when starting a new project to generate a project folde
 
 We expect that an application contributed to HoloHub conforms to the following organization:
 
-- Each project must provide a `metadata.json` file reflecting several key components such as the application name and description, authors, dependencies, and the primary project language. 
+- Each project must provide a `metadata.json` file reflecting several key components such as the application name and description, authors, dependencies, and the primary project language.
 - Each project must provide a `README` or `README.md` file.
   - We strongly recommend that the project `README` file provides at least the information given in the [template README](./template/README.md.template), including the project description and a splash image.
 - Each project must be organized in its own subfolder under `holohub/applications/`.
@@ -33,9 +34,11 @@ See the [HoloHub application template](./template/) for example `README` and `me
 Contributors may additionally opt to lay out their project structure in a way that conforms to HoloHub conventions in order to enable common infrastructure for their project, including streamlined build and run support in the [`holohub`](../holohub) script and search support on the HoloHub landing page.
 
 HoloHub recommended application convention is as follows:
+
 - Languages
   - Project is either C++ or Python language
   - If multiple language implementations are provided, each must be added to its own language subfolder as follows:
+
 ```
 applications/
   └── my_project/

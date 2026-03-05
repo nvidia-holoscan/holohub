@@ -4,24 +4,24 @@ The `XrEndFrameOp` operator completes the rendering of a single OpenXR frame by 
 
 #### `holoscan::openxr::XrEndFrameOp`
 
-##### Parameters 
+##### Parameters
 
 - **`XrSession`**: A class that encapsulates a single OpenXR session
   - type: `holoscan::openxr::XrSession`
 
 ##### Inputs
- 
+
 Render buffers populated by application
+
 - **`color_buffer`**: color buffer
   - type: `holoscan::gxf::VideoBuffer`
 - **`depth_buffer`**: depth buffer
   - type: `holoscan::gxf::VideoBuffer`
 
 OpenXR synchronization
+
 - **`XrFrame`**: connection to synchronize `XrBeginFrameOp` and `XrEndFrameOp`
   - type: `XrFrame`
-
-
 
 Note:
 

@@ -1,4 +1,4 @@
-# Holoscan SDK Response-Time Analysis 
+# Holoscan SDK Response-Time Analysis
 
 We have performed a theoretical response-time analysis of applications created using Holoscan SDK in an RTSS paper [1]. This work accounts for different queuing delays due to different types of connections and dependencies between the operators of a Holoscan application. This directory contains helpful scripts for the timing analysis of Holoscan applications, based on the paper.
 
@@ -15,7 +15,6 @@ Each script takes a representation of an application graph in the form of a DOT 
 
 We assume that there is only one root operator and one leaf operator in the application graph, without losing any generality. More information on why this works for more than one root and leaf can be found in the paper [1].
 
-
 ### `computeWCRT.py`
 
 This script takes a path to a DOT file, representing a Holoscan application graph and computes an upper bound of worst-case response time (WCRT) for the application. The script does not run a Holoscan application on actual hardware. Instead, it computes the WCRT following the timing analysis done in our paper [1]. The algorithm runs reasonably fast (within quadratic time) for graphs with up to 20-30 nodes.
@@ -28,11 +27,11 @@ This script can also, optionally, account for extra scheduling overheads, empiri
     python computeWCRT.py examplegraph.dot --overhead
     Worst-case response time: 1612
 
-### `runsimulation.py` 
+### `runsimulation.py`
 
-This script takes a path to a DOT file representing a Holoscan application graph, an expected runtime, and a root operator period (in this order), and runs a discrete-event simulation of the execution of the Holoscan application under the given conditions, printing the results. The runtime argument determines how long the simulation will run. For example, if an application takes 1000 time units to process an input, and the runtime is 1100 time units, then only one iteration will be simulated. The period argument determines how often the source operator can execute. If the source operator could execute every 50 time units, but period is 100 time units, then the source will be constrained in this script. 
+This script takes a path to a DOT file representing a Holoscan application graph, an expected runtime, and a root operator period (in this order), and runs a discrete-event simulation of the execution of the Holoscan application under the given conditions, printing the results. The runtime argument determines how long the simulation will run. For example, if an application takes 1000 time units to process an input, and the runtime is 1100 time units, then only one iteration will be simulated. The period argument determines how often the source operator can execute. If the source operator could execute every 50 time units, but period is 100 time units, then the source will be constrained in this script.
 
-The period will affect response times, though not necessarily the worst-case response time. For example, lowering the period may increase the queuing time of early iterations with response times still converging to the same value. In the 
+The period will affect response times, though not necessarily the worst-case response time. For example, lowering the period may increase the queuing time of early iterations with response times still converging to the same value. In the
 output below, changing the period to `5` would increase the response time of iteration 1 by 5, but leave the WCRT unchanged.
 
     python runsimulation.py examplegraph.dot 3000 10
@@ -68,13 +67,12 @@ output below, changing the period to `5` would increase the response time of ite
 
     Worst-case response time: 1600
 
-
 For this application, response times converge to the worst-case response time of 1600. Note that not all applications will converge to single value in this manner, and response times may increase or decrease periodically even after reaching the worst-case response time. The previously mentioned `computeWCRT.py` script provides a theoretical upper bound, even though it can be more pessimistic than simulated or real-world observed times. More details are available in our paper [1].
 
 ### Citation
 
-[1] P. Schowitz, S. Sinha, and A. Gujarati, “Response-Time Analysis 
-of a Soft Real-time NVIDIA Holoscan Application,” in IEEE Real-Time 
+[1] P. Schowitz, S. Sinha, and A. Gujarati, “Response-Time Analysis
+of a Soft Real-time NVIDIA Holoscan Application,” in IEEE Real-Time
 Systems Symposium, 2024.
 
 BibTeX:

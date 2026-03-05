@@ -64,6 +64,7 @@ sudo setcap 'cap_net_raw=ep' build/holocat/applications/holocat/tests/test_integ
 ```
 
 **Requirements:**
+
 - EtherCAT network adapter
 - At least one connected slave device
 - Valid ENI configuration file

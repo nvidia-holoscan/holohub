@@ -50,7 +50,7 @@ There are several launch profiles configured for this application:
 4. **(debugpy) ucx_endoscopy_tool_tracking/python - inference fragment**: Starts the `video_in` fragment in debug mode.
 5. **(pythoncpp) ucx_endoscopy_tool_tracking/python - inference fragment**: Starts the `inference` fragment in debug mode.
 6. **(debugpy) ucx_endoscopy_tool_tracking/python - viz fragment**: Starts the `inference` fragment in debug mode.
-4. **(pythoncpp) ucx_endoscopy_tool_tracking/python - viz fragment**: Starts the `viz` fragment in debug mode.
-5. **(compound) ucx_endoscopy_tool_tracking/python**: Starts #2, #4, #6 in sequence.
+7. **(pythoncpp) ucx_endoscopy_tool_tracking/python - viz fragment**: Starts the `viz` fragment in debug mode.
+8. **(compound) ucx_endoscopy_tool_tracking/python**: Starts #2, #4, #6 in sequence.
 
 Note: Launch profiles prefixed with `debugpy` enables debugging of Python code only. Use `pythoncpp` to debug both C++ and Python code.

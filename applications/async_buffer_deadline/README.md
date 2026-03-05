@@ -9,21 +9,22 @@ impact the performance in terms of message latency. It uses Linux's
 `SCHED_DEADLINE` scheduler to ensure predictable timing for operators.
 
 The application consists of:
+
 - Two transmitter operators (PingTxOp) that generate ping messages at different rates
 - One receiver operator (PingRxOp) that processes messages from both transmitters
 - Optional async buffer connectors between transmitters and receiver
 - Earliest deadline first scheduling using Linux's `SCHED_DEADLINE` policy
 
 The application measures and logs:
+
 - Message latency from transmission to reception
 - Observed periods between messages
 - Performance impact of async buffer usage
 
-
-
 ## Requirements
 
 This application requires:
+
 1. Linux with `SCHED_DEADLINE` support
 2. Root privileges in the container because of `SCHED_DEADLINE`
 3. Holoscan SDK 3.5.0 or later
@@ -64,8 +65,8 @@ required to run `SCHED_DEADLINE` application in a container.
 ## Output
 
 The application generates several CSV files:
+
 - `tx1.csv`: Latency measurements for TX1 messages
 - `tx2.csv`: Latency measurements for TX2 messages
 - `rx_in1_periods.csv`: Observed message intervals for RX input 1
 - `rx_in2_periods.csv`: Observed message intervals for RX input 2
-

@@ -4,6 +4,7 @@ In this guide we aim to document advanced workflows to aid developers in working
 and to support advanced project use cases.
 
 # Table of Contents
+
 - [Native Build](#native-build)
 - [Advanced Container Build Options](#advanced-build-options-container)
 - [Advanced Container Launch Options](#advanced-launch-options-container)
@@ -23,6 +24,7 @@ Install the package dependencies for HoloHub on your host system. The easiest wa
 ```
 
 If you prefer you can also install the dependencies manually, typically including the following:
+
 - [CMake](https://www.cmake.org): 3.24.0+
 - Python interpreter: 3.9 to 3.12
 - Python dev: 3.9 to 3.12 (matching version of the interpreter)
@@ -46,8 +48,9 @@ details on dependency versions and custom installation.
 ### View All Options
 
 Run the following to view all build options available for the HoloHub container script:
+
 ```sh
-$ ./holohub build-container --help
+./holohub build-container --help
 ```
 
 ### Custom Base Image
@@ -59,6 +62,7 @@ You may configure a custom base image for building the HoloHub container. For in
 ```
 
 The command above uses the following arguments:
+
 - `--base-img`  is used to configure the base container image;
 - `--img` defines the fully qualified name of the image output by `./holohub`.
 
@@ -83,10 +87,11 @@ Base containers created during the Holoscan SDK build process use the following 
 Several HoloHub applications use a custom Dockerfile to alter or extend the default HoloHub container. Use the following command to build from a custom Dockerfile:
 
 ```bash
-$ ./holohub build-container --docker-file <path_to_dockerfile>  --img holohub-debug:latest
+./holohub build-container --docker-file <path_to_dockerfile>  --img holohub-debug:latest
 ```
 
 Where:
+
 - `--docker-file`  is the path to the container's Dockerfile;
 - `--img` defines the fully qualified image name.
 
@@ -113,7 +118,7 @@ Build (img:holohub:ngc-v0.6.0-dgpu)...
 Run the command below to view all available launch options in the `holohub` script:
 
 ```sh
-$ ./holohub run-container --help
+./holohub run-container --help
 ```
 
 ### Build and Launch a Local Holoscan SDK Container
@@ -121,17 +126,20 @@ $ ./holohub run-container --help
 To use a HoloHub container image built with a local Holoscan SDK container:
 
 ```bash
-$ ./holohub run-container --img holohub:local-sdk-latest --local-sdk-root <path_to_holoscan_sdk>
+./holohub run-container --img holohub:local-sdk-latest --local-sdk-root <path_to_holoscan_sdk>
 ```
 
 where `<path_to_holoscan_sdk>` is the path to the Holoscan SDK root directory containing the build directory.
 Please refer to the [Holoscan SDK Developer Guide](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/DEVELOP.md) for more details on how to build the Holoscan SDK from source.
 
 In the container, to verify the build directory (with a python build) is mounted correctly, run the following command:
+
 ```bash
-$ python -c "import holoscan; print(holoscan.__file__)"
+python -c "import holoscan; print(holoscan.__file__)"
 ```
+
 The output should be something like:
+
 ```bash
 /workspace/holoscan-sdk/build-x86_64/python/lib/holoscan/__init__.py
 ```
@@ -144,7 +152,7 @@ The directory should contain a non-empty `build-<arch>-<gpu_type>` or `install-<
 To launch custom HoloHub container with fully qualified name, e.g. "holohub:ngc-sdk-sample-app"
 
 ```bash
-$ ./holohub run-container --img holohub:ngc-sdk-sample-app --no-docker-build
+./holohub run-container --img holohub:ngc-sdk-sample-app --no-docker-build
 ```
 
 ### Forward X11 Graphics Over SSH
@@ -190,7 +198,6 @@ For example:
 ```
 
 Note that CMake will build the application in the directory specified. If there are multiple languages, the script will attempt to build all of them.
-
 
 ### Building application or operator manually
 

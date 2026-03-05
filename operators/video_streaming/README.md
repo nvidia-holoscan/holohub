@@ -171,7 +171,6 @@ Run all unit tests from the holohub root directory:
 
 Please refer to the [Integration Tests](../../applications/video_streaming/TESTING.md) for end-to-end integration tests validate the complete streaming pipeline with actual server/client communication and frame transmission.
 
-
 ## Related Applications
 
 - **[Streaming Client Demo](../../applications/video_streaming/video_streaming_client/)**: Example client application

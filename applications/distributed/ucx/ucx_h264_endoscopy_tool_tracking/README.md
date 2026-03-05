@@ -6,7 +6,6 @@ This application is similar to the [H.264 Endoscopy Tool Tracking](../../../h264
 2. Inference: run the inference using LSTM and run the post-processing script.
 3. Visualization: display input video and inference results.
 
-
 ## Requirements
 
 This application is configured to use H.264 elementary stream from endoscopy sample data as input.
@@ -61,7 +60,6 @@ Open and edit the [Dockerfile](../../../h264/Dockerfile) and uncomment line 66:
 # Uncomment the following line for aarch64 support
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/aarch64-linux-gnu/tegra/
 ```
-
 
 ## Dev Container
 

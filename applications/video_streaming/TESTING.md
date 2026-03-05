@@ -455,6 +455,7 @@ echo "Integration test exit code: $?"
 ```
 
 **Exit Codes:**
+
 - `0`: All tests passed successfully
 - `1`: Test failures detected
 - `124`: Test timeout (5 minutes)
@@ -506,6 +507,7 @@ The integration test script (`integration_test_python.sh`) runs the complete end
 **Test Duration:** ~44 seconds (30 seconds of streaming + setup/teardown)
 
 **Requirements:**
+
 - Docker and NVIDIA GPU
 - Testing enabled via `--cmake-options='-DBUILD_TESTING=ON'`
 - Python bindings enabled via `--cmake-options='-DHOLOHUB_BUILD_PYTHON=ON'`
@@ -591,6 +593,7 @@ fi
 ### Expected Outcome
 
 **Successful Test Output (Standalone Python Test):**
+
 ```console
 === Python Integration Test with Log Verification ===
 Starting Python server and client with log capture...
@@ -637,12 +640,14 @@ Total Test time (real) = 44.42 sec
 ```
 
 **Note:** When running the full integration test suite (both C++ and Python tests together), you'll see:
+
 - Test counter: `2/2 Test #2` (instead of `1/1`)
 - Both tests listed: `video_streaming_integration_test_cpp` and `video_streaming_integration_test_python`
 - Total: `0 tests failed out of 2`
 - Total time: ~88 seconds (both tests combined)
 
 **Important Notes:**
+
 - A segmentation fault may occur during shutdown - this is **expected** and does not indicate test failure
 - The test explicitly ignores cleanup segfaults using `wait $PID || true`
 - Test result is based **solely** on the 10 verification checks, not process exit codes
@@ -675,6 +680,7 @@ The Python integration test validates the following checks. **All checks must pa
 #### Overall Test Success
 
 **Test PASSES when:**
+
 - ✅ All 6 server checks pass (6/6)
 - ✅ All 4 client checks pass (4/4)
 - ✅ Total: **10/10 checks passed**
@@ -682,6 +688,7 @@ The Python integration test validates the following checks. **All checks must pa
 - ✅ CTest output: `"100% tests passed, 0 tests failed out of 1"`
 
 **Test FAILS when:**
+
 - ❌ Any server check fails (< 6 passed)
 - ❌ Any client check fails (< 4 passed)
 - ❌ Total: < 10 checks passed
@@ -693,39 +700,47 @@ The Python integration test validates the following checks. **All checks must pa
 ### Frame Throughput Metrics
 
 **Minimum Requirements:**
+
 - **Server Frame Processing**: ≥100 frames in 30 seconds (~3.3 fps minimum)
 - **Client Frame Sending**: ≥100 frames in 30 seconds (~3.3 fps minimum)
 - **Client Frame Reception**: ≥100 frames in 30 seconds (~3.3 fps minimum)
 
 **Typical Performance:**
+
 - **Frames Processed**: 500-600 frames in 30 seconds (~16-20 fps)
 - **Bidirectional Verification**: Both upstream (client → server) and downstream (server → client) verified
-
 
 ### Troubleshooting
 
 #### Test Failure - Insufficient Frames
+
 ```text
 ✗ Python Server: Only 50 frames processed (minimum: 100)
 ```
+
 **Cause**: Insufficient streaming time or connection issues  
 **Solution**: Check network connectivity, verify logs for connection errors
 
 #### Test Failure - Client Not Started
+
 ```text
 ✗ Python Client: Streaming client failed to start
 ```
+
 **Cause**: Missing dependencies or PYTHONPATH issues  
 **Solution**: Ensure `HOLOHUB_BUILD_PYTHON=ON` and rebuild with Python bindings
 
 #### Test Failure - No Frames Received
+
 ```text
 ✗ Python Client: No frames received from server
 ```
+
 **Cause**: Downstream connection failure or server issues  
 **Solution**: Check server logs for downstream connection establishment
 
 #### Segmentation Fault at Shutdown (Expected Behavior)
+
 ```bash
 Segmentation fault (core dumped) python3 video_streaming_server_demo.py
 ✓ Python Server: StreamingServerUpstreamOp processed 561 unique frames
@@ -743,6 +758,7 @@ Segmentation fault (core dumped) python3 video_streaming_server_demo.py
 ### CI/CD Integration
 
 **Exit Codes:**
+
 - `0`: All tests passed (all 10 checks passed)
 - `1`: One or more checks failed
 - `124`: Test timeout (300 seconds)
@@ -750,6 +766,7 @@ Segmentation fault (core dumped) python3 video_streaming_server_demo.py
 **CI-Friendly Commands:**
 
 **Using Wrapper Script:**
+
 ```bash
 # Recommended for CI/CD pipelines
 timeout 300 ./applications/video_streaming/integration_test_python.sh
@@ -757,6 +774,7 @@ echo "Python integration test exit code: $?"
 ```
 
 **Using Direct Command:**
+
 ```bash
 timeout 300 ./holohub test video_streaming \
   --cmake-options='-DHOLOHUB_BUILD_PYTHON=ON -DBUILD_TESTING=ON' \
@@ -797,4 +815,3 @@ tail -100 integration_test_python.log
 - **[Main README](README.md)** - Application overview and usage
 - **[Client README](video_streaming_client/README.md)** - Client-specific documentation
 - **[Server README](video_streaming_server/README.md)** - Server-specific documentation
-

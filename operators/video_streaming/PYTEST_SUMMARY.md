@@ -32,6 +32,7 @@ operators/video_streaming/
 ### StreamingClientOp Python Bindings (38 test executions)
 
 #### TestStreamingClientOpBinding (20+ tests)
+
 - **Basic Tests:**
   - Operator creation and initialization
   - Name property validation
@@ -55,12 +56,14 @@ operators/video_streaming/
   - Multiple instance isolation
 
 #### TestStreamingClientOpIntegration (2+ tests)
+
 - Operator in Application context
 - Operator in Fragment context
 
 ### StreamingServerOps Python Bindings (51 test executions)
 
 #### TestStreamingServerResourceBinding (23 test executions)
+
 - **Basic Tests:**
   - Resource creation and initialization
   - Name property validation
@@ -77,6 +80,7 @@ operators/video_streaming/
   - Multiple resources with different ports
 
 #### TestStreamingServerUpstreamOpBinding (6 tests)
+
 - Basic operator creation
 - Operator name property
 - Operator with custom resource configuration
@@ -85,6 +89,7 @@ operators/video_streaming/
 - Multiple operators sharing same resource
 
 #### TestStreamingServerDownstreamOpBinding (6 tests)
+
 - Basic operator creation
 - Operator name property
 - Operator with custom resource configuration
@@ -93,6 +98,7 @@ operators/video_streaming/
 - Multiple operators sharing same resource
 
 #### TestStreamingServerIntegration (4 tests)
+
 - Bidirectional server setup (upstream + downstream)
 - Multiple servers on different ports
 - Operators in Application context
@@ -103,6 +109,7 @@ operators/video_streaming/
 > **Important:** The video streaming client tests require **CUDA 12**. If you're using CUDA 13, you must specify `--cuda 12` when running the `./holohub` script.
 
 **For CUDA 13 systems:**
+
 ```bash
 # Building
 ./holohub build video_streaming --cuda 12 --configure-args='-DBUILD_TESTING=ON'
@@ -137,6 +144,7 @@ operators/video_streaming/
 ```
 
 **Expected Output:**
+
 ```
 Test project /workspace/holohub/build-video_streaming
 Constructing a list of tests
@@ -157,6 +165,7 @@ Total Test time (real) = ~20 sec
 You can save test output to a file for documentation or debugging purposes:
 
 #### With CTest
+
 ```bash
 # Redirect all output to a file
 ./holohub test video_streaming --ctest-options="-R streaming.*pytest -VV" > test_results.log 2>&1
@@ -169,6 +178,7 @@ You can save test output to a file for documentation or debugging purposes:
 ```
 
 #### Log File Interpretation
+
 ```bash
 # View the log file
 cat test_results.log
@@ -202,6 +212,7 @@ All tests must pass with the following criteria:
 ### Test Categories Validated
 
 #### ✅ Client Operator Tests (38/38 test executions PASSED)
+
 - Basic creation and initialization
 - Name property handling
 - Inheritance verification
@@ -219,6 +230,7 @@ All tests must pass with the following criteria:
 - Fragment context integration
 
 #### ✅ Server Operator Tests (51/51 test executions PASSED)
+
 - **Resource Tests (23 test executions):**
   - Basic creation and initialization
   - Name property handling
@@ -260,26 +272,31 @@ All tests must pass with the following criteria:
 ## What These Tests Validate
 
 ### ✅ Python Binding Correctness
+
 - C++ classes properly exposed to Python
 - Inheritance relationships maintained
 - Methods and properties accessible
 
 ### ✅ Parameter Handling
+
 - Correct parameter passing across language boundaries
 - Type conversions work correctly
 - Default values applied properly
 
 ### ✅ Memory Management
+
 - No memory leaks across Python/C++ boundary
 - Proper garbage collection
 - Multiple instances handled correctly
 
 ### ✅ Error Handling
+
 - Graceful handling of errors in Python context
 - Appropriate exceptions raised
 - No crashes on invalid inputs
 
 ### ✅ Integration
+
 - Works within Application context
 - Works within Fragment context
 - Resource sharing between operators
@@ -308,6 +325,7 @@ export PYTHONPATH=/opt/nvidia/holoscan/python/lib:$PYTHONPATH
 ### Test Skipping
 
 Tests will skip gracefully if:
+
 - Holoscan SDK is not available
 - Python bindings are not built
 - Required dependencies are missing
@@ -331,8 +349,3 @@ This pytest implementation provides:
 4. ✅ **Extensive documentation and examples**
 5. ✅ **Integration with existing test infrastructure**
 6. ✅ **Validation of Python/C++ binding correctness**
-
-
-
-
-

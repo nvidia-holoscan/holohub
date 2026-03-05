@@ -2,9 +2,7 @@
 
 This application demonstrates real-time 3D surgical scene reconstruction by combining **Holoscan SDK** for high-performance streaming, **3D Gaussian Splatting** for neural 3D representation, and **temporal deformation networks** for accurate modeling of dynamic tissue.
 
-
 ![Training Visualization - Ground Truth vs Rendered](train_gt_animation.gif)
-
 
 The application provides a complete end-to-end pipeline—from raw surgical video to real-time 3D reconstruction. Researchers and developers can use it to train custom models on their own endoscopic data and visualize results with GPU-accelerated rendering.
 
@@ -38,7 +36,7 @@ cd holohub
 ### Step 2: Read and Agree to the Terms and Conditions of the EndoNeRF Sample Dataset
 
 1. Read and agree to the [Terms and Conditions](https://docs.google.com/document/d/1P6q2hXoGpVMKeD-PpjYYdZ0Yx1rKZdJF1rXxpobbFMY/edit?usp=share_link) for the EndoNeRF dataset.
-2. EndoNeRF sample dataset is being downloaded automatically when building the application. 
+2. EndoNeRF sample dataset is being downloaded automatically when building the application.
 3. Optionally, for manual download of the dataset, refer to the [Data](#obtaining-the-pulling-soft-tissues-dataset) section below.
 4. Optionally, if you do not agree to the terms and conditions, set the `HOLOHUB_DOWNLOAD_DATASETS` environment variable to `OFF` and manually download the dataset and place it in the correct location by following the instructions in the [Data](#obtaining-the-pulling-soft-tissues-dataset) section below.
 
@@ -77,7 +75,7 @@ This application uses the **EndoNeRF "pulling_soft_tissues" dataset**, which con
 
 You can download the dataset from one of the following locations:
 
-* 📦 Direct Google Drive: <https://drive.google.com/drive/folders/1zTcX80c1yrbntY9c6-EK2W2UVESVEug8?usp=sharing>
+- 📦 Direct Google Drive: <https://drive.google.com/drive/folders/1zTcX80c1yrbntY9c6-EK2W2UVESVEug8?usp=sharing>
 
   1. In the Google Drive folder, you'll see:
 
@@ -86,7 +84,7 @@ You can download the dataset from one of the following locations:
   
   2. Download `pulling_soft_tissues`.
 
-* Visit the [EndoNeRF repository](https://github.com/med-air/EndoNeRF).
+- Visit the [EndoNeRF repository](https://github.com/med-air/EndoNeRF).
 
 ### Dataset Setup
 
@@ -95,11 +93,12 @@ The dataset will be automatically used by the application when placed in the cor
 To place the dataset at `<HOLOHUB_ROOT>/data/EndoNeRF/pulling/`:
 
 1. From the HoloHub root directory:
+
     ```bash
     mkdir -p data/EndoNeRF
     ```
 
-2. Extract and move (or copy) the downloaded dataset: 
+2. Extract and move (or copy) the downloaded dataset:
 
     ```bash
     mv /path/to/pulling_soft_tissues data/EndoNeRF/pulling
@@ -126,8 +125,8 @@ Verify that your dataset has this structure:
 
 The `surgical_scene_recon` application uses a 4D Dynamic Gaussian Splatting model that combines:
 
-* **3D Gaussian Splatting** model - A point-based neural scene representation
-* **HexPlane Temporal Deformation Network** - A spatiotemporal feature grid with MLPs for modeling tissue dynamics
+- **3D Gaussian Splatting** model - A point-based neural scene representation
+- **HexPlane Temporal Deformation Network** - A spatiotemporal feature grid with MLPs for modeling tissue dynamics
 
 - Gaussian Splatting Model
 
@@ -274,7 +273,7 @@ Quality Metrics (train mode):
 
 If you use this work, cite the following:
 
-* EndoNeRF:
+- EndoNeRF:
 
   ```bibtex
   @inproceedings{wang2022endonerf,
@@ -285,7 +284,7 @@ If you use this work, cite the following:
   }
   ```
 
-* 3D Gaussian Splatting:
+- 3D Gaussian Splatting:
 
   ```bibtex
   @article{kerbl20233d,
@@ -296,7 +295,7 @@ If you use this work, cite the following:
   }
   ```
 
-* `gsplat` Library:
+- `gsplat` Library:
 
   ```bibtex
   @software{ye2024gsplat,

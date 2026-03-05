@@ -44,6 +44,7 @@ This application uses the endoscopy dataset as an example. The build command abo
 ```
 
 The Python version of the simple CV-CUDA pipeline example can be run via
+
 ```bash
 python applications/cvcuda_basic/python/cvcuda_basic.py --data=/workspace/holohub/data/endoscopy
 ```
@@ -55,6 +56,7 @@ or using the HoloHub CLI entrypoint:
 ```
 
 The C++ version of the simple CV-CUDA pipeline example can then be run via
+
 ```bash
 ./build/applications/cvcuda_basic/cpp/cvcuda_basic --data=/workspace/holohub/data/endoscopy
 ```
@@ -64,7 +66,6 @@ or using the run script
 ```bash
 ./holohub run cvcuda_basic --language=cpp --local
 ```
-
 
 ## VS Code Dev Container
 
@@ -79,7 +80,6 @@ To start the the Dev Container, run the following command from the root director
 #### C++
 
 Use the `**(gdb) cvcuda_basic/cpp**` launch profile configured for this application to debug the application.
-
 
 #### Python
 

@@ -63,7 +63,6 @@ optional arguments:
                         ICE server config in the form of `turn:<ip>:<port>[<username>:<password>]` or `stun:<ip>:<port>`. This option can be specified multiple times to add multiple ICE servers.
 ```
 
-
 ## Running With TURN server
 
 A TURN server may be needed if you're running in a containerized environment without host networking (e.g. Kubernetes or Docker). Here are some basic steps to run this example with a TURN server.

@@ -5,6 +5,7 @@ This application demonstrates how to run multiple inference pipelines in a singl
 The Inference and the Processing operators use APIs from the Holoscan Inference module to extract data, initialize and execute the inference workflow, process, and transmit data for visualization.
 
 The applications uses models and echocardiogram data from iCardio.ai. The models include:
+
 - a Plax chamber model, that identifies four critical linear measurements of the heart
 - a Viewpoint Classifier model, that determines confidence of each frame to known 28 cardiac anatomical view as defined by the guidelines of the American Society of Echocardiography
 - an Aortic Stenosis Classification model, that provides a score which determines likeability for the presence of aortic stenosis
@@ -34,6 +35,7 @@ sed -i -e 's#^source:.*#source: replayer#' applications/multiai_ultrasound/cpp/m
 ```
 
 ### Using a pre-recorded video on multi-GPU system
+
 ```bash
 sed -i -e 's#^source:.*#source: replayer#' applications/multiai_ultrasound/cpp/mgpu_multiai_ultrasound.yaml
 ./holohub run multiai_ultrasound --language=cpp [--local] \
@@ -41,6 +43,7 @@ sed -i -e 's#^source:.*#source: replayer#' applications/multiai_ultrasound/cpp/m
 ```
 
 ### Using an AJA capture card
+
 ```bash
 sed -i -e 's#^source:.*#source: aja#' applications/multiai_ultrasound/cpp/multiai_ultrasound.yaml
 ./holohub run multiai_ultrasound --language=cpp [--local] \

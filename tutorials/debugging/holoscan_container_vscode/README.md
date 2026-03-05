@@ -13,9 +13,11 @@ Follow this step-by-step guide to get started!
 - [Docker](https://www.docker.com/)
 - [VS Code](https://code.visualstudio.com/) with the [Dev Container Extension Pack](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
   - Install [Dev Container Extension Pack](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) via command line
+
     ```bash
     code --install-extension ms-vscode-remote.remote-containers
     ```
+
 - [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
 - [NVIDIA CUDA Toolkit](https://developer.nvidia.com/cuda-downloads)
 - [Holoscan SDK container 2.3 or later](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan)
@@ -47,9 +49,10 @@ The `My Workspace` section contains all the files that you've copied. The `Holos
 ```
 
 > 💡 Note: The Dev Container is configured with a default user account `holoscan` using user ID `1000` and group ID `1000` in the [devcontainer.json](./.devcontainer/devcontainer.json) file. <br />
->  - To change the user name, find and replace `USERNAME` and `remoteUser`.<br />
->  - To change the user ID, find and replace `USER_UID` and `userUid`.<br />
->  - To change the group ID, find and replace `USER_GID` and `userGid`.<br />
+>
+> - To change the user name, find and replace `USERNAME` and `remoteUser`.<br />
+> - To change the user ID, find and replace `USER_UID` and `userUid`.<br />
+> - To change the group ID, find and replace `USER_GID` and `userGid`.<br />
 
 ## Debugging Applications
 
@@ -78,13 +81,12 @@ Hit **F5** on the keyboard or click the green arrow to start debugging. VS Code 
 
 > 💡 *Tip*: **What happens when you hit F5?** VS Code looks up the launch profile for `(gdb) examples/hello_world/cpp` in the [.vscode/launch.json](/.vscode/launch.json) file and starts the debugger with the appropriate configurations and arguments.
 
-
 ### Debugging a Python Application
 
 There are a few options when debugging a Python application. In the [.vscode/launch.json](/.vscode/launch.json) file, you may find the following options to debug the Hello World application:
 
-* **Python: Debug Current File**: with this option selected, open [hello_world.py](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/examples/hello_world/python/hello_world.py) file and hit F5. It shall stop at any breakpoints selected.
-* **Python C++ Debug**: similar to the previous option, this launch profile allows you to debug both the Python and C++ code.
+- **Python: Debug Current File**: with this option selected, open [hello_world.py](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/examples/hello_world/python/hello_world.py) file and hit F5. It shall stop at any breakpoints selected.
+- **Python C++ Debug**: similar to the previous option, this launch profile allows you to debug both the Python and C++ code.
   Open [holoscan-sdk/src/core/application.cpp](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/src/core/application.cpp#L209) and find the `Application::run()` function. Let's put a breakpoint inside this function. Navigate back to the [hello_world.py](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/examples/hello_world/python/hello_world.py) file and hit F5. When the debug session starts, it stops at the top of the main application file and brings up a prompt in the terminal asking for superuser access.
 
   ```bash
@@ -93,10 +95,9 @@ There are a few options when debugging a Python application. In the [.vscode/lau
 
   You may answer `Y` or `y` to continue the debug session. The debugger shall now stop at the breakpoint you've set in the `application.cpp` file.
 
-* **(gdb) examples/hello_world/python**: this third launch profile option allows you to debug the C++ code only.  Put a breakpoint in the `Application::run()` function inside the [holoscan-sdk/src/core/application.cpp](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/src/core/application.cpp#L209) file.
+- **(gdb) examples/hello_world/python**: this third launch profile option allows you to debug the C++ code only.  Put a breakpoint in the `Application::run()` function inside the [holoscan-sdk/src/core/application.cpp](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/src/core/application.cpp#L209) file.
 
 > 💡 *Tip*: you must open a Python file and make sure the file tab is active to debug when using the first two launch profiles.*
-
 
 ## Troubleshooting
 
@@ -104,10 +105,10 @@ There are a few options when debugging a Python application. In the [.vscode/lau
 
 ![VS Code Missing Debugging Tools](static/vscode-missing-cppdbg.png)
 
-* Configured debug type 'cppdbg' is not supported.
-* Configured debug type 'debugpy' is not supported.
-* Configured debug type 'pythoncpp' is not supported.
-* Configured debug type 'python' is not supported.
+- Configured debug type 'cppdbg' is not supported.
+- Configured debug type 'debugpy' is not supported.
+- Configured debug type 'pythoncpp' is not supported.
+- Configured debug type 'python' is not supported.
 
 If you encounter the above errors, please ensure all the required extensions are installed in VS Code. It may take a while to install them for the first time.
 

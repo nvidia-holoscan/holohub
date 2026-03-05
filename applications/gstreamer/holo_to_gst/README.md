@@ -20,6 +20,7 @@ This application showcases how to:
 ### Key Feature: Custom Pipeline Construction
 
 The application provides a flexible bridge between Holoscan and GStreamer. You can construct **any GStreamer pipeline** you want - the examples provided are just demonstrations. This enables unlimited possibilities:
+
 - Video encoding (H.264, H.265, VP8, VP9, AV1, etc.)
 - Live streaming (RTP, RTSP, WebRTC, HLS, etc.)
 - Video effects and filters (flip, rotate, color correction, etc.)
@@ -100,6 +101,7 @@ The recommended way to run the application is through the `holohub` launcher wit
 ```
 
 Available modes:
+
 - `v4l2` - Display live feed from V4L2 camera
 - `pattern` - Display animated gradient pattern
 
@@ -199,11 +201,13 @@ The output file will be available at `holohub/camera.mp4` on your host.
 **Important:** For UDP streaming, start the receiver FIRST, then the sender. UDP is connectionless - packets sent before the receiver is ready are lost.
 
 Terminal 1 - Start receiver first:
+
 ```bash
 gst-launch-1.0 udpsrc port=5000 caps="application/x-rtp,encoding-name=H264" ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! autovideosink
 ```
 
 Terminal 2 - Then start streaming (no --count for continuous streaming):
+
 ```bash
 ./holohub run holo_to_gst v4l2 --run-args="--pipeline 'cudaconvert name=src ! nvh264enc ! h264parse ! rtph264pay ! udpsink host=127.0.0.1 port=5000'"
 ```
@@ -249,11 +253,13 @@ v4l2-ctl --list-formats-ext -d /dev/video0
 **Stream pattern over network:**
 
 Terminal 1 - Start receiver first:
+
 ```bash
 gst-launch-1.0 udpsrc port=5000 caps="application/x-rtp,encoding-name=H264" ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! autovideosink
 ```
 
 Terminal 2 - Then start streaming:
+
 ```bash
 ./holohub run holo_to_gst pattern --run-args="--pipeline 'cudadownload name=src ! videoconvert ! x264enc ! rtph264pay ! udpsink host=127.0.0.1 port=5000'"
 ```
@@ -356,6 +362,7 @@ The application supports both host and device (CUDA) memory:
 **File Output Paths:**
 
 When running through `holohub run` (in a container), use absolute paths for file output:
+
 - Inside container: `/workspace/holohub/filename.mp4`
 - On your host: `<workspace_path>/filename.mp4` (wherever your holohub workspace is located)
 

@@ -31,6 +31,7 @@ The included Holoscan Runner tool enables you to run those configurations in rea
 ## Quick Start
 
 First, clone this repository:
+
 ```bash
 git clone https://github.com/nvidia-holoscan/holohub.git
 ```
@@ -38,11 +39,13 @@ git clone https://github.com/nvidia-holoscan/holohub.git
 Then, run the containerized application.
 
 To run the filter designer webpage for assembling filter pipelines and tuning filter parameters:
+
 ```bash
 ./holohub run ultrasound_postprocessing designer
 ```
 
 To run a filter pipeline preset in real time with Holoscan SDK:
+
 ```bash
 ./holohub run ultrasound_postprocessing realtime
 ```
@@ -52,11 +55,13 @@ To run a filter pipeline preset in real time with Holoscan SDK:
 As an alternative to HoloHub CLI, you can instead design and run filters with project Python entrypoints.
 
 Install this project with your Python package manager:
+
 ```bash
 python3 -m pip install git+ssh://github.com/nvidia-holoscan/holohub.git@main#subdirectory=applications/ultrasound_postprocessing
 ```
 
 Then run your application of choice:
+
 ```bash
 python3 -m streamlit run applications/ultrasound_postprocessing/ultra_post/app/streamlit_app.py
 ```
@@ -65,7 +70,7 @@ python3 -m streamlit run applications/ultrasound_postprocessing/ultra_post/app/s
 python3 -m ultra_post.app.holoscan_app [--uff path/to/myfile.uff] [--fps 10]
 ```
 
-The sample dataset used in this project is available at http://www.ustb.no/datasets.
+The sample dataset used in this project is available at <http://www.ustb.no/datasets>.
 
 ## Key Concepts
 
@@ -135,7 +140,6 @@ Please see the [HoloHub Contributing Guide](/CONTRIBUTING.md) for developer guid
 - **Concise & Approachable**: We prioritize readability so new users can quickly understand the post-processing logic.
 - **Performant**: We aim for code that is both expressive and performant, enabling real-time processing.
 
-
 ## License
 
 This project is licensed under the Apache-2.0 License. See the HoloHub [LICENSE](/LICENSE) file for details.
@@ -148,7 +152,6 @@ This project is licensed under the Apache-2.0 License. See the HoloHub [LICENSE]
 
 - NVIDIA Holoscan Team
 - Open source community contributors
-
 
 ## Reference Data
 

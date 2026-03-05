@@ -35,14 +35,14 @@ nutshell, there are four steps to perform Holoscan flow benchmarking
 which are [summarized here](https://github.com/nvidia-holoscan/holohub/tree/main/benchmarks/holoscan_flow_benchmarking/README.md).
 Following is a high-level overview:
 
-1.  **Patching an application:** In the first step, we patch a Holoscan application to turn on data flow tracking.
+1. **Patching an application:** In the first step, we patch a Holoscan application to turn on data flow tracking.
 
-2.  **Building an application:** In the second step, we compile the patched application with necessary header files.
+2. **Building an application:** In the second step, we compile the patched application with necessary header files.
 
-3.  **Running the benchmark:** In the third step, we run the `benchmark.py` script with necessary parameters to evaluate the performance of the application in different configurations. This
+3. **Running the benchmark:** In the third step, we run the `benchmark.py` script with necessary parameters to evaluate the performance of the application in different configurations. This
 generates a number of log files which capture the result of the performance measurements in its raw format.
 
-4.  **Analyzing the result:** In the fourth step, we retrieve the result
+4. **Analyzing the result:** In the fourth step, we retrieve the result
 of the benchmarking process by using the generated log files with
 the `analyze.py` script. We can also export the result in a CSV file
 or generate graphs to visualize certain results.
@@ -154,10 +154,10 @@ interferences from multiple instances:
 The application developers can decide for their own applications the
 acceptable maximum or average end-to-end latency and therefore:
 
--   decide how many parallel instances of an application they want to
+- decide how many parallel instances of an application they want to
 run on their system
--   whether they need to further optimize the pipeline
--   whether they need more compute resources
+- whether they need to further optimize the pipeline
+- whether they need more compute resources
 
 ### Measuring GPU utilization
 
@@ -365,13 +365,13 @@ curve to be as small as possible.
 Holoscan flow benchmarking is currently available for four HoloHub C++
 applications:
 
--   endoscopy_tool_tracking
+- endoscopy_tool_tracking
 
--   multiai_endoscopy
+- multiai_endoscopy
 
--   multiai_ultrasound
+- multiai_ultrasound
 
--   ultrasound_segmentation
+- ultrasound_segmentation
 
 We plan to add Holoscan flow benchmarking for other C++ and Python
 sample applications for HoloHub in the future.

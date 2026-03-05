@@ -5,8 +5,8 @@ This directory contains operators for deidentification in medical and sensitive 
 ## Available Operators
 
 - **Pixelator Operator** (`pixelator`):
-    - Performs pixelation-based deidentification on input images, suitable for anonymizing surgical video frames or other sensitive imagery.
-    - See `pixelator/README.md` for usage, requirements, and implementation details.
+  - Performs pixelation-based deidentification on input images, suitable for anonymizing surgical video frames or other sensitive imagery.
+  - See `pixelator/README.md` for usage, requirements, and implementation details.
 
 ---
 

@@ -104,7 +104,6 @@ Before getting started:
 
 Thanks in advance for your patience as we review your contributions. We do appreciate them!
 
-
 ## Types of Contributions
 
 Choose the right contribution type based on what you want to share:
@@ -126,7 +125,6 @@ What are you contributing?
 ```
 
 > **Important**: Workflows are _end-to-end_ reference applications demonstrating complete "sensor-to-insight" pipelines. They integrate multiple components to solve entire use cases, while applications may focus on specific functionality.
-
 
 ## Preparing Your Submission
 
@@ -660,6 +658,7 @@ For examples, see existing test files like:
 > **Note**: HoloHub doesn't provide a single debugging container due to the variety of methods across applications. Open an issue if you need additional debugging tools.
 
 > **Note**: Refer to [Holoscan SDK debugging documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_debugging.html) and [HoloHub debugging tutorials](https://github.com/nvidia-holoscan/holohub/tree/main/tutorials/debugging)
+>
 ### Performance
 
 Low latency is crucial for many HoloHub applications. Use these resources for performance analysis:

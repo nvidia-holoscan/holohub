@@ -43,4 +43,3 @@ The operator supports various video formats based on resolution, frame rate, and
 
 - **video_buffer_output**: Video buffer containing the captured frame
 - **overlay_buffer_output** (optional): Empty video buffer for overlay when `enable_overlay` is true
-

@@ -33,11 +33,15 @@ The pipeline is similar to the one using the recorded video, with the exceptions
 - the input source is replaced with [AJA Source](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_operators_extensions.html#operators) (pixel format is `RGBA8888` with a resolution of 1920x1080)
 - the [Format Converter](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_operators_extensions.html#operators) in the inference pipeline is configured to also resize the image, and convert to `float32` from `RGBA8888`
 - the [Format Converter](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_operators_extensions.html#operators) in the recording pipeline is used for `record_type: INPUT` also
+
 #### Building with AJA support
+
 ```bash
 ./holohub build --local endoscopy_tool_tracking --build-with="aja_source"
 ```
+
 #### Hardware keying
+
 For AJA cards that support Hardware Keying, you can use the `endoscopy_tool_tracking_aja_overlay.yaml` config file to overlay the segmentation results on the input video on the AJA card FPGA. The overlay layer is sent from [Holoviz](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_operators_extensions.html#operators) back to the [AJA Source](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_operators_extensions.html#operators) operator which handles the alpha blending and outputs it to a port of the the AJA card. The blended image is also sent back to the [Holoviz](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_operators_extensions.html#operators) operator (instead of the input video only) for rendering the same image buffer.
 
 ### Using VTK for rendering

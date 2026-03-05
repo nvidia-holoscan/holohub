@@ -14,13 +14,13 @@ Users targeting a Jetson platform (integrated GPU) may need to install [Jetson P
 in their demo environment.
 
 ## Model
-* Yolo v8 model: https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt
-* Yolo v8 export repository: https://github.com/triple-Mu/YOLOv8-TensorRT
+
+* Yolo v8 model: <https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt>
+* Yolo v8 export repository: <https://github.com/triple-Mu/YOLOv8-TensorRT>
 
 In this application example, we use the YOLOv8s model, which is converted to ONNX format using the repository mentioned above. Note that if you provide your own ONNX model, ensure it includes the EfficientNMS_TRT layer. You can verify it using [Netron](https://netron.app/). Additionally, we employ the `graph_surgeon.py` script to modify the input shape. For more details on this script, refer to [graph_surgeonpy](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/scripts#graph_surgeonpy).
 
 The detailed process is documented in the `CMakeLists.txt` file.
-
 
 ## Input Source
 

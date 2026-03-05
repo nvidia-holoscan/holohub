@@ -44,6 +44,7 @@ v4l2-ctl --list-devices
 
 This application supports v4l2 compatible devices as input.  To run this application with your v4l2 compatible device,
 please plug in your input device and run:
+
 ```sh
 ./holohub run depth_anything_v2
 ```
@@ -51,6 +52,7 @@ please plug in your input device and run:
 By default, this application expects the input device to be mounted at `/dev/video0`.  If this is not the case, update
 `applications/depth_anything_v2/depth_anything_v2.yaml` file to set the corresponding input device before
 running the application.  You can also override the default input device on the command line by running:
+
 ```sh
 ./holohub run depth_anything_v2 --run-args="--video_device /dev/video0"
 ```
@@ -71,16 +73,15 @@ This application has multiple display modes which you can toggle through using t
 * original: output the original image from input source
 * depth: output the color depthmap based on the depthmap returned from Depth Anything V2 model
 * side-by-side: output a side-by-side view of the original image next to the color depthmap
-* interactive: allow user 
+* interactive: allow user
 
 In interactive mode, the middle or right mouse button can be used to modify the ratio of original image vs color depthmap is shown.
-
 
 ## Acknowledgement
 
 This project is based on the following projects:
-- [Depth-Anything-V2](https://github.com/DepthAnything/Depth-Anything-V2) - Depth Anything V2
-- [depth-anything-tensorrt](https://github.com/spacewalk01/depth-anything-tensorrt) - Depth Anything TensorRT CLI
+* [Depth-Anything-V2](https://github.com/DepthAnything/Depth-Anything-V2) - Depth Anything V2
+* [depth-anything-tensorrt](https://github.com/spacewalk01/depth-anything-tensorrt) - Depth Anything TensorRT CLI
 
 ## Known Issues
 

@@ -14,5 +14,6 @@ Converts a depth buffer from linear world units to screen space ([0,1])
   - type: `nvidia::gxf::Vector2f`
 
 ##### Outputs
-- **`depth_buffer_out`**: output depth buffer 
+
+- **`depth_buffer_out`**: output depth buffer
   - type: `holoscan::gxf::Entity`

@@ -1,4 +1,5 @@
 **Note**: The transcript read into the mic for this example is the "Comments" section from [mtsamples.com/echocardiogram-2](https://mtsamples.com/site/pages/sample.asp?Type=95-Radiology&Sample=245-2-D+Echocardiogram+-+2&expand_article=1)
+
 ```
 ======== Final Transcription ========
 

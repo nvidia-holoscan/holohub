@@ -42,6 +42,7 @@ Platforms with NVIDIA drivers < 580.00 are not supported.
 ### Symbol error at load
 
 Python applications have been observed to emit the following at runtime:
+
 ```bash
 2: [warning] [gxf_extension_manager.cpp:174] Unable to load extension from 'libgxf_videodecoder.so' \
   (error: /opt/nvidia/holoscan/lib/libgxf_videodecoder.so: undefined symbol: _ZN6nvidia6logger15GlobalGxfLogger8instanceEv)

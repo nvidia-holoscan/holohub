@@ -32,7 +32,6 @@ To obtain a license/activation key, please [click here](https://content.rti.com/
 > [Linux installation](https://community.rti.com/static/documentation/developers/get-started/full-install.html)
 > for details.
 
-
 ## Quick Start
 
 ```bash
@@ -42,7 +41,6 @@ To obtain a license/activation key, please [click here](https://content.rti.com/
 # Start the subscriber
 ./holohub run dds_video --docker-opts="-v $HOME/rti_connext_dds-7.3.0:/opt/rti.com/rti_connext_dds-7.3.0/" --run-args="-s"
 ```
-
 
 ## Building the Application
 
@@ -77,8 +75,6 @@ done using the RTI `setenv` script) and use the following:
 # Open a new terminal to repeat step #2 and launch a new container for the subscriber.
 ```
 
-
-
 ## Running the Application
 
 Both a publisher and subscriber process must be launched to see the result of
@@ -87,13 +83,13 @@ writing to and reading the video stream from DDS, respectively.
 To run the publisher process, use the `-p` option:
 
 ```sh
-$ ./holohub run --no-local-build dds_video --run-args="-p"
+./holohub run --no-local-build dds_video --run-args="-p"
 ```
 
 To run the subscriber process, use the `-s` option:
 
 ```sh
-$ ./holohub run --no-local-build dds_video --run-args="-s"
+./holohub run --no-local-build dds_video --run-args="-s"
 ```
 
 If running the application generates an error about `RTI Connext DDS No Source
@@ -111,7 +107,7 @@ receive socket buffer sizes. This can be done by running the `set_socket_buffer_
 script within this directory:
 
 ```sh
-$ ./set_socket_buffer_sizes.sh
+./set_socket_buffer_sizes.sh
 ```
 
 For more details, see the [RTI Connext Guide to Improve DDS Network Performance on Linux Systems](https://community.rti.com/howto/improve-rti-connext-dds-network-performance-linux-systems)

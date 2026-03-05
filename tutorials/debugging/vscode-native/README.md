@@ -11,6 +11,7 @@ Whether you are a C++ or Python developer, you can use the tutorial as a referen
 - [Holoscan SDK Prerequisites](https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html#prerequisites)
 - [Visual Studio Code](https://code.visualstudio.com/)
 - [Holohub](https://github.com/nvidia-holoscan/holohub/)
+
   ```bash
   # clone the Holohub repository
   git clone https://github.com/nvidia-holoscan/holohub.git
@@ -23,10 +24,13 @@ To build and debug your C++ applications natively, we must first install the red
 - [CMake Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools) extension for VS Code
 - [CMake](https://cmake.org/cmake/help/latest/command/install.html) 3.24.0 or higher
 - Ninja 1.10 or higher
+
   ```bash
   sudo apt update && sudo apt install ninja-build
   ```
+
 - gcc 11.4 or higher
+
   ```bash
   sudo apt update && sudo apt install build-essential
   ```
@@ -36,9 +40,11 @@ To build and debug your C++ applications natively, we must first install the red
 - [Python C++ Debugger](https://marketplace.visualstudio.com/items?itemName=benjamin-simmonds.pythoncpp-debug) extension for VS Code
 - [Python 3.10](https://www.python.org/) or higher
 - [Holoscan SDK PyPI Wheel](https://pypi.org/project/holoscan/)
+
   ```bash
   pip install holoscan
   ```
+
 - (Optional) Python virtual environment of your choice
 
 ## Environment Setup
@@ -53,7 +59,6 @@ The C++ example in this tutorial is pre-configured using the [CMake Tools](https
  <img src="static/vscode-cmake-statusbar.png" alt="VS Code Status Bar" />
  <figcaption>Figure 1: VS Code status bar with CMake options.</figcaption>
 </figure>
-
 
 Let's start a new instance of VS Code; run the following command from the root directory of the Holohub repository:
 
@@ -114,7 +119,7 @@ To step into Holoscan SDK source code, we need to clone the Holoscan SDK and cre
 
 3. Clean up the existing build directory by opening the **Command Palette** and select **CMake: Clean Rebuild** and select **build**.
 
-4. Add Holoscan SDK source code to the workspace: Select **Add Folder to Workspace...** from the **File** menu. Find and select the directory where Holoscan SDK repository resides. 
+4. Add Holoscan SDK source code to the workspace: Select **Add Folder to Workspace...** from the **File** menu. Find and select the directory where Holoscan SDK repository resides.
    The **Explorer** should now look like this:
    <figure>
    <img src="static/vscode-cpp-holoscan-sdk.png" alt="VS Code C++ Workspace with Holoscan SDK" />
@@ -192,16 +197,19 @@ To step into Holoscan SDK source code with a Python application, we need to clon
         "LD_LIBRARY_PATH": "/home/user/holoscan-sdk/install-x86_64/lib"
     },
    ```
+
    > 💡 Tip: Step 3 of the [Building Holoscan SDK](#building-holoscan-sdk) section describes how to find the Holoscan SDK installation path.
 
 2. Unlike the C++ debugger, VS Code does not support setting a `sourcemap`; therefore, we have to make a symbolic link to the `holoscan-sdk` directory that we just cloned:
+
    ```bash
    sudo mkdir /workspace
    sudo ln -s /home/user/holoscan-sdk /workspace/holoscan-sdk
    ```
+
    > 💡 Tip: Change `/home/user/holoscan-sdk` to the path where you cloned the Holoscan SDK repository.
 
-3. Add Holoscan SDK source code to the workspace: Select **Add Folder to Workspace...** from the **File** menu. Find and select the directory where Holoscan SDK repository resides. 
+3. Add Holoscan SDK source code to the workspace: Select **Add Folder to Workspace...** from the **File** menu. Find and select the directory where Holoscan SDK repository resides.
    The **Explorer** should now look like this:
    <figure>
    <img src="static/vscode-python-holoscan-sdk.png" alt="VS Code C++ Workspace with Holoscan SDK" />
@@ -213,9 +221,11 @@ To step into Holoscan SDK source code with a Python application, we need to clon
 5. Switch to the **Run and Debug** tab in VS Code. Select **Python C++ Debugger** from the dropdown and click the **Start Debugging** icon (play button ▶️) to start debugging. This time, VS Code should stop in the `main()` function of the Hello World application and the `void Application::run()` function from Holoscan SDK.
 
    > 💡 Tip: When the debug session starts, it stops at the top of the main application file and brings up a prompt in the terminal asking for superuser access.
+>
    > ```bash
    > Superuser access is required to attach to a process. Attaching as superuser can potentially harm your computer. Do you want to continue? [y/N]
    > ```
+>
    > You may answer `Y` or `y` to continue the debug session. The debugger shall now stop at the breakpoint you've set in the `application.cpp` file.
 
 #### Testing
@@ -265,6 +275,7 @@ If you plan to step into the Holoscan SDK source code when debugging your applic
    > 💡 Tip: To build Holoscan SDK v2.2.0 or earlier, check this [Github issue](https://github.com/nvidia-holoscan/holoscan-sdk/issues/30) for additional steps.
 
 3. Run the following command to find the Holoscan SDK installation path, we will use it later:
+
    ```bash
    find $PWD -name "install-*" -type d
    # example output

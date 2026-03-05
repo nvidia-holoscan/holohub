@@ -3,6 +3,7 @@
 The high speed endoscopy application showcases how high resolution cameras can be used to capture the scene, post-processed on GPU, and displayed at high frame rate.
 
 This application requires:
+
 1. an Emergent Vision Technologies camera (see {ref}`setup instructions<emergent-vision-tech>`)
 2. an NVIDIA ConnectX SmartNIC with Rivermax SDK and drivers installed
 3. a display with high refresh rate to keep up with the camera's framerate
@@ -10,15 +11,13 @@ This application requires:
 
 > **Tip**
 Tested on the Holoscan DevKits (ConnectX included) with:
+
 - EVT HB-9000-G-C: 25GigE camera with Gpixel GMAX2509
 - SFP28 cable and QSFP28 to SFP28 adaptor
 - [Asus ROG Swift PG279QM](https://rog.asus.com/us/monitors/27-to-31-5-inches/rog-swift-pg279qm-model/) and [Asus ROG Swift 360 Hz PG259QNR](https://rog.asus.com/us/monitors/23-to-24-5-inches/rog-swift-360hz-pg259qnr-model/) monitors with NVIDIA G-SYNC technology
 
-
-
 ![](docs/workflow_high_speed_endoscopy_app.png)<br>
 Fig. 1 Hi-Speed Endoscopy App
-
 
 The data acquisition happens using `emergent-source`, by default it is set to 4200x2160 at 240Hz.
 The acquired data is then demosaiced in GPU using CUDA via `bayer-demosaic` and displayed through
@@ -43,6 +42,7 @@ export LD_LIBRARY_PATH=/opt/EVT/eSDK:$LD_LIBRARY_PATH
 ### Compile the application
 
 #### Using HoloHub CLI
+
 HoloHub CLI command can also be used to build the application.
 
 ```bash
@@ -92,7 +92,6 @@ sudo ./holohub run high_speed_endoscopy --local --language python
 4. **Problem:** The applications fails with a segmentation fault at runtime, in the HoloViz visualization operator.
     - It could be an issue with the configured BAR size on the GPU. Use the [display mode selector tool](https://developer.nvidia.com/displaymodeselector) to increase the BAR size.
     - If you are using a lower resolution monitor, then you might need to decrease the resolution of the vistualization in the `high_speed_endoscopy.yaml` file.
-
 
 ## Known Issues
 

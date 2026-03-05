@@ -7,7 +7,7 @@
 </div>
 
 Body pose estimation is a computer vision task that involves recognizing specific points on the human body in images or videos.
-A model is used to infer the locations of keypoints from the source video which is then rendered by the visualizer. 
+A model is used to infer the locations of keypoints from the source video which is then rendered by the visualizer.
 
 ## Model
 
@@ -46,6 +46,7 @@ v4l2-ctl --list-devices
 
 This application supports v4l2 compatible devices as input.  To run this application with your v4l2 compatible device,
 please plug in your input device and run:
+
 ```sh
 ./holohub run body_pose_estimation
 ```
@@ -53,6 +54,7 @@ please plug in your input device and run:
 By default, this application expects the input device to be mounted at `/dev/video0`.  If this is not the case, please update
 `applications/body_pose_estimation/body_pose_estimation.yaml` and set it to use the corresponding input device before
 running the application.  You can also override the default input device on the command line by running:
+
 ```sh
 ./holohub run body_pose_estimation --run-args="--video_device /dev/video0"
 ```
@@ -127,7 +129,6 @@ received as input by this application:
 
 And the following will use the `dds_video` application to receive and render
 the output published by this application:
-
 
 ```sh
 ./holohub run --local dds_video --run-args="-s -i 1"

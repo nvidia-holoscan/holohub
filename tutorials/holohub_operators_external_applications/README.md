@@ -98,6 +98,7 @@ target_link_libraries(${PROJECT_NAME}
 Let's break down each section:
 
 #### Project Setup
+
 ```cmake
 cmake_minimum_required(VERSION 3.18)
 project(your_app_name)
@@ -107,6 +108,7 @@ project(your_app_name)
 - Defines your project name
 
 #### Holoscan Integration
+
 ```cmake
 find_package(holoscan REQUIRED)
 ```
@@ -119,6 +121,7 @@ find_package(holoscan REQUIRED)
 The CMakeLists.txt provides two different approaches for including the `FetchHolohubOperator.cmake` utility:
 
 **Internal Only: Repository Include**
+
 ```cmake
 include(../../cmake/FetchHolohubOperator.cmake)
 ```
@@ -130,6 +133,7 @@ include(../../cmake/FetchHolohubOperator.cmake)
 - ❌ Not suitable for external applications
 
 **Approach 1: Download from GitHub**
+
 ```cmake
  set(FETCH_HOLOHUB_OPERATOR_URL "https://raw.githubusercontent.com/nvidia-holoscan/holohub/refs/heads/main/cmake/FetchHolohubOperator.cmake")
  set(FETCH_HOLOHUB_OPERATOR_LOCAL_PATH "${CMAKE_CURRENT_BINARY_DIR}/FetchHolohubOperator.cmake")
@@ -154,6 +158,7 @@ include(../../cmake/FetchHolohubOperator.cmake)
 - ❌ Depends on GitHub availability
 
 **Approach 2: Local Copy**
+
 ```cmake
  include(${CMAKE_CURRENT_SOURCE_DIR}/FetchHolohubOperator.cmake)
 ```
@@ -165,6 +170,7 @@ include(../../cmake/FetchHolohubOperator.cmake)
 - ❌ Need to manually update when new versions are released
 
 **Usage:**
+
 ```cmake
 fetch_holohub_operator(aja_source)
 ```
@@ -172,6 +178,7 @@ fetch_holohub_operator(aja_source)
 - Downloads the `aja_source` operator from Holohub using sparse checkout
 
 #### Application Building
+
 ```cmake
 add_executable(${PROJECT_NAME} main.cpp)
 target_link_libraries(${PROJECT_NAME} 
@@ -189,11 +196,13 @@ target_link_libraries(${PROJECT_NAME}
 The `FetchHolohubOperator.cmake` file provides a convenient way to fetch specific operators from the Holohub repository. It uses Git sparse checkout to download only the required operator, making the process efficient.
 
 #### Function Signature
+
 ```cmake
 fetch_holohub_operator(OPERATOR_NAME [PATH path] [REPO_URL url] [BRANCH branch] [DEPTH depth] [DISABLE_PYTHON] [PATCH_COMMAND command])
 ```
 
 #### Parameters
+
 - `OPERATOR_NAME`: The name of the operator to fetch
 - `PATH` (optional): The path to the operator within the Holohub repository (defaults to OPERATOR_NAME)
 - `REPO_URL` (optional): The URL of the Holohub repository (defaults to the official Holohub repo)
@@ -203,6 +212,7 @@ fetch_holohub_operator(OPERATOR_NAME [PATH path] [REPO_URL url] [BRANCH branch] 
 - `PATCH_COMMAND` (optional): Custom command to run after checkout (e.g., to apply patches)
 
 #### Examples
+
 ```cmake
 # Fetch the aja_source operator
 fetch_holohub_operator(aja_source)
@@ -359,6 +369,7 @@ if __name__ == "__main__":
 #### Python Bindings Location
 
 The Python modules are built and installed in the following structure:
+
 ```
 build/
 ├── python/
@@ -451,14 +462,17 @@ fetch_holohub_operator(aja_source
 ### Common Issues
 
 1. **CMake can't find Holoscan**
+
 - Ensure Holoscan SDK is properly installed
 - Set `CMAKE_PREFIX_PATH` to point to your Holoscan installation
 
-2. **Operator not found**
+1. **Operator not found**
+
 - Verify the operator name exists in the Holohub repository
 - Check the correct path if the operator is in a subdirectory
 
-3. **Linking errors**
+1. **Linking errors**
+
 - Ensure you're linking against the correct Holohub libraries
 - Check that the operator dependencies are satisfied
 
@@ -547,6 +561,7 @@ The Holohub CLI provides several useful features for external projects:
 ### Environment Setup
 
 The CLI script automatically handles:
+
 - Setting up the correct Python path
 - Managing Docker options (if using Docker)
 - Configuring environment variables

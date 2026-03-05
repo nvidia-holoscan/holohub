@@ -8,6 +8,7 @@ This application demonstrates how to run [SAM2](https://github.com/facebookresea
 
 The application currently uses a single query point as a foreground point that moves on the perimeter of a circle with a configured angular speed.
 The models returns three masks, the best mask is selected based on the model scores. For visualization, two options exist. Select between "logits" or "masks".
+
 - "logits": predictions of the network, mapped onto a colorscale that matches matplotlib.pyplot's "viridis"
 - "masks": binarized predictions
 
@@ -17,17 +18,23 @@ This sample application wraps the ImageInference class, and applies it on a live
 Note: This demo currently uses ["sam2_hiera_l.yaml"](https://huggingface.co/Efficient-Large-Model/Llama-3-VILA1.5-8b-AWQ), but any of the sam2 models work. You only need to adjust [segment_one_thing.yaml](./segment_one_thing.yaml).
 
 ## ⚙️ Setup Instructions
+
 The app defaults to using the video device at `/dev/video0`
 
 To debug if this is the correct device download `v4l2-ctl`:
+
 ```bash
 sudo apt-get install v4l-utils
 ```
+
 To check for your devices run:
+
 ```bash
 v4l2-ctl --list-devices
 ```
+
 This command will output something similar to this:
+
 ```bash
 NVIDIA Tegra Video Input Device (platform:tegra-camrtc-ca):
         /dev/media0
@@ -38,6 +45,7 @@ vi-output, lt6911uxc 2-0056 (platform:tegra-capture-vi:0):
 Dummy video device (0x0000) (platform:v4l2loopback-000):
         /dev/video3
 ```
+
 Determine your desired video device and edit the source device in [segment_one_thing.yaml](segment_one_thing.yaml)
 
 ## 🚀 Build and Run Instructions
@@ -48,44 +56,54 @@ Determine your desired video device and edit the source device in [segment_one_t
 
 This application uses a custom Dockerfile based on a pytorch container.
 Build and run the application using
+
 ```sh
  ./holohub run sam2
 ```
+
 Or first build the container, then launch it and run.
 
 ```sh
  ./holohub build-container sam2
 ```
+
 ```sh
 ./holohub run-container sam2 --no-docker-build
 ```
+
 ```sh
 ./holohub run sam2 --local --no-local-build
 ```
 
 ### x86 only
+
 If you are only using an x86 system, you may use a Dockerfile based on the Holoscan container. Replace the [Dockerfile](./Dockerfile) with this [alternative Dockerfile](./alternative_docker/Dockerfile).
 Then, from the Holohub main directory run the following command:
+
 ```sh
 ./holohub run sam2
 ```
 
 Alternatively build and run:
+
 ```bash
 ./holohub vscode sam2
 ```
+
 Run the application in debug mode from vscode, or execute it by
+
 ```sh
 python applications/sam2/segment_one_thing.py
 ```
 
-
 You can choose to output "logits" or "masks" in the configuration of the postprocessor and holoviz operator [segment_one_thing.yaml](segment_one_thing.yaml)
 
 ## 💻 Supported Hardware
+
 - x86 w/ dGPU
 - IGX Dev Kit w/ dGPU
 - Clara AGX Dev Kit w/ dGPU
 
 ## 🙌 Acknowledgements
+
 - Meta, [SAM2](https://github.com/facebookresearch/segment-anything-2): for providing these models and inference infrastructure

@@ -35,15 +35,15 @@ To connect Cursor to your HoloChat MCP server:
 }
 ```
 
-2. If you're running HoloChat on a remote machine (e.g., Ubuntu) and Cursor locally, you'll need to set up port forwarding:
+1. If you're running HoloChat on a remote machine (e.g., Ubuntu) and Cursor locally, you'll need to set up port forwarding:
 
 ```bash
 ssh -L 8090:localhost:8090 username@your-ubuntu-machine
 ```
 
-3. After configuring the MCP server, you'll need to reopen Cursor or open a new Cursor window for the changes to take effect.
+1. After configuring the MCP server, you'll need to reopen Cursor or open a new Cursor window for the changes to take effect.
 
-4. Verify the connection by checking the terminal running your HoloChat MCP instance. You should see logs similar to:
+2. Verify the connection by checking the terminal running your HoloChat MCP instance. You should see logs similar to:
 
 ```
 INFO:     127.0.0.1:51874 - "GET /sse HTTP/1.1" 200 OK
@@ -59,9 +59,11 @@ These logs indicate that your server is properly connected and your Cursor agent
 The server exposes a single tool:
 
 ### `fetch_context`
+
 Fetches relevant context from the Holoscan database based on a query.
 
 **Input Schema:**
+
 ```json
 {
   "query": "How to create a Holoscan operator?",
@@ -71,6 +73,7 @@ Fetches relevant context from the Holoscan database based on a query.
 ```
 
 **Parameters:**
+
 - `query` (string, required): The query to search for relevant Holoscan context
 - `num_docs` (integer, optional): Number of documents to return (default: 5, max: 15)
 - `filter` (object, optional): Filter criteria for the search

@@ -12,6 +12,7 @@ One of the key features of the Holoscan SDK is its seamless interoperability wit
 
 This tutorial explains how to leverage this capability in your applications.
 For detailed examples of integrating various libraries with Holoscan applications, refer to the following sections:
+
 - Tensor Interoperability
   - [Integrate **MatX** library](#integrate-matx-library) - DLPack support in C++
   - [Integrate RAPIDS **cuCIM** library](#integrate-rapids-cucim-library)
@@ -31,10 +32,12 @@ The Holoscan SDK supports [DLPack](https://dmlc.github.io/dlpack/latest/), enabl
 ### Array Interface Support
 
 The SDK also supports the array interface, including:
+
 - [`__array_interface__`](https://numpy.org/doc/stable/reference/arrays.interface.html)
 - [`__cuda_array_interface__`](https://numba.readthedocs.io/en/stable/cuda/cuda_array_interface.html)
 
 This allows for seamless integration with various Python libraries such as:
+
 - [CuPy](https://docs.cupy.dev/en/stable/user_guide/interoperability.html)
 - [PyTorch](https://github.com/pytorch/pytorch/issues/15601)
 - [JAX](https://github.com/jax-ml/jax/issues/1100#issuecomment-580773098)
@@ -46,6 +49,7 @@ This allows for seamless integration with various Python libraries such as:
 The `Tensor` class is a wrapper around the `DLManagedTensorContext` struct, which holds the `DLManagedTensor` object (a [DLPack structure](https://dmlc.github.io/dlpack/latest/c_api.html#c.DLManagedTensor)).
 
 For more information on interoperability, refer to the following sections in the Holoscan SDK documentation:
+
 - [Interoperability between GXF and native C++ operators](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_operator.html#interoperability-between-gxf-and-native-c-operators)
 - [Interoperability between wrapped and native Python operators](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_operator.html#interoperability-between-wrapped-and-native-python-operators)
 
@@ -326,6 +330,7 @@ OpenCV also supports GPU [acceleration](https://docs.opencv.org/4.8.0/d2/dbc/cud
 #### Installation
 
 Prerequisites:
+
 - OpenCV >= 4.8.0 (From which version, OpenCV GpuMat supports initialization with GPU Memory pointer)
 
 Install OpenCV with its CUDA module following the guide in [opencv/opencv_contrib](https://github.com/opencv/opencv_contrib/tree/4.x)
@@ -334,7 +339,7 @@ We also recommend referring to the [Holoscan Endoscopy Depth Estimation applicat
 
 #### Sample code
 
-The data type of OpenCV is GpuMat which implements neither the __cuda_array_interface__ nor the standard DLPack. To achieve the end-to-end GPU accelerated pipeline/application, we need to implement 2 functions to convert the GpuMat to CuPy array which can be accessed directly with Holoscan Tensor and vice versa.
+The data type of OpenCV is GpuMat which implements neither the **cuda_array_interface** nor the standard DLPack. To achieve the end-to-end GPU accelerated pipeline/application, we need to implement 2 functions to convert the GpuMat to CuPy array which can be accessed directly with Holoscan Tensor and vice versa.
 
 Refer to the [Holoscan Endoscopy Depth Estimation sample application](https://github.com/nvidia-holoscan/holohub/tree/main/applications/cvcuda_basic) for an example of how to use the OpenCV operator with Holoscan SDK.
 
@@ -386,7 +391,7 @@ def gpumat_to_cupy(gpu_mat: cv2.cuda.GpuMat) -> cp.ndarray:
 
 Note: In this function, we used the [UnownedMemory](https://docs.cupy.dev/en/stable/reference/generated/cupy.cuda.UnownedMemory.html#cupy.cuda.UnownedMemory) API to create the CuPy array. In some cases, the OpenCV operators will allocate new device memory which needs to be handled by CuPy and the lifetime is not limited to one operator but the whole pipeline. In this case, the CuPy array initiated from the GpuMat shall know the owner and keep the reference to the object. Check the CuPy documentation for more details on [CuPy interoperability](https://docs.cupy.dev/en/stable/user_guide/interoperability.html#device-memory-pointers).
 
-2. Conversion from Holoscan Tensor to GpuMat via CuPy array
+1. Conversion from Holoscan Tensor to GpuMat via CuPy array
 
 With the release of OpenCV 4.8, the Python bindings for OpenCV now support the initialization of GpuMat objects directly from GPU memory pointers. This capability facilitates more efficient data handling and processing by allowing direct interaction with GPU-resident data, bypassing the need for data transfer between host and device memory.
 
@@ -424,7 +429,7 @@ def gpumat_from_cp_array(arr: cp.ndarray) -> cv2.cuda.GpuMat:
     return mat
 ```
 
-3. Integrate OpenCV Operators inside customized Operator
+1. Integrate OpenCV Operators inside customized Operator
 
 The demonstration code is provided below. For the complete source code, please refer to the [holohub/applications/endoscopy_depth_estimation-customized Operator](https://github.com/nvidia-holoscan/holohub/blob/main/applications/endoscopy_depth_estimation/endoscopy_depth_estimation.py#L161).
 
@@ -576,6 +581,7 @@ Please note that CuPy does not fully support certain CUDA APIs, such as `cupy.cu
 Currently, direct assignment of a non-default CUDA stream to HolovizOp in Holoscan applications is not supported without utilizing the `holoscan.resources.CudaStreamPool` resource. CuPy also has limited support for custom stream management, necessitating reliance on the default stream in this context.
 
 For more detailed information, please refer to the following resources:
+
 - [New RawKernel Calling Convention / Kernel Occupancy Functions · Issue #3684 · cupy/cupy · GitHub](https://github.com/cupy/cupy/issues/3684)
 - CUDA Stream Support:
   - [Enhancing stream support in CuPy's default memory pool · Issue #8068 · cupy/cupy](https://github.com/cupy/cupy/issues/8068)

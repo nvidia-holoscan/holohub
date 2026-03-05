@@ -42,16 +42,19 @@ graph TD;
 The application expects H.264 elementary stream files (pure H.264 bitstream without container). You can create these files using FFmpeg:
 
 ### From MP4/Container Format
+
 ```bash
 ffmpeg -i input_video.mp4 -c:v copy -f h264 output.h264
 ```
 
 ### From Endoscopy Sample Data
+
 ```bash
 ffmpeg -i surgical_video.mp4 -c:v copy -f h264 surgical_video.264
 ```
 
 ### Verification
+
 You can verify your H.264 file format in several ways:
 
 - **Run the application** with a small test file to ensure it decodes and displays correctly.
@@ -64,11 +67,13 @@ If the file fails to play or is not recognized by these tools, double-check your
 ## Building and Running
 
 ### Python
+
 ```bash
 ./holohub run nvc_decode --language python
 ```
 
 ### C++
+
 ```bash
 ./holohub run nvc_decode --language cpp
 ```
@@ -121,6 +126,7 @@ The application tracks several performance metrics:
 - **Jitter Time**: Frame timing variability
 
 Example output:
+
 ```
 Decode Latency (min, max, avg): 2.145, 5.234, 2.876
 FPS (min, max, avg): 95.234, 120.456, 108.765

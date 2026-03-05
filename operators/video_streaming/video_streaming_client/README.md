@@ -271,7 +271,7 @@ add_library(frame_saver
 )
 ```
 
-2. **Link against required libraries**:
+1. **Link against required libraries**:
 
 ```cmake
 target_link_libraries(frame_saver

@@ -2,7 +2,7 @@
 
 ![](screenshot.png)<br>
 
-This application loads a medical CT scan and renders it in real time at interactive frame rates using ClaraViz (https://github.com/NVIDIA/clara-viz).
+This application loads a medical CT scan and renders it in real time at interactive frame rates using ClaraViz (<https://github.com/NVIDIA/clara-viz>).
 
 The application uses the `VolumeLoaderOp` operator to load the medical volume data, the `VolumeRendererOp` operator to render the volume and the `HolovizOp` operator to display the result and handle the camera movement.
 
@@ -77,6 +77,7 @@ Options:
 This section describes the steps to user CT datasets additionally to the dataset provided by the volume rendering application.
 
 First get the data in a supported format. Supported formats are:
+
 * [MHD](https://itk.org/Wiki/ITK/MetaIO/Documentation)
 * [NIFTI](https://nifti.nimh.nih.gov/)
 * [NRRD](https://teem.sourceforge.net/nrrd/format.html)

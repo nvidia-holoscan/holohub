@@ -40,4 +40,3 @@ This implementation is based on `nvidia::gxf::VideoEncoderRequest`.
   - type: `int32_t`
 - **`config`**: Preset of parameters, select from pframe_cqp, iframe_cqp, custom. Default: custom.
   - type: `nvidia::gxf::EncoderConfig`
-

@@ -1,7 +1,7 @@
 # A Study using Asynchronous Lock-free Buffer with SCHED_DEADLINE
 
-This tutorial demonstrates the impact of using an 
-[asynchronous lock-free buffer](https://docs.nvidia.com/holoscan/sdk-user-guide/api/cpp/classholoscan_1_1fragment.html#exhale-class-classholoscan-1-1fragment:~:text=Add%20a%20flow%20between%20two%20operators%20with%20a%20connector%20type.) 
+This tutorial demonstrates the impact of using an
+[asynchronous lock-free buffer](https://docs.nvidia.com/holoscan/sdk-user-guide/api/cpp/classholoscan_1_1fragment.html#exhale-class-classholoscan-1-1fragment:~:text=Add%20a%20flow%20between%20two%20operators%20with%20a%20connector%20type.)
 with
 `SCHED_DEADLINE` scheduling policy in Linux on the message latency in a Holoscan
 SDK application and compares it with the default buffer.
@@ -63,6 +63,7 @@ operators to be run with different `SCHED_DEADLINE` periods independently
 without being affected by each other's periods or runtimes.
 
 We measure two key metrics:
+
 - **Max Message Latency**: The highest latency observed for messages being
   generated at `tx1` (or at `tx2`) and then received at `rx`.
 - **Max Message Interval**: The longest time interval between two consecutive
@@ -70,14 +71,14 @@ We measure two key metrics:
 
 We run two main scenarios with fixed `rx` period of 10ms:
 
-1.  **Fixed `tx1` Period, Varying `tx2` Period**:
+1. **Fixed `tx1` Period, Varying `tx2` Period**:
     - `tx1` period is fixed at 20ms.
     - `tx2` period is varied from 20ms to 100ms.
     - We measure the impact on `tx1`'s latency and message interval.
     - Since the periods `tx1` and `rx` are fixed, the message timings of `tx1`
       must ideally not be impacted with varying `tx2` periods.
 
-2.  **Fixed `tx2` Period, Varying `tx1` Period**:
+2. **Fixed `tx2` Period, Varying `tx1` Period**:
     - `tx2` period is fixed at 20ms.
     - `tx1` period is varied from 20ms to 100ms.
     - We measure the impact on `tx2`'s latency and message interval.
@@ -97,7 +98,7 @@ they are decoupled enabling true asynchronous execution of the operators.
 With the default buffer, as `tx2`'s period increases, `tx1`'s maximum latency
 also increases linearly. Since `rx` cannot run before both the upstream
 operators (`tx1` and `tx2`) have written messages for it, the latency of `tx1`
-is affected by `tx2`. With the async lock-free buffer, `tx1`'s latency 
+is affected by `tx2`. With the async lock-free buffer, `tx1`'s latency
 remains consistent and low, regardless of `tx2`'s period. Therefore, async
 lock-free buffer unlocks independent connection between `tx1` and `rx`
 irrespective of the behavior of `tx2`.
@@ -125,21 +126,23 @@ The message interval for `tx2` (at the `in2` port of `rx`) remains stable with t
 ### Conclusion and Guidance
 
 The asynchronous lock-free buffer connection between operators enables true
-independent execution when using `SCHED_DEADLINE` Linux scheduling policy. 
-This buffer type allows each operator to maintain its specified runtime and 
+independent execution when using `SCHED_DEADLINE` Linux scheduling policy.
+This buffer type allows each operator to maintain its specified runtime and
 period without interference from other operators in the pipeline.
 
 **Key Insights:**
-- **With async lock-free buffer**: Operators run independently with their 
+
+- **With async lock-free buffer**: Operators run independently with their
   configured `SCHED_DEADLINE` runtime and periods, achieving predictable real-time performance
-- **With default buffer (DoubleBuffer)**: Operators become coupled, where one 
-  operator's performance can be impacted by another operator's 
+- **With default buffer (DoubleBuffer)**: Operators become coupled, where one
+  operator's performance can be impacted by another operator's
   behavior, even when `SCHED_DEADLINE` policy is applied
 
 **Developer Recommendations:**
-1. **Use async lock-free buffers** when implementing soft real-time applications 
+
+1. **Use async lock-free buffers** when implementing soft real-time applications
    with `SCHED_DEADLINE` scheduling to ensure predictable operator performance
-2. **Avoid default buffers** in `SCHED_DEADLINE` scenarios where operator 
+2. **Avoid default buffers** in `SCHED_DEADLINE` scenarios where operator
    independence is critical for meeting real-time constraints
 3. **Using default buffer with `SCHED_DEADLINE` policy** means satisfying both
    the constraints of the double buffer and periodic execution of
@@ -149,9 +152,8 @@ period without interference from other operators in the pipeline.
    buffer may provide a good balance because this provides predictable execution
    for chosen few `SCHED_DEADLINE` operators while allowing applications to run
    normally otherwise.
-3. **Test both buffer types** during development to understand the performance 
+5. **Test both buffer types** during development to understand the performance
    implications in your specific use case, especially when using `SCHED_DEADLINE`
    policy
-4. **Monitor message latency and intervals** to verify that operators maintain 
+6. **Monitor message latency and intervals** to verify that operators maintain
    their intended timing characteristics
-

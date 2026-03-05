@@ -29,6 +29,7 @@ to throttle the sender somewhat by making the batches very small.
 ## Receiver
 
 The receiver receives the UDP packets in either CPU-only mode, header-data split mode, or GPU-only mode.
+
 - CPU-only mode will receive the packets in CPU memory, copy the payload contents to a host-pinned staging buffer,
   and free the buffers.
 - Header-data split mode: the user may configure separate memory regions for the header and data. The header is

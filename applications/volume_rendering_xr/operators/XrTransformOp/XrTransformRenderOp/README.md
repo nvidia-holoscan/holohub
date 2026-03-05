@@ -4,16 +4,17 @@ The `XrTransformRenderOp` renders the mixed reality user interface of the volume
 
 #### `holoscan::openxr::XrTransformRenderOp`
 
-##### Parameters 
+##### Parameters
 
 - **`display_width`**: pixel height of display
   - type: `int`
 - **`display_height`**: pixel width of display
   - type: `int`
- 
+
 ##### Inputs
 
 Camera state for stereo view
+
 - **`left_camera_pose`**: world space pose of the left eye
   - type: `nvidia::gxf::Pose3D`
 - **`right_camera_pose`**: world space pose of the right eye
@@ -25,12 +26,14 @@ Camera state for stereo view
 - **`depth_range`**: depth range
 
 User interface widget state structures
+
 - **`ux_box`**: bounding box state structure
   - type: `UxBoundingBox`
 - **`ux_cursor`**: cursor state structure
   - type: `UxCursor`
 
 Render buffers to be populated
+
 - **`Collor buffer_in`**: color buffer
   - type: `holoscan::gxf::VideoBuffer`
 - **`Depth buffer_in`**: depth buffer
@@ -39,6 +42,7 @@ Render buffers to be populated
 ##### Outputs
 
 Render buffers including interface widgets
+
 - **`color_buffer_out`**: color buffer
   - type: `holoscan::gxf::VideoBuffer`
 - **`depth_buffer_out`**: depth buffer

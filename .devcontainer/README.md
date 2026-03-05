@@ -13,6 +13,7 @@ Holohub uses [Development Containers](https://containers.dev/) to provide consis
 - [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
 - [VS Code](https://code.visualstudio.com/) with the [Dev Container Extension Pack](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
   - Install [Dev Container Extension Pack](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) via the command line
+
  ```bash
  code --install-extension ms-vscode-remote.remote-containers
  ```
@@ -20,9 +21,11 @@ Holohub uses [Development Containers](https://containers.dev/) to provide consis
 ### Steps
 
 1. Clone the Repository
+
    ```bash
    git clone git@github.com:nvidia-holoscan/holohub.git
    ```
+
 2. Open the cloned directory in the terminal.
 
 3. Launch a Dev Container with the `./holohub` script as follows:
@@ -33,7 +36,6 @@ Holohub uses [Development Containers](https://containers.dev/) to provide consis
 
    The above command starts a new Dev Container for Holohub using the default [Dockerfile](../Dockerfile).
 
-
 4. VS Code will build and initialize the selected Dev Container. This can take a few minutes for the first time.
 
 5. Once initialized, a new VS Code window will open with the following prompts. Click **Yes** and **Trust Folder & Continue** to continue the Dev Container build process.
@@ -43,10 +45,10 @@ Holohub uses [Development Containers](https://containers.dev/) to provide consis
 6. When ready, the Holohub directory is mirrored into the container under `/workspace/holohub` to preserve any changes.
 
 > 💡 Note: VS Code creates a new container image for each Dev Container instance. To clean up the container images, run the following command in the terminal:
+>
 > ```bash
 > docker images --format '{{.Repository}}:{{.Tag}}' | grep '^vsc-holohub' | xargs -r docker rmi
 > ```
-
 
 ### Debugging Holohub Applications
 
@@ -75,11 +77,7 @@ When you start debugging with one of these compound launch profiles, VS Code sta
 
 > 💡 Tip: If VS Code does not launch all three debugger terminals, close all terminals first, then start the compound launch profile again. If the problem persists, try adjusting the start-up delays in the [tasks.json](../.vscode/tasks.json) file. Refer to the [troubleshooting](#troubleshooting) section for more information.
 
-
 > 💡 Note: Launch profiles prefixed with `(compound)` for Python applications default to `debugpy` debugger, which only allows debugging of Python code. To debug both Python and C++ code, modify the  compound launch profile in the [launch.json](../.vscode/launch.json) and change `(debugpy)` to `(pythoncpp)`.
-
-
-
 
 #### Step into Holoscan Source Code
 
@@ -130,7 +128,6 @@ Take the [endoscopy_depth_estimation](../applications/endoscopy_depth_estimation
 
 The `language` argument is optional with `cpp` as default. This argument allows you to use a language-specific Dockerfile when available.
 
-
 ### Custom Base Image/Dockerfile
 
 The `./holohub vscode` script can launch a Dev Container using a custom base image and/or Dockerfile.
@@ -149,7 +146,6 @@ For example, if an application is designed for Holoscan 1.0 on NVIDIA IGX Orin w
 
 In addition, if you have a custom Dockerfile that you would like to use on top of the base image, you may pass it to the `./holohub` script as follows:
 
-
 ```bash
 ./holohub vscode --base-img nvcr.io/nvidia/clara-holoscan/holoscan:v1.0.3-igpu --docker-file /path/to/my/Dockerfile
 ```
@@ -167,7 +163,7 @@ FROM ${BASE_IMAGE} AS base
 Use the `-h` or `--help` option to see all available options for the `./holohub` script:
 
 ```bash
-$ ./holohub vscode -h
+./holohub vscode -h
 ```
 
 ## Contributing
@@ -188,6 +184,7 @@ applications/my_application/
 └── python
     └── Dockerfile # option 2: same as above
 ```
+
 - Include the following at the top of your custom `Dockerfile`:
 
 ```Dockerfile
@@ -238,7 +235,6 @@ When this error occurs, run the clear cache command in the terminal or from VS C
 
 Terminal: `./holohub clear-cache`
 VS Code Command Palette (`CTRL+SHIFT+P`): `Tasks: Run Task` -> `Clear Build Cache`.
-
 
 ## Resources
 

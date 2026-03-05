@@ -94,6 +94,7 @@ graph TB
 ### Root Level Files
 
 #### `adv_network_rivermax_mgr.h/cpp`
+
 - **Purpose**: Main manager class implementing the Advanced Network Manager interface
 - **Role**: Entry point for all Advanced Network operations, coordinates service lifecycle
 - **Key Responsibilities**:
@@ -103,6 +104,7 @@ graph TB
   - Memory management coordination
 
 #### `rivermax_ano_data_types.h`
+
 - **Purpose**: Core data structures and type definitions for Rivermax operations
 - **Role**: Defines the fundamental data types used throughout the manager
 - **Key Components**:
@@ -112,6 +114,7 @@ graph TB
   - Extended info structures for packet metadata
 
 #### `CMakeLists.txt`
+
 - **Purpose**: Build configuration for the Rivermax manager
 - **Role**: Defines compilation dependencies and linking requirements
 - **Dependencies**: Rivermax SDK, Advanced Network common libraries
@@ -123,6 +126,7 @@ This directory contains the core implementation components that handle the detai
 #### Configuration Management
 
 ##### `rivermax_config_manager.h/cpp`
+
 - **Purpose**: Comprehensive configuration parsing and validation
 - **Role**: Translates Advanced Network configurations to Rivermax-specific settings
 - **Key Components**:
@@ -132,6 +136,7 @@ This directory contains the core implementation components that handle the detai
   - Configuration validation and memory region setup
 
 ##### `rivermax_queue_configs.h/cpp`
+
 - **Purpose**: Queue-specific configuration builders and settings
 - **Role**: Creates and manages Rivermax service configurations
 - **Key Components**:
@@ -143,6 +148,7 @@ This directory contains the core implementation components that handle the detai
 #### Service Management
 
 ##### `rivermax_mgr_service.h/cpp`
+
 - **Purpose**: Service abstraction layer for Rivermax applications
 - **Role**: Manages the lifecycle of Rivermax SDK services
 - **Key Components**:
@@ -157,6 +163,7 @@ This directory contains the core implementation components that handle the detai
 #### Packet and Burst Processing
 
 ##### `burst_manager.h/cpp`
+
 - **Purpose**: Manages packet bursts and memory allocation
 - **Role**: Handles burst lifecycle, memory management, and packet pointer organization
 - **Key Components**:
@@ -166,6 +173,7 @@ This directory contains the core implementation components that handle the detai
   - Packet pointer management (no data copying at burst level)
 
 ##### `packet_processor.h`
+
 - **Purpose**: Packet-level processing and transformation
 - **Role**: Handles individual packet operations and metadata processing
 - **Key Components**:
@@ -176,6 +184,7 @@ This directory contains the core implementation components that handle the detai
 #### Core Implementation
 
 ##### `adv_network_rivermax_mgr.cpp`
+
 - **Purpose**: Main manager implementation
 - **Role**: Implements all Manager interface methods using Rivermax services
 - **Key Functions**:
@@ -185,6 +194,7 @@ This directory contains the core implementation components that handle the detai
   - Statistics collection and reporting
 
 ##### `rivermax_chunk_consumer_ano.h`
+
 - **Purpose**: Chunk-based data consumption interface
 - **Role**: Provides an interface for consuming data chunks from Rivermax streams
 - **Integration**: Used by the burst manager for efficient data handling
@@ -192,6 +202,7 @@ This directory contains the core implementation components that handle the detai
 ### Service Directory (`rivermax_service/`)
 
 #### `CMakeLists.txt`
+
 - **Purpose**: Build configuration for Rivermax service components
 - **Role**: Manages additional service-specific build requirements
 - **Integration**: Extends the main build configuration with service-specific dependencies
@@ -205,6 +216,7 @@ The manager relies heavily on the Rivermax Development Kit, which provides:
 > **Note**: For more information about the Rivermax Development Kit, see the official repository: [NVIDIA Rivermax Dev Kit](https://github.com/NVIDIA/rivermax-dev-kit). The Rivermax Dev Kit is a high-level C++ software kit designed to accelerate and simplify Rivermax application development, offering intuitive abstractions and developer-friendly services for IP-based media and data streaming use cases.
 
 #### Core Services
+
 - **`rmax_ipo_receiver`**: An RX service for receiving RTP data using Rivermax Inline Packet Ordering (IPO) feature
 - **`rmax_rtp_receiver`**: An RX service for receiving RTP data using Rivermax Striding protocol
 - **`rmax_xstream_media_sender`**: High-performance media transmission service with multiple variants:
@@ -212,6 +224,7 @@ The manager relies heavily on the Rivermax Development Kit, which provides:
   - `MediaSenderService`: Single-copy path with internal memory pool for generated data
 
 #### Key Capabilities
+
 - **Hardware Acceleration**: Direct NIC hardware access for minimal latency
 - **Memory Management**: Advanced memory allocation strategies (huge pages, GPU memory)
 - **Protocol Support**: SMPTE 2110, RTP, custom protocols
@@ -220,11 +233,13 @@ The manager relies heavily on the Rivermax Development Kit, which provides:
 ### Hardware Dependencies
 
 #### NVIDIA ConnectX NICs
+
 - **ConnectX-6 or later**: Required for Rivermax functionality
 - **Hardware Features**: RDMA, GPUDirect, hardware timestamping
 - **Driver Requirements**: MOFED drivers for full functionality
 
 #### GPU Integration
+
 - **GPUDirect Support**: Zero-copy GPU-to-NIC data paths
 - **Memory Management**: Device memory allocation and management
 - **Compute Integration**: GPU-based packet processing capabilities
@@ -431,16 +446,17 @@ flowchart TD
 5. **Hardware Submission**: Submit formatted packets to NIC hardware via Rivermax acceleration
 6. **Resource Cleanup**: Free frame buffers and update statistics based on service type
 
-
 ### Memory Architecture Components
 
 #### Memory Region Types
+
 - **Host Memory**: Standard system memory for headers and control data
 - **Huge Pages**: Large page allocations for improved performance and reduced TLB misses
 - **Device Memory**: GPU memory for zero-copy operations and GPU-accelerated processing
 - **Pinned Memory**: Host memory accessible to GPU and NIC for efficient DMA transfers
 
 #### Buffer Management Strategy
+
 - **Pre-allocation**: Buffers are allocated during initialization to avoid runtime allocation overhead
 - **Pool Management**: Efficient buffer reuse through pool allocation reduces memory fragmentation
 - **Lifecycle Tracking**: Careful buffer ownership and cleanup management prevents memory leaks
@@ -450,6 +466,7 @@ flowchart TD
   - **Segment Indices**: `header_seg_idx`, `payload_seg_idx` for memory region mapping
 
 #### HDS Memory Layout Optimization
+
 - **HDS Enabled**: Headers stored in CPU memory, payloads in GPU memory for optimal processing
 - **HDS Disabled**: Headers and payloads stored together in CPU memory with calculated offsets
 
@@ -460,6 +477,7 @@ The Rivermax manager implements multiple layers of performance optimization for 
 ### Multi-Layer Optimization Strategy
 
 #### Zero-Copy Architecture
+
 - **Pointer-Based Bursts**: Bursts contain only pointers to packet data, no copying at burst level
 - **Direct Memory Access**: Minimize data copying between components through DMA and pointer management
 - **GPU Integration**: Direct GPU-to-NIC data paths where supported through GPUDirect
@@ -467,20 +485,23 @@ The Rivermax manager implements multiple layers of performance optimization for 
 - **Buffer Sharing**: Efficient buffer sharing between services and applications through pointer management
 
 #### Memory Copy Optimization
+
 - **Strategy-Based Processing**: RX path uses optimal copy strategies (contiguous/strided) based on memory layout
 - **Adaptive Strategy Selection**: Runtime detection of optimal copy strategy based on buffer alignment
 - **Single Copy Principle**: When copying is necessary, ensure only one copy operation per data path
 
 ### Thread Management
+
 - **Service Threads**: Dedicated threads for each Rivermax service
 - **CPU Affinity**: Thread pinning to isolated CPU cores
 - **Lock-Free Queues**: High-performance inter-thread communication
 
 ### Hardware Optimization
+
 - **Batch Processing**: Process multiple packets per operation through burst containers
 - **Hardware Queues**: Utilize multiple NIC queues for parallelism
 - **Interrupt Mitigation**: Reduce interrupt overhead through batching
-- **Memory Copy Optimization**: 
+- **Memory Copy Optimization**:
   - Contiguous packets: Single `cudaMemcpy` operation
   - Strided packets: Optimized `cudaMemcpy2D` with detected stride parameters
   - Adaptive strategy selection based on runtime memory layout analysis
@@ -490,12 +511,14 @@ The Rivermax manager implements multiple layers of performance optimization for 
 The Rivermax manager integrates seamlessly with the Advanced Network configuration system:
 
 ### Supported Configurations
+
 - **Network Interfaces**: Multiple NIC configuration support
 - **Memory Regions**: Flexible memory allocation strategies
 - **Queue Settings**: Per-queue configuration with protocol-specific options
 - **Protocol Parameters**: RTP, IPO, and media streaming parameters
 
 ### Validation and Error Handling
+
 - **Configuration Validation**: Comprehensive parameter validation
 - **Runtime Monitoring**: Service health monitoring and error reporting
 - **Graceful Degradation**: Fallback strategies for partial failures
@@ -505,13 +528,16 @@ The Rivermax manager integrates seamlessly with the Advanced Network configurati
 The architecture is designed for future enhancements:
 
 ### Protocol Support
+
 - Additional protocol implementations can be added through the service interface
 - New Rivermax SDK features can be integrated without changing the manager interface
 
 ### Hardware Support
+
 - Support for new ConnectX generations through configuration updates
 - Enhanced GPU integration as hardware capabilities evolve
 
 ### Performance Enhancements
+
 - Additional optimization strategies can be implemented in the service layer
-- New memory management techniques can be integrated transparently 
+- New memory management techniques can be integrated transparently
