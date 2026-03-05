@@ -65,23 +65,3 @@ repos:
       - id: cpplint
         args: [--quiet]
         exclude: ^applications/holoviz/template/cookiecutter
-
-  # C++: clang-format
-  - repo: https://github.com/pre-commit/mirrors-clang-format
-    rev: v22.1.0
-    hooks:
-      - id: clang-format
-        types_or: [c, c++, cuda]
-        args: [--style=file, --sort-includes=0]
-        # Mirror CPPLINT.cfg exclude_files + cpplint hook exclude
-        exclude: |
-          (?x)(
-            ^applications/holoviz/template/cookiecutter
-            | (^|/)\.cache/
-            | ^build[^/]*/
-            | ^install[^/]*/
-            | (^|/)data(-[^/]*)?/
-            | (^|/)\.local/
-            | (^|/)\.vscode-server/
-            | (^|/)\.ruff_cache/
-          )
