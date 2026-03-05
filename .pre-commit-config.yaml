@@ -65,6 +65,13 @@ repos:
         args: [--quiet]
         exclude: ^applications/holoviz/template/cookiecutter
 
+  # Markdown: markdownlint
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.48.0
+    hooks:
+      - id: markdownlint
+        args: [--fix, --config, .markdownlint.yaml, --ignore-path, .markdownlintignore]
+
   # Copyright header check (NVIDIA SPDX)
   - repo: local
     hooks:
@@ -79,4 +86,3 @@ repos:
           - --update-current-year
         language: system
         pass_filenames: false
-
