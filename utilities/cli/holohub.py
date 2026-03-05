@@ -343,7 +343,25 @@ class HoloHubCLI:
             "env-info", help="Display environment debugging information"
         )
         self.subparsers["env-info"] = env_info
+        env_info.add_argument(
+            "--check",
+            action="store_true",
+            help="Run system info checks (GPU, CUDA, Docker, Python, SDK, disk)",
+        )
+        env_info.add_argument(
+            "--json", action="store_true", help="Output check results as JSON (requires --check)"
+        )
+        env_info.add_argument("--verbose", "-v", action="store_true", help="Show expanded details")
         env_info.set_defaults(func=self.handle_env_info)
+
+        # Add status command
+        status = subparsers.add_parser(
+            "status", help="Show environment, container, build, and device status"
+        )
+        self.subparsers["status"] = status
+        status.add_argument("--json", action="store_true", help="Output status as JSON")
+        status.add_argument("--short", action="store_true", help="Single-line summary")
+        status.set_defaults(func=self.handle_status)
 
         # Add install command
         install = subparsers.add_parser(
@@ -1166,6 +1184,12 @@ class HoloHubCLI:
                 [str(restore_script), str(app_source_path)], dry_run=dryrun
             )
 
+        # Print build timing summary
+        timing_summary = holohub_cli_util.format_timing_summary()
+        if timing_summary:
+            print(timing_summary)
+        holohub_cli_util.clear_command_timings()
+
         return build_dir, project_data
 
     def handle_build(self, args: argparse.Namespace) -> None:
@@ -1456,6 +1480,7 @@ class HoloHubCLI:
                 cmd = f"{nsys_cmd} profile --trace=cuda,vulkan,nvtx,osrt {cmd}"
 
             cmd_to_run = cmd if isinstance(cmd, list) else shlex.split(cmd)
+
             holohub_cli_util.run_command(cmd_to_run, env=run_env, dry_run=args.dryrun)
         else:
             container = self._make_project_container(
@@ -1592,6 +1617,7 @@ class HoloHubCLI:
             "setup",
             "install",
             "create",
+            "status",
             "cpp",
             "python",
             "autocompletion_list",
@@ -1909,6 +1935,10 @@ class HoloHubCLI:
 
     def handle_env_info(self, args: argparse.Namespace) -> None:
         """Handle env-info command to collect debugging information"""
+        if getattr(args, "check", False):
+            self._run_system_info_checks(args)
+            return
+
         print(holohub_cli_util.format_cmd("Environment Information"))
         holohub_cli_util.collect_holohub_info(
             holohub_root=self.HOLOHUB_ROOT,
@@ -1923,6 +1953,62 @@ class HoloHubCLI:
                 "Complete (Before sharing, please review and remove sensitive information)"
             )
         )
+
+    def _run_system_info_checks(self, args: argparse.Namespace) -> None:
+        """Run system info checks (env-info --check)"""
+        import time as _time
+
+        from utilities.cli.system_check import (
+            format_results,
+            format_results_json,
+            run_all_checks,
+        )
+
+        t0 = _time.monotonic()
+        results = run_all_checks(verbose=getattr(args, "verbose", False))
+        elapsed = _time.monotonic() - t0
+
+        if getattr(args, "json", False):
+            print(format_results_json(results, elapsed))
+        else:
+            print(format_results(results, elapsed, verbose=getattr(args, "verbose", False)))
+
+        # Exit code: 0 = all OK, 1 = any FAIL, 2 = warnings only
+        has_fail = any(r.status == "FAIL" for r in results)
+        has_warn = any(r.status == "WARN" for r in results)
+        if has_fail:
+            sys.exit(1)
+        elif has_warn:
+            sys.exit(2)
+        sys.exit(0)
+
+    def handle_status(self, args: argparse.Namespace) -> None:
+        """Handle status command — show environment overview"""
+        from utilities.cli.status import (
+            collect_build_info,
+            collect_cache_info,
+            collect_container_info,
+            collect_device_info,
+            collect_platform_info,
+            format_status,
+            format_status_json,
+            format_status_short,
+        )
+
+        platform_info = collect_platform_info()
+        containers = collect_container_info()
+        builds = collect_build_info(self.DEFAULT_BUILD_PARENT_DIR)
+        devices = collect_device_info()
+        cache = collect_cache_info(
+            self.HOLOHUB_ROOT, self.DEFAULT_BUILD_PARENT_DIR, self.DEFAULT_DATA_DIR
+        )
+
+        if args.json:
+            print(format_status_json(platform_info, containers, builds, devices, cache))
+        elif args.short:
+            print(format_status_short(platform_info, containers, builds, devices, cache))
+        else:
+            print(format_status(platform_info, containers, builds, devices, cache))
 
     def handle_install(self, args: argparse.Namespace) -> None:
         """Handle install command"""
