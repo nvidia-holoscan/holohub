@@ -1650,6 +1650,7 @@ class HoloHubCLI:
                     "-w",
                     "-i",
                     "3",
+                    "--check-hidden",
                     args.path,
                     "--ignore-words",
                     "codespell_ignore_words.txt",
@@ -1755,6 +1756,7 @@ class HoloHubCLI:
                 holohub_cli_util.run_command(
                     [
                         "codespell",
+                        "--check-hidden",
                         args.path,
                         "--skip=*.onnx,*.min.js,*.min.js.map,Contrastive_learning_Notebook.ipynb,./data",
                         "--ignore-words",
