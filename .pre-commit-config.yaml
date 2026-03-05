@@ -64,3 +64,20 @@ repos:
       - id: cpplint
         args: [--quiet]
         exclude: ^applications/holoviz/template/cookiecutter
+
+  # Copyright header check (NVIDIA SPDX)
+  - repo: local
+    hooks:
+      - id: check-copyright
+        name: check-copyright
+        entry: python3 .github/workflows/scripts/check_copyright.py
+        args:
+          - .
+          - --git-modified-only
+          - origin/main
+          - --exclude-config
+          - .github/workflows/scripts/copyright_excludes.txt
+          - --update-current-year
+        language: system
+        pass_filenames: false
+
