@@ -172,11 +172,11 @@ Every application and operator should have an associated `metadata.json` file de
 
 Schemas are available for different contribution types:
 
-- [Workflows](./workflows/metadata.schema.json)
-- [Applications](./applications/metadata.schema.json)
-- [GXF Extensions](./gxf_extensions/metadata.schema.json)
-- [Operators](./operators/metadata.schema.json)
-- [Tutorials](./tutorials/metadata.schema.json)
+- [Workflows](./utilities/metadata/workflow.schema.json)
+- [Applications](./utilities/metadata/application.schema.json)
+- [GXF Extensions](./utilities/metadata/gxf_extension.schema.json)
+- [Operators](./utilities/metadata/operator.schema.json)
+- [Tutorials](./utilities/metadata/tutorial.schema.json)
 
 #### Example metadata.json Structure
 
