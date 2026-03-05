@@ -1,9 +1,10 @@
 # CLI Developer Guide
 
 Reference for AI agents and developers working with or extending the CLI.
-For command/flag docs, see the [CLI Reference](README.md).
+For command/flag docs, see the [CLI Reference](cli_reference.md).
 
-> **Portability:** This guide applies to any repo built on the HoloHub CLI.
+> [!NOTE] Portability
+> This guide applies to any repo built on the HoloHub CLI.
 > Examples use `./holohub`; downstream repos have their own entry point
 > (e.g. `./i4h`, `./isaac_os`), configured via `HOLOHUB_CMD_NAME`.
 > Currently `HOLOHUB_`-prefixed env vars are shared CLI infrastructure, not
@@ -164,7 +165,7 @@ Everything after `--` is joined into a single string and executed via `bash -c`,
 **Metadata references** (for downstream repos without local access to HoloHub examples):
 
 - [Base project schema](../metadata/project.schema.json) — all valid fields, types, and constraints
-- [CLI Reference > Modes](README.md#modes) — mode fields, path placeholders, build/run config
+- [CLI Reference > Modes](cli_reference.md#modes) — mode fields, path placeholders, build/run config
 - Examples: [simple app](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/applications/endoscopy_tool_tracking/python/metadata.json), [multi-mode with docker opts](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/applications/isaac_sim_holoscan_bridge/metadata.json), [multi-mode with build deps](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/workflows/ai_surgical_video/python/metadata.json)
 
 ## Extending the CLI

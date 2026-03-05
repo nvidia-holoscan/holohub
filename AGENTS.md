@@ -17,6 +17,6 @@ Projects live under `applications/`, `benchmarks/`, `operators/`, `gxf_extension
 
 - [Main README](README.md) — overview, building, running, contributing
 - [Contributing Guide](CONTRIBUTING.md) — how to contribute to the repository
-- [CLI Reference](utilities/cli/README.md) — commands, flags, modes, environment variables
-- [CLI Developer Guide](utilities/cli/CLI_DEV_GUIDE.md) — workflow tips, implementation invariants, and extension guide
+- [CLI Reference](utilities/cli/cli_reference.md) — commands, flags, modes, environment variables
+- [CLI Developer Guide](utilities/cli/cli_dev_guide.md) — workflow tips, implementation invariants, and extension guide
 - [Holoscan SDK User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/overview.html)
