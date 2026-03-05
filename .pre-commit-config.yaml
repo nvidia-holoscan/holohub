@@ -74,7 +74,7 @@ repos:
         args:
           - .
           - --git-modified-only
-          - origin/main
+          - main
           - --exclude-config
           - .github/workflows/scripts/copyright_excludes.txt
           - --update-current-year
