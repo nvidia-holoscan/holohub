@@ -7,8 +7,8 @@ dist/
 _CPack_Packages/
 
 # Data
-data/
-data-*/
+/data/
+/data-*/
 
 # Utilities and metadata
 aggregate_metadata.json

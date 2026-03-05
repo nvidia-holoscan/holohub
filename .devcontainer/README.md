@@ -182,7 +182,7 @@ The following steps allow the `./holohub vscode` script to find your custom `Doc
 
 ```bash
 applications/my_application/
-├── Dockerfile   # option 1: put the Dockefile in the root of the application's directory
+├── Dockerfile   # option 1: put the Dockerfile in the root of the application's directory
 ├── cpp
 │   └── Dockerfile # option 2: put the Dockerfile in a language-specific directory
 └── python
@@ -237,7 +237,7 @@ CMake Error: The current CMakeCache.txt directory /workspace/holohub/build/ucx_e
 When this error occurs, run the clear cache command in the terminal or from VS Code Command Palette:
 
 Terminal: `./holohub clear-cache`
-VS Code Command Pallette (`CTRL+SHIFT+P`): `Tasks: Run Task` -> `Clear Build Cache`.
+VS Code Command Palette (`CTRL+SHIFT+P`): `Tasks: Run Task` -> `Clear Build Cache`.
 
 
 ## Resources
