@@ -26,7 +26,13 @@ import urllib.parse
 from pathlib import Path
 
 import mkdocs_gen_files
-from generate_api_docs import get_api_reference_for_operator
+
+# Ensure the scripts directory is importable regardless of execution order
+_scripts_dir = str(Path(__file__).resolve().parent)
+if _scripts_dir not in sys.path:
+    sys.path.insert(0, _scripts_dir)
+
+from generate_api_docs import get_api_reference_for_operator  # noqa: E402
 
 # log stuff
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")

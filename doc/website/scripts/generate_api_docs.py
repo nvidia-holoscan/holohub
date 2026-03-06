@@ -363,12 +363,14 @@ def _parse_pydoc_hpp(pydoc_path: Path) -> dict | None:
     except (OSError, UnicodeDecodeError):
         return None
 
-    # Extract namespace to get class name: namespace ClassName {
-    ns_match = re.search(r"namespace\s+(\w+)\s*\{", content)
-    if not ns_match:
+    # Extract namespace to get class name.
+    # Handles both simple namespaces (namespace AJASourceOp {) and C++17 qualified
+    # namespaces (namespace holoscan::doc::AJASourceOp {). We take the last segment.
+    ns_matches = re.findall(r"namespace\s+([\w:]+)\s*\{", content)
+    if not ns_matches:
         return None
 
-    class_name = ns_match.group(1)
+    class_name = ns_matches[-1].split("::")[-1]
 
     # Extract PYDOC entries: PYDOC(name, R"doc(...)doc")
     pydoc_pattern = re.compile(
@@ -431,7 +433,7 @@ def _parse_numpydoc_params(docstring: str) -> list[dict]:
             continue
 
         # Exit on next section header (Returns, Notes, etc.)
-        if in_params and stripped and not stripped.startswith(" ") and not line.startswith(" "):
+        if in_params and stripped and not line.startswith(" "):
             if re.match(r"^[A-Z]\w+$", stripped):
                 break
 
@@ -642,8 +644,14 @@ def _find_operator_dir_for_header(header_path: str, git_repo_path: Path) -> str 
         if (candidate / "metadata.json").exists():
             return str(Path(*parts[:i]))
 
-    # Fallback: use the first two path components
-    return str(Path(parts[0]) / parts[1])
+    # Fallback: strip trailing language/include directories and return the deepest
+    # valid operator path, preserving full nesting (e.g. operators/group/operator).
+    fallback_parts = list(parts[:-1])  # drop the filename
+    while fallback_parts and fallback_parts[-1] in ("cpp", "python", "include"):
+        fallback_parts.pop()
+    if len(fallback_parts) >= 2 and fallback_parts[0] == "operators":
+        return str(Path(*fallback_parts))
+    return None
 
 
 def build_api_reference_map(git_repo_path: Path) -> dict:
@@ -679,11 +687,16 @@ def build_api_reference_map(git_repo_path: Path) -> dict:
     for metadata_path in operators_dir.rglob("metadata.json"):
         metadata_dir = metadata_path.parent
 
-        # Look for pure Python sources
-        python_dir = metadata_dir / "python"
+        # Look for pure Python sources.
+        # When metadata_dir is itself a "python" directory, avoid building "python/python".
+        python_dir = metadata_dir if metadata_dir.name == "python" else metadata_dir / "python"
         if python_dir.is_dir():
-            # Check for pydoc.hpp files first (pybind11)
-            pydoc_files = list(python_dir.glob("*_pydoc.hpp"))
+            # Check for pydoc.hpp files first (pybind11).
+            # Collect both "*_pydoc.hpp" and bare "pydoc.hpp" naming conventions.
+            pydoc_files: list[Path] = []
+            for pattern in ("*_pydoc.hpp", "pydoc.hpp"):
+                pydoc_files.extend(python_dir.glob(pattern))
+            pydoc_files = list(dict.fromkeys(pydoc_files))  # deduplicate, preserve order
             if pydoc_files:
                 for pydoc_file in pydoc_files:
                     info = _parse_pydoc_hpp(pydoc_file)
@@ -696,9 +709,7 @@ def build_api_reference_map(git_repo_path: Path) -> dict:
             else:
                 # Pure Python: parse .py files
                 for py_file in python_dir.glob("*.py"):
-                    if py_file.name.startswith("_") and py_file.name != "__init__.py":
-                        continue
-                    if py_file.name == "__init__.py":
+                    if py_file.name.startswith("_"):
                         continue
                     classes = _parse_python_source(py_file)
                     if classes:
@@ -775,21 +786,25 @@ def build_api_reference_map(git_repo_path: Path) -> dict:
 
 
 def _indent(text: str, spaces: int) -> str:
-    """Indent every line of text by the given number of spaces."""
+    """Indent every line of text by the given number of spaces.
+
+    Blank lines also receive the prefix so pymdownx.tabbed content blocks
+    remain consistently indented (an unindented blank line would terminate
+    the tab block early).
+    """
     prefix = " " * spaces
-    return "\n".join(prefix + line if line.strip() else "" for line in text.split("\n"))
+    return "\n".join(prefix + line for line in text.split("\n"))
 
 
-# Module-level cache so generate_pages.py only calls this once
-_cached_api_ref_map: dict[str, str] | None = None
+# Module-level cache so generate_pages.py only calls this once per repo path
+_cached_api_ref_map: dict[Path, dict] = {}
 
 
 def get_api_reference_map(git_repo_path: Path) -> dict:
     """Get (cached) API reference map. Safe to call multiple times."""
-    global _cached_api_ref_map
-    if _cached_api_ref_map is None:
-        _cached_api_ref_map = build_api_reference_map(git_repo_path)
-    return _cached_api_ref_map
+    if git_repo_path not in _cached_api_ref_map:
+        _cached_api_ref_map[git_repo_path] = build_api_reference_map(git_repo_path)
+    return _cached_api_ref_map[git_repo_path]
 
 
 def get_api_reference_for_operator(op_dir: str, git_repo_path: Path) -> str:
