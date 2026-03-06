@@ -5,13 +5,14 @@ This application demonstrates how to run multiple inference pipelines in a singl
 The Multi AI operators (inference and postprocessor) use APIs from the Holoscan Inference module to extract data, initialize and execute the inference workflow, process, and transmit data for visualization.
 
 The applications uses models and echocardiogram data from iCardio.ai. The models include:
+
 - a Plax chamber model, that identifies four critical linear measurements of the heart
 - a Viewpoint Classifier model, that determines confidence of each frame to known 28 cardiac anatomical view as defined by the guidelines of the American Society of Echocardiography
 - an Aortic Stenosis Classification model, that provides a score which determines likeability for the presence of aortic stenosis
 
 The default configuration (`multiai_ultrasound.yaml`) runs on default GPU (GPU-0). Multi-AI Ultrasound application can be executed on multiple GPUs with the Holoscan SDK version 0.6 onwards. A sample configuration file for multi GPU configuration for multi-AI ultrasound application (`mgpu_multiai_ultrasound.yaml`) is present in both `cpp` and `python` applications. The multi-GPU configuration file is designed for a system with at least 2 GPUs connected to the same PCIE network.
 
-### Requirements
+## Requirements
 
 - Python 3.9+
 - The provided applications are configured to either use the AJA capture card for input stream, or a pre-recorded video of the echocardiogram (replayer). Follow the [setup instructions from the user guide](https://docs.nvidia.com/holoscan/sdk-user-guide/aja_setup.html) to use the AJA capture card.
@@ -32,13 +33,13 @@ You should refer to the [glossary](../../README.md#Glossary) for the terms defin
 
 If your Holoscan SDK installation type is:
 
-* python wheels:
+- python wheels:
 
   ```bash
   export PYTHONPATH=$PYTHONPATH:<HOLOHUB_BUILD_DIR>/python/lib
   ```
 
-* otherwise:
+- otherwise:
 
   ```bash
   export PYTHONPATH=$PYTHONPATH:<HOLOSCAN_INSTALL_DIR>/python/lib:<HOLOHUB_BUILD_DIR>/python/lib
@@ -46,19 +47,22 @@ If your Holoscan SDK installation type is:
 
 Next, run the commands of your choice:
 
-* Using a pre-recorded video
+- Using a pre-recorded video
+
     ```bash
     cd <HOLOHUB_SOURCE_DIR>/applications/multiai_ultrasound/python
     python3 multiai_ultrasound.py --source=replayer --data <DATA_DIR>/multiai_ultrasound
     ```
 
-* Using a pre-recorded video on multi-GPU system
+- Using a pre-recorded video on multi-GPU system
+
     ```bash
     cd <HOLOHUB_SOURCE_DIR>/applications/multiai_ultrasound/python
     python3 multiai_ultrasound.py --config mgpu_multiai_ultrasound.yaml --source=replayer --data <DATA_DIR>/multiai_ultrasound
     ```
 
-* Using an AJA card
+- Using an AJA card
+
     ```bash
     cd <HOLOHUB_SOURCE_DIR>/applications/multiai_ultrasound/python
     python3 multiai_ultrasound.py --source=aja

@@ -1,6 +1,6 @@
 # Qt Video Replayer
 
-![](screenshot.png)<br>
+![Qt Video Replayer](screenshot.png)
 
 This application demonstrates how to integrate Holoscan with a [Qt](https://www.qt.io/) application. It support displaying the video frames output by a Holoscan operator and changing operator properties using Qt UI elements.
 
@@ -23,7 +23,7 @@ The [QtHoloscanApp](./qt_holoscan_app.hpp) class, which extends the `holoscan::A
 
 For example the application uses a [QML Checkbox](https://doc.qt.io/qt-6/qml-qtquick-controls-checkbox.html) is used the set the `realtime` property of the `VideostreamReplayerOp` operator.
 
-```
+```qml
     CheckBox {
         id: realtime
         text: "Use Video Framerate"
@@ -36,7 +36,7 @@ For example the application uses a [QML Checkbox](https://doc.qt.io/qt-6/qml-qtq
 
 The [QtHoloscanVideo](../../operators/qt_video/qt_video_op.hpp) is a QQuickItem which can be use in the QML file. Multiple `QtHoloscanVideo` items can be placed in a Qt window.
 
-```
+```qml
 import QtHoloscanVideo
 Item {
     QtHoloscanVideo {

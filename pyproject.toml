@@ -38,7 +38,7 @@ extend-exclude = '''
 
 [tool.codespell]
 skip = "_deps,build*,.cache,html,_build,_static,generated,latex,install*,.git,xml,vale"
-ignore-words-list = "bu,dne,unexpect,activ"
+ignore-words = "codespell_ignore_words.txt"
 
 [tool.ruff]
 line-length = 103  # 103 to avoid E501 warnings from the copyright header

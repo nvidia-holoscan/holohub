@@ -65,6 +65,7 @@ operators/video_streaming/
 > **Important:** The video streaming client tests require **CUDA 12**. If you're using CUDA 13, you must specify `--cuda 12` when running the `./holohub` script.
 
 **For CUDA 13 systems:**
+
 ```bash
 ./holohub build video_streaming --cuda 12
 ./holohub test video_streaming --cuda 12 --ctest-options="-R unit_tests -VV"

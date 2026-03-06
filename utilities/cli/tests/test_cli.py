@@ -856,6 +856,7 @@ exec {holohub_script} "$@"
         enhanced = self.cli.get_effective_run_config(mock_args_no_override, mode_config_with_docker)
         self.assertEqual(enhanced["docker_opts"], "--privileged --net=host")  # Uses mode config
 
+    @patch.dict(os.environ, {"HOLOHUB_BUILD_LOCAL": ""})
     @patch("utilities.cli.holohub.HoloHubCLI._make_project_container")
     def test_test_command_coverage_flag_forwarding(self, mock_make_container):
         """Ensure --coverage is forwarded to CTest command"""
@@ -875,6 +876,7 @@ exec {holohub_script} "$@"
         # Should run as root to allow package installation
         self.assertTrue(kwargs.get("as_root", False))
 
+    @patch.dict(os.environ, {"HOLOHUB_BUILD_LOCAL": ""})
     @patch("utilities.cli.holohub.HoloHubCLI._make_project_container")
     def test_test_command_coverage_build_arg(self, mock_make_container):
         """Ensure --coverage adds COVERAGE=ON build argument to docker build"""
@@ -891,6 +893,7 @@ exec {holohub_script} "$@"
         self.assertIn("COVERAGE=ON", build_kwargs["build_args"])
         self.assertIn("--build-arg", build_kwargs["build_args"])
 
+    @patch.dict(os.environ, {"HOLOHUB_BUILD_LOCAL": ""})
     @patch("utilities.cli.holohub.HoloHubCLI._make_project_container")
     def test_test_command_language_forwarding(self, mock_make_container):
         """Ensure --language is accepted and passed to container creation"""
@@ -905,6 +908,7 @@ exec {holohub_script} "$@"
         # Validate run invoked (indirect evidence parsing and flow succeeded)
         mock_container.run.assert_called_once()
 
+    @patch.dict(os.environ, {"HOLOHUB_BUILD_LOCAL": ""})
     @patch("utilities.cli.holohub.HoloHubCLI._make_project_container")
     def test_test_command_language_adds_cmake_flags(self, mock_make_container):
         """Ensure --language injects HOLOHUB_BUILD_* cmake flags into CTest configure options"""

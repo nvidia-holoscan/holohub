@@ -2,7 +2,7 @@
 
 A Holoscan application that demonstrates video recording using the GStreamer encoding pipeline.
 
-![GStreamer Video Recorder Pipeline](docs/pipeline_diagram.png)  
+![GStreamer Video Recorder Pipeline](docs/pipeline_diagram.png)
 *Fig. 1: Application architecture showing the integration of Holoscan operators with GStreamer's encoding pipeline*
 
 This application showcases how to:
@@ -45,8 +45,8 @@ For more information about this application, refer to:
 To run the application with the default settings, run one of the following commands:
 
 | Using the V4L2 Camera | Generating Test Patterns |
-|--|--|
-| ```./holohub run gst_video_recorder v4l2``` |  ```./holohub run gst_video_recorder pattern```|
+| --- | --- |
+| `./holohub run gst_video_recorder v4l2` | `./holohub run gst_video_recorder pattern` |
 
 These commands build and run the customized container for this application with all the dependencies installed (defined by `Dockerfile`), and then build and start the application using the default settings. The output video will be saved in the build directory as `output.mp4`.
 
@@ -68,12 +68,12 @@ The `install_deps.sh` script installs:
 
 Choose one of the following options to build the application:
 
-|Containerized Build (Recommended)  | Local Build |
-|--|--|
-| Install the application: | Install dependencies, from the `gst_video_recorder` directory:  |
-| ```./holohub build gst_video_recorder``` | ```./install_deps.sh``` |
-|  | Then build locally: |
-|  | ```./holohub build --local gst_video_recorder``` |
+| Containerized Build (Recommended) | Local Build |
+| --- | --- |
+| Install the application: | Install dependencies, from the `gst_video_recorder` directory: |
+| `./holohub build gst_video_recorder` | `./install_deps.sh` |
+| | Then build locally: |
+| | `./holohub build --local gst_video_recorder` |
 
 ### Usage Reference
 
@@ -108,7 +108,7 @@ The command line options include the following main categories:
 ##### General Options
 
 | Option | Description | Default |
-|--------|-------------|---------|
+| --- | --- | --- |
 | `--source <type>` | Video source: `pattern` or `v4l2` | `pattern` |
 | `-o, --output <filename>` | Output video filename. Supported formats: `.mp4`, `.mkv`. If no extension, defaults to `.mp4` | `output.mp4` |
 | `-e, --encoder <name>` | Encoder base name (for example, `nvh264`, `nvh265`, `x264`, `x265`). Note: 'enc' suffix is automatically appended | `nvh264` |
@@ -120,21 +120,21 @@ The command line options include the following main categories:
 ##### Resolution Options
 
 | Option | Description | Default |
-|--------|-------------|---------|
+| --- | --- | --- |
 | `-w, --width <pixels>` | Frame width. For V4L2: Must match a supported camera resolution. For the pattern: any reasonable resolution (64-8192 pixels) | `1920` |
 | `-h, --height <pixels>` | Frame height. For V4L2: Must match a supported camera resolution. For the pattern: any reasonable resolution (64-8192 pixels) | `1080` |
 
 ##### V4L2 Camera Options
 
 | Option | Description | Default |
-|--------|-------------|---------|
+| --- | --- | --- |
 | `--device <path>` | V4L2 device path | `/dev/video0` |
 | `--pixel-format <format>` | V4L2 pixel format (`YUYV`, `MJPEG`, `auto`) | `auto` |
 
 ##### Pattern Generator Options
 
 | Option | Description | Default |
-|--------|-------------|---------|
+| --- | --- | --- |
 | `--pattern <type>` | Pattern type: `0` = animated gradient, `1` = animated checkerboard, `2` = color bars (SMPTE style) | `0` |
 | `--storage <type>` | Memory storage type: `0` = host memory, `1` = device or CUDA memory | `1` |
 
@@ -280,7 +280,7 @@ The application supports both host and device (CUDA) memory:
 
 ### Notes
 
-#### Video Sources
+#### Video source details
 
 - V4L2 Camera:
 

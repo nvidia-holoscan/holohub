@@ -11,6 +11,7 @@ This operator receives packets from a Velodyne VLP-16 lidar and
 processes them into a point cloud of fixed size in Cartesian space.
 
 The operator performs the following steps:
+
 1. Interpret a fixed-size UDP packet as a Velodyne VLP-16 lidar packet,
    which contains 12 data blocks (azimuths) and 32 spherical data points per block.
 2. Transform the spherical data points into Cartesian coordinates (x, y, z)
@@ -24,6 +25,7 @@ over UDP/IP and forward them to this operator.
 ## Requirements
 
 Hardware requirements:
+
 - Holoscan supported platform (x64 or NVIDIA IGX devkit);
 - Velodyne VLP-16 Lidar sensor
 

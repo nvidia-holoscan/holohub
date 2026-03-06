@@ -66,7 +66,6 @@ The central resource that manages the OpenXR session lifecycle:
 
 ## Features
 
-
 - **Session Management**: Create and manage XR sessions, including initialization, lifecycle, and management of reference/view spaces.
 - **Frame Operations**: Handle XR frame begin and end operations to synchronize rendering and presentation with the XR device.
 - **CUDA Swapchain**: Enable direct GPU processing of OpenXR swapchain images using CUDA, supporting efficient zero-copy memory sharing between CUDA and Vulkan.
@@ -91,7 +90,6 @@ The central resource that manages the OpenXR session lifecycle:
 - **Platforms**: x86_64
 
 ## Usage Example
-
 
 For practical usage examples, see the following applications that utilize these XR operators:
 

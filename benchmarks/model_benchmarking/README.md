@@ -12,7 +12,8 @@ As this application is, by default, set to use the
 segmentation example first, and then try running this benchmarking application.
 
 Build and run the ultrasound segmentation application:
-```
+
+```bash
 ./holohub run ultrasound_segmentation --language=cpp --local
 ```
 
@@ -23,7 +24,8 @@ video via a V4L2 loopback device. Assuming, everything is set up correctly, the 
 segmentation example video could be run with the following command:
 
 > Note: we are playing the video to `/dev/video6` after running `sudo modprobe v4l2loopback video_nr=6 max_buffers=4`
-```
+
+```text
 $ ffmpeg -stream_loop -1 -re -i ./data/ultrasound_segmentation/ultrasound_256x256.avi -pix_fmt yuyv422 -f v4l2 /dev/video6
 ffmpeg version 4.2.7-0ubuntu0.1 Copyright (c) 2000-2022 the FFmpeg developers
   built with gcc 9 (Ubuntu 9.4.0-1ubuntu1~20.04.1)
@@ -39,7 +41,8 @@ Input #0, mov,mp4,m4a,3gp,3g2,mj2, from './data/ultrasound_segmentation/ultrasou
 ```
 
 Now, the benchmarking application can be built and run:
-```
+
+```bash
 ./holohub run model_benchmarking --language=<cpp/python> --local
 ```
 
@@ -49,16 +52,18 @@ To use a different model, you can specify the data path in the
 `./holohub run model_benchmarking --language=<cpp/python> --local --no-local-build` command with the `-d` option, and the model name,
 residing in the data path directory, with the `-m` option.
 
-```
+```bash
 ./holohub run model_benchmarking --language=<cpp/python> --local --no-local-build --run-args="-d <data_path> -m <model_name>"
 ```
 
 To check the full list of options, run:
-```
+
+```bash
 ./holohub run model_benchmarking --language=<cpp/python> --local --no-local-build --run-args="-h"
 ```
 
 ## Capabilities
+
 This benchmarking application can be used to measure performance of parallel inferences for the same
 model on a single video stream. The `-l` option can be used to specify the number of parallel
 inferences to run. Then, the same model will be loaded to the GPU multiple times defined by the `-l`

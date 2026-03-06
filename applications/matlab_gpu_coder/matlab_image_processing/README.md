@@ -2,7 +2,7 @@
 
 This application does real-time image processing of Holoscan sample data. The image processing is implemented in MATLAB and converted to CUDA using GPU Coder. When the application is run, Holoviz will display the processed data in real time.
 
-![](screenshot.png)
+![MATLAB Image Processing screenshot](screenshot.png)
 
 ## Folder Structure
 
@@ -20,17 +20,17 @@ matlab_image_processing
 
 ## Generate CUDA Code with MATLAB GPU Coder
 
-### x86: Ubuntu
+### x86: Ubuntu (generate)
 
 In order to generate the CUDA Code, start MATLAB and `cd` to the `matlab` folder and open the `generate_image_processing_x86.m` script. Run the script and a folder `codegen/dll/matlab_image_processing` will be generated in the `matlab_image_processing` folder.
 
-### arm64: Jetson
+### arm64: Jetson (generate)
 
 On an x86 computer with MATLAB installed, `cd` to the `matlab` folder and open the `generate_image_processing_jetson.m` script. Having an `ssh` connection to the Jetson device you want to build the CUDA DLLs on, specify the parameters of that connection in the `hwobj` on line 7, also replace `<ABSOLUTE_PATH>` of `cfg.Hardware.BuildDir` on line 39, as the absolute path (on the Jetson device) to `holohub` folder. Run the script and a folder `MATLAB_ws` will be created in the `matlab_image_processing` folder.
 
 ## Configure Holoscan for MATLAB
 
-### x86: Ubuntu
+### x86: Ubuntu (configure)
 
 Define the environment variable:
 
@@ -55,7 +55,7 @@ and build the endoscopy tool tracking application to download the necessary data
 ./holohub build endoscopy_tool_tracking
 ```
 
-### arm64: Jetson
+### arm64: Jetson (configure)
 
 The folder `MATLAB_ws`, created by MATLAB, mirrors the folder structure of the host machine and is therefore different from one user to another; hence, we need to specify the path to the `codegen` folder in the `CMakeLists.txt`, in order for the build to find the required libraries. Set the variable `REL_PTH_MATLAB_CODEGEN` to the relative path where the `codegen` folder is located in the `MATLAB_ws` folder. For example, if GPU Coder created the following folder structure on the Jetson device:
 

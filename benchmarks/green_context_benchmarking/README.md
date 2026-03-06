@@ -5,9 +5,11 @@ This benchmark measures CUDA kernel launch-start time improvements provided by N
 ## ⚠️ Important Disclaimers
 
 ### CUPTI Profiling Overhead
+
 This benchmark uses NVIDIA CUPTI for timing measurements, which introduces profiling overhead that affects absolute timing values. The measurements include both the actual kernel scheduling latency and CUPTI's profiling overhead. However, **the relative performance comparison between baseline and Green Context configurations remains valid** for evaluating Green Context benefits.
 
 ### Not Official SOL Numbers
+
 **These timing measurements are NOT official NVIDIA CUDA launch latency specifications.** The absolute timing values reported should not be used as reference numbers for CUDA kernel launch performance, as they include CUPTI profiling overhead and are specific to this benchmark's testing methodology. To publish official SOL (Speed of Light) performance numbers, additional validation and vetting processes would be required beyond the scope of this benchmark.
 
 This confirms that while absolute timing values include profiling overhead, **the relative performance comparisons accurately represent Green Context benefits**.
@@ -33,7 +35,6 @@ The benchmark compares CUDA kernel launch-start times with and without Green Con
 3. **CuptiSchedulingProfiler**: NVIDIA CUPTI-based profiler for accurate launch-start time measurement
 4. **Green Context Setup**: Configures GPU partitioning for isolated execution
 
-
 ### A/B Testing Design
 
 The benchmark uses a controlled comparison to isolate Green Context benefits:
@@ -43,17 +44,18 @@ The benchmark uses a controlled comparison to isolate Green Context benefits:
 
 This design ensures that any performance difference is due to Green Context partitioning, not simply moving off the default stream.
 
-
 ## Usage
 
 ### Basic Usage
 
 **Default (older GPUs and Orin systems):**
+
 ```bash
 ./holohub run green_context_benchmarking --docker-opts="--user root"
 ```
 
 **Modern GPUs and Jetson Thor:**
+
 ```bash
 ./holohub run green_context_benchmarking --docker-opts="--user root" --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.6.1-cuda13-dgpu
 ```
@@ -61,11 +63,13 @@ This design ensures that any performance difference is due to Green Context part
 ### GPU Compatibility
 
 **Use default command for:**
+
 - Older GPUs (compute capability < 7.0, e.g., GTX 1080, GTX 1060, etc.)
 - NVIDIA IGX/Jetson Orin systems
   If your system has a CUDA version `< 13`, then you can use the default command as well.
 
 **Use v3.6.1-cuda13 image for:**
+
 - Modern GPUs (compute capability ≥ 7.0, e.g., RTX 2080, RTX 3080, RTX 4090, RTX 6000 Ada Generation)
 - NVIDIA IGX/Jetson Thor systems
 
@@ -108,7 +112,7 @@ Examples:
 
 ## Sample Output
 
-```
+```text
 ================================================================================
 Green Context CUDA Kernel Start Time Benchmark
 ================================================================================
@@ -230,13 +234,14 @@ Dummy Load Execution Time Statistics
 Green Context delivers consistent, substantial performance improvements across both edge and high-end hardware:
 
 | Platform | Best Case Improvement | Optimal Configuration | Launch-Start Time with GC |
-|----------|----------------------|----------------------|------------|
+| --- | --- | --- | --- |
 | **Orin (16 SMs)** | 95.5% latency reduction | 4MB workload, 128-256 threads | 23-35μs |
 | **RTX 6000 Ada (142 SMs)** | 97.9% latency reduction | 8-16MB workload, any thread count | 4-6μs |
 
 ### Detailed Results by Platform
 
 **Performance Matrix Parameter Mapping**:
+
 - **Load Int** → `--load-intensity`
 - **Size (MB)** → `--workload-size`
 - **Threads/Block** → `--threads-per-block`
@@ -244,7 +249,8 @@ Green Context delivers consistent, substantial performance improvements across b
 #### Orin (16 SMs)
 
 **Performance Matrix** :
-```
+
+```text
 Load  Size  Threads   Avg%    Baseline    GC
 Int   (MB)  /Block    Impr    Avg(μs)     Avg(μs)
 ----------------------------------------------------
@@ -269,13 +275,15 @@ Int   (MB)  /Block    Impr    Avg(μs)     Avg(μs)
 ```
 
 **Orin Key Insights**:
+
 - **Sweet Spot**: 4MB workload with 128-256 threads per block achieves >94% improvement
 - **Reliability**: Low variance in Green Context performance (23-35μs range)
 
 #### Jetson Thor
 
 **Performance Matrix** :
-```
+
+```text
 Load  Size  Threads   Avg%    Baseline    GC
 Int   (MB)  /Block    Impr    Avg(μs)     Avg(μs)
 ----------------------------------------------------
@@ -306,6 +314,7 @@ Int   (MB)  /Block    Impr    Avg(μs)     Avg(μs)
 ```
 
 **Jetson Thor Key Insights**:
+
 - **Sweet Spot**: 16MB+ workload with load-intensity 20+ achieves >99% improvement
 - **Excellent scaling**: Performance improves dramatically with workload size (1MB→16MB)
 - **Consistent GC performance**: 8-15μs range regardless of baseline variability
@@ -314,7 +323,8 @@ Int   (MB)  /Block    Impr    Avg(μs)     Avg(μs)
 #### RTX 6000 Ada Generation (142 SMs)
 
 **Performance Matrix** :
-```
+
+```text
 Load  Size  Threads   Avg%    Baseline    GC
 Int   (MB)  /Block    Impr    Avg(μs)     Avg(μs)
 ----------------------------------------------------
@@ -358,6 +368,7 @@ Int   (MB)  /Block    Impr    Avg(μs)     Avg(μs)
 ```
 
 **RTX 6000 Ada Key Insights**:
+
 - **Sweet Spot**: 8-16MB workload with load-intensity 10+ achieves >95% improvement
 - **Threshold Effect**: Minimal benefits below 2MB workload, dramatic improvements above 4MB
 - **Reliability**: Low variance in Green Context performance (4-6μs range)
@@ -373,6 +384,7 @@ Int   (MB)  /Block    Impr    Avg(μs)     Avg(μs)
 ### What to Expect
 
 **Typical Performance Patterns:**
+
 - **Without Green Context**: Higher average launch-start times with significant variability and inconsistent performance
 - **With Green Context**: Much lower and more consistent launch-start times with reduced variability
 - **Performance Gains**: Substantial reduction in launch-start times across all percentiles (average, P95, P99)
@@ -397,12 +409,14 @@ These indicate potential measurement issues under high GPU contention.
 ### GPU Workload
 
 **Timing Kernel (simple_benchmark_kernel):**
+
 - Lightweight computation (sin/cos operations)
 - Fixed elements (1024)
 - 256 threads per block
 - Designed for minimal execution time to isolate launch-start latency
 
 **Background Load (background_load_kernel):**
+
 - Heavy computational loops with transcendental functions
 - Memory access patterns to stress memory subsystem
 - Configurable intensity (`--load-intensity`) and workload size (`--workload-size`)
@@ -447,21 +461,25 @@ This ensures proper isolation with each workload getting dedicated GPU resources
 4. **Build cache contamination when switching between container images**:
 
    **CUDA linking errors**:
-   ```
+
+   ```text
    /usr/bin/ld: cannot find /usr/local/cuda-12.8/targets/sbsa-linux/lib/libcudart.so: No such file or directory
    /usr/bin/ld: cannot find /usr/local/cuda-12.8/targets/sbsa-linux/lib/libcupti.so: No such file or directory
    ```
 
    **CMake configuration errors**:
-   ```
+
+   ```text
    CMake Error: Imported target "holoscan::core" includes non-existent path
    "/usr/local/cuda/targets/x86_64-linux/include/cccl"
    ```
 
    **Solution**: Clear holohub cache to resolve build contamination:
+
    ```bash
    sudo ./holohub clear-cache
    ```
+
    Then retry the benchmark command. This resolves CUDA version path mismatches from cached build artifacts.
 
 ### Performance Tuning

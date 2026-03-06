@@ -2,7 +2,7 @@
 
 This application demonstrates the use of videomaster_transmitter to transmit a video stream through a dedicated IO device.
 
-### Requirements
+## Requirements
 
 This application uses the DELTACAST.TV capture card for input stream. Contact [DELTACAST.TV](https://www.deltacast.tv/) for more details on how access the SDK and to setup your environment.
 

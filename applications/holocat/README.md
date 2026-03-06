@@ -1,6 +1,6 @@
 # HoloCat - EtherCAT Real-time Integration
 
-<img src="ethercat.jpeg" width="400" alt="EtherCAT Setup">
+![EtherCAT Setup](ethercat.jpeg)
 
 HoloCat is an EtherCAT master application that integrates the Acontis EC-Master SDK with NVIDIA's Holoscan platform. As of this version, it is a proof-of-concept using user-space Acontis drivers, which is not performance-optimized.  Also, it is not a richly flexible example, but contains hard-coded assumptions around
 your hardware; specifically, it targets a single DIO device.
@@ -152,17 +152,17 @@ Create or edit the config file (e.g. `configs/holocat_config.yaml`):
 holocat:
   # Network adapter for EtherCAT
   adapter_name: "eth0"  # Change to your EtherCAT interface
-  
+
   # EtherCAT configuration file
   eni_file: "/tmp/holocat_config.xml"
-  
+
   # Cycle time in microseconds
   cycle_time_us: 10000  # 10ms cycle time
-  
+
   # Real-time priorities (1-99)
   rt_priority: 39
   job_thread_priority: 98
-  
+
   # Enable real-time scheduling
   enable_rt: true
 

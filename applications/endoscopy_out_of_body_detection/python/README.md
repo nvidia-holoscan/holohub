@@ -126,7 +126,7 @@ To enable analytics and export results to CSV:
   enable_analytics: true
   ```
 
-2. Configure analytics output (optional):
+1. Configure analytics output (optional):
 
   ```bash
   # Set output directory (default: current directory)
