@@ -4,18 +4,18 @@
 
 The laser detection latency application demonstrates the latency differences between two different cameras visually.
 
-<center> <img src="./images/demo.png"></center>
+![Laser detection latency demo](./images/demo.png)
 
 This folder contains three applications, please refer to the respective application folder for application and configuration file.
 
 1. **[USB Camera Calibration app](./usb_cam_calibration):**
     This app is designed to do monitor registration by the USB camera. It uses a gray image which has [April tags](https://github.com/AprilRobotics/apriltag) on all the four corners and is as shown below.
 
-<center> <img src="./images/apriltag-calibration.png" width="400" height="300"></center>
+![April tag calibration image](./images/apriltag-calibration.png)
 
 The detection of these four April tags are done using `ApriltagDetectionOp`. For proper and correct monitor registration, the camera should be able to completely see all the four corners of the monitor. If it does not, the app will not output correct corners for the monitor. It is also important to make sure that the scene is well lit with no light sources in the back of the monitor.
 
-This app is designed using [Logitech 4k Pro Webcam](https://www.logitech.com/en-us/products/webcams/4kprowebcam.960-001390.html?utm_source=google&utm_source=Google&utm_medium=Paid-Search&utm_campaign=DEPT_FY25_QX_USA_LO_Logi_DTX-Logitech-PMax_Google_na&gad_source=1&gclid=Cj0KCQjwzva1BhD3ARIsADQuPnUJKLsoYuS-GIrre9P-cJz28NXW6jaQjIzPG2dLoLr4Yi6qBfKLCUoaAkIkEALw_wcB). If a different camera is being used, please change the camera settings in the python app or yaml configuration file.
+This app is designed using [Logitech 4k Pro Webcam](https://www.logitech.com/en-us/products/webcams/4kprowebcam.960-001390.html). If a different camera is being used, please change the camera settings in the python app or yaml configuration file.
 
 1. **[EVT Camera Calibration app](./evt_cam_calibration):**
     This app is designed to do monitor registration by the [Emergent Vision Technologies (EVT)](https://emergentvisiontec.com/) camera. It uses the same gray image which has April tags on all the four corners as shown above.
@@ -111,9 +111,8 @@ Before running the app, make sure that the EVT camera can see all the corners of
 
 This will output a file `evt-cali.npy` in the build directory.
 
-#### note
-
-Use `sudo` when running the application with EVT camera.
+> [!Note]
+> Use `sudo` when running the application with EVT camera.
 
 ### 3. Build and run `laser_detection`
 
@@ -124,7 +123,7 @@ Use `sudo` when running the application with EVT camera.
 
 Now you can use the laser pointer and point it to the monitor. If the icons are not detecting the laser or they are moving in random fashion, then redo the calibration steps.
 
-#### note
-
-- Please make sure that the monitor that is being used has matte screen. The glossy screen can create specular reflections and could damage the eye of the person looking at the monitor at certain angles.
-- Please make sure to only buy laser pointers that are safe to use for viewing purposes.
+> [!Note] Safety precautions
+>
+> - Please make sure that the monitor that is being used has matte screen. The glossy screen can create specular reflections and could damage the eye of the person looking at the monitor at certain angles.
+> - Please make sure to only buy laser pointers that are safe to use for viewing purposes.
