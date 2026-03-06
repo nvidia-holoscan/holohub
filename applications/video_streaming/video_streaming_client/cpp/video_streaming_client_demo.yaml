@@ -76,24 +76,24 @@ video_streaming_client:
   width: 640  # Match V4L2 source resolution
   height: 480
   fps: 30
-  
+
   # Server connection settings
   server_ip: "127.0.0.1"
   signaling_port: 48010  # Changed back to match server port
-  
+
   # Operation mode - RE-ENABLE SENDING FOR TESTING
   receive_frames: true
   send_frames: true  # Re-enabled to test frame sending with safety measures
-  
+
   # Frame validation (prevents sending empty frames during startup)
   min_non_zero_bytes: 10  # Minimum non-zero bytes required to consider frame valid
-  
+
   # Advanced options
   #timeout_ms: 5000
   #reconnect_attempts: 3
   #buffer_size: 10
 
-# Visualization options 
+# Visualization options
 visualize_frames: true
 
 # Holoviz configuration (used only if visualize_frames is true)
@@ -146,4 +146,4 @@ greedy_scheduler:
   max_duration_ms: 1000
 
 # Enable data flow tracking for debugging/profiling
-tracking: false 
+tracking: false

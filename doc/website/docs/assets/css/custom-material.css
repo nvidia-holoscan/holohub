@@ -516,7 +516,7 @@
     font-size: 0.65rem;
     padding-right: 0;
   }
-  
+
   .run-locally-description {
     font-size: 0.7rem;
   }
@@ -528,20 +528,20 @@
     width: 100%;
     font-size: 0.75rem;
   }
-  
+
   .run-locally-mode-copy-btn {
     position: static;
     bottom: auto;
   }
-  
+
   .run-locally-copy-all-btn {
     font-size: 0.8rem;
   }
-  
+
   .run-locally-command-label {
     font-size: 0.75rem;
   }
-  
+
   .copy-icon {
     width: 0.85em;
     height: 0.85em;

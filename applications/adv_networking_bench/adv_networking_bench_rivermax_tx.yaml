@@ -1,5 +1,5 @@
 %YAML 1.2
-# SPDX-FileCopyrightText: Copyright (c) 2022-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -82,4 +82,3 @@ bench_tx:
   bit_depth: 10
   file_path: "./build/adv_networking_bench/applications/adv_networking_bench/cpp/input_file.ycbcr"
   payload_memory: "device"
-

@@ -36,4 +36,3 @@ void XrEmptyCompositionLayerOp::compute(InputContext& input, OutputContext& outp
 }
 
 }  // namespace holoscan::ops
-

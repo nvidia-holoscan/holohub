@@ -30,5 +30,5 @@
 +    holoviz->add_arg(Arg("allocator", make_resource<UnboundedAllocator>("allocator")));
 +
    }
- 
+
   private:
