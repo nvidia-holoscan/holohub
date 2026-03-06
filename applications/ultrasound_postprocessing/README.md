@@ -70,7 +70,7 @@ python3 -m streamlit run applications/ultrasound_postprocessing/ultra_post/app/s
 python3 -m ultra_post.app.holoscan_app [--uff path/to/myfile.uff] [--fps 10]
 ```
 
-The sample dataset used in this project is available at <http://www.ustb.no/datasets>.
+The sample dataset used in this project is available at <https://www.ustb.no/ustb-datasets/>.
 
 ## Key Concepts
 
