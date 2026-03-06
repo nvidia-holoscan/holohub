@@ -18278,64 +18278,67 @@
 <p>Please download the models <a href="https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/ssd_surgical_tool_detection_model">at this NGC Resource</a> for <code>epoch_24.pt</code>, <code>epoch24_nms.onnx</code> and <code>epoch24.onnx</code>. You can go through the next steps of Model Conversion to ONNX to convert <code>epoch_24.pt</code> into <code>epoch24_nms.onnx</code> and <code>epoch24.onnx</code>, or use the downloaded ONNX models directly.</p>
 <h3 id="model-conversion-to-onnx">Model Conversion to ONNX<a class="headerlink" href="#model-conversion-to-onnx" title="Permanent link">#</a></h3>
 <p>The scripts we need to export the model from .pt checkpoint to the ONNX format are all within this dir <code>./scripts</code>. It is a two step process.</p>
-<p>Step 1: Export the trained checkpoint to ONNX. <br> We use <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/ssd_detection_endoscopy_tools/scripts/export_to_onnx_ssd.py"><code>export_to_onnx_ssd.py</code></a> if we want to use the model as is without NMS, or <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/ssd_detection_endoscopy_tools/scripts/export_to_onnx_ssd_nms.py"><code>export_to_onnx_ssd_nms.py</code></a> to prepare the model with NMS.
+<p>Step 1: Export the trained checkpoint to ONNX. We use <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/ssd_detection_endoscopy_tools/scripts/export_to_onnx_ssd.py"><code>export_to_onnx_ssd.py</code></a> if we want to use the model as is without NMS, or <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/ssd_detection_endoscopy_tools/scripts/export_to_onnx_ssd_nms.py"><code>export_to_onnx_ssd_nms.py</code></a> to prepare the model with NMS.
  Let's assume the re-trained SSD model checkpoint from the <a href="https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/Detection/SSD">repo</a> is saved as <code>epoch_24.pt</code>.
- The export process is
-<div class="highlight"><pre><span></span><code># For exporting the original ONNX model
- python export_to_onnx_ssd.py --model epoch_24.pt  --outpath epoch24_temp.onnx
+ The export process is</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># For exporting the original ONNX model</span>
+<span class="w"> </span>python<span class="w"> </span>export_to_onnx_ssd.py<span class="w"> </span>--model<span class="w"> </span>epoch_24.pt<span class="w">  </span>--outpath<span class="w"> </span>epoch24_temp.onnx
 </code></pre></div>
-<div class="highlight"><pre><span></span><code># For preparing to add the NMS step to ONNX model
-python export_to_onnx_ssd_nms.py --model epoch_24.pt  --outpath epoch24_nms_temp.onnx
+<div class="highlight"><pre><span></span><code><span class="c1"># For preparing to add the NMS step to ONNX model</span>
+python<span class="w"> </span>export_to_onnx_ssd_nms.py<span class="w"> </span>--model<span class="w"> </span>epoch_24.pt<span class="w">  </span>--outpath<span class="w"> </span>epoch24_nms_temp.onnx
 </code></pre></div>
-Step 2: modify input shape. <br> Step 1 produces a onnx model with input shape <code>[1, 3, 300, 300]</code>, but we will want to modify the input node to have shape <code>[1, 300, 300, 3]</code> or in general <code>[batch_size, height, width, channels]</code> for compatibility and easy of deployment in the Holoscan SDK. If we want to incorporate the NMS operation in the the ONNX model, we could add a <code>EfficientNMS_TRT</code> op, which is documented in <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/ssd_detection_endoscopy_tools/scripts/graph_surgeon_ssd.py"><code>graph_surgeon_ssd.py</code></a>'s nms related block.
-<div class="highlight"><pre><span></span><code># For exporting the original ONNX model
-python graph_surgeon_ssd.py --orig_model epoch24_temp.onnx --new_model epoch24.onnx
+<p>Step 2: modify input shape. Step 1 produces a onnx model with input shape <code>[1, 3, 300, 300]</code>, but we will want to modify the input node to have shape <code>[1, 300, 300, 3]</code> or in general <code>[batch_size, height, width, channels]</code> for compatibility and easy of deployment in the Holoscan SDK. If we want to incorporate the NMS operation in the the ONNX model, we could add a <code>EfficientNMS_TRT</code> op, which is documented in <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/ssd_detection_endoscopy_tools/scripts/graph_surgeon_ssd.py"><code>graph_surgeon_ssd.py</code></a>'s nms related block.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># For exporting the original ONNX model</span>
+python<span class="w"> </span>graph_surgeon_ssd.py<span class="w"> </span>--orig_model<span class="w"> </span>epoch24_temp.onnx<span class="w"> </span>--new_model<span class="w"> </span>epoch24.onnx
 </code></pre></div>
-<div class="highlight"><pre><span></span><code># For adding the NMS step to ONNX model, use --nms
-python graph_surgeon_ssd.py --orig_model epoch24_nms_temp.onnx --new_model epoch24_nms.onnx --nms
-</code></pre></div></p>
-<p>Note that
- - <code>epoch24.onnx</code> is used in <code>ssd_step1.py</code> and <code>ssd_step2_route1.py</code>
- - <code>epoch24_nms.onnx</code> is used in <code>ssd_step2_route2.py</code> and <code>ssd_step2_route2_render_labels.py</code></p>
+<div class="highlight"><pre><span></span><code><span class="c1"># For adding the NMS step to ONNX model, use --nms</span>
+python<span class="w"> </span>graph_surgeon_ssd.py<span class="w"> </span>--orig_model<span class="w"> </span>epoch24_nms_temp.onnx<span class="w"> </span>--new_model<span class="w"> </span>epoch24_nms.onnx<span class="w"> </span>--nms
+</code></pre></div>
+<p>Note that</p>
+<ul>
+<li><code>epoch24.onnx</code> is used in <code>ssd_step1.py</code> and <code>ssd_step2_route1.py</code></li>
+<li><code>epoch24_nms.onnx</code> is used in <code>ssd_step2_route2.py</code> and <code>ssd_step2_route2_render_labels.py</code></li>
+</ul>
 <h2 id="data">Data<a class="headerlink" href="#data" title="Permanent link">#</a></h2>
 <p>For this application we will use the same <a href="https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data">Endoscopy Sample Data</a> as the Holoscan SDK reference applications.</p>
 <h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h2>
-<p>There are two requirements
-1. To run <code>ssd_step1.py</code> and <code>ssd_step2_route1.py</code> with the original exported model, we need the installation of PyTorch and CuPy.
-<br> To run <code>ssd_step2_route2.py</code> and <code>ssd_step2_route2_render_labels.py</code> with the exported model with additional NMS layer in ONNX, we need the installation of CuPy.
-<br> If you're using the dGPU on the devkit, since there are no prebuilt PyTorch wheels for aarch64 dGPU, the simplest way is to modify the Dockerfile and build from source; if you're on x86 or using the iGPU on the devkit, there should be existing prebuilt PyTorch wheels.
-<br> If you choose to build the SDK from source, you can find the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/ssd_detection_endoscopy_tools/docker/Dockerfile">modified Dockerfile here</a> to replace the SDK repo <a href="https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/Dockerfile">Dockerfile</a> to satisfy the installation requirements.
-<br> The main changes in Dockerfile for dGPU: the base image changed to <code>nvcr.io/nvidia/pytorch:22.03-py3</code> instead of the <code>nvcr.io/nvidia/tensorrt:22.03-py3</code> as dGPU's base image; adding the installation of NVTX for optional profiling.
-<br>Build the SDK container following the <a href="https://github.com/nvidia-holoscan/holoscan-sdk#recommended-using-the-run-script">README instructions</a>.
-<br>
- Make sure the directory containing this application and the directory containing the NGC data and models are mounted in the container. Add the <code>-v</code> mount options to the <code>docker run</code> command launched by <code>./holohub run-container</code> in the SDK repo.</p>
+<p>There are two requirements</p>
+<ol>
+<li>To run <code>ssd_step1.py</code> and <code>ssd_step2_route1.py</code> with the original exported model, we need the installation of PyTorch and CuPy.
+To run <code>ssd_step2_route2.py</code> and <code>ssd_step2_route2_render_labels.py</code> with the exported model with additional NMS layer in ONNX, we need the installation of CuPy.
+If you're using the dGPU on the devkit, since there are no prebuilt PyTorch wheels for aarch64 dGPU, the simplest way is to modify the Dockerfile and build from source; if you're on x86 or using the iGPU on the devkit, there should be existing prebuilt PyTorch wheels.
+If you choose to build the SDK from source, you can find the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/ssd_detection_endoscopy_tools/docker/Dockerfile">modified Dockerfile here</a> to replace the SDK repo <a href="https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/Dockerfile">Dockerfile</a> to satisfy the installation requirements.
+The main changes in Dockerfile for dGPU: the base image changed to <code>nvcr.io/nvidia/pytorch:22.03-py3</code> instead of the <code>nvcr.io/nvidia/tensorrt:22.03-py3</code> as dGPU's base image; adding the installation of NVTX for optional profiling.
+Build the SDK container following the <a href="https://github.com/nvidia-holoscan/holoscan-sdk#recommended-using-the-run-script">README instructions</a>.</li>
+</ol>
+<p>Make sure the directory containing this application and the directory containing the NGC data and models are mounted in the container. Add the <code>-v</code> mount options to the <code>docker run</code> command launched by <code>./holohub run-container</code> in the SDK repo.</p>
 <ol>
 <li>Make sure the model and data are accessible by the application.
-<br> Make sure the yaml files <code>ssd_endo_model.yaml</code> and <code>ssd_endo_model_with_NMS.yaml</code> are pointing to the right locations for the ONNX model and data. The assumption in the yaml file is that the <code>epoch24_nms.onnx</code> and <code>epoch24.onnx</code> are located at:
-<div class="highlight"><pre><span></span><code>model_file_path: /byom/models/endo_ssd/epoch24_nms.onnx
-engine_cache_dir: /byom/models/endo_ssd/epoch24_nms_engines
+Make sure the yaml files <code>ssd_endo_model.yaml</code> and <code>ssd_endo_model_with_NMS.yaml</code> are pointing to the right locations for the ONNX model and data. The assumption in the yaml file is that the <code>epoch24_nms.onnx</code> and <code>epoch24.onnx</code> are located at:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="nt">model_file_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/byom/models/endo_ssd/epoch24_nms.onnx</span>
+<span class="nt">engine_cache_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/byom/models/endo_ssd/epoch24_nms_engines</span>
 </code></pre></div>
-and / or
-<div class="highlight"><pre><span></span><code>model_file_path: /byom/models/endo_ssd/epoch24.onnx
-engine_cache_dir: /byom/models/endo_ssd/epoch24_engines
+<p>and / or</p>
+<div class="highlight"><pre><span></span><code><span class="nt">model_file_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/byom/models/endo_ssd/epoch24.onnx</span>
+<span class="nt">engine_cache_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/byom/models/endo_ssd/epoch24_engines</span>
 </code></pre></div>
-The <a href="https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data">Endoscopy Sample Data</a> is assumed to be at
+<p>The <a href="https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data">Endoscopy Sample Data</a> is assumed to be at</p>
 <div class="highlight"><pre><span></span><code>/workspace/holoscan-sdk/data/endoscopy
 </code></pre></div>
-Please check and modify the paths to model and data in the yaml file if needed.</li>
-</ol>
+<p>Please check and modify the paths to model and data in the yaml file if needed.</p>
 <h2 id="building-the-application">Building the application<a class="headerlink" href="#building-the-application" title="Permanent link">#</a></h2>
 <p>Please refer to the README under <a href="app_dev_process/README.md">./app_dev_process</a> to see the process of building the applications.</p>
 <h2 id="running-the-application">Running the application<a class="headerlink" href="#running-the-application" title="Permanent link">#</a></h2>
-<p>Run the incrementally improved Python applications by:
-<div class="highlight"><pre><span></span><code>python ssd_step1.py
+<p>Run the incrementally improved Python applications by:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>ssd_step1.py
 
-python ssd_step2_route1.py
+python<span class="w"> </span>ssd_step2_route1.py
 
-python ssd_step2_route2.py
+python<span class="w"> </span>ssd_step2_route2.py
 
-python ssd_step2_route2_render_labels.py --labelfile endo_ref_data_labels.csv
-</code></pre></div></p>
+python<span class="w"> </span>ssd_step2_route2_render_labels.py<span class="w"> </span>--labelfile<span class="w"> </span>endo_ref_data_labels.csv
+</code></pre></div>
 
 
 

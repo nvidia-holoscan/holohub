@@ -18267,19 +18267,23 @@ to a point cloud tensor format.</p>
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">#</a></h2>
 <p>This operator receives packets from a Velodyne VLP-16 lidar and
 processes them into a point cloud of fixed size in Cartesian space.</p>
-<p>The operator performs the following steps:
-1. Interpret a fixed-size UDP packet as a Velodyne VLP-16 lidar packet,
-   which contains 12 data blocks (azimuths) and 32 spherical data points per block.
-2. Transform the spherical data points into Cartesian coordinates (x, y, z)
-   and add them to the output point cloud tensor, overwriting a previous cloud segment.
-3. Output the point cloud tensor and update the tensor insertion pointer to prepare
-   for the next incoming packet.</p>
+<p>The operator performs the following steps:</p>
+<ol>
+<li>Interpret a fixed-size UDP packet as a Velodyne VLP-16 lidar packet,
+   which contains 12 data blocks (azimuths) and 32 spherical data points per block.</li>
+<li>Transform the spherical data points into Cartesian coordinates (x, y, z)
+   and add them to the output point cloud tensor, overwriting a previous cloud segment.</li>
+<li>Output the point cloud tensor and update the tensor insertion pointer to prepare
+   for the next incoming packet.</li>
+</ol>
 <p>We recommend relying on HoloHub networking operators to receive Velodyne VLP-16 lidar packets
 over UDP/IP and forward them to this operator.</p>
 <h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h2>
-<p>Hardware requirements:
-- Holoscan supported platform (x64 or NVIDIA IGX devkit);
-- Velodyne VLP-16 Lidar sensor</p>
+<p>Hardware requirements:</p>
+<ul>
+<li>Holoscan supported platform (x64 or NVIDIA IGX devkit);</li>
+<li>Velodyne VLP-16 Lidar sensor</li>
+</ul>
 <h2 id="example-usage">Example Usage<a class="headerlink" href="#example-usage" title="Permanent link">#</a></h2>
 <p>See the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/velodyne_lidar_app/cpp">HoloHub Lidar Sample Application</a> to get started.</p>
 <h2 id="acknowledgements">Acknowledgements<a class="headerlink" href="#acknowledgements" title="Permanent link">#</a></h2>

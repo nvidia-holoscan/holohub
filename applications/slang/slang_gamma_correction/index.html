@@ -7342,13 +7342,15 @@
 <p>A Holoscan application demonstrating the integration of Slang shading language for GPU-accelerated gamma correction on image data.</p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h2>
 <p>This application showcases how to use the Slang shading language operator (<code>SlangShaderOp</code>) within Holoscan applications for GPU-accelerated image processing. The example implements a pipeline that generates a test image with smooth color transitions, applies gamma correction using a Slang compute shader, and displays the result with proper sRGB color space handling.</p>
-<p><img alt="" src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/slang/slang_gamma_correction/slang_gamma_correction.png?raw=true"/></p>
+<p><img alt="Slang gamma correction example output" src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/slang/slang_gamma_correction/slang_gamma_correction.png?raw=true"/></p>
 <h3 id="what-is-gamma-correction">What is Gamma Correction?<a class="headerlink" href="#what-is-gamma-correction" title="Permanent link">#</a></h3>
-<p>Gamma correction is a non-linear operation used to encode and decode luminance or tristimulus values in video or still image systems. It's essential for:
-- Correcting the non-linear response of display devices
-- Ensuring proper color reproduction across different devices
-- Converting between linear and sRGB color spaces
-- Improving image quality and color accuracy</p>
+<p>Gamma correction is a non-linear operation used to encode and decode luminance or tristimulus values in video or still image systems. It's essential for:</p>
+<ul>
+<li>Correcting the non-linear response of display devices</li>
+<li>Ensuring proper color reproduction across different devices</li>
+<li>Converting between linear and sRGB color spaces</li>
+<li>Improving image quality and color accuracy</li>
+</ul>
 <h3 id="what-is-slang">What is Slang?<a class="headerlink" href="#what-is-slang" title="Permanent link">#</a></h3>
 <p><a href="https://github.com/shader-slang/slang">Slang</a> is a shading language that provides a modern, high-level interface for GPU programming. It supports both traditional graphics shaders and compute kernels, making it ideal for GPU-accelerated image processing in Holoscan applications.</p>
 <h2 id="application-structure">Application Structure<a class="headerlink" href="#application-structure" title="Permanent link">#</a></h2>

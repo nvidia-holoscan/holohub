@@ -18557,10 +18557,12 @@ By using the NVIDIA Video Codec Demo application and its operators, you agree to
 <li><strong>Irrigator</strong> - Irrigation/suction device</li>
 <li><strong>Spec.Bag</strong> - Specimen retrieval bag</li>
 </ol>
-<p>Each detected tool is marked with:
-- Cross overlay showing tool position
-- Text label identifying the tool type
-- Colored mask indicating tool region</p>
+<p>Each detected tool is marked with:</p>
+<ul>
+<li>Cross overlay showing tool position</li>
+<li>Text label identifying the tool type</li>
+<li>Colored mask indicating tool region</li>
+</ul>
 <h2 id="performance-considerations">Performance Considerations<a class="headerlink" href="#performance-considerations" title="Permanent link">#</a></h2>
 <p><em>The H.264 video decode operators do not adjust framerate as they read the elementary stream input. As a result, the video stream can be displayed as quickly as the decoding and inference can be performed. This application uses <code>PeriodicCondition</code> to play video at the same speed as the source video.</em></p>
 <p>The LSTM inference runs at each frame, providing real-time tool tracking with minimal latency.</p>

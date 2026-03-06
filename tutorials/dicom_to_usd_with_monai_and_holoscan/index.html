@@ -18310,10 +18310,12 @@
 <p>The <a href="https://www.dicomstandard.org/">Digital Imaging and Communications in Medicine (DICOM) standard</a> is a comprehensive standard for medical imaging. DICOM covers a wide variety of medical imaging modalities and defines standards for both image storage and communications in medicine. DICOM data often represent 2D or 3D volumes or series of volumes.</p>
 <h3 id="openusd">OpenUSD<a class="headerlink" href="#openusd" title="Permanent link">#</a></h3>
 <p><a href="https://openusd.org/release/index.html">Universal Scene Description (OpenUSD)</a> is an extensible ecosystem of file formats, compositors, renderers, and other plugins for comprehensive 3D scene description.</p>
-<p>OpenUSD serves as the backbone of the <a href="https://www.nvidia.com/en-us/omniverse/">NVIDIA Omniverse</a> cloud computing platform. Omniverse includes a variety of applications such as <a href="https://docs.omniverse.nvidia.com/composer/latest/index.html">USD Composer</a> for viewing and manipulating OpenUSD scenes, with features such as:
-- State-of-the-art cloud rendering
-- Live collaborative scene editing
-- Multi-user mixed reality</p>
+<p>OpenUSD serves as the backbone of the <a href="https://www.nvidia.com/en-us/omniverse/">NVIDIA Omniverse</a> cloud computing platform. Omniverse includes a variety of applications such as <a href="https://docs.omniverse.nvidia.com/composer/latest/index.html">USD Composer</a> for viewing and manipulating OpenUSD scenes, with features such as:</p>
+<ul>
+<li>State-of-the-art cloud rendering</li>
+<li>Live collaborative scene editing</li>
+<li>Multi-user mixed reality</li>
+</ul>
 <p>Download the <a href="https://www.nvidia.com/en-us/omniverse/foundation-apps/">NVIDIA Omniverse</a> launcher to get started with Omniverse. See <a href="https://developer.nvidia.com/usd/tutorials">NVIDIA OpenUSD Tutorials</a> for getting started with the OpenUSD Python libraries we use in this tutorial.</p>
 <h3 id="monai-deploy-holoscan-pipeline"><a href="https://project-monai.github.io/deploy.html">MONAI Deploy</a> + <a href="https://developer.nvidia.com/holoscan-sdk">Holoscan</a> Pipeline<a class="headerlink" href="#monai-deploy-holoscan-pipeline" title="Permanent link">#</a></h3>
 <p>The MONAI Deploy App SDK provides a series of operators to load and select DICOM instances and then decode the pixel data into in-memory NumPy data objects. MONAI Deploy integrates seamlessly with Holoscan pipelines.</p>
@@ -18328,9 +18330,11 @@
 <h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h2>
 <p>Please review the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/README.md">HoloHub README</a> to get started with HoloHub general requirements before continuing.</p>
 <h3 id="hardware">Hardware<a class="headerlink" href="#hardware" title="Permanent link">#</a></h3>
-<p>This tutorial may run on an <code>amd64</code> or <code>arm64</code> workstation.
-- For <code>amd64</code> we rely on <code>usd-core</code> Python wheels from PyPI for OpenUSD support.
-- For <code>arm64</code> we rely on NVIDIA Omniverse Python libraries for OpenUSD support.</p>
+<p>This tutorial may run on an <code>amd64</code> or <code>arm64</code> workstation.</p>
+<ul>
+<li>For <code>amd64</code> we rely on <code>usd-core</code> Python wheels from PyPI for OpenUSD support.</li>
+<li>For <code>arm64</code> we rely on NVIDIA Omniverse Python libraries for OpenUSD support.</li>
+</ul>
 <h3 id="host-software">Host Software<a class="headerlink" href="#host-software" title="Permanent link">#</a></h3>
 <p>This tutorial should run in a <code>docker</code> container:</p>
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt-get<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>docker

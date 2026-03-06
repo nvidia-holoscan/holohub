@@ -18342,10 +18342,14 @@
 <ul>
 <li><a href="https://www.docker.com/">Docker</a></li>
 <li><a href="https://code.visualstudio.com/">VS Code</a> with the <a href="https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers">Dev Container Extension Pack</a></li>
-<li>Install <a href="https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers">Dev Container Extension Pack</a> via command line
-    <div class="highlight"><pre><span></span><code>code<span class="w"> </span>--install-extension<span class="w"> </span>ms-vscode-remote.remote-containers
-</code></pre></div></li>
-<li><a href="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html">NVIDIA Container Toolkit</a></li>
+<li>
+<p>Install <a href="https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers">Dev Container Extension Pack</a> via command line</p>
+<div class="highlight"><pre><span></span><code>code<span class="w"> </span>--install-extension<span class="w"> </span>ms-vscode-remote.remote-containers
+</code></pre></div>
+</li>
+<li>
+<p><a href="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html">NVIDIA Container Toolkit</a></p>
+</li>
 <li><a href="https://developer.nvidia.com/cuda-downloads">NVIDIA CUDA Toolkit</a></li>
 <li><a href="https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan">Holoscan SDK container 2.3 or later</a></li>
 </ul>
@@ -18370,10 +18374,12 @@
 <span class="w">       </span>└──<span class="w"> </span>README.md<span class="w">       </span><span class="c1"># This file</span>
 </code></pre></div>
 <blockquote>
-<p>💡 Note: The Dev Container is configured with a default user account <code>holoscan</code> using user ID <code>1000</code> and group ID <code>1000</code> in the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/debugging/holoscan_container_vscode/.devcontainer/devcontainer.json">devcontainer.json</a> file. <br />
- - To change the user name, find and replace <code>USERNAME</code> and <code>remoteUser</code>.<br />
- - To change the user ID, find and replace <code>USER_UID</code> and <code>userUid</code>.<br />
- - To change the group ID, find and replace <code>USER_GID</code> and <code>userGid</code>.<br /></p>
+<p>💡 Note: The Dev Container is configured with a default user account <code>holoscan</code> using user ID <code>1000</code> and group ID <code>1000</code> in the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/debugging/holoscan_container_vscode/.devcontainer/devcontainer.json">devcontainer.json</a> file.</p>
+<ul>
+<li>To change the user name, find and replace <code>USERNAME</code> and <code>remoteUser</code>.</li>
+<li>To change the user ID, find and replace <code>USER_UID</code> and <code>userUid</code>.</li>
+<li>To change the group ID, find and replace <code>USER_GID</code> and <code>userGid</code>.</li>
+</ul>
 </blockquote>
 <h2 id="debugging-applications">Debugging Applications<a class="headerlink" href="#debugging-applications" title="Permanent link">#</a></h2>
 <h3 id="debugging-a-c-application">Debugging a C++ Application<a class="headerlink" href="#debugging-a-c-application" title="Permanent link">#</a></h3>

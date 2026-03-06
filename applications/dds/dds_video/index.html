@@ -18326,11 +18326,11 @@ Holoviz output.</p>
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">#</a></h2>
 <ul>
 <li>This application requires an installation of <a href="https://content.rti.com/l/983311/2025-07-08/q5x1n8">RTI Connext Express</a> to provide access to the DDS domain.
-To obtain a license/activation key, please <a href="https://content.rti.com/l/983311/2025-07-25/q6729c">click here</a>. Please see the <a href="https://www.rti.com/products/connext-express">usage rules</a> for Connext Express.</li>
+To obtain a license/activation key, please <a href="https://content.rti.com/l/983311/2025-07-25/q6729c">request an RTI Connext Express license or activation key</a>. Please see the <a href="https://www.rti.com/products/connext-express">usage rules</a> for Connext Express.</li>
 <li>V4L2 capable device</li>
 </ul>
 <blockquote>
-<p>[!NOTE]<br />
+<p>[!NOTE]
 Instructions below are based on the `.run' installer from RTI Connext. Refer to the
 <a href="https://community.rti.com/static/documentation/developers/get-started/full-install.html">Linux installation</a>
 for details.</p>
@@ -18363,17 +18363,17 @@ done using the RTI <code>setenv</code> script) and use the following:</p>
 ./holohub<span class="w"> </span>run-container<span class="w"> </span>dds_video<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">&quot;-v </span><span class="nv">$HOME</span><span class="s2">/rti_connext_dds-7.3.0:/opt/rti.com/rti_connext_dds-7.3.0/&quot;</span>
 <span class="c1"># 3. Build the application</span>
 ./holohub<span class="w"> </span>build<span class="w"> </span>dds_video
-<span class="c1"># Continue to the next section to run the application with the publisher. </span>
+<span class="c1"># Continue to the next section to run the application with the publisher.</span>
 <span class="c1"># Open a new terminal to repeat step #2 and launch a new container for the subscriber.</span>
 </code></pre></div>
 <h2 id="running-the-application">Running the Application<a class="headerlink" href="#running-the-application" title="Permanent link">#</a></h2>
 <p>Both a publisher and subscriber process must be launched to see the result of
 writing to and reading the video stream from DDS, respectively.</p>
 <p>To run the publisher process, use the <code>-p</code> option:</p>
-<div class="highlight"><pre><span></span><code>$<span class="w"> </span>./holohub<span class="w"> </span>run<span class="w"> </span>--no-local-build<span class="w"> </span>dds_video<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;-p&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>--no-local-build<span class="w"> </span>dds_video<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;-p&quot;</span>
 </code></pre></div>
 <p>To run the subscriber process, use the <code>-s</code> option:</p>
-<div class="highlight"><pre><span></span><code>$<span class="w"> </span>./holohub<span class="w"> </span>run<span class="w"> </span>--no-local-build<span class="w"> </span>dds_video<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;-s&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>--no-local-build<span class="w"> </span>dds_video<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;-s&quot;</span>
 </code></pre></div>
 <p>If running the application generates an error about <code>RTI Connext DDS No Source
 for License information</code>, ensure that the RTI Connext license has either been
@@ -18387,7 +18387,7 @@ increasing the buffer size used by RTI Connext for network sockets, and so the s
 running the application must also be configured to increase their maximum send and
 receive socket buffer sizes. This can be done by running the <code>set_socket_buffer_sizes.sh</code>
 script within this directory:</p>
-<div class="highlight"><pre><span></span><code>$<span class="w"> </span>./set_socket_buffer_sizes.sh
+<div class="highlight"><pre><span></span><code>./set_socket_buffer_sizes.sh
 </code></pre></div>
 <p>For more details, see the <a href="https://community.rti.com/howto/improve-rti-connext-dds-network-performance-linux-systems">RTI Connext Guide to Improve DDS Network Performance on Linux Systems</a></p>
 <p>The QoS profiles used by the application can also be modified by editing the

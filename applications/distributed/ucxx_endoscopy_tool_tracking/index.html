@@ -18489,7 +18489,7 @@
 <p>Each node is a Holoscan application.</p>
 <p><img alt="Endoscopy Image" src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/distributed/ucxx_endoscopy_tool_tracking/docs/endoscopy_with_counter.png?raw=true" /></p>
 <h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">#</a></h2>
-<p>Please refer to the <a href="#build-and-run">Build and Run</a> section for detailed instructions on how to build and run the application.
+<p>Please refer to the <a href="#run-the-application">Build and Run</a> section for detailed instructions on how to build and run the application.
 For a quick start on the same machine, run these in separate terminals:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Terminal 1: Publisher (GPU + video data)</span>
 ./holohub<span class="w"> </span>run<span class="w"> </span>ucxx_endoscopy_tool_tracking<span class="w"> </span>publish
@@ -18655,7 +18655,8 @@ For a quick start on the same machine, run these in separate terminals:</p>
 <li>Verify port is not blocked: <code>telnet &lt;publisher_ip&gt; 50008</code></li>
 <li>Check firewall rules allow port 50008</li>
 <li>Ensure both nodes use same port number</li>
-<li>Try running applications within the same HoloHub container to minimize networking requirements:
+<li>Try running applications within the same HoloHub container to minimize networking requirements:</li>
+</ol>
 <div class="highlight"><pre><span></span><code><span class="c1"># Terminal 1</span>
 ./holohub<span class="w"> </span>run-container<span class="w"> </span>ucxx_endoscopy_tool_tracking
 ./holohub<span class="w"> </span>run<span class="w"> </span>ucxx_endoscopy_tool_tracking<span class="w"> </span>publish
@@ -18667,8 +18668,7 @@ docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </spa
 <span class="c1"># Terminal 3, same machine</span>
 docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span><span class="k">$(</span>docker<span class="w"> </span>ps<span class="w"> </span>-q<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-n<span class="w"> </span><span class="m">1</span><span class="k">)</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>./holohub<span class="w"> </span>run<span class="w"> </span>ucxx_endoscopy_tool_tracking<span class="w"> </span>overlay
-</code></pre></div></li>
-</ol>
+</code></pre></div>
 <h3 id="no-frames-displayed">No frames displayed<a class="headerlink" href="#no-frames-displayed" title="Permanent link">#</a></h3>
 <p><strong>Problem</strong>: Subscriber connects but no visualization appears</p>
 <p><strong>Solutions</strong>:</p>

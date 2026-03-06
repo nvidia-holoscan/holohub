@@ -18264,15 +18264,13 @@
 <h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h2>
 <ul>
 <li>Holoscan (&gt;=0.5)</li>
-<li>Python implementation:<ul>
+<li>Python implementation:</li>
 <li>Python3</li>
 <li>CuPy or Numpy</li>
 <li>Pillow</li>
-</ul>
-</li>
 <li>Scripts in <code>deploy/</code> will build and execute a docker environment that meets the requirements for systems using nvidia-docker</li>
 </ul>
-<!-- 
+<!--
     * C++:
         * CUDA Toolkit
 * Requirements are conveniently met by building and deploying the Holoscan development container [add link]
@@ -18280,13 +18278,11 @@
 
 <h2 id="obtain-and-format-gotcha-dataset">Obtain and Format GOTCHA Dataset<a class="headerlink" href="#obtain-and-format-gotcha-dataset" title="Permanent link">#</a></h2>
 <ul>
-<li>Navigate to https://www.sdms.afrl.af.mil/index.php?collection=gotcha </li>
+<li>Navigate to <a href="https://www.sdms.afrl.af.mil/index.php?collection=gotcha">https://www.sdms.afrl.af.mil/index.php?collection=gotcha</a></li>
 <li>Click the DOWNLOAD link below the images</li>
 <li>Log in.  You may need to create an account to do so</li>
-<li>Under "GOTCHA Volumetric SAR Data Set Challenge Problem" download "Disc 1 of 2".<ul>
+<li>Under "GOTCHA Volumetric SAR Data Set Challenge Problem" download "Disc 1 of 2".</li>
 <li>The data in "Disc 2 of 2" is compatible with this demo but not used</li>
-</ul>
-</li>
 <li>Unpack the contents of "Disc 1 of 2" into the <code>data/</code> directory.  This should create a subdirectry named <code>GOTCHA-CP_Disc1/</code></li>
 <li><code>cd data</code></li>
 <li><code>python3 cp-large_convert.py</code></li>
@@ -18303,15 +18299,13 @@
 <h2 id="build-and-execute">Build and Execute<a class="headerlink" href="#build-and-execute" title="Permanent link">#</a></h2>
 <!-- * Place ```.dat``` files in ```data/``` -->
 <ul>
-<li>Python: <ul>
+<li>Python:</li>
 <li><code>python3 holosar.py</code></li>
 </ul>
-</li>
-</ul>
-<p>The application will create a window with the resolved SAR image, and update after each group of 100 pulses received.  The image represents the strength of reflectivity at points on the ground within the imaging window.  The text at the top of the window indicates the (X,Y) position of the collecting radar at the most recent pulse, along with the total count of pulses received.  The red line points in the direction of the collection vehicle's location at the most recent pulse.  </p>
+<p>The application will create a window with the resolved SAR image, and update after each group of 100 pulses received.  The image represents the strength of reflectivity at points on the ground within the imaging window.  The text at the top of the window indicates the (X,Y) position of the collecting radar at the most recent pulse, along with the total count of pulses received.  The red line points in the direction of the collection vehicle's location at the most recent pulse.</p>
 <p>A screen grab is included below for reference:</p>
 <p><img alt="image" src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/synthetic_aperture_radar/sar-grab.png?raw=true" /></p>
-<!-- 
+<!--
 * C++:
     * ```cd cpp```
     ```mkdir build && cd build```

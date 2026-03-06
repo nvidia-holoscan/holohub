@@ -18316,12 +18316,16 @@
 <h2 id="build">Build<a class="headerlink" href="#build" title="Permanent link">#</a></h2>
 <p>Please refer to the top level Holohub README.md file for information on how to build this application: <code>./holohub build network_radar_pipeline</code>.</p>
 <h2 id="run">Run<a class="headerlink" href="#run" title="Permanent link">#</a></h2>
-<p>Note: must properly configure YAML files before running. To run with DPDK as ANO transport layer:
-- On Tx machine: <code>./build/applications/network_radar_pipeline/cpp/network_radar_pipeline source.yaml</code>
-- On Rx machine: <code>./build/applications/network_radar_pipeline/cpp/network_radar_pipeline process.yaml</code></p>
-<p>To run with DOCA GPUNetIO as ANO transport layer:
-- On Tx machine: <code>./build/applications/network_radar_pipeline/cpp/network_radar_pipeline source_doca.yaml</code>
-- On Rx machine: <code>./build/applications/network_radar_pipeline/cpp/network_radar_pipeline process_doca.yaml</code></p>
+<p>Note: must properly configure YAML files before running. To run with DPDK as ANO transport layer:</p>
+<ul>
+<li>On Tx machine: <code>./build/applications/network_radar_pipeline/cpp/network_radar_pipeline source.yaml</code></li>
+<li>On Rx machine: <code>./build/applications/network_radar_pipeline/cpp/network_radar_pipeline process.yaml</code></li>
+</ul>
+<p>To run with DOCA GPUNetIO as ANO transport layer:</p>
+<ul>
+<li>On Tx machine: <code>./build/applications/network_radar_pipeline/cpp/network_radar_pipeline source_doca.yaml</code></li>
+<li>On Rx machine: <code>./build/applications/network_radar_pipeline/cpp/network_radar_pipeline process_doca.yaml</code></li>
+</ul>
 <h2 id="network-operator-connectors">Network Operator Connectors<a class="headerlink" href="#network-operator-connectors" title="Permanent link">#</a></h2>
 <p>See each operators' README before using / for more detailed information.</p>
 <h3 id="basic-network-operator-connector">Basic Network Operator Connector<a class="headerlink" href="#basic-network-operator-connector" title="Permanent link">#</a></h3>
@@ -18331,13 +18335,15 @@
 <h4 id="testing-rx-on-generic-packet-data">Testing RX on generic packet data<a class="headerlink" href="#testing-rx-on-generic-packet-data" title="Permanent link">#</a></h4>
 <p>When using the Advanced network operator, the application supports testing the radar processing component in a "spoof packets" mode. This functionality allows for easier benchmarking of the application by ingesting generic packet data and writing in header fields such that the full radar pipeline will still be exercised. When "SPOOF_PACKET_DATA" (adv_networking_rx.h) is set to "true", the index of the packet will be used to set fields appropriately. This functionality is currently unsupported using the basic network operator connectors.</p>
 <h2 id="message-format">Message format<a class="headerlink" href="#message-format" title="Permanent link">#</a></h2>
-<p>The message format is defined by <code>RFPacket</code>. It is a byte array, represented by <code>RFPacket::payload</code>, where the first 16 bytes are reserved for metadata and the rest are used for representing complex I/Q samples. The metadata is:
-- Sample index: The starting index for a single pulse/channel of the transmitted samples (2 bytes)
-- Waveform ID: Index of the transmitted waveform (2 bytes)
-- Channel index: Index of the channel (2 bytes)
-- Pulse index: Index of the pulse (2 bytes)
-- Number samples: Number of I/Q samples transmitted (2 bytes)
-- End of array: Boolean - true if this is the last message for the waveform (2 bytes)</p>
+<p>The message format is defined by <code>RFPacket</code>. It is a byte array, represented by <code>RFPacket::payload</code>, where the first 16 bytes are reserved for metadata and the rest are used for representing complex I/Q samples. The metadata is:</p>
+<ul>
+<li>Sample index: The starting index for a single pulse/channel of the transmitted samples (2 bytes)</li>
+<li>Waveform ID: Index of the transmitted waveform (2 bytes)</li>
+<li>Channel index: Index of the channel (2 bytes)</li>
+<li>Pulse index: Index of the pulse (2 bytes)</li>
+<li>Number samples: Number of I/Q samples transmitted (2 bytes)</li>
+<li>End of array: Boolean - true if this is the last message for the waveform (2 bytes)</li>
+</ul>
 
 
 

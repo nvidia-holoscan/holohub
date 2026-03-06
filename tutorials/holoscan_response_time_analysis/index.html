@@ -18225,23 +18225,23 @@
 <p>Detailed instructions for how to reproduce the results of the paper, along with the code, can be found in the <code>artifact</code> directory.</p>
 <h2 id="scripts">Scripts<a class="headerlink" href="#scripts" title="Permanent link">#</a></h2>
 <p>The scripts in current directory (<code>computeWCRT.py</code> and <code>runsimulation.py</code>) are written in Python and require the <code>networkx</code> and <code>pydot</code> packages, which can be easily installed with pip.</p>
-<div class="highlight"><pre><span></span><code>pip install networkx
-pip install pydot
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>networkx
+pip<span class="w"> </span>install<span class="w"> </span>pydot
 </code></pre></div>
 <p>Each script takes a representation of an application graph in the form of a DOT file. An example DOT file is provided in <code>exampledot.dot</code>. The DOT file defines a Holoscan application graph in two parts. The first section consists of the names of the operators, with their worst-case execution times as attributes. The second section captures the connections between operators.</p>
 <p>We assume that there is only one root operator and one leaf operator in the application graph, without losing any generality. More information on why this works for more than one root and leaf can be found in the paper [1].</p>
 <h3 id="computewcrtpy"><code>computeWCRT.py</code><a class="headerlink" href="#computewcrtpy" title="Permanent link">#</a></h3>
 <p>This script takes a path to a DOT file, representing a Holoscan application graph and computes an upper bound of worst-case response time (WCRT) for the application. The script does not run a Holoscan application on actual hardware. Instead, it computes the WCRT following the timing analysis done in our paper [1]. The algorithm runs reasonably fast (within quadratic time) for graphs with up to 20-30 nodes.</p>
-<div class="highlight"><pre><span></span><code>python computeWCRT.py examplegraph.dot
-Worst-case response time: 1600
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>computeWCRT.py<span class="w"> </span>examplegraph.dot
+Worst-case<span class="w"> </span>response<span class="w"> </span>time:<span class="w"> </span><span class="m">1600</span>
 </code></pre></div>
 <p>This script can also, optionally, account for extra scheduling overheads, empirically observed on Jetson AGX Orin. The <code>-overhead</code> argument can include this overhead in the WCRT analysis. Kindly note that this is a heuristic based on measurements using a Jetson AGX Orin and will not be accurate for all systems.</p>
-<div class="highlight"><pre><span></span><code>python computeWCRT.py examplegraph.dot --overhead
-Worst-case response time: 1612
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>computeWCRT.py<span class="w"> </span>examplegraph.dot<span class="w"> </span>--overhead
+Worst-case<span class="w"> </span>response<span class="w"> </span>time:<span class="w"> </span><span class="m">1612</span>
 </code></pre></div>
 <h3 id="runsimulationpy"><code>runsimulation.py</code><a class="headerlink" href="#runsimulationpy" title="Permanent link">#</a></h3>
-<p>This script takes a path to a DOT file representing a Holoscan application graph, an expected runtime, and a root operator period (in this order), and runs a discrete-event simulation of the execution of the Holoscan application under the given conditions, printing the results. The runtime argument determines how long the simulation will run. For example, if an application takes 1000 time units to process an input, and the runtime is 1100 time units, then only one iteration will be simulated. The period argument determines how often the source operator can execute. If the source operator could execute every 50 time units, but period is 100 time units, then the source will be constrained in this script. </p>
-<p>The period will affect response times, though not necessarily the worst-case response time. For example, lowering the period may increase the queuing time of early iterations with response times still converging to the same value. In the 
+<p>This script takes a path to a DOT file representing a Holoscan application graph, an expected runtime, and a root operator period (in this order), and runs a discrete-event simulation of the execution of the Holoscan application under the given conditions, printing the results. The runtime argument determines how long the simulation will run. For example, if an application takes 1000 time units to process an input, and the runtime is 1100 time units, then only one iteration will be simulated. The period argument determines how often the source operator can execute. If the source operator could execute every 50 time units, but period is 100 time units, then the source will be constrained in this script.</p>
+<p>The period will affect response times, though not necessarily the worst-case response time. For example, lowering the period may increase the queuing time of early iterations with response times still converging to the same value. In the
 output below, changing the period to <code>5</code> would increase the response time of iteration 1 by 5, but leave the WCRT unchanged.</p>
 <div class="highlight"><pre><span></span><code>python runsimulation.py examplegraph.dot 3000 10
 Iteration 0
@@ -18278,16 +18278,16 @@ Worst-case response time: 1600
 </code></pre></div>
 <p>For this application, response times converge to the worst-case response time of 1600. Note that not all applications will converge to single value in this manner, and response times may increase or decrease periodically even after reaching the worst-case response time. The previously mentioned <code>computeWCRT.py</code> script provides a theoretical upper bound, even though it can be more pessimistic than simulated or real-world observed times. More details are available in our paper [1].</p>
 <h3 id="citation">Citation<a class="headerlink" href="#citation" title="Permanent link">#</a></h3>
-<p>[1] P. Schowitz, S. Sinha, and A. Gujarati, “Response-Time Analysis 
-of a Soft Real-time NVIDIA Holoscan Application,” in IEEE Real-Time 
+<p>[1] P. Schowitz, S. Sinha, and A. Gujarati, “Response-Time Analysis
+of a Soft Real-time NVIDIA Holoscan Application,” in IEEE Real-Time
 Systems Symposium, 2024.</p>
 <p>BibTeX:</p>
-<div class="highlight"><pre><span></span><code>@inproceedings{Schowitz2024,
-author    = {P. Schowitz and S. Sinha and A. Gujarati},
-title     = {Response-Time Analysis of a Soft Real-time NVIDIA Holoscan Application},
-booktitle = {Proceedings of the IEEE Real-Time Systems Symposium},
-year      = {2024},
-}
+<div class="highlight"><pre><span></span><code><span class="nc">@inproceedings</span><span class="p">{</span><span class="nl">Schowitz2024</span><span class="p">,</span>
+<span class="na">author</span><span class="w">    </span><span class="p">=</span><span class="w"> </span><span class="s">{P. Schowitz and S. Sinha and A. Gujarati}</span><span class="p">,</span>
+<span class="na">title</span><span class="w">     </span><span class="p">=</span><span class="w"> </span><span class="s">{Response-Time Analysis of a Soft Real-time NVIDIA Holoscan Application}</span><span class="p">,</span>
+<span class="na">booktitle</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{Proceedings of the IEEE Real-Time Systems Symposium}</span><span class="p">,</span>
+<span class="na">year</span><span class="w">      </span><span class="p">=</span><span class="w"> </span><span class="s">{2024}</span><span class="p">,</span>
+<span class="p">}</span>
 </code></pre></div>
 
 

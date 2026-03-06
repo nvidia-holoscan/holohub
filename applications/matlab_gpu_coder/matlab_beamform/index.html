@@ -18105,10 +18105,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#x86-ubuntu" class="md-nav__link">
+  <a href="#x86-ubuntu-code-generation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        x86: Ubuntu
+        x86: Ubuntu (code generation)
       
     </span>
   </a>
@@ -18116,10 +18116,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#arm64-jetson" class="md-nav__link">
+  <a href="#arm64-jetson-code-generation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        arm64: Jetson
+        arm64: Jetson (code generation)
       
     </span>
   </a>
@@ -18144,10 +18144,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#x86-ubuntu_1" class="md-nav__link">
+  <a href="#x86-ubuntu-configure" class="md-nav__link">
     <span class="md-ellipsis">
       
-        x86: Ubuntu
+        x86: Ubuntu (configure)
       
     </span>
   </a>
@@ -18155,10 +18155,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#arm64-jetson_1" class="md-nav__link">
+  <a href="#arm64-jetson-configure" class="md-nav__link">
     <span class="md-ellipsis">
       
-        arm64: Jetson
+        arm64: Jetson (configure)
       
     </span>
   </a>
@@ -18358,12 +18358,12 @@
 </ul>
 <p>Simply run the script <code>matlab/generate_data.mlx</code> from MATLAB and a binary file <code>ultrasound_beamforming.bin</code> will be written to a top-level <code>data</code> folder. The binary file contains the simulated ultrasound data, prior to beamforming.</p>
 <h2 id="generate-cuda-code-with-matlab-gpu-coder">Generate CUDA Code with MATLAB GPU Coder<a class="headerlink" href="#generate-cuda-code-with-matlab-gpu-coder" title="Permanent link">#</a></h2>
-<h3 id="x86-ubuntu">x86: Ubuntu<a class="headerlink" href="#x86-ubuntu" title="Permanent link">#</a></h3>
+<h3 id="x86-ubuntu-code-generation">x86: Ubuntu (code generation)<a class="headerlink" href="#x86-ubuntu-code-generation" title="Permanent link">#</a></h3>
 <p>In order to generate the CUDA Code, start MATLAB and <code>cd</code> to the <code>matlab</code> folder and open the <code>generate_beamform_x86.m</code> script. Run the script and a folder <code>codegen/dll/matlab_beamform</code> will be generated in the <code>matlab_beamform</code> folder.</p>
-<h3 id="arm64-jetson">arm64: Jetson<a class="headerlink" href="#arm64-jetson" title="Permanent link">#</a></h3>
+<h3 id="arm64-jetson-code-generation">arm64: Jetson (code generation)<a class="headerlink" href="#arm64-jetson-code-generation" title="Permanent link">#</a></h3>
 <p>On an x86 computer with MATLAB installed, <code>cd</code> to the <code>matlab</code> folder and open the <code>generate_beamform_jetson.m</code> script. Having an <code>ssh</code> connection to the Jetson device you want to build the CUDA DLLs on, specify the parameters of that connection in the <code>hwobj</code> on line 7, also replace <code>&lt;ABSOLUTE_PATH&gt;</code> of <code>cfg.Hardware.BuildDir</code> on line 39, as the absolute path (on the Jetson device) to <code>holohub</code> folder. Run the script and a folder <code>MATLAB_ws</code> will be created in the <code>matlab_beamform</code> folder.</p>
 <h2 id="configure-holoscan-for-matlab">Configure Holoscan for MATLAB<a class="headerlink" href="#configure-holoscan-for-matlab" title="Permanent link">#</a></h2>
-<h3 id="x86-ubuntu_1">x86: Ubuntu<a class="headerlink" href="#x86-ubuntu_1" title="Permanent link">#</a></h3>
+<h3 id="x86-ubuntu-configure">x86: Ubuntu (configure)<a class="headerlink" href="#x86-ubuntu-configure" title="Permanent link">#</a></h3>
 <p>Define the environment variable:</p>
 <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">MATLAB_ROOT</span><span class="o">=</span><span class="s2">&quot;/usr/local/MATLAB&quot;</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">MATLAB_VERSION</span><span class="o">=</span><span class="s2">&quot;R2023b&quot;</span>
@@ -18374,7 +18374,7 @@
 <span class="w">    </span>--add-volume<span class="w"> </span><span class="si">${</span><span class="nv">MATLAB_ROOT</span><span class="si">}</span>/<span class="si">${</span><span class="nv">MATLAB_VERSION</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--docker-opts<span class="o">=</span><span class="s2">&quot;-e MATLAB_ROOT=/workspace/volumes/</span><span class="si">${</span><span class="nv">MATLAB_VERSION</span><span class="si">}</span><span class="s2">&quot;</span>
 </code></pre></div>
-<h3 id="arm64-jetson_1">arm64: Jetson<a class="headerlink" href="#arm64-jetson_1" title="Permanent link">#</a></h3>
+<h3 id="arm64-jetson-configure">arm64: Jetson (configure)<a class="headerlink" href="#arm64-jetson-configure" title="Permanent link">#</a></h3>
 <p>The folder <code>MATLAB_ws</code>, created by MATLAB, mirrors the folder structure of the host machine and is therefore different from one user to another; hence, we need to specify the path to the <code>codegen</code> folder in the <code>CMakeLists.txt</code>, in order for the build to find the required libraries. Set the variable <code>REL_PTH_MATLAB_CODEGEN</code> to the relative path where the <code>codegen</code> folder is located in the <code>MATLAB_ws</code> folder. For example, if GPU Coder created the following folder structure on the Jetson device:</p>
 <div class="highlight"><pre><span></span><code>matlab_beamform
 └──<span class="w"> </span>MATLAB_ws

@@ -18106,7 +18106,7 @@
   <a href="#install-riva" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Install Riva:
+        Install Riva
       
     </span>
   </a>
@@ -18114,10 +18114,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#setup-instructions_1" class="md-nav__link">
+  <a href="#download-llm-model" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Setup Instructions:
+        Download LLM model
       
     </span>
   </a>
@@ -18344,10 +18344,12 @@
 <p>This application streams microphone input to <a href="https://www.nvidia.com/en-us/ai-data-science/products/riva/">NVIDIA Riva</a> Automatic Speech Recognition (ASR), which once the user specifies they are done speaking, passes the transcribed text to an LLM running locally that then summarizes this text.</p>
 <p>While this workflow in principle could be used for a number of domains, the app is currently configured to be healthcare specific. The current LLM prompt is created for radiology interpretation, but this can be easily changed in the YAML file to tailor the LLM's output to a wide array of potential use cases.</p>
 <h2 id="example-output">Example output<a class="headerlink" href="#example-output" title="Permanent link">#</a></h2>
-<p>Example output can be found at <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/asr_to_llm/example_output.md">example_output.md</a><br />
-<em> Description of output fields:<br />
-</em><em>Final Transcription:</em><em> Riva's transcription of the provided mic input<br />
-</em><em>LLM Summary:</em>* The LLM's output summarization</p>
+<p>Example output can be found at <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/asr_to_llm/example_output.md">example_output.md</a></p>
+<ul>
+<li>Description of output fields:
+<strong>Final Transcription:</strong> Riva's transcription of the provided mic input
+<strong>LLM Summary:</strong> The LLM's output summarization</li>
+</ul>
 <h2 id="yaml-configuration">YAML Configuration<a class="headerlink" href="#yaml-configuration" title="Permanent link">#</a></h2>
 <p>The directions for the LLM are determined by the <code>stt_to_nlp.yaml</code> file. As you see from our example, the directions for the LLM are made via natural language, and can result in very different applications.</p>
 <p>With the current YAML configuration, the resulting prompt to the LLM is:</p>
@@ -18367,18 +18369,18 @@ Suggest follow-up steps.
 &lt;|assistant|&gt;
 </code></pre></div>
 <h2 id="setup-instructions">Setup Instructions<a class="headerlink" href="#setup-instructions" title="Permanent link">#</a></h2>
-<h3 id="install-riva">Install Riva:<a class="headerlink" href="#install-riva" title="Permanent link">#</a></h3>
+<h3 id="install-riva">Install Riva<a class="headerlink" href="#install-riva" title="Permanent link">#</a></h3>
 <p>First, you must follow the <a href="https://docs.nvidia.com/deeplearning/riva/user-guide/docs/quick-start-guide.html#local-deployment-using-quick-start-scripts">Riva local deployment quickstart guide</a>. For x86 and ARM64 devices with dGPU follow the "Data Center" instructions, for ARM64 devices with iGPU follow the "Embedded" instructions.</p>
 <ul>
-<li>Note: to minimize the Riva install size you can change the <code>config.sh</code> file in the <code>riva_quickstart_vX.XX.X</code> directory such that it specifies to only install the ASR models (Riva has more features but only ASR is needed for this app). To do this, find the <code>sevice_enabled_*</code> variables and set them as shown below:
+<li>Note: to minimize the Riva install size you can change the <code>config.sh</code> file in the <code>riva_quickstart_vX.XX.X</code> directory such that it specifies to only install the ASR models (Riva has more features but only ASR is needed for this app). To do this, find the <code>sevice_enabled_*</code> variables and set them as shown below:</li>
+</ul>
 <div class="highlight"><pre><span></span><code><span class="nv">service_enabled_asr</span><span class="o">=</span><span class="nb">true</span>
 <span class="nv">service_enabled_nlp</span><span class="o">=</span><span class="nb">false</span>
 <span class="nv">service_enabled_tts</span><span class="o">=</span><span class="nb">false</span>
 <span class="nv">service_enabled_nmt</span><span class="o">=</span><span class="nb">false</span>
-</code></pre></div></li>
-</ul>
+</code></pre></div>
 <p>⚠️ Note: If you are using ARM64 w/ iGPU or an x86 platform the quick-start scripts <em>should</em> work as intended. However, if you are using ARM64 w/ dGPU, you will need to make the following modifications to the Riva Quick-start scripts:</p>
-<p>In <code>riva_init.sh</code> make the following changes to ensure the ARM64 version of <a href="https://docs.ngc.nvidia.com/cli/index.html">NGC-CLI</a> is downloaded and your dGPU is used to run the container:
+<p>In <code>riva_init.sh</code> make the following changes to ensure the ARM64 version of <a href="https://docs.ngc.nvidia.com/cli/index.html">NGC-CLI</a> is downloaded and your dGPU is used to run the container:</p>
 <div class="highlight"><pre><span></span><code># download required models
 <span class="gd">-if [[ $riva_target_gpu_family == &quot;tegra&quot; ]]; then</span>
 <span class="gd">-    docker run -it -d --rm -v $riva_model_loc:/data \</span>
@@ -18386,32 +18388,34 @@ Suggest follow-up steps.
 <span class="gi">+            docker run -it -d --rm --gpus &#39;&quot;&#39;$gpus_to_use&#39;&quot;&#39; -v $riva_model_loc:/data \</span>
 <span class="w"> </span>               -e &quot;NGC_CLI_API_KEY=$NGC_CLI_API_KEY&quot; \
 </code></pre></div>
-Then in <code>riva_start.sh</code> make the changes below to ensure your Riva server has access to your sound devices:
+<p>Then in <code>riva_start.sh</code> make the changes below to ensure your Riva server has access to your sound devices:</p>
 <div class="highlight"><pre><span></span><code>docker rm $riva_daemon_speech &amp;&gt; /dev/null
 <span class="gd">-if [[ $riva_target_gpu_family == &quot;tegra&quot; ]]; then</span>
 <span class="gi">+if [[ $riva_target_gpu_family == &quot;non-tegra&quot; ]]; then</span>
 <span class="w"> </span>   docker_run_args=&quot;-p 8000:8000 -p 8001:8001 -p 8002:8002 -p 8888:8888 --device /dev/bus/usb --device /dev/snd&quot;
-</code></pre></div></p>
-<h3 id="setup-instructions_1">Setup Instructions:<a class="headerlink" href="#setup-instructions_1" title="Permanent link">#</a></h3>
-<p>Download the <a href="https://huggingface.co/TheBloke/Mistral-7B-OpenOrca-GGUF">quantized Mistral 7B LLM</a> from HugginFace.co:
+</code></pre></div>
+<h3 id="download-llm-model">Download LLM model<a class="headerlink" href="#download-llm-model" title="Permanent link">#</a></h3>
+<p>Download the <a href="https://huggingface.co/TheBloke/Mistral-7B-OpenOrca-GGUF">quantized Mistral 7B LLM</a> from HugginFace.co:</p>
 <div class="highlight"><pre><span></span><code>wget<span class="w"> </span>-nc<span class="w"> </span>-P<span class="w"> </span>&lt;your_model_dir&gt;<span class="w"> </span>https://huggingface.co/TheBloke/Mistral-7B-OpenOrca-GGUF/resolve/main/mistral-7b-openorca.Q8_0.gguf
-</code></pre></div></p>
+</code></pre></div>
 <h2 id="run-instructions">Run instructions<a class="headerlink" href="#run-instructions" title="Permanent link">#</a></h2>
-<p>Build and launch the <code>holohub:asr_to_llm</code> container:
+<p>Build and launch the <code>holohub:asr_to_llm</code> container:</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>asr_to_llm<span class="w"> </span>--add-volume<span class="w"> </span>&lt;your_model_dir&gt;
 </code></pre></div>
-Run the application and use the <code>--list-devices</code> arg to determine which microphone to use:
+<p>Run the application and use the <code>--list-devices</code> arg to determine which microphone to use:</p>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>&lt;streaming_asr_to_llm_dir&gt;/asr_to_llm.py<span class="w"> </span>--list-devices
 </code></pre></div>
-Then run the application with the <code>--input-device</code> arg to specify the correct microphone:
+<p>Then run the application with the <code>--input-device</code> arg to specify the correct microphone:</p>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>&lt;streaming_asr_to_llm_dir&gt;/asr_to_llm.py<span class="w"> </span>--input-device<span class="w"> </span>&lt;device-index&gt;
-</code></pre></div></p>
+</code></pre></div>
 <p>Once <code>asr_to_llm.py</code> is running, you will see output from ALSA for loading the selected audio device and also from llama_cpp for loading the LLM onto GPU memory. Once this is complete it will immediately begin printing out the transcribed text. <strong>To signal that the audio you wish to transcribe is complete, enter <code>x</code> on the keyboard</strong>. This will terminate the ASR and microphone instance, and feed the complete transcribed text into the LLM for summarization.</p>
 <h2 id="stopping-instructions">Stopping Instructions<a class="headerlink" href="#stopping-instructions" title="Permanent link">#</a></h2>
-<p>Note: The <code>python asr_to_llm.py</code> command will complete on its own once the LLM is finished summarizing the transcription
-* Stopping Riva services:
+<p>Note: The <code>python asr_to_llm.py</code> command will complete on its own once the LLM is finished summarizing the transcription</p>
+<ul>
+<li>Stopping Riva services:</li>
+</ul>
 <div class="highlight"><pre><span></span><code>bash<span class="w"> </span>&lt;Riva_install_dir&gt;riva_stop.sh
-</code></pre></div></p>
+</code></pre></div>
 <h2 id="asr_to_llm-application-arguments">ASR_To_LLM Application arguments<a class="headerlink" href="#asr_to_llm-application-arguments" title="Permanent link">#</a></h2>
 <p>The <code>asr_to_llm.py</code> can receive several cli arguments:</p>
 <p><code>--input-device</code>: The index of the input audio device to use.

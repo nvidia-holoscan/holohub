@@ -18062,6 +18062,114 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start-with-holohub-cli-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Start with HoloHub CLI Container
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-build-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Advanced Build Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-the-docker-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using the docker file
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-the-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running the Application
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#vs-code-dev-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        VS Code Dev Container
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="VS Code Dev Container">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#vs-code-launch-profiles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        VS Code Launch Profiles
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="VS Code Launch Profiles">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#c" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C++
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -18207,11 +18315,11 @@ trivial due to the support for the <a href="https://dmlc.github.io/dlpack/latest
 specification</a> in both CV-CUDA and Holoscan.
 We provide two <a href="../../operators/cvcuda_holoscan_interop/">operators</a> to handle the
 interoperability between CVCUDA and Holoscan tensors.</p>
-<h1 id="quick-start-with-holohub-cli-container">Quick Start with HoloHub CLI Container<a class="headerlink" href="#quick-start-with-holohub-cli-container" title="Permanent link">#</a></h1>
+<h2 id="quick-start-with-holohub-cli-container">Quick Start with HoloHub CLI Container<a class="headerlink" href="#quick-start-with-holohub-cli-container" title="Permanent link">#</a></h2>
 <p>Run the following command to build and run the CV-CUDA sample application in a Docker container:</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>cvcuda_basic
 </code></pre></div>
-<h1 id="advanced-build-steps">Advanced Build Steps<a class="headerlink" href="#advanced-build-steps" title="Permanent link">#</a></h1>
+<h2 id="advanced-build-steps">Advanced Build Steps<a class="headerlink" href="#advanced-build-steps" title="Permanent link">#</a></h2>
 <h2 id="using-the-docker-file">Using the docker file<a class="headerlink" href="#using-the-docker-file" title="Permanent link">#</a></h2>
 <p>This application requires a compiled version of <a href="https://github.com/CVCUDA/CV-CUDA">CV-CUDA</a>.
 For simplicity a DockerFile is available. To generate the container run:</p>
@@ -18225,15 +18333,15 @@ For simplicity a DockerFile is available. To generate the container run:</p>
 <p>This application uses the endoscopy dataset as an example. The build command above will automatically download it. This application is then run inside the container.</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>cvcuda_basic
 </code></pre></div>
-<p>The Python version of the simple CV-CUDA pipeline example can be run via
+<p>The Python version of the simple CV-CUDA pipeline example can be run via</p>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>applications/cvcuda_basic/python/cvcuda_basic.py<span class="w"> </span>--data<span class="o">=</span>/workspace/holohub/data/endoscopy
-</code></pre></div></p>
+</code></pre></div>
 <p>or using the HoloHub CLI entrypoint:</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>cvcuda_basic<span class="w"> </span>--language<span class="o">=</span>python<span class="w"> </span>--local
 </code></pre></div>
-<p>The C++ version of the simple CV-CUDA pipeline example can then be run via
+<p>The C++ version of the simple CV-CUDA pipeline example can then be run via</p>
 <div class="highlight"><pre><span></span><code>./build/applications/cvcuda_basic/cpp/cvcuda_basic<span class="w"> </span>--data<span class="o">=</span>/workspace/holohub/data/endoscopy
-</code></pre></div></p>
+</code></pre></div>
 <p>or using the run script</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>cvcuda_basic<span class="w"> </span>--language<span class="o">=</span>cpp<span class="w"> </span>--local
 </code></pre></div>

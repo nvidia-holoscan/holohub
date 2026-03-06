@@ -18517,18 +18517,22 @@
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h2>
 <p>This application demonstrates how to use the IIO (Industrial I/O) operators to interface with Software Defined Radio (SDR) devices, specifically the ADALM-Pluto SDR from Analog Devices. The application showcases real-time signal generation, transmission, and reception capabilities using the Holoscan SDK framework.</p>
 <h2 id="what-is-adalm-pluto">What is ADALM-Pluto?<a class="headerlink" href="#what-is-adalm-pluto" title="Permanent link">#</a></h2>
-<p>The ADALM-Pluto (Active Learning Module) is an affordable, portable SDR platform that can transmit and receive RF signals from 325 MHz to 3.8 GHz. It features:
-- AD9363 transceiver chip
-- USB-powered operation
-- 20 MHz bandwidth (upgradeable to 56 MHz)
-- Support for various modulation schemes
-- Multiple input/output channels for data streaming</p>
+<p>The ADALM-Pluto (Active Learning Module) is an affordable, portable SDR platform that can transmit and receive RF signals from 325 MHz to 3.8 GHz. It features:</p>
+<ul>
+<li>AD9363 transceiver chip</li>
+<li>USB-powered operation</li>
+<li>20 MHz bandwidth (upgradeable to 56 MHz)</li>
+<li>Support for various modulation schemes</li>
+<li>Multiple input/output channels for data streaming</li>
+</ul>
 <h2 id="application-capabilities">Application Capabilities<a class="headerlink" href="#application-capabilities" title="Permanent link">#</a></h2>
-<p>This application provides examples of:
-1. <strong>Attribute Reading/Writing</strong>: Configure SDR parameters like sampling rate, gain, and frequency
-2. <strong>Buffer Operations</strong>: Stream raw buffer data through device channels for signal transmission and reception
-3. <strong>Device Configuration</strong>: Apply complex device settings from YAML configuration files
-4. <strong>Signal Generation</strong>: Create and transmit test signals through buffer channels</p>
+<p>This application provides examples of:</p>
+<ol>
+<li><strong>Attribute Reading/Writing</strong>: Configure SDR parameters like sampling rate, gain, and frequency</li>
+<li><strong>Buffer Operations</strong>: Stream raw buffer data through device channels for signal transmission and reception</li>
+<li><strong>Device Configuration</strong>: Apply complex device settings from YAML configuration files</li>
+<li><strong>Signal Generation</strong>: Create and transmit test signals through buffer channels</li>
+</ol>
 <h2 id="use-cases">Use Cases<a class="headerlink" href="#use-cases" title="Permanent link">#</a></h2>
 <ul>
 <li><strong>RF Signal Analysis</strong>: Capture and analyze radio frequency signals in real-time</li>
@@ -18539,10 +18543,12 @@
 <li><strong>Data Acquisition</strong>: High-speed streaming of ADC/DAC samples</li>
 </ul>
 <h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">#</a></h2>
-<p>The application uses the IIO (Industrial I/O) Linux subsystem to communicate with the ADALM-Pluto device. The IIO framework provides a standardized interface for:
-- Reading/writing device attributes (frequency, gain, sample rate)
-- Streaming raw data buffers through device channels
-- Managing device states and configurations</p>
+<p>The application uses the IIO (Industrial I/O) Linux subsystem to communicate with the ADALM-Pluto device. The IIO framework provides a standardized interface for:</p>
+<ul>
+<li>Reading/writing device attributes (frequency, gain, sample rate)</li>
+<li>Streaming raw data buffers through device channels</li>
+<li>Managing device states and configurations</li>
+</ul>
 <h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h2>
 <h3 id="hardware">Hardware<a class="headerlink" href="#hardware" title="Permanent link">#</a></h3>
 <ul>
@@ -18585,46 +18591,52 @@
 <h3 id="network-settings">Network Settings<a class="headerlink" href="#network-settings" title="Permanent link">#</a></h3>
 <p>The default URI for ADALM-Pluto is <code>ip:192.168.2.1</code>. Modify the <code>G_URI</code> variable in the Python script if your device has a different IP address.</p>
 <h3 id="signal-parameters">Signal Parameters<a class="headerlink" href="#signal-parameters" title="Permanent link">#</a></h3>
-<p>In the <code>BasicIIOBufferEmitterOp</code> class:
-- <code>frequency</code>: Sine wave frequency (Hz)
-- <code>amplitude</code>: Signal amplitude
-- <code>sample_rate</code>: Samples per second
-- <code>total_samples</code>: Number of samples per buffer</p>
+<p>In the <code>BasicIIOBufferEmitterOp</code> class:</p>
+<ul>
+<li><code>frequency</code>: Sine wave frequency (Hz)</li>
+<li><code>amplitude</code>: Signal amplitude</li>
+<li><code>sample_rate</code>: Samples per second</li>
+<li><code>total_samples</code>: Number of samples per buffer</li>
+</ul>
 <h3 id="channel-configuration">Channel Configuration<a class="headerlink" href="#channel-configuration" title="Permanent link">#</a></h3>
 <ul>
 <li><code>G_NUM_CHANNELS</code>: Set to 1 or 2 for single/dual channel operation</li>
 </ul>
 <h2 id="example-workflows">Example Workflows<a class="headerlink" href="#example-workflows" title="Permanent link">#</a></h2>
 <h3 id="1-signal-generation-and-transmission">1. Signal Generation and Transmission<a class="headerlink" href="#1-signal-generation-and-transmission" title="Permanent link">#</a></h3>
-<p>The buffer write example generates a sine wave and transmits it through the SDR:
+<p>The buffer write example generates a sine wave and transmits it through the SDR:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Generates 8kHz sine wave with amplitude 408</span>
 <span class="n">data_vector</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_sinewave</span><span class="p">(</span><span class="n">total_samples</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">amplitude</span><span class="o">=</span><span class="mi">408</span><span class="p">,</span> <span class="n">sample_rate</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="2-signal-reception">2. Signal Reception<a class="headerlink" href="#2-signal-reception" title="Permanent link">#</a></h3>
-<p>The buffer read example captures IQ samples from the RF input:
+<p>The buffer read example captures IQ samples from the RF input:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Captures 8192 samples from the receiver</span>
 <span class="n">iio_buf_read_op</span> <span class="o">=</span> <span class="n">IIOBufferRead</span><span class="p">(</span>
     <span class="n">samples_count</span><span class="o">=</span><span class="mi">8192</span><span class="p">,</span>
     <span class="n">enabled_channel_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;voltage0&quot;</span><span class="p">,</span> <span class="s2">&quot;voltage1&quot;</span><span class="p">]</span>
 <span class="p">)</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="3-device-configuration">3. Device Configuration<a class="headerlink" href="#3-device-configuration" title="Permanent link">#</a></h3>
-<p>The YAML configuration allows complex device setup:
+<p>The YAML configuration allows complex device setup:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">devices</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">ad9361-phy</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">attrs</span><span class="p">:</span>
 <span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">ensm_mode</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;fdd&quot;</span>
 <span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">calib_mode</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;manual&quot;</span>
-</code></pre></div></p>
+</code></pre></div>
 <h2 id="understanding-channel-data">Understanding Channel Data<a class="headerlink" href="#understanding-channel-data" title="Permanent link">#</a></h2>
-<p>The ADALM-Pluto provides multiple channels for data streaming:
-- <strong>voltage0, voltage1</strong>: Independent channels that can be used for different data streams
-- <strong>Channel Types</strong>: Each channel can be configured as input or output
-- <strong>Data Format</strong>: Raw 16-bit signed integer samples
-- <strong>Buffer Organization</strong>: Samples from enabled channels are interleaved in the buffer</p>
-<p>For example, with two channels enabled:
-- Single channel: [S0, S1, S2, S3, ...] where S represents samples from that channel
-- Dual channel: [Ch0_S0, Ch1_S0, Ch0_S1, Ch1_S1, ...] where samples alternate between channels</p>
+<p>The ADALM-Pluto provides multiple channels for data streaming:</p>
+<ul>
+<li><strong>voltage0, voltage1</strong>: Independent channels that can be used for different data streams</li>
+<li><strong>Channel Types</strong>: Each channel can be configured as input or output</li>
+<li><strong>Data Format</strong>: Raw 16-bit signed integer samples</li>
+<li><strong>Buffer Organization</strong>: Samples from enabled channels are interleaved in the buffer</li>
+</ul>
+<p>For example, with two channels enabled:</p>
+<ul>
+<li>Single channel: [S0, S1, S2, S3, ...] where S represents samples from that channel</li>
+<li>Dual channel: [Ch0_S0, Ch1_S0, Ch0_S1, Ch1_S1, ...] where samples alternate between channels</li>
+</ul>
 <p>Note: The actual interpretation of the data (whether it represents I/Q components, real signals, or other data types) depends on your application and how you process the raw samples. The IIO operators simply provide raw buffer access without any automatic data conversion.</p>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h2>
 <ol>

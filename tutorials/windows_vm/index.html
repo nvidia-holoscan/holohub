@@ -18133,6 +18133,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Software Pre-requisites">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#install-kvm-and-qemu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install KVM and QEMU
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check-if-kvm-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Check if KVM works
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -18240,6 +18268,28 @@
   
     <nav class="md-nav" aria-label="Communication Performance between Host and VM">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#allowing-network-traffic-between-vm-and-host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Allowing Network Traffic between VM and Host
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuring-firewall" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuring firewall
+      
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#iperf3-performance-test" class="md-nav__link">
@@ -18477,11 +18527,11 @@ x86_64 workstations.</p>
 <p>Install the
 <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html">NVIDIA Holoscan SDK</a> and the
 <a href="https://www.nvidia.com/en-in/drivers/">NVIDIA GPU driver</a> on the host Ubuntu 22.04.</p>
-<p><strong>Install KVM and QEMU</strong></p>
+<h4 id="install-kvm-and-qemu">Install KVM and QEMU<a class="headerlink" href="#install-kvm-and-qemu" title="Permanent link">#</a></h4>
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>update
 sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>qemu-kvm<span class="w"> </span>libvirt-clients<span class="w"> </span>libvirt-daemon-system<span class="w"> </span>bridge-utils<span class="w"> </span>virt-manager<span class="w"> </span>ovmf
 </code></pre></div>
-<p><strong>Check if KVM works</strong></p>
+<h4 id="check-if-kvm-works">Check if KVM works<a class="headerlink" href="#check-if-kvm-works" title="Permanent link">#</a></h4>
 <div class="highlight"><pre><span></span><code>$<span class="w"> </span>kvm-ok
 INFO:<span class="w"> </span>/dev/kvm<span class="w"> </span>exists
 KVM<span class="w"> </span>acceleration<span class="w"> </span>can<span class="w"> </span>be<span class="w"> </span>used
@@ -18531,9 +18581,9 @@ sudo<span class="w"> </span>update-grub
 <p>Reboot the system: <code>sudo reboot</code>. Now, check the loaded driver for RTX A4000:</p>
 <div class="highlight"><pre><span></span><code>$<span class="w"> </span>lspci<span class="w"> </span>-nnk<span class="w"> </span>-d<span class="w"> </span>10de:24b0
 <span class="m">17</span>:00.0<span class="w"> </span>VGA<span class="w"> </span>compatible<span class="w"> </span>controller<span class="w"> </span><span class="o">[</span><span class="m">0300</span><span class="o">]</span>:<span class="w"> </span>NVIDIA<span class="w"> </span>Corporation<span class="w"> </span><span class="o">[</span>RTX<span class="w"> </span>A4000<span class="o">]</span><span class="w"> </span><span class="o">[</span>10de:24b0<span class="o">]</span><span class="w"> </span><span class="o">(</span>rev<span class="w"> </span>a1<span class="o">)</span>
-<span class="w">    </span>Subsystem:<span class="w"> </span>NVIDIA<span class="w"> </span>Corporation<span class="w"> </span><span class="o">[</span>RTX<span class="w"> </span>A4000<span class="o">]</span><span class="w"> </span><span class="o">[</span>10de:14ad<span class="o">]</span>
-<span class="w">    </span>Kernel<span class="w"> </span>driver<span class="w"> </span><span class="k">in</span><span class="w"> </span>use:<span class="w"> </span>vfio-pci
-<span class="w">    </span>Kernel<span class="w"> </span>modules:<span class="w"> </span>nvidiafb,<span class="w"> </span>nouveau,<span class="w"> </span>nvidia_drm,<span class="w"> </span>nvidia
+<span class="w"> </span>Subsystem:<span class="w"> </span>NVIDIA<span class="w"> </span>Corporation<span class="w"> </span><span class="o">[</span>RTX<span class="w"> </span>A4000<span class="o">]</span><span class="w"> </span><span class="o">[</span>10de:14ad<span class="o">]</span>
+<span class="w"> </span>Kernel<span class="w"> </span>driver<span class="w"> </span><span class="k">in</span><span class="w"> </span>use:<span class="w"> </span>vfio-pci
+<span class="w"> </span>Kernel<span class="w"> </span>modules:<span class="w"> </span>nvidiafb,<span class="w"> </span>nouveau,<span class="w"> </span>nvidia_drm,<span class="w"> </span>nvidia
 </code></pre></div>
 <h4 id="two-identical-gpus-eg-2x-rtx-a4000">Two Identical GPUs (e.g., 2x RTX A4000)<a class="headerlink" href="#two-identical-gpus-eg-2x-rtx-a4000" title="Permanent link">#</a></h4>
 <p>In case of two identical GPUs, the PCI IDs of the GPUs are the same.</p>
@@ -18555,7 +18605,7 @@ display.</p>
 </blockquote>
 <p>The following instructions are only verified for Ubuntu 22.04 and Linux kernel 6.8.0-48-generic. For
 other Ubuntu and Linux kernel versions, the instructions may not work.</p>
-<h5 id="update-grub-configuration_1">Update GRUB Configuration<a class="headerlink" href="#update-grub-configuration_1" title="Permanent link">#</a></h5>
+<h5 id="update-grub-configuration-identical-gpus">Update GRUB Configuration (Identical GPUs)<a class="headerlink" href="#update-grub-configuration-identical-gpus" title="Permanent link">#</a></h5>
 <p>Open the <code>/etc/default/grub</code> file and find the following line:</p>
 <div class="highlight"><pre><span></span><code><span class="nv">GRUB_CMDLINE_LINUX_DEFAULT</span><span class="o">=</span><span class="s2">&quot;quiet splash&quot;</span>
 </code></pre></div>
@@ -18578,21 +18628,21 @@ script. In specific cases, the PCI bus address may be different and needs to be 
 <div class="highlight"><pre><span></span><code>install<span class="w"> </span>vfio-pci<span class="w"> </span>/usr/local/bin/vfio-pci-override.sh
 softdep<span class="w"> </span>nvidia<span class="w"> </span>pre:<span class="w"> </span>vfio-pci
 </code></pre></div>
-<h5 id="update-initial-ramfs-and-grub_1">Update Initial RAMFS and GRUB<a class="headerlink" href="#update-initial-ramfs-and-grub_1" title="Permanent link">#</a></h5>
+<h5 id="update-initial-ramfs-and-grub-identical-gpus">Update Initial RAMFS and GRUB (Identical GPUs)<a class="headerlink" href="#update-initial-ramfs-and-grub-identical-gpus" title="Permanent link">#</a></h5>
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>update-initramfs<span class="w"> </span>-u<span class="w"> </span><span class="c1"># optionally add -k all to update all kernels</span>
 sudo<span class="w"> </span>update-grub
 </code></pre></div>
-<h5 id="check-if-vfio-is-loaded-for-passed-through-gpu_1">Check if VFIO is loaded for Passed-through GPU<a class="headerlink" href="#check-if-vfio-is-loaded-for-passed-through-gpu_1" title="Permanent link">#</a></h5>
+<h5 id="check-if-vfio-is-loaded-for-passed-through-gpu-identical-gpus">Check if VFIO is loaded for Passed-through GPU (Identical GPUs)<a class="headerlink" href="#check-if-vfio-is-loaded-for-passed-through-gpu-identical-gpus" title="Permanent link">#</a></h5>
 <p>Reboot the system: <code>sudo reboot</code>. Now, check the loaded driver for RTX A4000:</p>
 <div class="highlight"><pre><span></span><code>$<span class="w"> </span>lspci<span class="w"> </span>-nnk<span class="w"> </span>-d<span class="w"> </span>10de:24b0
 <span class="m">01</span>:00.0<span class="w"> </span>VGA<span class="w"> </span>compatible<span class="w"> </span>controller<span class="w"> </span><span class="o">[</span><span class="m">0300</span><span class="o">]</span>:<span class="w"> </span>NVIDIA<span class="w"> </span>Corporation<span class="w"> </span>GA104GL<span class="w"> </span><span class="o">[</span>RTX<span class="w"> </span>A4000<span class="o">]</span><span class="w"> </span><span class="o">[</span>10de:24b0<span class="o">]</span><span class="w"> </span><span class="o">(</span>rev<span class="w"> </span>a1<span class="o">)</span>
-<span class="w">    </span>Subsystem:<span class="w"> </span>NVIDIA<span class="w"> </span>Corporation<span class="w"> </span>GA104GL<span class="w"> </span><span class="o">[</span>RTX<span class="w"> </span>A4000<span class="o">]</span><span class="w"> </span><span class="o">[</span>10de:14ad<span class="o">]</span>
-<span class="w">    </span>Kernel<span class="w"> </span>driver<span class="w"> </span><span class="k">in</span><span class="w"> </span>use:<span class="w"> </span>vfio-pci
-<span class="w">    </span>Kernel<span class="w"> </span>modules:<span class="w"> </span>nvidiafb,<span class="w"> </span>nouveau,<span class="w"> </span>nvidia_drm,<span class="w"> </span>nvidia
+<span class="w"> </span>Subsystem:<span class="w"> </span>NVIDIA<span class="w"> </span>Corporation<span class="w"> </span>GA104GL<span class="w"> </span><span class="o">[</span>RTX<span class="w"> </span>A4000<span class="o">]</span><span class="w"> </span><span class="o">[</span>10de:14ad<span class="o">]</span>
+<span class="w"> </span>Kernel<span class="w"> </span>driver<span class="w"> </span><span class="k">in</span><span class="w"> </span>use:<span class="w"> </span>vfio-pci
+<span class="w"> </span>Kernel<span class="w"> </span>modules:<span class="w"> </span>nvidiafb,<span class="w"> </span>nouveau,<span class="w"> </span>nvidia_drm,<span class="w"> </span>nvidia
 <span class="m">09</span>:00.0<span class="w"> </span>VGA<span class="w"> </span>compatible<span class="w"> </span>controller<span class="w"> </span><span class="o">[</span><span class="m">0300</span><span class="o">]</span>:<span class="w"> </span>NVIDIA<span class="w"> </span>Corporation<span class="w"> </span>GA104GL<span class="w"> </span><span class="o">[</span>RTX<span class="w"> </span>A4000<span class="o">]</span><span class="w"> </span><span class="o">[</span>10de:24b0<span class="o">]</span><span class="w"> </span><span class="o">(</span>rev<span class="w"> </span>a1<span class="o">)</span>
-<span class="w">    </span>Subsystem:<span class="w"> </span>NVIDIA<span class="w"> </span>Corporation<span class="w"> </span>GA104GL<span class="w"> </span><span class="o">[</span>RTX<span class="w"> </span>A4000<span class="o">]</span><span class="w"> </span><span class="o">[</span>10de:14ad<span class="o">]</span>
-<span class="w">    </span>Kernel<span class="w"> </span>driver<span class="w"> </span><span class="k">in</span><span class="w"> </span>use:<span class="w"> </span>nvidia
-<span class="w">    </span>Kernel<span class="w"> </span>modules:<span class="w"> </span>nvidiafb,<span class="w"> </span>nouveau,<span class="w"> </span>nvidia_drm,<span class="w"> </span>nvidia
+<span class="w"> </span>Subsystem:<span class="w"> </span>NVIDIA<span class="w"> </span>Corporation<span class="w"> </span>GA104GL<span class="w"> </span><span class="o">[</span>RTX<span class="w"> </span>A4000<span class="o">]</span><span class="w"> </span><span class="o">[</span>10de:14ad<span class="o">]</span>
+<span class="w"> </span>Kernel<span class="w"> </span>driver<span class="w"> </span><span class="k">in</span><span class="w"> </span>use:<span class="w"> </span>nvidia
+<span class="w"> </span>Kernel<span class="w"> </span>modules:<span class="w"> </span>nvidiafb,<span class="w"> </span>nouveau,<span class="w"> </span>nvidia_drm,<span class="w"> </span>nvidia
 </code></pre></div>
 <p>In the above output, we can see that different kernel drivers are loaded for the two RTX A4000 GPUs.</p>
 <h3 id="windows-vm-configuration-for-passed-through-gpu">Windows VM Configuration for Passed-through GPU<a class="headerlink" href="#windows-vm-configuration-for-passed-through-gpu" title="Permanent link">#</a></h3>
@@ -18633,21 +18683,21 @@ tutorial, we provide the data-transfer performance in our hardware configuration
 network traffic between the two OS. Configuring exact firewall rules is out-of-scope of this
 tutorial. However, we provide a few tips below as guiding help on this topic.</p>
 </blockquote>
-<p><strong>Allowing Network Traffic between VM and Host</strong></p>
+<h3 id="allowing-network-traffic-between-vm-and-host">Allowing Network Traffic between VM and Host<a class="headerlink" href="#allowing-network-traffic-between-vm-and-host" title="Permanent link">#</a></h3>
 <p>Use a "bridge device" for the VM's network configuration.</p>
-<p><img alt="vm_network_config" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/windows_vm/vm_network_config.png?raw=true" /></p>
+<p><img alt="VM network configuration" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/windows_vm/vm_network_config.png?raw=true" /></p>
 <p>In Windows VM search bar, type "Windows Defender Firewall with Advanced Security" and open the
 application. For both "Inbound Rules" and "Outbound Rules", add new rules to allow TCP and UDP
 traffic on common (or all) port numbers.</p>
-<p><img alt="windows_firewall_rules" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/windows_vm/windows_firewall_rules.png?raw=true" /></p>
+<p><img alt="Windows firewall rules" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/windows_vm/windows_firewall_rules.png?raw=true" /></p>
 <p>In the host Linux, it may not be needed to configure the firewall to allow network traffic between
 VM and host. However, in case it does not work, <code>iptables</code> or <code>ufw</code> can be used to configure traffic
 on specific ports.</p>
-<p><strong>Configuring firewall</strong></p>
+<h3 id="configuring-firewall">Configuring firewall<a class="headerlink" href="#configuring-firewall" title="Permanent link">#</a></h3>
 <p>Turning off the firewall, either in Windows VM, or in host Linux, is not recommended. However, to
 test the setup in this tutorial, firewalls can be turned off. In Windows, type "firewall" in the
 search bar and turn off the firewall. The setting will look like below:</p>
-<p><img alt="windows_firewall" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/windows_vm/windows_firewall.png?raw=true" /></p>
+<p><img alt="Windows firewall settings" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/windows_vm/windows_firewall.png?raw=true" /></p>
 <h3 id="iperf3-performance-test">iperf3 Performance Test<a class="headerlink" href="#iperf3-performance-test" title="Permanent link">#</a></h3>
 <p>Install iperf3 in both Windows VM and host Linux.</p>
 <p>We need the IP address of the Windows VM and the host Linux. In our setup, the Linux server IP is
@@ -18659,10 +18709,10 @@ The Windows VM IP address can be checked in <code>virt-manager</code> GUI in the
 <p>In host Linux, run the following command:</p>
 <div class="highlight"><pre><span></span><code>iperf3<span class="w"> </span>-s<span class="w"> </span>-B<span class="w"> </span><span class="m">192</span>.168.122.1
 </code></pre></div>
-<p>In the Windows VM, run the following command for a 5 second test:
+<p>In the Windows VM, run the following command for a 5 second test:</p>
 <div class="highlight"><pre><span></span><code>iperf3.exe -c 192.168.122.1 -t 5
-</code></pre></div></p>
-<p>Output in Linux should look like below:
+</code></pre></div>
+<p>Output in Linux should look like below:</p>
 <div class="highlight"><pre><span></span><code>$<span class="w"> </span>iperf3<span class="w"> </span>-s<span class="w"> </span>-B<span class="w"> </span><span class="m">192</span>.168.122.1
 -----------------------------------------------------------
 Server<span class="w"> </span>listening<span class="w"> </span>on<span class="w"> </span><span class="m">5201</span>
@@ -18679,7 +18729,7 @@ Accepted<span class="w"> </span>connection<span class="w"> </span>from<span clas
 -<span class="w"> </span>-<span class="w"> </span>-<span class="w"> </span>-<span class="w"> </span>-<span class="w"> </span>-<span class="w"> </span>-<span class="w"> </span>-<span class="w"> </span>-<span class="w"> </span>-<span class="w"> </span>-<span class="w"> </span>-<span class="w"> </span>-<span class="w"> </span>-<span class="w"> </span>-<span class="w"> </span>-<span class="w"> </span>-<span class="w"> </span>-<span class="w"> </span>-<span class="w"> </span>-<span class="w"> </span>-<span class="w"> </span>-<span class="w"> </span>-<span class="w"> </span>-<span class="w"> </span>-
 <span class="o">[</span><span class="w"> </span>ID<span class="o">]</span><span class="w"> </span>Interval<span class="w">           </span>Transfer<span class="w">     </span>Bitrate
 <span class="o">[</span><span class="w">  </span><span class="m">5</span><span class="o">]</span><span class="w">   </span><span class="m">0</span>.00-5.02<span class="w">   </span>sec<span class="w">  </span><span class="m">9</span>.93<span class="w"> </span>GBytes<span class="w">  </span><span class="m">17</span>.0<span class="w"> </span>Gbits/sec<span class="w">                  </span>receiver
-</code></pre></div></p>
+</code></pre></div>
 <p>Output in Windows VM should look like below:</p>
 <p><img alt="iperf_windows_output" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/windows_vm/iperf_windows_output.png?raw=true" /></p>
 <p>For Linux host to Windows, we have observed <strong>21.9 Gbits/sec</strong> transfer rate for a 1 minute test.</p>
@@ -18706,8 +18756,8 @@ frame on the screen using the RTX A4000 GPU with the help of OpenGL.</p>
 <p><img alt="windows_vm_dds_renderer" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/windows_vm/windows_vm_dds_renderer.png?raw=true" /></p>
 <h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">#</a></h2>
 <ul>
-<li>https://wiki.archlinux.org/title/PCI_passthrough_via_OVMF</li>
-<li>https://www.makeuseof.com/create-windows-virtual-machine-in-linux-with-kvm/</li>
+<li><a href="https://wiki.archlinux.org/title/PCI_passthrough_via_OVMF">https://wiki.archlinux.org/title/PCI_passthrough_via_OVMF</a></li>
+<li><a href="https://www.makeuseof.com/create-windows-virtual-machine-in-linux-with-kvm/">https://www.makeuseof.com/create-windows-virtual-machine-in-linux-with-kvm/</a></li>
 </ul>
 
 

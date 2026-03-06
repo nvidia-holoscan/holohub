@@ -18194,16 +18194,17 @@ model for inferencing. Then, the results are visualized after postprocessing.</p
 <p>As this application is, by default, set to use the
 <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/ultrasound_segmentation">ultrasound segmentation</a> example, you can build and run the ultrasound
 segmentation example first, and then try running this benchmarking application.</p>
-<p>Build and run the ultrasound segmentation application:
-<div class="highlight"><pre><span></span><code>./holohub run ultrasound_segmentation --language=cpp --local
-</code></pre></div></p>
+<p>Build and run the ultrasound segmentation application:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>ultrasound_segmentation<span class="w"> </span>--language<span class="o">=</span>cpp<span class="w"> </span>--local
+</code></pre></div>
 <p>Now, this benchmarking application can be built and run. However, before doing so, the v4l2loopback
 must be run first. Check out the <a href="https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/v4l2_camera#use-with-v4l2-loopback-devices">notes and prerequisites
 here</a> to play a
 video via a V4L2 loopback device. Assuming, everything is set up correctly, the ultrasound
 segmentation example video could be run with the following command:</p>
 <blockquote>
-<p>Note: we are playing the video to <code>/dev/video6</code> after running <code>sudo modprobe v4l2loopback video_nr=6 max_buffers=4</code>
+<p>Note: we are playing the video to <code>/dev/video6</code> after running <code>sudo modprobe v4l2loopback video_nr=6 max_buffers=4</code></p>
+</blockquote>
 <div class="highlight"><pre><span></span><code>$ ffmpeg -stream_loop -1 -re -i ./data/ultrasound_segmentation/ultrasound_256x256.avi -pix_fmt yuyv422 -f v4l2 /dev/video6
 ffmpeg version 4.2.7-0ubuntu0.1 Copyright (c) 2000-2022 the FFmpeg developers
   built with gcc 9 (Ubuntu 9.4.0-1ubuntu1~20.04.1)
@@ -18216,20 +18217,19 @@ ffmpeg version 4.2.7-0ubuntu0.1 Copyright (c) 2000-2022 the FFmpeg developers
 ...
 Input #0, mov,mp4,m4a,3gp,3g2,mj2, from &#39;./data/ultrasound_segmentation/ultrasound_256x256.avi&#39;:
 ...
-</code></pre></div></p>
-</blockquote>
-<p>Now, the benchmarking application can be built and run:
-<div class="highlight"><pre><span></span><code>./holohub run model_benchmarking --language=&lt;cpp/python&gt; --local
-</code></pre></div></p>
+</code></pre></div>
+<p>Now, the benchmarking application can be built and run:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>model_benchmarking<span class="w"> </span>--language<span class="o">=</span>&lt;cpp/python&gt;<span class="w"> </span>--local
+</code></pre></div>
 <p>To use a different video, the video can be played via the above <code>ffmpeg</code> command.</p>
 <p>To use a different model, you can specify the data path in the
 <code>./holohub run model_benchmarking --language=&lt;cpp/python&gt; --local --no-local-build</code> command with the <code>-d</code> option, and the model name,
 residing in the data path directory, with the <code>-m</code> option.</p>
-<div class="highlight"><pre><span></span><code>./holohub run model_benchmarking --language=&lt;cpp/python&gt; --local --no-local-build --run-args=&quot;-d &lt;data_path&gt; -m &lt;model_name&gt;&quot;
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>model_benchmarking<span class="w"> </span>--language<span class="o">=</span>&lt;cpp/python&gt;<span class="w"> </span>--local<span class="w"> </span>--no-local-build<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;-d &lt;data_path&gt; -m &lt;model_name&gt;&quot;</span>
 </code></pre></div>
-<p>To check the full list of options, run:
-<div class="highlight"><pre><span></span><code>./holohub run model_benchmarking --language=&lt;cpp/python&gt; --local --no-local-build --run-args=&quot;-h&quot;
-</code></pre></div></p>
+<p>To check the full list of options, run:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>model_benchmarking<span class="w"> </span>--language<span class="o">=</span>&lt;cpp/python&gt;<span class="w"> </span>--local<span class="w"> </span>--no-local-build<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;-h&quot;</span>
+</code></pre></div>
 <h2 id="capabilities">Capabilities<a class="headerlink" href="#capabilities" title="Permanent link">#</a></h2>
 <p>This benchmarking application can be used to measure performance of parallel inferences for the same
 model on a single video stream. The <code>-l</code> option can be used to specify the number of parallel

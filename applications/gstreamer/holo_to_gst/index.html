@@ -18300,10 +18300,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#video-sources_1" class="md-nav__link">
+  <a href="#video-source-details" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Video Sources
+        Video source details
       
     </span>
   </a>
@@ -18522,19 +18522,21 @@
 <ul>
 <li>Capture video from V4L2 cameras (USB webcams, MIPI cameras, etc.) or generate test patterns</li>
 <li>Push video frames from Holoscan to GStreamer for processing</li>
-<li><strong>Build custom GStreamer pipelines</strong> for your specific use case (encoding, streaming, effects, etc.)</li>
+<li>Build custom GStreamer pipelines for your specific use case (encoding, streaming, effects, etc.)</li>
 <li>Stream or record video using any combination of GStreamer's 1000+ plugins</li>
 <li>Use different video codecs and effects through GStreamer plugins</li>
 <li>Support both host and CUDA device memory for zero-copy operation</li>
 </ul>
 <h3 id="key-feature-custom-pipeline-construction">Key Feature: Custom Pipeline Construction<a class="headerlink" href="#key-feature-custom-pipeline-construction" title="Permanent link">#</a></h3>
-<p>The application provides a flexible bridge between Holoscan and GStreamer. You can construct <strong>any GStreamer pipeline</strong> you want - the examples provided are just demonstrations. This enables unlimited possibilities:
-- Video encoding (H.264, H.265, VP8, VP9, AV1, etc.)
-- Live streaming (RTP, RTSP, WebRTC, HLS, etc.)
-- Video effects and filters (flip, rotate, color correction, etc.)
-- Format conversion (resize, colorspace, etc.)
-- Multi-output (tee to multiple destinations)
-- Custom plugins (use your own GStreamer plugins)</p>
+<p>The application provides a flexible bridge between Holoscan and GStreamer. You can construct <strong>any GStreamer pipeline</strong> you want - the examples provided are just demonstrations. This enables unlimited possibilities:</p>
+<ul>
+<li>Video encoding (H.264, H.265, VP8, VP9, AV1, etc.)</li>
+<li>Live streaming (RTP, RTSP, WebRTC, HLS, etc.)</li>
+<li>Video effects and filters (flip, rotate, color correction, etc.)</li>
+<li>Format conversion (resize, colorspace, etc.)</li>
+<li>Multi-output (tee to multiple destinations)</li>
+<li>Custom plugins (use your own GStreamer plugins)</li>
+</ul>
 <p><strong>Supported Video Sources:</strong></p>
 <ul>
 <li><strong>V4L2 Camera</strong> - Capture from any V4L2-compatible camera (USB webcams, MIPI cameras, etc.)</li>
@@ -18585,9 +18587,11 @@
 <p>The recommended way to run the application is through the <code>holohub</code> launcher with predefined modes:</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span><span class="o">[</span>MODE<span class="o">]</span><span class="w"> </span><span class="o">[</span>--run-args<span class="o">=</span><span class="s2">&quot;[OPTIONS]&quot;</span><span class="o">]</span>
 </code></pre></div>
-<p>Available modes:
-- <code>v4l2</code> - Display live feed from V4L2 camera
-- <code>pattern</code> - Display animated gradient pattern</p>
+<p>Available modes:</p>
+<ul>
+<li><code>v4l2</code> - Display live feed from V4L2 camera</li>
+<li><code>pattern</code> - Display animated gradient pattern</li>
+</ul>
 <p>You can override or extend mode settings with <code>--run-args</code>:</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>v4l2<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--count 300 --pipeline &#39;...&#39;&quot;</span>
 </code></pre></div>
@@ -18657,12 +18661,12 @@
 </code></pre></div>
 <p><strong>Stream camera over network (RTP):</strong></p>
 <p><strong>Important:</strong> For UDP streaming, start the receiver FIRST, then the sender. UDP is connectionless - packets sent before the receiver is ready are lost.</p>
-<p>Terminal 1 - Start receiver first:
+<p>Terminal 1 - Start receiver first:</p>
 <div class="highlight"><pre><span></span><code>gst-launch-1.0<span class="w"> </span>udpsrc<span class="w"> </span><span class="nv">port</span><span class="o">=</span><span class="m">5000</span><span class="w"> </span><span class="nv">caps</span><span class="o">=</span><span class="s2">&quot;application/x-rtp,encoding-name=H264&quot;</span><span class="w"> </span>!<span class="w"> </span>rtph264depay<span class="w"> </span>!<span class="w"> </span>h264parse<span class="w"> </span>!<span class="w"> </span>avdec_h264<span class="w"> </span>!<span class="w"> </span>videoconvert<span class="w"> </span>!<span class="w"> </span>autovideosink
-</code></pre></div></p>
-<p>Terminal 2 - Then start streaming (no --count for continuous streaming):
+</code></pre></div>
+<p>Terminal 2 - Then start streaming (no --count for continuous streaming):</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>v4l2<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--pipeline &#39;cudaconvert name=src ! nvh264enc ! h264parse ! rtph264pay ! udpsink host=127.0.0.1 port=5000&#39;&quot;</span>
-</code></pre></div></p>
+</code></pre></div>
 <p><strong>Checking Camera Capabilities:</strong></p>
 <p>Before running, check your camera's supported formats and resolutions:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># List all V4L2 devices</span>
@@ -18685,12 +18689,12 @@ v4l2-ctl<span class="w"> </span>--list-formats-ext<span class="w"> </span>-d<spa
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>pattern<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--width 1280 --height 720 --count 300 --pipeline &#39;cudadownload name=src ! videoconvert ! x264enc ! mp4mux ! filesink location=/workspace/holohub/output_720p.mp4&#39;&quot;</span>
 </code></pre></div>
 <p><strong>Stream pattern over network:</strong></p>
-<p>Terminal 1 - Start receiver first:
+<p>Terminal 1 - Start receiver first:</p>
 <div class="highlight"><pre><span></span><code>gst-launch-1.0<span class="w"> </span>udpsrc<span class="w"> </span><span class="nv">port</span><span class="o">=</span><span class="m">5000</span><span class="w"> </span><span class="nv">caps</span><span class="o">=</span><span class="s2">&quot;application/x-rtp,encoding-name=H264&quot;</span><span class="w"> </span>!<span class="w"> </span>rtph264depay<span class="w"> </span>!<span class="w"> </span>h264parse<span class="w"> </span>!<span class="w"> </span>avdec_h264<span class="w"> </span>!<span class="w"> </span>videoconvert<span class="w"> </span>!<span class="w"> </span>autovideosink
-</code></pre></div></p>
-<p>Terminal 2 - Then start streaming:
+</code></pre></div>
+<p>Terminal 2 - Then start streaming:</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>pattern<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--pipeline &#39;cudadownload name=src ! videoconvert ! x264enc ! rtph264pay ! udpsink host=127.0.0.1 port=5000&#39;&quot;</span>
-</code></pre></div></p>
+</code></pre></div>
 <h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">#</a></h2>
 <p>The application supports two video sources and uses GStreamer for output processing:</p>
 <h3 id="video-sources">Video Sources<a class="headerlink" href="#video-sources" title="Permanent link">#</a></h3>
@@ -18728,7 +18732,7 @@ v4l2-ctl<span class="w"> </span>--list-formats-ext<span class="w"> </span>-d<spa
 </ul>
 <p><strong>Important</strong>: V4L2 sources must use <code>--storage 1</code> as FormatConverterOp outputs GPU memory.</p>
 <h2 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">#</a></h2>
-<h3 id="video-sources_1">Video Sources<a class="headerlink" href="#video-sources_1" title="Permanent link">#</a></h3>
+<h3 id="video-source-details">Video source details<a class="headerlink" href="#video-source-details" title="Permanent link">#</a></h3>
 <p><strong>V4L2 Camera:</strong></p>
 <ul>
 <li>Supports any V4L2-compatible camera (USB webcams, MIPI CSI cameras)</li>
@@ -18773,9 +18777,11 @@ v4l2-ctl<span class="w"> </span>--list-formats-ext<span class="w"> </span>-d<spa
 <li>EOS (End-Of-Stream) signal is sent automatically when frame generation completes</li>
 </ul>
 <p><strong>File Output Paths:</strong></p>
-<p>When running through <code>holohub run</code> (in a container), use absolute paths for file output:
-- Inside container: <code>/workspace/holohub/filename.mp4</code>
-- On your host: <code>&lt;workspace_path&gt;/filename.mp4</code> (wherever your holohub workspace is located)</p>
+<p>When running through <code>holohub run</code> (in a container), use absolute paths for file output:</p>
+<ul>
+<li>Inside container: <code>/workspace/holohub/filename.mp4</code></li>
+<li>On your host: <code>&lt;workspace_path&gt;/filename.mp4</code> (wherever your holohub workspace is located)</li>
+</ul>
 <p>The container mounts your workspace root at <code>/workspace/holohub</code>, so files written there are accessible on your host.</p>
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">#</a></h2>
 <ul>

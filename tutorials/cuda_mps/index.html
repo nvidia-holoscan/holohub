@@ -18208,6 +18208,23 @@
   
 </li>
         
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-start-mps-server-and-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Start MPS server and control
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Start MPS server and control">
+      <ul class="md-nav__list">
+        
           <li class="md-nav__item">
   <a href="#performance-benefits-on-igx-orin-w-integrated-gpu" class="md-nav__link">
     <span class="md-ellipsis">
@@ -18356,7 +18373,7 @@ tutorial describes the steps to enable CUDA MPS and demonstrate few performance 
 <li><a href="#varying-number-of-parallel-inferences">Varying Number of Parallel Inferences</a></li>
 </ol>
 </li>
-<li><a href="#igx-orin-w-integrated-gpu"> IGX Orin w/ iGPU</a><ol>
+<li><a href="#igx-orin-w-integrated-gpu">IGX Orin w/ iGPU</a><ol>
 <li><a href="#mps-setup-on-igx-igpu">MPS Setup on IGX-iGPU</a></li>
 <li><a href="#performance-benefits-on-igx-orin-w-integrated-gpu">Performance Benefits on IGX Orin w/ Integrated GPU</a></li>
 </ol>
@@ -18367,38 +18384,37 @@ tutorial describes the steps to enable CUDA MPS and demonstrate few performance 
 <h2 id="steps-to-enable-cuda-mps">Steps to enable CUDA MPS<a class="headerlink" href="#steps-to-enable-cuda-mps" title="Permanent link">#</a></h2>
 <p>Before enabling CUDA MPS, please <a href="https://docs.nvidia.com/deploy/mps/index.html#topic_3_3">check</a>
 whether your system supports CUDA MPS.</p>
-<p>CUDA MPS can be enabled by running the <code>nvidia-cuda-mps-control -d</code> command and stopped by running 
-<code>echo quit | nvidia-cuda-mps-control</code> command. More control commands are described 
-<a href="https://docs.nvidia.com/deploy/mps/index.html#topic_5_1">here</a>. </p>
+<p>CUDA MPS can be enabled by running the <code>nvidia-cuda-mps-control -d</code> command and stopped by running
+<code>echo quit | nvidia-cuda-mps-control</code> command. More control commands are described in the <a href="https://docs.nvidia.com/deploy/mps/index.html#topic_5_1">CUDA MPS control commands documentation</a>.</p>
 <p>CUDA MPS does not require any changes to
 an existing Holoscan application; even an already compiled application binary works as it is.
-Therefore, a Holoscan application can work with CUDA MPS without any 
+Therefore, a Holoscan application can work with CUDA MPS without any
 changes to its source code or binary.
-However, a machine learning model like a TRT engine file may need to be recompiled 
+However, a machine learning model like a TRT engine file may need to be recompiled
 for the first time after enabling CUDA MPS.</p>
-<p>We have included a helper script in this tutorial <code>start_mps_daemon.sh</code> to enable 
+<p>We have included a helper script in this tutorial <code>start_mps_daemon.sh</code> to enable
 CUDA MPS with necessary environment variables.</p>
 <div class="highlight"><pre><span></span><code>./start_mps_daemon.sh
 </code></pre></div>
 <h2 id="customization">Customization<a class="headerlink" href="#customization" title="Permanent link">#</a></h2>
 <p>CUDA MPS provides many options to customize resource allocation for MPS clients. For example, it has
-an option to limit the maximum number of GPU threads that can 
-be used by every MPS client. 
+an option to limit the maximum number of GPU threads that can
+be used by every MPS client.
 The <code>CUDA_MPS_ACTIVE_THREAD_PERCENTAGE</code> environment variable can be used to control this limit
-system-wide. This limit can also be configured by communicating the active thread percentage to the control daemon with<br />
+system-wide. This limit can also be configured by communicating the active thread percentage to the control daemon with
 <code>echo "set_default_active_thread_percentage &lt;Thread Percentage&gt;" | nvidia-cuda-mps-control</code>.
 Our <code>start_mps_daemon.sh</code> script takes this percentage as the first argument as well.</p>
 <div class="highlight"><pre><span></span><code>./start_mps_daemon.sh<span class="w"> </span>&lt;Active<span class="w"> </span>Thread<span class="w"> </span>Percentage&gt;
 </code></pre></div>
 <p>For different applications, one may want to set different limits on the number of GPU threads
 available to each of them. This can be done by setting the <code>CUDA_MPS_ACTIVE_THREAD_PERCENTAGE</code>
-environment variable separately for each application. It is elaborated in details <a href="https://docs.nvidia.com/deploy/mps/index.html#topic_5_2_5">here</a>.</p>
+environment variable separately for each application. It is elaborated in details in the <a href="https://docs.nvidia.com/deploy/mps/index.html#topic_5_2_5">per-application thread percentage documentation</a>.</p>
 <p>There are other customizations available in CUDA MPS as well. Please refer to the CUDA MPS
 <a href="https://docs.nvidia.com/deploy/mps/index.html#topic_5_1_1">documentation</a> to know more about them.
 Please note that concurrently running Holoscan applications may increase the GPU device memory
 footprint. Therefore, one needs to be careful about hitting the GPU memory size and <a href="https://developer.nvidia.com/blog/improving-gpu-memory-oversubscription-performance/">potential
 delay due to page faults</a>.</p>
-<p>CUDA MPS improves the performance for concurrently running Holoscan applications. 
+<p>CUDA MPS improves the performance for concurrently running Holoscan applications.
 Since multiple applications can simultaneously execute more than one CUDA compute tasks with CUDA
 MPS, it can also improve the overall GPU utilization.</p>
 <h2 id="performance-benefits-on-x86-system">Performance Benefits on x86 System<a class="headerlink" href="#performance-benefits-on-x86-system" title="Permanent link">#</a></h2>
@@ -18441,16 +18457,16 @@ without CUDA MPS. The experiment demonstrates up to 36% improvement with CUDA MP
 <p>Such experiments can easily be conducted with <a href="https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/holoscan_flow_benchmarking">Holoscan Flow Benchmarking</a> to retrieve
 various end-to-end latency performance metrics.</p>
 <h2 id="igx-orin">IGX Orin<a class="headerlink" href="#igx-orin" title="Permanent link">#</a></h2>
-<p>CUDA MPS is available on IGX Orin since CUDA 12.5. Please check you CUDA version and upgrade to CUDA 12.5+ to test CUDA MPS. We evaluate the benefits of MPS on IGX Orin with discrete and integrated GPUs. Please follow the steps outlined in <a href="https://github.com/nvidia-holoscan/holohub/tree/main/tutorials/cuda_mps#steps-to-enable-cuda-mps">Steps to enable CUDA MPS</a> to start running the MPS server on IGX Orin. </p>
-<p>We use the <a href="https://github.com/nvidia-holoscan/holohub/tree/main/benchmarks/model_benchmarking">model benchmarking</a> application to demonstrate the benefits of CUDA MPS. In general, MPS improves performance by enabling multiple concurrent processes to share a CUDA context and scheduling resources. We show the benefits of using CUDA MPS along two dimensions: (a) increasing the workload per application instance (varying the number of parallel inferences for the same model) and (b) increasing the total number of instances. </p>
+<p>CUDA MPS is available on IGX Orin since CUDA 12.5. Please check you CUDA version and upgrade to CUDA 12.5+ to test CUDA MPS. We evaluate the benefits of MPS on IGX Orin with discrete and integrated GPUs. Please follow the steps outlined in <a href="https://github.com/nvidia-holoscan/holohub/tree/main/tutorials/cuda_mps#steps-to-enable-cuda-mps">Steps to enable CUDA MPS</a> to start running the MPS server on IGX Orin.</p>
+<p>We use the <a href="https://github.com/nvidia-holoscan/holohub/tree/main/benchmarks/model_benchmarking">model benchmarking</a> application to demonstrate the benefits of CUDA MPS. In general, MPS improves performance by enabling multiple concurrent processes to share a CUDA context and scheduling resources. We show the benefits of using CUDA MPS along two dimensions: (a) increasing the workload per application instance (varying the number of parallel inferences for the same model) and (b) increasing the total number of instances.</p>
 <h3 id="model-benchmarking-application-setup">Model Benchmarking Application Setup<a class="headerlink" href="#model-benchmarking-application-setup" title="Permanent link">#</a></h3>
-<p>Please follow the steps outlined in <a href="https://github.com/nvidia-holoscan/holohub/tree/main/benchmarks/model_benchmarking">model benchmarking</a> to ensure that the application builds and runs properly. </p>
+<p>Please follow the steps outlined in <a href="https://github.com/nvidia-holoscan/holohub/tree/main/benchmarks/model_benchmarking">model benchmarking</a> to ensure that the application builds and runs properly.</p>
 <blockquote>
-<p>Note that you need to run the video using <a href="https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/v4l2_camera#use-with-v4l2-loopback-devices">v4l2loopback</a> in a separate terminal <em>while</em> running the model benchmarking application.</p>
-<p>Make sure to change the device path in the <code>model_benchmarking/python/model_benchmarking.yaml</code> file to match the values you provided in the <code>modprobe</code> command when following the <a href="https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/v4l2_camera#use-with-v4l2-loopback-devices">v4l2loopback</a> instructions.</p>
+<p>Note that you need to run the video using <a href="https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/v4l2_camera#use-with-v4l2-loopback-devices">v4l2loopback</a> in a separate terminal <em>while</em> running the model benchmarking application.
+Make sure to change the device path in the <code>model_benchmarking/python/model_benchmarking.yaml</code> file to match the values you provided in the <code>modprobe</code> command when following the <a href="https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/v4l2_camera#use-with-v4l2-loopback-devices">v4l2loopback</a> instructions.</p>
 </blockquote>
 <h3 id="performance-benchmark-setup">Performance Benchmark Setup<a class="headerlink" href="#performance-benchmark-setup" title="Permanent link">#</a></h3>
-<p>To gather performance metrics for the model benchmarking application, follow the steps outlined in <a href="https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/holoscan_flow_benchmarking">Holoscan Flow Benchmarking</a>. </p>
+<p>To gather performance metrics for the model benchmarking application, follow the steps outlined in <a href="https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/holoscan_flow_benchmarking">Holoscan Flow Benchmarking</a>.</p>
 <blockquote>
 <p>If you are running within a container, please complete Step-3 before launching the container</p>
 </blockquote>
@@ -18470,22 +18486,22 @@ various end-to-end latency performance metrics.</p>
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>modprobe<span class="w"> </span>v4l2loopback<span class="w"> </span><span class="nv">devices</span><span class="o">=</span><span class="m">3</span><span class="w"> </span><span class="nv">video_nr</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="nv">max_buffers</span><span class="o">=</span><span class="m">4</span>
 </code></pre></div>
 <p>Now open 3 separate terminals.</p>
-<p>In terminal-1, run:
+<p>In terminal-1, run:</p>
 <div class="highlight"><pre><span></span><code>ffmpeg<span class="w"> </span>-stream_loop<span class="w"> </span>-1<span class="w"> </span>-re<span class="w"> </span>-i<span class="w"> </span>/data/ultrasound_segmentation/ultrasound_256x256.avi<span class="w"> </span>-pix_fmt<span class="w"> </span>yuyv422<span class="w"> </span>-f<span class="w"> </span>v4l2<span class="w"> </span>/dev/video1
-</code></pre></div></p>
-<p>In terminal-2, run:
+</code></pre></div>
+<p>In terminal-2, run:</p>
 <div class="highlight"><pre><span></span><code>ffmpeg<span class="w"> </span>-stream_loop<span class="w"> </span>-1<span class="w"> </span>-re<span class="w"> </span>-i<span class="w"> </span>/data/ultrasound_segmentation/ultrasound_256x256.avi<span class="w"> </span>-pix_fmt<span class="w"> </span>yuyv422<span class="w"> </span>-f<span class="w"> </span>v4l2<span class="w"> </span>/dev/video2
-</code></pre></div></p>
-<p>In terminal-3, run:
+</code></pre></div>
+<p>In terminal-3, run:</p>
 <div class="highlight"><pre><span></span><code>ffmpeg<span class="w"> </span>-stream_loop<span class="w"> </span>-1<span class="w"> </span>-re<span class="w"> </span>-i<span class="w"> </span>/data/ultrasound_segmentation/ultrasound_256x256.avi<span class="w"> </span>-pix_fmt<span class="w"> </span>yuyv422<span class="w"> </span>-f<span class="w"> </span>v4l2<span class="w"> </span>/dev/video3
-</code></pre></div></p>
+</code></pre></div>
 <p><strong>4. Benchmark Application:</strong></p>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>benchmarks/holoscan_flow_benchmarking/benchmark.py<span class="w"> </span>--run-command<span class="o">=</span><span class="s2">&quot;python applications/model_benchmarking/python/model_benchmarking.py -l &lt;number of parallel inferences&gt; -i&quot;</span><span class="w">  </span>--language<span class="w"> </span>python<span class="w"> </span>-i<span class="w"> </span>&lt;number<span class="w"> </span>of<span class="w"> </span>instances&gt;<span class="w"> </span>-r<span class="w"> </span>&lt;number<span class="w"> </span>of<span class="w"> </span>runs&gt;<span class="w"> </span>-m<span class="w"> </span>&lt;number<span class="w"> </span>of<span class="w"> </span>messages&gt;<span class="w"> </span>--sched<span class="w"> </span>greedy<span class="w"> </span>-d<span class="w"> </span>&lt;outputs<span class="w"> </span>folder&gt;<span class="w"> </span>-u
 </code></pre></div>
 <p>The command executes <code>&lt;number of runs&gt;</code> runs of <code>&lt;number of instances&gt;</code> instances of the model benchmarking application with <code>&lt;number of messages&gt;</code> messages. Each instance runs <code>&lt;number of parallel inferences&gt;</code> parallel model benchmarking inferences with no post-processing and visualization (<code>-i</code>).</p>
 <p>Please refer to <a href="https://github.com/nvidia-holoscan/holohub/tree/main/benchmarks/model_benchmarking#capabilities">Model benchmarking options</a> and <a href="https://github.com/nvidia-holoscan/holohub/tree/main/benchmarks/model_benchmarking#capabilities">Holoscan flow benchmarking options</a> for more information on the various command options.</p>
 <p><strong>Example</strong>: After Step-3, to benchmark 3 instances for 10 runs with 1000 messages, run:</p>
-<div class="highlight"><pre><span></span><code>python<span class="w"> </span>benchmarks/holoscan_flow_benchmarking/benchmark.py<span class="w"> </span>--run-command<span class="o">=</span><span class="s2">&quot;python applications/model_benchmarking/python/model_benchmarking.py -l 7 -i&quot;</span><span class="w">  </span>--language<span class="w"> </span>python<span class="w"> </span>-i<span class="w"> </span><span class="m">3</span><span class="w"> </span>-r<span class="w"> </span><span class="m">10</span><span class="w"> </span>-m<span class="w"> </span><span class="m">1000</span><span class="w"> </span>--sched<span class="w"> </span>greedy<span class="w"> </span>-d<span class="w"> </span>myoutputs<span class="w"> </span>-u<span class="sb">`</span>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>benchmarks/holoscan_flow_benchmarking/benchmark.py<span class="w"> </span>--run-command<span class="o">=</span><span class="s2">&quot;python applications/model_benchmarking/python/model_benchmarking.py -l 7 -i&quot;</span><span class="w">  </span>--language<span class="w"> </span>python<span class="w"> </span>-i<span class="w"> </span><span class="m">3</span><span class="w"> </span>-r<span class="w"> </span><span class="m">10</span><span class="w"> </span>-m<span class="w"> </span><span class="m">1000</span><span class="w"> </span>--sched<span class="w"> </span>greedy<span class="w"> </span>-d<span class="w"> </span>myoutputs<span class="w"> </span>-u
 </code></pre></div>
 <h3 id="performance-benefits-on-igx-orin-w-discrete-gpu">Performance Benefits on IGX Orin w/ Discrete GPU<a class="headerlink" href="#performance-benefits-on-igx-orin-w-discrete-gpu" title="Permanent link">#</a></h3>
 <p>We look at the performance benefits of MPS by varying the number of instances and number of inferences. We use the RTX A6000 GPU for our experiments. From our experiments, we observe that enabling MPS results in upto 12% improvement in maximum latency compared to the default setting.</p>
@@ -18494,36 +18510,45 @@ various end-to-end latency performance metrics.</p>
 <p>The graph below shows the maximum end-to-end latency of model benchmarking application with and without CUDA MPS, where the active thread percentage was set to <code>80/(number of instances)</code>. For example, for 5 instances, we set the active thread percentage to <code>80/5 = 16</code>. By provisioning resources this way, we leave some resources idle in case a client should require to use it. Please refer to <a href="https://docs.nvidia.com/deploy/mps/#volta-mps-execution-resource-provisioning">CUDA MPS Resource Provisioning</a> for more details regarding this.</p>
 <p>The graph is missing a bar for the case of 7 instances and 7 parallel inferences as we were unable to get the baseline to execute. However, we were able to run when MPS was enabled, highlighting the advantage of using MPS for large workloads. We see that the maximum end-to-end latency improves when MPS is enabled and the improvement is more pronounced as the number of instances increases. This is because, as the number of concurrent processes increases, MPS confines CUDA workloads to a certain predefined set of SMs. MPS combines multiple CUDA contexts from multiple processes into one, while simultaneously running them together.
 It reduces the number of context switches and related inferences, resulting in improved GPU utilization.</p>
-<p>| Maximum end-to-end Latency |
-| :-------------------------:|
-<img alt="max e2e latency" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/cuda_mps/images/igx-dgpu/multiple_inference_7/Maximum%2520Latency%2520%28ms?raw=true" />.png)</p>
-<p>We also notice minor improvements in the 99.9<sup>th</sup> percentile latency and similar improvements in the 99<sup>th</sup> percentile latency.</p>
 <table>
 <thead>
 <tr>
-<th style="text-align: center;">99.9<sup>th</sup> Percentile Latency</th>
-<th style="text-align: center;">99<sup>th</sup> Percentile Latency</th>
+<th>Maximum end-to-end Latency</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: center;"><img alt=" 99.9&lt;sup&gt;th&lt;/sup&gt; percentile latency" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/cuda_mps/images/igx-dgpu/multiple_inference_7/99.9th%2520Percentile%2520Latency%2520%28ms?raw=true" />.png)</td>
-<td style="text-align: center;"><img alt=" 99&lt;sup&gt;th&lt;/sup&gt; percentile latency" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/cuda_mps/images/igx-dgpu/multiple_inference_7/99th%2520Percentile%2520Latency%2520%28ms?raw=true" />.png)</td>
+<td><img alt="max e2e latency" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/cuda_mps/images/igx-dgpu/multiple_inference_7/Maximum%2520Latency%2520%28ms?raw=true" />.png)</td>
+</tr>
+</tbody>
+</table>
+<p>We also notice minor improvements in the 99.9th percentile latency and similar improvements in the 99th percentile latency.</p>
+<table>
+<thead>
+<tr>
+<th>99.9th Percentile Latency</th>
+<th>99th Percentile Latency</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img alt="99.9th percentile latency" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/cuda_mps/images/igx-dgpu/multiple_inference_7/99.9th%2520Percentile%2520Latency%2520%28ms?raw=true" />.png)</td>
+<td><img alt="99th percentile latency" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/cuda_mps/images/igx-dgpu/multiple_inference_7/99th%2520Percentile%2520Latency%2520%28ms?raw=true" />.png)</td>
 </tr>
 </tbody>
 </table>
 <h4 id="varying-number-of-parallel-inferences">Varying Number of Parallel Inferences<a class="headerlink" href="#varying-number-of-parallel-inferences" title="Permanent link">#</a></h4>
-<p>We vary the number of parallel inferences to show that MPS may not be beneficial if the workload is insufficient to offset the overhead of running the MPS server. The graph below shows the result of increasing the number of parallel inferences from 3 to 7 while the number of instances is constant. </p>
-<p>As the number of parallel inferences increases, so does the workload, and the benefit of MPS is more evident. However, when the workload is low, CUDA MPS may not be beneficial. </p>
+<p>We vary the number of parallel inferences to show that MPS may not be beneficial if the workload is insufficient to offset the overhead of running the MPS server. The graph below shows the result of increasing the number of parallel inferences from 3 to 7 while the number of instances is constant.</p>
+<p>As the number of parallel inferences increases, so does the workload, and the benefit of MPS is more evident. However, when the workload is low, CUDA MPS may not be beneficial.</p>
 <table>
 <thead>
 <tr>
-<th style="text-align: center;">Maximum Latency for 5 Instances</th>
+<th>Maximum Latency for 5 Instances</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: center;"><img alt="max latency for 5 parallel inf" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/cuda_mps/images/igx-dgpu/parallel_inf_Maximum%2520Latency%2520%28ms?raw=true" />.png)</td>
+<td><img alt="max latency for 5 parallel inf" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/cuda_mps/images/igx-dgpu/parallel_inf_Maximum%2520Latency%2520%28ms?raw=true" />.png)</td>
 </tr>
 </tbody>
 </table>
@@ -18545,10 +18570,10 @@ It reduces the number of context switches and related inferences, resulting in i
 <p><strong>2. Be sure to pass <code>-v /tmp/nvidia-mps:/tmp/nvidia-mps  -v /tmp/nvidia-log:/tmp/nvidia-log -v
 /usr/local/cuda-12.6:/usr/local/cuda-12.6</code> to <code>./holohub run</code> command to ensure that the container is
 connected to the MPS control and server</strong></p>
-<p>Example:
+<p>Example:</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>--img<span class="w"> </span>holohub:v2.1<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">&quot;-v /tmp/nvidia-mps:/tmp/nvidia-mps  -v /tmp/nvidia-log:/tmp/nvidia-log -v /usr/local/cuda-12.6:/usr/local/cuda-12.6&quot;</span>
-</code></pre></div></p>
-<p><strong>3. Inside the container, be sure to set the following environment variables:</strong>
+</code></pre></div>
+<p><strong>3. Inside the container, be sure to set the following environment variables:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">CUDA_VISIBLE_DEVICES</span><span class="o">=</span><span class="m">0</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">CUDA_MPS_PIPE_DIRECTORY</span><span class="o">=</span>/tmp/nvidia-mps
 <span class="nb">export</span><span class="w"> </span><span class="nv">CUDA_MPS_LOG_DIRECTORY</span><span class="o">=</span>/tmp/nvidia-log
@@ -18560,18 +18585,18 @@ connected to the MPS control and server</strong></p>
 <span class="nb">export</span><span class="w"> </span><span class="nv">LD_LIBRARY_PATH</span><span class="o">=</span>/usr/local/cuda-12.6/compat/lib:<span class="nv">$LD_LIBRARY_PATH</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">LD_LIBRARY_PATH</span><span class="o">=</span>/usr/lib/aarch64-linux-gnu/nvidia:<span class="nv">$LD_LIBRARY_PATH</span>
 </code></pre></div>
-Our <code>$PATH</code> and <code>$LD_LIBRARY_PATH</code> values inside the container are:
+<p>Our <code>$PATH</code> and <code>$LD_LIBRARY_PATH</code> values inside the container are:</p>
 <div class="highlight"><pre><span></span><code><span class="nb">echo</span><span class="w"> </span><span class="nv">$PATH</span>
 /usr/local/cuda-12.6/bin:/opt/tensorrt/bin:/usr/local/mpi/bin:/usr/local/nvidia/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/ucx/bin:/opt/nvidia/holoscan/bin
 
 <span class="nb">echo</span><span class="w"> </span><span class="nv">$LD_LIBRARY_PATH</span>
 /usr/local/cuda-12.6/compat/lib:/usr/local/cuda-12.6/compat:/usr/local/cuda-12.6/lib64:/usr/local/cuda/compat/lib.real:/usr/local/cuda/compat/lib:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/opt/nvidia/holoscan/lib
-</code></pre></div></p>
-<p><strong>4. Start MPS server and control</strong>
+</code></pre></div>
+<h3 id="4-start-mps-server-and-control">4. Start MPS server and control<a class="headerlink" href="#4-start-mps-server-and-control" title="Permanent link">#</a></h3>
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>-i
 <span class="nb">export</span><span class="w"> </span><span class="nv">CUDA_MPS_ACTIVE_THREAD_PERCENTAGE</span><span class="o">=</span><span class="m">20</span>
 nvidia-cuda-mps-control<span class="w"> </span>-d
-</code></pre></div></p>
+</code></pre></div>
 <p><strong>5. After steps 1-4, follow the <a href="#performance-benchmark-setup">benchmark insructions</a> to benchmark the application</strong></p>
 <h4 id="performance-benefits-on-igx-orin-w-integrated-gpu">Performance Benefits on IGX Orin w/ Integrated GPU<a class="headerlink" href="#performance-benefits-on-igx-orin-w-integrated-gpu" title="Permanent link">#</a></h4>
 <p>We look at the performance benefits of MPS by varying the number of application instances. We run
@@ -18583,20 +18608,29 @@ provide the instances more opportunity to utilize the available SMs (IGX Orin iG
 in maximum latency, 99.9 percentile latency and average latency, respectively. The graphs below
 capture the result. In the X-axis, number of instances is show to increase from 2 to 7, and the
 number in the parenthesis shows the number of SMs per instance enabled by <code>CUDA_ACTIVE_THREAD_PERCENTAGE</code>.</p>
-<p>| Maximum end-to-end Latency |
-| :-------------------------:|
-<img alt="max e2e latency" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/cuda_mps/images/igx-igpu/igx_igpu_max.png?raw=true" /></p>
 <table>
 <thead>
 <tr>
-<th style="text-align: center;">99.9 Percentile Latency</th>
-<th style="text-align: center;">Average Latency</th>
+<th>Maximum end-to-end Latency</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: center;"><img alt=" 99.9 percentile latency" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/cuda_mps/images/igx-igpu/igx_igpu_999p.png?raw=true" /></td>
-<td style="text-align: center;"><img alt="average latency" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/cuda_mps/images/igx-igpu/igx_igpu_avg.png?raw=true" /></td>
+<td><img alt="max e2e latency" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/cuda_mps/images/igx-igpu/igx_igpu_max.png?raw=true" /></td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>99.9 Percentile Latency</th>
+<th>Average Latency</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img alt="99.9 percentile latency" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/cuda_mps/images/igx-igpu/igx_igpu_999p.png?raw=true" /></td>
+<td><img alt="average latency" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/cuda_mps/images/igx-igpu/igx_igpu_avg.png?raw=true" /></td>
 </tr>
 </tbody>
 </table>

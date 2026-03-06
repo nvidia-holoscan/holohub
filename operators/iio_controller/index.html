@@ -18215,10 +18215,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#configuration-parameters" class="md-nav__link">
+  <a href="#configuration-parameters-iioattributeread" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Configuration Parameters
+        Configuration Parameters (IIOAttributeRead)
       
     </span>
   </a>
@@ -18226,10 +18226,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#ports" class="md-nav__link">
+  <a href="#ports-iioattributeread" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Ports
+        Ports (IIOAttributeRead)
       
     </span>
   </a>
@@ -18265,10 +18265,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#configuration-parameters_1" class="md-nav__link">
+  <a href="#configuration-parameters-iioattributewrite" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Configuration Parameters
+        Configuration Parameters (IIOAttributeWrite)
       
     </span>
   </a>
@@ -18276,10 +18276,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#ports_1" class="md-nav__link">
+  <a href="#ports-iioattributewrite" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Ports
+        Ports (IIOAttributeWrite)
       
     </span>
   </a>
@@ -18287,10 +18287,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#operator-example" class="md-nav__link">
+  <a href="#operator-example-iioattributewrite" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Operator Example
+        Operator Example (IIOAttributeWrite)
       
     </span>
   </a>
@@ -18315,10 +18315,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#configuration-parameters_2" class="md-nav__link">
+  <a href="#configuration-parameters-iiobufferread" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Configuration Parameters
+        Configuration Parameters (IIOBufferRead)
       
     </span>
   </a>
@@ -18326,10 +18326,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#ports_2" class="md-nav__link">
+  <a href="#ports-iiobufferread" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Ports
+        Ports (IIOBufferRead)
       
     </span>
   </a>
@@ -18365,10 +18365,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#configuration-parameters_3" class="md-nav__link">
+  <a href="#configuration-parameters-iiobufferwrite" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Configuration Parameters
+        Configuration Parameters (IIOBufferWrite)
       
     </span>
   </a>
@@ -18376,10 +18376,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#ports_3" class="md-nav__link">
+  <a href="#ports-iiobufferwrite" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Ports
+        Ports (IIOBufferWrite)
       
     </span>
   </a>
@@ -18415,10 +18415,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#configuration-parameters_4" class="md-nav__link">
+  <a href="#configuration-parameters-iioconfigurator" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Configuration Parameters
+        Configuration Parameters (IIOConfigurator)
       
     </span>
   </a>
@@ -18437,10 +18437,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#operator-example_1" class="md-nav__link">
+  <a href="#operator-example-iioconfigurator" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Operator Example
+        Operator Example (IIOConfigurator)
       
     </span>
   </a>
@@ -18620,17 +18620,21 @@
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h2>
 <p>The IIO Controller provides a comprehensive set of operators for interfacing with Industrial I/O (IIO) devices in Holoscan applications. These operators enable real-time streaming and control of software-defined radio (SDR) devices, data acquisition systems, and various sensors through the Linux IIO subsystem.</p>
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">#</a></h2>
-<p>The IIO Controller operators abstract the complexities of the Linux IIO framework, providing high-performance, low-latency access to:
-- <strong>Software Defined Radios (SDRs)</strong> like ADALM-Pluto for RF signal processing
-- <strong>Data Acquisition Systems</strong> for high-speed analog/digital conversion
-- <strong>Sensors</strong> including accelerometers, gyroscopes, magnetometers, and environmental sensors
-- <strong>Signal Generators</strong> and other test equipment</p>
+<p>The IIO Controller operators abstract the complexities of the Linux IIO framework, providing high-performance, low-latency access to:</p>
+<ul>
+<li><strong>Software Defined Radios (SDRs)</strong> like ADALM-Pluto for RF signal processing</li>
+<li><strong>Data Acquisition Systems</strong> for high-speed analog/digital conversion</li>
+<li><strong>Sensors</strong> including accelerometers, gyroscopes, magnetometers, and environmental sensors</li>
+<li><strong>Signal Generators</strong> and other test equipment</li>
+</ul>
 <h3 id="what-is-iio">What is IIO?<a class="headerlink" href="#what-is-iio" title="Permanent link">#</a></h3>
-<p>The Industrial I/O (IIO) subsystem is a Linux kernel framework that provides:
-- Unified API for diverse hardware devices
-- High-performance data streaming
-- Real-time configuration of device parameters
-- Support for triggered sampling and buffered operations</p>
+<p>The Industrial I/O (IIO) subsystem is a Linux kernel framework that provides:</p>
+<ul>
+<li>Unified API for diverse hardware devices</li>
+<li>High-performance data streaming</li>
+<li>Real-time configuration of device parameters</li>
+<li>Support for triggered sampling and buffered operations</li>
+</ul>
 <h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h2>
 <h3 id="software">Software<a class="headerlink" href="#software" title="Permanent link">#</a></h3>
 <ul>
@@ -18640,32 +18644,42 @@
 <h2 id="operator-types">Operator Types<a class="headerlink" href="#operator-types" title="Permanent link">#</a></h2>
 <p>This package provides 5 specialized operators:</p>
 <h3 id="1-iioattributeread-device-parameter-reading">1. <code>IIOAttributeRead</code> - Device Parameter Reading<a class="headerlink" href="#1-iioattributeread-device-parameter-reading" title="Permanent link">#</a></h3>
-<p>Reads configuration parameters and real-time status from IIO devices. Use for:
-- Monitoring device temperature, gain, frequency settings
-- Reading calibration status
-- Checking signal strength indicators</p>
+<p>Reads configuration parameters and real-time status from IIO devices. Use for:</p>
+<ul>
+<li>Monitoring device temperature, gain, frequency settings</li>
+<li>Reading calibration status</li>
+<li>Checking signal strength indicators</li>
+</ul>
 <h3 id="2-iioattributewrite-device-parameter-control">2. <code>IIOAttributeWrite</code> - Device Parameter Control<a class="headerlink" href="#2-iioattributewrite-device-parameter-control" title="Permanent link">#</a></h3>
-<p>Writes configuration parameters to IIO devices. Use for:
-- Setting RF frequency, gain, bandwidth
-- Configuring sampling rates
-- Enabling/disabling device features</p>
+<p>Writes configuration parameters to IIO devices. Use for:</p>
+<ul>
+<li>Setting RF frequency, gain, bandwidth</li>
+<li>Configuring sampling rates</li>
+<li>Enabling/disabling device features</li>
+</ul>
 <h3 id="3-iiobufferread-high-speed-data-acquisition">3. <code>IIOBufferRead</code> - High-Speed Data Acquisition<a class="headerlink" href="#3-iiobufferread-high-speed-data-acquisition" title="Permanent link">#</a></h3>
-<p>Streams data from IIO device buffers with DMA support. Use for:
-- Capturing buffer samples from SDRs
-- Reading multi-channel ADC data
-- Acquiring sensor data streams</p>
+<p>Streams data from IIO device buffers with DMA support. Use for:</p>
+<ul>
+<li>Capturing buffer samples from SDRs</li>
+<li>Reading multi-channel ADC data</li>
+<li>Acquiring sensor data streams</li>
+</ul>
 <h3 id="4-iiobufferwrite-high-speed-data-transmission">4. <code>IIOBufferWrite</code> - High-Speed Data Transmission<a class="headerlink" href="#4-iiobufferwrite-high-speed-data-transmission" title="Permanent link">#</a></h3>
-<p>Streams data to IIO device buffers for output. Use for:
-- Transmitting buffer samples through SDRs
-- Generating analog waveforms via DACs
-- Outputting test patterns</p>
+<p>Streams data to IIO device buffers for output. Use for:</p>
+<ul>
+<li>Transmitting buffer samples through SDRs</li>
+<li>Generating analog waveforms via DACs</li>
+<li>Outputting test patterns</li>
+</ul>
 <h3 id="5-iioconfigurator-automated-device-setup">5. <code>IIOConfigurator</code> - Automated Device Setup<a class="headerlink" href="#5-iioconfigurator-automated-device-setup" title="Permanent link">#</a></h3>
-<p>Applies complex configurations from YAML files. Use for:
-- Initializing devices with multiple parameters
-- Switching between operational modes
-- Applying calibration profiles</p>
+<p>Applies complex configurations from YAML files. Use for:</p>
+<ul>
+<li>Initializing devices with multiple parameters</li>
+<li>Switching between operational modes</li>
+<li>Applying calibration profiles</li>
+</ul>
 <h3 id="iioattributeread-operator">IIOAttributeRead Operator<a class="headerlink" href="#iioattributeread-operator" title="Permanent link">#</a></h3>
-<h4 id="configuration-parameters">Configuration Parameters<a class="headerlink" href="#configuration-parameters" title="Permanent link">#</a></h4>
+<h4 id="configuration-parameters-iioattributeread">Configuration Parameters (IIOAttributeRead)<a class="headerlink" href="#configuration-parameters-iioattributeread" title="Permanent link">#</a></h4>
 <ul>
 <li><strong><code>ctx</code></strong>: (Mandatory) The IIO context URI:</li>
 <li><code>"ip:192.168.2.1"</code> - Network connection (e.g., ADALM-Pluto default)</li>
@@ -18677,7 +18691,7 @@
 <li><strong><code>channel_is_output</code></strong>: (Optional) True for TX channels, false for RX channels</li>
 <li><strong><code>attr_name</code></strong>: (Mandatory) Attribute to read (e.g., <code>"frequency"</code>, <code>"sampling_frequency"</code>, <code>"gain"</code>).</li>
 </ul>
-<h4 id="ports">Ports<a class="headerlink" href="#ports" title="Permanent link">#</a></h4>
+<h4 id="ports-iioattributeread">Ports (IIOAttributeRead)<a class="headerlink" href="#ports-iioattributeread" title="Permanent link">#</a></h4>
 <ul>
 <li>To receive the data read from the <code>IIOAttributeRead</code> operator, use the
   output port named <code>value</code> of type <code>std::string</code>.</li>
@@ -18697,7 +18711,7 @@
 <span class="n">add_flow</span><span class="p">(</span><span class="n">freq_reader</span><span class="p">,</span><span class="w"> </span><span class="n">display_op</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="err">&#39;</span><span class="n">value</span><span class="err">&#39;</span><span class="p">,</span><span class="w"> </span><span class="err">&#39;</span><span class="n">frequency</span><span class="err">&#39;</span><span class="p">));</span>
 </code></pre></div>
 <h3 id="iioattributewrite-operator">IIOAttributeWrite Operator<a class="headerlink" href="#iioattributewrite-operator" title="Permanent link">#</a></h3>
-<h4 id="configuration-parameters_1">Configuration Parameters<a class="headerlink" href="#configuration-parameters_1" title="Permanent link">#</a></h4>
+<h4 id="configuration-parameters-iioattributewrite">Configuration Parameters (IIOAttributeWrite)<a class="headerlink" href="#configuration-parameters-iioattributewrite" title="Permanent link">#</a></h4>
 <ul>
 <li><strong><code>ctx</code></strong>: (Mandatory) The URI of the IIO context to connect to the device.</li>
 <li><strong><code>dev</code></strong>: (Optional) The name of the IIO device to write to. If not
@@ -18710,12 +18724,12 @@
     parameter must also be set.</li>
 <li><strong><code>attr_name</code></strong>: (Mandatory) The name of the attribute to write to.</li>
 </ul>
-<h4 id="ports_1">Ports<a class="headerlink" href="#ports_1" title="Permanent link">#</a></h4>
+<h4 id="ports-iioattributewrite">Ports (IIOAttributeWrite)<a class="headerlink" href="#ports-iioattributewrite" title="Permanent link">#</a></h4>
 <ul>
 <li>To send the data to be written to the <code>IIOAttributeWrite</code> operator, use the
   input port named <code>value</code> of type <code>std::string</code>.</li>
 </ul>
-<h4 id="operator-example">Operator Example<a class="headerlink" href="#operator-example" title="Permanent link">#</a></h4>
+<h4 id="operator-example-iioattributewrite">Operator Example (IIOAttributeWrite)<a class="headerlink" href="#operator-example-iioattributewrite" title="Permanent link">#</a></h4>
 <div class="highlight"><pre><span></span><code><span class="k">auto</span><span class="w"> </span><span class="n">iio_write_op</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">ops</span><span class="o">::</span><span class="n">IIOAttributeWrite</span><span class="o">&gt;</span><span class="p">(</span>
 <span class="w">    </span><span class="s">&quot;IIOAttributeWrite&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;ctx&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">&quot;ip:192.168.2.1&quot;</span><span class="p">),</span>
@@ -18728,7 +18742,7 @@
 <span class="n">add_flow</span><span class="p">(</span><span class="n">basic_emitter_op</span><span class="p">,</span><span class="w"> </span><span class="n">iio_write_op</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="err">&#39;</span><span class="n">value</span><span class="err">&#39;</span><span class="p">,</span><span class="w"> </span><span class="err">&#39;</span><span class="n">value</span><span class="err">&#39;</span><span class="p">));</span>
 </code></pre></div>
 <h3 id="iiobufferread-operator">IIOBufferRead Operator<a class="headerlink" href="#iiobufferread-operator" title="Permanent link">#</a></h3>
-<h4 id="configuration-parameters_2">Configuration Parameters<a class="headerlink" href="#configuration-parameters_2" title="Permanent link">#</a></h4>
+<h4 id="configuration-parameters-iiobufferread">Configuration Parameters (IIOBufferRead)<a class="headerlink" href="#configuration-parameters-iiobufferread" title="Permanent link">#</a></h4>
 <ul>
 <li><strong><code>ctx</code></strong>: (Mandatory) IIO context URI (e.g., <code>"ip:192.168.2.1"</code> for ADALM-Pluto)</li>
 <li><strong><code>dev</code></strong>: (Mandatory) Device name:</li>
@@ -18745,7 +18759,7 @@
 <li><code>[true, true]</code> - Input channels for RX</li>
 <li>Must match the order of <code>enabled_channel_names</code></li>
 </ul>
-<h4 id="ports_2">Ports<a class="headerlink" href="#ports_2" title="Permanent link">#</a></h4>
+<h4 id="ports-iiobufferread">Ports (IIOBufferRead)<a class="headerlink" href="#ports-iiobufferread" title="Permanent link">#</a></h4>
 <ul>
 <li>To receive the data read from the <code>IIOBufferRead</code> operator, use the output
   port named <code>buffer</code> of type <code>iio_buffer_info_t</code> as a shared pointer. This
@@ -18773,7 +18787,7 @@
 <span class="n">add_flow</span><span class="p">(</span><span class="n">sdr_receiver</span><span class="p">,</span><span class="w"> </span><span class="n">fft_processor</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="err">&#39;</span><span class="n">buffer</span><span class="err">&#39;</span><span class="p">,</span><span class="w"> </span><span class="err">&#39;</span><span class="n">iq_data</span><span class="err">&#39;</span><span class="p">));</span>
 </code></pre></div>
 <h3 id="iiobufferwrite-operator">IIOBufferWrite Operator<a class="headerlink" href="#iiobufferwrite-operator" title="Permanent link">#</a></h3>
-<h4 id="configuration-parameters_3">Configuration Parameters<a class="headerlink" href="#configuration-parameters_3" title="Permanent link">#</a></h4>
+<h4 id="configuration-parameters-iiobufferwrite">Configuration Parameters (IIOBufferWrite)<a class="headerlink" href="#configuration-parameters-iiobufferwrite" title="Permanent link">#</a></h4>
 <ul>
 <li><strong><code>ctx</code></strong>: (Mandatory) IIO context URI</li>
 <li><strong><code>dev</code></strong>: (Mandatory) Device name:</li>
@@ -18786,7 +18800,7 @@
 <li><strong><code>enabled_channel_output</code></strong>: (Mandatory) Channel direction:</li>
 <li><code>[true, true]</code> - Output channels for TX</li>
 </ul>
-<h4 id="ports_3">Ports<a class="headerlink" href="#ports_3" title="Permanent link">#</a></h4>
+<h4 id="ports-iiobufferwrite">Ports (IIOBufferWrite)<a class="headerlink" href="#ports-iiobufferwrite" title="Permanent link">#</a></h4>
 <ul>
 <li>To send the data to be written to the <code>IIOBufferWrite</code> operator, use the
   input port named <code>buffer</code> of type <code>iio_buffer_info_t</code> as a shared pointer.
@@ -18813,7 +18827,7 @@
 <span class="n">add_flow</span><span class="p">(</span><span class="n">data_generator</span><span class="p">,</span><span class="w"> </span><span class="n">sdr_transmitter</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="err">&#39;</span><span class="n">output_buffer</span><span class="err">&#39;</span><span class="p">,</span><span class="w"> </span><span class="err">&#39;</span><span class="n">buffer</span><span class="err">&#39;</span><span class="p">));</span>
 </code></pre></div>
 <h3 id="iioconfigurator-operator">IIOConfigurator Operator<a class="headerlink" href="#iioconfigurator-operator" title="Permanent link">#</a></h3>
-<h4 id="configuration-parameters_4">Configuration Parameters<a class="headerlink" href="#configuration-parameters_4" title="Permanent link">#</a></h4>
+<h4 id="configuration-parameters-iioconfigurator">Configuration Parameters (IIOConfigurator)<a class="headerlink" href="#configuration-parameters-iioconfigurator" title="Permanent link">#</a></h4>
 <ul>
 <li><strong><code>cfg</code></strong>: (Mandatory) Path to YAML configuration file</li>
 </ul>
@@ -18845,7 +18859,7 @@
 <span class="w">          </span><span class="nt">buffer-attrs</span><span class="p">:</span>
 <span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">length_align_bytes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8</span>
 </code></pre></div>
-<h4 id="operator-example_1">Operator Example<a class="headerlink" href="#operator-example_1" title="Permanent link">#</a></h4>
+<h4 id="operator-example-iioconfigurator">Operator Example (IIOConfigurator)<a class="headerlink" href="#operator-example-iioconfigurator" title="Permanent link">#</a></h4>
 <div class="highlight"><pre><span></span><code><span class="c1">// Initialize ADALM-Pluto with complex configuration</span>
 <span class="k">auto</span><span class="w"> </span><span class="n">pluto_config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">ops</span><span class="o">::</span><span class="n">IIOConfigurator</span><span class="o">&gt;</span><span class="p">(</span>
 <span class="w">    </span><span class="s">&quot;PlutoConfig&quot;</span><span class="p">,</span>
@@ -18865,10 +18879,10 @@
 <li><strong>Channel Independence</strong>: Each channel (voltage0, voltage1, etc.) is an independent data stream</li>
 </ol>
 <h3 id="buffer-memory-layout">Buffer Memory Layout<a class="headerlink" href="#buffer-memory-layout" title="Permanent link">#</a></h3>
-<p>When multiple channels are enabled, samples are interleaved in the buffer:
+<p>When multiple channels are enabled, samples are interleaved in the buffer:</p>
 <div class="highlight"><pre><span></span><code>Single channel: [Ch0_S0, Ch0_S1, Ch0_S2, ...]
 Dual channel:   [Ch0_S0, Ch1_S0, Ch0_S1, Ch1_S1, ...]
-</code></pre></div></p>
+</code></pre></div>
 <p>The exact data format (sample size, endianness, etc.) depends on the specific IIO device configuration.</p>
 <h2 id="additional-resources">Additional Resources<a class="headerlink" href="#additional-resources" title="Permanent link">#</a></h2>
 <ul>

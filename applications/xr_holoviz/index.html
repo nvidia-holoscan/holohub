@@ -18295,13 +18295,13 @@
 <h3 id="option-2-using-monado-openxr-runtime-local-development">Option 2: Using Monado OpenXR Runtime (Local Development)<a class="headerlink" href="#option-2-using-monado-openxr-runtime-local-development" title="Permanent link">#</a></h3>
 <p>Monado is an open-source OpenXR runtime that supports various XR devices and includes a simulator for local development without physical XR hardware.</p>
 <h4 id="terminal-1-launch-container-and-start-monado-service">Terminal 1: Launch Container and Start Monado Service<a class="headerlink" href="#terminal-1-launch-container-and-start-monado-service" title="Permanent link">#</a></h4>
-<p><div class="highlight"><pre><span></span><code><span class="c1"># If you&#39;re already in the container, skip this step</span>
+<div class="highlight"><pre><span></span><code><span class="c1"># If you&#39;re already in the container, skip this step</span>
 ./holohub<span class="w"> </span>run-container<span class="w"> </span>xr_holoviz
 
 <span class="c1"># Inside the container, start the Monado XR runtime service</span>
 monado-service
 </code></pre></div>
-Keep this terminal open and running.</p>
+<p>Keep this terminal open and running.</p>
 <h4 id="terminal-2-build-and-run-the-application">Terminal 2: Build and Run the Application<a class="headerlink" href="#terminal-2-build-and-run-the-application" title="Permanent link">#</a></h4>
 <div class="highlight"><pre><span></span><code><span class="c1"># Enter the same container (replace &lt;container_id&gt; with actual ID from &#39;docker ps&#39;)</span>
 docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>&lt;container_id&gt;<span class="w"> </span>bash
@@ -18313,25 +18313,27 @@ docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </spa
 <p>The width and height of the HolovizOp should be set to the width and height of the XR display, which can only be obtained during runtime. To set the width and height correctly, we need to:</p>
 <ol>
 <li>Run the application</li>
-<li>Find the log showing 
+<li>Find the log showing</li>
+</ol>
 <div class="highlight"><pre><span></span><code>XrCompositionLayerManager initialized width: XXX height: YYY
-</code></pre></div></li>
+</code></pre></div>
+<ol>
 <li>Copy the width and height</li>
 <li>Set the width and height of the HolovizOp in <code>config.yaml</code></li>
 <li>Re-run the application</li>
 </ol>
 <h5 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h5>
 <h6 id="buffer-size-too-small">Buffer Size Too Small<a class="headerlink" href="#buffer-size-too-small" title="Permanent link">#</a></h6>
-<p>If you encounter the following errors:
+<p>If you encounter the following errors:</p>
 <div class="highlight"><pre><span></span><code>[error] [gxf_executor.cpp:2506] Graph execution error: GXF_FAILURE
 terminate called after throwing an instance of &#39;std::runtime_error&#39;
   what():  The size of the buffer is too small
-</code></pre></div></p>
+</code></pre></div>
 <p>This error is typically caused by incorrect width and height configuration for the XR display. To resolve this issue:</p>
 <ol>
 <li>Follow the <strong>"Set up width and height correctly"</strong> section above to obtain the correct display dimensions</li>
 <li>Update the HolovizOp width and height values in <code>config.yaml</code> with the runtime-detected values</li>
-<li>Restart the application </li>
+<li>Restart the application</li>
 </ol>
 
 

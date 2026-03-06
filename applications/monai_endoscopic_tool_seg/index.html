@@ -18293,44 +18293,49 @@
 <p>This endoscopy tool segmentation application runs the MONAI Endoscopic Tool Segmentation from <a href="https://github.com/Project-MONAI/model-zoo/tree/dev/models/endoscopic_tool_segmentation">MONAI Model Zoo</a>.</p>
 <p>This HoloHub application has been verified on the GI Genius sandbox and is currently deployable to GI Genius Intelligent Endoscopy Modules. <a href="https://www.cosmoimd.com/gi-genius/">GI Genius</a> is Cosmo Intelligent Medical Devices’ AI-powered endoscopy system. This implementation by Cosmo Intelligent Medical Devices showcases the fast and seamless deployment of HoloHub applications on products/platforms running on NVIDIA Holoscan.</p>
 <h2 id="model">Model<a class="headerlink" href="#model" title="Permanent link">#</a></h2>
-<p>We will be deploying the endoscopic tool segmentation model from <a href="https://github.com/Project-MONAI/model-zoo/tree/dev/models/endoscopic_tool_segmentation">MONAI Model Zoo</a>. <br>
-Note that you could also use the MONAI model zoo repo for training your own semantic segmentation model with your own data, but here we are directly deploying the downloaded MONAI model checkpoint into Holoscan. </p>
-<p>You can choose to 
-- download the <a href="https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/monai_endoscopic_tool_segmentation_model">MONAI Endoscopic Tool Segmentation Model on NGC</a> directly and skip the rest of this Model section, or 
-- go through the following conversion steps yourself.</p>
+<p>We will be deploying the endoscopic tool segmentation model from <a href="https://github.com/Project-MONAI/model-zoo/tree/dev/models/endoscopic_tool_segmentation">MONAI Model Zoo</a>.
+Note that you could also use the MONAI model zoo repo for training your own semantic segmentation model with your own data, but here we are directly deploying the downloaded MONAI model checkpoint into Holoscan.</p>
+<p>You can choose to</p>
+<ul>
+<li>download the <a href="https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/monai_endoscopic_tool_segmentation_model">MONAI Endoscopic Tool Segmentation Model on NGC</a> directly and skip the rest of this Model section, or</li>
+<li>go through the following conversion steps yourself.</li>
+</ul>
 <h3 id="model-conversion-to-onnx-optional">Model conversion to ONNX (optional)<a class="headerlink" href="#model-conversion-to-onnx-optional" title="Permanent link">#</a></h3>
-<p>Before deploying the MONAI Model Zoo's trained model checkpoint in Holoscan SDK, we convert the model checkpoint into ONNX. <br></p>
+<p>Before deploying the MONAI Model Zoo's trained model checkpoint in Holoscan SDK, we convert the model checkpoint into ONNX.</p>
 <ol>
 <li>Download the PyTorch model checkpoint linked in the README of <a href="https://github.com/Project-MONAI/model-zoo/tree/dev/models/endoscopic_tool_segmentation#model-overview">endoscopic tool segmentation</a>. We will assume its name to be <code>model.pt</code>.</li>
-<li>
-<p>Clone the MONAI Model Zoo repo. 
-<div class="highlight"><pre><span></span><code>cd [your-workspace]
-git clone https://github.com/Project-MONAI/model-zoo.git
+<li>Clone the MONAI Model Zoo repo.</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span><span class="o">[</span>your-workspace<span class="o">]</span>
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/Project-MONAI/model-zoo.git
 </code></pre></div>
-and place the downloaded PyTorch model into <code>model-zoo/models/endoscopic_tool_segmentation/</code>.</p>
-</li>
-<li>
-<p>Pull and run the docker image for <a href="https://hub.docker.com/r/projectmonai/monai">MONAI</a>. We will use this docker image for converting the PyTorch model to ONNX. 
-<div class="highlight"><pre><span></span><code>docker pull projectmonai/monai
-docker run -it --rm --gpus all -v [your-workspace]/model-zoo:/workspace/model-zoo -w /workspace/model-zoo/models/endoscopic_tool_segmentation/ projectmonai/monai
-</code></pre></div></p>
-</li>
-<li>Install onnxruntime within the container
- <code>pip install onnxruntime onnx-graphsurgeon</code></li>
+<p>and place the downloaded PyTorch model into <code>model-zoo/models/endoscopic_tool_segmentation/</code>.</p>
+<ol>
+<li>Pull and run the docker image for <a href="https://hub.docker.com/r/projectmonai/monai">MONAI</a>. We will use this docker image for converting the PyTorch model to ONNX.</li>
+</ol>
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span>pull<span class="w"> </span>projectmonai/monai
+docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </span>--rm<span class="w"> </span>--gpus<span class="w"> </span>all<span class="w"> </span>-v<span class="w"> </span><span class="o">[</span>your-workspace<span class="o">]</span>/model-zoo:/workspace/model-zoo<span class="w"> </span>-w<span class="w"> </span>/workspace/model-zoo/models/endoscopic_tool_segmentation/<span class="w"> </span>projectmonai/monai
+</code></pre></div>
+<ol>
+<li>Install onnxruntime within the container</li>
+</ol>
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>onnxruntime<span class="w"> </span>onnx-graphsurgeon
+</code></pre></div>
+<ol>
 <li>Convert model</li>
 </ol>
-<p>We will first export the model.pt file to ONNX by using the <a href="https://github.com/Project-MONAI/model-zoo/blob/dev/models/endoscopic_tool_segmentation/scripts/export_to_onnx.py">export_to_onnx.py</a> file. Modify the backbone in <a href="https://github.com/Project-MONAI/model-zoo/blob/dev/models/endoscopic_tool_segmentation/scripts/export_to_onnx.py#L122">line 122</a> to be efficientnet-b2:
-<div class="highlight"><pre><span></span><code>model = load_model_and_export(modelname, outname, out_channels, height, width, multigpu, backbone=&quot;efficientnet-b2&quot;)
+<p>We will first export the model.pt file to ONNX by using the <a href="https://github.com/Project-MONAI/model-zoo/blob/dev/models/endoscopic_tool_segmentation/scripts/export_to_onnx.py">export_to_onnx.py</a> file. Modify the backbone in <a href="https://github.com/Project-MONAI/model-zoo/blob/dev/models/endoscopic_tool_segmentation/scripts/export_to_onnx.py#L122">line 122</a> to be efficientnet-b2:</p>
+<div class="highlight"><pre><span></span><code><span class="n">model</span> <span class="o">=</span> <span class="n">load_model_and_export</span><span class="p">(</span><span class="n">modelname</span><span class="p">,</span> <span class="n">outname</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">multigpu</span><span class="p">,</span> <span class="n">backbone</span><span class="o">=</span><span class="s2">&quot;efficientnet-b2&quot;</span><span class="p">)</span>
 </code></pre></div>
-Note that the model in the Model Zoo here was trained to have only two output channels: label 1 = tools, label 0 = everything else, but the same Model Zoo repo can be repurposed to train a model with a different dataset that has more than two classes.
-<div class="highlight"><pre><span></span><code>python scripts/export_to_onnx.py --model model.pt --outpath model_endoscopic_tool_seg.onnx --width 736 --height 480 --out_channels 2
+<p>Note that the model in the Model Zoo here was trained to have only two output channels: label 1 = tools, label 0 = everything else, but the same Model Zoo repo can be repurposed to train a model with a different dataset that has more than two classes.</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>scripts/export_to_onnx.py<span class="w"> </span>--model<span class="w"> </span>model.pt<span class="w"> </span>--outpath<span class="w"> </span>model_endoscopic_tool_seg.onnx<span class="w"> </span>--width<span class="w"> </span><span class="m">736</span><span class="w"> </span>--height<span class="w"> </span><span class="m">480</span><span class="w"> </span>--out_channels<span class="w"> </span><span class="m">2</span>
 </code></pre></div>
-Fold constants in the ONNX model.
-<div class="highlight"><pre><span></span><code>polygraphy surgeon sanitize --fold-constants model_endoscopic_tool_seg.onnx -o model_endoscopic_tool_seg_sanitized.onnx
+<p>Fold constants in the ONNX model.</p>
+<div class="highlight"><pre><span></span><code>polygraphy<span class="w"> </span>surgeon<span class="w"> </span>sanitize<span class="w"> </span>--fold-constants<span class="w"> </span>model_endoscopic_tool_seg.onnx<span class="w"> </span>-o<span class="w"> </span>model_endoscopic_tool_seg_sanitized.onnx
 </code></pre></div>
-Finally, modify the input and output channels to have shape [n, height, width, channels], [n, channels, height, width]. 
-<div class="highlight"><pre><span></span><code>python scripts/graph_surgeon_tool_seg.py --orig_model model_endoscopic_tool_seg_sanitized.onnx --new_model model_endoscopic_tool_seg_sanitized_nhwc_in_nchw_out.onnx
-</code></pre></div></p>
+<p>Finally, modify the input and output channels to have shape [n, height, width, channels], [n, channels, height, width].</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>scripts/graph_surgeon_tool_seg.py<span class="w"> </span>--orig_model<span class="w"> </span>model_endoscopic_tool_seg_sanitized.onnx<span class="w"> </span>--new_model<span class="w"> </span>model_endoscopic_tool_seg_sanitized_nhwc_in_nchw_out.onnx
+</code></pre></div>
 <h2 id="data">Data<a class="headerlink" href="#data" title="Permanent link">#</a></h2>
 <p>For this application we will use the same <a href="https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data">Endoscopy Sample Data</a> as the Holoscan SDK reference applications.</p>
 <h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h2>
@@ -18353,12 +18358,12 @@ necessary python libraries based on your Holoscan SDK installation type.</p>
 <ul>
 <li>otherwise:</li>
 </ul>
-<p><div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="nv">$PYTHONPATH</span>:&lt;HOLOSCAN_INSTALL_DIR&gt;/python/lib:&lt;HOLOHUB_BUILD_DIR&gt;/python/lib
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="nv">$PYTHONPATH</span>:&lt;HOLOSCAN_INSTALL_DIR&gt;/python/lib:&lt;HOLOHUB_BUILD_DIR&gt;/python/lib
 </code></pre></div>
-Next, run the application, where <DATA_DIR> is a directory that contains two subdirectories <code>endoscopy/</code> and <code>monai_tool_seg_model/</code>.:</p>
-<p><div class="highlight"><pre><span></span><code>python3 tool_segmentation.py --data &lt;DATA_DIR&gt;
+<p>Next, run the application, where <DATA_DIR> is a directory that contains two subdirectories <code>endoscopy/</code> and <code>monai_tool_seg_model/</code>.:</p>
+<div class="highlight"><pre><span></span><code>python3<span class="w"> </span>tool_segmentation.py<span class="w"> </span>--data<span class="w"> </span>&lt;DATA_DIR&gt;
 </code></pre></div>
-If you'd like the application to run at the input framerate, change the <code>replayer</code> config in the yaml file to <code>realtime: true</code>.</p>
+<p>If you'd like the application to run at the input framerate, change the <code>replayer</code> config in the yaml file to <code>realtime: true</code>.</p>
 
 
 

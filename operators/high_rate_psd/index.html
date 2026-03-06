@@ -18239,11 +18239,13 @@ SPDX-License-Identifier: Apache-2.0
 <p>A thin wrapper over the MatX <a href="https://nvidia.github.io/MatX/api/math/misc/abs2.html"><code>abs2()</code></a>
 executor.</p>
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">#</a></h2>
-<p>The high rate PSD operator...
-- takes in a tensor of complex float data,
-- performs a squared absolute value operation on the tensor: real(t)^2 + imag(t)^2,
-- divides by the number of input elements
-- emits the resultant tensor</p>
+<p>The high rate PSD operator...</p>
+<ul>
+<li>takes in a tensor of complex float data,</li>
+<li>performs a squared absolute value operation on the tensor: real(t)^2 + imag(t)^2,</li>
+<li>divides by the number of input elements</li>
+<li>emits the resultant tensor</li>
+</ul>
 <h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h2>
 <ul>
 <li><a href="https://github.com/NVIDIA/MatX">MatX</a> (dependency - assumed to be installed on system)</li>

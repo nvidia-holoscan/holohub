@@ -18222,6 +18222,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="3.2 Check the NIC&#39;s PCIe configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#max-payload-size-mps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Max Payload Size (MPS)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -18288,6 +18305,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="3.8 Maximize GPU BAR1 size">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bios-resizable-bar-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BIOS Resizable BAR support
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gpu-resizable-bar-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GPU Resizable BAR support
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -18326,6 +18371,23 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="4.1 Update the loopback configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#find-the-application-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Find the application files
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -19089,7 +19151,7 @@ NIC1: mlx5_1
 <p>PCIe is used in any system for communication between different modules [including the NIC and the GPU]. This means that in order to process network traffic, the different devices communicating via the PCIe should be well configured. When connecting the network adapter to the PCIe, it auto-negotiates for the maximum capabilities supported between the network adapter and the CPU.</p>
 </div>
 <p>The instructions below are meant to understand if your system is able to extract the maximum capabilities of your NIC, but they're not configurable. The two values that we are looking at here are the Max Payload Size (MPS - the maximum size of a PCIe packet) and the Speed (or PCIe generation).</p>
-<h5 id="max-payload-size-mps">Max Payload Size (MPS)<a class="headerlink" href="#max-payload-size-mps" title="Permanent link">#</a></h5>
+<h4 id="max-payload-size-mps">Max Payload Size (MPS)<a class="headerlink" href="#max-payload-size-mps" title="Permanent link">#</a></h4>
 <div class="tabbed-set tabbed-alternate" data-tabs="12:2"><input checked="checked" id="__tabbed_12_1" name="__tabbed_12" type="radio" /><input id="__tabbed_12_2" name="__tabbed_12" type="radio" /><div class="tabbed-labels"><label for="__tabbed_12_1">tune_system.py</label><label for="__tabbed_12_2">manual</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
@@ -19692,13 +19754,13 @@ sudo<span class="w"> </span>./operators/advanced_network/python/tune_system.py<s
 </ul>
 <p><strong>If you attempt to go forward with the instructions below without meeting the above requirements, you might render your GPU unusable.</strong></p>
 </div>
-<h5 id="bios-resizable-bar-support">BIOS Resizable BAR support<a class="headerlink" href="#bios-resizable-bar-support" title="Permanent link">#</a></h5>
+<h4 id="bios-resizable-bar-support">BIOS Resizable BAR support<a class="headerlink" href="#bios-resizable-bar-support" title="Permanent link">#</a></h4>
 <p>First, check if your system and BIOS support resizable BAR. Refer to your system's manufacturer documentation to access the BIOS. The Resizable BAR option is often categorized under <code>Advanced &gt; PCIe</code> settings. Enable this feature if found.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The IGX Developer kit with IGX OS 1.1+ supports resizable BAR by default.</p>
 </div>
-<h5 id="gpu-resizable-bar-support">GPU Resizable BAR support<a class="headerlink" href="#gpu-resizable-bar-support" title="Permanent link">#</a></h5>
+<h4 id="gpu-resizable-bar-support">GPU Resizable BAR support<a class="headerlink" href="#gpu-resizable-bar-support" title="Permanent link">#</a></h4>
 <p>Next, you can check if your GPU has physical resizable BAR by running the following command:</p>
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>lspci<span class="w"> </span>-vv<span class="w"> </span>-s<span class="w"> </span><span class="k">$(</span>nvidia-smi<span class="w"> </span>--query-gpu<span class="o">=</span>pci.bus_id<span class="w"> </span>--format<span class="o">=</span>csv,noheader<span class="k">)</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>BAR
 </code></pre></div>
@@ -19775,7 +19837,7 @@ rmmod<span class="w"> </span>nvidia_uvm<span class="w"> </span>nvidia_drm<span c
 <p>Disable secure boot on your system ahead of changing your GPU's BAR1 size. It can be re-enabled afterwards.</p>
 </details>
 <p>Reboot your system, and check the BAR1 size again to confirm the change.</p>
-<div class="highlight"><pre><span></span><code>sudo reboot
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>reboot
 </code></pre></div>
 <h3 id="39-enable-jumbo-frames">3.9 Enable Jumbo Frames<a class="headerlink" href="#39-enable-jumbo-frames" title="Permanent link">#</a></h3>
 <p>Jumbo frames are Ethernet frames that carry a payload larger than the standard 1500 bytes MTU (Maximum Transmission Unit). They can significantly improve network performance when transferring large amounts of data by reducing the overhead of packet headers and the number of packets that need to be processed.</p>
@@ -19854,7 +19916,7 @@ maxmtu<span class="w"> </span><span class="m">9978</span>
 <p>Holoscan Networking provides a benchmarking application named <code>adv_networking_bench</code> that can be used to test the performance of the networking configuration. In this section, we'll walk you through the steps needed to configure the application for your NIC for Tx and Rx, and run a loopback test between the two interfaces with a <a href="https://www.nvidia.com/en-us/networking/interconnect/">physical SFP cable</a> connecting them.</p>
 <p>Make sure to install <a href="#1-installing-holoscan-networking"><code>holoscan-networking</code></a> beforehand.</p>
 <h3 id="41-update-the-loopback-configuration">4.1 Update the loopback configuration<a class="headerlink" href="#41-update-the-loopback-configuration" title="Permanent link">#</a></h3>
-<h5 id="find-the-application-files">Find the application files<a class="headerlink" href="#find-the-application-files" title="Permanent link">#</a></h5>
+<h4 id="find-the-application-files">Find the application files<a class="headerlink" href="#find-the-application-files" title="Permanent link">#</a></h4>
 <p>Identify the location of the <code>adv_networking_bench</code> executable, and of the configuration file named <code>adv_networking_bench_default_tx_rx.yaml</code>, for your installation:</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="36:2"><input checked="checked" id="__tabbed_36_1" name="__tabbed_36" type="radio" /><input id="__tabbed_36_2" name="__tabbed_36" type="radio" /><div class="tabbed-labels"><label for="__tabbed_36_1">Debian installation</label><label for="__tabbed_36_2">From source</label></div>
 <div class="tabbed-content">

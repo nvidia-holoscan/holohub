@@ -18321,16 +18321,20 @@ the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/e
 <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/multiai_ultrasound">Multi-AI Ultrasound</a> HoloHub projects. These projects are generally
 maintained by the NVIDIA Holoscan team and demonstrate baseline Holoscan SDK inference pipelines
 with video replay and Holoviz rendering output.</p>
-<p>Benchmark scenarios include:
-- Running multiple Holoscan SDK pipelines concurrently on a single machine
-- Running video replay input at real-time speeds or as fast as possible
-- Running Holoviz output with either visual rendering or in headless mode</p>
+<p>Benchmark scenarios include:</p>
+<ul>
+<li>Running multiple Holoscan SDK pipelines concurrently on a single machine</li>
+<li>Running video replay input at real-time speeds or as fast as possible</li>
+<li>Running Holoviz output with either visual rendering or in headless mode</li>
+</ul>
 <p>We plan to release HoloHub benchmarks in the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/release_benchmarking/release">release subfolder</a> following Holoscan SDK general
 releases. You can follow the tutorial below to similarly evaluate performance on your own machine.</p>
-<p>Refer to related documents for more information:
-- the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/release_benchmarking/template/results.md.tmpl">results report template file</a> provides additional information on
-definitions and background
-- versioned releases are available for review in the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/release_benchmarking/release">release subfolder</a></p>
+<p>Refer to related documents for more information:</p>
+<ul>
+<li>the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/release_benchmarking/template/results.md.tmpl">results report template file</a> provides additional information on
+definitions and background</li>
+<li>versioned releases are available for review in the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/release_benchmarking/release">release subfolder</a></li>
+</ul>
 <h2 id="previous-holoscan-release-benchmark-reports">Previous Holoscan Release Benchmark Reports<a class="headerlink" href="#previous-holoscan-release-benchmark-reports" title="Permanent link">#</a></h2>
 <ul>
 <li><a href="https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/release_benchmarking/release/v2.3.0/v2.3.0.md">Holoscan SDK v2.3.0</a></li>
@@ -18352,22 +18356,28 @@ definitions and background
 
 ./holohub<span class="w"> </span>build<span class="w"> </span>release_benchmarking
 </code></pre></div>
-<p>Run the benchmarking script with no arguments to collect performance logs in the <code>./output</code> directory.
+<p>Run the benchmarking script with no arguments to collect performance logs in the <code>./output</code> directory.</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>release_benchmarking<span class="w"> </span>--no-local-build
-</code></pre></div></p>
+</code></pre></div>
 <h2 id="summarizing-data">Summarizing Data<a class="headerlink" href="#summarizing-data" title="Permanent link">#</a></h2>
-<p>After running benchmarks, inside the dev environment, use <code>./holohub run</code> to process data statistics and create bar plot PNGs:
+<p>After running benchmarks, inside the dev environment, use <code>./holohub run</code> to process data statistics and create bar plot PNGs:</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>--img<span class="w"> </span>holohub:release_benchmarking<span class="w"> </span>--no-docker-build
 ./holohub<span class="w"> </span>run<span class="w"> </span>release_benchmarking<span class="w"> </span>--no-local-build<span class="w"> </span>--run-args<span class="w"> </span><span class="s2">&quot;--process benchmarks/release_benchmarking&quot;</span>
-</code></pre></div></p>
-<p>Alternatively, collect results across platforms. On each machine:
-1. Run benchmarks:
+</code></pre></div>
+<p>Alternatively, collect results across platforms. On each machine:</p>
+<ol>
+<li>Run benchmarks:</li>
+</ol>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>release_benchmarking<span class="w"> </span>--no-local-build
 </code></pre></div>
-2. Add platform configuration information:
+<ol>
+<li>Add platform configuration information:</li>
+</ol>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>release_benchmarking<span class="w"> </span>--no-local-build<span class="w"> </span>--run-args<span class="w"> </span><span class="s2">&quot;--print&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>benchmarks/release_benchmarking/output/platform.txt
 </code></pre></div>
-3. Transfer output contents from each platform to a single machine:
+<ol>
+<li>Transfer output contents from each platform to a single machine:</li>
+</ol>
 <div class="highlight"><pre><span></span><code><span class="c1"># Compress information for transfer</span>
 <span class="nb">pushd</span><span class="w"> </span>benchmarks/release_benchmarking
 tar<span class="w"> </span>cvf<span class="w"> </span>benchmarks-&lt;platform-name&gt;.tar.gz<span class="w"> </span>output/*
@@ -18379,38 +18389,42 @@ mkdir<span class="w"> </span>-p<span class="w"> </span>output/&lt;release&gt;/&l
 <span class="nb">pushd</span><span class="w"> </span>output/&lt;release&gt;/&lt;platform-name&gt;
 tar<span class="w"> </span>xvf<span class="w"> </span>benchmarks-&lt;platform-name&gt;
 </code></pre></div>
-4. Use multiple <code>--process</code> flags to generate a batch of bar plots for multiple platform results:
+<ol>
+<li>Use multiple <code>--process</code> flags to generate a batch of bar plots for multiple platform results:</li>
+</ol>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>release_benchmarking<span class="w"> </span>--no-local-build<span class="w"> </span>--run-args<span class="w"> </span><span class="s2">&quot;\</span>
 <span class="s2">    --process benchmarks/release_benchmarking/2.4/x86_64 \</span>
 <span class="s2">    --process benchmarks/release_benchmarking/2.4/IGX_iGPU \</span>
 <span class="s2">    --process benchmarks/release/benchmarking/2.4/IGX_dGPU&quot;</span>
-</code></pre></div></p>
+</code></pre></div>
 <h2 id="presenting-data">Presenting Data<a class="headerlink" href="#presenting-data" title="Permanent link">#</a></h2>
 <p>You can use the template markdown file in the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/release_benchmarking/template"><code>template</code></a> folder to generate a markdown
 or PDF report with benchmark data with <code>pandoc</code> and <code>Jinja2</code>.</p>
 <ol>
 <li>Copy and edit <code>template/release.json</code> with information about the benchmarking configuration, including
 the release version, platform configurations, and local paths to processed data. Run
-<code>./holohub run</code> to print JSON-formatted platform details to the console about the current system:
+<code>./holohub run</code> to print JSON-formatted platform details to the console about the current system:</li>
+</ol>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>--img<span class="w"> </span>holohub:release_benchmarking<span class="w"> </span>--no-docker-build
 ./holohub<span class="w"> </span>run<span class="w"> </span>release_benchmarking<span class="w"> </span>--no-local-build<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--print&quot;</span>
-</code></pre></div></li>
-<li>Render the document with the Jinja CLI tool:
+</code></pre></div>
+<ol>
+<li>Render the document with the Jinja CLI tool:</li>
+</ol>
 <div class="highlight"><pre><span></span><code><span class="nb">pushd</span><span class="w"> </span>benchmarks/release_benchmarking
 jinja2<span class="w"> </span>template/results.md.tmpl<span class="w"> </span>template/&lt;release-version&gt;.json<span class="w"> </span>--format<span class="o">=</span>json<span class="w"> </span>&gt;<span class="w"> </span>output/&lt;release-version&gt;.md
-</code></pre></div></li>
-</ol>
+</code></pre></div>
 <h3 id="optional-generating-a-pdf-report-document">(Optional) Generating a PDF report document<a class="headerlink" href="#optional-generating-a-pdf-report-document" title="Permanent link">#</a></h3>
 <p>You can convert the report to PDF format as an easy way to share your report as a single file
 with embedded plots.</p>
 <ol>
 <li>In your copy of <code>template/release.json</code>, update the <code>"format"</code> string to <code>"pdf"</code>.</li>
 <li>Follow the instructions above to generate your markdown report with Jinja2.</li>
-<li>Use <code>pandoc</code> to convert the markdown file to PDF:
+<li>Use <code>pandoc</code> to convert the markdown file to PDF:</li>
+</ol>
 <div class="highlight"><pre><span></span><code><span class="nb">pushd</span><span class="w"> </span>output
 pandoc<span class="w"> </span>&lt;release-version&gt;.md<span class="w"> </span>-o<span class="w"> </span>&lt;release-version&gt;.pdf<span class="w"> </span>--toc
-</code></pre></div></li>
-</ol>
+</code></pre></div>
 <h3 id="optional-submitting-results-to-holohub">(Optional) Submitting Results to HoloHub<a class="headerlink" href="#optional-submitting-results-to-holohub" title="Permanent link">#</a></h3>
 <p>The Holoscan SDK team may submit release benchmarking reports to HoloHub git history for general visibility. We use Markdown formatting to make plot diagrams accessible for direct download.</p>
 <ol>
@@ -18419,9 +18433,9 @@ pandoc<span class="w"> </span>&lt;release-version&gt;.md<span class="w"> </span>
 <li>Commit changes, push to GitHub, and open a Pull Request.</li>
 </ol>
 <h2 id="cleanup">Cleanup<a class="headerlink" href="#cleanup" title="Permanent link">#</a></h2>
-<p>Benchmarking changes to application YAML files can be discarded after benchmarks complete.
+<p>Benchmarking changes to application YAML files can be discarded after benchmarks complete.</p>
 <div class="highlight"><pre><span></span><code>git<span class="w"> </span>checkout<span class="w"> </span>applications/*.yaml
-</code></pre></div></p>
+</code></pre></div>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h2>
 <p><strong>Why am I seeing high end-to-end latency spikes as outliers in my data?</strong></p>
 <p>Latency spikes may occur in display-driven benchmarking if the display goes to sleep. Please configure your
@@ -18430,12 +18444,16 @@ display settings to prevent the display from going to sleep before running bench
 versions are not matched, and due to suboptimal GPU task preemption policies. We are still investigating these issues.</p>
 <p><strong>Benchmark applications are failing silently without writing log files.</strong></p>
 <p>Silent failures may indicate an issue with the underlying applications undergoing benchmarking.
-Try running the applications directly and verify execution is as expected:
-- <code>./holohub run endoscopy_tool_tracking --language=cpp</code>
-- <code>./holohub run multiai_ultrasound --language=cpp</code></p>
-<p>In some cases you may need to clear your HoloHub build or data folders to address errors:
-- <code>./holohub clear-cache</code>
-- <code>rm -rf ./data</code></p>
+Try running the applications directly and verify execution is as expected:</p>
+<ul>
+<li><code>./holohub run endoscopy_tool_tracking --language=cpp</code></li>
+<li><code>./holohub run multiai_ultrasound --language=cpp</code></li>
+</ul>
+<p>In some cases you may need to clear your HoloHub build or data folders to address errors:</p>
+<ul>
+<li><code>./holohub clear-cache</code></li>
+<li><code>rm -rf ./data</code></li>
+</ul>
 <h2 id="developer-references">Developer References<a class="headerlink" href="#developer-references" title="Permanent link">#</a></h2>
 <p>While this tutorial is tailored to curated configurations of the Endoscopy Tool Tracking and
 Multi-AI Ultrasound HoloHub applications, developers utilize underlying

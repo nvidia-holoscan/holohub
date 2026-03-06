@@ -18232,20 +18232,24 @@
 <li>Input/output ports for frame data using GXF entities</li>
 <li>Support for both sending and receiving frames through separate flags</li>
 </ul>
-<p>Frame Processing Pipeline:
-- Input handling: Receives frames as GXF entities containing H.264 encoded video tensors
-- Frame conversion: Converts input tensors to VideoFrame objects with BGRA format
-- Memory management: Implements safe memory handling with bounds checking and zero-padding
-- Output generation: Creates GXF entities with properly configured tensors for downstream processing</p>
-<p>Streaming Protocol Implementation:
-- Bidirectional streaming support through StreamingClient class
-- Frame callback system for receiving frames
-- Frame source system for sending frames
-- Connection management with server including timeout handling</p>
+<p>Frame Processing Pipeline:</p>
+<ul>
+<li>Input handling: Receives frames as GXF entities containing H.264 encoded video tensors</li>
+<li>Frame conversion: Converts input tensors to VideoFrame objects with BGRA format</li>
+<li>Memory management: Implements safe memory handling with bounds checking and zero-padding</li>
+<li>Output generation: Creates GXF entities with properly configured tensors for downstream processing</li>
+</ul>
+<p>Streaming Protocol Implementation:</p>
+<ul>
+<li>Bidirectional streaming support through StreamingClient class</li>
+<li>Frame callback system for receiving frames</li>
+<li>Frame source system for sending frames</li>
+<li>Connection management with server including timeout handling</li>
+</ul>
 <h2 id="dependencies">Dependencies<a class="headerlink" href="#dependencies" title="Permanent link">#</a></h2>
 <p>In order to build the client operator, you must first download the client binaries from NGC and add to the <code>lib</code> directory for the <code>streaming_client</code> operator folder</p>
 <p>Download the Holoscan Client Cloud Streaming library from NGC:
-https://catalog.ngc.nvidia.com/orgs/nvidia/resources/holoscan_client_cloud_streaming</p>
+<a href="https://catalog.ngc.nvidia.com/orgs/nvidia/resources/holoscan_client_cloud_streaming">https://catalog.ngc.nvidia.com/orgs/nvidia/resources/holoscan_client_cloud_streaming</a></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Download using NGC CLI</span>
 <span class="nb">cd</span><span class="w"> </span>&lt;your_holohub_path&gt;/operators/streaming_client
 ngc<span class="w"> </span>registry<span class="w"> </span>resource<span class="w"> </span>download-version<span class="w"> </span>nvidia/holoscan_client_cloud_streaming:0.1
@@ -18289,10 +18293,12 @@ rm<span class="w"> </span>-rf<span class="w"> </span>holoscan_client_cloud_strea
 </code></pre></div>
 <p>All dependencies need to be properly installed in the operator directory structure.</p>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h2>
-<p>If you encounter build errors:
-- Make sure all required files are copied to the correct locations
-- Check that the libraries have appropriate permissions (644)
-- Ensure the directories exist inside the container environment </p>
+<p>If you encounter build errors:</p>
+<ul>
+<li>Make sure all required files are copied to the correct locations</li>
+<li>Check that the libraries have appropriate permissions (644)</li>
+<li>Ensure the directories exist inside the container environment</li>
+</ul>
 <h2 id="supported-platforms">Supported Platforms<a class="headerlink" href="#supported-platforms" title="Permanent link">#</a></h2>
 <ul>
 <li>Linux x86_64</li>

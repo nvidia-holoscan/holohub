@@ -18083,10 +18083,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#parameters" class="md-nav__link">
+  <a href="#parameters-publisher" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Parameters
+        Parameters (Publisher)
       
     </span>
   </a>
@@ -18122,10 +18122,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#parameters_1" class="md-nav__link">
+  <a href="#parameters-subscriber" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Parameters
+        Parameters (Subscriber)
       
     </span>
   </a>
@@ -18287,13 +18287,13 @@
 to a DDS databus, enabling communication with other applications via the
 <a href="https://github.com/nvidia-holoscan/holohub/blob/main/operators/dds/video/VideoFrame.idl">VideoFrame</a> DDS topic.</p>
 <p>This operator requires an installation of <a href="https://content.rti.com/l/983311/2025-07-08/q5x1n8">RTI Connext</a> to provide access to the DDS domain, as specified by the <a href="https://www.omg.org/omg-dds-portal/">OMG Data-Distribution Service</a>.</p>
-<p>You can obtain a license/activation key for RTI Connext directly from RTI by downloading it <a href="https://content.rti.com/l/983311/2025-07-25/q6729c">here</a>. For additional information on RTI Connext and how it integrates with NVIDIA products, please refer to the <a href="https://www.rti.com/products/third-party-integrations/nvidia">RTI-NVIDIA integration page</a>.</p>
+<p>You can obtain a license/activation key for RTI Connext directly from RTI by <a href="https://content.rti.com/l/983311/2025-07-25/q6729c">downloading from the RTI Connext page</a>. For additional information on RTI Connext and how it integrates with NVIDIA products, please refer to the <a href="https://www.rti.com/products/third-party-integrations/nvidia">RTI-NVIDIA integration page</a>.</p>
 <p>If you have questions, please email <a href="mailto:evaluations@rti.com">evaluations@rti.com</a>.</p>
 <h2 id="holoscanopsddsvideopublisherop"><code>holoscan::ops::DDSVideoPublisherOp</code><a class="headerlink" href="#holoscanopsddsvideopublisherop" title="Permanent link">#</a></h2>
 <p>Operator class for the DDS video publisher. This operator accepts <code>VideoBuffer</code> objects
 as input and publishes each buffer to DDS as a <a href="https://github.com/nvidia-holoscan/holohub/blob/main/operators/dds/video/VideoFrame.idl">VideoFrame</a>.</p>
 <p>This operator also inherits the parameters from <a href="../base/">DDSOperatorBase</a>.</p>
-<h3 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">#</a></h3>
+<h3 id="parameters-publisher">Parameters (Publisher)<a class="headerlink" href="#parameters-publisher" title="Permanent link">#</a></h3>
 <ul>
 <li><strong><code>writer_qos</code></strong>: The name of the QoS profile to use for the DDS DataWriter</li>
 <li>type: <code>std::string</code></li>
@@ -18310,7 +18310,7 @@ as input and publishes each buffer to DDS as a <a href="https://github.com/nvidi
 <a href="https://github.com/nvidia-holoscan/holohub/blob/main/operators/dds/video/VideoFrame.idl">VideoFrame</a> DDS topic and outputs each received frame as
 <code>VideoBuffer</code> objects.</p>
 <p>This operator also inherits the parameters from <a href="../base/">DDSOperatorBase</a>.</p>
-<h3 id="parameters_1">Parameters<a class="headerlink" href="#parameters_1" title="Permanent link">#</a></h3>
+<h3 id="parameters-subscriber">Parameters (Subscriber)<a class="headerlink" href="#parameters-subscriber" title="Permanent link">#</a></h3>
 <ul>
 <li><strong><code>reader_qos</code></strong>: The name of the QoS profile to use for the DDS DataReader</li>
 <li>type: <code>std::string</code></li>

@@ -18678,9 +18678,9 @@ mkdir<span class="w"> </span>ssl
 openssl<span class="w"> </span>req<span class="w"> </span>-x509<span class="w"> </span>-newkey<span class="w"> </span>rsa:4096<span class="w"> </span>-keyout<span class="w"> </span>key.pem<span class="w"> </span>-out<span class="w"> </span>cert.pem<span class="w"> </span>-sha256<span class="w"> </span>-days<span class="w"> </span><span class="m">365</span><span class="w"> </span>-nodes<span class="w"> </span>-subj<span class="w"> </span><span class="s1">&#39;/CN=localhost&#39;</span>
 </code></pre></div>
 <p>When you first navigate your browser to a page that uses these self-signed certificates, it will issue you a warning since they don't originate from a trusted authority. Ignore this and proceed to the web app:</p>
-<p><img src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/ehr_query_llm/lmm/imgs/ssl_warning.jpg?raw=true" width="400"></p>
+<p><img alt="SSL certificate warning in browser" src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/ehr_query_llm/lmm/imgs/ssl_warning.jpg?raw=true" /></p>
 <p>ehr_query_llm will use your default speaker and microphone. To change this go to your Ubuntu sound settings and choose the correct devices:</p>
-<p><img src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/ehr_query_llm/lmm/imgs/ubuntu_sound_setting.png?raw=true" width="400"></p>
+<p><img alt="Ubuntu sound settings" src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/ehr_query_llm/lmm/imgs/ubuntu_sound_setting.png?raw=true" /></p>
 <h3 id="step-2-ensure-riva-server-is-running">Step 2: Ensure Riva server is running<a class="headerlink" href="#step-2-ensure-riva-server-is-running" title="Permanent link">#</a></h3>
 <p>The Riva server must be running to use the LLM pipeline. If it is already running you can skip this step.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>&lt;riva<span class="w"> </span>install<span class="w"> </span>dir&gt;
@@ -18741,37 +18741,37 @@ Access the web interface at <code>https://127.0.0.1:8080</code>. Llama.cpp LLM s
 <p><strong>grammar:</strong> This is the BNF grammar used to constrain the models output. It can be a bit tricky to write. ChatGPT is great at writing these grammars for you if you give an example JSON of what you want. Also helpful, is the Llama.cpp <a href="https://github.com/ggerganov/llama.cpp/blob/master/grammars/README.md">BNF grammar guide</a>.</p>
 <p><strong>publish:</strong> The only important part of this field is the "ags" sub-field. This should be a list of your arg names. This is important as this is used as the list of keys to pull the relevant args from the LMM's response, and thus ensure the relevant fields are complete for a given tool use.</p>
 <p>For a specific example, please refer to the EHR Agent YAML file below:</p>
-<div class="highlight"><pre><span></span><code>description: This tool is used to search the patient&#39;s EHR in order to answer questions about the patient, or general questions about the patient&#39;s medical history.
-user_prefix: &quot;&lt;|im_start|&gt;user&quot;
-bot_prefix: &quot;&lt;|im_start|&gt;assistant&quot;
-bot_rule_prefix: &quot;&lt;|im_start|&gt;system&quot;
-end_token: &quot;&lt;|im_end|&gt;&quot;
-agent_prompt: |
-  You are NVIDIA&#39;s EHR Agent,your job is to assist surgeons as they prepare for surgery.
-  You are an expert when it comes to surgery and medical topics - and answer all questions to the best of your abilities.
-  The patient has signed consent for you to access and discuss all of their electronic records.
-  Be as concise as you can be with your answers.
+<div class="highlight"><pre><span></span><code><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">This tool is used to search the patient&#39;s EHR in order to answer questions about the patient, or general questions about the patient&#39;s medical history.</span>
+<span class="nt">user_prefix</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;&lt;|im_start|&gt;user&quot;</span>
+<span class="nt">bot_prefix</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;&lt;|im_start|&gt;assistant&quot;</span>
+<span class="nt">bot_rule_prefix</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;&lt;|im_start|&gt;system&quot;</span>
+<span class="nt">end_token</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;&lt;|im_end|&gt;&quot;</span>
+<span class="nt">agent_prompt</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">  </span><span class="no">You are NVIDIA&#39;s EHR Agent,your job is to assist surgeons as they prepare for surgery.</span>
+<span class="w">  </span><span class="no">You are an expert when it comes to surgery and medical topics - and answer all questions to the best of your abilities.</span>
+<span class="w">  </span><span class="no">The patient has signed consent for you to access and discuss all of their electronic records.</span>
+<span class="w">  </span><span class="no">Be as concise as you can be with your answers.</span>
 
-  You NEVER make-up information that isn&#39;t grounded in the provided medical documents.
+<span class="w">  </span><span class="no">You NEVER make-up information that isn&#39;t grounded in the provided medical documents.</span>
 
-  If applicable, include the relevant date (use sparingly)
-  The following medical documents may be helpful to answer the surgeon&#39;s question:
-  {documents}
-  Use your expert knowledge and the above context to answer the surgeon.
-# This is the request that the LLM replies to, where &#39;{text}&#39; indicates where the transcribed
-# text is inserted into the prompt
-request: &quot;{text}&quot;
+<span class="w">  </span><span class="no">If applicable, include the relevant date (use sparingly)</span>
+<span class="w">  </span><span class="no">The following medical documents may be helpful to answer the surgeon&#39;s question:</span>
+<span class="w">  </span><span class="no">{documents}</span>
+<span class="w">  </span><span class="no">Use your expert knowledge and the above context to answer the surgeon.</span>
+<span class="c1"># This is the request that the LLM replies to, where &#39;{text}&#39; indicates where the transcribed</span>
+<span class="c1"># text is inserted into the prompt</span>
+<span class="nt">request</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{text}&quot;</span>
 
-ctx_length: 256
+<span class="nt">ctx_length</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">256</span>
 
-grammar: |
-  space ::= &quot; &quot;?
-  string ::= &quot;\&quot;&quot; ([^&quot;\\])* &quot;\&quot;&quot; space 
-  root ::= &quot;{&quot; space &quot;\&quot;name\&quot;&quot; space &quot;:&quot; space &quot;\&quot;EHRAgent\&quot;&quot; space &quot;,&quot; space &quot;\&quot;response\&quot;&quot; space &quot;:&quot; space string &quot;}&quot; space
+<span class="nt">grammar</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">  </span><span class="no">space ::= &quot; &quot;?</span>
+<span class="w">  </span><span class="no">string ::= &quot;\&quot;&quot; ([^&quot;\\])* &quot;\&quot;&quot; space</span>
+<span class="w">  </span><span class="no">root ::= &quot;{&quot; space &quot;\&quot;name\&quot;&quot; space &quot;:&quot; space &quot;\&quot;EHRAgent\&quot;&quot; space &quot;,&quot; space &quot;\&quot;response\&quot;&quot; space &quot;:&quot; space string &quot;}&quot; space</span>
 
-publish:
-  ags:
-    - &quot;response&quot;
+<span class="nt">publish</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">ags</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;response&quot;</span>
 </code></pre></div>
 <p>With a complete YAML file, an agent should be able to use any new tool effectively. The only remaining step is ensure you have a ZeroMQ listener in the primary app with a topic that is the same as the tool's name.</p>
 <p>The <code>AgentFrameworkOp</code> is based on a ZeroMQ publish/subscribe pattern to send and receive messages from the Message Bus. It uses the <code>MessageReceiver</code> and <code>MessageSender</code> classes implemented in the <code>message_handling.py</code> Python script. The <code>MessageSender</code> creates a ZeroMQ PUB socket that binds to port 5555, accepts connections from any interface, and is used to broadcast messages and commands from the agent framework. It uses <code>send_json()</code> to send JSON-encoded messages with topics. A 0.1-second sleep on initialization prevents the "slow joiner" problem where early messages might be lost. The `MessageReceiver`` creates a ZeroMQ SUB socket connecting to port 5560 and uses receive_json() to get messages, with configurable blocking behavior.</p>

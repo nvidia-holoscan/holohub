@@ -18260,24 +18260,30 @@
 <p>This application demonstrates how different kinds of buffer connectors can
 impact the performance in terms of message latency. It uses Linux's
 <code>SCHED_DEADLINE</code> scheduler to ensure predictable timing for operators.</p>
-<p>The application consists of:
-- Two transmitter operators (PingTxOp) that generate ping messages at different rates
-- One receiver operator (PingRxOp) that processes messages from both transmitters
-- Optional async buffer connectors between transmitters and receiver
-- Earliest deadline first scheduling using Linux's <code>SCHED_DEADLINE</code> policy</p>
-<p>The application measures and logs:
-- Message latency from transmission to reception
-- Observed periods between messages
-- Performance impact of async buffer usage</p>
+<p>The application consists of:</p>
+<ul>
+<li>Two transmitter operators (PingTxOp) that generate ping messages at different rates</li>
+<li>One receiver operator (PingRxOp) that processes messages from both transmitters</li>
+<li>Optional async buffer connectors between transmitters and receiver</li>
+<li>Earliest deadline first scheduling using Linux's <code>SCHED_DEADLINE</code> policy</li>
+</ul>
+<p>The application measures and logs:</p>
+<ul>
+<li>Message latency from transmission to reception</li>
+<li>Observed periods between messages</li>
+<li>Performance impact of async buffer usage</li>
+</ul>
 <h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h2>
-<p>This application requires:
-1. Linux with <code>SCHED_DEADLINE</code> support
-2. Root privileges in the container because of <code>SCHED_DEADLINE</code>
-3. Holoscan SDK 3.5.0 or later</p>
+<p>This application requires:</p>
+<ol>
+<li>Linux with <code>SCHED_DEADLINE</code> support</li>
+<li>Root privileges in the container because of <code>SCHED_DEADLINE</code></li>
+<li>Holoscan SDK 3.5.0 or later</li>
+</ol>
 <h2 id="build-and-run-instructions">Build and Run Instructions<a class="headerlink" href="#build-and-run-instructions" title="Permanent link">#</a></h2>
 <p><strong>Note</strong>: Please make sure the following command is run before running the
 application:</p>
-<div class="highlight"><pre><span></span><code>sudo sysctl -w kernel.sched_rt_runtime_us=-1
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>sysctl<span class="w"> </span>-w<span class="w"> </span>kernel.sched_rt_runtime_us<span class="o">=</span>-1
 </code></pre></div>
 <p>To build and run the application:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Basic run with default settings (100 messages, no async buffer)</span>
@@ -18300,11 +18306,13 @@ required to run <code>SCHED_DEADLINE</code> application in a container.</p>
 <li><code>-y &lt;MS&gt;, --tx2-period &lt;MS&gt;</code>: Set TX2 period in milliseconds (default: 20, min: 15)</li>
 </ul>
 <h2 id="output">Output<a class="headerlink" href="#output" title="Permanent link">#</a></h2>
-<p>The application generates several CSV files:
-- <code>tx1.csv</code>: Latency measurements for TX1 messages
-- <code>tx2.csv</code>: Latency measurements for TX2 messages
-- <code>rx_in1_periods.csv</code>: Observed message intervals for RX input 1
-- <code>rx_in2_periods.csv</code>: Observed message intervals for RX input 2</p>
+<p>The application generates several CSV files:</p>
+<ul>
+<li><code>tx1.csv</code>: Latency measurements for TX1 messages</li>
+<li><code>tx2.csv</code>: Latency measurements for TX2 messages</li>
+<li><code>rx_in1_periods.csv</code>: Observed message intervals for RX input 1</li>
+<li><code>rx_in2_periods.csv</code>: Observed message intervals for RX input 2</li>
+</ul>
 
 
 

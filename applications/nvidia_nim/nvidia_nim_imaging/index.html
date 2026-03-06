@@ -18301,7 +18301,7 @@
 This sample application demonstrates using the Vista-3D NVIDIA Inference Microservice (NIM) in a Holoscan pipeline.</p>
 <p>The application instructs the Vista-3D NIM API to process the given dataset and downloads and extracts the results of a segmentation NRRD file onto a local directory.</p>
 <p>Visit <a href="https://build.nvidia.com">build.nvidia.com</a> to learn more about Vista-3D and generate an API key to use with this application.</p>
-<h3 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">#</a></h3>
+<h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">#</a></h2>
 <ol>
 <li>Add API key in <code>nvidia_nim.yaml</code></li>
 <li><code>./holohub run nvidia_nim_imaging</code></li>
@@ -18324,22 +18324,26 @@ This sample application demonstrates using the Vista-3D NVIDIA Inference Microse
 <h2 id="display-the-results">Display the Results<a class="headerlink" href="#display-the-results" title="Permanent link">#</a></h2>
 <p>In this section, we will show how to view the sample data and segmentation results returned from Vista-3D.</p>
 <ol>
-<li>Download 3D Slicer: https://download.slicer.org/</li>
-<li>Decompress and launch 3D Slicer
-   <div class="highlight"><pre><span></span><code>tar<span class="w"> </span>-xvzf<span class="w"> </span>Slicer-5.6.2-linux-amd64.tar.gz
-</code></pre></div></li>
-<li>Locate the sample data volume and the segmentation results in <code>build/nvidia_nim_imaging/applications/nvidia_nim/nvidia_nim_imaging</code>
-   <div class="highlight"><pre><span></span><code>drwxr-xr-x 3 user domain-users     4096 Jul  3 11:41 ./
+<li>Download 3D Slicer: <a href="https://download.slicer.org/">https://download.slicer.org/</a></li>
+<li>Decompress and launch 3D Slicer</li>
+</ol>
+<div class="highlight"><pre><span></span><code>tar<span class="w"> </span>-xvzf<span class="w"> </span>Slicer-5.6.2-linux-amd64.tar.gz
+</code></pre></div>
+<ol>
+<li>Locate the sample data volume and the segmentation results in <code>build/nvidia_nim_imaging/applications/nvidia_nim/nvidia_nim_imaging</code></li>
+</ol>
+<div class="highlight"><pre><span></span><code>drwxr-xr-x 3 user domain-users     4096 Jul  3 11:41 ./
 drwxr-xr-x 4 user domain-users     4096 Jul  3 11:40 ../
 -rw-r--r-- 1 user user         27263336 Jul 23 14:22 example-1_seg.nrrd
 -rw-r--r-- 1 user user         33037057 Jul 23 14:21 sample.nii.gz
-</code></pre></div></li>
+</code></pre></div>
+<ol>
 <li>In 3D Slicer, click <em>File</em>, <em>Add Data</em> and click <em>Choose File(s) to Add</em>.
    From the <em>Add Data into the scene</em> dialog, find and add the <code>sample.nii.gz</code> file and the <code>example-1_seg.nrrd</code> file.
    For the <code>sample.nrrd</code> file, select <em>Segmentation</em> and click <em>Ok</em>.
-   <img alt="" src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/nvidia_nim/nvidia_nim_imaging/assets/3d-slicer-1.png?raw=true" /></li>
+   <img alt="3D Slicer add data dialog" src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/nvidia_nim/nvidia_nim_imaging/assets/3d-slicer-1.png?raw=true" /></li>
 <li>3D Slicer shall display the volume and the segmentation results as shown below:
-   <img alt="" src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/nvidia_nim/nvidia_nim_imaging/assets/3d-slicer-2.png?raw=true" /></li>
+   <img alt="3D Slicer volume and segmentation display" src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/nvidia_nim/nvidia_nim_imaging/assets/3d-slicer-2.png?raw=true" /></li>
 </ol>
 
 

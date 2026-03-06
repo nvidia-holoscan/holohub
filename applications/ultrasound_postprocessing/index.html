@@ -18516,30 +18516,30 @@
 <h3 id="software">Software<a class="headerlink" href="#software" title="Permanent link">#</a></h3>
 <ul>
 <li>CUDA Driver R580 or later</li>
-<li>See additional HoloHub CLI prerequisites <a href="https://github.com/nvidia-holoscan/holohub?tab=readme-ov-file#software-prerequisites">here</a></li>
+<li>See additional HoloHub CLI prerequisites in the <a href="https://github.com/nvidia-holoscan/holohub?tab=readme-ov-file#software-prerequisites">HoloHub README software prerequisites section</a></li>
 </ul>
 <h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">#</a></h2>
-<p>First, clone this repository:
+<p>First, clone this repository:</p>
 <div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/nvidia-holoscan/holohub.git
-</code></pre></div></p>
+</code></pre></div>
 <p>Then, run the containerized application.</p>
-<p>To run the filter designer webpage for assembling filter pipelines and tuning filter parameters:
+<p>To run the filter designer webpage for assembling filter pipelines and tuning filter parameters:</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>ultrasound_postprocessing<span class="w"> </span>designer
-</code></pre></div></p>
-<p>To run a filter pipeline preset in real time with Holoscan SDK:
+</code></pre></div>
+<p>To run a filter pipeline preset in real time with Holoscan SDK:</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>ultrasound_postprocessing<span class="w"> </span>realtime
-</code></pre></div></p>
+</code></pre></div>
 <h2 id="install-and-run-with-python-packaging">Install and Run with Python Packaging<a class="headerlink" href="#install-and-run-with-python-packaging" title="Permanent link">#</a></h2>
 <p>As an alternative to HoloHub CLI, you can instead design and run filters with project Python entrypoints.</p>
-<p>Install this project with your Python package manager:
+<p>Install this project with your Python package manager:</p>
 <div class="highlight"><pre><span></span><code>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>git+ssh://github.com/nvidia-holoscan/holohub.git@main#subdirectory<span class="o">=</span>applications/ultrasound_postprocessing
-</code></pre></div></p>
-<p>Then run your application of choice:
+</code></pre></div>
+<p>Then run your application of choice:</p>
 <div class="highlight"><pre><span></span><code>python3<span class="w"> </span>-m<span class="w"> </span>streamlit<span class="w"> </span>run<span class="w"> </span>applications/ultrasound_postprocessing/ultra_post/app/streamlit_app.py
-</code></pre></div></p>
+</code></pre></div>
 <div class="highlight"><pre><span></span><code>python3<span class="w"> </span>-m<span class="w"> </span>ultra_post.app.holoscan_app<span class="w"> </span><span class="o">[</span>--uff<span class="w"> </span>path/to/myfile.uff<span class="o">]</span><span class="w"> </span><span class="o">[</span>--fps<span class="w"> </span><span class="m">10</span><span class="o">]</span>
 </code></pre></div>
-<p>The sample dataset used in this project is available at http://www.ustb.no/datasets.</p>
+<p>The sample dataset used in this project is available at <a href="https://www.ustb.no/ustb-datasets/">https://www.ustb.no/ustb-datasets/</a>.</p>
 <h2 id="key-concepts">Key Concepts<a class="headerlink" href="#key-concepts" title="Permanent link">#</a></h2>
 <h3 id="glossary">Glossary<a class="headerlink" href="#glossary" title="Permanent link">#</a></h3>
 <ul>

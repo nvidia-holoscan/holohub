@@ -18169,6 +18169,45 @@
   
 </li>
         
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#internal-only-repository-include" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Internal Only: Repository Include
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#approach-1-download-from-github" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Approach 1: Download from GitHub
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#approach-2-local-copy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Approach 2: Local Copy
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Approach 2: Local Copy">
+      <ul class="md-nav__list">
+        
           <li class="md-nav__item">
   <a href="#application-building" class="md-nav__link">
     <span class="md-ellipsis">
@@ -18752,8 +18791,8 @@
 <span class="nb">add_executable</span><span class="p">(</span><span class="o">${</span><span class="nv">PROJECT_NAME</span><span class="o">}</span><span class="w"> </span><span class="s">main.cpp</span><span class="p">)</span>
 
 <span class="c"># Link against Holohub libraries</span>
-<span class="nb">target_link_libraries</span><span class="p">(</span><span class="o">${</span><span class="nv">PROJECT_NAME</span><span class="o">}</span><span class="w"> </span>
-<span class="w">   </span><span class="s">PRIVATE</span><span class="w"> </span>
+<span class="nb">target_link_libraries</span><span class="p">(</span><span class="o">${</span><span class="nv">PROJECT_NAME</span><span class="o">}</span>
+<span class="w">   </span><span class="s">PRIVATE</span>
 <span class="w">   </span><span class="s">holoscan::core</span>
 <span class="w">   </span><span class="s">holoscan::aja</span>
 <span class="w">   </span><span class="p">)</span>
@@ -18777,9 +18816,9 @@
 </ul>
 <h4 id="operator-fetching-two-approaches-available">Operator Fetching - Two Approaches Available<a class="headerlink" href="#operator-fetching-two-approaches-available" title="Permanent link">#</a></h4>
 <p>The CMakeLists.txt provides two different approaches for including the <code>FetchHolohubOperator.cmake</code> utility:</p>
-<p><strong>Internal Only: Repository Include</strong>
+<h3 id="internal-only-repository-include">Internal Only: Repository Include<a class="headerlink" href="#internal-only-repository-include" title="Permanent link">#</a></h3>
 <div class="highlight"><pre><span></span><code><span class="nb">include</span><span class="p">(</span><span class="s">../../cmake/FetchHolohubOperator.cmake</span><span class="p">)</span>
-</code></pre></div></p>
+</code></pre></div>
 <ul>
 <li>✅ Simple and straightforward</li>
 <li>✅ Always uses the latest version from the repository</li>
@@ -18787,7 +18826,7 @@
 <li>❌ <strong>INTERNAL USE ONLY</strong> - Requires the application to be within the Holohub repository structure</li>
 <li>❌ Not suitable for external applications</li>
 </ul>
-<p><strong>Approach 1: Download from GitHub</strong>
+<h3 id="approach-1-download-from-github">Approach 1: Download from GitHub<a class="headerlink" href="#approach-1-download-from-github" title="Permanent link">#</a></h3>
 <div class="highlight"><pre><span></span><code><span class="w"> </span><span class="nb">set</span><span class="p">(</span><span class="s">FETCH_HOLOHUB_OPERATOR_URL</span><span class="w"> </span><span class="s2">&quot;https://raw.githubusercontent.com/nvidia-holoscan/holohub/refs/heads/main/cmake/FetchHolohubOperator.cmake&quot;</span><span class="p">)</span>
 <span class="w"> </span><span class="nb">set</span><span class="p">(</span><span class="s">FETCH_HOLOHUB_OPERATOR_LOCAL_PATH</span><span class="w"> </span><span class="s2">&quot;${CMAKE_CURRENT_BINARY_DIR}/FetchHolohubOperator.cmake&quot;</span><span class="p">)</span>
 <span class="w"> </span><span class="nb">if</span><span class="p">(</span><span class="s">NOT</span><span class="w"> </span><span class="s">EXISTS</span><span class="w"> </span><span class="o">${</span><span class="nv">FETCH_HOLOHUB_OPERATOR_LOCAL_PATH</span><span class="o">}</span><span class="p">)</span>
@@ -18802,7 +18841,7 @@
 <span class="w">      </span><span class="nb">endif</span><span class="p">()</span>
 <span class="w"> </span><span class="nb">endif</span><span class="p">()</span>
 <span class="w"> </span><span class="nb">include</span><span class="p">(</span><span class="o">${</span><span class="nv">FETCH_HOLOHUB_OPERATOR_LOCAL_PATH</span><span class="o">}</span><span class="p">)</span>
-</code></pre></div></p>
+</code></pre></div>
 <ul>
 <li>✅ Completely independent of repository structure</li>
 <li>✅ Works for truly external applications</li>
@@ -18810,9 +18849,9 @@
 <li>❌ Requires internet connection during build</li>
 <li>❌ Depends on GitHub availability</li>
 </ul>
-<p><strong>Approach 2: Local Copy</strong>
+<h3 id="approach-2-local-copy">Approach 2: Local Copy<a class="headerlink" href="#approach-2-local-copy" title="Permanent link">#</a></h3>
 <div class="highlight"><pre><span></span><code><span class="w"> </span><span class="nb">include</span><span class="p">(</span><span class="o">${</span><span class="nv">CMAKE_CURRENT_SOURCE_DIR</span><span class="o">}</span><span class="s">/FetchHolohubOperator.cmake</span><span class="p">)</span>
-</code></pre></div></p>
+</code></pre></div>
 <ul>
 <li>✅ Complete independence from repository structure</li>
 <li>✅ No internet dependency during build</li>
@@ -18820,16 +18859,16 @@
 <li>❌ Requires manual file copying</li>
 <li>❌ Need to manually update when new versions are released</li>
 </ul>
-<p><strong>Usage:</strong>
+<p><strong>Usage:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="nb">fetch_holohub_operator</span><span class="p">(</span><span class="s">aja_source</span><span class="p">)</span>
-</code></pre></div></p>
+</code></pre></div>
 <ul>
 <li>Downloads the <code>aja_source</code> operator from Holohub using sparse checkout</li>
 </ul>
 <h4 id="application-building">Application Building<a class="headerlink" href="#application-building" title="Permanent link">#</a></h4>
 <div class="highlight"><pre><span></span><code><span class="nb">add_executable</span><span class="p">(</span><span class="o">${</span><span class="nv">PROJECT_NAME</span><span class="o">}</span><span class="w"> </span><span class="s">main.cpp</span><span class="p">)</span>
-<span class="nb">target_link_libraries</span><span class="p">(</span><span class="o">${</span><span class="nv">PROJECT_NAME</span><span class="o">}</span><span class="w"> </span>
-<span class="w">   </span><span class="s">PRIVATE</span><span class="w"> </span>
+<span class="nb">target_link_libraries</span><span class="p">(</span><span class="o">${</span><span class="nv">PROJECT_NAME</span><span class="o">}</span>
+<span class="w">   </span><span class="s">PRIVATE</span>
 <span class="w">   </span><span class="s">holoscan::core</span>
 <span class="w">   </span><span class="s">holoscan::aja</span>
 <span class="w">   </span><span class="p">)</span>
@@ -18983,7 +19022,7 @@ python3<span class="w"> </span>../main.py
     <span class="n">main</span><span class="p">()</span>
 </code></pre></div>
 <h4 id="python-bindings-location">Python Bindings Location<a class="headerlink" href="#python-bindings-location" title="Permanent link">#</a></h4>
-<p>The Python modules are built and installed in the following structure:
+<p>The Python modules are built and installed in the following structure:</p>
 <div class="highlight"><pre><span></span><code>build/
 ├── python/
 │   └── lib/
@@ -18991,7 +19030,7 @@ python3<span class="w"> </span>../main.py
 │           ├── __init__.py
 │           ├── aja_source.py
 │           └── ... (other operator modules)
-</code></pre></div></p>
+</code></pre></div>
 <h4 id="troubleshooting-python-bindings">Troubleshooting Python Bindings<a class="headerlink" href="#troubleshooting-python-bindings" title="Permanent link">#</a></h4>
 <ol>
 <li><strong>Module not found errors</strong>: Ensure <code>PYTHONPATH</code> is set correctly</li>
@@ -19018,8 +19057,8 @@ python3<span class="w"> </span>../main.py
 <span class="nb">fetch_holohub_operator</span><span class="p">(</span><span class="s">tensor_rt_inference</span><span class="p">)</span>
 
 <span class="c"># Link against all required libraries</span>
-<span class="nb">target_link_libraries</span><span class="p">(</span><span class="o">${</span><span class="nv">PROJECT_NAME</span><span class="o">}</span><span class="w"> </span>
-<span class="w">   </span><span class="s">PRIVATE</span><span class="w"> </span>
+<span class="nb">target_link_libraries</span><span class="p">(</span><span class="o">${</span><span class="nv">PROJECT_NAME</span><span class="o">}</span>
+<span class="w">   </span><span class="s">PRIVATE</span>
 <span class="w">   </span><span class="s">holoscan::core</span>
 <span class="w">   </span><span class="s">holoscan::aja</span>
 <span class="w">   </span><span class="s">holoscan::format_converter</span>
@@ -19037,12 +19076,12 @@ python3<span class="w"> </span>../main.py
 <h3 id="applying-patches-to-operators">Applying Patches to Operators<a class="headerlink" href="#applying-patches-to-operators" title="Permanent link">#</a></h3>
 <p>You can apply custom patches to operators using the <code>PATCH_COMMAND</code> parameter:</p>
 <div class="highlight"><pre><span></span><code><span class="c"># Apply a patch file</span>
-<span class="nb">fetch_holohub_operator</span><span class="p">(</span><span class="s">aja_source</span><span class="w"> </span>
+<span class="nb">fetch_holohub_operator</span><span class="p">(</span><span class="s">aja_source</span>
 <span class="w">    </span><span class="s">PATCH_COMMAND</span><span class="w"> </span><span class="s">git</span><span class="w"> </span><span class="s">apply</span><span class="w"> </span><span class="o">${</span><span class="nv">CMAKE_CURRENT_SOURCE_DIR</span><span class="o">}</span><span class="s">/fix.patch</span>
 <span class="p">)</span>
 </code></pre></div>
 <p><strong>Note</strong>: If applying patches created from older commits, you may need to fetch full git history:</p>
-<div class="highlight"><pre><span></span><code><span class="nb">fetch_holohub_operator</span><span class="p">(</span><span class="s">aja_source</span><span class="w"> </span>
+<div class="highlight"><pre><span></span><code><span class="nb">fetch_holohub_operator</span><span class="p">(</span><span class="s">aja_source</span>
 <span class="w">    </span><span class="s">DEPTH</span><span class="w"> </span><span class="s">0</span>
 <span class="w">    </span><span class="s">PATCH_COMMAND</span><span class="w"> </span><span class="s">git</span><span class="w"> </span><span class="s">apply</span><span class="w"> </span><span class="o">${</span><span class="nv">CMAKE_CURRENT_SOURCE_DIR</span><span class="o">}</span><span class="s">/fix.patch</span>
 <span class="p">)</span>
@@ -19050,22 +19089,30 @@ python3<span class="w"> </span>../main.py
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h2>
 <h3 id="common-issues">Common Issues<a class="headerlink" href="#common-issues" title="Permanent link">#</a></h3>
 <ol>
-<li><strong>CMake can't find Holoscan</strong></li>
-<li>Ensure Holoscan SDK is properly installed</li>
+<li>
+<p><strong>CMake can't find Holoscan</strong></p>
+</li>
+<li>
+<p>Ensure Holoscan SDK is properly installed</p>
+</li>
 <li>
 <p>Set <code>CMAKE_PREFIX_PATH</code> to point to your Holoscan installation</p>
 </li>
 <li>
 <p><strong>Operator not found</strong></p>
 </li>
-<li>Verify the operator name exists in the Holohub repository</li>
+<li>
+<p>Verify the operator name exists in the Holohub repository</p>
+</li>
 <li>
 <p>Check the correct path if the operator is in a subdirectory</p>
 </li>
 <li>
 <p><strong>Linking errors</strong></p>
 </li>
-<li>Ensure you're linking against the correct Holohub libraries</li>
+<li>
+<p>Ensure you're linking against the correct Holohub libraries</p>
+</li>
 <li>Check that the operator dependencies are satisfied</li>
 </ol>
 <h3 id="debug-information">Debug Information<a class="headerlink" href="#debug-information" title="Permanent link">#</a></h3>
@@ -19127,11 +19174,13 @@ cmake
 <li><strong>Development Tools</strong>: Various utilities for Holohub development</li>
 </ul>
 <h3 id="environment-setup">Environment Setup<a class="headerlink" href="#environment-setup" title="Permanent link">#</a></h3>
-<p>The CLI script automatically handles:
-- Setting up the correct Python path
-- Managing Docker options (if using Docker)
-- Configuring environment variables
-- Fetching necessary utilities from the Holohub repository</p>
+<p>The CLI script automatically handles:</p>
+<ul>
+<li>Setting up the correct Python path</li>
+<li>Managing Docker options (if using Docker)</li>
+<li>Configuring environment variables</li>
+<li>Fetching necessary utilities from the Holohub repository</li>
+</ul>
 <h3 id="benefits-for-external-projects">Benefits for External Projects<a class="headerlink" href="#benefits-for-external-projects" title="Permanent link">#</a></h3>
 <p>Using the Holohub CLI in your external project provides:</p>
 <ol>

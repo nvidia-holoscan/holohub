@@ -18246,11 +18246,11 @@
 <h2 id="yaml-configuration">YAML Configuration<a class="headerlink" href="#yaml-configuration" title="Permanent link">#</a></h2>
 <p>The input (either audio or video file), specific Whisper model (tiny, small, medium, or large), LLM model, and directions for the LLM are all determined by the <code>stt_to_nlp.yaml</code> file. As you see from our example, the directions for the LLM are made via natural language, and can result in very different applications.</p>
 <p>For our purposes we specify the directions as:</p>
-<div class="highlight"><pre><span></span><code>  context: &#39;Make summary of the transcript (and correct any transcription errors in CAPS).\n Create a Patient Summary with no medical jargon. \n 
-  Create a full radiological report write-up. \n Give likely ICD-10 Codes \n Suggested follow-up steps.&#39;
+<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="nt">context</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;Make</span><span class="nv"> </span><span class="s">summary</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">transcript</span><span class="nv"> </span><span class="s">(and</span><span class="nv"> </span><span class="s">correct</span><span class="nv"> </span><span class="s">any</span><span class="nv"> </span><span class="s">transcription</span><span class="nv"> </span><span class="s">errors</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">CAPS).\n</span><span class="nv"> </span><span class="s">Create</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">Patient</span><span class="nv"> </span><span class="s">Summary</span><span class="nv"> </span><span class="s">with</span><span class="nv"> </span><span class="s">no</span><span class="nv"> </span><span class="s">medical</span><span class="nv"> </span><span class="s">jargon.</span><span class="nv"> </span><span class="s">\n</span>
+<span class="w">  </span><span class="s">Create</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">full</span><span class="nv"> </span><span class="s">radiological</span><span class="nv"> </span><span class="s">report</span><span class="nv"> </span><span class="s">write-up.</span><span class="nv"> </span><span class="s">\n</span><span class="nv"> </span><span class="s">Give</span><span class="nv"> </span><span class="s">likely</span><span class="nv"> </span><span class="s">ICD-10</span><span class="nv"> </span><span class="s">Codes</span><span class="nv"> </span><span class="s">\n</span><span class="nv"> </span><span class="s">Suggested</span><span class="nv"> </span><span class="s">follow-up</span><span class="nv"> </span><span class="s">steps.&#39;</span>
 </code></pre></div>
 <p>This results in the following output from the LLM:</p>
-<div class="highlight"><pre><span></span><code>LLM Response: 
+<div class="highlight"><pre><span></span><code>LLM Response:
  Summary of Transcript:
 The patient has full thickness wear on the dorsal half of the second metatarsal head with reactive bone marrow edema and capsulitis. There is also second web space bursitis and a third web space neuroma. The 51-year-old male has multiple gallbladder polyps, with the largest measuring 1.9 x 2 cm, 1.7 x 1.7 cm in the mid portion, and 1.6 x 1.6 cm distally. Other smaller polyps are also present.
 
@@ -18293,7 +18293,7 @@ Suggested Follow-up Steps:
 <li>Run the application</li>
 </ul>
 <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="nv">$PYTHONPATH</span>:&lt;HOLOSCAN_INSTALL_DIR&gt;/python/lib:&lt;HOLOHUB_BUILD_DIR&gt;/python/lib
-<span class="nb">cd</span><span class="w"> </span>applications/speech_to_text_llm<span class="w"> </span>
+<span class="nb">cd</span><span class="w"> </span>applications/speech_to_text_llm
 python3<span class="w"> </span>stt_to_nlp.py
 </code></pre></div>
 <h2 id="sample-audio-file">Sample Audio File<a class="headerlink" href="#sample-audio-file" title="Permanent link">#</a></h2>

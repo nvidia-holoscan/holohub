@@ -7259,8 +7259,8 @@
 </nav>
 <h1 id="a-study-using-asynchronous-lock-free-buffer-with-sched_deadline"><a href="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/async_buffer_deadline_tutorial">A Study using Asynchronous Lock-free Buffer with SCHED_DEADLINE</a><a class="headerlink" href="#a-study-using-asynchronous-lock-free-buffer-with-sched_deadline" title="Permanent link">#</a></h1>
 <p><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"></path></svg></span> <strong>Authors:</strong> Holoscan Team (NVIDIA)<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"></path></svg></span> <strong>Supported platforms:</strong> x86_64, aarch64<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"></path><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"></path></svg></span> <strong>Last modified:</strong> November 25, 2025<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"></path><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"></path></svg></span> <strong>Latest version:</strong> 1.0.0<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"></path><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"></path><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"></path></svg></span> <strong>Minimum Holoscan SDK version:</strong> 3.5.0<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"></path></svg></span> <strong>Tested Holoscan SDK versions:</strong> 3.5.0<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"></path></svg></span> <strong>Contribution metric:</strong> Level 3 - Developmental<br/><br/></p>
-<p>This tutorial demonstrates the impact of using an 
-<a href="https://docs.nvidia.com/holoscan/sdk-user-guide/api/cpp/classholoscan_1_1fragment.html#exhale-class-classholoscan-1-1fragment:~:text=Add%20a%20flow%20between%20two%20operators%20with%20a%20connector%20type.">asynchronous lock-free buffer</a> 
+<p>This tutorial demonstrates the impact of using an
+<a href="https://docs.nvidia.com/holoscan/sdk-user-guide/api/cpp/classholoscan_1_1fragment.html#exhale-class-classholoscan-1-1fragment:~:text=Add%20a%20flow%20between%20two%20operators%20with%20a%20connector%20type.">asynchronous lock-free buffer</a>
 with
 <code>SCHED_DEADLINE</code> scheduling policy in Linux on the message latency in a Holoscan
 SDK application and compares it with the default buffer.</p>
@@ -7287,7 +7287,7 @@ buffer (<code>DoubleBuffer</code>) or an async lock-free buffer.</p>
 <p>Application-specific run instructions are provided in the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/async_buffer_deadline">application
 directory</a>.</p>
 <p>The following is an example application run instruction:</p>
-<div class="highlight"><pre><span></span><code>./holohub run async_buffer_deadline_tutorial --as-root --docker-opts='--ulimit rtprio=99 --cap-add=CAP_SYS_NICE'
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>async_buffer_deadline_tutorial<span class="w"> </span>--as-root<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s1">'--ulimit rtprio=99 --cap-add=CAP_SYS_NICE'</span>
 </code></pre></div>
 <p>We need to run the application with root privileges and other flags as
 <code>SCHED_DEADLINE</code> Linux scheduling policy requires those flags.</p>
@@ -7301,11 +7301,13 @@ directory</a>.</p>
 <p>The experiment demonstrates how an async lock-free buffer can allow Holoscan SDK
 operators to be run with different <code>SCHED_DEADLINE</code> periods independently
 without being affected by each other's periods or runtimes.</p>
-<p>We measure two key metrics:
-- <strong>Max Message Latency</strong>: The highest latency observed for messages being
-  generated at <code>tx1</code> (or at <code>tx2</code>) and then received at <code>rx</code>.
-- <strong>Max Message Interval</strong>: The longest time interval between two consecutive
-  messages from <code>tx1</code> (or from <code>tx2</code>) and then received at <code>rx</code>.</p>
+<p>We measure two key metrics:</p>
+<ul>
+<li><strong>Max Message Latency</strong>: The highest latency observed for messages being
+  generated at <code>tx1</code> (or at <code>tx2</code>) and then received at <code>rx</code>.</li>
+<li><strong>Max Message Interval</strong>: The longest time interval between two consecutive
+  messages from <code>tx1</code> (or from <code>tx2</code>) and then received at <code>rx</code>.</li>
+</ul>
 <p>We run two main scenarios with fixed <code>rx</code> period of 10ms:</p>
 <ol>
 <li>
@@ -7338,7 +7340,7 @@ they are decoupled enabling true asynchronous execution of the operators.</p>
 <p>With the default buffer, as <code>tx2</code>'s period increases, <code>tx1</code>'s maximum latency
 also increases linearly. Since <code>rx</code> cannot run before both the upstream
 operators (<code>tx1</code> and <code>tx2</code>) have written messages for it, the latency of <code>tx1</code>
-is affected by <code>tx2</code>. With the async lock-free buffer, <code>tx1</code>'s latency 
+is affected by <code>tx2</code>. With the async lock-free buffer, <code>tx1</code>'s latency
 remains consistent and low, regardless of <code>tx2</code>'s period. Therefore, async
 lock-free buffer unlocks independent connection between <code>tx1</code> and <code>rx</code>
 irrespective of the behavior of <code>tx2</code>.</p>
@@ -7355,33 +7357,37 @@ The async lock-free buffer keeps the interval stable.</p>
 <p>The message interval for <code>tx2</code> (at the <code>in2</code> port of <code>rx</code>) remains stable with the async lock-free buffer, independent of <code>tx1</code>'s period.</p>
 <h3 id="conclusion-and-guidance">Conclusion and Guidance<a class="headerlink" href="#conclusion-and-guidance" title="Permanent link">#</a></h3>
 <p>The asynchronous lock-free buffer connection between operators enables true
-independent execution when using <code>SCHED_DEADLINE</code> Linux scheduling policy. 
-This buffer type allows each operator to maintain its specified runtime and 
+independent execution when using <code>SCHED_DEADLINE</code> Linux scheduling policy.
+This buffer type allows each operator to maintain its specified runtime and
 period without interference from other operators in the pipeline.</p>
-<p><strong>Key Insights:</strong>
-- <strong>With async lock-free buffer</strong>: Operators run independently with their 
-  configured <code>SCHED_DEADLINE</code> runtime and periods, achieving predictable real-time performance
-- <strong>With default buffer (DoubleBuffer)</strong>: Operators become coupled, where one 
-  operator's performance can be impacted by another operator's 
-  behavior, even when <code>SCHED_DEADLINE</code> policy is applied</p>
-<p><strong>Developer Recommendations:</strong>
-1. <strong>Use async lock-free buffers</strong> when implementing soft real-time applications 
-   with <code>SCHED_DEADLINE</code> scheduling to ensure predictable operator performance
-2. <strong>Avoid default buffers</strong> in <code>SCHED_DEADLINE</code> scenarios where operator 
-   independence is critical for meeting real-time constraints
-3. <strong>Using default buffer with <code>SCHED_DEADLINE</code> policy</strong> means satisfying both
+<p><strong>Key Insights:</strong></p>
+<ul>
+<li><strong>With async lock-free buffer</strong>: Operators run independently with their
+  configured <code>SCHED_DEADLINE</code> runtime and periods, achieving predictable real-time performance</li>
+<li><strong>With default buffer (DoubleBuffer)</strong>: Operators become coupled, where one
+  operator's performance can be impacted by another operator's
+  behavior, even when <code>SCHED_DEADLINE</code> policy is applied</li>
+</ul>
+<p><strong>Developer Recommendations:</strong></p>
+<ol>
+<li><strong>Use async lock-free buffers</strong> when implementing soft real-time applications
+   with <code>SCHED_DEADLINE</code> scheduling to ensure predictable operator performance</li>
+<li><strong>Avoid default buffers</strong> in <code>SCHED_DEADLINE</code> scenarios where operator
+   independence is critical for meeting real-time constraints</li>
+<li><strong>Using default buffer with <code>SCHED_DEADLINE</code> policy</strong> means satisfying both
    the constraints of the double buffer and periodic execution of
-   <code>SCHED_DEADLINE</code>. Depending on the application, this may not be desirable.
-4. <strong>Using <code>SCHED_DEADLINE</code> for a chosen few operators</strong> (for example, source
+   <code>SCHED_DEADLINE</code>. Depending on the application, this may not be desirable.</li>
+<li><strong>Using <code>SCHED_DEADLINE</code> for a chosen few operators</strong> (for example, source
    operators in a DAG) along with default
    buffer may provide a good balance because this provides predictable execution
    for chosen few <code>SCHED_DEADLINE</code> operators while allowing applications to run
-   normally otherwise.
-3. <strong>Test both buffer types</strong> during development to understand the performance 
+   normally otherwise.</li>
+<li><strong>Test both buffer types</strong> during development to understand the performance
    implications in your specific use case, especially when using <code>SCHED_DEADLINE</code>
-   policy
-4. <strong>Monitor message latency and intervals</strong> to verify that operators maintain 
-   their intended timing characteristics</p>
+   policy</li>
+<li><strong>Monitor message latency and intervals</strong> to verify that operators maintain
+   their intended timing characteristics</li>
+</ol>
 </article>
 </div>
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>

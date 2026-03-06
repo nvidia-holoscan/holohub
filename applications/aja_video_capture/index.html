@@ -18234,12 +18234,10 @@
 </code></pre></div>
 <h2 id="settings">Settings<a class="headerlink" href="#settings" title="Permanent link">#</a></h2>
 <p>To evaluate the AJA example using alternative resolutions, you may modify the aja_capture.yaml configuration file as needed. For instance, to test a resolution format of 1280 x 720 at 60 Hz, you can specify the following parameters in the aja section of the configuration :</p>
-<div class="highlight"><pre><span></span><code>```bash
-  aja:
-    width: 1280
-    height: 720
-    framerate: 60
-```
+<div class="highlight"><pre><span></span><code><span class="nt">aja</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">width</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1280</span>
+<span class="w">  </span><span class="nt">height</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">720</span>
+<span class="w">  </span><span class="nt">framerate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">60</span>
 </code></pre></div>
 <h2 id="migration-notes">Migration Notes<a class="headerlink" href="#migration-notes" title="Permanent link">#</a></h2>
 <p>Holoscan SDK AJA support is migrated from the core Holoscan SDK library to the HoloHub community repository in Holoscan SDK v3.0.0.

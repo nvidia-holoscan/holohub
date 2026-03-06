@@ -18154,10 +18154,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#dpdk" class="md-nav__link">
+  <a href="#dpdk-build" class="md-nav__link">
     <span class="md-ellipsis">
       
-        DPDK
+        DPDK (build)
       
     </span>
   </a>
@@ -18165,10 +18165,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#gpunetio" class="md-nav__link">
+  <a href="#gpunetio-build" class="md-nav__link">
     <span class="md-ellipsis">
       
-        GPUNetIO
+        GPUNetIO (build)
       
     </span>
   </a>
@@ -18176,10 +18176,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#rivermax" class="md-nav__link">
+  <a href="#rivermax-build" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Rivermax
+        Rivermax (build)
       
     </span>
   </a>
@@ -18204,10 +18204,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#dpdk_1" class="md-nav__link">
+  <a href="#dpdk-run" class="md-nav__link">
     <span class="md-ellipsis">
       
-        DPDK
+        DPDK (run)
       
     </span>
   </a>
@@ -18215,10 +18215,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#gpunetio_1" class="md-nav__link">
+  <a href="#gpunetio-run" class="md-nav__link">
     <span class="md-ellipsis">
       
-        GPUNetIO
+        GPUNetIO (run)
       
     </span>
   </a>
@@ -18226,10 +18226,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#rivermax_1" class="md-nav__link">
+  <a href="#rivermax-run" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Rivermax
+        Rivermax (run)
       
     </span>
   </a>
@@ -18401,8 +18401,8 @@ the buffers. While only freeing the packets is an unrealistic workload, it's use
 the application is able to keep up with the bare minimum amount of work to do. The application contains both a
 transmitter and receiver that are designed to run on different systems, and may be configured independently.</p>
 <p>The performance of this application depends heavily on a properly-configured system and choosing the best
-tuning parameters that are acceptable for the workload. To configure the system please see the documentation
-<a href="../../tutorials/high_performance_networking/">here</a>. With the system tuned, the application performance
+tuning parameters that are acceptable for the workload. To configure the system please see the
+<a href="../../tutorials/high_performance_networking/">High Performance Networking documentation</a>. With the system tuned, the application performance
 will be dictated by batching size and whether GPUDirect is enabled.</p>
 <p>At this time both the transmitter and receiver are written to handle an Ethernet+IP+UDP packet with a
 configurable payload. Other modes may be added in the future. Also, for simplicity, the transmitter and
@@ -18413,14 +18413,16 @@ size configured dictates how many packets the benchmark operator sends to the NI
 the same number of CPU cores the transmitter will run faster than the receiver, so this parameter may be used
 to throttle the sender somewhat by making the batches very small.</p>
 <h2 id="receiver">Receiver<a class="headerlink" href="#receiver" title="Permanent link">#</a></h2>
-<p>The receiver receives the UDP packets in either CPU-only mode, header-data split mode, or GPU-only mode.
-- CPU-only mode will receive the packets in CPU memory, copy the payload contents to a host-pinned staging buffer,
-  and free the buffers.
-- Header-data split mode: the user may configure separate memory regions for the header and data. The header is
+<p>The receiver receives the UDP packets in either CPU-only mode, header-data split mode, or GPU-only mode.</p>
+<ul>
+<li>CPU-only mode will receive the packets in CPU memory, copy the payload contents to a host-pinned staging buffer,
+  and free the buffers.</li>
+<li>Header-data split mode: the user may configure separate memory regions for the header and data. The header is
   sent to the CPU, and all bytes afterwards are sent to the GPU. Header-data split should achieve higher
   rates than CPU mode since the amount of data to the CPU can be orders of magnitude lower compared to running
-  in CPU-only mode.
-- GPU-only mode: all bytes of the packets are received in GPU memory.</p>
+  in CPU-only mode.</li>
+<li>GPU-only mode: all bytes of the packets are received in GPU memory.</li>
+</ul>
 <h3 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">#</a></h3>
 <p>The application can be configured to do either Rx, Tx, or both, using different configuration files,
 found in this directory.</p>
@@ -18446,17 +18448,17 @@ found in this directory.</p>
 <h3 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h3>
 <p>This application requires all configuration and requirements from the <a href="../../operators/advanced_network/">Advanced Network library</a> first.</p>
 <h3 id="build-instructions">Build Instructions<a class="headerlink" href="#build-instructions" title="Permanent link">#</a></h3>
-<h4 id="dpdk">DPDK<a class="headerlink" href="#dpdk" title="Permanent link">#</a></h4>
+<h4 id="dpdk-build">DPDK (build)<a class="headerlink" href="#dpdk-build" title="Permanent link">#</a></h4>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>adv_networking_bench<span class="w"> </span>--language<span class="o">=</span>cpp
 </code></pre></div>
-<h4 id="gpunetio">GPUNetIO<a class="headerlink" href="#gpunetio" title="Permanent link">#</a></h4>
+<h4 id="gpunetio-build">GPUNetIO (build)<a class="headerlink" href="#gpunetio-build" title="Permanent link">#</a></h4>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>adv_networking_bench<span class="w"> </span>--language<span class="o">=</span>cpp<span class="w"> </span>--build-args<span class="o">=</span><span class="s2">&quot;--target gpunetio&quot;</span><span class="w"> </span>--configure-args<span class="o">=</span><span class="s2">&quot;-D ANO_MGR:STRING=gpunetio&quot;</span>
 </code></pre></div>
-<h4 id="rivermax">Rivermax<a class="headerlink" href="#rivermax" title="Permanent link">#</a></h4>
+<h4 id="rivermax-build">Rivermax (build)<a class="headerlink" href="#rivermax-build" title="Permanent link">#</a></h4>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>adv_networking_bench<span class="w"> </span>--language<span class="o">=</span>cpp<span class="w"> </span>--build-args<span class="o">=</span><span class="s2">&quot;--target rivermax&quot;</span><span class="w"> </span>--configure-args<span class="o">=</span><span class="s2">&quot;-D ANO_MGR:STRING=rivermax&quot;</span>
 </code></pre></div>
 <h3 id="run-instructions">Run Instructions<a class="headerlink" href="#run-instructions" title="Permanent link">#</a></h3>
-<h4 id="dpdk_1">DPDK<a class="headerlink" href="#dpdk_1" title="Permanent link">#</a></h4>
+<h4 id="dpdk-run">DPDK (run)<a class="headerlink" href="#dpdk-run" title="Permanent link">#</a></h4>
 <p>First, edit the <code>adv_networking_bench_default_tx_rx.yaml</code> file to set the <code>eth_dst_addr</code> and <code>address</code> fields (fields with the <code>&lt;&gt;</code> placeholders) based on your system interfaces.</p>
 <p>Then:</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>adv_networking_bench<span class="w"> </span>--docker-opts<span class="w"> </span><span class="s2">&quot;-u root --privileged&quot;</span><span class="w"> </span>--language<span class="w"> </span>cpp
@@ -18475,7 +18477,7 @@ found in this directory.</p>
 <span class="c1"># Run with another configuration</span>
 ./build/adv_networking_bench/applications/adv_networking_bench/cpp/adv_networking_bench<span class="w"> </span>adv_networking_bench_default_rx_multi_q.yaml
 </code></pre></div>
-<h4 id="gpunetio_1">GPUNetIO<a class="headerlink" href="#gpunetio_1" title="Permanent link">#</a></h4>
+<h4 id="gpunetio-run">GPUNetIO (run)<a class="headerlink" href="#gpunetio-run" title="Permanent link">#</a></h4>
 <div class="highlight"><pre><span></span><code><span class="c1"># Ensure the gdrdrv kernel module is loaded on the system</span>
 lsmod<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>gdrdrv
 
@@ -18495,7 +18497,7 @@ lsmod<span class="w"> </span><span class="p">|</span><span class="w"> </span>gre
 <span class="c1"># Run with GPUNetIO configuration</span>
 ./build/adv_networking_bench/applications/adv_networking_bench/cpp/adv_networking_bench<span class="w"> </span>adv_networking_bench_gpunetio_tx_rx.yaml
 </code></pre></div>
-<h4 id="rivermax_1">Rivermax<a class="headerlink" href="#rivermax_1" title="Permanent link">#</a></h4>
+<h4 id="rivermax-run">Rivermax (run)<a class="headerlink" href="#rivermax-run" title="Permanent link">#</a></h4>
 <div class="highlight"><pre><span></span><code><span class="c1"># Start the container with the right target and the license file</span>
 ./holohub<span class="w"> </span>run-container<span class="w"> </span>adv_networking_bench<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--language<span class="o">=</span>cpp<span class="w"> </span><span class="se">\</span>

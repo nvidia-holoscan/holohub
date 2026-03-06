@@ -18615,20 +18615,24 @@
 <p>This design ensures that any performance difference is due to Green Context partitioning, not simply moving off the default stream.</p>
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">#</a></h2>
 <h3 id="basic-usage">Basic Usage<a class="headerlink" href="#basic-usage" title="Permanent link">#</a></h3>
-<p><strong>Default (older GPUs and Orin systems):</strong>
+<p><strong>Default (older GPUs and Orin systems):</strong></p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>green_context_benchmarking<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">&quot;--user root&quot;</span>
-</code></pre></div></p>
-<p><strong>Modern GPUs and Jetson Thor:</strong>
+</code></pre></div>
+<p><strong>Modern GPUs and Jetson Thor:</strong></p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>green_context_benchmarking<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">&quot;--user root&quot;</span><span class="w"> </span>--base-img<span class="o">=</span>nvcr.io/nvidia/clara-holoscan/holoscan:v3.6.1-cuda13-dgpu
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="gpu-compatibility">GPU Compatibility<a class="headerlink" href="#gpu-compatibility" title="Permanent link">#</a></h3>
-<p><strong>Use default command for:</strong>
-- Older GPUs (compute capability &lt; 7.0, e.g., GTX 1080, GTX 1060, etc.)
-- NVIDIA IGX/Jetson Orin systems
-  If your system has a CUDA version <code>&lt; 13</code>, then you can use the default command as well.</p>
-<p><strong>Use v3.6.1-cuda13 image for:</strong>
-- Modern GPUs (compute capability ≥ 7.0, e.g., RTX 2080, RTX 3080, RTX 4090, RTX 6000 Ada Generation)
-- NVIDIA IGX/Jetson Thor systems</p>
+<p><strong>Use default command for:</strong></p>
+<ul>
+<li>Older GPUs (compute capability &lt; 7.0, e.g., GTX 1080, GTX 1060, etc.)</li>
+<li>NVIDIA IGX/Jetson Orin systems
+  If your system has a CUDA version <code>&lt; 13</code>, then you can use the default command as well.</li>
+</ul>
+<p><strong>Use v3.6.1-cuda13 image for:</strong></p>
+<ul>
+<li>Modern GPUs (compute capability ≥ 7.0, e.g., RTX 2080, RTX 3080, RTX 4090, RTX 6000 Ada Generation)</li>
+<li>NVIDIA IGX/Jetson Thor systems</li>
+</ul>
 <p><strong>Note</strong>: CUDA 13.x does not support older GPU architectures (compute capability &lt; 7.0). If you encounter <code>nvcc fatal : Unsupported gpu architecture 'compute_XX'</code> errors, use the default command instead.</p>
 <h3 id="command-line-options">Command Line Options<a class="headerlink" href="#command-line-options" title="Permanent link">#</a></h3>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>green_context_benchmarking<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">&quot;--user root&quot;</span><span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;[OPTIONS]&quot;</span>
@@ -18804,12 +18808,14 @@ Dummy Load Execution Time Statistics
 </tbody>
 </table>
 <h3 id="detailed-results-by-platform">Detailed Results by Platform<a class="headerlink" href="#detailed-results-by-platform" title="Permanent link">#</a></h3>
-<p><strong>Performance Matrix Parameter Mapping</strong>:
-- <strong>Load Int</strong> → <code>--load-intensity</code>
-- <strong>Size (MB)</strong> → <code>--workload-size</code>
-- <strong>Threads/Block</strong> → <code>--threads-per-block</code></p>
+<p><strong>Performance Matrix Parameter Mapping</strong>:</p>
+<ul>
+<li><strong>Load Int</strong> → <code>--load-intensity</code></li>
+<li><strong>Size (MB)</strong> → <code>--workload-size</code></li>
+<li><strong>Threads/Block</strong> → <code>--threads-per-block</code></li>
+</ul>
 <h4 id="orin-16-sms">Orin (16 SMs)<a class="headerlink" href="#orin-16-sms" title="Permanent link">#</a></h4>
-<p><strong>Performance Matrix</strong> :
+<p><strong>Performance Matrix</strong> :</p>
 <div class="highlight"><pre><span></span><code>Load  Size  Threads   Avg%    Baseline    GC
 Int   (MB)  /Block    Impr    Avg(μs)     Avg(μs)
 ----------------------------------------------------
@@ -18831,12 +18837,14 @@ Int   (MB)  /Block    Impr    Avg(μs)     Avg(μs)
 10    2     128       94.5    475.67      26.38
 10    2     256       94.1    475.66      28.12
 10    2     512       94.6    479.83      26.04
-</code></pre></div></p>
-<p><strong>Orin Key Insights</strong>:
-- <strong>Sweet Spot</strong>: 4MB workload with 128-256 threads per block achieves &gt;94% improvement
-- <strong>Reliability</strong>: Low variance in Green Context performance (23-35μs range)</p>
+</code></pre></div>
+<p><strong>Orin Key Insights</strong>:</p>
+<ul>
+<li><strong>Sweet Spot</strong>: 4MB workload with 128-256 threads per block achieves &gt;94% improvement</li>
+<li><strong>Reliability</strong>: Low variance in Green Context performance (23-35μs range)</li>
+</ul>
 <h4 id="jetson-thor">Jetson Thor<a class="headerlink" href="#jetson-thor" title="Permanent link">#</a></h4>
-<p><strong>Performance Matrix</strong> :
+<p><strong>Performance Matrix</strong> :</p>
 <div class="highlight"><pre><span></span><code>Load  Size  Threads   Avg%    Baseline    GC
 Int   (MB)  /Block    Impr    Avg(μs)     Avg(μs)
 ----------------------------------------------------
@@ -18864,14 +18872,16 @@ Int   (MB)  /Block    Impr    Avg(μs)     Avg(μs)
 80    8     128       99.8    7321.67     12.52
 80    8     256       99.8    7153.78     12.16
 80    8     512       99.8    7273.29     13.58
-</code></pre></div></p>
-<p><strong>Jetson Thor Key Insights</strong>:
-- <strong>Sweet Spot</strong>: 16MB+ workload with load-intensity 20+ achieves &gt;99% improvement
-- <strong>Excellent scaling</strong>: Performance improves dramatically with workload size (1MB→16MB)
-- <strong>Consistent GC performance</strong>: 8-15μs range regardless of baseline variability
-- <strong>High-end performance</strong>: Up to 99.8% improvement with large workloads</p>
+</code></pre></div>
+<p><strong>Jetson Thor Key Insights</strong>:</p>
+<ul>
+<li><strong>Sweet Spot</strong>: 16MB+ workload with load-intensity 20+ achieves &gt;99% improvement</li>
+<li><strong>Excellent scaling</strong>: Performance improves dramatically with workload size (1MB→16MB)</li>
+<li><strong>Consistent GC performance</strong>: 8-15μs range regardless of baseline variability</li>
+<li><strong>High-end performance</strong>: Up to 99.8% improvement with large workloads</li>
+</ul>
 <h4 id="rtx-6000-ada-generation-142-sms">RTX 6000 Ada Generation (142 SMs)<a class="headerlink" href="#rtx-6000-ada-generation-142-sms" title="Permanent link">#</a></h4>
-<p><strong>Performance Matrix</strong> :
+<p><strong>Performance Matrix</strong> :</p>
 <div class="highlight"><pre><span></span><code>Load  Size  Threads   Avg%    Baseline    GC
 Int   (MB)  /Block    Impr    Avg(μs)     Avg(μs)
 ----------------------------------------------------
@@ -18912,11 +18922,13 @@ Int   (MB)  /Block    Impr    Avg(μs)     Avg(μs)
 40    4     128       97.1    201.47      5.85
 40    4     256       97.3    215.81      5.89
 40    4     512       96.9    189.12      5.87
-</code></pre></div></p>
-<p><strong>RTX 6000 Ada Key Insights</strong>:
-- <strong>Sweet Spot</strong>: 8-16MB workload with load-intensity 10+ achieves &gt;95% improvement
-- <strong>Threshold Effect</strong>: Minimal benefits below 2MB workload, dramatic improvements above 4MB
-- <strong>Reliability</strong>: Low variance in Green Context performance (4-6μs range)</p>
+</code></pre></div>
+<p><strong>RTX 6000 Ada Key Insights</strong>:</p>
+<ul>
+<li><strong>Sweet Spot</strong>: 8-16MB workload with load-intensity 10+ achieves &gt;95% improvement</li>
+<li><strong>Threshold Effect</strong>: Minimal benefits below 2MB workload, dramatic improvements above 4MB</li>
+<li><strong>Reliability</strong>: Low variance in Green Context performance (4-6μs range)</li>
+</ul>
 <h2 id="understanding-results">Understanding Results<a class="headerlink" href="#understanding-results" title="Permanent link">#</a></h2>
 <h3 id="key-metrics">Key Metrics<a class="headerlink" href="#key-metrics" title="Permanent link">#</a></h3>
 <ul>
@@ -18925,11 +18937,13 @@ Int   (MB)  /Block    Impr    Avg(μs)     Avg(μs)
 <li><strong>Background Load Statistics</strong>: DummyLoadOp execution timing statistics</li>
 </ul>
 <h3 id="what-to-expect">What to Expect<a class="headerlink" href="#what-to-expect" title="Permanent link">#</a></h3>
-<p><strong>Typical Performance Patterns:</strong>
-- <strong>Without Green Context</strong>: Higher average launch-start times with significant variability and inconsistent performance
-- <strong>With Green Context</strong>: Much lower and more consistent launch-start times with reduced variability
-- <strong>Performance Gains</strong>: Substantial reduction in launch-start times across all percentiles (average, P95, P99)
-- <strong>Consistency Improvement</strong>: Green Context typically shows much better timing consistency and predictability</p>
+<p><strong>Typical Performance Patterns:</strong></p>
+<ul>
+<li><strong>Without Green Context</strong>: Higher average launch-start times with significant variability and inconsistent performance</li>
+<li><strong>With Green Context</strong>: Much lower and more consistent launch-start times with reduced variability</li>
+<li><strong>Performance Gains</strong>: Substantial reduction in launch-start times across all percentiles (average, P95, P99)</li>
+<li><strong>Consistency Improvement</strong>: Green Context typically shows much better timing consistency and predictability</li>
+</ul>
 <p><strong>⚠️ Important Environmental Factor:</strong>
 <strong>Display Connection Impact</strong>: Having monitors connected via DisplayPort to the GPU significantly degrades launch-start time performance. For optimal benchmark results, disconnect displays and access the system via SSH/remote connection.</p>
 <h3 id="warning-messages">Warning Messages<a class="headerlink" href="#warning-messages" title="Permanent link">#</a></h3>
@@ -18940,18 +18954,22 @@ Int   (MB)  /Block    Impr    Avg(μs)     Avg(μs)
 <p>These indicate potential measurement issues under high GPU contention.</p>
 <h2 id="technical-details">Technical Details<a class="headerlink" href="#technical-details" title="Permanent link">#</a></h2>
 <h3 id="gpu-workload">GPU Workload<a class="headerlink" href="#gpu-workload" title="Permanent link">#</a></h3>
-<p><strong>Timing Kernel (simple_benchmark_kernel):</strong>
-- Lightweight computation (sin/cos operations)
-- Fixed elements (1024)
-- 256 threads per block
-- Designed for minimal execution time to isolate launch-start latency</p>
-<p><strong>Background Load (background_load_kernel):</strong>
-- Heavy computational loops with transcendental functions
-- Memory access patterns to stress memory subsystem
-- Configurable intensity (<code>--load-intensity</code>) and workload size (<code>--workload-size</code>)
-- Configurable threads per block (<code>--threads-per-block</code>)
-- Runs on separate non-default stream to create realistic GPU contention
-- In Green Context mode: runs in dedicated partition to test isolation</p>
+<p><strong>Timing Kernel (simple_benchmark_kernel):</strong></p>
+<ul>
+<li>Lightweight computation (sin/cos operations)</li>
+<li>Fixed elements (1024)</li>
+<li>256 threads per block</li>
+<li>Designed for minimal execution time to isolate launch-start latency</li>
+</ul>
+<p><strong>Background Load (background_load_kernel):</strong></p>
+<ul>
+<li>Heavy computational loops with transcendental functions</li>
+<li>Memory access patterns to stress memory subsystem</li>
+<li>Configurable intensity (<code>--load-intensity</code>) and workload size (<code>--workload-size</code>)</li>
+<li>Configurable threads per block (<code>--threads-per-block</code>)</li>
+<li>Runs on separate non-default stream to create realistic GPU contention</li>
+<li>In Green Context mode: runs in dedicated partition to test isolation</li>
+</ul>
 <h3 id="green-context-configuration">Green Context Configuration<a class="headerlink" href="#green-context-configuration" title="Permanent link">#</a></h3>
 <p>The benchmark dynamically calculates optimal partition sizes:</p>
 <div class="highlight"><pre><span></span><code><span class="c1">// Dynamic partition sizing (roughly half total SMs per partition)</span>
@@ -18991,18 +19009,18 @@ Int   (MB)  /Block    Impr    Avg(μs)     Avg(μs)
 <p><strong>Build cache contamination when switching between container images</strong>:</p>
 </li>
 </ol>
-<p><strong>CUDA linking errors</strong>:
-   <div class="highlight"><pre><span></span><code>/usr/bin/ld: cannot find /usr/local/cuda-12.8/targets/sbsa-linux/lib/libcudart.so: No such file or directory
+<p><strong>CUDA linking errors</strong>:</p>
+<div class="highlight"><pre><span></span><code>/usr/bin/ld: cannot find /usr/local/cuda-12.8/targets/sbsa-linux/lib/libcudart.so: No such file or directory
 /usr/bin/ld: cannot find /usr/local/cuda-12.8/targets/sbsa-linux/lib/libcupti.so: No such file or directory
-</code></pre></div></p>
-<p><strong>CMake configuration errors</strong>:
-   <div class="highlight"><pre><span></span><code>CMake Error: Imported target &quot;holoscan::core&quot; includes non-existent path
-&quot;/usr/local/cuda/targets/x86_64-linux/include/cccl&quot;
-</code></pre></div></p>
-<p><strong>Solution</strong>: Clear holohub cache to resolve build contamination:
-   <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>./holohub<span class="w"> </span>clear-cache
 </code></pre></div>
-   Then retry the benchmark command. This resolves CUDA version path mismatches from cached build artifacts.</p>
+<p><strong>CMake configuration errors</strong>:</p>
+<div class="highlight"><pre><span></span><code>CMake Error: Imported target &quot;holoscan::core&quot; includes non-existent path
+&quot;/usr/local/cuda/targets/x86_64-linux/include/cccl&quot;
+</code></pre></div>
+<p><strong>Solution</strong>: Clear holohub cache to resolve build contamination:</p>
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>./holohub<span class="w"> </span>clear-cache
+</code></pre></div>
+<p>Then retry the benchmark command. This resolves CUDA version path mismatches from cached build artifacts.</p>
 <h3 id="performance-tuning">Performance Tuning<a class="headerlink" href="#performance-tuning" title="Permanent link">#</a></h3>
 <ul>
 <li><strong>Low contention scenarios</strong>: Increase <code>--load-intensity</code> to 20-100</li>

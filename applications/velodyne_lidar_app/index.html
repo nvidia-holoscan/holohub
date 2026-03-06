@@ -18337,11 +18337,13 @@ to provide a complete viewing pipeline. We performed initial benchmarking on an 
 <p>This application is intended to run on a Holoscan SDK support platform, namely a Linux x64
 system or an NVIDIA IGX developer kit.</p>
 <p>To run the application you need a live or replayer source to stream Velodyne VLP-16 packet
-data to the application. That may be either:
-- A Velodyne VLP-16 lidar sensor. Review the <a href="https://data.ouster.io/downloads/velodyne/user-manual/vlp-16-user-manual-revf.pdf">VLP-16 user manual</a>
-- A VLP-16 <code>.pcap</code> recording file and a packet replayer software.
-  - Visit Kitware's VeloView <a href="https://www.paraview.org/veloview/#download">Velodyne Lidar collection</a> for sample VLP-16 <code>.pcap</code> files.
-  - Visit the third party <a href="https://gitlab.com/wireshark/wireshark/-/wikis/Tools#traffic-generators">Wireshark wiki</a> for a curated list of software options for generating traffic from <code>.pcap</code> files.</p>
+data to the application. That may be either:</p>
+<ul>
+<li>A Velodyne VLP-16 lidar sensor. Review the <a href="https://data.ouster.io/downloads/velodyne/user-manual/vlp-16-user-manual-revf.pdf">VLP-16 user manual</a></li>
+<li>A VLP-16 <code>.pcap</code> recording file and a packet replayer software.</li>
+<li>Visit Kitware's VeloView <a href="https://www.paraview.org/veloview/#download">Velodyne Lidar collection</a> for sample VLP-16 <code>.pcap</code> files.</li>
+<li>Visit the third party <a href="https://gitlab.com/wireshark/wireshark/-/wikis/Tools#traffic-generators">Wireshark wiki</a> for a curated list of software options for generating traffic from <code>.pcap</code> files.</li>
+</ul>
 <h2 id="running-the-application">Running the Application<a class="headerlink" href="#running-the-application" title="Permanent link">#</a></h2>
 <p>First, start your lidar stream source. If you are using a VLP-16 lidar sensor, review the <a href="https://data.ouster.io/downloads/velodyne/user-manual/vlp-16-user-manual-revf.pdf">VLP-16
 user manual</a> for instructions on how to properly set up your network configuration.</p>
@@ -18386,22 +18388,26 @@ according to the Velodyne lidar specification, where the VLP-16 packet defines 3
 <li>The Velodyne operator forwards the rolling point cloud to HoloViz, which renders the GPU point cloud to the screen.</li>
 </ol>
 <h3 id="what-are-some-limitations-of-the-application">What are some limitations of the application?<a class="headerlink" href="#what-are-some-limitations-of-the-application" title="Permanent link">#</a></h3>
-<p>This application is intended as a simple demonstration of how a lidar sensor can be integrated for input to Holoscan SDK for low latency processing. It does not propose any novel features. Some limitations compared with more complete lidar solutions are:
-- No cloud filtering -- all zero-ranged points are kept in the buffer and visualized.
-- No advanced inference techniques -- the cloud is simply translated and visualized.
-- No RDMA -- VLP-16 lidar packets are received via the host ethernet interface on the IGX or x86_64 machine and then copied to the GPU device.
-- Monochrome visual -- HoloViz operator cloud support is currently limited to one color.</p>
+<p>This application is intended as a simple demonstration of how a lidar sensor can be integrated for input to Holoscan SDK for low latency processing. It does not propose any novel features. Some limitations compared with more complete lidar solutions are:</p>
+<ul>
+<li>No cloud filtering -- all zero-ranged points are kept in the buffer and visualized.</li>
+<li>No advanced inference techniques -- the cloud is simply translated and visualized.</li>
+<li>No RDMA -- VLP-16 lidar packets are received via the host ethernet interface on the IGX or x86_64 machine and then copied to the GPU device.</li>
+<li>Monochrome visual -- HoloViz operator cloud support is currently limited to one color.</li>
+</ul>
 <p>Each of these limitations is merely a result of our scope of work, and could be overcome with additional attention.</p>
 <h3 id="why-is-holoviz-not-responding">Why is HoloViz not responding?<a class="headerlink" href="#why-is-holoviz-not-responding" title="Permanent link">#</a></h3>
 <p>In most cases this indicates that the Holoscan application is not receiving UDP packets.
-There are several reasons that this could be the case:
-- The VLP-16 lidar sensor is not turned on, or the ethernet cable is disconnected.
-  The sensor typically takes approximately 30 seconds between powering on and transmitting packets.
-- The VLP-16 lidar sensor network interface is not properly configured to receive packets. You can use a tool
+There are several reasons that this could be the case:</p>
+<ul>
+<li>The VLP-16 lidar sensor is not turned on, or the ethernet cable is disconnected.
+  The sensor typically takes approximately 30 seconds between powering on and transmitting packets.</li>
+<li>The VLP-16 lidar sensor network interface is not properly configured to receive packets. You can use a tool
   such as <a href="https://www.wireshark.org/">Wireshark</a> to review live packets on the network interface. Review the <a href="https://data.ouster.io/downloads/velodyne/user-manual/vlp-16-user-manual-revf.pdf">VLP-16
-  user manual</a> for troubleshooting.
-- The HoloHub application is not properly configured. Review the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/velodyne_lidar_app/cpp/lidar.yaml"><code>lidar.yaml</code></a> configuration
-  and confirm that the port and IP address match the VLP-16 configuration.</p>
+  user manual</a> for troubleshooting.</li>
+<li>The HoloHub application is not properly configured. Review the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/velodyne_lidar_app/cpp/lidar.yaml"><code>lidar.yaml</code></a> configuration
+  and confirm that the port and IP address match the VLP-16 configuration.</li>
+</ul>
 <h2 id="acknowledgements">Acknowledgements<a class="headerlink" href="#acknowledgements" title="Permanent link">#</a></h2>
 <p>This operator was developed in part with support from the NVIDIA nvMap team and adapts portions
 of the NVIDIA DeepMap SDK.</p>

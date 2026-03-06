@@ -18274,24 +18274,16 @@ The inference is executed using <code>torch</code> backend in <code>holoinfer</c
 <h2 id="data">Data<a class="headerlink" href="#data" title="Permanent link">#</a></h2>
 <p>To run this application, you will need the following:</p>
 <ul>
-<li>Model name: frcnn_resnet50_t.pt<ul>
+<li>Model name: frcnn_resnet50_t.pt</li>
 <li>The model should be converted to torchscript format.  The original pytorch model can be downloaded from <a href="https://pytorch.org/vision/main/models/generated/torchvision.models.detection.fasterrcnn_resnet50_fpn.html">pytorch model</a>. <code>frcnn_resnet50_t.pt</code> is used</li>
-</ul>
-</li>
-<li>Model configuration file: frcnn_resnet50_t.yaml<ul>
+<li>Model configuration file: frcnn_resnet50_t.yaml</li>
 <li>Model config documents input and output nodes, their dimensions and respective datatype.</li>
-</ul>
-</li>
-<li>Labels file: labels.txt<ul>
+<li>Labels file: labels.txt</li>
 <li>Labels for identified objects.</li>
-</ul>
-</li>
-<li>Postprocessor configuration file: postprocessing.yaml<ul>
+<li>Postprocessor configuration file: postprocessing.yaml</li>
 <li>This configuration stores the number and type of objects to be identified. By default, the application detects and generates bounding boxes for <code>car</code> (max 50), <code>person</code> (max 50), <code>motorcycle</code> (max 10) in the input frame. All remaining identified objects are tagged with label <code>object</code> (max 50).</li>
 <li>Additionally, color of the bounding box for each identified object can be set.</li>
 <li>Threshold of scores can be set in the <code>params</code>. Default value is 0.75.</li>
-</ul>
-</li>
 </ul>
 <p>Sample dataset can be any video file freely available for testing on the web. E.g. <a href="https://www.pexels.com/video/cars-on-highway-854671/">Traffic video</a></p>
 <p>Once the video is downloaded, it must be <a href="https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/scripts#usage">converted into GXF entities</a>. As shown in the command below, width and height is set to 1920x1080 by default. To reduce the size of generated tensors a lower resolution can be used. Generated entities must be saved at <data_dir>/object_detection_torch folder.</p>
@@ -18333,9 +18325,9 @@ python3<span class="w"> </span>applications/object_detection_torch/generate_resn
 <h2 id="known-issues">Known Issues<a class="headerlink" href="#known-issues" title="Permanent link">#</a></h2>
 <p><strong>Limited platform support</strong>: The Faster R-CNN PyTorch model in this example relies on symbols available only in <code>torchvision&lt;=0.23.0</code>. arm64 SBSA platforms and x86_64 platforms with CUDA Toolkit &gt;= 13.0 are currently not supported as no compatible combination of Holoscan SDK, PyTorch (CUDA), and torchvision (CUDA) are available for these platforms.</p>
 <p>Please refer to the docker file for information about the torchvision version on different platforms.</p>
-<p>The application container will fail to build on other platforms with the error:
+<p>The application container will fail to build on other platforms with the error:</p>
 <div class="highlight"><pre><span></span><code>ERROR:<span class="w"> </span>No<span class="w"> </span>matching<span class="w"> </span>distribution<span class="w"> </span>found
-</code></pre></div></p>
+</code></pre></div>
 
 
 
