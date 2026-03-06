@@ -8,7 +8,7 @@ The operator supports these medical volume file formats:
 
 * [MHD (MetaImage)](https://itk.org/Wiki/ITK/MetaIO/Documentation)
   * Detached-header format only (`.mhd` + `.raw`)
-* [NIFTI](https://nifti.nimh.nih.gov/)
+* [NIFTI](https://nifti-imaging.github.io/)
 * [NRRD (Nearly Raw Raster Data)](https://teem.sourceforge.net/nrrd/format.html)
   * [Attached-header format](https://teem.sourceforge.net/nrrd/format.html) (`.nrrd`)
   * [Detached-header format](https://teem.sourceforge.net/nrrd/format.html#detached) (`.nhdr` + `.raw`)
@@ -26,18 +26,18 @@ tools for volume file format conversion include:
 
 ## API
 
-#### `holoscan::ops::VolumeLoaderOp`
+### `holoscan::ops::VolumeLoaderOp`
 
 Operator class to read a volume.
 
-##### Parameters
+#### Parameters
 
 * **`file_name`**: Volume data file name
   * type: `std::string`
 * **`allocator`**: Allocator used to allocate the volume data
   * type: `std::shared_ptr<Allocator>`
 
-##### Outputs
+#### Outputs
 
 * **`volume`**: Output volume data
   * type: `nvidia::gxf::Tensor`

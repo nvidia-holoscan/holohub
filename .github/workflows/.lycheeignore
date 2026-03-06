@@ -19,6 +19,7 @@ https://www.orsi-online.com/news/orsi-academy-brings-real-time-artificial-intell
 https://www.analog.com/.*
 https://www.logitech.com/.*
 
+
 # Links in HTML template files (expected to fail)
 file://.*/static/bootstrap.css
 file://.*/static/chat.css

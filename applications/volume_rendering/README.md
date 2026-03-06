@@ -1,12 +1,12 @@
 # Volume rendering using ClaraViz
 
-![](screenshot.png)<br>
+![Volume rendering screenshot](screenshot.png)
 
 This application loads a medical CT scan and renders it in real time at interactive frame rates using ClaraViz (<https://github.com/NVIDIA/clara-viz>).
 
 The application uses the `VolumeLoaderOp` operator to load the medical volume data, the `VolumeRendererOp` operator to render the volume and the `HolovizOp` operator to display the result and handle the camera movement.
 
-### Data
+## Data
 
 You can find CT scan datasets for use with this application from [embodi3d](https://www.embodi3d.com/).
 
@@ -57,7 +57,7 @@ There are a couple of launch profiles configured for this application:
 
 ### Command Line Arguments
 
-```
+```text
 Holoscan ClaraViz volume renderer.
 Usage: ./applications/volume_rendering/volume_rendering [options]
 Options:
@@ -79,7 +79,7 @@ This section describes the steps to user CT datasets additionally to the dataset
 First get the data in a supported format. Supported formats are:
 
 * [MHD](https://itk.org/Wiki/ITK/MetaIO/Documentation)
-* [NIFTI](https://nifti.nimh.nih.gov/)
+* [NIFTI](https://nifti-imaging.github.io/)
 * [NRRD](https://teem.sourceforge.net/nrrd/format.html)
 
 CT Data for the example dataset is downloaded to the `data/volume_rendering` folder when the application builds.

@@ -26,7 +26,7 @@ The included Holoscan Runner tool enables you to run those configurations in rea
 ### Software
 
 - CUDA Driver R580 or later
-- See additional HoloHub CLI prerequisites [here](https://github.com/nvidia-holoscan/holohub?tab=readme-ov-file#software-prerequisites)
+- See [additional HoloHub CLI prerequisites](https://github.com/nvidia-holoscan/holohub?tab=readme-ov-file#software-prerequisites)
 
 ## Quick Start
 
@@ -70,7 +70,7 @@ python3 -m streamlit run applications/ultrasound_postprocessing/ultra_post/app/s
 python3 -m ultra_post.app.holoscan_app [--uff path/to/myfile.uff] [--fps 10]
 ```
 
-The sample dataset used in this project is available at <http://www.ustb.no/datasets>.
+The sample dataset used in this project is available at <https://www.ustb.no/ustb-datasets/>.
 
 ## Key Concepts
 
@@ -86,7 +86,7 @@ The sample dataset used in this project is available at <http://www.ustb.no/data
 
 ### Project Structure
 
-```
+```text
 ultrasound_postprocessing
 ├── CMakeLists.txt
 ├── Dockerfile
