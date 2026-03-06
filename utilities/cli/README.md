@@ -21,7 +21,7 @@ A command-line interface for managing Holoscan-based applications and workflows.
 
 ## Documentation
 
-| Document | Description |
-|----------|-------------|
-| [CLI Reference](cli_reference.md) | Complete command reference: all commands, options, modes, environment variables, and examples |
-| [CLI Developer Guide](cli_dev_guide.md) | Implementation invariants, workflow tips, extension guide, and source layout |
+| Document                                | Description                                                                                   |
+| --------------------------------------- | --------------------------------------------------------------------------------------------- |
+| [CLI Reference](cli_reference.md)       | Complete command reference: all commands, options, modes, environment variables, and examples |
+| [CLI Developer Guide](cli_dev_guide.md) | Implementation invariants, workflow tips, extension guide, and source layout                  |
