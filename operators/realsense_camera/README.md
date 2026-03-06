@@ -27,7 +27,7 @@ class MyApp : public holoscan::Application {
     auto realsense = make_operator<holoscan::ops::RealsenseCameraOp>(
         "realsense",
         Arg("allocator", make_resource<holoscan::UnboundedAllocator>("pool")));
-    
+
     add_operator(realsense);
   }
 };

@@ -20,7 +20,7 @@ ctest -R holocat_hardware --output-on-failure
 
 ## Test Structure
 
-```
+```text
 tests/
 ├── test_hc_data_tx_op.cpp         # TX operator unit tests
 ├── test_hc_data_rx_op.cpp         # RX operator unit tests
@@ -64,6 +64,7 @@ sudo setcap 'cap_net_raw=ep' build/holocat/applications/holocat/tests/test_integ
 ```
 
 **Requirements:**
+
 - EtherCAT network adapter
 - At least one connected slave device
 - Valid ENI configuration file

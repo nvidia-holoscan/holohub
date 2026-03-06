@@ -1,13 +1,9 @@
 # Body Pose Estimation
 
-<div align="center">
-    <img src="./docs/1.png" width="300" height="375">
-    <img src="./docs/2.png" width="300" height="375">
-    <img src="./docs/3.png" width="300" height="375">
-</div>
+![Body pose estimation example 1](./docs/1.png) ![Body pose estimation example 2](./docs/2.png) ![Body pose estimation example 3](./docs/3.png)
 
 Body pose estimation is a computer vision task that involves recognizing specific points on the human body in images or videos.
-A model is used to infer the locations of keypoints from the source video which is then rendered by the visualizer. 
+A model is used to infer the locations of keypoints from the source video which is then rendered by the visualizer.
 
 ## Model
 
@@ -30,13 +26,13 @@ This app supports three different input options.  If you have a v4l2 compatible 
 
 To see the list of v4l2 devices connected to your machine, install `v4l-utils` if it's not already installed:
 
-```
+```bash
 sudo apt-get install v4l-utils
 ```
 
 Then run:
 
-```
+```bash
 v4l2-ctl --list-devices
 ```
 
@@ -46,6 +42,7 @@ v4l2-ctl --list-devices
 
 This application supports v4l2 compatible devices as input.  To run this application with your v4l2 compatible device,
 please plug in your input device and run:
+
 ```sh
 ./holohub run body_pose_estimation
 ```
@@ -53,6 +50,7 @@ please plug in your input device and run:
 By default, this application expects the input device to be mounted at `/dev/video0`.  If this is not the case, please update
 `applications/body_pose_estimation/body_pose_estimation.yaml` and set it to use the corresponding input device before
 running the application.  You can also override the default input device on the command line by running:
+
 ```sh
 ./holohub run body_pose_estimation --run-args="--video_device /dev/video0"
 ```
@@ -127,7 +125,6 @@ received as input by this application:
 
 And the following will use the `dds_video` application to receive and render
 the output published by this application:
-
 
 ```sh
 ./holohub run --local dds_video --run-args="-s -i 1"

@@ -13,10 +13,10 @@ This tutorial enables Holoscan and Windows applications to run concurrently on t
 - [Windows VM Setup Instructions](#windows-vm-setup-instructions)
   - [Software Pre-requisites](#software-pre-requisites)
   - [GPU Passthrough](#gpu-passthrough)
-	- [Two Different GPUs (e.g., RTX A4000 and RTX A6000)](#two-different-gpus-eg-rtx-a4000-and-rtx-a6000)
-	- [Two Identical GPUs (e.g., 2x RTX A4000)](#two-identical-gpus-eg-2x-rtx-a4000)
+    - [Two Different GPUs (e.g., RTX A4000 and RTX A6000)](#two-different-gpus-eg-rtx-a4000-and-rtx-a6000)
+    - [Two Identical GPUs (e.g., 2x RTX A4000)](#two-identical-gpus-eg-2x-rtx-a4000)
   - [Windows VM Configuration for Passed-through GPU](#windows-vm-configuration-for-passed-through-gpu)
-	- [Install NVIDIA Driver in Windows VM](#install-nvidia-driver-in-windows-vm)
+    - [Install NVIDIA Driver in Windows VM](#install-nvidia-driver-in-windows-vm)
 - [Communication Performance between Linux Host and Windows VM](#communication-performance-between-host-and-vm)
 - [Running Holoscan DDS App and Windows VM App](#running-holoscan-dds-app-and-windows-vm-app)
 
@@ -69,14 +69,14 @@ Install the
 [NVIDIA Holoscan SDK](https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html) and the
 [NVIDIA GPU driver](https://www.nvidia.com/en-in/drivers/) on the host Ubuntu 22.04.
 
-**Install KVM and QEMU**
+#### Install KVM and QEMU
 
 ```bash
 sudo apt update
 sudo apt install qemu-kvm libvirt-clients libvirt-daemon-system bridge-utils virt-manager ovmf
 ```
 
-**Check if KVM works**
+#### Check if KVM works
 
 ```bash
 $ kvm-ok
@@ -155,9 +155,9 @@ Reboot the system: `sudo reboot`. Now, check the loaded driver for RTX A4000:
 ```bash
 $ lspci -nnk -d 10de:24b0
 17:00.0 VGA compatible controller [0300]: NVIDIA Corporation [RTX A4000] [10de:24b0] (rev a1)
-	Subsystem: NVIDIA Corporation [RTX A4000] [10de:14ad]
-	Kernel driver in use: vfio-pci
-	Kernel modules: nvidiafb, nouveau, nvidia_drm, nvidia
+ Subsystem: NVIDIA Corporation [RTX A4000] [10de:14ad]
+ Kernel driver in use: vfio-pci
+ Kernel modules: nvidiafb, nouveau, nvidia_drm, nvidia
 ```
 
 #### Two Identical GPUs (e.g., 2x RTX A4000)
@@ -186,7 +186,7 @@ the RTX A4000 GPU at PCI bus address `01:00.0` to a VM.
 The following instructions are only verified for Ubuntu 22.04 and Linux kernel 6.8.0-48-generic. For
 other Ubuntu and Linux kernel versions, the instructions may not work.
 
-##### Update GRUB Configuration
+##### Update GRUB Configuration (Identical GPUs)
 
 Open the `/etc/default/grub` file and find the following line:
 
@@ -225,27 +225,27 @@ install vfio-pci /usr/local/bin/vfio-pci-override.sh
 softdep nvidia pre: vfio-pci
 ```
 
-##### Update Initial RAMFS and GRUB
+##### Update Initial RAMFS and GRUB (Identical GPUs)
 
 ```bash
 sudo update-initramfs -u # optionally add -k all to update all kernels
 sudo update-grub
 ```
 
-##### Check if VFIO is loaded for Passed-through GPU
+##### Check if VFIO is loaded for Passed-through GPU (Identical GPUs)
 
 Reboot the system: `sudo reboot`. Now, check the loaded driver for RTX A4000:
 
 ```bash
 $ lspci -nnk -d 10de:24b0
 01:00.0 VGA compatible controller [0300]: NVIDIA Corporation GA104GL [RTX A4000] [10de:24b0] (rev a1)
-	Subsystem: NVIDIA Corporation GA104GL [RTX A4000] [10de:14ad]
-	Kernel driver in use: vfio-pci
-	Kernel modules: nvidiafb, nouveau, nvidia_drm, nvidia
+ Subsystem: NVIDIA Corporation GA104GL [RTX A4000] [10de:14ad]
+ Kernel driver in use: vfio-pci
+ Kernel modules: nvidiafb, nouveau, nvidia_drm, nvidia
 09:00.0 VGA compatible controller [0300]: NVIDIA Corporation GA104GL [RTX A4000] [10de:24b0] (rev a1)
-	Subsystem: NVIDIA Corporation GA104GL [RTX A4000] [10de:14ad]
-	Kernel driver in use: nvidia
-	Kernel modules: nvidiafb, nouveau, nvidia_drm, nvidia
+ Subsystem: NVIDIA Corporation GA104GL [RTX A4000] [10de:14ad]
+ Kernel driver in use: nvidia
+ Kernel modules: nvidiafb, nouveau, nvidia_drm, nvidia
 ```
 
 In the above output, we can see that different kernel drivers are loaded for the two RTX A4000 GPUs.
@@ -306,29 +306,29 @@ tutorial, we provide the data-transfer performance in our hardware configuration
 > network traffic between the two OS. Configuring exact firewall rules is out-of-scope of this
 > tutorial. However, we provide a few tips below as guiding help on this topic.
 
-**Allowing Network Traffic between VM and Host**
+### Allowing Network Traffic between VM and Host
 
 Use a "bridge device" for the VM's network configuration.
 
-![vm_network_config](./vm_network_config.png)
+![VM network configuration](./vm_network_config.png)
 
 In Windows VM search bar, type "Windows Defender Firewall with Advanced Security" and open the
 application. For both "Inbound Rules" and "Outbound Rules", add new rules to allow TCP and UDP
 traffic on common (or all) port numbers.
 
-![windows_firewall_rules](./windows_firewall_rules.png)
+![Windows firewall rules](./windows_firewall_rules.png)
 
 In the host Linux, it may not be needed to configure the firewall to allow network traffic between
 VM and host. However, in case it does not work, `iptables` or `ufw` can be used to configure traffic
 on specific ports.
 
-**Configuring firewall**
+### Configuring firewall
 
 Turning off the firewall, either in Windows VM, or in host Linux, is not recommended. However, to
 test the setup in this tutorial, firewalls can be turned off. In Windows, type "firewall" in the
 search bar and turn off the firewall. The setting will look like below:
 
-![windows_firewall](./windows_firewall.png)
+![Windows firewall settings](./windows_firewall.png)
 
 ### iperf3 Performance Test
 
@@ -349,11 +349,13 @@ iperf3 -s -B 192.168.122.1
 ```
 
 In the Windows VM, run the following command for a 5 second test:
-```
+
+```text
 iperf3.exe -c 192.168.122.1 -t 5
 ```
 
 Output in Linux should look like below:
+
 ```bash
 $ iperf3 -s -B 192.168.122.1
 -----------------------------------------------------------
@@ -384,7 +386,7 @@ For Linux host to Windows, we have observed **21.9 Gbits/sec** transfer rate for
 The above commands are reversed for host Linux client and Windows VM server. In the Windows VM, run
 the following command:
 
-```
+```text
 iperf3.exe -s -B 192.168.122.147
 ```
 
@@ -417,5 +419,5 @@ In Windows VM, running the renderer application shows the camera input from Linu
 
 ## References
 
-- https://wiki.archlinux.org/title/PCI_passthrough_via_OVMF
-- https://www.makeuseof.com/create-windows-virtual-machine-in-linux-with-kvm/
+- <https://wiki.archlinux.org/title/PCI_passthrough_via_OVMF>
+- <https://www.makeuseof.com/create-windows-virtual-machine-in-linux-with-kvm/>

@@ -175,19 +175,19 @@ Build (unless skipped) and launch the development container. Trailing arguments 
 
 **Arguments:**
 
-| Argument  | Description                                                                                                        |
-| --------- | ------------------------------------------------------------------------------------------------------------------ |
-| `project` | (Optional) Project to run container for                                                                            |
-| `mode`    | (Optional) Mode from `metadata.json`. Applies mode's `build.docker_build_args` and `run.docker_run_args` to container. |
+| Argument | Description |
+| --- | --- |
+| `project` | (Optional) Project to run container for |
+| `mode` | (Optional) Mode from `metadata.json`. Applies mode's `build.docker_build_args` and `run.docker_run_args` to container. |
 
 **Options:** All [container build](#container-build-options) and [container run](#container-run-options) options, plus:
 
-| Option              | Description                                     |
-| ------------------- | ----------------------------------------------- |
+| Option | Description |
+| --- | --- |
 | `--no-docker-build` | Skip building the container; use existing image |
-| `--language`        | `cpp` or `python`                               |
-| `--verbose`         | Print variables passed to docker run            |
-| `--dryrun`          | Print commands without executing                |
+| `--language` | `cpp` or `python` |
+| `--verbose` | Print variables passed to docker run |
+| `--dryrun` | Print commands without executing |
 
 Without `-- command`, the container starts with the image's default entrypoint (typically an interactive shell). With `-- command`, the given command is executed inside the container instead.
 
@@ -591,7 +591,7 @@ No arguments or options.
 
 ## Concepts
 
-### Modes
+### Application modes
 
 Applications can define **modes** in `metadata.json`: named configurations for different hardware, data sources, or deployment scenarios. When a mode is set, it supplies a default run command, build options, Docker options, and environment variables. CLI options override mode settings when provided.
 

@@ -23,47 +23,55 @@ The pytest tests verify the Python bindings of the StreamingServer operators, fo
 ### TestStreamingServerResourceBinding
 
 **Basic Tests:**
+
 - `test_resource_creation_basic` - Basic resource instantiation
 - `test_resource_name` - Name property validation
 - `test_resource_inheritance` - Inheritance from holoscan.Resource
 
 **Parametrized Tests:**
+
 - `test_video_parameters` - Various resolutions and frame rates
 - `test_port_parameters` - Different port numbers
 - `test_streaming_direction` - Upstream/downstream combinations
 - `test_server_name_parameter` - Server naming
 
 **Advanced Tests:**
+
 - `test_memory_management` - Multiple resources, garbage collection
 - `test_multiple_resources_different_ports` - Port isolation
 
 ### TestStreamingServerUpstreamOpBinding
 
 **Basic Tests:**
+
 - `test_operator_creation_basic` - Basic operator instantiation
 - `test_operator_name` - Name property validation
 - `test_operator_inheritance` - Inheritance from holoscan.Operator
 - `test_method_availability` - Required methods are exposed
 
 **Resource Tests:**
+
 - `test_operator_with_custom_resource` - Custom resource configuration
 - `test_multiple_operators_shared_resource` - Resource sharing
 
 ### TestStreamingServerDownstreamOpBinding
 
 **Basic Tests:**
+
 - `test_operator_creation_basic` - Basic operator instantiation
 - `test_operator_name` - Name property validation
 - `test_operator_inheritance` - Inheritance from holoscan.Operator
 - `test_method_availability` - Required methods are exposed
 
 **Resource Tests:**
+
 - `test_operator_with_custom_resource` - Custom resource configuration
 - `test_multiple_operators_shared_resource` - Resource sharing
 
 ### TestStreamingServerIntegration
 
 **Integration Tests:**
+
 - `test_bidirectional_server_setup` - Upstream + downstream operators
 - `test_multiple_servers_different_ports` - Multiple server instances
 - `test_operators_in_application_context` - Works within Application
@@ -72,6 +80,7 @@ The pytest tests verify the Python bindings of the StreamingServer operators, fo
 ### TestStreamingServerWithMockData
 
 **Mock Data Tests:**
+
 - `test_resource_with_mock_frame_dimensions` - Resource with various dimensions
 - `test_upstream_operator_with_mock_frames` - Upstream with mock data
 - `test_downstream_operator_with_mock_frames` - Downstream with mock data
@@ -83,6 +92,7 @@ The pytest tests verify the Python bindings of the StreamingServer operators, fo
 ### TestStreamingServerUpstreamOpCompute
 
 **Upstream Compute Tests:**
+
 - `test_compute_method_exists` - Method accessibility
 - `test_upstream_compute_with_mock_frame` - Basic compute functionality
 - `test_upstream_compute_with_various_resolutions` - Multiple resolutions
@@ -91,6 +101,7 @@ The pytest tests verify the Python bindings of the StreamingServer operators, fo
 ### TestStreamingServerDownstreamOpCompute
 
 **Downstream Compute Tests:**
+
 - `test_compute_method_exists` - Method accessibility
 - `test_downstream_compute_with_mock_frame` - Basic compute functionality
 - `test_downstream_compute_with_various_resolutions` - Multiple resolutions
@@ -100,6 +111,7 @@ The pytest tests verify the Python bindings of the StreamingServer operators, fo
 ### TestBidirectionalServerCompute
 
 **Bidirectional Compute Tests:**
+
 - `test_bidirectional_compute_flow` - Full bidirectional compute flow
 
 ## Running Tests
@@ -118,14 +130,14 @@ For interactive testing and debugging, you can run pytest directly inside the ho
 
 > **⚠️ Important:** You must run `./holohub test` first (Option 1) to build the Python bindings.
 
-**Step 1: Build Python bindings by running tests once**
+### Step 1: Build Python bindings by running tests once
 
 ```bash
 # From holohub root - this builds Python bindings and runs tests
 ./holohub test video_streaming --cuda 12 --ctest-options="-R video_streaming_server_pytest -VV"
 ```
 
-**Step 2: Launch container and run pytest**
+### Step 2: Launch container and run pytest
 
 ```bash
 # Launch interactive container with bash
@@ -145,7 +157,7 @@ pytest operators/video_streaming/video_streaming_server/python/tests/test_stream
 
 ## Test Output Example
 
-```
+```text
 ============================= test session starts ==============================
 platform linux -- Python 3.10.12, pytest-7.4.0
 collected 51 items
@@ -166,18 +178,22 @@ test_streaming_server_ops_bindings.py::TestBidirectionalServerCompute::test_bidi
 Defined in `conftest.py`:
 
 **Module Fixtures:**
+
 - `streaming_server_module` - VideoStreamingServer Python module
 - `streaming_server_classes` - All server operator classes (Resource, Upstream, Downstream)
 
 **Factory Fixtures:**
+
 - `resource_factory` - Factory for creating StreamingServerResource
 - `upstream_operator_factory` - Factory for creating upstream operators
 - `downstream_operator_factory` - Factory for creating downstream operators
 
 **Default Fixtures:**
+
 - `default_resource` - Pre-configured resource with defaults
 
 **Common Fixtures** (copied from root conftest.py):
+
 - `app` - Holoscan Application instance
 - `fragment` - Holoscan Fragment for testing
 - `mock_image` - Factory for creating mock image tensors
@@ -228,14 +244,14 @@ def test_shared_resource(
     resource = resource_factory()
     upstream = upstream_operator_factory(resource=resource)
     downstream = downstream_operator_factory(resource=resource)
-    
+
     assert upstream is not None
     assert downstream is not None
 ```
 
 ## Test Organization
 
-```
+```text
 python/tests/
 ├── conftest.py                                 # Pytest fixtures
 ├── test_streaming_server_ops_bindings.py       # Main test file

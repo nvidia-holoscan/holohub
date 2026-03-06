@@ -2,7 +2,7 @@
 
 This application demonstrates how to interface Holoscan SDK with [3D Slicer](https://www.slicer.org/), using the [OpenIGTLink protocol](http://openigtlink.org/). The application is shown in the application graph below.
 
-![](./images/openigtlink_3dslicer_graph.png)
+![OpenIGTLink 3D Slicer application graph](./images/openigtlink_3dslicer_graph.png)
 
 In summary, the `openigtlink` transmit and receive operators are used in conjunction with an AI segmentation pipeline to:
 
@@ -19,11 +19,11 @@ This workflow allows for sending image data from 3D Slicer over network to Holos
 
 For the `cpp` application, which does ultrasound segmentations the results look like
 
-![](./images/cpp_ultrasound.png)
+![C++ ultrasound segmentation result](./images/cpp_ultrasound.png)
 
 and for the `python` application, which does colonoscopy segmentation, the results look like
 
-![](./images/python_colonoscopy.png)
+![Python colonoscopy segmentation result](./images/python_colonoscopy.png)
 
 where the image data before Holoscan processing is shown in the left slice view, and the image data with segmentation overlay (after Holoscan processing) is shown in the right slice view.
 

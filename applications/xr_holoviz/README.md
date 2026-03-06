@@ -7,10 +7,8 @@ This application demonstrates the integration of Holoscan-XR with Holoviz for ex
 
 ## Flow Diagram
 
-
 ![fig](doc/fig.png)
 *Diagram illustrating the architecture and data flow of the XR + Holoviz application*
-
 
 ## Quick Start
 
@@ -23,6 +21,7 @@ To stream this XR application to devices like Apple Vision Pro, refer to the [Cl
 Monado is an open-source OpenXR runtime that supports various XR devices and includes a simulator for local development without physical XR hardware.
 
 #### Terminal 1: Launch Container and Start Monado Service
+
 ```bash
 # If you're already in the container, skip this step
 ./holohub run-container xr_holoviz
@@ -30,9 +29,11 @@ Monado is an open-source OpenXR runtime that supports various XR devices and inc
 # Inside the container, start the Monado XR runtime service
 monado-service
 ```
+
 Keep this terminal open and running.
 
 #### Terminal 2: Build and Run the Application
+
 ```bash
 # Enter the same container (replace <container_id> with actual ID from 'docker ps')
 docker exec -it <container_id> bash
@@ -46,19 +47,23 @@ docker exec -it <container_id> bash
 The width and height of the HolovizOp should be set to the width and height of the XR display, which can only be obtained during runtime. To set the width and height correctly, we need to:
 
 1. Run the application
-2. Find the log showing 
-```
+2. Find the log showing
+
+```text
 XrCompositionLayerManager initialized width: XXX height: YYY
 ```
-3. Copy the width and height
-4. Set the width and height of the HolovizOp in `config.yaml`
-5. Re-run the application
+
+1. Copy the width and height
+2. Set the width and height of the HolovizOp in `config.yaml`
+3. Re-run the application
 
 ##### Troubleshooting
 
 ###### Buffer Size Too Small
+
 If you encounter the following errors:
-```
+
+```text
 [error] [gxf_executor.cpp:2506] Graph execution error: GXF_FAILURE
 terminate called after throwing an instance of 'std::runtime_error'
   what():  The size of the buffer is too small
@@ -68,4 +73,4 @@ This error is typically caused by incorrect width and height configuration for t
 
 1. Follow the **"Set up width and height correctly"** section above to obtain the correct display dimensions
 2. Update the HolovizOp width and height values in `config.yaml` with the runtime-detected values
-3. Restart the application 
+3. Restart the application

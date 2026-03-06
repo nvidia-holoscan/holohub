@@ -2,7 +2,7 @@
 
 This unified application demonstrates how to use the Holoscan SDK to create both streaming client and server applications for bidirectional video communication. This demo application demonstrates bidirectional video communication between client and server with real-time visualization.
 
-![Video Streaming Demo](screenshot_streaming_demo.png)  
+![Video Streaming Demo](screenshot_streaming_demo.png)
 *Fig. 1: Example of surgical video streaming with bidirectional communication showing the client receiving and displaying frames from the server.*
 
 ## Overview
@@ -119,7 +119,8 @@ It uses `video_streaming_client_demo_replayer.yaml` and replays a pre-recorded v
   ```
 
 > **Note:**
-> - The video streaming server and client are **cross-language compatible**. You can start the server in one language (C++ or Python) and then connect with a client running in either language.  
+>
+> - The video streaming server and client are **cross-language compatible**. You can start the server in one language (C++ or Python) and then connect with a client running in either language.
 > - You can **switch between the client modes** (replayer or V4L2 camera) at any time without restarting the server—just stop one client and start the other. The server automatically manages client connections.
 
 ### Python Bindings
@@ -261,7 +262,7 @@ For complete implementation details, see the component-specific READMEs:
 - `-c, --config <file>`: Configuration file path (default: video_streaming_server_demo.yaml)
 - `-d, --data <directory>`: Data directory for video files
 
-### Client Options  
+### Client Options
 
 - `-h, --help`: Show help message
 - `-c, --config <file>`: Configuration file path (default: video_streaming_client_demo.yaml)
@@ -332,7 +333,7 @@ v4l2-ctl --device=/dev/video0 --list-formats-ext
   ```bash
   # Check if port is already in use
   netstat -tlnp | grep 48010
-  
+
   # Kill existing process if needed
   sudo lsof -ti:48010 | xargs sudo kill -9
   ```
@@ -437,6 +438,6 @@ The operator documentation includes:
 ## Performance Notes
 
 - **GPU Memory**: Configure appropriate allocator block sizes for your resolution
-- **Network Bandwidth**: Monitor bandwidth usage for remote streaming scenarios  
+- **Network Bandwidth**: Monitor bandwidth usage for remote streaming scenarios
 - **Frame Rate**: Higher frame rates require more GPU/CPU resources
 - **Resolution**: Balance between quality and performance based on your hardware

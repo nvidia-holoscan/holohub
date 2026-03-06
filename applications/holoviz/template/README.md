@@ -9,7 +9,7 @@ Add a new line `generate "new_example_dir" "new_example" "New Example Window Tit
 Modify the source code file `cookiecutter-holoviz/{{cookiecutter.project_slug}}/{{cookiecutter.project_slug}}.cpp` and add new
 code covered by the
 
-```
+```text
 {%- if cookiecutter.example == "new_example" %}
     // some new code
 {%- endif %}

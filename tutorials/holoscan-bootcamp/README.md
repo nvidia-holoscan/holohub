@@ -1,6 +1,5 @@
 # NVIDIA Holoscan Bootcamp
 
-
 ## Overview
 
 This is a meta-tutorial for deploying and running NVIDIA Holoscan Bootcamp lab materials.
@@ -12,6 +11,7 @@ NVIDIA Holoscan Bootcamp was conducted by the NVIDIA team in collaboration with 
 NVIDIA Holoscan Bootcamp lab materials include a Jupyter notebook for self-paced studying of the core Holoscan concepts.
 
 The notebook covers the following topics:
+
 - Creating custom Holoscan operators
 - Connecting operators to form an application
 - Build Holoscan applications with GPU-accelerated Python packages

@@ -1,4 +1,4 @@
-### Advanced Network library
+# Advanced Network library
 
 > [!NOTE]
 > The Advanced Network library previously included standard operators for transmitting and receiving packets
@@ -7,11 +7,9 @@
 > We plan to provide more full-fledged generic operators in the future. In the meantime, you can continue to use
 > this library to develop Holoscan operators adapted to your use case, now including the direct packet transaction
 > with the NIC. Referred to the [Benchmarking sample application](/applications/adv_networking_bench) for an example.
-
 > [!WARNING]
 > The library is undergoing large improvements as we aim to better support it as an NVIDIA product.
 > API breakages might be more frequent until we reach version 1.0.
-
 > [!TIP]
 > Review the [High Performance Networking tutorial](/tutorials/high_performance_networking/README.md) for guided
 > instructions to configure your system and test the Advanced Network library.
@@ -20,12 +18,11 @@ The Advanced Network library provides a way for users to achieve the highest thr
 for transmitting and receiving Ethernet frames out of and into Holoscan operators. Direct access to the NIC hardware
 is available in userspace, thus bypassing the kernel's networking stack entirely.
 
-
-#### Requirements
+## Requirements
 
 - Linux
 - An NVIDIA NIC with a ConnectX6-Dx or later chip
-- System tuning as described [here](/tutorials/high_performance_networking/README.md)
+- System tuning as described in the [High Performance Networking tutorial](/tutorials/high_performance_networking/README.md)
 - For DPDK, Rivermax: MLNX5/IB drivers with peermem support - either through:
   - Inbox (i.e. standard) drivers on Ubuntu kernel versions >= 5.4 and [< 6.8](https://discourse.ubuntu.com/t/nvidia-gpudirect-over-infiniband-migration-paths/44425), or
   - NVIDIA optimized kernels (IGX OS, DGX BaseOS), or
@@ -37,15 +34,15 @@ is available in userspace, thus bypassing the kernel's networking stack entirely
 
 > User-space libraries are included in the [Dockerfile](./Dockerfile) for each networking backend. Inspect this file if you wish to know what is needed to build and run on baremetal instead.
 
-#### Features
+## Features
 
 - **High Throughput**: Hundreds of gigabits per second is possible with the proper hardware
 - **Low Latency**: With direct access to the NIC's ring buffers, most latency incurred is only PCIe latency
   - Since the kernel's networking stack is bypassed, the user is responsible for defining the protocols used
-		over the network. In most cases Ethernet, IP, and UDP are ideal for this type of processing because of their
-		simplicity, but any type of protocol can be implemented or used. The advanced network library
-		gives the option to use several primitives to remove the need for filling out these headers for basic packet types,
-		but raw headers can also be constructed.
+  over the network. In most cases Ethernet, IP, and UDP are ideal for this type of processing because of their
+  simplicity, but any type of protocol can be implemented or used. The advanced network library
+  gives the option to use several primitives to remove the need for filling out these headers for basic packet types,
+  but raw headers can also be constructed.
 - **GPUDirect**: Optionally send data directly from the NIC to GPU, or directly from the GPU to NIC. GPUDirect has two modes:
   - Header-data split: Split the header portion of the packet to the CPU and the rest (payload) to the GPU. The split point is
     configurable by the user. This option should be the preferred method in most cases since it's easy to use and still
@@ -57,13 +54,13 @@ is available in userspace, thus bypassing the kernel's networking stack entirely
 - **Flow Configuration**: Configure the NIC's hardware flow engine for configurable patterns. Currently only UDP source
     and destination are supported.
 
-#### Limitations
+### Limitations
 
 The limitations below will be removed in a future release.
 
 - Only UDP fill mode is supported
 
-#### Managers
+### Managers
 
 Internally the advanced network library is implemented by different backends, each offering different features.
 
@@ -78,7 +75,7 @@ additional processing needed (e.g. aggregate, reorder, etc.), as described in th
 > memory. This architecture also implies that the user must explicitly decide when to free any buffers it's owning.
 > Failure to free buffers will result in errors in the advanced network library not being able to allocate buffers.
 
-##### DPDK
+#### DPDK
 
 DPDK is an open-source userspace packet processing library supported across platforms and vendors.
 
@@ -86,7 +83,7 @@ It is the default manager, and can be set with the values `dpdk` or `default`.
 
 Follow the instructions from the [adv_networking_bench](/applications/adv_networking_bench/README.md) README to build the operator and sample application with DPDK (default).
 
-##### DOCA GPUNetIO
+#### DOCA GPUNetIO
 
 NVIDIA DOCA brings together a wide range of powerful APIs, libraries, and frameworks for programming and accelerating modern data center infrastructures​. [DOCA GPUNetIO](https://docs.nvidia.com/doca/sdk/doca+gpunetio/index.html) is one of the libraries included in the DOCA SDK. It enables the GPU to control, from a CUDA kernel, network communications directly interacting with the network card and completely removing the CPU from the critical data path.
 
@@ -163,111 +160,111 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
   - type: `integer`
 
 ##### Interfaces
+
 - **`interfaces`**:  List and configure ethernet interfaces
-	full path: `cfg\interfaces\`
-	- **`name`**: Name of the interfaca
-	  - type: `string`
-	- **`address`**: PCIe BDF address (lspci) or linux interface name for DPDK/GPUNetIO/RiverMax or IP address for RDMA
-	  - type: `string`
-	- **`rx|tx`** category of queues below
-	full path: `cfg\interfaces\[rx|tx]`
+ full path: `cfg\interfaces\`
+  - **`name`**: Name of the interfaca
+    - type: `string`
+  - **`address`**: PCIe BDF address (lspci) or linux interface name for DPDK/GPUNetIO/RiverMax or IP address for RDMA
+    - type: `string`
+  - **`rx|tx`** category of queues below
+ full path: `cfg\interfaces\[rx|tx]`
 
 ##### Receive Configuration (rx)
 
 - **`queues`**: List of queues on NIC
-	type: `list`
-	full path: `cfg\interfaces\rx\queues`
-	- **`name`**: Name of queue
-  		- type: `string`
-	- **`id`**: Integer ID used for flow connection or lookup in operator compute method
-  		- type: `integer`
-	- **`cpu_core`**: CPU core ID. Should be isolated when CPU polls the NIC for best performance.. <mark>Not in use for Doca GPUNetIO</mark>
-		Rivermax manager can accept coma separated list of CPU IDs
-  		- type: `string`
-	- **`batch_size`**: Number of packets in a batch passed from the NIC to the downstream operator. A
-	larger number increases throughput but reduces end-to-end latency, as it takes longer to populate a single
-	buffer. A smaller number reduces end-to-end latency but can also reduce throughput.
-  		- type: `integer`
-	- **`memory_regions`**: List of memory regions where buffers are stored. memory regions names are configured in the [Memory Regions](#memory-regions) section
-		type: `list`
-	- **`timeout_us`**: Timeout value that a batch will be sent on even if not enough packets to fill a batch were received
-  		- type: `integer`
+ type: `list`
+ full path: `cfg\interfaces\rx\queues`
+  - **`name`**: Name of queue
+  - type: `string`
+  - **`id`**: Integer ID used for flow connection or lookup in operator compute method
+  - type: `integer`
+  - **`cpu_core`**: CPU core ID. Should be isolated when CPU polls the NIC for best performance.. **Not in use for Doca GPUNetIO**
+  Rivermax manager can accept coma separated list of CPU IDs
+  - type: `string`
+  - **`batch_size`**: Number of packets in a batch passed from the NIC to the downstream operator. A
+ larger number increases throughput but reduces end-to-end latency, as it takes longer to populate a single
+ buffer. A smaller number reduces end-to-end latency but can also reduce throughput.
+  - type: `integer`
+  - **`memory_regions`**: List of memory regions where buffers are stored. memory regions names are configured in the [Memory Regions](#memory-regions) section
+  type: `list`
+  - **`timeout_us`**: Timeout value that a batch will be sent on even if not enough packets to fill a batch were received
+  - type: `integer`
 - **`flex_items`**: Flexible parser flow items
-	type: `list`
-	full path: `cfg\interfaces\rx\flex_items`
-	- **`name`**: Name of flow item
-  		- type: `string`
-	- **`id`**: ID of the flow item
-  		- type: `integer`
-	- **`offset`**: Offset in bytes of where to match after the UDP header. Must be a multiple of 4 and < 28
-  		- type: `integer`
-	- **`udp_dst_port`**: UDP destination port for flex item match
-			- type: `integer`
+ type: `list`
+ full path: `cfg\interfaces\rx\flex_items`
+  - **`name`**: Name of flow item
+  - type: `string`
+  - **`id`**: ID of the flow item
+  - type: `integer`
+  - **`offset`**: Offset in bytes of where to match after the UDP header. Must be a multiple of 4 and < 28
+  - type: `integer`
+  - **`udp_dst_port`**: UDP destination port for flex item match
+  - type: `integer`
 
-- **`flows`**: List of flows - rules to apply to packets, mostly to divert to the right queue. (<mark>Not in use for Rivermax manager</mark>)
+- **`flows`**: List of flows - rules to apply to packets, mostly to divert to the right queue. (**Not in use for Rivermax manager**)
   type: `list`
   full path: `cfg\interfaces\[rx|tx]\flows`
-	- **`name`**: Name of the flow
-	  - type: `string`
-	- **`id`**: ID of the flow
-	  - type: `integer`
-	- **`action`**: Action section of flow (what happens. Currently only supports steering to a given queue)
-	  - type: `sequence`
-		- **`type`**: Type of action. Only `queue` is supported currently.
-	  	-	 type: `string`
-		- **`id`**: ID of queue to steer to
-	  		- type: `integer`
-	- **`match`**: Match section of flow
-	  - type: `sequence`
-		- **`udp_src`**: UDP source port or a range of ports (eg 1000-1010)
-	  	- type: `integer`
-		- **`udp_dst`**: UDP destination port or a range of ports (eg 1000-1010)
-	  	- type: `integer`
-		- **`ipv4_len`**: IPv4 payload length
-	  	- type: `integer`
-		- **`flex_item_id`**: Flex item ID from RX section. Flex items cannot be applied if UDP or IP matching above are used
-	  	- type: `integer`
-		- **`val`**: 32b value to match on
-	  	- type: `integer`
-		- **`mask`**: 32b mask to apply before the match
-	  	- type: `integer`
-
+  - **`name`**: Name of the flow
+    - type: `string`
+  - **`id`**: ID of the flow
+    - type: `integer`
+  - **`action`**: Action section of flow (what happens. Currently only supports steering to a given queue)
+    - type: `sequence`
+      - **`type`**: Type of action. Only `queue` is supported currently.
+    - type: `string`
+      - **`id`**: ID of queue to steer to
+        - type: `integer`
+  - **`match`**: Match section of flow
+    - type: `sequence`
+      - **`udp_src`**: UDP source port or a range of ports (eg 1000-1010)
+    - type: `integer`
+      - **`udp_dst`**: UDP destination port or a range of ports (eg 1000-1010)
+    - type: `integer`
+      - **`ipv4_len`**: IPv4 payload length
+    - type: `integer`
+      - **`flex_item_id`**: Flex item ID from RX section. Flex items cannot be applied if UDP or IP matching above are used
+    - type: `integer`
+      - **`val`**: 32b value to match on
+    - type: `integer`
+      - **`mask`**: 32b mask to apply before the match
+    - type: `integer`
 
 ##### Extended Receive Configuration for Rivermax manager
 
 - **`rivermax_rx_settings`**: Extended RX settings for Rivermax Manager. Rivermax Manager supports receiving the same stream from multiple redundant paths (IPO - Inline Packet Ordering).
-	Each path is a combination of a source IP address, a destination IP address, a destination port, and a local IP address of the receiver device.
+ Each path is a combination of a source IP address, a destination IP address, a destination port, and a local IP address of the receiver device.
   type: `list`
   full path: `cfg\interfaces\rx\queues\rivermax_rx_settings`
-	- **`memory_registration`**: Flag, when enabled, reduces the number of memory keys in use by registering all the memory in a single pass on the application side.
-		<mark>Can be used only together with HDS enabled</mark>
-  		- type: `boolean`
-  		- default:`false`
-	- **`max_path_diff_us`**: Sets the maximum number of microseconds that receiver waits for the same packet to arrive from a different stream (if IPO is enabled)
-		- type: `integer`
-		- default:`0`
-	- **`ext_seq_num`**: The RTP sequence number is used by the hardware to determine the location of arriving packets in the receive buffer.
-		The application supports two sequence number parsing modes: 16-bit RTP sequence number (default) and 32-bit extended sequence number,
-		consisting of 16 low order RTP sequence number bits and 16 high order bits from the start of RTP payload. When set to `true` 32-bit ext. sequence number will be used
-  		- type: `boolean`
-  		- default:`true`
-	- **`sleep_between_operations_us`**: Specifies the duration, in microseconds, that the receiver will pause or sleep between two consecutive receive (RX) operations.
-  		- type: `integer`
-  		- default:`0`
-	- **`local_ip_addresses`**: List of Local NIC IP Addresses (one address per receiving path)
-		- type: `sequence`
-	- **`source_ip_addresses`**: List of Sender IP Addresses (one address per receiving path)
-		- type: `sequence`
-	- **`destination_ip_addresses`**: List of Destination IP Addresses (one address per receiving path), can be multicast
-		- type: `sequence`
-	- **`destination_ports`**: List of Destination IP ports (one port per receiving path)
-		- type: `sequence`
-	- **`stats_report_interval_ms`**: Specifies the duration, in milliseconds, that the receiver will display statistics in the log. Set `0` to disable statistics logging feature
-  		- type: `integer`
-  		- default:`0`
-	- **`send_packet_ext_info`**: Enables the transmission of extended metadata for each received packet
-  		- type: `boolean`
-  		- default:`true`
+  - **`memory_registration`**: Flag, when enabled, reduces the number of memory keys in use by registering all the memory in a single pass on the application side.
+  **Can be used only together with HDS enabled**
+  - type: `boolean`
+  - default:`false`
+  - **`max_path_diff_us`**: Sets the maximum number of microseconds that receiver waits for the same packet to arrive from a different stream (if IPO is enabled)
+    - type: `integer`
+    - default:`0`
+  - **`ext_seq_num`**: The RTP sequence number is used by the hardware to determine the location of arriving packets in the receive buffer.
+  The application supports two sequence number parsing modes: 16-bit RTP sequence number (default) and 32-bit extended sequence number,
+  consisting of 16 low order RTP sequence number bits and 16 high order bits from the start of RTP payload. When set to `true` 32-bit ext. sequence number will be used
+  - type: `boolean`
+  - default:`true`
+  - **`sleep_between_operations_us`**: Specifies the duration, in microseconds, that the receiver will pause or sleep between two consecutive receive (RX) operations.
+  - type: `integer`
+  - default:`0`
+  - **`local_ip_addresses`**: List of Local NIC IP Addresses (one address per receiving path)
+    - type: `sequence`
+  - **`source_ip_addresses`**: List of Sender IP Addresses (one address per receiving path)
+    - type: `sequence`
+  - **`destination_ip_addresses`**: List of Destination IP Addresses (one address per receiving path), can be multicast
+    - type: `sequence`
+  - **`destination_ports`**: List of Destination IP ports (one port per receiving path)
+    - type: `sequence`
+  - **`stats_report_interval_ms`**: Specifies the duration, in milliseconds, that the receiver will display statistics in the log. Set `0` to disable statistics logging feature
+  - type: `integer`
+  - default:`0`
+  - **`send_packet_ext_info`**: Enables the transmission of extended metadata for each received packet
+  - type: `boolean`
+  - default:`true`
 
 - Example of the Rivermax queue configuration for redundant stream using HDS and GPU
   This example demonstrates receiving a redundant stream sent from a sender with source addresses 192.168.100.4 and 192.168.100.3.
@@ -275,6 +272,7 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
   The multicast addresses and UDP ports on which the stream is being received are 224.1.1.1:5001 and 224.1.1.2:5001
  The incoming packets are of size 1152 bytes. The initial 20 bytes are stripped from the payload as an  application header and placed in buffers allocated in RAM.
  The remaining 1132 bytes are placed in dedicated payload buffers.  In this case, the payload buffers are allocated in GPU 0 memory.
+
 ```YAML
     memory_regions:
     - name: "Data_RX_CPU"
@@ -329,25 +327,25 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
 ##### Transmit Configuration (tx)
 
 - **`queues`**: List of queues on NIC
-	type: `list`
-	full path: `cfg\interfaces\tx\queues`
-	- **`name`**: Name of queue
-  		- type: `string`
-	- **`id`**: Integer ID used for flow connection or lookup in operator compute method
-  		- type: `integer`
-	- **`cpu_core`**: CPU core ID. Should be isolated when CPU polls the NIC for best performance.. <mark>Not in use for Doca GPUNetIO</mark>
-		Rivermax manager can accept coma separated list of CPU IDs
-  		- type: `string`
-	- **`batch_size`**: Number of packets in a batch that the NIC needs to receive from the upstream operator before
-	sending them over the network. A larger number increases throughput but reduces end-to-end latency.
-	A smaller number reduces end-to-end latency but can also reduce throughput.
-  		- type: `integer`
-	- **`memory_regions`**: List of memory regions where buffers are stored. memory regions names are configured in the [Memory Regions](#memory-regions) section
-		type: `list`
-	- **`accurate_send`**: Accurate TX sending enabled for sending packets at a specific PTP timestamp
-  		- type: `boolean`
+ type: `list`
+ full path: `cfg\interfaces\tx\queues`
+  - **`name`**: Name of queue
+  - type: `string`
+  - **`id`**: Integer ID used for flow connection or lookup in operator compute method
+  - type: `integer`
+  - **`cpu_core`**: CPU core ID. Should be isolated when CPU polls the NIC for best performance.. **Not in use for Doca GPUNetIO**
+  Rivermax manager can accept coma separated list of CPU IDs
+  - type: `string`
+  - **`batch_size`**: Number of packets in a batch that the NIC needs to receive from the upstream operator before
+ sending them over the network. A larger number increases throughput but reduces end-to-end latency.
+ A smaller number reduces end-to-end latency but can also reduce throughput.
+  - type: `integer`
+  - **`memory_regions`**: List of memory regions where buffers are stored. memory regions names are configured in the [Memory Regions](#memory-regions) section
+  type: `list`
+  - **`accurate_send`**: Accurate TX sending enabled for sending packets at a specific PTP timestamp
+  - type: `boolean`
 
-##### Transmit Configuration (tx)
+##### Transmit Configuration (tx) - Queues
 
 - **`queues`**: List of queues on NIC
   **Type**: `list`
@@ -359,7 +357,7 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
   - **`id`**: Integer ID used for flow connection or lookup in operator compute method
     - **Type**: `integer`
 
-  - **`cpu_core`**: CPU core ID. Should be isolated when CPU polls the NIC for best performance. <mark>Not in use for DOCA GPUNetIO</mark>. Rivermax Manager can accept comma-separated list of CPU IDs.
+  - **`cpu_core`**: CPU core ID. Should be isolated when CPU polls the NIC for best performance. **Not in use for DOCA GPUNetIO**. Rivermax Manager can accept comma-separated list of CPU IDs.
     - **Type**: `string`
 
   - **`batch_size`**: Number of packets in batch passed between operators. Larger values increase throughput at cost of latency.
@@ -367,8 +365,11 @@ Too low means risk of dropped packets from NIC having nowhere to write (Rx) or h
 
   - **`memory_regions`**: List of memory regions where buffers are stored (configured in Memory Regions section)
     - **Type**: `list`
+
 ##### Extended Transmit Configuration for Rivermax manager
+
 The Rivermax TX configuration enables hardware-assisted SMPTE 2110-20 compliant video streaming with:
+
 - Precision timestamping via PCIe PTP clock synchronization
 - Jitter-free packetization of rasterized video frames
 - Automatic UDP checksum offload
@@ -421,12 +422,12 @@ The Rivermax TX configuration enables hardware-assisted SMPTE 2110-20 compliant 
     - **`frame_width`**: Horizontal resolution in pixels
       - **Type**: `integer`
       - **Required**: Yes
-      -  **Valid Values**: `1920` for HD, `3840` for 4K UHD
+      - **Valid Values**: `1920` for HD, `3840` for 4K UHD
 
     - **`frame_height`**: The vertical resolution of the video in pixels
       - **Type**: `integer`
       - **Required**: Yes
-      -  **Valid Values**: `1080` for HD, `2160` for 4K UHD
+      - **Valid Values**: `1080` for HD, `2160` for 4K UHD
 
     - **`frame_rate`**: Frame rate in fps
       - **Type**: `integer`
@@ -450,6 +451,7 @@ The Rivermax TX configuration enables hardware-assisted SMPTE 2110-20 compliant 
       - **Default**: `false`
 
 #### Example Configuration
+
 ```YAML
     memory_regions:
     - name: "Data_TX_CPU"

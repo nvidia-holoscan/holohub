@@ -2,11 +2,7 @@
 
 HoloChat is an AI-driven chatbot, built on top of a **locally hosted Code-Llama model** *OR* a remote **NIM API for Llama-3-70b**, which acts as developer's copilot in Holoscan development. The LLM leverages a vector database comprised of the Holoscan SDK repository and user guide, enabling HoloChat to answer general questions about Holoscan, as well act as a Holoscan SDK coding assistant.
 
-<p align="center">
-  <kbd style="border: 2px solid black;">
-    <img src="holochat_demo.gif" alt="HoloChat Demo" />
-  </kbd>
-</p>
+![HoloChat Demo](holochat_demo.gif)
 
 ## Quick Start Guide
 
