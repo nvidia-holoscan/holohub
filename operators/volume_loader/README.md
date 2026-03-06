@@ -8,7 +8,7 @@ The operator supports these medical volume file formats:
 
 * [MHD (MetaImage)](https://itk.org/Wiki/ITK/MetaIO/Documentation)
   * Detached-header format only (`.mhd` + `.raw`)
-* [NIFTI](https://nifti.nimh.nih.gov/)
+* [NIFTI](https://www.nitrc.org/projects/nifti/)
 * [NRRD (Nearly Raw Raster Data)](https://teem.sourceforge.net/nrrd/format.html)
   * [Attached-header format](https://teem.sourceforge.net/nrrd/format.html) (`.nrrd`)
   * [Detached-header format](https://teem.sourceforge.net/nrrd/format.html#detached) (`.nhdr` + `.raw`)

@@ -79,7 +79,7 @@ This section describes the steps to user CT datasets additionally to the dataset
 First get the data in a supported format. Supported formats are:
 
 * [MHD](https://itk.org/Wiki/ITK/MetaIO/Documentation)
-* [NIFTI](https://nifti.nimh.nih.gov/)
+* [NIFTI](https://www.nitrc.org/projects/nifti/)
 * [NRRD](https://teem.sourceforge.net/nrrd/format.html)
 
 CT Data for the example dataset is downloaded to the `data/volume_rendering` folder when the application builds.
