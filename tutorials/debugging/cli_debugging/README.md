@@ -176,11 +176,13 @@ Use `backtrace` to view stack frames at the point where the application paused.
 ```sh
 (gdb) break /workspace/holoscan-sdk/src/operators/format_converter/format_converter.cpp:compute"
 ```
+
 1. To list all current breakpoints:
 
 ```sh
 (gdb) info breakpoints
 ```
+
 1. To remove breakpoints:
 
 ```sh

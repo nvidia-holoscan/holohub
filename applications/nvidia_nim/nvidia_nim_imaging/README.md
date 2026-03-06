@@ -53,6 +53,7 @@ In this section, we will show how to view the sample data and segmentation resul
    -rw-r--r-- 1 user user         27263336 Jul 23 14:22 example-1_seg.nrrd
    -rw-r--r-- 1 user user         33037057 Jul 23 14:21 sample.nii.gz
    ```
+
 4. In 3D Slicer, click *File*, *Add Data* and click *Choose File(s) to Add*.
    From the *Add Data into the scene* dialog, find and add the `sample.nii.gz` file and the `example-1_seg.nrrd` file.
    For the `sample.nrrd` file, select *Segmentation* and click *Ok*.

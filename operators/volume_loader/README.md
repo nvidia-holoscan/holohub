@@ -15,6 +15,7 @@ The operator supports these medical volume file formats:
 
 You must convert your data to one of these formats to load it with `VolumeLoaderOp`. Some third party open source
 tools for volume file format conversion include:
+
 * Command Line Tools
   * the [Insight Toolkit (ITK)](https://itk.org/) ([PyPI](https://pypi.org/project/itk/), [Image IO Examples](https://examples.itk.org/src/io/imagebase/))
   * [SimpleITK](https://simpleitk.org/) ([PyPI](https://pypi.org/project/SimpleITK/))

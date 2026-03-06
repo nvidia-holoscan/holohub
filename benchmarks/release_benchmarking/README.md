@@ -92,11 +92,13 @@ Alternatively, collect results across platforms. On each machine:
 ```bash
 ./holohub run release_benchmarking --no-local-build
 ```
+
 1. Add platform configuration information:
 
 ```bash
 ./holohub run release_benchmarking --no-local-build --run-args "--print" > benchmarks/release_benchmarking/output/platform.txt
 ```
+
 1. Transfer output contents from each platform to a single machine:
 
 ```bash
@@ -111,6 +113,7 @@ mkdir -p output/<release>/<platform-name>/
 pushd output/<release>/<platform-name>
 tar xvf benchmarks-<platform-name>
 ```
+
 1. Use multiple `--process` flags to generate a batch of bar plots for multiple platform results:
 
 ```bash
@@ -133,6 +136,7 @@ the release version, platform configurations, and local paths to processed data.
 ./holohub run-container --img holohub:release_benchmarking --no-docker-build
 ./holohub run release_benchmarking --no-local-build --run-args="--print"
 ```
+
 1. Render the document with the Jinja CLI tool:
 
 ```bash

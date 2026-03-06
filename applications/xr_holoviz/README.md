@@ -52,6 +52,7 @@ The width and height of the HolovizOp should be set to the width and height of t
 ```
 XrCompositionLayerManager initialized width: XXX height: YYY
 ```
+
 1. Copy the width and height
 2. Set the width and height of the HolovizOp in `config.yaml`
 3. Re-run the application

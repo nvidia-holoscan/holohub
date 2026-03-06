@@ -13,10 +13,10 @@ This tutorial enables Holoscan and Windows applications to run concurrently on t
 - [Windows VM Setup Instructions](#windows-vm-setup-instructions)
   - [Software Pre-requisites](#software-pre-requisites)
   - [GPU Passthrough](#gpu-passthrough)
-   	- [Two Different GPUs (e.g., RTX A4000 and RTX A6000)](#two-different-gpus-eg-rtx-a4000-and-rtx-a6000)
-   	- [Two Identical GPUs (e.g., 2x RTX A4000)](#two-identical-gpus-eg-2x-rtx-a4000)
+    - [Two Different GPUs (e.g., RTX A4000 and RTX A6000)](#two-different-gpus-eg-rtx-a4000-and-rtx-a6000)
+    - [Two Identical GPUs (e.g., 2x RTX A4000)](#two-identical-gpus-eg-2x-rtx-a4000)
   - [Windows VM Configuration for Passed-through GPU](#windows-vm-configuration-for-passed-through-gpu)
-   	- [Install NVIDIA Driver in Windows VM](#install-nvidia-driver-in-windows-vm)
+    - [Install NVIDIA Driver in Windows VM](#install-nvidia-driver-in-windows-vm)
 - [Communication Performance between Linux Host and Windows VM](#communication-performance-between-host-and-vm)
 - [Running Holoscan DDS App and Windows VM App](#running-holoscan-dds-app-and-windows-vm-app)
 

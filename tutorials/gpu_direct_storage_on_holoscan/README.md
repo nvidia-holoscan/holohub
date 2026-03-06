@@ -1,10 +1,10 @@
 # Taking advantage of GPU Direct Storage on the latest NVIDIA Edge platform
 
-##  Introduction
+## Introduction
 
 Modern-day edge accelerated computing solutions constantly push the boundaries of what is possible. The success of edge computing is mainly due to a new approach to accelerated computing problems, which are viewed from both a GPU and systems perspective. With innovations such as GPU Direct Storage (GDS) and GPU Direct Storage-over-Fabrics (GDS-OF), we can load data directly onto the GPU at lightning-fast speeds. GDS allows us to transform previously offline batch workloads into online streaming solutions, bringing them into the 21st century. This tutorial demonstrates this with a sample pipeline using the latest industrial-grade edge hardware (IGX) and A6000 workstation GPU. We’ll start by providing an overview of the two main types of workflows, then discuss how to set up GDS, and finally, wrap up with an example application using Nvidia Holoscan and the Nvidia Rapids software suite.
 
-##  Overview of GDS and GDS-OF
+## Overview of GDS and GDS-OF
 
 To give a brief introduction to the GPU Direct Storage paradigm, we first need to understand the traditional file transfer pathway between the storage device and a GPU. Traditionally, to transfer a file from the storage device to the GPU, the CPU would create a temporary cache or bounce buffer out of the system memory (RAM). This buffer would hold data transferred from the storage device. Only after the data has been transferred to the bounce buffer or the buffer is full will the data transfer from the bounce buffer to the GPU. In the case of large file transfers to repetitive file transfers, this will result in increased latency. GPU Direct Storage sends the data directly from the storage device to the GPU without the need for the temporarily allocated CPU system memory to coordinate movement with the PCIE bus. For more information, please visit the blog below.
 
@@ -16,7 +16,7 @@ Before diving into the technical details of setting up GDS, we will first cover 
 - Streaming Video data for live analytics
 - Streaming data from scientific instruments such as electron microscopes.
 
-###  Producer Use Cases
+### Producer Use Cases
 
 The other GDS use case for developers includes producing or writing data to  a source. Examples of these workflows include:
 
@@ -45,6 +45,7 @@ The first step in this process is to obtain the correct hardware. In addition to
 ### Software Installation
 
 The next step is to update the software inside your IGX. Note: You can skip this step if you have a new IGX system or one that has been freshly flashed. An explanation of each command will be available at the end of this post.
+
 - Install/update GCC and Linux Headers
   - ```sudo apt update```
 - Install MOFED drivers
@@ -61,6 +62,7 @@ The next step is to update the software inside your IGX. Note: You can skip this
   - ```sudo apt-get install -y cuda-drivers-535```
 
 After updating the essential software, follow the instructions below to install the Nvidia-GDS application and reboot your machine.
+
 - Install the nvidia-gds application
   - ```sudo apt-get install nvidia-gds```
 - Reboot
@@ -79,6 +81,7 @@ Once you have completed the software setup process, there are some additional th
   - Change ```“allow_compat_mode”``` to ```“false”```
 
 After this, you can run several checks to ensure that GDS is working:
+
 - Run the gdscheck script
   - ```/usr/local/cuda/gds/tools/gdscheck -p```
 - Run the gdsio application to send sample data to the mounted directory
