@@ -2,11 +2,11 @@
 
 The `tool_tracking_postprocessor` extension provides a codelet that converts inference output of `lstm_tensor_rt_inference` used in the endoscopy tool tracking pipeline to be consumed by the `holoviz` codelet.
 
-#### `nvidia::holoscan::tool_tracking_postprocessor`
+## `nvidia::holoscan::tool_tracking_postprocessor`
 
 Tool tracking postprocessor codelet
 
-##### Parameters
+### Parameters
 
 - **`in`**: Input channel, type `gxf::Tensor`
   - type: `gxf::Handle<gxf::Receiver>`

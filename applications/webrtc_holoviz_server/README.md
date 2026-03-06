@@ -1,6 +1,6 @@
 # WebRTC Holoviz Server
 
-![](screenshot.png)<br>
+![WebRTC Holoviz Server](screenshot.png)
 
 This app generates video frames with user specified content using Holoviz and sends it to a browser using WebRTC. The goal is to show how to remote control operators and view the output of a Holoscan pipeline.
 
@@ -48,7 +48,7 @@ Change the text input and the speed slider to control the generated video frame 
 
 ### Command Line Arguments
 
-```
+```text
 usage: webrtc_server.py [-h] [--cert-file CERT_FILE] [--key-file KEY_FILE] [--host HOST] [--port PORT] [--verbose VERBOSE] [--ice-server ICE_SERVER]
 
 optional arguments:
@@ -63,16 +63,17 @@ optional arguments:
                         ICE server config in the form of `turn:<ip>:<port>[<username>:<password>]` or `stun:<ip>:<port>`. This option can be specified multiple times to add multiple ICE servers.
 ```
 
-
 ## Running With TURN server
 
 A TURN server may be needed if you're running in a containerized environment without host networking (e.g. Kubernetes or Docker). Here are some basic steps to run this example with a TURN server.
 
 Run the TURN server in the same machine that you're running the app on.
 
-**Note: It is strongly recommended to run the TURN server with docker network=host for best performance**
+### Note
 
-```
+It is strongly recommended to run the TURN server with docker network=host for best performance.
+
+```bash
 # This is the external IP address of the machine running the TURN server
 export TURN_SERVER_EXTERNAL_IP="<ip>"
 
@@ -90,7 +91,7 @@ docker run -d --rm --network=host instrumentisto/coturn \
 
 Then you can pass in the TURN server config into the app
 
-```
+```bash
 python webrtc_server.py --ice-server "turn:<ip>:3478[admin:admin]"
 ```
 

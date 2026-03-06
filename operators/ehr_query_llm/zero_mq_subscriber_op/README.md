@@ -24,4 +24,4 @@ Please check [fhir_client.py](../../../applications/ehr_query_llm/fhir/fhir_clie
 
 - `topic` (str): Topic name for message filtering
 - `queue_endpoint` (str): ZeroMQ endpoint URL (e.g., "tcp://localhost:5556")
-- `blocking` (bool): Whether to use blocking receive (default: False) 
+- `blocking` (bool): Whether to use blocking receive (default: False)

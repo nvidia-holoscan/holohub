@@ -16,7 +16,7 @@ Each node is a Holoscan application.
 
 ## Quick Start
 
-Please refer to the [Build and Run](#build-and-run) section for detailed instructions on how to build and run the application.
+Please refer to the [Build and Run](#run-the-application) section for detailed instructions on how to build and run the application.
 For a quick start on the same machine, run these in separate terminals:
 
 ```bash
@@ -219,6 +219,7 @@ Modify these options by adding `--run-args='<options>'` to the `./holohub run` c
 4. Check firewall rules allow port 50008
 5. Ensure both nodes use same port number
 6. Try running applications within the same HoloHub container to minimize networking requirements:
+
 ```sh
 # Terminal 1
 ./holohub run-container ucxx_endoscopy_tool_tracking
@@ -250,7 +251,6 @@ docker exec -it $(docker ps -q | head -n 1) \
 - [**ucx_endoscopy_tool_tracking**](/applications/distributed/ucx/ucx_endoscopy_tool_tracking/README.md): Two-node implementation with Holoscan SDK Fragments
 - [**holoviz**](/applications/holoviz/): Visualization examples
 - [**ucxx_send_receive**](/operators/ucxx_send_receive/): UCXX operator examples
-
 
 ## References
 

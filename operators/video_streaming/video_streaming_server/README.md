@@ -13,7 +13,7 @@ The `video_streaming_server` operator provides a modular streaming server implem
 
 The Streaming Server operators integrate with the Holoscan Server Cloud Streaming library to provide comprehensive multi-client streaming capabilities:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────────────────┐
 │                           Holoscan Application                                  │
 ├─────────────────────────────────────────────────────────────────────────────────┤

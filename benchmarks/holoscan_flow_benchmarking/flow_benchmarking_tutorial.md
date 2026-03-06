@@ -35,14 +35,14 @@ nutshell, there are four steps to perform Holoscan flow benchmarking
 which are [summarized here](https://github.com/nvidia-holoscan/holohub/tree/main/benchmarks/holoscan_flow_benchmarking/README.md).
 Following is a high-level overview:
 
-1.  **Patching an application:** In the first step, we patch a Holoscan application to turn on data flow tracking.
+1. **Patching an application:** In the first step, we patch a Holoscan application to turn on data flow tracking.
 
-2.  **Building an application:** In the second step, we compile the patched application with necessary header files.
+2. **Building an application:** In the second step, we compile the patched application with necessary header files.
 
-3.  **Running the benchmark:** In the third step, we run the `benchmark.py` script with necessary parameters to evaluate the performance of the application in different configurations. This
+3. **Running the benchmark:** In the third step, we run the `benchmark.py` script with necessary parameters to evaluate the performance of the application in different configurations. This
 generates a number of log files which capture the result of the performance measurements in its raw format.
 
-4.  **Analyzing the result:** In the fourth step, we retrieve the result
+4. **Analyzing the result:** In the fourth step, we retrieve the result
 of the benchmarking process by using the generated log files with
 the `analyze.py` script. We can also export the result in a CSV file
 or generate graphs to visualize certain results.
@@ -69,7 +69,7 @@ first two steps mentioned above, we can run the following command to
 evaluate performance of running up to 5 instances of the endoscopy tool
 tracking application concurrently.
 
-```
+```bash
 $ python tutorials/benchmarking/benchmark.py -a endoscopy_tool_tracking
 --sched greedy -i <Number of Instances> -r 10 -m 1000 -d
 endoscopy_<Number of Instance>
@@ -92,7 +92,7 @@ with the help of the `analyze.py` script. If we want to know the average
 end-to-end latencies of the above experiment, the following command
 could be used:
 
-```
+```bash
 $ python benchmarks/holoscan_flow_benchmarking/analyze.py --avg -g
 endoscopy_1/logger* Instance-1 -g endoscopy_2/logger* Instance-2 -g
 endoscopy_3/logger* Instance-3 -g endoscopy_4/logger* Instance-4 -g
@@ -116,7 +116,7 @@ export the results in a CSV file to plot the data with your favorite plotting to
 Appending the `analyze.py` command with the `--save-csv` parameter enables
 saving the results in an `avg_values.csv` file in CSV format:
 
-```
+```bash
 $ python benchmarks/holoscan_flow_benchmarking/analyze.py --avg -g
 endoscopy_1/logger* Instance-1 -g endoscopy_2/logger* Instance-2 -g
 endoscopy_3/logger* Instance-3 -g endoscopy_4/logger* Instance-4 -g
@@ -154,10 +154,10 @@ interferences from multiple instances:
 The application developers can decide for their own applications the
 acceptable maximum or average end-to-end latency and therefore:
 
--   decide how many parallel instances of an application they want to
+- decide how many parallel instances of an application they want to
 run on their system
--   whether they need to further optimize the pipeline
--   whether they need more compute resources
+- whether they need to further optimize the pipeline
+- whether they need more compute resources
 
 ### Measuring GPU utilization
 
@@ -170,7 +170,7 @@ utilization is monitored and logged in a CSV file named
 example, the final command for GPU utilization monitoring looks like
 below:
 
-```
+```bash
 $ python tutorials/benchmarking/benchmark.py -a
 endoscopy_tool_tracking --sched greedy -i <Number of Instances>
 -r 10 -m 1000 -d endoscopy_<Number of Instance> -u
@@ -180,7 +180,7 @@ In the analysis phase, the average GPU utilization result can be saved
 in a CSV file (`avg_gpu_utilization_values.csv`) using the `-u
 --save-csv` parameters:
 
-```
+```bash
 $ python benchmarks/holoscan_flow_benchmarking/analyze.py -g
 endoscopy_1/logger* Instance-1 -u endoscopy_1/gpu*
 Instance-1-GPUUtil -u endoscopy_2/gpu* Instance-2-GPUUtil -u
@@ -231,7 +231,7 @@ are distributed. The following command generates a CDF curve of the
 end-to-end latencies of the first path for the experiment with 1
 instance:
 
-```
+```bash
 $ python benchmarks/holoscan_flow_benchmarking/analyze.py --draw-cdf
 single_path_cdf.png -g endoscopy_1/logger* MyCustomGroup
 --no-display-graphs
@@ -254,7 +254,7 @@ different applications. The results can be analyzed and compared using
 the `analyze.py` script. For example, we can run the following two
 commands to run two different applications under same settings:
 
-```
+```bash
 $ python benchmarks/holoscan_flow_benchmarking/benchmark.py -a
 endoscopy_tool_tracking -r 10 -i 1 -m 1000 --sched greedy -d
 endoscopy_outputs
@@ -269,7 +269,7 @@ files in two different directories, `endoscopy_outputs` and
 `ultrasound_outputs`. We can analyze and compare their maximum end-to-end
 latencies with the following analyze.py command:
 
-```
+```bash
 $ python benchmarks/holoscan_flow_benchmarking/analyze.py --max -g
 endoscopy_outputs/logger* "Endoscopy Tool Tracking" -g
 ultrasound_outputs/logger* "Ultrasound Segmentation"
@@ -292,7 +292,7 @@ both available for visualization, we may want to know the performance of
 running an application only on a specific GPU. We can run the following
 command:
 
-```
+```bash
 $ python benchmarks/holoscan_flow_benchmarking/benchmark.py -a
 endoscopy_tool_tracking -r 10 -i 1 -m 1000 --sched greedy -d
 endoscopy_outputs_<GPU Name> -g <Corresponding GPU UUID>
@@ -309,7 +309,7 @@ operator](https://docs.nvidia.com/holoscan/sdk-user-guide/inference.html) (`devi
 The results of the above experiment can be compared using the following
 command:
 
-```
+```bash
 $ python benchmarks/holoscan_flow_benchmarking/analyze.py <insert
 your metrics options> -g endoscopy_outputs_<GPU Name>/logger* "GPU1" -g endoscopy_outputs_<GPU Name>/gpu* "GPU2"
 ```
@@ -324,7 +324,7 @@ the [Multithread
 scheduler](https://docs.nvidia.com/holoscan/sdk-user-guide/components/schedulers.html#multithreadscheduler)
 and the [Event-based Scheduler](https://docs.nvidia.com/holoscan/sdk-user-guide/components/schedulers.html#event-based-scheduler):
 
-```
+```bash
 $ python benchmarks/holoscan_flow_benchmarking/benchmark.py -a
 endoscopy_tool_tracking -r 10 -i 1 -m 1000 --sched greedy -d endoscopy_greedy_outputs
 
@@ -338,7 +338,7 @@ endoscopy_tool_tracking -r 10 -i 1 -m 1000 --sched eventbased -w 5 -d endoscopy_
 Then, the results can be analyzed and compared using the following
 command:
 
-```
+```bash
 $ python benchmarks/holoscan_flow_benchmarking/analyze.py <insert
 your metrics options> -g endoscopy_greedy_outputs/logger* "Endoscopy (Greedy)" -g endoscopy_multithread_outputs/logger* "Endoscopy (Multithread)" -g endoscopy_eventbased_outputs/logger* "Endoscopy (Event-based)"
 ```
@@ -365,13 +365,13 @@ curve to be as small as possible.
 Holoscan flow benchmarking is currently available for four HoloHub C++
 applications:
 
--   endoscopy_tool_tracking
+- endoscopy_tool_tracking
 
--   multiai_endoscopy
+- multiai_endoscopy
 
--   multiai_ultrasound
+- multiai_ultrasound
 
--   ultrasound_segmentation
+- ultrasound_segmentation
 
 We plan to add Holoscan flow benchmarking for other C++ and Python
 sample applications for HoloHub in the future.

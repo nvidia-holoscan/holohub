@@ -25,7 +25,7 @@ The `EmergentSourceOp` is designed to capture video streams from Emergent Vision
 ## Parameters
 
 | Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
+| --- | --- | --- | --- |
 | `signal` | `gxf::Handle<gxf::Transmitter>` | - | Output signal channel |
 | `width` | `uint32_t` | 4200 | Width of the video stream in pixels |
 | `height` | `uint32_t` | 2160 | Height of the video stream in pixels |

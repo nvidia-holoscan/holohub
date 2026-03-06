@@ -29,6 +29,7 @@ HoloHub does not directly participate in the NVIDIA AI Enterprise program. Howev
 ### Curated Backwards Compatible Applications
 
 NVIDIA maintains a curated subset of first-party applications in HoloHub that represent a good basis for getting started developing with Holoscan SDK. The list of applications specifically maintained for backwards compatibility extends to the following:
+
 - [`body_pose_estimation`](/applications/body_pose_estimation/README.md)
 - [`endoscopy_tool_tracking`](/applications/endoscopy_tool_tracking/README.md)
 - [`multiai_ultrasound`](/applications/multiai_ultrasound/README.md)
@@ -39,6 +40,7 @@ NVIDIA maintains a curated subset of first-party applications in HoloHub that re
 While not guaranteed, we generally aim to maintain backwards compatibility for the set of applications listed above for up to nine months. That means that you can use the HoloHub applications listed above with any Holoscan SDK release within the past nine months.
 
 The sample applications above currently support backwards compatibility with the following versions:
+
 - Holoscan SDK v1.0.3 (general availability)
 - Holoscan SDK v2.0.0 (general availability)
 

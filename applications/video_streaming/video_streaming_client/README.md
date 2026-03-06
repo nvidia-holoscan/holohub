@@ -616,10 +616,10 @@ class StreamingClientApp(Application):
    ```bash
    # List available cameras
    ls -l /dev/video*
-   
+
    # Get camera info
    v4l2-ctl --device=/dev/video0 --info
-   
+
    # Test camera
    v4l2-ctl --device=/dev/video0 --set-fmt-video=width=640,height=480,pixelformat=YUYV --stream-mmap --stream-count=10
    ```
@@ -629,7 +629,7 @@ class StreamingClientApp(Application):
    ```bash
    sudo usermod -a -G video $USER
    # Log out and back in
-   
+
    # Or change permissions
    sudo chmod 666 /dev/video0
    ```
@@ -679,7 +679,7 @@ See the included configuration files for complete examples:
 
 ### Testing with Python Server
 
-**Option 1: Using Holohub CLI (Recommended)**
+#### Option 1: Using Holohub CLI (Recommended)
 
 Terminal 1 - Start Python Server:
 
@@ -748,7 +748,7 @@ Terminal 2 - Start C++ Client:
 ### V4L2 Camera vs Video Replayer
 
 | Feature | V4L2 Camera | Video Replayer |
-|---------|-------------|----------------|
+| --- | --- | --- |
 | **Config File** | `video_streaming_client_demo.yaml` | `video_streaming_client_demo_replayer.yaml` |
 | **Source Type** | `source: "v4l2"` | `source: "replayer"` |
 | **Input Format** | `rgba8888` (4 channels) | `rgb888` (3 channels) |
