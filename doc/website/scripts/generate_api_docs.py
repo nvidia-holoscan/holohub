@@ -204,21 +204,32 @@ def run_doxygen_and_parse(website_dir: Path) -> dict:
     # Ensure output directory exists
     (website_dir / "_build" / "doxygen").mkdir(parents=True, exist_ok=True)
 
-    # Run doxygen
+    # Run doxygen. Use Popen directly so we can explicitly kill the child process
+    # and drain its pipes before returning on timeout, preventing zombie processes
+    # and pipe-buffer deadlocks.
     logger.info("Running Doxygen on operator headers...")
     try:
-        result = subprocess.run(
+        with subprocess.Popen(
             ["doxygen", str(doxyfile)],
             cwd=str(website_dir),
-            capture_output=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             text=True,
-            timeout=300,
-        )
-    except subprocess.TimeoutExpired:
-        logger.error("Doxygen timed out after 300 seconds. Skipping C++ API doc generation.")
-        return {}
-    if result.returncode != 0:
-        logger.error(f"Doxygen failed: {result.stderr}")
+        ) as proc:
+            try:
+                _, stderr_out = proc.communicate(timeout=300)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+                proc.communicate()  # drain pipes to avoid deadlocks
+                logger.error(
+                    "Doxygen timed out after 300 seconds. Skipping C++ API doc generation."
+                )
+                return {}
+            if proc.returncode != 0:
+                logger.error(f"Doxygen failed: {stderr_out}")
+                return {}
+    except OSError as e:
+        logger.error(f"Failed to launch Doxygen: {e}")
         return {}
     logger.info("Doxygen completed successfully.")
 
@@ -551,7 +562,10 @@ def _format_cpp_class_md(class_info: dict) -> str:
         lines.append("|------|------|-------------|")
         for p in parameters:
             pname = p["name"].rstrip("_")
-            ptype = f"`{p['type']}`"
+            # Escape "|" in type strings; C++ template types rarely contain a bare
+            # pipe, but the same cell-splitting hazard applies as for descriptions.
+            ptype_str = p["type"].replace("|", "\\|")
+            ptype = f"`{ptype_str}`"
             pdesc = p.get("description", "").replace("\n", " ").replace("|", "\\|")
             lines.append(f"| `{pname}` | {ptype} | {pdesc} |")
         lines.append("")
@@ -584,7 +598,10 @@ def _format_python_class_md(class_info: dict) -> str:
         lines.append("| Name | Type | Default |")
         lines.append("|------|------|---------|")
         for p in parameters:
-            ptype = f"`{p['type']}`" if p.get("type") else ""
+            # Python 3.10+ union syntax (e.g. "int | str") contains a literal "|"
+            # which would split the Markdown table column without escaping.
+            ptype_str = p["type"].replace("|", "\\|") if p.get("type") else ""
+            ptype = f"`{ptype_str}`" if ptype_str else ""
             default = f"`{p['default']}`" if p.get("default") else ""
             lines.append(f"| `{p['name']}` | {ptype} | {default} |")
         lines.append("")
@@ -626,7 +643,8 @@ def _format_pydoc_class_md(pydoc_info: dict) -> str:
         lines.append("| Parameter | Type | Required | Description |")
         lines.append("|-----------|------|----------|-------------|")
         for p in constructor_params:
-            ptype = f"`{p['type']}`" if p.get("type") else ""
+            ptype_str = p["type"].replace("|", "\\|") if p.get("type") else ""
+            ptype = f"`{ptype_str}`" if ptype_str else ""
             required = "Optional" if p.get("optional") else "Required"
             pdesc = p.get("description", "").replace("\n", " ").replace("|", "\\|")
             lines.append(f"| `{p['name']}` | {ptype} | {required} | {pdesc} |")
@@ -723,13 +741,22 @@ def build_api_reference_map(git_repo_path: Path) -> dict:
     # Strategy 2: pybind11 operators (parse *_pydoc.hpp files)
     op_pydoc_classes: dict[str, list[dict]] = {}
 
+    # Guard against processing the same python_dir twice. This can happen when
+    # both operators/foo/metadata.json and operators/foo/python/metadata.json
+    # exist: the outer pass resolves python_dir to operators/foo/python, and
+    # the inner pass also resolves python_dir to operators/foo/python (since
+    # metadata_dir.name == "python"). Without this guard every class in that
+    # directory would appear twice in the generated Markdown.
+    scanned_python_dirs: set[Path] = set()
+
     for metadata_path in operators_dir.rglob("metadata.json"):
         metadata_dir = metadata_path.parent
 
         # Look for pure Python sources.
         # When metadata_dir is itself a "python" directory, avoid building "python/python".
         python_dir = metadata_dir if metadata_dir.name == "python" else metadata_dir / "python"
-        if python_dir.is_dir():
+        if python_dir.is_dir() and python_dir not in scanned_python_dirs:
+            scanned_python_dirs.add(python_dir)
             # Check for pydoc.hpp files first (pybind11).
             # Collect both "*_pydoc.hpp" and bare "pydoc.hpp" naming conventions.
             pydoc_files: list[Path] = []
