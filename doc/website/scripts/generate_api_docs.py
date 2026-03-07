@@ -365,24 +365,18 @@ def _parse_python_source(py_path: Path) -> list[dict]:
 # ──────────────────────────────────────────────────────────────────────────────
 
 
-def _parse_pydoc_hpp(pydoc_path: Path) -> dict | None:
+def _parse_pydoc_hpp(pydoc_path: Path) -> list[dict]:
     """Parse a *_pydoc.hpp file to extract Python docstrings for pybind11 operators.
 
-    Returns a dict with class name and method docstrings.
+    Returns a list of dicts, one per inner namespace (operator class). A single
+    pydoc.hpp file may define multiple operator classes in separate namespaces
+    (e.g. iio_controller_pydoc.hpp defines five). Each dict contains the class
+    name and its method docstrings.
     """
     try:
         content = pydoc_path.read_text(encoding="utf-8")
     except (OSError, UnicodeDecodeError):
-        return None
-
-    # Extract namespace to get class name.
-    # Handles both simple namespaces (namespace AJASourceOp {) and C++17 qualified
-    # namespaces (namespace holoscan::doc::AJASourceOp {). We take the last segment.
-    ns_matches = re.findall(r"namespace\s+([\w:]+)\s*\{", content)
-    if not ns_matches:
-        return None
-
-    class_name = ns_matches[-1].split("::")[-1]
+        return []
 
     # Extract PYDOC entries: PYDOC(name, R"doc(...)doc")
     pydoc_pattern = re.compile(
@@ -390,35 +384,67 @@ def _parse_pydoc_hpp(pydoc_path: Path) -> dict | None:
         re.DOTALL,
     )
 
-    docs = {}
-    for match in pydoc_pattern.finditer(content):
-        doc_name = match.group(1)
-        doc_text = match.group(2).strip()
-        docs[doc_name] = doc_text
+    def _make_record(class_name: str, docs: dict) -> dict:
+        class_doc = docs.get(class_name, "")
+        constructor_doc = docs.get(f"{class_name}_python", "")
+        method_docs = {
+            k: v for k, v in docs.items() if k not in (class_name, f"{class_name}_python")
+        }
+        return {
+            "class_name": class_name,
+            "class_doc": class_doc,
+            "constructor_doc": constructor_doc,
+            "constructor_params": _parse_numpydoc_params(constructor_doc),
+            "method_docs": method_docs,
+        }
 
+    # Find all namespace declarations.
+    # Namespaces without "::" are inner per-class namespaces (e.g. "namespace AJASourceOp {").
+    # Namespaces with "::" are outer/qualified namespaces (e.g. "namespace holoscan::doc {").
+    all_ns = re.findall(r"namespace\s+([\w:]+)\s*\{", content)
+    inner_namespaces = [ns for ns in all_ns if "::" not in ns]
+
+    if inner_namespaces:
+        # Multi-class file: emit one record per inner namespace block so that
+        # repeated PYDOC keys (e.g. "initialize") in different namespaces don't
+        # overwrite each other.
+        results = []
+        for ns_name in inner_namespaces:
+            # Prefer the closing-comment form "} // namespace NS" as a reliable
+            # block terminator; fall back to the first closing brace otherwise.
+            block_match = re.search(
+                r"namespace\s+"
+                + re.escape(ns_name)
+                + r"\s*\{(.+?)\}\s*//\s*namespace\s+"
+                + re.escape(ns_name),
+                content,
+                re.DOTALL,
+            )
+            if not block_match:
+                block_match = re.search(
+                    r"namespace\s+" + re.escape(ns_name) + r"\s*\{(.+?)\}",
+                    content,
+                    re.DOTALL,
+                )
+            if not block_match:
+                continue
+            docs = {
+                m.group(1): m.group(2).strip() for m in pydoc_pattern.finditer(block_match.group(1))
+            }
+            if docs:
+                results.append(_make_record(ns_name, docs))
+        return results
+
+    # Single fully-qualified namespace (e.g. "namespace holoscan::doc::ClassName {").
+    # Use the last segment of the last namespace match as the class name and parse
+    # all PYDOC entries from the whole file.
+    if not all_ns:
+        return []
+    class_name = all_ns[-1].split("::")[-1]
+    docs = {m.group(1): m.group(2).strip() for m in pydoc_pattern.finditer(content)}
     if not docs:
-        return None
-
-    # The class docstring is typically under the class name key
-    class_doc = docs.get(class_name, "")
-    constructor_doc = docs.get(f"{class_name}_python", "")
-
-    # Extract method docs (everything that's not the class/constructor doc)
-    method_docs = {}
-    for key, value in docs.items():
-        if key not in (class_name, f"{class_name}_python"):
-            method_docs[key] = value
-
-    # Parse constructor parameters from the constructor docstring
-    constructor_params = _parse_numpydoc_params(constructor_doc)
-
-    return {
-        "class_name": class_name,
-        "class_doc": class_doc,
-        "constructor_doc": constructor_doc,
-        "constructor_params": constructor_params,
-        "method_docs": method_docs,
-    }
+        return []
+    return [_make_record(class_name, docs)]
 
 
 def _parse_numpydoc_params(docstring: str) -> list[dict]:
@@ -712,13 +738,13 @@ def build_api_reference_map(git_repo_path: Path) -> dict:
             pydoc_files = list(dict.fromkeys(pydoc_files))  # deduplicate, preserve order
             if pydoc_files:
                 for pydoc_file in pydoc_files:
-                    info = _parse_pydoc_hpp(pydoc_file)
-                    if info:
+                    infos = _parse_pydoc_hpp(pydoc_file)
+                    if infos:
                         # Map to the parent operator directory (not the python subdir)
                         parent_op_dir = str(metadata_dir.relative_to(git_repo_path))
                         if metadata_dir.name in ("cpp", "python"):
                             parent_op_dir = str(metadata_dir.parent.relative_to(git_repo_path))
-                        op_pydoc_classes.setdefault(parent_op_dir, []).append(info)
+                        op_pydoc_classes.setdefault(parent_op_dir, []).extend(infos)
             else:
                 # Pure Python: parse .py files
                 for py_file in python_dir.glob("*.py"):
