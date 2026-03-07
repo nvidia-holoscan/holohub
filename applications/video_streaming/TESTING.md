@@ -9,7 +9,7 @@ The video streaming demo includes integration testing to verify end-to-end funct
 The integration test validates:
 
 - **Server Startup**: Streaming server initializes and starts listening
-- **Client Connection**: Streaming client connects to server successfully  
+- **Client Connection**: Streaming client connects to server successfully
 - **Video Streaming**: Bidirectional video frame transmission (client→server→client)
 - **Resource Management**: Proper cleanup and resource handling
 - **Error Handling**: Graceful handling of connection issues
@@ -38,7 +38,7 @@ The integration test script (`integration_test_cpp.sh`) runs the complete end-to
 2. If you have local C++ changes, **commit them first** before running the test
 3. The test uses cached Docker layers for faster builds (unless cache is cleared)
 
-### Option 2: Using HoloHub CLI
+### Option 2: Using HoloHub CLI (C++ test)
 
 ```bash
 # From holohub root - standard HoloHub test command
@@ -205,7 +205,7 @@ Test project /workspace/holohub/build-video_streaming
 1: Stopping client...
 1: Stopping server...
 1: /usr/bin/bash: line 53:   855 Segmentation fault      (core dumped) [...]
-1: 
+1:
 1: === Verifying Server Logs ===
 1: ✓ Server: Client connected
 1: ✓ Server: Upstream connection established
@@ -213,13 +213,13 @@ Test project /workspace/holohub/build-video_streaming
 1: ✓ Server: StreamingServerUpstreamOp processed 567 unique frames
 1: ✓ Server: StreamingServerDownstreamOp processed 567 tensors
 1: ✓ Server: Frame processing statistics logged
-1: 
+1:
 1: === Verifying Client Logs ===
 1: ✓ Client: Sent 567 frames successfully
 1: ✓ Client: Received 535 frames from server
 1: ✓ Client: Frame validation passed
 1: ✓ Client: Streaming client started
-1: 
+1:
 1: === Test Results Summary ===
 1: Server checks passed: 6
 1: Client checks passed: 4
@@ -242,7 +242,7 @@ Test project /workspace/holohub/build-video_streaming
 2: Stopping Python client...
 2: Stopping Python server...
 2: /usr/bin/bash: line 58:  1144 Segmentation fault      (core dumped) [...]
-2: 
+2:
 2: === Verifying Python Server Logs ===
 2: ✓ Python Server: Client connected
 2: ✓ Python Server: Upstream connection established
@@ -250,13 +250,13 @@ Test project /workspace/holohub/build-video_streaming
 2: ✓ Python Server: StreamingServerUpstreamOp processed 565 unique frames
 2: ✓ Python Server: StreamingServerDownstreamOp processed 565 tensors
 2: ✓ Python Server: Frame processing statistics logged
-2: 
+2:
 2: === Verifying Python Client Logs ===
 2: ✓ Python Client: Sent 565 frames successfully
 2: ✓ Python Client: Received 533 frames from server
 2: ✓ Python Client: Frame validation passed
 2: ✓ Python Client: Streaming client started
-2: 
+2:
 2: === Python Test Results Summary ===
 2: Python Server checks passed: 6
 2: Python Client checks passed: 4
@@ -455,6 +455,7 @@ echo "Integration test exit code: $?"
 ```
 
 **Exit Codes:**
+
 - `0`: All tests passed successfully
 - `1`: Test failures detected
 - `124`: Test timeout (5 minutes)
@@ -463,7 +464,7 @@ echo "Integration test exit code: $?"
 
 ## Python Integration Testing
 
-### Overview
+### Overview (Python test)
 
 The Python integration test validates the complete bidirectional video streaming pipeline using Python implementations of both the server and client applications. The test verifies frame transmission, reception, and processing statistics.
 
@@ -492,7 +493,7 @@ The integration test script (`integration_test_python.sh`) runs the complete end
 3. The test uses cached Docker layers for faster builds (unless cache is cleared)
 4. This script specifically tests the Python implementations of server and client
 
-### Option 2: Using HoloHub CLI
+### Option 2: Using HoloHub CLI (Python test)
 
 ```bash
 # From holohub root - run Python integration test
@@ -506,6 +507,7 @@ The integration test script (`integration_test_python.sh`) runs the complete end
 **Test Duration:** ~44 seconds (30 seconds of streaming + setup/teardown)
 
 **Requirements:**
+
 - Docker and NVIDIA GPU
 - Testing enabled via `--cmake-options='-DBUILD_TESTING=ON'`
 - Python bindings enabled via `--cmake-options='-DHOLOHUB_BUILD_PYTHON=ON'`
@@ -515,7 +517,7 @@ The integration test script (`integration_test_python.sh`) runs the complete end
 
 The Python integration test (whether run via wrapper script or direct command) follows this sequence:
 
-#### 1. Pre-Test Setup (10-20 seconds)
+#### 1. Pre-Test Setup (10-20 seconds) (Python)
 
 ```bash
 # Displays current git commit
@@ -528,7 +530,7 @@ docker system prune -f --filter "label=holohub"
 export HOLOHUB_BASE_SDK_VERSION=3.6.0
 ```
 
-#### 2. Docker Build & Test Execution (2-4 minutes)
+#### 2. Docker Build & Test Execution (2-4 minutes) (Python)
 
 ```bash
 # Builds Docker image and runs CTest with Python bindings
@@ -570,7 +572,7 @@ The `video_streaming_integration_test_python` defined in CMakeLists.txt:
    - Verifies client logs for successful streaming and frame transmission
    - Reports PASS/FAIL based on comprehensive log analysis
 
-#### 4. Post-Test Analysis (5 seconds)
+#### 4. Post-Test Analysis (5 seconds) (Python)
 
 ```bash
 # Verifies test results from log file
@@ -591,6 +593,7 @@ fi
 ### Expected Outcome
 
 **Successful Test Output (Standalone Python Test):**
+
 ```console
 === Python Integration Test with Log Verification ===
 Starting Python server and client with log capture...
@@ -637,12 +640,14 @@ Total Test time (real) = 44.42 sec
 ```
 
 **Note:** When running the full integration test suite (both C++ and Python tests together), you'll see:
+
 - Test counter: `2/2 Test #2` (instead of `1/1`)
 - Both tests listed: `video_streaming_integration_test_cpp` and `video_streaming_integration_test_python`
 - Total: `0 tests failed out of 2`
 - Total time: ~88 seconds (both tests combined)
 
 **Important Notes:**
+
 - A segmentation fault may occur during shutdown - this is **expected** and does not indicate test failure
 - The test explicitly ignores cleanup segfaults using `wait $PID || true`
 - Test result is based **solely** on the 10 verification checks, not process exit codes
@@ -655,7 +660,7 @@ The Python integration test validates the following checks. **All checks must pa
 #### Server Checks (6 required)
 
 | Check | Description | Success Criteria |
-|-------|-------------|------------------|
+| --- | --- | --- |
 | ✓ Client connected | Client successfully connects to server | `"Client connected"` in server logs |
 | ✓ Upstream connection | Upstream channel established (client → server) | `"Upstream connection established"` in server logs |
 | ✓ Downstream connection | Downstream channel established (server → client) | `"Downstream connection established"` in server logs |
@@ -666,7 +671,7 @@ The Python integration test validates the following checks. **All checks must pa
 #### Client Checks (4 required)
 
 | Check | Description | Success Criteria |
-|-------|-------------|------------------|
+| --- | --- | --- |
 | ✓ Frames sent | Client successfully sends frames to server | ≥100 `"Frame sent successfully"` log entries |
 | ✓ Frames received | Client receives frames from server | ≥100 `"CLIENT: Received frame"` log entries |
 | ✓ Frame validation | Received frames pass validation | `"Frame validation passed"` in client logs |
@@ -675,6 +680,7 @@ The Python integration test validates the following checks. **All checks must pa
 #### Overall Test Success
 
 **Test PASSES when:**
+
 - ✅ All 6 server checks pass (6/6)
 - ✅ All 4 client checks pass (4/4)
 - ✅ Total: **10/10 checks passed**
@@ -682,6 +688,7 @@ The Python integration test validates the following checks. **All checks must pa
 - ✅ CTest output: `"100% tests passed, 0 tests failed out of 1"`
 
 **Test FAILS when:**
+
 - ❌ Any server check fails (< 6 passed)
 - ❌ Any client check fails (< 4 passed)
 - ❌ Total: < 10 checks passed
@@ -693,39 +700,47 @@ The Python integration test validates the following checks. **All checks must pa
 ### Frame Throughput Metrics
 
 **Minimum Requirements:**
+
 - **Server Frame Processing**: ≥100 frames in 30 seconds (~3.3 fps minimum)
 - **Client Frame Sending**: ≥100 frames in 30 seconds (~3.3 fps minimum)
 - **Client Frame Reception**: ≥100 frames in 30 seconds (~3.3 fps minimum)
 
 **Typical Performance:**
+
 - **Frames Processed**: 500-600 frames in 30 seconds (~16-20 fps)
 - **Bidirectional Verification**: Both upstream (client → server) and downstream (server → client) verified
-
 
 ### Troubleshooting
 
 #### Test Failure - Insufficient Frames
+
 ```text
 ✗ Python Server: Only 50 frames processed (minimum: 100)
 ```
-**Cause**: Insufficient streaming time or connection issues  
+
+**Cause**: Insufficient streaming time or connection issues
 **Solution**: Check network connectivity, verify logs for connection errors
 
 #### Test Failure - Client Not Started
+
 ```text
 ✗ Python Client: Streaming client failed to start
 ```
-**Cause**: Missing dependencies or PYTHONPATH issues  
+
+**Cause**: Missing dependencies or PYTHONPATH issues
 **Solution**: Ensure `HOLOHUB_BUILD_PYTHON=ON` and rebuild with Python bindings
 
 #### Test Failure - No Frames Received
+
 ```text
 ✗ Python Client: No frames received from server
 ```
-**Cause**: Downstream connection failure or server issues  
+
+**Cause**: Downstream connection failure or server issues
 **Solution**: Check server logs for downstream connection establishment
 
 #### Segmentation Fault at Shutdown (Expected Behavior)
+
 ```bash
 Segmentation fault (core dumped) python3 video_streaming_server_demo.py
 ✓ Python Server: StreamingServerUpstreamOp processed 561 unique frames
@@ -743,6 +758,7 @@ Segmentation fault (core dumped) python3 video_streaming_server_demo.py
 ### CI/CD Integration
 
 **Exit Codes:**
+
 - `0`: All tests passed (all 10 checks passed)
 - `1`: One or more checks failed
 - `124`: Test timeout (300 seconds)
@@ -750,6 +766,7 @@ Segmentation fault (core dumped) python3 video_streaming_server_demo.py
 **CI-Friendly Commands:**
 
 **Using Wrapper Script:**
+
 ```bash
 # Recommended for CI/CD pipelines
 timeout 300 ./applications/video_streaming/integration_test_python.sh
@@ -757,6 +774,7 @@ echo "Python integration test exit code: $?"
 ```
 
 **Using Direct Command:**
+
 ```bash
 timeout 300 ./holohub test video_streaming \
   --cmake-options='-DHOLOHUB_BUILD_PYTHON=ON -DBUILD_TESTING=ON' \
@@ -797,4 +815,3 @@ tail -100 integration_test_python.log
 - **[Main README](README.md)** - Application overview and usage
 - **[Client README](video_streaming_client/README.md)** - Client-specific documentation
 - **[Server README](video_streaming_server/README.md)** - Server-specific documentation
-

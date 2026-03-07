@@ -1,15 +1,15 @@
-### Custom LSTM Inference
+# Custom LSTM Inference
 
 The `lstm_tensor_rt_inference` extension provides LSTM (Long-Short Term Memory) stateful inference module using TensorRT.
 
-#### `nvidia::holoscan::lstm_tensor_rt_inference::TensorRtInference`
+## `nvidia::holoscan::lstm_tensor_rt_inference::TensorRtInference`
 
 Codelet, taking input tensors and feeding them into TensorRT for LSTM inference.
 
 This implementation is based on `nvidia::gxf::TensorRtInference`.
 `input_state_tensor_names` and `output_state_tensor_names` parameters are added to specify tensor names for states in LSTM model.
 
-##### Parameters
+### Parameters
 
 - **`model_file_path`**: Path to ONNX model to be loaded
   - type: `std::string`

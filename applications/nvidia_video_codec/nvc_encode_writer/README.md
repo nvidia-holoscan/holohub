@@ -2,7 +2,7 @@
 
 This application demonstrates the use of NVIDIA Video Codec SDK. The application loads a video file, encodes the video using either H.264 or HEVC (H.265), and then writes the encoded video frames to disk.
 
-### Requirements
+## Requirements
 
 - NVIDIA Driver Version >= 570
 - CUDA Version >= 12.8
@@ -10,7 +10,7 @@ This application demonstrates the use of NVIDIA Video Codec SDK. The application
 
 > 💡 **Note:** NVIDIA IGX Orin with integrated GPU is not currently supported.
 
-### Data
+## Data
 
 [📦️ (NGC) Sample App Data for AI-based Endoscopy Tool Tracking](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data)
 

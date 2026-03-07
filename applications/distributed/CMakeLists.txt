@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,3 +18,8 @@ project(distributed_applications LANGUAGES NONE)
 
 add_subdirectory(grpc)
 add_subdirectory(ucx)
+
+add_holohub_application(ucxx_endoscopy_tool_tracking
+    DEPENDS OPERATORS ucxx_send_receive
+              lstm_tensor_rt_inference
+              tool_tracking_postprocessor)

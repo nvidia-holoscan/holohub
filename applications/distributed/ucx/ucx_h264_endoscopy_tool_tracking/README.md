@@ -6,7 +6,6 @@ This application is similar to the [H.264 Endoscopy Tool Tracking](../../../h264
 2. Inference: run the inference using LSTM and run the post-processing script.
 3. Visualization: display input video and inference results.
 
-
 ## Requirements
 
 This application is configured to use H.264 elementary stream from endoscopy sample data as input.
@@ -21,7 +20,7 @@ The data is automatically downloaded when building the application.
 
 * Building and running the application from the top level Holohub directory:
 
-### C++
+### C++ (build and run)
 
 ```bash
 # Start the application with all three fragments
@@ -36,7 +35,7 @@ The data is automatically downloaded when building the application.
 ./holohub run ucx_h264_endoscopy_tool_tracking --language=cpp --run-args="--worker --fragments viz --address :10000 --worker-address :10003"
 ```
 
-### Python
+### Python (build and run)
 
 ```bash
 # Start the application with all three fragments
@@ -62,7 +61,6 @@ Open and edit the [Dockerfile](../../../h264/Dockerfile) and uncomment line 66:
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/aarch64-linux-gnu/tegra/
 ```
 
-
 ## Dev Container
 
 To start the VS Code Dev Container, run the following command from the root directory of Holohub:
@@ -73,10 +71,10 @@ To start the VS Code Dev Container, run the following command from the root dire
 
 ### VS Code Launch Profiles
 
-#### C++
+#### C++ (launch profile)
 
 Use the **(gdb) ucx_h264_endoscopy_tool_tracking/cpp (all fragments)** launch profile to run and debug the C++ application.
 
-#### Python
+#### Python (launch profile)
 
 Use the **(pythoncpp) ucx_h264_endoscopy_tool_tracking/python (all fragments)** launch profile to run and debug the Python application.

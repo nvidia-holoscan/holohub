@@ -5,10 +5,11 @@ install/
 install-*/
 dist/
 _CPack_Packages/
+doc/website/_build/
 
 # Data
-data/
-data-*/
+/data/
+/data-*/
 
 # Utilities and metadata
 aggregate_metadata.json

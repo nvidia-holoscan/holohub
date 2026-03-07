@@ -43,6 +43,13 @@ ARG GPU_TYPE
 ARG CUDA_MAJOR
 RUN INDEX_URL=""; \
     if [ "${GPU_TYPE}" = "igpu" ]; then \
+        # Install cuDNN for PyTorch
+        # Some cuDNN libraries have been intentionally removed from the base image, so we need to reinstall them
+        apt-get update && \
+        apt-get install -y --reinstall --no-install-recommends \
+            libcudnn9-cuda-12 \
+            libcudnn9-dev-cuda-12 && \
+        rm -rf /var/lib/apt/lists/* && \
         INDEX_URL="https://pypi.jetson-ai-lab.io/jp6/cu126"; \
     elif [ "${CUDA_MAJOR}" = "12" ]; then \
         INDEX_URL="https://download.pytorch.org/whl/cu129"; \

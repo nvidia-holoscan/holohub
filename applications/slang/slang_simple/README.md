@@ -99,7 +99,7 @@ Note that the data sent to the input of `SlangShaderOp` must be a data buffer (c
 
 The application will output processed values showing the result of adding the offset (10) to each input value:
 
-```
+```text
 Received value: 11
 Received value: 12
 Received value: 13
@@ -123,6 +123,7 @@ You can modify the `simple.slang` file to implement different computations:
 In the application code, you can modify the parameter value:
 
 #### C++
+
 ```cpp
 auto slang = make_operator<ops::SlangShaderOp>("Slang",
                                                Arg("shader_source_file", "simple.slang"),
@@ -131,6 +132,7 @@ auto slang = make_operator<ops::SlangShaderOp>("Slang",
 ```
 
 #### Python
+
 ```python
 slang = SlangShaderOp(self, name="Slang", shader_source_file="simple.slang")
 slang.add_arg(parameter=42)  # Change this value

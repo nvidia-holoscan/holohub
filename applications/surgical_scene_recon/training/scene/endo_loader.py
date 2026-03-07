@@ -95,15 +95,59 @@ class EndoNeRF_Dataset(object):
         """
         Load meta data from the dataset.
         """
+
+        # get paths of images, depths, masks first to determine frame count
+        def get_file_paths(filetype):
+            """Get sorted list of PNG files for a given data type."""
+            return sorted(glob.glob(os.path.join(self.root_dir, filetype, "*.png")))
+
+        self.image_paths = get_file_paths("images")
+        if self.mode == "binocular":
+            self.depth_paths = get_file_paths("depth")
+        elif self.mode == "monocular":
+            self.depth_paths = get_file_paths("monodepth")
+        else:
+            raise ValueError(f"{self.mode} has not been implemented.")
+        self.masks_paths = get_file_paths("masks")
+
         # load poses
         poses_arr = np.load(os.path.join(self.root_dir, "poses_bounds.npy"))
         poses = poses_arr[:, :-2].reshape([-1, 3, 5])  # (N_cams, 3, 5)
+
+        # determine usable frame count (minimum across all data sources)
+        num_poses = poses.shape[0]
+        num_images = len(self.image_paths)
+        num_depths = len(self.depth_paths)
+        num_masks = len(self.masks_paths)
+        usable_frames = min(num_poses, num_images, num_depths, num_masks)
+
+        if usable_frames == 0:
+            raise ValueError(
+                f"No usable frames: images={num_images}, depths={num_depths}, "
+                f"masks={num_masks}, poses={num_poses}. "
+                f"Check dataset directory: {self.root_dir}"
+            )
+
+        if usable_frames < max(num_poses, num_images, num_depths, num_masks):
+            print(
+                f"WARNING: Data source count mismatch. "
+                f"images={num_images}, depths={num_depths}, "
+                f"masks={num_masks}, poses={num_poses}. "
+                f"Using first {usable_frames} frames. "
+                f"Verify your dataset directory: {self.root_dir}"
+            )
+
+        # truncate all data to usable frame count
+        self.image_paths = self.image_paths[:usable_frames]
+        self.depth_paths = self.depth_paths[:usable_frames]
+        self.masks_paths = self.masks_paths[:usable_frames]
+        poses = poses[:usable_frames]
+
         # coordinate transformation OpenGL->Colmap, center poses
         H, W, focal = poses[0, :, -1]
         focal = focal / self.downsample
         self.focal = (focal, focal)
         self.K = np.array([[focal, 0, W // 2], [0, focal, H // 2], [0, 0, 1]]).astype(np.float32)
-        # poses = np.concatenate([poses[..., :1], -poses[..., 1:2], -poses[..., 2:3], poses[..., 3:4]], -1)
         poses = np.concatenate(
             [poses[..., :1], poses[..., 1:2], poses[..., 2:3], poses[..., 3:4]], -1
         )
@@ -121,29 +165,7 @@ class EndoNeRF_Dataset(object):
             self.image_poses.append((R, T))
             self.image_times.append(idx / poses.shape[0])
 
-        # get paths of images, depths, masks, etc.
-        def get_file_paths(filetype):
-            """Get sorted list of PNG files for a given data type."""
-            return sorted(glob.glob(os.path.join(self.root_dir, filetype, "*.png")))
-
-        self.image_paths = get_file_paths("images")
-        if self.mode == "binocular":
-            self.depth_paths = get_file_paths("depth")
-        elif self.mode == "monocular":
-            self.depth_paths = get_file_paths("monodepth")
-        else:
-            raise ValueError(f"{self.mode} has not been implemented.")
-        self.masks_paths = get_file_paths("masks")
-
-        assert (
-            len(self.image_paths) == poses.shape[0]
-        ), "the number of images should equal to the number of poses"
-        assert (
-            len(self.depth_paths) == poses.shape[0]
-        ), "the number of depth images should equal to number of poses"
-        assert (
-            len(self.masks_paths) == poses.shape[0]
-        ), "the number of masks should equal to the number of poses"
+        print(f"Using {usable_frames} frames")
 
     def format_infos(self, split):
         cameras = []

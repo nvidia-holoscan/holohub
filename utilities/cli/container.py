@@ -306,8 +306,6 @@ class HoloHubContainer:
             options.extend(["--device", "/dev/nvhost-nvsched-gpu"])
         if os.path.exists("/dev/nvhost-sched-gpu"):
             options.extend(["--device", "/dev/nvhost-sched-gpu"])
-        if os.path.exists("/dev/nvidia0"):
-            options.extend(["--device", "/dev/nvidia0"])
         if os.path.exists("/dev/nvidia-modeset"):
             options.extend(["--device", "/dev/nvidia-modeset"])
         if os.path.exists("/usr/share/nvidia/nvoptix.bin"):
@@ -664,6 +662,7 @@ class HoloHubContainer:
         )
 
         for volume in add_volumes:
+            volume = os.path.abspath(volume)
             base = os.path.basename(volume)
             args.extend(["-v", f"{volume}:/workspace/volumes/{base}"])
 
@@ -697,12 +696,7 @@ class HoloHubContainer:
         return args
 
     def get_nvidia_runtime_args(self) -> List[str]:
-        return [
-            "--runtime",
-            "nvidia",
-            "--gpus",
-            "all",
-        ]
+        return ["--runtime", "nvidia"]
 
     def get_device_cgroup_args(self) -> List[str]:
         return [
@@ -750,9 +744,15 @@ class HoloHubContainer:
 
     def get_environment_args(self) -> List[str]:
         """Environment variable arguments"""
+        # Default GPU visibility is controlled via NVIDIA_VISIBLE_DEVICES (from the image and/or
+        # environment args). This keeps the default behavior ("all") while allowing users to
+        # override with `--gpus=...` or CDI `--device nvidia.com/gpu=...` in `--docker-opts`.
+        nvidia_visible_devices = os.environ.get("NVIDIA_VISIBLE_DEVICES", "all")
         args = [
             "-e",
             "NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display",
+            "-e",
+            f"NVIDIA_VISIBLE_DEVICES={nvidia_visible_devices}",
             "-e",
             f"HOME=/workspace/{self.WORKSPACE_NAME}",
             "-e",

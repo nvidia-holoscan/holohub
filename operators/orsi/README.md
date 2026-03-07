@@ -162,7 +162,7 @@ cuda_stream_pool = holoscan.resources.CudaStreamPool(fragment)
 
 Typical pipeline configuration:
 
-```
+```text
 Video Source → Format Converter → Segmentation Preprocessor → AI Model → Segmentation Postprocessor → Visualizer
 ```
 

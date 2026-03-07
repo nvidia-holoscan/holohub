@@ -1,12 +1,12 @@
-### NPP Filter
+# NPP Filter
 
 The `npp_filter` operator uses [NPP](https://developer.nvidia.com/npp) to apply a filters to a Tensor or VideBuffer.
 
-#### `holoscan::ops::NppFilter`
+## `holoscan::ops::NppFilter`
 
-Operator class to apply a filter of the [NPP library]() to a Tensor or VideBuffer.
+Operator class to apply a filter of the [NPP library](https://developer.nvidia.com/npp) to a Tensor or VideBuffer.
 
-##### Parameters
+### Parameters
 
 - **`filter`**: Name of the filter to apply (supported Gauss, SobelHoriz, SobelVert)
   - type: `std::string`
@@ -15,12 +15,12 @@ Operator class to apply a filter of the [NPP library]() to a Tensor or VideBuffe
 - **`allocator`**: Allocator used to allocate the output data
   - type: `std::shared_ptr<Allocator>`
 
-##### Inputs
+### Inputs
 
 - **`input`**: Input frame data
   - type: `nvidia::gxf::Tensor` or `nvidia::gxf::VideoBuffer`
 
-##### Outputs
+### Outputs
 
 - **`input`**: Output frame data
   - type: `nvidia::gxf::Tensor` or `nvidia::gxf::VideoBuffer`

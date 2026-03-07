@@ -1,14 +1,14 @@
-### Video Encoder Request
+# Video Encoder Request
 
 The `video_encoder_request` handles the input for encoding YUV frames to H264 bit stream.
 
-#### `holoscan::ops::VideoEncoderOp`
+## `holoscan::ops::VideoEncoderOp`
 
 Operator class to handle the input for encoding YUV frames to H264 bit stream.
 
 This implementation is based on `nvidia::gxf::VideoEncoderRequest`.
 
-##### Parameters
+### Parameters
 
 - **`input_frame`**: Receiver to get the input frame.
   - type: `holoscan::IOSpec*`
@@ -40,4 +40,3 @@ This implementation is based on `nvidia::gxf::VideoEncoderRequest`.
   - type: `int32_t`
 - **`config`**: Preset of parameters, select from pframe_cqp, iframe_cqp, custom. Default: custom.
   - type: `nvidia::gxf::EncoderConfig`
-

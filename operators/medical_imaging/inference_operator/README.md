@@ -20,15 +20,15 @@ from operators.medical_imaging.inference_operator import InferenceOperator
 class MyInferenceOperator(InferenceOperator):
     def __init__(self, fragment, *args, **kwargs):
         super().__init__(fragment, *args, **kwargs)
-        
+
     def pre_process(self, data, *args, **kwargs):
         # Implement preprocessing logic
         return data
-        
+
     def predict(self, data, *args, **kwargs):
         # Implement inference logic
         return data
-        
+
     def post_process(self, data, *args, **kwargs):
         # Implement postprocessing logic
         return data
