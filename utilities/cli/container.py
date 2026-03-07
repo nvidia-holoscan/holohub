@@ -779,7 +779,9 @@ class HoloHubContainer:
             args.extend(["-e", f"SCCACHE_DIR={SCCACHE_CONTAINER_DIR}"])
             # Forward other SCCACHE_* environment variables present on host
             for k in sccache_keys:
-                if (k != "SCCACHE_DIR") and (k != "SCCACHE_MEMCACHED_ENDPOINT" or self.is_valid_endpoint()):
+                if (k != "SCCACHE_DIR") and (
+                    k != "SCCACHE_MEMCACHED_ENDPOINT" or self.is_valid_endpoint()
+                ):
                     args.extend(["-e", k])
         elif len(sccache_keys) > 0:
             warn(
