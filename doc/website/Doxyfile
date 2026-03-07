@@ -44,9 +44,11 @@ MACRO_EXPANSION        = YES
 PREDEFINED             = HOLOSCAN_OPERATOR_FORWARD_ARGS(x)= \
                          HOLOSCAN_OPERATOR_FORWARD_ARGS_SUPER(x,y)=
 
-# Suppress verbose output during build
+# Suppress verbose progress output but keep warnings so parse errors are visible.
+# Warnings are redirected to a log file rather than stderr to keep CI output clean.
 QUIET                  = YES
-WARNINGS               = NO
+WARNINGS               = YES
+WARN_LOGFILE           = _build/doxygen/warnings.log
 
 # Source browsing (not needed for XML-only)
 SOURCE_BROWSER         = NO
