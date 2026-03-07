@@ -18103,6 +18103,51 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Python">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dicomencapsulatedpdfwriteroperator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DICOMEncapsulatedPDFWriterOperator
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -18274,6 +18319,38 @@
     <span class="n">custom_tags</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;PatientName&quot;</span><span class="p">:</span> <span class="s2">&quot;DOE^JOHN&quot;</span><span class="p">}</span>  <span class="c1"># Optional: custom DICOM tags as a dict</span>
 <span class="p">)</span>
 </code></pre></div>
+<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
+<h3 id="python">Python<a class="headerlink" href="#python" title="Permanent link">#</a></h3>
+<h4 id="dicomencapsulatedpdfwriteroperator"><code>DICOMEncapsulatedPDFWriterOperator</code><a class="headerlink" href="#dicomencapsulatedpdfwriteroperator" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>Operator</code></p>
+<p>Class to write DICOM Encapsulated PDF Instance with provided PDF bytes in memory.</p>
+<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>__init__(fragment)</code></td>
+<td>Class to write DICOM Encapsulated PDF Instance with PDF bytes in memory or in a file.</td>
+</tr>
+<tr>
+<td><code>setup(spec)</code></td>
+<td>Set up the named input(s), and output(s) if applicable.</td>
+</tr>
+<tr>
+<td><code>compute(op_input, op_output, context)</code></td>
+<td>Performs computation for this operator and handles I/O.</td>
+</tr>
+<tr>
+<td><code>write(content_bytes, dicom_series, output_dir)</code></td>
+<td>Writes DICOM object</td>
+</tr>
+</tbody>
+</table>
 
 
 

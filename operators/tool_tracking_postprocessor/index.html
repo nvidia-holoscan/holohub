@@ -18096,6 +18096,51 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Python">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tooltrackingpostprocessorop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ToolTrackingPostprocessorOp
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -18210,6 +18255,58 @@
 <li><strong><code>cuda_stream_pool</code></strong>: Instance of gxf::CudaStreamPool</li>
 <li>type: <code>gxf::Handle&lt;gxf::CudaStreamPool&gt;</code></li>
 </ul>
+<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
+<h3 id="python">Python<a class="headerlink" href="#python" title="Permanent link">#</a></h3>
+<h4 id="tooltrackingpostprocessorop"><code>ToolTrackingPostprocessorOp</code><a class="headerlink" href="#tooltrackingpostprocessorop" title="Permanent link">#</a></h4>
+<h5 id="constructor-parameters">Constructor Parameters<a class="headerlink" href="#constructor-parameters" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>fragment</code></td>
+<td><code>Fragment</code></td>
+<td>Required</td>
+<td>The fragment that the operator belongs to.</td>
+</tr>
+<tr>
+<td><code>device_allocator</code></td>
+<td><code>holoscan.resources.Allocator</code></td>
+<td>Required</td>
+<td>Output allocator used on the device side.</td>
+</tr>
+<tr>
+<td><code>min_prob</code></td>
+<td><code>float</code></td>
+<td>Optional</td>
+<td>Minimum probability (in range [0, 1]). Default value is 0.5.</td>
+</tr>
+<tr>
+<td><code>overlay_img_colors</code></td>
+<td><code>sequence of sequence of float</code></td>
+<td>Optional</td>
+<td>Color of the image overlays, a list of RGB values with components between 0 and 1. The default value is a qualitative colormap with a sequence of 12 colors.</td>
+</tr>
+<tr>
+<td><code>cuda_stream_pool</code></td>
+<td><code>holoscan.resources.CudaStreamPool</code></td>
+<td>Optional</td>
+<td><code>holoscan.resources.CudaStreamPool</code> instance to allocate CUDA streams. Default value is <code>None</code>.</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code>str</code></td>
+<td>Optional</td>
+<td>The name of the operator.</td>
+</tr>
+</tbody>
+</table>
 
 
 

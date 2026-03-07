@@ -18168,6 +18168,51 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Python">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#volumerendererop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        VolumeRendererOp
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -18365,6 +18410,86 @@ It may be necessary to create a new configuration file when working with a new d
 <li>Set the <code>VolumeRendererOp</code> <code>config_file</code> parameter to an empty string to indicate no default config file is present;</li>
 <li>Set the <code>VolumeRendererOp</code> <code>write_config_file</code> parameter to the desired output JSON configuration filepath.</li>
 <li>Run the application with the desired input volume. The operator will deduce settings and write out the JSON file to reuse on subsequent runs via the <code>config_file</code> parameter.</li>
+</ul>
+<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
+<h3 id="python">Python<a class="headerlink" href="#python" title="Permanent link">#</a></h3>
+<h4 id="volumerendererop"><code>VolumeRendererOp</code><a class="headerlink" href="#volumerendererop" title="Permanent link">#</a></h4>
+<p>The <code>volume_renderer</code> operator reads 3D volumes from the specified input file.</p>
+<p>The operator supports these file formats:
+* MHD https://itk.org/Wiki/ITK/MetaIO/Documentation
+* NIFTI https://nifti.nimh.nih.gov/
+* NRRD https://teem.sourceforge.net/nrrd/format.html</p>
+<h5 id="constructor-parameters">Constructor Parameters<a class="headerlink" href="#constructor-parameters" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>fragment</code></td>
+<td><code>Fragment</code></td>
+<td>Required</td>
+<td>The fragment that the operator belongs to.</td>
+</tr>
+<tr>
+<td><code>config_file</code></td>
+<td><code>str</code></td>
+<td>Optional</td>
+<td>Config file path. The content of the file is passed to <code>clara::viz::JsonInterface::SetSettings()</code> at initialization time.</td>
+</tr>
+<tr>
+<td><code>write_config_file</code></td>
+<td><code>str</code></td>
+<td>Optional</td>
+<td>Deduce config settings from volume data and write to file. Sets a light in correct distance. Sets a transfer function using the histogram of the data. Writes the JSON configuration to the file with the given name.</td>
+</tr>
+<tr>
+<td><code>allocator</code></td>
+<td><code>holoscan.resources.Allocator</code></td>
+<td>Optional</td>
+<td>Allocator used to allocate render buffer outputs when no pre-allocated color or depth buffer is passed to <code>color_buffer_in</code> or <code>depth_buffer_in</code>. Allocator needs to be capable to allocate device memory.</td>
+</tr>
+<tr>
+<td><code>alloc_width</code></td>
+<td><code>int</code></td>
+<td>Optional</td>
+<td>Width of the render buffer to allocate when no pre-allocated buffers are provided.</td>
+</tr>
+<tr>
+<td><code>alloc_height</code></td>
+<td><code>int</code></td>
+<td>Optional</td>
+<td>Height of the render buffer to allocate when no pre-allocated buffers are provided.</td>
+</tr>
+<tr>
+<td><code>density_min</code></td>
+<td><code>float</code></td>
+<td>Optional</td>
+<td>Minimum density volume element value. If not set this is calculated from the volume data. In practice CT volumes have a minimum value of -1024 which corresponds to the lower value of the Hounsfield scale range usually used.</td>
+</tr>
+<tr>
+<td><code>density_max</code></td>
+<td><code>float</code></td>
+<td>Optional</td>
+<td>Maximum density volume element value. If not set this is calculated from the volume data. In practice CT volumes have a minimum value of -1024 which corresponds to the lower value of the Hounsfield scale range usually used.</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code>str</code></td>
+<td>Optional</td>
+<td>The name of the operator.</td>
+</tr>
+</tbody>
+</table>
+<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<ul>
+<li><strong><code>initialize</code></strong>: Initialize the operator.</li>
+<li><strong><code>setup</code></strong>: Define the operator specification.</li>
 </ul>
 
 

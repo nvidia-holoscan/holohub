@@ -18118,6 +18118,62 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Python">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basicnetworkoprx" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BasicNetworkOpRx
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#basicnetworkoptx" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BasicNetworkOpTx
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -18287,6 +18343,177 @@ and output to their ports, respectively. <code>NetworkOpBurstParams</code> conta
 </ul>
 <p>To receive messages from the Receive operator use the output port <code>burst_out</code>.
 To send messages to the Transmit operator use the input port <code>burst_in</code>.</p>
+<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
+<h3 id="python">Python<a class="headerlink" href="#python" title="Permanent link">#</a></h3>
+<h4 id="basicnetworkoprx"><code>BasicNetworkOpRx</code><a class="headerlink" href="#basicnetworkoprx" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>Operator</code></p>
+<h5 id="attributes">Attributes<a class="headerlink" href="#attributes" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sock_fd</code></td>
+<td><code>socket.socket</code></td>
+<td><code>None</code></td>
+</tr>
+<tr>
+<td><code>l4_proto</code></td>
+<td><code>L4Proto</code></td>
+<td><code>None</code></td>
+</tr>
+<tr>
+<td><code>ip_addr</code></td>
+<td><code>str</code></td>
+<td><code>None</code></td>
+</tr>
+<tr>
+<td><code>dst_port</code></td>
+<td><code>int</code></td>
+<td><code>None</code></td>
+</tr>
+<tr>
+<td><code>batch_size</code></td>
+<td><code>int</code></td>
+<td><code>None</code></td>
+</tr>
+<tr>
+<td><code>max_payload_size</code></td>
+<td><code>int</code></td>
+<td><code>None</code></td>
+</tr>
+<tr>
+<td><code>max_burst_interval</code></td>
+<td><code>int</code></td>
+<td><code>None</code></td>
+</tr>
+<tr>
+<td><code>connected</code></td>
+<td><code>bool</code></td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>send_burst</code></td>
+<td><code>NetworkOpBurstParams</code></td>
+<td><code>NetworkOpBurstParams()</code></td>
+</tr>
+<tr>
+<td><code>burst_start_time</code></td>
+<td><code>float</code></td>
+<td><code>None</code></td>
+</tr>
+</tbody>
+</table>
+<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>__init__()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>setup(spec)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>compute(op_input, op_output, context)</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="basicnetworkoptx"><code>BasicNetworkOpTx</code><a class="headerlink" href="#basicnetworkoptx" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>Operator</code></p>
+<h5 id="attributes_1">Attributes<a class="headerlink" href="#attributes_1" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ip_addr_bytes</code></td>
+<td><code>bytes</code></td>
+<td><code>None</code></td>
+</tr>
+<tr>
+<td><code>sock_fd</code></td>
+<td><code>socket.socket</code></td>
+<td><code>None</code></td>
+</tr>
+<tr>
+<td><code>l4_proto</code></td>
+<td><code>L4Proto</code></td>
+<td><code>None</code></td>
+</tr>
+<tr>
+<td><code>ip_addr</code></td>
+<td><code>str</code></td>
+<td><code>None</code></td>
+</tr>
+<tr>
+<td><code>dst_port</code></td>
+<td><code>int</code></td>
+<td><code>None</code></td>
+</tr>
+<tr>
+<td><code>min_ipg_ns</code></td>
+<td><code>int</code></td>
+<td><code>None</code></td>
+</tr>
+<tr>
+<td><code>max_payload_size</code></td>
+<td><code>int</code></td>
+<td><code>None</code></td>
+</tr>
+<tr>
+<td><code>retry_connect</code></td>
+<td><code>int</code></td>
+<td><code>None</code></td>
+</tr>
+<tr>
+<td><code>connected</code></td>
+<td><code>bool</code></td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h5 id="methods_1">Methods<a class="headerlink" href="#methods_1" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>__init__()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>setup(spec)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>compute(op_input, op_output, context)</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
 
 
 

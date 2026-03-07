@@ -18090,6 +18090,62 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Python">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#vtkrendererop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        VtkRendererOp
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#parameters_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -18226,6 +18282,25 @@ which will only create the image and tag it as <code>holohub:vtk_renderer</code>
 <li><strong><code>labels</code></strong>: labels to be displayed on the rendered image.</li>
 <li>type: <code>std::vector&lt;std::string&gt;&gt;</code></li>
 </ul>
+<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
+<h3 id="python">Python<a class="headerlink" href="#python" title="Permanent link">#</a></h3>
+<h4 id="vtkrendererop"><code>VtkRendererOp</code><a class="headerlink" href="#vtkrendererop" title="Permanent link">#</a></h4>
+<p>Operator for using VTK for rendering.</p>
+<p><strong>==Named Inputs==</strong></p>
+<div class="highlight"><pre><span></span><code>annotations: Input channel for the annotations, type `gxf::Tensor`
+videostream: Input channel for the videostream, type `gxf::Tensor`
+</code></pre></div>
+<h2 id="parameters_1">Parameters<a class="headerlink" href="#parameters_1" title="Permanent link">#</a></h2>
+<p>labels: std::vector<std::string>&gt;
+    labels to be displayed on the rendered image.
+width: int
+    width of the renderer window.
+eight: int
+    height of the renderer window.
+window_name: std::string
+    Compositor window name.
+name : str, optional
+    The name of the operator.</p>
 
 
 

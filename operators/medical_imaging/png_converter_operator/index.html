@@ -18103,6 +18103,51 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Python">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pngconverteroperator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PNGConverterOperator
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -18270,6 +18315,38 @@
 <span class="n">png_op</span><span class="o">.</span><span class="n">convert_and_save</span><span class="p">(</span><span class="n">medical_image</span><span class="p">,</span> <span class="n">output_folder</span><span class="p">)</span>
 </code></pre></div>
 <p>The operator will save individual PNG files for each slice in the specified output folder, named sequentially (0.png, 1.png, etc.).</p>
+<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
+<h3 id="python">Python<a class="headerlink" href="#python" title="Permanent link">#</a></h3>
+<h4 id="pngconverteroperator"><code>PNGConverterOperator</code><a class="headerlink" href="#pngconverteroperator" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>Operator</code></p>
+<p>This operator writes out a 3D Volumetric Image to to a file folder in a slice by slice manner.</p>
+<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>__init__(fragment)</code></td>
+<td>Class to write out a 3D Volumetric Image to a file folder in a slice by slice manner.</td>
+</tr>
+<tr>
+<td><code>setup(spec)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>compute(op_input, op_output, context)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>convert_and_save(image, path)</code></td>
+<td>extracts the slices in originally acquired direction (often axial)</td>
+</tr>
+</tbody>
+</table>
 
 
 

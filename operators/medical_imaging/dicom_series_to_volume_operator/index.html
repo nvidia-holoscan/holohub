@@ -18103,6 +18103,51 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Python">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dicomseriestovolumeoperator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DICOMSeriesToVolumeOperator
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -18257,6 +18302,58 @@
     <span class="n">name</span><span class="o">=</span><span class="s2">&quot;series_to_volume&quot;</span>  <span class="c1"># Optional operator name</span>
 <span class="p">)</span>
 </code></pre></div>
+<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
+<h3 id="python">Python<a class="headerlink" href="#python" title="Permanent link">#</a></h3>
+<h4 id="dicomseriestovolumeoperator"><code>DICOMSeriesToVolumeOperator</code><a class="headerlink" href="#dicomseriestovolumeoperator" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>Operator</code></p>
+<p>This operator converts an instance of DICOMSeries into an Image object.</p>
+<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>__init__(fragment)</code></td>
+<td>Create an instance for a containing application object.</td>
+</tr>
+<tr>
+<td><code>setup(spec)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>compute(op_input, op_output, context)</code></td>
+<td>Performs computation for this operator and handles I/O.</td>
+</tr>
+<tr>
+<td><code>convert_to_image(study_selected_series_list)</code></td>
+<td>Extracts the pixel data from a DICOM Series and other attributes to create an Image object</td>
+</tr>
+<tr>
+<td><code>generate_voxel_data(series)</code></td>
+<td>Applies rescale slope and rescale intercept to the pixels.</td>
+</tr>
+<tr>
+<td><code>create_volumetric_image(vox_data, metadata)</code></td>
+<td>Creates an instance of 3D image.</td>
+</tr>
+<tr>
+<td><code>prepare_series(series)</code></td>
+<td>Computes the slice normal for each slice and then projects the first voxel of each</td>
+</tr>
+<tr>
+<td><code>compute_affine_transform(s_1, s_n, n, series)</code></td>
+<td>Computes the affine transform for this series. It does it in both DICOM Patient oriented</td>
+</tr>
+<tr>
+<td><code>create_metadata(series)</code></td>
+<td>Collects all relevant metadata from the DICOM Series and creates a dictionary.</td>
+</tr>
+</tbody>
+</table>
 
 
 

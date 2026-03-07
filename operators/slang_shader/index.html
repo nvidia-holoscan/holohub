@@ -18506,6 +18506,51 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Python">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#slangshaderop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SlangShaderOp
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -18912,6 +18957,64 @@ void main(uint3 tid : SV_DispatchThreadID) {
 <p>The SlangShaderOp is part of the HoloHub project. Contributions are welcome through the standard HoloHub contribution process.</p>
 <h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">#</a></h2>
 <p>This operator is licensed under the Apache License 2.0, same as the HoloHub project.</p>
+<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
+<h3 id="python">Python<a class="headerlink" href="#python" title="Permanent link">#</a></h3>
+<h4 id="slangshaderop"><code>SlangShaderOp</code><a class="headerlink" href="#slangshaderop" title="Permanent link">#</a></h4>
+<p>The <code>slang_shader</code> operator runs a Slang shader.</p>
+<h5 id="constructor-parameters">Constructor Parameters<a class="headerlink" href="#constructor-parameters" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>fragment</code></td>
+<td><code>Fragment</code></td>
+<td>Required</td>
+<td>The fragment that the operator belongs to.</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code>str</code></td>
+<td>Optional</td>
+<td>The name of the operator.</td>
+</tr>
+<tr>
+<td><code>shader_source</code></td>
+<td><code>str</code></td>
+<td>Optional</td>
+<td>Slang shader source code</td>
+</tr>
+<tr>
+<td><code>shader_source_file</code></td>
+<td><code>str</code></td>
+<td>Optional</td>
+<td>Slang shader source file</td>
+</tr>
+<tr>
+<td><code>preprocessor_macros</code></td>
+<td><code>dict</code></td>
+<td>Optional</td>
+<td>Preprocessor macros to be used in the shader</td>
+</tr>
+<tr>
+<td><code>allocator</code></td>
+<td><code>holoscan.resources.Allocator</code></td>
+<td>Required</td>
+<td>Allocator used to allocate the data</td>
+</tr>
+</tbody>
+</table>
+<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<ul>
+<li><strong><code>initialize</code></strong>: Initialize the operator.</li>
+<li><strong><code>setup</code></strong>: Define the operator specification.</li>
+</ul>
 
 
 

@@ -18096,6 +18096,62 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Python">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tensortovideobufferop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TensorToVideoBufferOp
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#parameters_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -18223,6 +18279,25 @@ It receives GXF Tensor as input and outputs GXF VideoBuffer created from it.</p>
 <li><strong><code>video_format</code></strong>: The video format, supported values: "yuv420", "rgb"</li>
 <li>type: <code>std::string</code></li>
 </ul>
+<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
+<h3 id="python">Python<a class="headerlink" href="#python" title="Permanent link">#</a></h3>
+<h4 id="tensortovideobufferop"><code>TensorToVideoBufferOp</code><a class="headerlink" href="#tensortovideobufferop" title="Permanent link">#</a></h4>
+<p>Operator class to convert Tensor to VideoBuffer.</p>
+<p><strong>==Named Inputs==</strong></p>
+<div class="highlight"><pre><span></span><code>in_tensor : gxf::Entity
+</code></pre></div>
+<p><strong>==Named Outputs==</strong></p>
+<div class="highlight"><pre><span></span><code>out_video_buffer : gxf::Entity
+</code></pre></div>
+<h2 id="parameters_1">Parameters<a class="headerlink" href="#parameters_1" title="Permanent link">#</a></h2>
+<p>fragment : Fragment
+    The fragment that the operator belongs to.
+in_tensor_name: str
+    Input tensor name.
+video_format_: str
+    Video format.
+name : str, optional
+    The name of the operator.</p>
 
 
 

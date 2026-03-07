@@ -18131,6 +18131,51 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Python">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fhirclientoperator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FhirClientOperator
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -18289,6 +18334,35 @@
 <li><code>token_provider</code> (TokenProvider): Optional OAuth2 token provider for authentication</li>
 <li><code>verify_cert</code> (bool): Whether to verify server certificates (default: True)</li>
 </ul>
+<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
+<h3 id="python">Python<a class="headerlink" href="#python" title="Permanent link">#</a></h3>
+<h4 id="fhirclientoperator"><code>FhirClientOperator</code><a class="headerlink" href="#fhirclientoperator" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>Operator</code></p>
+<p>Named inputs:
+    request: a JSON representation of the EHRQuery object</p>
+<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>__init__(fragment)</code></td>
+<td>An operator that queries FHIR service based on information received via</td>
+</tr>
+<tr>
+<td><code>setup(spec)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>compute(op_input, op_output, context)</code></td>
+<td>Pulls the next message in the queue, performs a QIDO query and emits all study instance UIDs</td>
+</tr>
+</tbody>
+</table>
 
 
 

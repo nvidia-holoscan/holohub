@@ -18135,6 +18135,51 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Python">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#volumeloaderop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        VolumeLoaderOp
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -18282,6 +18327,56 @@ tools for volume file format conversion include:</p>
 <li>type: <code>std::array&lt;bool, 3&gt;</code></li>
 <li><strong><code>extent</code></strong>: Physical size of the the volume in world space</li>
 <li>type: <code>std::array&lt;float, 3&gt;</code></li>
+</ul>
+<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
+<h3 id="python">Python<a class="headerlink" href="#python" title="Permanent link">#</a></h3>
+<h4 id="volumeloaderop"><code>VolumeLoaderOp</code><a class="headerlink" href="#volumeloaderop" title="Permanent link">#</a></h4>
+<p>The <code>volume_loader</code> operator reads 3D volumes from the specified input file.</p>
+<p>The operator supports these file formats:
+* MHD https://itk.org/Wiki/ITK/MetaIO/Documentation
+* NIFTI https://nifti.nimh.nih.gov/
+* NRRD https://teem.sourceforge.net/nrrd/format.html</p>
+<h5 id="constructor-parameters">Constructor Parameters<a class="headerlink" href="#constructor-parameters" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>fragment</code></td>
+<td><code>Fragment</code></td>
+<td>Required</td>
+<td>The fragment that the operator belongs to.</td>
+</tr>
+<tr>
+<td><code>allocator</code></td>
+<td><code>holoscan.resources.Allocator</code></td>
+<td>Required</td>
+<td>Allocator used to allocate the volume data</td>
+</tr>
+<tr>
+<td><code>file_name</code></td>
+<td><code>str</code></td>
+<td>Optional</td>
+<td>Volume data file name</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code>str</code></td>
+<td>Optional</td>
+<td>The name of the operator.</td>
+</tr>
+</tbody>
+</table>
+<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<ul>
+<li><strong><code>initialize</code></strong>: Initialize the operator.</li>
+<li><strong><code>setup</code></strong>: Define the operator specification.</li>
 </ul>
 
 

@@ -18103,6 +18103,51 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Python">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#monaiseginferenceoperator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MonaiSegInferenceOperator
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -18285,6 +18330,98 @@
     <span class="n">model_path</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;/path/to/your/model.pt&quot;</span><span class="p">)</span>  <span class="c1"># Replace with your model path</span>
 <span class="p">)</span>
 </code></pre></div>
+<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
+<h3 id="python">Python<a class="headerlink" href="#python" title="Permanent link">#</a></h3>
+<h4 id="monaiseginferenceoperator"><code>MonaiSegInferenceOperator</code><a class="headerlink" href="#monaiseginferenceoperator" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>InferenceOperator</code></p>
+<p>This segmentation operator uses MONAI transforms and Sliding Window Inference.</p>
+<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>__init__(fragment)</code></td>
+<td>Creates a instance of this class.</td>
+</tr>
+<tr>
+<td><code>setup(spec)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>roi_size()</code></td>
+<td>The ROI size of tensors used in prediction.</td>
+</tr>
+<tr>
+<td><code>roi_size(roi_size)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>input_dataset_key()</code></td>
+<td>This is the input image key name used in dictionary based MONAI pre-transforms.</td>
+</tr>
+<tr>
+<td><code>input_dataset_key(val)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>pred_dataset_key()</code></td>
+<td>This is the prediction key name used in dictionary based MONAI post-transforms.</td>
+</tr>
+<tr>
+<td><code>pred_dataset_key(val)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>overlap()</code></td>
+<td>This is the overlap used during sliding window inference</td>
+</tr>
+<tr>
+<td><code>overlap(val)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>sw_batch_size()</code></td>
+<td>The batch size to run window slices</td>
+</tr>
+<tr>
+<td><code>sw_batch_size(val)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>inferer()</code></td>
+<td>The type of inferer to use</td>
+</tr>
+<tr>
+<td><code>inferer(val)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>compute(op_input, op_output, context)</code></td>
+<td>Infers with the input image and save the predicted image to output</td>
+</tr>
+<tr>
+<td><code>compute_impl(input_image, context)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>pre_process(data)</code></td>
+<td>Transforms input before being used for predicting on a model.</td>
+</tr>
+<tr>
+<td><code>post_process(data)</code></td>
+<td>Transforms the prediction results from the model(s).</td>
+</tr>
+<tr>
+<td><code>predict(data)</code></td>
+<td>Predicts results using the models(s) with input tensors.</td>
+</tr>
+</tbody>
+</table>
 
 
 

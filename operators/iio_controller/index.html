@@ -18507,6 +18507,95 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Python">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#iioattributeread" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IIOAttributeRead
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#iioattributewrite" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IIOAttributeWrite
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#iiobufferwrite" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IIOBufferWrite
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#iiobufferread" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IIOBufferRead
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#iioconfigurator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IIOConfigurator
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -18890,6 +18979,274 @@ Dual channel:   [Ch0_S0, Ch1_S0, Ch0_S1, Ch1_S1, ...]
 <li><a href="https://github.com/analogdevicesinc/pyadi-iio">PyADI-IIO</a>: Python bindings for IIO devices</li>
 <li><a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/iio">Holoscan IIO Examples</a>: Complete application examples</li>
 </ul>
+<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
+<h3 id="python">Python<a class="headerlink" href="#python" title="Permanent link">#</a></h3>
+<h4 id="iioattributeread"><code>IIOAttributeRead</code><a class="headerlink" href="#iioattributeread" title="Permanent link">#</a></h4>
+<h5 id="constructor-parameters">Constructor Parameters<a class="headerlink" href="#constructor-parameters" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>fragment</code></td>
+<td><code>Fragment</code></td>
+<td>Required</td>
+<td>The fragment that the operator belongs to.</td>
+</tr>
+<tr>
+<td><code>ctx</code></td>
+<td><code>string, mandatory</code></td>
+<td>Required</td>
+<td>The URI for the IIO context.</td>
+</tr>
+<tr>
+<td><code>attr_name</code></td>
+<td><code>string, mandatory</code></td>
+<td>Required</td>
+<td>The attribute that needs to be read, regardless of the type (Context, Device, Channel)</td>
+</tr>
+<tr>
+<td><code>dev</code></td>
+<td><code>string</code></td>
+<td>Optional</td>
+<td>The name of the device from where to read the attribute. If this is not set, the attribute will be considered a context attribute.</td>
+</tr>
+<tr>
+<td><code>chan</code></td>
+<td><code>string</code></td>
+<td>Optional</td>
+<td>The name of the channel from which to read the attribute. If this parameter is used, the "dev" and "channel_is_output" parameters should also be set.</td>
+</tr>
+<tr>
+<td><code>channel_is_output</code></td>
+<td><code>bool</code></td>
+<td>Optional</td>
+<td>Boolean value that represents weather the channel is input or output, necessary when working with channel attributes because 2 channels can have the same name if they are of different type (1 output and 1 input)</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code>str</code></td>
+<td>Optional</td>
+<td>The name of the operator.</td>
+</tr>
+</tbody>
+</table>
+<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<ul>
+<li><strong><code>initialize</code></strong>: Initialize the operator</li>
+</ul>
+<h4 id="iioattributewrite"><code>IIOAttributeWrite</code><a class="headerlink" href="#iioattributewrite" title="Permanent link">#</a></h4>
+<h5 id="constructor-parameters_1">Constructor Parameters<a class="headerlink" href="#constructor-parameters_1" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>fragment</code></td>
+<td><code>Fragment</code></td>
+<td>Required</td>
+<td>The fragment that the operator belongs to.</td>
+</tr>
+<tr>
+<td><code>ctx</code></td>
+<td><code>string, mandatory</code></td>
+<td>Required</td>
+<td>The URI for the IIO context.</td>
+</tr>
+<tr>
+<td><code>attr_name</code></td>
+<td><code>string, mandatory</code></td>
+<td>Required</td>
+<td>The attribute that needs to be written, regardless of the type (Context, Device, Channel)</td>
+</tr>
+<tr>
+<td><code>dev</code></td>
+<td><code>string</code></td>
+<td>Optional</td>
+<td>The name of the device where to write the attribute. If this is not set, the attribute will be considered a context attribute.</td>
+</tr>
+<tr>
+<td><code>chan</code></td>
+<td><code>string</code></td>
+<td>Optional</td>
+<td>The name of the channel where to write the attribute. If this parameter is used, the "dev" and "channel_is_output" parameters should also be set.</td>
+</tr>
+<tr>
+<td><code>channel_is_output</code></td>
+<td><code>bool</code></td>
+<td>Optional</td>
+<td>Boolean value that represents weather the channel is input or output, necessary when working with channel attributes because 2 channels can have the same name if they are of different type (1 output and 1 input)</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code>str</code></td>
+<td>Optional</td>
+<td>The name of the operator.</td>
+</tr>
+</tbody>
+</table>
+<h5 id="methods_1">Methods<a class="headerlink" href="#methods_1" title="Permanent link">#</a></h5>
+<ul>
+<li><strong><code>initialize</code></strong>: Initialize the operator</li>
+</ul>
+<h4 id="iiobufferwrite"><code>IIOBufferWrite</code><a class="headerlink" href="#iiobufferwrite" title="Permanent link">#</a></h4>
+<h5 id="constructor-parameters_2">Constructor Parameters<a class="headerlink" href="#constructor-parameters_2" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>fragment</code></td>
+<td><code>Fragment</code></td>
+<td>Required</td>
+<td>The fragment that the operator belongs to.</td>
+</tr>
+<tr>
+<td><code>ctx</code></td>
+<td><code>string, mandatory</code></td>
+<td>Required</td>
+<td>The URI for the IIO context.</td>
+</tr>
+<tr>
+<td><code>dev</code></td>
+<td><code>string, mandatory</code></td>
+<td>Required</td>
+<td>The name of the device where to write the buffer.</td>
+</tr>
+<tr>
+<td><code>is_cyclic</code></td>
+<td><code>bool, mandatory</code></td>
+<td>Required</td>
+<td>Boolean value that represents whether the buffer is cyclic or not.</td>
+</tr>
+<tr>
+<td><code>enabled_channel_names</code></td>
+<td><code>list of strings, mandatory</code></td>
+<td>Required</td>
+<td>List of names of channels that are enabled. In order to create a buffer, at least one channel must be enabled.</td>
+</tr>
+<tr>
+<td><code>enabled_channel_output</code></td>
+<td><code>list of bools, mandatory</code></td>
+<td>Required</td>
+<td>List of booleans that represent whether each channel is output or not. Should be the same size as enabled_channel_names.</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code>str</code></td>
+<td>Optional</td>
+<td>The name of the operator.</td>
+</tr>
+</tbody>
+</table>
+<h5 id="methods_2">Methods<a class="headerlink" href="#methods_2" title="Permanent link">#</a></h5>
+<ul>
+<li><strong><code>initialize</code></strong>: Initialize the operator</li>
+</ul>
+<h4 id="iiobufferread"><code>IIOBufferRead</code><a class="headerlink" href="#iiobufferread" title="Permanent link">#</a></h4>
+<h5 id="constructor-parameters_3">Constructor Parameters<a class="headerlink" href="#constructor-parameters_3" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>fragment</code></td>
+<td><code>Fragment</code></td>
+<td>Required</td>
+<td>The fragment that the operator belongs to.</td>
+</tr>
+<tr>
+<td><code>ctx</code></td>
+<td><code>string, mandatory</code></td>
+<td>Required</td>
+<td>The URI for the IIO context.</td>
+</tr>
+<tr>
+<td><code>dev</code></td>
+<td><code>string, mandatory</code></td>
+<td>Required</td>
+<td>The name of the device from where to read the buffer.</td>
+</tr>
+<tr>
+<td><code>samples_count</code></td>
+<td><code>size_t, mandatory</code></td>
+<td>Required</td>
+<td>The number of samples to read from the device.</td>
+</tr>
+<tr>
+<td><code>is_cyclic</code></td>
+<td><code>bool, mandatory</code></td>
+<td>Required</td>
+<td>Boolean value that represents whether the buffer is cyclic or not.</td>
+</tr>
+<tr>
+<td><code>enabled_channel_names</code></td>
+<td><code>list of strings, mandatory</code></td>
+<td>Required</td>
+<td>List of names of channels that are enabled. In order to create a buffer, at least one channel must be enabled.</td>
+</tr>
+<tr>
+<td><code>enabled_channel_output</code></td>
+<td><code>list of bools, mandatory</code></td>
+<td>Required</td>
+<td>List of booleans that represent whether each channel is output or not. Should be the same size as enabled_channel_names.</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code>str</code></td>
+<td>Optional</td>
+<td>The name of the operator.</td>
+</tr>
+</tbody>
+</table>
+<h5 id="methods_3">Methods<a class="headerlink" href="#methods_3" title="Permanent link">#</a></h5>
+<ul>
+<li><strong><code>initialize</code></strong>: Initialize the operator</li>
+</ul>
+<h4 id="iioconfigurator"><code>IIOConfigurator</code><a class="headerlink" href="#iioconfigurator" title="Permanent link">#</a></h4>
+<h5 id="constructor-parameters_4">Constructor Parameters<a class="headerlink" href="#constructor-parameters_4" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cfg</code></td>
+<td><code>string</code></td>
+<td>Required</td>
+<td>Contains the configuration file path to be applied to the device.</td>
+</tr>
+</tbody>
+</table>
 
 
 

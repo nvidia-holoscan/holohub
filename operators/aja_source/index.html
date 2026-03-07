@@ -18123,6 +18123,62 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Python">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ajasourceop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AJASourceOp
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#parameters_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -18325,6 +18381,57 @@
 <li><strong>video_buffer_output</strong>: Video buffer containing the captured frame</li>
 <li><strong>overlay_buffer_output</strong> (optional): Empty video buffer for overlay when <code>enable_overlay</code> is true</li>
 </ul>
+<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
+<h3 id="python">Python<a class="headerlink" href="#python" title="Permanent link">#</a></h3>
+<h4 id="ajasourceop"><code>AJASourceOp</code><a class="headerlink" href="#ajasourceop" title="Permanent link">#</a></h4>
+<p>Operator to get a video stream from an AJA capture card.</p>
+<p><strong>==Named Inputs==</strong></p>
+<div class="highlight"><pre><span></span><code>overlay_buffer_input : nvidia::gxf::VideoBuffer (optional)
+    The operator does not require a message on this input port in order for ``compute`` to be
+    called. If a message is found, and ``enable_overlay`` is ``True``, the image will be mixed
+    with the image captured by the AJA card. If ``enable_overlay`` is ``False``, any message on
+    this port will be ignored.
+</code></pre></div>
+<p><strong>==Named Outputs==</strong></p>
+<div class="highlight"><pre><span></span><code>video_buffer_output : nvidia::gxf::VideoBuffer
+    The output video frame from the AJA capture card. If ``overlay_rdma`` is ``True``, this
+    video buffer will be on the device, otherwise it will be in pinned host memory.
+overlay_buffer_output : nvidia::gxf::VideoBuffer (optional)
+    This output port will only emit a video buffer when ``enable_overlay`` is ``True``. If
+    ``overlay_rdma`` is ``True``, this video buffer will be on the device, otherwise it will be
+    in pinned host memory.
+</code></pre></div>
+<h2 id="parameters_1">Parameters<a class="headerlink" href="#parameters_1" title="Permanent link">#</a></h2>
+<p>fragment : holoscan.core.Fragment (constructor only)
+    The fragment that the operator belongs to.
+device : str, optional
+    The device to target (e.g., "0" for device 0). Default value is <code>"0"</code>.
+channel : holoscan.operators.NTV2Channel or int, optional
+    The camera <code>NTV2Channel</code> to use for output (e.g., <code>NTV2Channel.NTV2_CHANNEL1</code> (<code>0</code>) or
+    "NTV2_CHANNEL1" (in YAML) for the first channel). Default value is <code>NTV2Channel.NTV2_CHANNEL1</code>
+    (<code>"NTV2_CHANNEL1"</code> in YAML).
+width : int, optional
+    Width of the video stream. Default value is <code>1920</code>.
+height : int, optional
+    Height of the video stream. Default value is <code>1080</code>.
+framerate : int, optional
+    Frame rate of the video stream. Default value is <code>60</code>.
+interlaced : bool, optional
+    Whether or not the video is an interlaced format. Default value is <code>False</code>
+    (<code>"false"</code> in YAML).
+rdma : bool, optional
+    Boolean indicating whether RDMA is enabled. Default value is <code>False</code> (<code>"false"</code> in YAML).
+enable_overlay : bool, optional
+    Boolean indicating whether a separate overlay channel is enabled. Default value is <code>False</code>
+    (<code>"false"</code> in YAML).
+overlay_channel : holoscan.operators.NTV2Channel or int, optional
+    The camera NTV2Channel to use for overlay output. Default value is <code>NTV2Channel.NTV2_CHANNEL2</code>
+    (<code>"NTV2_CHANNEL2"</code> in YAML).
+overlay_rdma : bool, optional
+    Boolean indicating whether RDMA is enabled for the overlay. Default value is <code>False</code>
+    (<code>"false"</code> in YAML).
+name : str, optional (constructor only)
+    The name of the operator. Default value is <code>"aja_source"</code>.</p>
 
 
 
