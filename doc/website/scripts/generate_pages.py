@@ -773,11 +773,7 @@ def create_page(
     run_locally_html = ""
     alt_language_link = ""
     all_languages = ""
-    if (
-        not archive_version
-        and len(relative_dir.parts) > 0
-        and relative_dir.parts[0] in ["applications", "workflows"]
-    ):
+    if not archive_version and relative_dir.parts[0] in ["applications", "workflows"]:
         app_path = str(relative_dir)
         app_name = metadata.get("name", "Application")
         run_locally_html = create_run_locally_button_and_modal(
