@@ -72,4 +72,3 @@ install(FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/nvc_endoscopy_tool_tracking.yaml"
         DESTINATION "share/holohub/applications/nvidia_video_codec/nvc_endoscopy_tool_tracking/"
         COMPONENT "holoscan-examples")
-

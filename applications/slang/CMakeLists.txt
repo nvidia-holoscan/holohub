@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,4 +15,3 @@
 
 add_holohub_application(slang_gamma_correction DEPENDS OPERATORS gamma_correction)
 add_holohub_application(slang_simple DEPENDS OPERATORS slang_shader)
-

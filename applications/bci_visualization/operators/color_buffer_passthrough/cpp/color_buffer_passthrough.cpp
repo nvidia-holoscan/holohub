@@ -38,7 +38,3 @@ void ColorBufferPassthroughOp::compute(InputContext& input, OutputContext& outpu
 }
 
 }  // namespace holoscan::ops
-
-
-
-

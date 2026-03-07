@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,14 +30,14 @@ RUN apt-get update && \
     apt-get install -y wget vim libusb-1.0-0-dev libsndfile1 pkg-config iproute2 git-core cmake build-essential python3 python3-dev python3-pip python3-numpy portaudio19-dev python3-pyaudio swig iputils-ping rtl-sdr librtlsdr-dev net-tools openssh-client --no-install-recommends && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
- 
+
 WORKDIR /tmp
 
 # cuSignal Setup
 ENV CUSIGNAL_HOME=/tmp/cusignal
 RUN cd /tmp && \
     git clone https://github.com/rapidsai/cusignal.git && \
-    pip3 install cupy-cuda11x numba nvtx && \    
+    pip3 install cupy-cuda11x numba nvtx && \
     pip3 install scipy>=1.5.0 boost matplotlib pytest pytest-benchmark sphinx pydata-sphinx-theme sphinx-copybutton numpydoc ipython && \
     pip3 install grpcio SoundFile PyYAML nvidia-riva-client
 RUN cd $CUSIGNAL_HOME && \
@@ -48,7 +48,7 @@ RUN cd $CUSIGNAL_HOME && \
 
 # SDR tool setup
 RUN echo 'blacklist dvb_usb_rtl28xxu' > /etc/modprobe.d/blacklist-dvb_usb_rtl28xxu.conf && \
-    apt-get install -y rtl-sdr librtlsdr-dev    
+    apt-get install -y rtl-sdr librtlsdr-dev
 
 RUN git clone https://github.com/pothosware/SoapySDR.git && \
     cd SoapySDR && \

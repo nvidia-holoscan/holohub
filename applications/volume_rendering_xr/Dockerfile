@@ -68,7 +68,7 @@ RUN pip install markupsafe==2.0.1
 
 ############################################################
 # Windrunner configuration
-# 
+#
 # Add known IGX dGPU syscall requirements to the Windrunner
 # seccomp whitelist
 ############################################################
