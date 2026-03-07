@@ -27,33 +27,33 @@ When a user asks how to customize a build or run — change the build directory,
 
 ## Implementation Invariants
 
-| # | Rule | Detail |
-|---|------|--------|
-| 1 | Container re-enters local | `build`/`run`/`install` in container mode build an image, then run the CLI with `--local` inside it. Local-mode changes affect both host and container execution. |
-| 2 | CLI flags override modes | Resolution: `resolve_mode` → `validate_mode` → `get_effective_build_config`/`get_effective_run_config`. Most flags override (do not merge with) mode values; `--run-args` is **appended** to the argument list passed to `docker run` or the application process (not inserted into the command string). |
-| 3 | Expand placeholders first | Mode commands may contain `<{prefix}_app_source>`, `<{prefix}_data_dir>`, etc. (prefix = `HOLOHUB_PATH_PREFIX`, default `holohub`). Run through `build_holohub_path_mapping()` + `replace_placeholders()`. |
-| 4 | Use `run_command()` | Handles dry-run, sudo detection, fail-fast (`check=True`). Use `run_info_command()` for best-effort probes. |
-| 5 | Use `self.script_name` / `self.prefix` | `self.script_name` (from `HOLOHUB_CMD_NAME`) for user messages. `self.prefix` (from `HOLOHUB_PATH_PREFIX`) for placeholder resolution. |
+| #   | Rule                                   | Detail                                                                                                                                                                                                                                                                                                   |
+| --- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Container re-enters local              | `build`/`run`/`install` in container mode build an image, then run the CLI with `--local` inside it. Local-mode changes affect both host and container execution.                                                                                                                                        |
+| 2   | CLI flags override modes               | Resolution: `resolve_mode` → `validate_mode` → `get_effective_build_config`/`get_effective_run_config`. Most flags override (do not merge with) mode values; `--run-args` is **appended** to the argument list passed to `docker run` or the application process (not inserted into the command string). |
+| 3   | Expand placeholders first              | Mode commands may contain `<{prefix}_app_source>`, `<{prefix}_data_dir>`, etc. (prefix = `HOLOHUB_PATH_PREFIX`, default `holohub`). Run through `build_holohub_path_mapping()` + `replace_placeholders()`.                                                                                               |
+| 4   | Use `run_command()`                    | Handles dry-run, sudo detection, fail-fast (`check=True`). Use `run_info_command()` for best-effort probes.                                                                                                                                                                                              |
+| 5   | Use `self.script_name` / `self.prefix` | `self.script_name` (from `HOLOHUB_CMD_NAME`) for user messages. `self.prefix` (from `HOLOHUB_PATH_PREFIX`) for placeholder resolution.                                                                                                                                                                   |
 
 ## Execution Model
 
 `build`, `run`, `install`, and `test` follow a two-phase container pattern by default (without `--local`):
 
-**Phase 1 — Container setup (runs on host)**
+### Phase 1 — Container setup (runs on host)
 
 1. Build a Docker image with project dependencies (`docker build`). Skip with `--no-docker-build`.
 2. Launch a container (`docker run`) with the repo bind-mounted at `/workspace/<name>` (`HOLOHUB_WORKSPACE_NAME`, default `holohub`) and `HOLOHUB_BUILD_LOCAL=1` set in the environment.
 
-**Phase 2 — Build / run (runs inside the container)**
+### Phase 2 — Build / run (runs inside the container)
 
 The container re-invokes the CLI with `--local` appended. For example, `./holohub build myapp` on the host becomes `./holohub build myapp --local` inside the container. The local handler runs the underlying tools:
 
-| Command | What runs inside the container |
-|---------|-------------------------------|
-| `build` | `cmake -B build/<app> -S . -DAPP_<app>=ON [opts] && cmake --build build/<app>` |
-| `run` | Same cmake build, then the mode's `run.command` with placeholders expanded |
-| `install` | Same cmake build, then `cmake --install build/<app>` |
-| `test` | CTest via a CTest script |
+| Command   | What runs inside the container                                                 |
+| --------- | ------------------------------------------------------------------------------ |
+| `build`   | `cmake -B build/<app> -S . -DAPP_<app>=ON [opts] && cmake --build build/<app>` |
+| `run`     | Same cmake build, then the mode's `run.command` with placeholders expanded     |
+| `install` | Same cmake build, then `cmake --install build/<app>`                           |
+| `test`    | CTest via a CTest script                                                       |
 
 The cmake flag `-DAPP_<app>=ON` selects a single project (operators use `-DOP_<name>=ON`, extensions use `-DEXT_<name>=ON`). The build directory `build/<app>/` isolates per-project artifacts; this path is `HOLOHUB_BUILD_PARENT_DIR/<app>` (default parent varies by repo; `<repo_root>/build` in HoloHub). Because the repo is bind-mounted, artifacts persist on the host after the container exits.
 
@@ -116,12 +116,12 @@ Default CTest script: `utilities/testing/holohub.container.ctest` (relative to t
 
 Check for existing images first: `docker images | grep <project>`.
 
-| Flag / Env | Effect |
-|------------|--------|
-| `--no-docker-build` | Reuse existing image — default during dev. Rebuild only when Dockerfile, base image, or `--extra-scripts` change. |
-| `--no-local-build` | Skip cmake — for re-runs with different args or Python-only changes. |
-| `HOLOHUB_ALWAYS_BUILD=false` | Disable both build phases globally. |
-| `HOLOHUB_ENABLE_SCCACHE=true` + `--extra-scripts sccache` | Compiler cache at `~/.cache/sccache`. |
+| Flag / Env                                                | Effect                                                                                                            |
+| --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `--no-docker-build`                                       | Reuse existing image — default during dev. Rebuild only when Dockerfile, base image, or `--extra-scripts` change. |
+| `--no-local-build`                                        | Skip cmake — for re-runs with different args or Python-only changes.                                              |
+| `HOLOHUB_ALWAYS_BUILD=false`                              | Disable both build phases globally.                                                                               |
+| `HOLOHUB_ENABLE_SCCACHE=true` + `--extra-scripts sccache` | Compiler cache at `~/.cache/sccache`.                                                                             |
 
 ### Debug inside the container
 

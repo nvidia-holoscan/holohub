@@ -1,6 +1,6 @@
 # WebRTC Video Client
 
-![](screenshot.png)<br>
+![WebRTC Video Client](screenshot.png)
 
 This app receives video frames from a web cam connected to a browser and display them on the screen.
 
@@ -54,7 +54,7 @@ Solutions
 
 ### Command Line Arguments
 
-```
+```text
 usage: webrtc_client.py [-h] [--cert-file CERT_FILE] [--key-file KEY_FILE] [--host HOST] [--port PORT] [--verbose VERBOSE]
 
 optional arguments:

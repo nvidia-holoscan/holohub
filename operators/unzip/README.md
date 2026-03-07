@@ -1,8 +1,8 @@
-### Unzip Operator
+# Unzip Operator
 
 The `unzip` operator decompresses a zip compressed file into its original contents.
 
-##### Parameters
+## Parameters
 
 - **`filter`**: File filter for the decompressed files to be copied to the `output_path`
   - type: `str`

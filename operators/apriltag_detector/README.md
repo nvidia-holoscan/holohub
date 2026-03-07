@@ -28,7 +28,7 @@ apriltag_op = ApriltagDetectorOp(
 ### Parameters
 
 | Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
+| --- | --- | --- | --- |
 | **`width`** | `int` | `None` | Width of the input video stream in pixels. Must match the actual input resolution. |
 | **`height`** | `int` | `None` | Height of the input video stream in pixels. Must match the actual input resolution. |
 | **`number_of_tags`** | `int` | `None` | Maximum number of April tags to detect and output. Higher values may impact performance. |

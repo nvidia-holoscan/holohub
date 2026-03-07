@@ -2,7 +2,7 @@
 
 The Isaac Sim Holoscan Bridge application demonstrates how to conduct software-in-the-loop testing of a Holoscan robotics application using NVIDIA Isaac Sim. This allows developers to test and validate the functionality of the robot application in a simulated environment before it is deployed to the physical robot.
 
-<img src="IsaacSimHoloscanBridge.png" alt="isolated" width="800"/>
+![Isaac Sim Holoscan Bridge](IsaacSimHoloscanBridge.png)
 
 ## Overview
 

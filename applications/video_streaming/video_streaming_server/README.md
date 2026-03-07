@@ -111,12 +111,12 @@ video_streaming_server:
   width: 854
   height: 480
   fps: 30
-  
+
   # Server connection settings
   port: 48010
   multi_instance: false
   server_name: "StreamingServerTest"
-  
+
   # Operation mode - Bidirectional streaming
   receive_frames: true
   send_frames: true
@@ -278,7 +278,7 @@ from holohub.video_streaming_server import (
 class StreamingServerApp(Application):
     def __init__(self, port=48010, width=854, height=480, fps=30):
         """Initialize the streaming server application.
-        
+
         Args:
             port: Server port (set via --port command-line argument)
             width: Frame width (set via --width command-line argument)
@@ -293,11 +293,11 @@ class StreamingServerApp(Application):
 
     def compose(self):
         """Compose the application pipeline.
-        
+
         Simple bidirectional streaming:
         upstream_op (receives from clients) -> downstream_op (sends back to clients)
         """
-        
+
         # Create shared streaming server resource with parameters from constructor
         video_streaming_resource = StreamingServerResource(
             self,

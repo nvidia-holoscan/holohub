@@ -7,7 +7,7 @@ The application instructs the Vista-3D NIM API to process the given dataset and 
 
 Visit [build.nvidia.com](https://build.nvidia.com) to learn more about Vista-3D and generate an API key to use with this application.
 
-### Quick Start
+## Quick Start
 
 1. Add API key in `nvidia_nim.yaml`
 2. `./holohub run nvidia_nim_imaging`
@@ -38,21 +38,25 @@ nim:
 
 In this section, we will show how to view the sample data and segmentation results returned from Vista-3D.
 
-1. Download 3D Slicer: https://download.slicer.org/
+1. Download 3D Slicer: <https://download.slicer.org/>
 2. Decompress and launch 3D Slicer
+
    ```bash
    tar -xvzf Slicer-5.6.2-linux-amd64.tar.gz
    ```
+
 3. Locate the sample data volume and the segmentation results in `build/nvidia_nim_imaging/applications/nvidia_nim/nvidia_nim_imaging`
-   ```
+
+   ```text
    drwxr-xr-x 3 user domain-users     4096 Jul  3 11:41 ./
    drwxr-xr-x 4 user domain-users     4096 Jul  3 11:40 ../
    -rw-r--r-- 1 user user         27263336 Jul 23 14:22 example-1_seg.nrrd
    -rw-r--r-- 1 user user         33037057 Jul 23 14:21 sample.nii.gz
    ```
-5. In 3D Slicer, click *File*, *Add Data* and click *Choose File(s) to Add*.
+
+4. In 3D Slicer, click *File*, *Add Data* and click *Choose File(s) to Add*.
    From the *Add Data into the scene* dialog, find and add the `sample.nii.gz` file and the `example-1_seg.nrrd` file.
    For the `sample.nrrd` file, select *Segmentation* and click *Ok*.
-   ![](./assets/3d-slicer-1.png)
-6. 3D Slicer shall display the volume and the segmentation results as shown below:
-   ![](./assets/3d-slicer-2.png)
+   ![3D Slicer add data dialog](./assets/3d-slicer-1.png)
+5. 3D Slicer shall display the volume and the segmentation results as shown below:
+   ![3D Slicer volume and segmentation display](./assets/3d-slicer-2.png)

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,13 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM squidfunk/mkdocs-material:9.6.19
-
-# Install plugins.
-ADD --chmod=755 https://astral.sh/uv/install.sh /install.sh
-RUN /install.sh && rm /install.sh
-RUN apk add --no-cache gcc python3-dev musl-dev linux-headers doxygen
-COPY doc/website/requirements.txt /tmp/
-RUN ~/.local/bin/uv pip install --system --no-cache-dir -r /tmp/requirements.txt
-
-RUN git config --global --add safe.directory /holohub
+MD013:
+  line_length: 800
+  code_block_line_length: 800
+  heading_line_length: 800
+MD046:
+  style: fenced

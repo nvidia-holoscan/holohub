@@ -1,5 +1,6 @@
+# Benchmark Results
 
-## Benchmark Results
+## Overview
 
 The following benchmark was run on a **NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition** using the `presets/benchmark.yml` preset which includes all available operators in a single pipeline.
 
@@ -28,4 +29,3 @@ The following benchmark was run on a **NVIDIA RTX PRO 6000 Blackwell Max-Q Works
 *Note: Most pipelines will only use a subset of these operators, resulting in significantly higher FPS. The first and last 10 samples were discarded to remove startup/shutdown jitter.*
 
 **Investigation Note:** The high maximum latency values are driven by rare periodic spikes (occurring <1% of the time). Preliminary analysis suggests this may be related to Holoscan resource contention or system-level memory management rather than the operators themselves. An internal issue should be opened to investigate these spikes further.
-

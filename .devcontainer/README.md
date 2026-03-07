@@ -3,7 +3,6 @@
 Holohub uses [Development Containers](https://containers.dev/) to provide consistent and convenient development environments for [Holoscan](https://developer.nvidia.com/holoscan-sdk) and [Holohub](https://github.com/nvidia-holoscan/holohub). This guide covers using the Holohub Dev Container with [Visual Studio Code](https://code.visualstudio.com/).
 
 > 💡 Note: This guide is specific to the Linux development environment and is tested on Ubuntu 22.04 LTS.
-
 > 💡 Note: This Dev Container does not support [Github Codespaces](https://github.com/features/codespaces) and does not support the *Open Folder in Dev Container* feature from VS Code. Please use the following guide to start the Holohub Dev Container.
 
 ## Prerequisites
@@ -13,6 +12,7 @@ Holohub uses [Development Containers](https://containers.dev/) to provide consis
 - [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
 - [VS Code](https://code.visualstudio.com/) with the [Dev Container Extension Pack](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
   - Install [Dev Container Extension Pack](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) via the command line
+
  ```bash
  code --install-extension ms-vscode-remote.remote-containers
  ```
@@ -20,9 +20,11 @@ Holohub uses [Development Containers](https://containers.dev/) to provide consis
 ### Steps
 
 1. Clone the Repository
+
    ```bash
    git clone git@github.com:nvidia-holoscan/holohub.git
    ```
+
 2. Open the cloned directory in the terminal.
 
 3. Launch a Dev Container with the `./holohub` script as follows:
@@ -33,7 +35,6 @@ Holohub uses [Development Containers](https://containers.dev/) to provide consis
 
    The above command starts a new Dev Container for Holohub using the default [Dockerfile](../Dockerfile).
 
-
 4. VS Code will build and initialize the selected Dev Container. This can take a few minutes for the first time.
 
 5. Once initialized, a new VS Code window will open with the following prompts. Click **Yes** and **Trust Folder & Continue** to continue the Dev Container build process.
@@ -43,10 +44,10 @@ Holohub uses [Development Containers](https://containers.dev/) to provide consis
 6. When ready, the Holohub directory is mirrored into the container under `/workspace/holohub` to preserve any changes.
 
 > 💡 Note: VS Code creates a new container image for each Dev Container instance. To clean up the container images, run the following command in the terminal:
+>
 > ```bash
 > docker images --format '{{.Repository}}:{{.Tag}}' | grep '^vsc-holohub' | xargs -r docker rmi
 > ```
-
 
 ### Debugging Holohub Applications
 
@@ -74,12 +75,7 @@ Each of these compound launch profiles links to three pre-configured launch prof
 When you start debugging with one of these compound launch profiles, VS Code starts three terminals to build the application, one terminal per fragment. After each terminal completes the build process, VS Code launches another terminal to start the fragment. This compound task feature lets us launch and debug all three fragments simultaneously.
 
 > 💡 Tip: If VS Code does not launch all three debugger terminals, close all terminals first, then start the compound launch profile again. If the problem persists, try adjusting the start-up delays in the [tasks.json](../.vscode/tasks.json) file. Refer to the [troubleshooting](#troubleshooting) section for more information.
-
-
 > 💡 Note: Launch profiles prefixed with `(compound)` for Python applications default to `debugpy` debugger, which only allows debugging of Python code. To debug both Python and C++ code, modify the  compound launch profile in the [launch.json](../.vscode/launch.json) and change `(debugpy)` to `(pythoncpp)`.
-
-
-
 
 #### Step into Holoscan Source Code
 
@@ -95,16 +91,13 @@ Please scroll down to find the `void Application::run()` function and set a brea
 With any launch profile prefixed with `gdb` or `pythoncpp`, hit F5 to start a new debugging session. Expect the debugger to hit the breakpoint in the `Application::run()` function.
 
 > 💡 Important: [Holoscan NGC Container](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/containers/holoscan) version 2.3.0 or later version is required to enable debugging of Holoscan source code.
-
 > ⚠️ Warning: Build error may occur when switching between building inside and outside the Dev Container. When this happens, execute the following command to clear the build cache:
 >
 > ```bash
 > ./holohub clear-cache
 > ```
-
+>
 > ⚠️ Warning: Build error may occur if an application provides its own Dockerfile with additional dependencies. In this case, refer to the [Application-Specific Dockerfile](#application-specific-dockerfile) section to launch a new Dev Container session with the appropriate Docker image.
-
-### Holoscan Flow Benchmarking
 
 [Holoscan Flow Benchmarking](./../benchmarks/holoscan_flow_benchmarking/README.md) is a tool to evaluate the performance of an Holoscan application. The VSCode setup provides a task to automatically build, run and analyze an application. From the menu, select **View->Command Palette...->Tasks: Run Task** and then the **Holoscan Flow Benchmarking** task. There will be a prompt asking for the application name. Enter the name, for example **multiai_ultrasound** and press return.
 
@@ -130,7 +123,6 @@ Take the [endoscopy_depth_estimation](../applications/endoscopy_depth_estimation
 
 The `language` argument is optional with `cpp` as default. This argument allows you to use a language-specific Dockerfile when available.
 
-
 ### Custom Base Image/Dockerfile
 
 The `./holohub vscode` script can launch a Dev Container using a custom base image and/or Dockerfile.
@@ -149,7 +141,6 @@ For example, if an application is designed for Holoscan 1.0 on NVIDIA IGX Orin w
 
 In addition, if you have a custom Dockerfile that you would like to use on top of the base image, you may pass it to the `./holohub` script as follows:
 
-
 ```bash
 ./holohub vscode --base-img nvcr.io/nvidia/clara-holoscan/holoscan:v1.0.3-igpu --docker-file /path/to/my/Dockerfile
 ```
@@ -167,14 +158,12 @@ FROM ${BASE_IMAGE} AS base
 Use the `-h` or `--help` option to see all available options for the `./holohub` script:
 
 ```bash
-$ ./holohub vscode -h
+./holohub vscode -h
 ```
 
 ## Contributing
 
 > 💡 Note: See [CONTRIBUTING.md](../CONTRIBUTING.md) for details on how to contribute to Holohub. This section describes adding a custom Dockerfile and Dev Container for a Holohub application.
-
-### Add a Custom Dockerfile
 
 The following steps allow the `./holohub vscode` script to find your custom `Dockerfile`:
 
@@ -188,6 +177,7 @@ applications/my_application/
 └── python
     └── Dockerfile # option 2: same as above
 ```
+
 - Include the following at the top of your custom `Dockerfile`:
 
 ```Dockerfile
@@ -238,7 +228,6 @@ When this error occurs, run the clear cache command in the terminal or from VS C
 
 Terminal: `./holohub clear-cache`
 VS Code Command Palette (`CTRL+SHIFT+P`): `Tasks: Run Task` -> `Clear Build Cache`.
-
 
 ## Resources
 
