@@ -5,11 +5,13 @@ This document provides instructions for building the ST2110 Source operator on N
 ## Prerequisites
 
 ### Hardware Requirements
+
 - NVIDIA GPU (any CUDA-capable GPU)
 - Network interface with multicast support
 - For Thor AGX: Built-in MGBE network interface
 
 ### Software Requirements
+
 - Ubuntu 22.04 or later
 - CMake 3.24 or later
 - CUDA Toolkit 12.x or later
@@ -84,6 +86,7 @@ ldd libst2110_source.so | grep -E "(holoscan|cuda)"
 ### CMakeLists.txt Overview
 
 The operator links against:
+
 - `holoscan::core` - Holoscan SDK core library
 - `CUDA::cuda_driver` - CUDA driver API for pinned memory
 
@@ -105,6 +108,7 @@ export CMAKE_PREFIX_PATH=/opt/nvidia/holoscan:$CMAKE_PREFIX_PATH
 ### Issue: "CMake version too old"
 
 **Solution**: Install CMake 3.24+
+
 ```bash
 # Download and install locally (auto-detects architecture)
 ARCH=$(uname -m)
@@ -116,6 +120,7 @@ export PATH=$HOME/.local/bin:$PATH
 ### Issue: "CUDA not found"
 
 **Solution**: Add CUDA to PATH
+
 ```bash
 export PATH=/usr/local/cuda/bin:$PATH
 export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
@@ -124,6 +129,7 @@ export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 ### Issue: "holoscan package not found"
 
 **Solution**: Verify Holoscan SDK installation
+
 ```bash
 # Check installation
 ls /opt/nvidia/holoscan

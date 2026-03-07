@@ -202,6 +202,7 @@ Press **ESC** or **Ctrl+C** to quit.
 ### No Video Displayed
 
 1. **Verify source is streaming:**
+
    ```bash
    sudo tcpdump -i <interface> dst 239.255.66.60 and udp port 16388 -c 10
    ```
@@ -219,6 +220,7 @@ Press **ESC** or **Ctrl+C** to quit.
 ### "Cannot import ST2110SourceOp" Error
 
 Ensure you build with Python bindings enabled:
+
 ```bash
 ./holohub build st2110_source --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
 ```
