@@ -162,9 +162,14 @@ def _parse_compound_file(xml_path: Path) -> dict | None:
                 # Holoscan Parameter<T> types are operator parameters
                 if "Parameter<" in parsed.get("type", ""):
                     param_type = parsed["type"]
-                    # Extract inner type from Parameter<T>
-                    match = re.search(r"Parameter<\s*(.+?)\s*>", param_type)
-                    inner_type = match.group(1) if match else param_type
+                    # Strip the outer Parameter<...> wrapper. Using string slicing
+                    # rather than a regex avoids truncation for nested template types
+                    # like Parameter<std::vector<int>> (a lazy regex would stop at
+                    # the first ">").
+                    if param_type.startswith("Parameter<") and param_type.endswith(">"):
+                        inner_type = param_type[len("Parameter<") : -1].strip()
+                    else:
+                        inner_type = param_type
                     parsed["type"] = inner_type
                     parameters.append(parsed)
 
@@ -201,12 +206,17 @@ def run_doxygen_and_parse(website_dir: Path) -> dict:
 
     # Run doxygen
     logger.info("Running Doxygen on operator headers...")
-    result = subprocess.run(
-        ["doxygen", str(doxyfile)],
-        cwd=str(website_dir),
-        capture_output=True,
-        text=True,
-    )
+    try:
+        result = subprocess.run(
+            ["doxygen", str(doxyfile)],
+            cwd=str(website_dir),
+            capture_output=True,
+            text=True,
+            timeout=300,
+        )
+    except subprocess.TimeoutExpired:
+        logger.error("Doxygen timed out after 300 seconds. Skipping C++ API doc generation.")
+        return {}
     if result.returncode != 0:
         logger.error(f"Doxygen failed: {result.stderr}")
         return {}
@@ -284,8 +294,10 @@ def _parse_python_source(py_path: Path) -> list[dict]:
             elif isinstance(base, ast.Attribute):
                 base_names.append(ast.unparse(base))
 
-        # Include classes that inherit from Operator or known base classes
-        is_operator = any("Operator" in b or "Op" in b for b in base_names)
+        # Include classes that inherit from Operator or a base class ending in "Op".
+        # Using "Operator" substring and endswith("Op") avoids false positives from
+        # class names like "Option" or "ConfigOption" that contain "Op" as a substring.
+        is_operator = any("Operator" in b or b.endswith("Op") for b in base_names)
         if not is_operator:
             continue
 
@@ -498,7 +510,8 @@ def _format_cpp_class_md(class_info: dict) -> str:
         for m in methods:
             ret = m.get("return_type", "void")
             argsstring = m.get("argsstring", "()")
-            sig = f"`{ret} {m['name']}{argsstring}`"
+            # Doxygen leaves constructor <type> empty; omit ret to avoid a leading space.
+            sig = f"`{m['name']}{argsstring}`" if not ret else f"`{ret} {m['name']}{argsstring}`"
             mdesc = m.get("description", "").replace("\n", " ").replace("|", "\\|")
             lines.append(f"| {sig} | {mdesc} |")
         lines.append("")
@@ -709,7 +722,7 @@ def build_api_reference_map(git_repo_path: Path) -> dict:
             else:
                 # Pure Python: parse .py files
                 for py_file in python_dir.glob("*.py"):
-                    if py_file.name.startswith("_"):
+                    if py_file.name.startswith("_") or py_file.name == "setup.py":
                         continue
                     classes = _parse_python_source(py_file)
                     if classes:
