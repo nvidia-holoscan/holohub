@@ -190,12 +190,21 @@ class TestIndividualChecks(unittest.TestCase):
         self.assertNotIn("nvidia-ctk", result.message)
         self.assertIn("NVIDIA Container Toolkit", result.fix_suggestion)
 
+    @patch("utilities.cli.system_check.is_running_in_docker", return_value=False)
     @patch("shutil.which", return_value=None)
-    def test_check_docker_not_installed(self, mock_which):
+    def test_check_docker_not_installed(self, mock_which, mock_docker):
         result = check_docker()
         self._assert_valid_result(result)
         self.assertEqual(result.status, "WARN")
         self.assertIn("not installed", result.message)
+
+    @patch("utilities.cli.system_check.is_running_in_docker", return_value=True)
+    @patch("shutil.which", return_value=None)
+    def test_check_docker_not_installed_in_container(self, mock_which, mock_docker):
+        result = check_docker()
+        self._assert_valid_result(result)
+        self.assertEqual(result.status, "SKIP")
+        self.assertIn("inside container", result.message)
 
     def test_check_devices(self):
         """Devices check should return OK or SKIP depending on hardware"""
