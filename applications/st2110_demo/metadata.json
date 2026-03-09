@@ -31,12 +31,12 @@
         "3.11.0"
       ]
     },
-    "ranking": 1,
+    "ranking": 2,
     "requirements": {
       "operators": [
         {
           "name": "st2110_source",
-          "version": "1.0"
+          "version": "1.0.0"
         }
       ]
     },

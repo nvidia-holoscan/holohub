@@ -32,8 +32,7 @@
 					"name": "NVIDIA Thor AGX with MGBE",
 					"description": "Network interface with multicast support"
 				}
-			],
-			"software": []
+			]
 		}
 	}
 }
