@@ -350,7 +350,8 @@ class HoloHubCLI:
 
         # Add env-check command
         env_check = subparsers.add_parser(
-            "env-check", help="Run system checks (GPU, CUDA, Docker, Python, SDK, disk)"
+            "env-check",
+            help="Run system checks (GPU, CUDA, Docker, Holoscan SDK, disk, display, devices)",
         )
         self.subparsers["env-check"] = env_check
         env_check.add_argument("--json", action="store_true", help="Output check results as JSON")

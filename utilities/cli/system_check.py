@@ -19,6 +19,7 @@ import json
 import os
 import re
 import shutil
+import subprocess
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import List, Optional
@@ -26,7 +27,6 @@ from typing import List, Optional
 from .util import (
     Color,
     get_cuda_runtime_version,
-    get_default_cuda_version,
     get_git_short_sha,
     get_gpu_name,
     get_holohub_root,
@@ -112,6 +112,20 @@ def check_gpu() -> CheckResult:
     )
 
 
+def _get_driver_cuda_version() -> str:
+    """Get CUDA version from driver without printing warnings (silent alternative to
+    get_default_cuda_version for use in structured output like --json)."""
+    driver_version = run_info_command(
+        ["nvidia-smi", "--query-gpu=driver_version", "--format=csv,noheader"]
+    )
+    if not driver_version:
+        return "unknown"
+    try:
+        return "13" if int(driver_version.split(".")[0]) >= 580 else "12"
+    except (ValueError, IndexError):
+        return "unknown"
+
+
 def check_cuda() -> CheckResult:
     """Check CUDA toolkit availability"""
     nvcc = shutil.which("nvcc")
@@ -126,7 +140,9 @@ def check_cuda() -> CheckResult:
             return CheckResult(status="OK", name="CUDA", message=msg)
 
     # Fallback: check driver-based CUDA version and runtime package
-    cuda_ver = get_default_cuda_version()
+    # Derive CUDA version silently (get_default_cuda_version() prints warnings to stdout
+    # which would corrupt --json output on CPU-only systems)
+    cuda_ver = _get_driver_cuda_version()
     runtime_ver = get_cuda_runtime_version()
     if runtime_ver:
         return CheckResult(
@@ -157,8 +173,37 @@ def check_docker() -> CheckResult:
             fix_suggestion="Install Docker: https://docs.docker.com/engine/install/",
         )
 
-    result = run_info_command(["docker", "info"])
-    if result is None:
+    # Use explicit timeout + stderr capture for docker info (can hang on misconfigured systems)
+    try:
+        proc = subprocess.run(
+            ["docker", "info"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        if proc.returncode != 0:
+            stderr = proc.stderr.strip()
+            if "permission denied" in stderr.lower() or "connect:" in stderr.lower():
+                return CheckResult(
+                    status="FAIL",
+                    name="Docker",
+                    message="Docker permission denied",
+                    fix_suggestion="Add user to docker group: sudo usermod -aG docker $USER && newgrp docker",
+                )
+            return CheckResult(
+                status="FAIL",
+                name="Docker",
+                message="Docker daemon not running",
+                fix_suggestion="sudo systemctl start docker",
+            )
+    except subprocess.TimeoutExpired:
+        return CheckResult(
+            status="FAIL",
+            name="Docker",
+            message="Docker daemon not responding (timed out after 10s)",
+            fix_suggestion="Check Docker status: sudo systemctl status docker",
+        )
+    except Exception:
         return CheckResult(
             status="FAIL",
             name="Docker",
@@ -180,7 +225,7 @@ def check_docker() -> CheckResult:
             match = re.search(r"(\d+\.\d+\.\d+)", ctk_out)
             ctk_version = match.group(1) if match else ""
 
-    parts = [version_str]
+    parts = [version_str or "installed (version unknown)"]
     if ctk_version:
         parts.append(f"nvidia-ctk {ctk_version}")
 
@@ -190,9 +235,7 @@ def check_docker() -> CheckResult:
         status = "WARN"
         fix = "Install NVIDIA Container Toolkit for GPU support in containers"
 
-    return CheckResult(
-        status=status, name="Docker", message=" + ".join(p for p in parts if p), fix_suggestion=fix
-    )
+    return CheckResult(status=status, name="Docker", message=" + ".join(parts), fix_suggestion=fix)
 
 
 def check_holoscan() -> CheckResult:
@@ -379,7 +422,7 @@ def run_all_checks() -> List[CheckResult]:
             results.append(
                 CheckResult(
                     status="FAIL",
-                    name=check_fn.__name__.replace("check_", "").title(),
+                    name=getattr(check_fn, "__name__", "Unknown").replace("check_", "").title(),
                     message=f"Check failed: {e}",
                 )
             )

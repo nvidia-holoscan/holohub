@@ -18,6 +18,7 @@ import json
 import os
 import sys
 import unittest
+import unittest.mock
 from pathlib import Path
 from unittest.mock import patch
 
@@ -123,7 +124,7 @@ class TestIndividualChecks(unittest.TestCase):
         self.assertEqual(result.status, "OK")
 
     @patch("utilities.cli.system_check.get_cuda_runtime_version", return_value=None)
-    @patch("utilities.cli.system_check.get_default_cuda_version", return_value="12")
+    @patch("utilities.cli.system_check._get_driver_cuda_version", return_value="12")
     @patch("shutil.which", return_value=None)
     def test_check_cuda_without_nvcc_no_runtime(self, mock_which, mock_cuda, mock_runtime):
         result = check_cuda()
@@ -131,7 +132,7 @@ class TestIndividualChecks(unittest.TestCase):
         self.assertEqual(result.status, "WARN")
 
     @patch("utilities.cli.system_check.get_cuda_runtime_version", return_value="12.6.77")
-    @patch("utilities.cli.system_check.get_default_cuda_version", return_value="12")
+    @patch("utilities.cli.system_check._get_driver_cuda_version", return_value="12")
     @patch("shutil.which", return_value=None)
     def test_check_cuda_without_nvcc_with_runtime(self, mock_which, mock_cuda, mock_runtime):
         result = check_cuda()
@@ -139,12 +140,55 @@ class TestIndividualChecks(unittest.TestCase):
         self.assertEqual(result.status, "OK")
         self.assertIn("runtime 12.6.77", result.message)
 
-    @patch("shutil.which", return_value="/usr/bin/docker")
+    @patch("utilities.cli.system_check.subprocess.run")
     @patch("utilities.cli.system_check.run_info_command")
-    def test_check_docker_installed(self, mock_run_info, mock_which):
-        mock_run_info.return_value = "Docker version 27.0.0"
+    @patch("shutil.which")
+    def test_check_docker_with_ctk(self, mock_which, mock_run_info, mock_subproc):
+        def which_side_effect(cmd):
+            return {
+                "docker": "/usr/bin/docker",
+                "nvidia-ctk": "/usr/bin/nvidia-ctk",
+            }.get(cmd)
+
+        def run_info_side_effect(cmd, **kwargs):
+            if cmd == ["docker", "--version"]:
+                return "Docker version 27.0.0, build abcdef0"
+            if cmd == ["nvidia-ctk", "--version"]:
+                return "NVIDIA Container Toolkit CLI version 1.17.3"
+            return None
+
+        mock_which.side_effect = which_side_effect
+        mock_run_info.side_effect = run_info_side_effect
+        mock_subproc.return_value = unittest.mock.Mock(returncode=0)
+
         result = check_docker()
         self._assert_valid_result(result)
+        self.assertEqual(result.status, "OK")
+        self.assertIn("27.0.0", result.message)
+        self.assertIn("nvidia-ctk 1.17.3", result.message)
+
+    @patch("utilities.cli.system_check.subprocess.run")
+    @patch("utilities.cli.system_check.run_info_command")
+    @patch("shutil.which")
+    def test_check_docker_without_ctk(self, mock_which, mock_run_info, mock_subproc):
+        def which_side_effect(cmd):
+            return "/usr/bin/docker" if cmd == "docker" else None
+
+        def run_info_side_effect(cmd, **kwargs):
+            if cmd == ["docker", "--version"]:
+                return "Docker version 27.0.0, build abcdef0"
+            return None
+
+        mock_which.side_effect = which_side_effect
+        mock_run_info.side_effect = run_info_side_effect
+        mock_subproc.return_value = unittest.mock.Mock(returncode=0)
+
+        result = check_docker()
+        self._assert_valid_result(result)
+        self.assertEqual(result.status, "WARN")
+        self.assertIn("27.0.0", result.message)
+        self.assertNotIn("nvidia-ctk", result.message)
+        self.assertIn("NVIDIA Container Toolkit", result.fix_suggestion)
 
     @patch("shutil.which", return_value=None)
     def test_check_docker_not_installed(self, mock_which):
@@ -176,20 +220,95 @@ class TestIndividualChecks(unittest.TestCase):
 
 
 class TestRunAllChecks(unittest.TestCase):
-    """Test the run_all_checks orchestrator"""
+    """Test the run_all_checks orchestrator with mocked check functions"""
+
+    _mock_results = [
+        CheckResult(status="OK", name="GPU", message="mock gpu"),
+        CheckResult(status="OK", name="CUDA", message="mock cuda"),
+        CheckResult(status="OK", name="Docker", message="mock docker"),
+        CheckResult(status="OK", name="Holoscan", message="mock sdk"),
+        CheckResult(status="OK", name="Disk", message="mock disk"),
+        CheckResult(status="OK", name="CLI", message="mock cli"),
+        CheckResult(status="OK", name="Container", message="mock container"),
+        CheckResult(status="WARN", name="Display", message="mock display"),
+        CheckResult(status="SKIP", name="Devices", message="mock devices"),
+    ]
+
+    def _patch_checks(self):
+        """Patch all individual check functions to return mock results"""
+        check_names = [
+            "check_gpu",
+            "check_cuda",
+            "check_docker",
+            "check_holoscan",
+            "check_disk",
+            "check_cli",
+            "check_container",
+            "check_display",
+            "check_devices",
+        ]
+        patchers = []
+        for name, result in zip(check_names, self._mock_results):
+            p = patch(f"utilities.cli.system_check.{name}", return_value=result)
+            p.start()
+            patchers.append(p)
+        return patchers
 
     def test_run_all_checks_returns_list(self):
-        results = run_all_checks()
-        self.assertIsInstance(results, list)
-        self.assertGreater(len(results), 0)
-        for r in results:
-            self.assertIsInstance(r, CheckResult)
+        patchers = self._patch_checks()
+        try:
+            results = run_all_checks()
+            self.assertIsInstance(results, list)
+            self.assertEqual(len(results), 9)
+            for r in results:
+                self.assertIsInstance(r, CheckResult)
+        finally:
+            for p in patchers:
+                p.stop()
 
     def test_run_all_checks_covers_expected_names(self):
-        results = run_all_checks()
-        names = {r.name for r in results}
-        for expected in ("Disk", "CLI", "Container", "Display"):
-            self.assertIn(expected, names, f"Missing check: {expected}")
+        patchers = self._patch_checks()
+        try:
+            results = run_all_checks()
+            names = {r.name for r in results}
+            for expected in (
+                "GPU",
+                "CUDA",
+                "Docker",
+                "Holoscan",
+                "Disk",
+                "CLI",
+                "Container",
+                "Display",
+                "Devices",
+            ):
+                self.assertIn(expected, names, f"Missing check: {expected}")
+        finally:
+            for p in patchers:
+                p.stop()
+
+    def test_run_all_checks_handles_exception(self):
+        """If a check raises, run_all_checks catches it and returns a FAIL result"""
+        with patch("utilities.cli.system_check.check_gpu", side_effect=RuntimeError("boom")), patch(
+            "utilities.cli.system_check.check_cuda", return_value=self._mock_results[1]
+        ), patch(
+            "utilities.cli.system_check.check_docker", return_value=self._mock_results[2]
+        ), patch(
+            "utilities.cli.system_check.check_holoscan", return_value=self._mock_results[3]
+        ), patch(
+            "utilities.cli.system_check.check_disk", return_value=self._mock_results[4]
+        ), patch(
+            "utilities.cli.system_check.check_cli", return_value=self._mock_results[5]
+        ), patch(
+            "utilities.cli.system_check.check_container", return_value=self._mock_results[6]
+        ), patch(
+            "utilities.cli.system_check.check_display", return_value=self._mock_results[7]
+        ), patch(
+            "utilities.cli.system_check.check_devices", return_value=self._mock_results[8]
+        ):
+            results = run_all_checks()
+            self.assertEqual(results[0].status, "FAIL")
+            self.assertIn("boom", results[0].message)
 
 
 class TestFormatResults(unittest.TestCase):

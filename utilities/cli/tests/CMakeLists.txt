@@ -218,6 +218,13 @@ add_test(
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 
+# Add test for system_check module
+add_test(
+    NAME test_system_check
+    COMMAND ${Python3_EXECUTABLE} -m unittest discover -s ${CMAKE_CURRENT_SOURCE_DIR} -p "test_system_check.py"
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+
 add_test(
     NAME test_cli_env_info
     COMMAND ${CMAKE_SOURCE_DIR}/holohub env-info
@@ -227,6 +234,25 @@ set_property(TEST test_cli_env_info PROPERTY
     PASS_REGULAR_EXPRESSION "HoloHub Environment Variables"
     PASS_REGULAR_EXPRESSION "Holoscan Environment Variables"
     PASS_REGULAR_EXPRESSION "Other Relevant Environment Variables"
+)
+
+add_test(
+    NAME test_cli_env_check
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub env-check
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_tests_properties(test_cli_env_check PROPERTIES
+    PASS_REGULAR_EXPRESSION "System Info Check"
+)
+
+add_test(
+    NAME test_cli_env_check_json
+    COMMAND ${CMAKE_SOURCE_DIR}/holohub env-check --json
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_tests_properties(test_cli_env_check_json PROPERTIES
+    PASS_REGULAR_EXPRESSION "\"checks\""
+    PASS_REGULAR_EXPRESSION "\"summary\""
 )
 
 # test ambiguous dash-prefixed arguments
