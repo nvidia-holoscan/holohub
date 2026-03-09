@@ -30,8 +30,9 @@ def long_tracks_to_c2w(rotation: np.ndarray, position: np.ndarray) -> np.ndarray
     return c2w
 
 
-def c2w_to_poses_bounds_row(c2w: np.ndarray, height: int, width: int, focal: float,
-                            near: float = 0.01, far: float = 100.0) -> np.ndarray:
+def c2w_to_poses_bounds_row(
+    c2w: np.ndarray, height: int, width: int, focal: float, near: float = 0.01, far: float = 100.0
+) -> np.ndarray:
     """
     Convert a single c2w matrix to one row of poses_bounds.npy.
 
@@ -50,9 +51,15 @@ def c2w_to_poses_bounds_row(c2w: np.ndarray, height: int, width: int, focal: flo
     return np.concatenate([row_flat, [near, far]]).astype(np.float32)
 
 
-def build_poses_bounds(rotations: np.ndarray, positions: np.ndarray,
-                       height: int, width: int, focal: float,
-                       near: float = 0.01, far: float = 100.0) -> np.ndarray:
+def build_poses_bounds(
+    rotations: np.ndarray,
+    positions: np.ndarray,
+    height: int,
+    width: int,
+    focal: float,
+    near: float = 0.01,
+    far: float = 100.0,
+) -> np.ndarray:
     """
     Build a full poses_bounds.npy array from Long Tracks 4D outputs.
 

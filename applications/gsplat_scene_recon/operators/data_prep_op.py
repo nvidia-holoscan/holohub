@@ -18,7 +18,6 @@ Note: poses_bounds.npy is NOT written here. That requires VGGT (Phase 2)
 and format conversion (Phase 3) to complete the EndoNeRF dataset.
 """
 
-import os
 from pathlib import Path
 
 import cupy as cp

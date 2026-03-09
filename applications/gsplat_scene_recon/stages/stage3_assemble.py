@@ -12,8 +12,8 @@ Usage:
 """
 
 import sys
-from pathlib import Path
 from argparse import ArgumentParser
+from pathlib import Path
 
 import numpy as np
 
@@ -79,9 +79,7 @@ def validate_endonerf_dataset(data_dir: str) -> bool:
     print(f"[Stage3]   Poses:  {poses.shape}")
 
     if poses.shape[1] != 17:
-        critical_errors.append(
-            f"poses_bounds.npy should have 17 columns, got {poses.shape[1]}"
-        )
+        critical_errors.append(f"poses_bounds.npy should have 17 columns, got {poses.shape[1]}")
     else:
         pose_3x5 = poses[:, :15].reshape(-1, 3, 5)
         rotation_matrices = pose_3x5[:, :3, :3]
@@ -98,9 +96,7 @@ def validate_endonerf_dataset(data_dir: str) -> bool:
             )
 
     if poses.shape[0] < n_images:
-        warnings.append(
-            f"Fewer poses ({poses.shape[0]}) than images ({n_images})"
-        )
+        warnings.append(f"Fewer poses ({poses.shape[0]}) than images ({n_images})")
 
     # --- Report ---
     for w in warnings:

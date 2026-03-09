@@ -11,10 +11,14 @@ suitable for GSplat training.
 import numpy as np
 
 
-def sparse_depths_to_dense(tracks_2d: np.ndarray, depths: np.ndarray,
-                           visibility: np.ndarray,
-                           height: int, width: int,
-                           method: str = "nearest") -> np.ndarray:
+def sparse_depths_to_dense(
+    tracks_2d: np.ndarray,
+    depths: np.ndarray,
+    visibility: np.ndarray,
+    height: int,
+    width: int,
+    method: str = "nearest",
+) -> np.ndarray:
     """
     Convert sparse per-point depths to a dense depth image.
 
@@ -55,10 +59,12 @@ def sparse_depths_to_dense(tracks_2d: np.ndarray, depths: np.ndarray,
     if method == "linear" and np.sum(valid) >= 4:
         try:
             from scipy.interpolate import griddata
+
             grid_y, grid_x = np.mgrid[0:height, 0:width]
             points = np.stack([x, y], axis=-1).astype(np.float64)
             interpolated = griddata(
-                points, d.astype(np.float64),
+                points,
+                d.astype(np.float64),
                 (grid_x, grid_y),
                 method="linear",
                 fill_value=0.0,

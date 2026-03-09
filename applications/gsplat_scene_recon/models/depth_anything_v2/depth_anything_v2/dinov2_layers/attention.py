@@ -10,15 +10,13 @@
 
 import logging
 
-from torch import Tensor
-from torch import nn
-
+from torch import Tensor, nn
 
 logger = logging.getLogger("dinov2")
 
 
 try:
-    from xformers.ops import memory_efficient_attention, unbind, fmha
+    from xformers.ops import fmha, memory_efficient_attention, unbind
 
     XFORMERS_AVAILABLE = True
 except ImportError:
@@ -48,7 +46,9 @@ class Attention(nn.Module):
 
     def forward(self, x: Tensor) -> Tensor:
         B, N, C = x.shape
-        qkv = self.qkv(x).reshape(B, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
+        qkv = (
+            self.qkv(x).reshape(B, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
+        )
 
         q, k, v = qkv[0] * self.scale, qkv[1], qkv[2]
         attn = q @ k.transpose(-2, -1)
@@ -79,5 +79,3 @@ class MemEffAttention(Attention):
         x = self.proj(x)
         x = self.proj_drop(x)
         return x
-
-        

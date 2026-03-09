@@ -22,10 +22,9 @@ import glob
 import math
 import os
 import sys
+import time
 from argparse import ArgumentParser
 from pathlib import Path
-
-import time
 
 import cupy as cp
 import cv2
@@ -51,12 +50,18 @@ def _load_endonerf_poses(data_dir: str) -> list[dict]:
         R, T, hwf = pose[:3, :3], pose[:3, 3], pose[:3, 4]
         H, W, focal = hwf
         K = np.array([[focal, 0, W / 2], [0, focal, H / 2], [0, 0, 1]], dtype=np.float32)
-        frames.append({
-            "R": R.astype(np.float32), "T": T.astype(np.float32), "K": K,
-            "H": int(H), "W": int(W),
-            "time": i / max(N - 1, 1),
-            "near": float(bds[i, 0]), "far": float(bds[i, 1]),
-        })
+        frames.append(
+            {
+                "R": R.astype(np.float32),
+                "T": T.astype(np.float32),
+                "K": K,
+                "H": int(H),
+                "W": int(W),
+                "time": i / max(N - 1, 1),
+                "near": float(bds[i, 0]),
+                "far": float(bds[i, 1]),
+            }
+        )
     return frames
 
 
@@ -77,13 +82,33 @@ def _load_checkpoint(ckpt_path: str):
         result["opacities_base"] = splats["opacities"].cuda()
 
         from scene.deformation import deform_network
-        cfg = ckpt.get("config", NS(
-            bounds=1.5, kplanes_config={"grid_dimensions": 2, "input_coordinate_dim": 4,
-                                         "output_coordinate_dim": 64, "resolution": [64, 64, 64, 100]},
-            multires=[1, 2, 4, 8], no_grid=False, no_dx=False, no_ds=False, no_dr=False, no_do=False,
-            net_width=32, timebase_pe=6, defor_depth=0, posebase_pe=10,
-            scale_rotation_pe=10, opacity_pe=10, timenet_width=64, timenet_output=32,
-        ))
+
+        cfg = ckpt.get(
+            "config",
+            NS(
+                bounds=1.5,
+                kplanes_config={
+                    "grid_dimensions": 2,
+                    "input_coordinate_dim": 4,
+                    "output_coordinate_dim": 64,
+                    "resolution": [64, 64, 64, 100],
+                },
+                multires=[1, 2, 4, 8],
+                no_grid=False,
+                no_dx=False,
+                no_ds=False,
+                no_dr=False,
+                no_do=False,
+                net_width=32,
+                timebase_pe=6,
+                defor_depth=0,
+                posebase_pe=10,
+                scale_rotation_pe=10,
+                opacity_pe=10,
+                timenet_width=64,
+                timenet_output=32,
+            ),
+        )
         dnet = deform_network(cfg).cuda()
         dnet.load_state_dict(ckpt["deform_net"])
         dnet.eval()
@@ -104,12 +129,19 @@ def _apply_deformation(ckpt, t):
     tv = torch.tensor([[t]], device="cuda").repeat(N, 1)
     with torch.no_grad():
         md, sd, qd, od = ckpt["deform_net"](
-            point=ckpt["means_base"], scales=ckpt["scales_base"],
-            rotations=ckpt["quats_base"], opacity=ckpt["opacities_base"].unsqueeze(-1),
+            point=ckpt["means_base"],
+            scales=ckpt["scales_base"],
+            rotations=ckpt["quats_base"],
+            opacity=ckpt["opacities_base"].unsqueeze(-1),
             times_sel=tv,
         )
-    return {"means": md, "scales": torch.exp(sd), "quats": qd,
-            "opacities": torch.sigmoid(od.squeeze(-1)), "colors": ckpt["colors"]}
+    return {
+        "means": md,
+        "scales": torch.exp(sd),
+        "quats": qd,
+        "opacities": torch.sigmoid(od.squeeze(-1)),
+        "colors": ckpt["colors"],
+    }
 
 
 def _render_frame(params, R, T, K, W, H, near, far):
@@ -121,11 +153,22 @@ def _render_frame(params, R, T, K, W, H, near, far):
     vm = vm.inverse().unsqueeze(0)
     sh_deg = int(math.sqrt(params["colors"].shape[-2]) - 1)
     rgb, _, _ = rasterization(
-        means=params["means"], quats=params["quats"], scales=params["scales"],
-        opacities=params["opacities"], colors=params["colors"],
-        viewmats=vm, Ks=Kt.unsqueeze(0), width=W, height=H,
-        sh_degree=sh_deg, near_plane=near, far_plane=far,
-        render_mode="RGB", packed=False, sparse_grad=False, rasterize_mode="classic",
+        means=params["means"],
+        quats=params["quats"],
+        scales=params["scales"],
+        opacities=params["opacities"],
+        colors=params["colors"],
+        viewmats=vm,
+        Ks=Kt.unsqueeze(0),
+        width=W,
+        height=H,
+        sh_degree=sh_deg,
+        near_plane=near,
+        far_plane=far,
+        render_mode="RGB",
+        packed=False,
+        sparse_grad=False,
+        rasterize_mode="classic",
     )
     return torch.clamp(rgb[0, ..., :3] * 255, 0, 255).to(torch.uint8).cpu().numpy()
 
@@ -137,8 +180,9 @@ class GsplatRenderOp(Operator):
     Subsequent passes: replay from cache at target FPS (no GPU rendering).
     """
 
-    def __init__(self, fragment, ckpt_data, poses, gt_files=None,
-                 save_dir=None, fps=30, *args, **kwargs):
+    def __init__(
+        self, fragment, ckpt_data, poses, gt_files=None, save_dir=None, fps=30, *args, **kwargs
+    ):
         super().__init__(fragment, *args, **kwargs)
         self._ckpt = ckpt_data
         self._poses = poses
@@ -165,14 +209,20 @@ class GsplatRenderOp(Operator):
             params = {k: self._ckpt[k] for k in ("means", "scales", "quats", "opacities", "colors")}
 
         rendered = _render_frame(
-            params, frame["R"], frame["T"], frame["K"],
-            frame["W"], frame["H"], frame["near"], frame["far"],
+            params,
+            frame["R"],
+            frame["T"],
+            frame["K"],
+            frame["W"],
+            frame["H"],
+            frame["near"],
+            frame["far"],
         )
 
         if self._save_dir and not self._first_pass_done:
             from PIL import Image
-            Image.fromarray(rendered).save(
-                os.path.join(self._save_dir, f"frame_{idx:05d}.png"))
+
+            Image.fromarray(rendered).save(os.path.join(self._save_dir, f"frame_{idx:05d}.png"))
 
         if self._gt_files and idx < len(self._gt_files):
             gt_bgr = cv2.imread(self._gt_files[idx])
@@ -206,7 +256,9 @@ class GsplatRenderOp(Operator):
                     self._first_pass_done = True
                     self._playback_seq = list(range(N)) + list(range(N - 2, 0, -1))
                     self._play_idx = 0
-                    print(f"[Renderer] All {N} frames cached. Looping at {self._fps} fps (close window to stop).")
+                    print(
+                        f"[Renderer] All {N} frames cached. Looping at {self._fps} fps (close window to stop)."
+                    )
                 return
 
         # Subsequent passes: replay from cache in forward-backward loop at target FPS
@@ -257,8 +309,13 @@ class RenderViewerApp(Application):
         print(f"[Viewer] {len(poses)} frames, layout: {label}")
 
         source = GsplatRenderOp(
-            self, ckpt_data=ckpt_data, poses=poses, gt_files=gt_files,
-            save_dir=save_dir, fps=args.fps, name="renderer",
+            self,
+            ckpt_data=ckpt_data,
+            poses=poses,
+            gt_files=gt_files,
+            save_dir=save_dir,
+            fps=args.fps,
+            name="renderer",
         )
 
         H, W = poses[0]["H"], poses[0]["W"]
@@ -267,9 +324,12 @@ class RenderViewerApp(Application):
 
         pool = UnboundedAllocator(self, name="pool")
         holoviz = HolovizOp(
-            self, allocator=pool, name="holoviz",
+            self,
+            allocator=pool,
+            name="holoviz",
             headless=args.headless,
-            width=win_w, height=win_h,
+            width=win_w,
+            height=win_h,
             tensors=[dict(name="composite", type="color")],
             window_title=f"G-SHARP: {label}",
         )
@@ -279,17 +339,20 @@ class RenderViewerApp(Application):
 
 def main():
     parser = ArgumentParser(description="Live GSplat Render Viewer via HoloViz")
-    parser.add_argument("--data-dir", required=True,
-                        help="EndoNeRF dataset directory (with poses_bounds.npy)")
-    parser.add_argument("--checkpoint", required=True,
-                        help="Path to GSplat .pt checkpoint")
-    parser.add_argument("--gt-dir", default=None,
-                        help="Ground-truth images directory (default: data-dir/images)")
+    parser.add_argument(
+        "--data-dir", required=True, help="EndoNeRF dataset directory (with poses_bounds.npy)"
+    )
+    parser.add_argument("--checkpoint", required=True, help="Path to GSplat .pt checkpoint")
+    parser.add_argument(
+        "--gt-dir", default=None, help="Ground-truth images directory (default: data-dir/images)"
+    )
     parser.add_argument("--headless", action="store_true")
-    parser.add_argument("--fps", type=int, default=30,
-                        help="Target playback FPS for cached loop (default: 30)")
-    parser.add_argument("--save-frames", default=None,
-                        help="Optionally also save rendered frames to this directory")
+    parser.add_argument(
+        "--fps", type=int, default=30, help="Target playback FPS for cached loop (default: 30)"
+    )
+    parser.add_argument(
+        "--save-frames", default=None, help="Optionally also save rendered frames to this directory"
+    )
     args = parser.parse_args()
 
     app = RenderViewerApp(args)

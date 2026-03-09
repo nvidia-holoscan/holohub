@@ -30,7 +30,6 @@ EndoNeRF format and imports (scene.cameras, utils.graphics_utils). Not a bundled
 third-party library—derived implementation under the stated license.
 """
 
-
 import glob  # noqa: E402
 import json  # noqa: E402
 import os  # noqa: E402
@@ -100,17 +99,19 @@ class EndoNeRF_Dataset(object):
         poses = poses_arr[:, :-2].reshape([-1, 3, 5])  # (N_cams, 3, 5)
         # coordinate transformation OpenGL->Colmap, center poses
         H, W, focal = poses[0, :, -1]
-        
+
         # Set image dimensions from poses_bounds.npy (not hardcoded)
         self.img_wh = (
             int(W / self.downsample),
             int(H / self.downsample),
         )
-        
+
         focal = focal / self.downsample
         self.focal = (focal, focal)
         W_ds, H_ds = self.img_wh  # Use downsampled dimensions for K
-        self.K = np.array([[focal, 0, W_ds // 2], [0, focal, H_ds // 2], [0, 0, 1]]).astype(np.float32)
+        self.K = np.array([[focal, 0, W_ds // 2], [0, focal, H_ds // 2], [0, 0, 1]]).astype(
+            np.float32
+        )
         # poses = np.concatenate([poses[..., :1], -poses[..., 1:2], -poses[..., 2:3], poses[..., 3:4]], -1)
         poses = np.concatenate(
             [poses[..., :1], poses[..., 1:2], poses[..., 2:3], poses[..., 3:4]], -1

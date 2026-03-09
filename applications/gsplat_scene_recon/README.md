@@ -217,7 +217,7 @@ libraries.**
 
 ### VGGT (Visual Geometry Grounded Transformer)
 
-- **Source**: https://github.com/facebookresearch/vggt
+- **Source**: <https://github.com/facebookresearch/vggt>
 - **License**: [Meta License](https://github.com/facebookresearch/vggt/blob/main/LICENSE)
 - **Installation**: Pip-installed from source at Docker build time
 - **Model weights**: `facebook/VGGT-1B` from HuggingFace
@@ -231,22 +231,23 @@ libraries.**
 
 ### SAM3 (Segment Anything Model 3)
 
-- **Source**: https://github.com/facebookresearch/sam3
+- **Source**: <https://github.com/facebookresearch/sam3>
 - **License**: [SAM License](https://github.com/facebookresearch/sam3/blob/main/LICENSE)
 - **Installation**: Pip-installed from source at Docker build time
 
 > **Important**: SAM3 is released under a custom SAM License. By using SAM3,
 > you agree to be bound by its terms. Key restrictions include:
+>
 > - No military, weapons, ITAR, nuclear, espionage, or sanctions-violating use
 > - Publications using SAM3 must acknowledge the SAM Materials
 > - Redistribution must include the same license terms
 >
 > HuggingFace checkpoints for SAM3 may require **access approval** at
-> https://huggingface.co/facebook/sam3.
+> <https://huggingface.co/facebook/sam3>.
 
 ### Depth Anything V2
 
-- **Source**: https://github.com/DepthAnything/Depth-Anything-V2
+- **Source**: <https://github.com/DepthAnything/Depth-Anything-V2>
 - **License**: Apache-2.0 (code and Small model)
 - **Bundled**: `models/depth_anything_v2/`
 
@@ -255,7 +256,7 @@ libraries.**
 
 ### EndoGaussian / GSplat Training
 
-- **Source**: Derived from https://github.com/yifliu3/EndoGaussian
+- **Source**: Derived from <https://github.com/yifliu3/EndoGaussian>
 - **License**: MIT (upstream EndoGaussian) + Apache-2.0 (NVIDIA modifications)
 - **Bundled**: `training/`
 
@@ -267,10 +268,10 @@ libraries.**
 
 | Library | License | URL |
 |---------|---------|-----|
-| PyTorch | BSD-3-Clause | https://github.com/pytorch/pytorch |
-| CuPy | MIT | https://github.com/cupy/cupy |
-| gsplat | Apache-2.0 | https://github.com/nerfstudio-project/gsplat |
-| LPIPS | BSD-2-Clause | https://github.com/richzhang/PerceptualSimilarity |
-| HuggingFace Hub | Apache-2.0 | https://github.com/huggingface/huggingface_hub |
-| einops | MIT | https://github.com/arogozhnikov/einops |
-| timm | Apache-2.0 | https://github.com/huggingface/pytorch-image-models |
+| PyTorch | BSD-3-Clause | <https://github.com/pytorch/pytorch> |
+| CuPy | MIT | <https://github.com/cupy/cupy> |
+| gsplat | Apache-2.0 | <https://github.com/nerfstudio-project/gsplat> |
+| LPIPS | BSD-2-Clause | <https://github.com/richzhang/PerceptualSimilarity> |
+| HuggingFace Hub | Apache-2.0 | <https://github.com/huggingface/huggingface_hub> |
+| einops | MIT | <https://github.com/arogozhnikov/einops> |
+| timm | Apache-2.0 | <https://github.com/huggingface/pytorch-image-models> |

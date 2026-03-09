@@ -75,6 +75,7 @@ When not running headless, an `OverlayComposerOp` renders a 3-panel live preview
 (source / depth colormap / mask overlay) via HoloViz.
 
 **Key files:**
+
 - `operators/depth_anything_v2_op.py` — DA2 Holoscan operator
 - `operators/medsam3_segmentation_op.py` — MedSAM3 Holoscan operator
 - `operators/data_prep_op.py` — Disk writer, synchronizes by frame index
@@ -92,6 +93,7 @@ globally consistent camera poses. Poses from different batches are stitched
 using overlapping frames and normalized so frame 0 = identity.
 
 **Key parameters:**
+
 - `--batch-size` — Frames per VGGT batch. Reduce to 15–20 on 24GB GPUs.
 
 **Output:** `<output>/phase2_vggt/poses.npy`, `intrinsics.npy`
@@ -105,12 +107,14 @@ by the GSplat training code. This is a critical stage where depth quantization
 and scale alignment happen.
 
 **Key transformation:**
+
 ```
 DA2 raw depth (float32, meters) × DEPTH_SCALE → uint8 (0–255)
 VGGT translations (meters) × DEPTH_SCALE → centimeters
 ```
 
 **Key parameter:**
+
 - `--depth-scale` — Default 100 (centimeters). This value directly
   controls training stability through `scene_scale` (see Tuning section).
 
@@ -122,6 +126,7 @@ VGGT translations (meters) × DEPTH_SCALE → centimeters
 **Entry point:** `training/train_standalone.py` → `training/gsplat_train.py`
 
 Two-stage training:
+
 1. **Coarse stage** — Static Gaussians, no deformation. Establishes geometry.
 2. **Fine stage** — Deformation network enabled. Learns temporal dynamics.
 
@@ -166,6 +171,7 @@ Phase 4 (Training) ──→   write(train, 700/1400)──→  │ Train  50%  
 
 2. Each phase writes progress updates to `progress.json` using
    `stages/progress.py`:
+
    ```python
    update_progress(progress_file, "vggt", "VGGT Pose Estimation",
                    current=30, total=91, detail="Batch 1/3", status="running")
@@ -237,16 +243,19 @@ script:
 ### Recommended Configurations
 
 **Quick validation (2 min):**
+
 ```bash
 --training-iterations 1400 --coarse-iterations 200
 ```
 
 **Production quality (5–8 min):**
+
 ```bash
 --training-iterations 5000 --coarse-iterations 500
 ```
 
 **Maximum quality (15–20 min):**
+
 ```bash
 --training-iterations 10000 --coarse-iterations 1000
 ```

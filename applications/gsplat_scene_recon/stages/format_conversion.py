@@ -26,9 +26,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import os
 import shutil
-import sys
 from pathlib import Path
 
 import cv2
@@ -136,14 +134,16 @@ def run_format_conversion(
     out = Path(output_dir)
 
     # --- Load Phase 2 outputs ---
-    ext = np.load(str(vggt / "extrinsics.npy"))       # (N, 3, 4)
-    intr = np.load(str(vggt / "intrinsics.npy"))       # (N, 3, 3)
-    ds = np.load(str(vggt / "depth_scale.npy"))         # (2,)
+    ext = np.load(str(vggt / "extrinsics.npy"))  # (N, 3, 4)
+    intr = np.load(str(vggt / "intrinsics.npy"))  # (N, 3, 3)
+    ds = np.load(str(vggt / "depth_scale.npy"))  # (2,)
     img_names = np.load(str(vggt / "image_names.npy"))  # (N,)
     N = ext.shape[0]
 
     print(f"[Phase3] {N} frames, VGGT depth: [{ds[0]:.4f}, {ds[1]:.4f}] m")
-    print(f"[Phase3] DEPTH_SCALE = {depth_scale} (units: {'cm' if depth_scale == 100 else 'custom'})")
+    print(
+        f"[Phase3] DEPTH_SCALE = {depth_scale} (units: {'cm' if depth_scale == 100 else 'custom'})"
+    )
 
     # --- Determine resolutions ---
     sample_img = cv2.imread(str(phase1 / "images" / img_names[0]))
@@ -189,8 +189,16 @@ def run_format_conversion(
     # --- Copy images, convert depth, copy masks ---
     if progress_file:
         from stages.progress import update_progress
-        update_progress(progress_file, "format_conversion", "Format Conversion",
-                        0, N, "Converting frames...", "running")
+
+        update_progress(
+            progress_file,
+            "format_conversion",
+            "Format Conversion",
+            0,
+            N,
+            "Converting frames...",
+            "running",
+        )
 
     for i, name in enumerate(img_names):
         dst_name = f"frame_{i:04d}.png"
@@ -199,8 +207,10 @@ def run_format_conversion(
 
         d_uint8 = _convert_depth(
             str(depth_raw_dir / name.replace(".png", ".npy")),
-            da2_min, da2_max,
-            ds[0], ds[1],
+            da2_min,
+            da2_max,
+            ds[0],
+            ds[1],
             depth_scale,
         )
         cv2.imwrite(str(out / "depth" / dst_name), d_uint8)
@@ -210,19 +220,29 @@ def run_format_conversion(
             shutil.copy2(str(mask_src), str(out / "masks" / dst_name))
 
         if progress_file and (i % 10 == 0 or i == N - 1):
-            update_progress(progress_file, "format_conversion", "Format Conversion",
-                            i + 1, N, f"Frame {i + 1}/{N}", "running")
+            update_progress(
+                progress_file,
+                "format_conversion",
+                "Format Conversion",
+                i + 1,
+                N,
+                f"Frame {i + 1}/{N}",
+                "running",
+            )
 
     print(f"[Phase3] Wrote {N} images, depth maps, and masks")
 
     if progress_file:
-        update_progress(progress_file, "format_conversion", "Format Conversion",
-                        N, N, "Complete", "complete")
+        update_progress(
+            progress_file, "format_conversion", "Format Conversion", N, N, "Complete", "complete"
+        )
 
     # --- Validate scene_scale estimate ---
     d_sample = cv2.imread(str(out / "depth" / "frame_0000.png"), cv2.IMREAD_UNCHANGED)
-    print(f"[Phase3] Sample depth: dtype={d_sample.dtype}, "
-          f"range=[{d_sample.min()}, {d_sample.max()}]")
+    print(
+        f"[Phase3] Sample depth: dtype={d_sample.dtype}, "
+        f"range=[{d_sample.min()}, {d_sample.max()}]"
+    )
 
     # Rough scene_scale estimate: max translation norm × some geometry factor
     poses_3x5 = poses_bounds[:, :15].reshape(-1, 3, 5)
@@ -251,23 +271,29 @@ def main():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
-        "--phase1-dir", required=True,
+        "--phase1-dir",
+        required=True,
         help="Phase 1 output directory (images/, depth_raw/, masks/)",
     )
     parser.add_argument(
-        "--vggt-dir", required=True,
+        "--vggt-dir",
+        required=True,
         help="Phase 2 VGGT output directory (extrinsics.npy, etc.)",
     )
     parser.add_argument(
-        "--output-dir", required=True,
+        "--output-dir",
+        required=True,
         help="Where to write the final EndoNeRF dataset",
     )
     parser.add_argument(
-        "--depth-scale", type=float, default=100.0,
+        "--depth-scale",
+        type=float,
+        default=100.0,
         help="Depth scale factor (100=cm, 1000=mm). Recommend 100.",
     )
     parser.add_argument(
-        "--progress-file", default=None,
+        "--progress-file",
+        default=None,
         help="Path to write progress JSON for the HoloViz monitor",
     )
     args = parser.parse_args()

@@ -30,9 +30,7 @@ from stages.progress import update_progress
 # Matches tqdm lines like:
 #   [Training] Coarse stage:  50%|...| 100/200 [00:06<00:06, ...]
 #   [Training] Fine stage:  40%|...| 560/1400 [00:33<00:47, ...]
-TQDM_RE = re.compile(
-    r"\[Training\]\s+(Coarse|Fine)\s+stage:\s+\d+%\|.*?\|\s+(\d+)/(\d+)"
-)
+TQDM_RE = re.compile(r"\[Training\]\s+(Coarse|Fine)\s+stage:\s+\d+%\|.*?\|\s+(\d+)/(\d+)")
 
 # Matches best PSNR lines like:
 #   [BEST] New best PSNR: 32.979 at step 1156
@@ -68,15 +66,19 @@ def run_training(
     if grand_total == 0:
         grand_total = 1  # fallback: avoid division-by-zero
 
-    update_progress(progress_file, "training", "GSplat Training",
-                    0, grand_total, "Data ingestion...", "running")
+    update_progress(
+        progress_file, "training", "GSplat Training", 0, grand_total, "Data ingestion...", "running"
+    )
 
     best_psnr = 0.0
     current_global = 0
 
     proc = subprocess.Popen(
-        cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-        text=True, bufsize=1,
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
     )
 
     for line in proc.stdout:
@@ -103,28 +105,53 @@ def run_training(
             psnr_str = f"  |  Best PSNR: {best_psnr:.2f}" if best_psnr > 0 else ""
             detail = f"{stage_name} {step}/{stage_total}{psnr_str}"
 
-            update_progress(progress_file, "training", "GSplat Training",
-                            current_global, grand_total, detail, "running")
+            update_progress(
+                progress_file,
+                "training",
+                "GSplat Training",
+                current_global,
+                grand_total,
+                detail,
+                "running",
+            )
             continue
 
         # Data accumulation phase (before actual training begins)
         am = ACCUM_RE.search(line)
         if am:
-            update_progress(progress_file, "training", "GSplat Training",
-                            0, grand_total,
-                            f"Accumulating {am.group(1)}/{am.group(2)} frames...",
-                            "running")
+            update_progress(
+                progress_file,
+                "training",
+                "GSplat Training",
+                0,
+                grand_total,
+                f"Accumulating {am.group(1)}/{am.group(2)} frames...",
+                "running",
+            )
 
     proc.wait()
 
     if proc.returncode == 0:
         detail = f"Complete  |  Best PSNR: {best_psnr:.2f}" if best_psnr > 0 else "Complete"
-        update_progress(progress_file, "training", "GSplat Training",
-                        grand_total, grand_total, detail, "complete")
+        update_progress(
+            progress_file,
+            "training",
+            "GSplat Training",
+            grand_total,
+            grand_total,
+            detail,
+            "complete",
+        )
     else:
-        update_progress(progress_file, "training", "GSplat Training",
-                        current_global, grand_total,
-                        f"Failed (exit code {proc.returncode})", "error")
+        update_progress(
+            progress_file,
+            "training",
+            "GSplat Training",
+            current_global,
+            grand_total,
+            f"Failed (exit code {proc.returncode})",
+            "error",
+        )
 
     return proc.returncode
 
@@ -134,10 +161,12 @@ def main():
         description="GSplat training wrapper with progress reporting",
         usage="%(prog)s --progress-file FILE --train-script PATH -- [train_standalone.py args...]",
     )
-    parser.add_argument("--progress-file", required=True,
-                        help="Path to write progress JSON")
-    parser.add_argument("--train-script", default="train_standalone.py",
-                        help="Path to train_standalone.py (default: cwd)")
+    parser.add_argument("--progress-file", required=True, help="Path to write progress JSON")
+    parser.add_argument(
+        "--train-script",
+        default="train_standalone.py",
+        help="Path to train_standalone.py (default: cwd)",
+    )
 
     args, train_args = parser.parse_known_args()
 

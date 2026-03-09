@@ -94,7 +94,8 @@ class OverlayComposerOp(Operator):
             for c in range(3):
                 panel3[tool_region, c] = np.clip(
                     (1.0 - alpha) * panel3[tool_region, c] + alpha * overlay_color[c],
-                    0, 255,
+                    0,
+                    255,
                 ).astype(np.uint8)
 
         # Concatenate horizontally: [H, 3*W, 3]

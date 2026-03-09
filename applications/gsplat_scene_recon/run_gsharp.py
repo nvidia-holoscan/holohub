@@ -33,7 +33,6 @@ import time
 from argparse import ArgumentParser
 from pathlib import Path
 
-
 APP_DIR = Path(__file__).resolve().parent
 MODELS_DIR = APP_DIR / "models"
 TRAINING_DIR = APP_DIR / "training"
@@ -101,60 +100,88 @@ def main():
     )
 
     # Required
-    parser.add_argument("--data-dir", required=True,
-                        help="Directory containing input PNG frames")
-    parser.add_argument("--output-dir", required=True,
-                        help="Base output directory for all pipeline artifacts")
+    parser.add_argument("--data-dir", required=True, help="Directory containing input PNG frames")
+    parser.add_argument(
+        "--output-dir", required=True, help="Base output directory for all pipeline artifacts"
+    )
 
     # Model paths (with container defaults)
-    parser.add_argument("--da2-root", default=DEFAULTS["da2_root"],
-                        help="DA2 model code directory")
-    parser.add_argument("--da2-checkpoint", default=DEFAULTS["da2_checkpoint"],
-                        help="DA2 .pth checkpoint")
-    parser.add_argument("--da2-encoder", default=DEFAULTS["da2_encoder"],
-                        choices=["vits", "vitb", "vitl"])
-    parser.add_argument("--sam3-checkpoint", default=DEFAULTS["sam3_checkpoint"],
-                        help="MedSAM3 .pt checkpoint (empty = HuggingFace)")
-    parser.add_argument("--train-script", default=DEFAULTS["train_script"],
-                        help="Path to train_standalone.py")
+    parser.add_argument("--da2-root", default=DEFAULTS["da2_root"], help="DA2 model code directory")
+    parser.add_argument(
+        "--da2-checkpoint", default=DEFAULTS["da2_checkpoint"], help="DA2 .pth checkpoint"
+    )
+    parser.add_argument(
+        "--da2-encoder", default=DEFAULTS["da2_encoder"], choices=["vits", "vitb", "vitl"]
+    )
+    parser.add_argument(
+        "--sam3-checkpoint",
+        default=DEFAULTS["sam3_checkpoint"],
+        help="MedSAM3 .pt checkpoint (empty = HuggingFace)",
+    )
+    parser.add_argument(
+        "--train-script", default=DEFAULTS["train_script"], help="Path to train_standalone.py"
+    )
 
     # Training params
-    parser.add_argument("--training-iterations", type=int,
-                        default=DEFAULTS["training_iterations"],
-                        help="Total GSplat training iterations")
-    parser.add_argument("--coarse-iterations", type=int,
-                        default=DEFAULTS["coarse_iterations"],
-                        help="Coarse stage iterations")
-    parser.add_argument("--no-deformation", action="store_true",
-                        help="Disable deformation network (static scene)")
+    parser.add_argument(
+        "--training-iterations",
+        type=int,
+        default=DEFAULTS["training_iterations"],
+        help="Total GSplat training iterations",
+    )
+    parser.add_argument(
+        "--coarse-iterations",
+        type=int,
+        default=DEFAULTS["coarse_iterations"],
+        help="Coarse stage iterations",
+    )
+    parser.add_argument(
+        "--no-deformation", action="store_true", help="Disable deformation network (static scene)"
+    )
 
     # Phase control
-    parser.add_argument("--skip-phase1", action="store_true",
-                        help="Skip Phase 1 (reuse existing images/depth/masks)")
-    parser.add_argument("--skip-phase2", action="store_true",
-                        help="Skip Phase 2 (reuse existing VGGT poses)")
-    parser.add_argument("--skip-phase3", action="store_true",
-                        help="Skip Phase 3 (reuse existing EndoNeRF dataset)")
-    parser.add_argument("--skip-training", action="store_true",
-                        help="Skip Phase 4 (no training)")
-    parser.add_argument("--skip-viewer", action="store_true",
-                        help="Skip Phase 5 (no live viewer)")
+    parser.add_argument(
+        "--skip-phase1",
+        action="store_true",
+        help="Skip Phase 1 (reuse existing images/depth/masks)",
+    )
+    parser.add_argument(
+        "--skip-phase2", action="store_true", help="Skip Phase 2 (reuse existing VGGT poses)"
+    )
+    parser.add_argument(
+        "--skip-phase3", action="store_true", help="Skip Phase 3 (reuse existing EndoNeRF dataset)"
+    )
+    parser.add_argument("--skip-training", action="store_true", help="Skip Phase 4 (no training)")
+    parser.add_argument("--skip-viewer", action="store_true", help="Skip Phase 5 (no live viewer)")
 
     # Display & progress
-    parser.add_argument("--headless", action="store_true",
-                        help="Run Holoscan apps without visualization")
-    parser.add_argument("--progress-file", default=None,
-                        help="JSON file for progress monitor (auto-generated if not set)")
+    parser.add_argument(
+        "--headless", action="store_true", help="Run Holoscan apps without visualization"
+    )
+    parser.add_argument(
+        "--progress-file",
+        default=None,
+        help="JSON file for progress monitor (auto-generated if not set)",
+    )
 
     # VGGT
-    parser.add_argument("--batch-size", type=int, default=DEFAULTS["batch_size"],
-                        help="VGGT batch size (frames per batch)")
-    parser.add_argument("--depth-scale", type=float, default=DEFAULTS["depth_scale"],
-                        help="Depth scale factor (100 = centimeters)")
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=DEFAULTS["batch_size"],
+        help="VGGT batch size (frames per batch)",
+    )
+    parser.add_argument(
+        "--depth-scale",
+        type=float,
+        default=DEFAULTS["depth_scale"],
+        help="Depth scale factor (100 = centimeters)",
+    )
 
     # Render viewer
-    parser.add_argument("--fps", type=int, default=DEFAULTS["fps"],
-                        help="Render viewer playback FPS")
+    parser.add_argument(
+        "--fps", type=int, default=DEFAULTS["fps"], help="Render viewer playback FPS"
+    )
 
     args = parser.parse_args()
 
@@ -175,8 +202,10 @@ def main():
     print(_banner("G-SHARP Scene Reconstruction Pipeline", char="█"))
     print(f"  Input frames:    {data_dir}")
     print(f"  Output:          {output_dir}")
-    print(f"  Training:        {args.training_iterations} iters "
-          f"({args.coarse_iterations}c + {args.training_iterations - args.coarse_iterations}f)")
+    print(
+        f"  Training:        {args.training_iterations} iters "
+        f"({args.coarse_iterations}c + {args.training_iterations - args.coarse_iterations}f)"
+    )
     print(f"  Headless:        {args.headless}")
     print(f"  Progress file:   {progress_file}")
     print()
@@ -184,12 +213,18 @@ def main():
     # ── Phase 1: Streaming DA2 + MedSAM3 ────────────────────────────
     if not args.skip_phase1:
         phase1_cmd = [
-            sys.executable, str(APP_DIR / "gsplat_scene_recon.py"),
-            "--images", str(data_dir),
-            "--output", str(phase1_output),
-            "--da2-root", args.da2_root,
-            "--da2-checkpoint", args.da2_checkpoint,
-            "--da2-encoder", args.da2_encoder,
+            sys.executable,
+            str(APP_DIR / "gsplat_scene_recon.py"),
+            "--images",
+            str(data_dir),
+            "--output",
+            str(phase1_output),
+            "--da2-root",
+            args.da2_root,
+            "--da2-checkpoint",
+            args.da2_checkpoint,
+            "--da2-encoder",
+            args.da2_encoder,
         ]
         if args.sam3_checkpoint:
             phase1_cmd.extend(["--sam3-checkpoint", args.sam3_checkpoint])
@@ -209,8 +244,10 @@ def main():
     any_batch_phase = not (args.skip_phase2 and args.skip_phase3 and args.skip_training)
     if any_batch_phase and not args.headless:
         monitor_cmd = [
-            sys.executable, str(APP_DIR / "progress_monitor.py"),
-            "--progress-file", progress_file,
+            sys.executable,
+            str(APP_DIR / "progress_monitor.py"),
+            "--progress-file",
+            progress_file,
         ]
         monitor_env = os.environ.copy()
         wf_dir = str(APP_DIR)
@@ -223,11 +260,16 @@ def main():
     # ── Phase 2: VGGT Batch Pose Estimation ──────────────────────────
     if not args.skip_phase2:
         phase2_cmd = [
-            sys.executable, str(APP_DIR / "models" / "vggt" / "vggt_inference.py"),
-            "--image-dir", str(phase1_output / "images"),
-            "--output-dir", str(vggt_output),
-            "--batch-size", str(args.batch_size),
-            "--progress-file", progress_file,
+            sys.executable,
+            str(APP_DIR / "models" / "vggt" / "vggt_inference.py"),
+            "--image-dir",
+            str(phase1_output / "images"),
+            "--output-dir",
+            str(vggt_output),
+            "--batch-size",
+            str(args.batch_size),
+            "--progress-file",
+            progress_file,
         ]
 
         ret = run_phase("Phase 2: VGGT Batch Pose Estimation", phase2_cmd)
@@ -240,12 +282,18 @@ def main():
     # ── Phase 3: EndoNeRF Format Conversion ──────────────────────────
     if not args.skip_phase3:
         phase3_cmd = [
-            sys.executable, str(APP_DIR / "stages" / "format_conversion.py"),
-            "--phase1-dir", str(phase1_output),
-            "--vggt-dir", str(vggt_output),
-            "--output-dir", str(endonerf_dir),
-            "--depth-scale", str(args.depth_scale),
-            "--progress-file", progress_file,
+            sys.executable,
+            str(APP_DIR / "stages" / "format_conversion.py"),
+            "--phase1-dir",
+            str(phase1_output),
+            "--vggt-dir",
+            str(vggt_output),
+            "--output-dir",
+            str(endonerf_dir),
+            "--depth-scale",
+            str(args.depth_scale),
+            "--progress-file",
+            progress_file,
         ]
 
         ret = run_phase("Phase 3: EndoNeRF Format Conversion", phase3_cmd)
@@ -268,14 +316,21 @@ def main():
         train_cwd = str(train_script.parent)
 
         phase4_cmd = [
-            sys.executable, str(APP_DIR / "stages" / "train_with_progress.py"),
-            "--progress-file", progress_file,
-            "--train-script", str(train_script),
+            sys.executable,
+            str(APP_DIR / "stages" / "train_with_progress.py"),
+            "--progress-file",
+            progress_file,
+            "--train-script",
+            str(train_script),
             "--",
-            "--data_dir", str(endonerf_dir),
-            "--output_dir", str(train_output),
-            "--training_iterations", str(args.training_iterations),
-            "--coarse_iterations", str(args.coarse_iterations),
+            "--data_dir",
+            str(endonerf_dir),
+            "--output_dir",
+            str(train_output),
+            "--training_iterations",
+            str(args.training_iterations),
+            "--coarse_iterations",
+            str(args.coarse_iterations),
         ]
         if args.no_deformation:
             phase4_cmd.append("--no_deformation")
@@ -315,10 +370,14 @@ def main():
     # ── Phase 5: Live Render Viewer ──────────────────────────────────
     if not args.skip_viewer and best_ckpt is not None:
         phase5_cmd = [
-            sys.executable, str(APP_DIR / "render_viewer.py"),
-            "--data-dir", str(endonerf_dir),
-            "--checkpoint", str(best_ckpt),
-            "--fps", str(args.fps),
+            sys.executable,
+            str(APP_DIR / "render_viewer.py"),
+            "--data-dir",
+            str(endonerf_dir),
+            "--checkpoint",
+            str(best_ckpt),
+            "--fps",
+            str(args.fps),
         ]
         if args.headless:
             phase5_cmd.append("--headless")
@@ -332,8 +391,7 @@ def main():
             pp_parts.append(existing)
         phase5_env = {"PYTHONPATH": os.pathsep.join(pp_parts)}
 
-        ret = run_phase("Phase 5: Live Render Viewer", phase5_cmd,
-                        env_extra=phase5_env)
+        ret = run_phase("Phase 5: Live Render Viewer", phase5_cmd, env_extra=phase5_env)
         if ret != 0:
             print("\n[Pipeline] WARNING: Phase 5 (viewer) exited with code", ret)
     elif args.skip_viewer:

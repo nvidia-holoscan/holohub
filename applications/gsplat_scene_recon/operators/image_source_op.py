@@ -14,7 +14,6 @@ import os
 
 import cupy as cp
 import cv2
-import numpy as np
 from holoscan.core import Operator, OperatorSpec
 
 
@@ -46,9 +45,7 @@ class ImageDirectorySourceOp(Operator):
         self._files = sorted(glob.glob(os.path.join(self.directory, self.pattern)))
         self._idx = 0
         if not self._files:
-            raise ValueError(
-                f"No images matching '{self.pattern}' found in {self.directory}"
-            )
+            raise ValueError(f"No images matching '{self.pattern}' found in {self.directory}")
         sample = cv2.imread(self._files[0])
         h, w = sample.shape[:2]
         print(f"[ImageSource] {len(self._files)} images ({w}x{h}) in {self.directory}")

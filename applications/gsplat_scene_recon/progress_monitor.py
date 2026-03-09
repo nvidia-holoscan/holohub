@@ -17,7 +17,6 @@ The progress file is written by each pipeline stage using the
 
 from __future__ import annotations
 
-import os
 import time
 from argparse import ArgumentParser
 
@@ -26,7 +25,6 @@ import numpy as np
 from holoscan.core import Application, Operator, OperatorSpec
 from holoscan.operators import HolovizOp
 from holoscan.resources import UnboundedAllocator
-
 from stages.progress import read_progress
 
 # Layout constants (normalised [0, 1] coordinates)
@@ -85,9 +83,7 @@ class ProgressMonitorOp(Operator):
         specs = []
 
         # Title text
-        tensors["title_pos"] = cp.asarray(
-            np.array([[0.5, 0.08]], dtype=np.float32)
-        )
+        tensors["title_pos"] = cp.asarray(np.array([[0.5, 0.08]], dtype=np.float32))
         spec = HolovizOp.InputSpec("title_pos", "text")
         spec.text = ["G-SHARP Pipeline Progress"]
         spec.color = COLOR_TITLE
@@ -118,9 +114,7 @@ class ProgressMonitorOp(Operator):
 
             # Stage label
             lbl_name = f"label_{idx}"
-            tensors[lbl_name] = cp.asarray(
-                np.array([[BAR_LEFT, y_top - 0.045]], dtype=np.float32)
-            )
+            tensors[lbl_name] = cp.asarray(np.array([[BAR_LEFT, y_top - 0.045]], dtype=np.float32))
             spec = HolovizOp.InputSpec(lbl_name, "text")
             if status == "pending":
                 spec.text = [f"{label}  [pending]"]
@@ -181,14 +175,19 @@ class ProgressMonitorApp(Application):
 
     def compose(self):
         monitor = ProgressMonitorOp(
-            self, progress_file=self._args.progress_file, name="monitor",
+            self,
+            progress_file=self._args.progress_file,
+            name="monitor",
         )
 
         pool = UnboundedAllocator(self, name="pool")
         holoviz = HolovizOp(
-            self, allocator=pool, name="holoviz",
+            self,
+            allocator=pool,
+            name="holoviz",
             headless=self._args.headless,
-            width=720, height=480,
+            width=720,
+            height=480,
             window_title="G-SHARP Pipeline Progress",
             tensors=[],
         )
@@ -199,10 +198,10 @@ class ProgressMonitorApp(Application):
 
 def main():
     parser = ArgumentParser(description="G-SHARP Pipeline Progress Monitor")
-    parser.add_argument("--progress-file", required=True,
-                        help="Path to the shared progress.json file")
-    parser.add_argument("--headless", action="store_true",
-                        help="Run without display window")
+    parser.add_argument(
+        "--progress-file", required=True, help="Path to the shared progress.json file"
+    )
+    parser.add_argument("--headless", action="store_true", help="Run without display window")
     args = parser.parse_args()
 
     app = ProgressMonitorApp(args)

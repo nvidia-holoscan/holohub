@@ -120,8 +120,7 @@ class DepthAnythingV2Op(Operator):
 
         if self._frame_count % 10 == 0:
             print(
-                f"[DA2] Frame {self._frame_count}: "
-                f"depth [{depth.min():.2f}, {depth.max():.2f}]"
+                f"[DA2] Frame {self._frame_count}: " f"depth [{depth.min():.2f}, {depth.max():.2f}]"
             )
         self._frame_count += 1
 

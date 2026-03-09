@@ -36,7 +36,6 @@ Usage:
 
 import glob
 import os
-import sys
 from argparse import ArgumentParser
 
 import cv2
@@ -46,10 +45,10 @@ from holoscan.operators import HolovizOp
 from holoscan.resources import UnboundedAllocator
 
 from operators import (
-    ImageDirectorySourceOp,
-    DepthAnythingV2Op,
-    MedSAM3SegmentationOp,
     DataPrepOp,
+    DepthAnythingV2Op,
+    ImageDirectorySourceOp,
+    MedSAM3SegmentationOp,
     OverlayComposerOp,
 )
 
@@ -168,11 +167,13 @@ def main():
 
     # Required paths
     parser.add_argument(
-        "--images", required=True,
+        "--images",
+        required=True,
         help="Directory containing PNG frames",
     )
     parser.add_argument(
-        "--output", required=True,
+        "--output",
+        required=True,
         help="Output directory for partial EndoNeRF data (images, depth_raw, masks)",
     )
     _app_dir = os.path.dirname(os.path.abspath(__file__))
@@ -195,15 +196,19 @@ def main():
         help="Path to MedSAM3 checkpoint (empty = HuggingFace default)",
     )
     parser.add_argument(
-        "--da2-encoder", default="vits", choices=["vits", "vitb", "vitl"],
+        "--da2-encoder",
+        default="vits",
+        choices=["vits", "vitb", "vitl"],
         help="DA2 encoder variant (default: vits)",
     )
     parser.add_argument(
-        "--headless", action="store_true",
+        "--headless",
+        action="store_true",
         help="Run without HoloViz visualization (for Docker/CI)",
     )
     parser.add_argument(
-        "--config", default=None,
+        "--config",
+        default=None,
         help="Optional config YAML for operator overrides",
     )
 
@@ -212,9 +217,7 @@ def main():
     # Load config if provided
     app = SceneReconInferenceApp(args)
 
-    config_path = args.config or os.path.join(
-        os.path.dirname(__file__), "phase1_config.yaml"
-    )
+    config_path = args.config or os.path.join(os.path.dirname(__file__), "phase1_config.yaml")
     if os.path.exists(config_path):
         app.config(config_path)
         print(f"[Phase1] Config loaded: {config_path}")

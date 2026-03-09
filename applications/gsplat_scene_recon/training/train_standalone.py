@@ -150,7 +150,14 @@ def accumulate_data(data_dir, output_dir, num_frames=-1):
     return str(ingestion_dir)
 
 
-def run_training(ingestion_dir, output_dir, training_iterations, coarse_iterations, use_masks, use_deformation=True):
+def run_training(
+    ingestion_dir,
+    output_dir,
+    training_iterations,
+    coarse_iterations,
+    use_masks,
+    use_deformation=True,
+):
     """
     Run gsplat training.
 
@@ -248,8 +255,9 @@ def main():
     parser.add_argument("--coarse_iterations", type=int, default=50)
     parser.add_argument("--num_frames", type=int, default=-1)
     parser.add_argument("--no_masks", action="store_true")
-    parser.add_argument("--no_deformation", action="store_true", 
-                        help="Static scene - disable deformation network")
+    parser.add_argument(
+        "--no_deformation", action="store_true", help="Static scene - disable deformation network"
+    )
     args = parser.parse_args()
 
     print(f"\n{'='*70}")

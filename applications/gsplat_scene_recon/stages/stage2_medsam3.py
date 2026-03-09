@@ -21,11 +21,10 @@ Usage:
 Uses the bundled MedSAM3 wrapper in models/medsam3/ (sam3 package is pip-installed).
 """
 
-import os
 import sys
 import time
-from pathlib import Path
 from argparse import ArgumentParser
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -96,7 +95,8 @@ def run_medsam3_segmentation(
             mask = np.squeeze(mask)
             if mask.shape != (H, W):
                 mask = cv2.resize(
-                    mask.astype(np.uint8), (W, H),
+                    mask.astype(np.uint8),
+                    (W, H),
                     interpolation=cv2.INTER_NEAREST,
                 )
             binary_mask = (mask > 0).astype(np.uint8) * mask_value
@@ -127,23 +127,30 @@ def run_medsam3_segmentation(
 if __name__ == "__main__":
     parser = ArgumentParser(description="Stage 2: MedSAM3 tool segmentation")
     parser.add_argument(
-        "--input-dir", required=True,
+        "--input-dir",
+        required=True,
         help="Stage 1 output directory (contains images/)",
     )
     parser.add_argument(
-        "--sam3-checkpoint", default="",
+        "--sam3-checkpoint",
+        default="",
         help="Path to MedSAM3 checkpoint (.pt)",
     )
     parser.add_argument(
-        "--text-prompt", default="surgical tool",
+        "--text-prompt",
+        default="surgical tool",
         help="Segmentation text prompt",
     )
     parser.add_argument(
-        "--score-threshold", type=float, default=0.3,
+        "--score-threshold",
+        type=float,
+        default=0.3,
         help="Minimum confidence score for mask inclusion",
     )
     parser.add_argument(
-        "--max-masks", type=int, default=0,
+        "--max-masks",
+        type=int,
+        default=0,
         help="Maximum number of masks to union (0 = all)",
     )
     args = parser.parse_args()

@@ -31,7 +31,6 @@ from __future__ import annotations
 import argparse
 import glob
 import os
-import sys
 import time
 
 import numpy as np
@@ -214,8 +213,16 @@ def run_vggt_inference(
 
     if progress_file:
         from stages.progress import update_progress
-        update_progress(progress_file, "vggt", "VGGT Pose Estimation",
-                        0, len(batches), "Loading model...", "running")
+
+        update_progress(
+            progress_file,
+            "vggt",
+            "VGGT Pose Estimation",
+            0,
+            len(batches),
+            "Loading model...",
+            "running",
+        )
 
     t0 = time.time()
     for batch_idx, (start, end) in enumerate(batches):
@@ -224,12 +231,17 @@ def run_vggt_inference(
         print(f"\n[VGGT] {detail} ({len(batch_paths)} frames)")
 
         if progress_file:
-            update_progress(progress_file, "vggt", "VGGT Pose Estimation",
-                            batch_idx, len(batches), detail, "running")
+            update_progress(
+                progress_file,
+                "vggt",
+                "VGGT Pose Estimation",
+                batch_idx,
+                len(batches),
+                detail,
+                "running",
+            )
 
-        ext_batch, intr_batch, ds_batch = _run_single_batch(
-            model, batch_paths, device, dtype
-        )
+        ext_batch, intr_batch, ds_batch = _run_single_batch(model, batch_paths, device, dtype)
 
         if intrinsics_first is None:
             intrinsics_first = intr_batch
@@ -249,17 +261,22 @@ def run_vggt_inference(
     print(f"\n[VGGT] Inference done in {elapsed:.1f}s")
 
     if progress_file:
-        update_progress(progress_file, "vggt", "VGGT Pose Estimation",
-                        len(batches), len(batches), f"Done in {elapsed:.1f}s", "complete")
+        update_progress(
+            progress_file,
+            "vggt",
+            "VGGT Pose Estimation",
+            len(batches),
+            len(batches),
+            f"Done in {elapsed:.1f}s",
+            "complete",
+        )
 
     del model
     torch.cuda.empty_cache()
 
     # --- Concatenate and normalise ---
     extrinsics = np.concatenate(all_extrinsics, axis=0)  # (N, 3, 4)
-    assert extrinsics.shape[0] == N, (
-        f"Expected {N} extrinsics, got {extrinsics.shape[0]}"
-    )
+    assert extrinsics.shape[0] == N, f"Expected {N} extrinsics, got {extrinsics.shape[0]}"
 
     extrinsics = _normalize_to_frame0(extrinsics)
 
@@ -279,8 +296,7 @@ def run_vggt_inference(
     print(f"  Frame 0 R deviation from I: {np.abs(R0 - np.eye(3)).max():.2e}")
     print(f"  Frame 0 t norm: {np.linalg.norm(t0_vec):.2e}")
     print(f"  Depth scale: [{depth_scale[0]:.4f}, {depth_scale[1]:.4f}]")
-    print(f"  Intrinsics (frame 0): fx={intrinsics[0, 0, 0]:.2f}, "
-          f"fy={intrinsics[0, 1, 1]:.2f}")
+    print(f"  Intrinsics (frame 0): fx={intrinsics[0, 0, 0]:.2f}, " f"fy={intrinsics[0, 1, 1]:.2f}")
 
     translations = extrinsics[:, :3, 3]
     t_norms = np.linalg.norm(translations, axis=1)
@@ -315,27 +331,35 @@ def main():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
-        "--image-dir", required=True,
+        "--image-dir",
+        required=True,
         help="Path to Phase 1 images/ directory",
     )
     parser.add_argument(
-        "--output-dir", required=True,
+        "--output-dir",
+        required=True,
         help="Directory for VGGT outputs (extrinsics, intrinsics, etc.)",
     )
     parser.add_argument(
-        "--batch-size", type=int, default=30,
+        "--batch-size",
+        type=int,
+        default=30,
         help="Max frames per VGGT forward pass",
     )
     parser.add_argument(
-        "--overlap", type=int, default=1,
+        "--overlap",
+        type=int,
+        default=1,
         help="Overlap frames between batches for coordinate alignment",
     )
     parser.add_argument(
-        "--device", default="cuda",
+        "--device",
+        default="cuda",
         help="Torch device",
     )
     parser.add_argument(
-        "--progress-file", default=None,
+        "--progress-file",
+        default=None,
         help="Path to write progress JSON for the HoloViz monitor",
     )
     args = parser.parse_args()

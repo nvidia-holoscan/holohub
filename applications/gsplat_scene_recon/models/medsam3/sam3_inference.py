@@ -17,13 +17,12 @@ from pathlib import Path
 from typing import Optional, Tuple
 
 import numpy as np
+import sam3 as _sam3_pkg
 import torch
 from PIL import Image
-
-import sam3 as _sam3_pkg
 from sam3 import build_sam3_image_model
-from sam3.model.sam3_image_processor import Sam3Processor
 from sam3.model.box_ops import box_xywh_to_cxcywh
+from sam3.model.sam3_image_processor import Sam3Processor
 from sam3.visualization_utils import normalize_bbox
 
 _SAM3_PACKAGE_ROOT = Path(_sam3_pkg.__file__).resolve().parent
@@ -36,7 +35,7 @@ class SAM3Model:
         self,
         confidence_threshold: float = 0.1,
         device: str = "cuda",
-        checkpoint_path: Optional[str] = None
+        checkpoint_path: Optional[str] = None,
     ):
         """
         Initialize SAM3 model.
@@ -76,22 +75,17 @@ class SAM3Model:
             self.model = build_sam3_image_model(
                 bpe_path=str(bpe_path),
                 checkpoint_path=None,  # Don't load checkpoint here
-                load_from_HF=False     # Don't load from HF
+                load_from_HF=False,  # Don't load from HF
             )
             # Load custom checkpoint with flexible format handling
             self._load_custom_checkpoint(self.checkpoint_path)
         else:
             # Use default HuggingFace loading
             self.model = build_sam3_image_model(
-                bpe_path=str(bpe_path),
-                checkpoint_path=None,
-                load_from_HF=True
+                bpe_path=str(bpe_path), checkpoint_path=None, load_from_HF=True
             )
 
-        self.processor = Sam3Processor(
-            self.model,
-            confidence_threshold=self.confidence_threshold
-        )
+        self.processor = Sam3Processor(self.model, confidence_threshold=self.confidence_threshold)
 
         print("SAM3 model loaded successfully!")
 
@@ -120,18 +114,14 @@ class SAM3Model:
         if has_detector_prefix:
             # SAM3 format: strip 'detector.' prefix
             clean_state_dict = {
-                k.replace("detector.", ""): v
-                for k, v in state_dict.items()
-                if "detector" in k
+                k.replace("detector.", ""): v for k, v in state_dict.items() if "detector" in k
             }
         else:
             # MedSAM3 format: keys already match model structure
             clean_state_dict = state_dict
 
         # Load state dict
-        missing_keys, unexpected_keys = self.model.load_state_dict(
-            clean_state_dict, strict=False
-        )
+        missing_keys, unexpected_keys = self.model.load_state_dict(clean_state_dict, strict=False)
 
         if missing_keys:
             print(f"  Missing keys: {len(missing_keys)}")
@@ -160,10 +150,7 @@ class SAM3Model:
         return inference_state
 
     def predict_box(
-        self,
-        inference_state: dict,
-        bbox: Tuple[int, int, int, int],
-        img_size: Tuple[int, int]
+        self, inference_state: dict, bbox: Tuple[int, int, int, int], img_size: Tuple[int, int]
     ) -> Optional[np.ndarray]:
         """
         Run inference with bounding box prompt.
@@ -195,9 +182,7 @@ class SAM3Model:
         # Run inference (autocast scoped so context is properly exited)
         with torch.autocast("cuda", dtype=torch.bfloat16):
             box_state = self.processor.add_geometric_prompt(
-                state=inference_state,
-                box=norm_box,
-                label=True  # Positive prompt
+                state=inference_state, box=norm_box, label=True  # Positive prompt
             )
 
         if box_state["masks"] is not None and len(box_state["masks"]) > 0:
@@ -207,11 +192,7 @@ class SAM3Model:
 
         return None
 
-    def predict_text(
-        self,
-        inference_state: dict,
-        text_prompt: str
-    ) -> Optional[np.ndarray]:
+    def predict_text(self, inference_state: dict, text_prompt: str) -> Optional[np.ndarray]:
         """
         Run inference with text prompt.
 
@@ -226,10 +207,7 @@ class SAM3Model:
 
         # Run text-prompted inference (autocast scoped so context is properly exited)
         with torch.autocast("cuda", dtype=torch.bfloat16):
-            text_state = self.processor.set_text_prompt(
-                state=inference_state,
-                prompt=text_prompt
-            )
+            text_state = self.processor.set_text_prompt(state=inference_state, prompt=text_prompt)
 
         if text_state["masks"] is not None and len(text_state["masks"]) > 0:
             best_idx = torch.argmax(text_state["scores"]).item()
@@ -250,7 +228,7 @@ class SAM3Model:
         inference_state: dict,
         text_prompt: str,
         score_threshold: float = 0.3,
-        max_masks: int = 0
+        max_masks: int = 0,
     ) -> Optional[np.ndarray]:
         """
         Run inference with text prompt and return union of masks above threshold.
@@ -268,10 +246,7 @@ class SAM3Model:
 
         # Run text-prompted inference (autocast scoped so context is properly exited)
         with torch.autocast("cuda", dtype=torch.bfloat16):
-            text_state = self.processor.set_text_prompt(
-                state=inference_state,
-                prompt=text_prompt
-            )
+            text_state = self.processor.set_text_prompt(state=inference_state, prompt=text_prompt)
 
         if text_state["masks"] is None or len(text_state["masks"]) == 0:
             return None
@@ -290,7 +265,7 @@ class SAM3Model:
                 # Fallback: keep best scoring mask
                 best_idx = int(np.argmax(scores_np))
                 masks = [masks[best_idx]]
-                scores_np = scores_np[best_idx:best_idx+1]
+                scores_np = scores_np[best_idx : best_idx + 1]
 
             # Limit number of masks
             if max_masks > 0 and len(masks) > max_masks:
@@ -317,7 +292,7 @@ class SAM3Model:
         bbox: Tuple[int, int, int, int],
         img_size: Tuple[int, int],
         score_threshold: float = 0.3,
-        max_masks: int = 0
+        max_masks: int = 0,
     ) -> Optional[np.ndarray]:
         """
         Run inference with bounding box prompt and return union of masks above threshold.
@@ -351,9 +326,7 @@ class SAM3Model:
         # Run inference (autocast scoped so context is properly exited)
         with torch.autocast("cuda", dtype=torch.bfloat16):
             box_state = self.processor.add_geometric_prompt(
-                state=inference_state,
-                box=norm_box,
-                label=True  # Positive prompt
+                state=inference_state, box=norm_box, label=True  # Positive prompt
             )
 
         if box_state["masks"] is None or len(box_state["masks"]) == 0:
@@ -373,7 +346,7 @@ class SAM3Model:
                 # Fallback: keep best scoring mask
                 best_idx = int(np.argmax(scores_np))
                 masks = [masks[best_idx]]
-                scores_np = scores_np[best_idx:best_idx+1]
+                scores_np = scores_np[best_idx : best_idx + 1]
 
             # Limit number of masks
             if max_masks > 0 and len(masks) > max_masks:

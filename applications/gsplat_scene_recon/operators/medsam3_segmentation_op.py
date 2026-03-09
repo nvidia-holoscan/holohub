@@ -115,7 +115,8 @@ class MedSAM3SegmentationOp(Operator):
             raw_mask = np.squeeze(raw_mask)
             if raw_mask.shape != (H, W):
                 raw_mask = cv2.resize(
-                    raw_mask.astype(np.uint8), (W, H),
+                    raw_mask.astype(np.uint8),
+                    (W, H),
                     interpolation=cv2.INTER_NEAREST,
                 )
             binary_mask = (raw_mask > 0).astype(np.uint8) * int(self.mask_value)

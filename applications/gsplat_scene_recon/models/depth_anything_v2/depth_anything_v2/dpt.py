@@ -6,7 +6,7 @@ from torchvision.transforms import Compose
 
 from .dinov2 import DINOv2
 from .util.blocks import FeatureFusionBlock, _make_scratch
-from .util.transform import Resize, NormalizeImage, PrepareForNet
+from .util.transform import NormalizeImage, PrepareForNet, Resize
 
 
 def _make_fusion_block(features, use_bn, size=None):
@@ -223,9 +223,7 @@ class DepthAnythingV2(nn.Module):
 
         depth = self.forward(image)
 
-        depth = F.interpolate(
-            depth[:, None], (h, w), mode="bilinear", align_corners=True
-        )[0, 0]
+        depth = F.interpolate(depth[:, None], (h, w), mode="bilinear", align_corners=True)[0, 0]
 
         return depth.cpu().numpy()
 
