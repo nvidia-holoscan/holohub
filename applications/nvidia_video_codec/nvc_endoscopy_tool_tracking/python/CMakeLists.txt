@@ -55,4 +55,3 @@ if(BUILD_TESTING)
                     "PYTHONPATH=${GXF_LIB_DIR}/../python/lib:${CMAKE_BINARY_DIR}/python/lib")
   endif()
 endif()
-

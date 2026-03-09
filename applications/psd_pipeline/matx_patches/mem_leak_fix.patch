@@ -14,7 +14,7 @@ index c5aa9807..306fba55 100644
 +++ b/include/matx/transforms/cub.h
 @@ -1909,6 +1909,11 @@ void sort_impl(OutputTensor &a_out, const InputOperator &a,
    }
- 
+
    detail::sort_impl_inner(a_out, tmp_in, dir, exec);
 +
 +  if (!done) {
@@ -23,4 +23,3 @@ index c5aa9807..306fba55 100644
 +  }
  #endif
  }
- 

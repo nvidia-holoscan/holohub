@@ -45,4 +45,3 @@ name : str, optional
 }  // namespace holoscan::doc::XrEmptyCompositionLayerOp
 
 #endif  // XR_EMPTY_COMPOSITION_LAYER_PYDOC_HPP
-

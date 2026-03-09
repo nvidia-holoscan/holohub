@@ -80,4 +80,3 @@ set_target_properties(test_video_streaming_server_ops PROPERTIES
   INSTALL_RPATH "/usr/local/ssl/lib64:/opt/nvidia/holoscan/lib:/usr/local/cuda/lib64:/usr/local/cuda-12/lib64:$ORIGIN:$ORIGIN/../lib:$ORIGIN/../../lib:/usr/lib/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu"
   INSTALL_RPATH_USE_LINK_PATH TRUE
 )
-

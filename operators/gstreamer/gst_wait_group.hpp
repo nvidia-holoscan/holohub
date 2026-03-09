@@ -62,7 +62,7 @@ class GstWaitGroup {
    *
    * This should be called when an operation completes.
    * Similar to Go's sync.WaitGroup.Done().
-   * 
+   *
    * @note Calling done() more times than add() results in undefined behavior.
    *       Use GstWaitGroupGuard to ensure proper pairing.
    */

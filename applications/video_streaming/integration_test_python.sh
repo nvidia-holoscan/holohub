@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Python Integration Test for Video Streaming Demo
-# 
+#
 # IMPORTANT: This test runs in Docker and builds from committed source code.
 # If you have local Python/C++ changes, make sure they are committed before running this test.
 
@@ -80,7 +80,7 @@ else
             SERVER_SUCCESS=0
         fi
         if grep -qE "Python client.*failed|client_python.log" applications/video_streaming/integration_test_python.log; then
-            echo "✗ Python client test failed" 
+            echo "✗ Python client test failed"
             CLIENT_SUCCESS=0
         fi
     else
@@ -109,4 +109,3 @@ else
     echo "✗ Python Integration test FAILED"
     exit 1
 fi
-

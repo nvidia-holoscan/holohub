@@ -8,12 +8,12 @@ index 3d12ebda..7d43943f 100644
  from holoscan.operators import HolovizOp
 +from holoscan.operators import VideoStreamRecorderOp, FormatConverterOp
 +from holoscan.resources import UnboundedAllocator
- 
+
  from holohub.aja_source import AJASourceOp
- 
+
 @@ -46,6 +48,23 @@ class AJACaptureApp(Application):
          visualizer = HolovizOp(self, name="holoviz", **self.kwargs("holoviz"))
- 
+
          self.add_flow(source, visualizer, {("video_buffer_output", "receivers")})
 +        recorder_format_converter = FormatConverterOp(
 +            self,
@@ -32,6 +32,6 @@ index 3d12ebda..7d43943f 100644
 +
 +        self.add_flow(visualizer, recorder_format_converter, {("render_buffer_output", "source_video")})
 +        self.add_flow(recorder_format_converter, recorder)
- 
- 
+
+
  def main(config_file):

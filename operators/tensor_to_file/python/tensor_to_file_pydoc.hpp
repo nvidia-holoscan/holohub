@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +36,7 @@ PYDOC(TensorToFileOp_python, R"doc(
 Nv Video Writer operator.
 
 This operator writes H.264/H.265 elementary stream files from encoded video frames.
-Takes encoded frame tensors as input (typically from NvVideoEncoderOp) and writes 
+Takes encoded frame tensors as input (typically from NvVideoEncoderOp) and writes
 them directly to elementary stream files that can be played with standard video players.
 
 Parameters
