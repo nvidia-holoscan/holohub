@@ -1953,8 +1953,12 @@ class HoloHubCLI:
         git_info = collect_git_info(self.HOLOHUB_ROOT)
         containers = collect_container_info()
         builds = collect_build_info(self.DEFAULT_BUILD_PARENT_DIR)
-        build_folders = collect_folder_info(self.HOLOHUB_ROOT, ["build", "build-*"])
-        data_folders = collect_folder_info(self.HOLOHUB_ROOT, ["data", "data-*"])
+        build_folders = collect_folder_info(
+            self._collect_cache_dirs(["build", "build-*"], self.DEFAULT_BUILD_PARENT_DIR)
+        )
+        data_folders = collect_folder_info(
+            self._collect_cache_dirs(["data", "data-*"], self.DEFAULT_DATA_DIR)
+        )
         docker_disk = collect_docker_disk_usage()
 
         fmt_args = (

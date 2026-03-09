@@ -43,6 +43,7 @@ Run the CLI from the repository root:
 | [modes](#modes)                             | List available modes for an application                                    |
 | [lint](#lint)                               | Run linting tools                                                          |
 | [setup](#setup)                             | Install HoloHub recommended packages for development                       |
+| [status](#status)                           | Show environment, container, and build status                              |
 | [env-info](#env-info)                       | Display environment debugging information                                  |
 | [install](#install)                         | Install a built project                                                    |
 | [test](#test)                               | Run tests for a project                                                    |
@@ -410,6 +411,40 @@ Install HoloHub recommended packages and run setup scripts (for example for Holo
 ./holohub setup --list-scripts
 ./holohub setup --scripts my_script
 ```
+
+---
+
+### Status
+
+Show a compact overview of the development environment: platform, git state, containers, builds, and disk usage.
+
+**Usage:**
+
+```bash
+./holohub status [options]
+```
+
+**Options:**
+
+| Option   | Description            |
+| -------- | ---------------------- |
+| `--json` | Output status as JSON  |
+
+**Examples:**
+
+```bash
+./holohub status          # Human-readable summary
+./holohub status --json   # Machine-readable JSON output
+```
+
+**Output sections:**
+
+- **Platform** — architecture, GPU type/name, CUDA version, Holoscan SDK version
+- **Git** — current branch, short commit hash, dirty/modified file count
+- **Containers** — HoloHub-related Docker images with creation time and running status
+- **Docker disk** — disk usage summary (images, containers, build cache)
+- **Builds** — CMake build directories with OK/FAIL status and last-modified time
+- **Build/Data folders** — disk usage of build and data cache directories
 
 ---
 

@@ -130,14 +130,13 @@ def _dir_size_mb(path: Path) -> float:
     return total / (1024 * 1024)
 
 
-def collect_folder_info(holohub_root: Path, patterns: List[str]) -> List[FolderInfo]:
-    seen: set = set()
+def collect_folder_info(paths: List[Path]) -> List[FolderInfo]:
+    seen: set[Path] = set()
     results: List[FolderInfo] = []
-    for pattern in patterns:
-        for path in sorted(holohub_root.glob(pattern)):
-            if path.is_dir() and path not in seen:
-                seen.add(path)
-                results.append(FolderInfo(path=str(path), size_mb=_dir_size_mb(path)))
+    for path in sorted(paths):
+        if path.is_dir() and path not in seen:
+            seen.add(path)
+            results.append(FolderInfo(path=str(path), size_mb=_dir_size_mb(path)))
     return results
 
 

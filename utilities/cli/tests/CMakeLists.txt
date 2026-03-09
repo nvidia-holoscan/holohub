@@ -204,6 +204,13 @@ set_property(TEST test_holohub_run_container_dryrun PROPERTY
     PASS_REGULAR_EXPRESSION "holohub.*echo hello"
 )
 
+# Add test for status module
+add_test(
+    NAME test_status
+    COMMAND ${Python3_EXECUTABLE} -m unittest discover -s ${CMAKE_CURRENT_SOURCE_DIR} -p "test_status.py"
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+
 # Add test for container module
 add_test(
     NAME test_container
