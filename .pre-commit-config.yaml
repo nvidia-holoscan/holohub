@@ -32,7 +32,7 @@ repos:
 
   # Python: black
   - repo: https://github.com/psf/black
-    rev: 26.1.0
+    rev: 26.3.0
     hooks:
       - id: black
         # Mirror pyproject.toml [tool.black] extend-exclude
