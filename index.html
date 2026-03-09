@@ -480,7 +480,7 @@
         border-color: var(--md-default-fg-color);
         text-decoration: none;
     }
-    
+
     .tx-hero .md-button--primary {
         background-color: var(--md-accent-fg-color);
         border-color: var(--md-accent-fg-color);
@@ -505,7 +505,7 @@
     @media (min-width: 576px){ .top-hr { margin: 14px 0px 10px ; } }
     @media (min-width: 720px){ .top-hr { margin: 21px 0px 15px; } }
     @media (min-width: 992px){ .top-hr { margin: 21px 0px 15px; } }
-    
+
     .row {
         display:-ms-flexbox;
         display:flex;
@@ -545,21 +545,21 @@
     @media (min-width: 576px){ .section-title  { font-size: 24px; } }
     @media (min-width: 720px){ .section-title  { font-size: 28px; } }
     @media (min-width: 992px){ .section-title  { font-size: 36px; } }
-    
+
     [data-md-color-scheme="dark"] .section-title,
     [data-md-color-scheme="dark"] .section-title a {
         color: white;
     }
-    
+
     [data-md-color-scheme="dark"] .section-gray .section-title,
     [data-md-color-scheme="dark"] .section-gray .section-title a {
         color: white;
     }
-    
+
     .section-gray {
         background: #EFEFEF;
     }
-    
+
     [data-md-color-scheme="dark"] .section-gray {
         background: #606060;
     }
@@ -660,11 +660,11 @@
     .d-block {
         display: block!important;
     }
-    
+
     /* .mb-3, .my-3 {
         margin-bottom: 1rem!important;
     } */
-    
+
     .mb-0, .my-0 {
         margin-bottom: 0!important;
     }
@@ -700,7 +700,7 @@
         width: 100%;
         flex-shrink: 0;
     }
-    
+
     [data-md-color-scheme="dark"] .feature-box a.bg-white {
         background-color: #cbcbcb !important;
     }
@@ -872,30 +872,30 @@
         height: 0.6rem;
         vertical-align: text-top;
     }
-    
+
     /* Card backgrounds - light mode */
     .app-card {
         background-color: #fff;
         border-radius: 0.5rem;
         border: 1px solid transparent;
     }
-    
+
     /* Card backgrounds - dark mode */
     [data-md-color-scheme="dark"] .app-card {
         background-color: var(--md-default-bg-color);
         border: 1px solid #969696;
     }
-    
+
     /* Card title in dark mode */
     [data-md-color-scheme="dark"] .app-card h3 {
         color: #fff !important;
     }
-    
+
     /* Card description in dark mode */
     [data-md-color-scheme="dark"] .app-card .feature-card-desc {
         color: #d3d3d3 !important;
     }
-    
+
     /* Image backgrounds in dark mode for better visibility of default images only */
     [data-md-color-scheme="dark"] .app-card img[src*="_default.png"] {
         background-color: #e8e8e8;
@@ -1085,15 +1085,15 @@
 <script type="text/javascript">
 function nat_at_top() {
     var navtab  = document.getElementsByClassName('md-tabs');
-    navtab[0].classList.add("topped");	
+    navtab[0].classList.add("topped");
 }
-window.onload = nat_at_top; 
+window.onload = nat_at_top;
 window.addEventListener('scroll', function(){
     var scroll = document.body.scrollTop || document.documentElement.scrollTop
     var navtab  = document.getElementsByClassName('md-tabs');
     console.log(scroll, navtab[0].offsetHeight);
     console.log(navtab);
-    navtab[0].classList.toggle("topped", scroll < navtab[0].offsetHeight);	
+    navtab[0].classList.toggle("topped", scroll < navtab[0].offsetHeight);
 });
 </script>
 
