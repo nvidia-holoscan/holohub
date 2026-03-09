@@ -60,8 +60,8 @@ class TestIndividualChecks(unittest.TestCase):
     def _assert_valid_result(self, result):
         self.assertIsInstance(result, CheckResult)
         self.assertIn(result.status, ("OK", "WARN", "FAIL", "SKIP"))
-        self.assertTrue(len(result.name) > 0)
-        self.assertTrue(len(result.message) > 0)
+        self.assertGreater(len(result.name), 0)
+        self.assertGreater(len(result.message), 0)
 
     @patch("utilities.cli.system_check.get_gpu_name", return_value="NVIDIA Test GPU")
     @patch("utilities.cli.system_check.run_info_command")
