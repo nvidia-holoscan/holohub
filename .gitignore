@@ -33,6 +33,7 @@ ci/
 
 # Development environment
 .venv/
+.venv_lint/
 .vscode-server/
 .vscode/
 ngc-cli/
