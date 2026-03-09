@@ -1,9 +1,14 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Modified from Depth Anything V2 / DINOv2 (Meta Platforms). Original license: Apache-2.0.
+#
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 # All rights reserved.
 #
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
-
+#
 # References:
 #   https://github.com/facebookresearch/dino/blob/master/vision_transformer.py
 #   https://github.com/rwightman/pytorch-image-models/tree/master/timm/models/vision_transformer.py
@@ -16,7 +21,7 @@ logger = logging.getLogger("dinov2")
 
 
 try:
-    from xformers.ops import fmha, memory_efficient_attention, unbind
+    from xformers.ops import memory_efficient_attention, unbind
 
     XFORMERS_AVAILABLE = True
 except ImportError:

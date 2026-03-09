@@ -41,7 +41,7 @@
 				"license": "Meta License (custom, see repo)",
 				"url": "https://github.com/facebookresearch/vggt",
 				"description": "Camera pose and metric depth estimation. Pip-installed at build time.",
-				"license_url": "https://github.com/facebookresearch/vggt/blob/main/LICENSE"
+				"license_url": "https://github.com/facebookresearch/vggt"
 			},
 			{
 				"name": "Depth Anything V2",
@@ -59,8 +59,8 @@
 				{
 					"name": "EndoGaussian / GSplat Training",
 					"license": "MIT",
-					"url": "https://github.com/yifliu3/EndoGaussian",
-					"description": "Gaussian splatting training with deformation network"
+"url": "https://yifliu3.github.io/EndoGaussian/",
+				"description": "Gaussian splatting training with deformation network (project page; upstream repo may have moved)"
 				}
 			],
 			"python_libraries": [

@@ -8,6 +8,8 @@ Converts Long Tracks 4D sparse per-point depths into dense depth images
 suitable for GSplat training.
 """
 
+import warnings
+
 import numpy as np
 
 
@@ -72,7 +74,14 @@ def sparse_depths_to_dense(
             mask = dense_depth == 0
             dense_depth[mask] = interpolated[mask].astype(np.float32)
         except ImportError:
-            pass
+            # SciPy is not available; skip linear interpolation and keep the
+            # nearest/median depth result computed above.
+            warnings.warn(
+                "scipy is not installed; falling back to non-interpolated "
+                "depths in sparse_depths_to_dense(method='linear').",
+                RuntimeWarning,
+                stacklevel=2,
+            )
 
     return dense_depth
 

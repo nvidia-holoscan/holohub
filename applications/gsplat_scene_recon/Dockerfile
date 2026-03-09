@@ -72,7 +72,7 @@ RUN apt-get update -qq && \
 # These are NOT bundled in the repo; they are installed at build
 # time. Pinned to specific commits for reproducibility.
 #
-# VGGT: Meta custom license — see https://github.com/facebookresearch/vggt/blob/main/LICENSE
+# VGGT: Meta custom license — see https://github.com/facebookresearch/vggt
 # SAM3: SAM License — see https://github.com/facebookresearch/sam3/blob/main/LICENSE
 RUN pip install --no-cache-dir \
     "git+https://github.com/facebookresearch/vggt.git@44b3afbd1869d8bde4894dd8ea1e293112dd5eba" \

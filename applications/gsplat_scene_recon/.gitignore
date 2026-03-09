@@ -29,3 +29,7 @@ REVIEW_ITEMS_DISCUSSION.md
 # Python caches
 __pycache__/
 *.pyc
+
+# Local testing only (do not push; for MR merge)
+run_e2e_smoke_test.sh
+run_e2e_with_docker.sh

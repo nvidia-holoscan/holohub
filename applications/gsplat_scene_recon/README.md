@@ -217,8 +217,8 @@ libraries.**
 
 ### VGGT (Visual Geometry Grounded Transformer)
 
-- **Source**: <https://github.com/facebookresearch/vggt>
-- **License**: [Meta License](https://github.com/facebookresearch/vggt/blob/main/LICENSE)
+- **Source**: https://github.com/facebookresearch/vggt
+- **License**: [Meta License](https://github.com/facebookresearch/vggt) (see repository for license terms)
 - **Installation**: Pip-installed from source at Docker build time
 - **Model weights**: `facebook/VGGT-1B` from HuggingFace
 
@@ -256,7 +256,7 @@ libraries.**
 
 ### EndoGaussian / GSplat Training
 
-- **Source**: Derived from <https://github.com/yifliu3/EndoGaussian>
+- **Source**: Derived from [EndoGaussian](https://yifliu3.github.io/EndoGaussian/) (project page; upstream code may have moved)
 - **License**: MIT (upstream EndoGaussian) + Apache-2.0 (NVIDIA modifications)
 - **Bundled**: `training/`
 

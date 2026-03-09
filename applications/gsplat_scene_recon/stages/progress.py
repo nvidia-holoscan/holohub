@@ -88,6 +88,7 @@ def update_progress(
         try:
             os.unlink(tmp)
         except OSError:
+            # Best-effort cleanup: ignore failures deleting the temporary file
             pass
         raise
 

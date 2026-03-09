@@ -92,7 +92,6 @@ class ProgressMonitorOp(Operator):
 
         # The JSON now has {"active": "stage_key", "stages": {key: {...}, ...}}
         stages_data = data.get("stages", {}) if data else {}
-        active_key = data.get("active") if data else None
 
         for idx, stage_info in enumerate(STAGES):
             y_top = TOP_Y + idx * BAR_GAP
