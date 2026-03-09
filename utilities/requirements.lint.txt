@@ -1,4 +1,4 @@
-black==26.1.0
+black==26.3.0
 cmakelint==1.4.3
 codespell==2.4.2
 cpplint==2.0.2
