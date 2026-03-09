@@ -131,6 +131,11 @@ def l1_loss(
             # Extract only masked regions
             loss = loss[mask != 0]
 
+    if mask is not None and loss.numel() == 0:
+        raise ValueError(
+            "l1_loss: mask is all zeros — no valid pixels to compute loss on. "
+            "Check that your mask preparation step is producing non-trivial masks."
+        )
     return loss.mean()
 
 
