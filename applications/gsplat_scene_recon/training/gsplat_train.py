@@ -1272,9 +1272,7 @@ class EndoRunner:
                     )
 
             # Total loss (monocular: use pearson_lambda; binocular: use depth_lambda)
-            depth_weight = (
-                cfg.pearson_lambda if cfg.depth_mode == "monocular" else cfg.depth_lambda
-            )
+            depth_weight = cfg.pearson_lambda if cfg.depth_mode == "monocular" else cfg.depth_lambda
             loss = (
                 l1_loss_val
                 + depth_weight * depth_loss_val

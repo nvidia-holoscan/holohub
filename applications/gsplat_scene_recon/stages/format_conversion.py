@@ -162,8 +162,8 @@ def run_format_conversion(
         vggt_W = 518
         vggt_H = (orig_H * vggt_W // orig_W) // 14 * 14
         print(
-            f"[Phase3] vggt_hw.npy not found; using fallback VGGT resolution. "
-            f"Re-run Phase 2 to save vggt_hw.npy for correct intrinsic scaling."
+            "[Phase3] vggt_hw.npy not found; using fallback VGGT resolution. "
+            "Re-run Phase 2 to save vggt_hw.npy for correct intrinsic scaling."
         )
     print(f"[Phase3] Original: {orig_H}x{orig_W}, VGGT: {vggt_H}x{vggt_W}")
 
