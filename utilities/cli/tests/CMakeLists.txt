@@ -251,8 +251,7 @@ add_test(
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 set_tests_properties(test_cli_env_check_json PROPERTIES
-    PASS_REGULAR_EXPRESSION "\"checks\""
-    PASS_REGULAR_EXPRESSION "\"summary\""
+    PASS_REGULAR_EXPRESSION "\"checks\".*\"summary\""
 )
 
 # test ambiguous dash-prefixed arguments
