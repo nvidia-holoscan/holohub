@@ -16,6 +16,17 @@
 # Run `pre-commit autoupdate` to refresh to latest compatible versions.
 
 repos:
+  # General: pre-commit hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-merge-conflict
+      - id: trailing-whitespace
+      - id: check-yaml
+        exclude: 'doc/website/mkdocs\.yml|applications/video_streaming/video_streaming_server/cpp/video_streaming_server_demo\.yaml'
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+
   # Python: ruff
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.5
@@ -86,4 +97,3 @@ repos:
           - --update-current-year
         language: system
         pass_filenames: false
-
