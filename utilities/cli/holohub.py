@@ -348,6 +348,14 @@ class HoloHubCLI:
         self.subparsers["env-info"] = env_info
         env_info.set_defaults(func=self.handle_env_info)
 
+        # Add status command
+        status = subparsers.add_parser(
+            "status", help="Show environment, container, and build status"
+        )
+        self.subparsers["status"] = status
+        status.add_argument("--json", action="store_true", help="Output status as JSON")
+        status.set_defaults(func=self.handle_status)
+
         # Add install command
         install = subparsers.add_parser(
             "install",
@@ -1595,6 +1603,7 @@ class HoloHubCLI:
             "setup",
             "install",
             "create",
+            "status",
             "cpp",
             "python",
             "autocompletion_list",
@@ -1926,6 +1935,41 @@ class HoloHubCLI:
                 "Complete (Before sharing, please review and remove sensitive information)"
             )
         )
+
+    def handle_status(self, args: argparse.Namespace) -> None:
+        """Handle status command — show environment overview"""
+        from utilities.cli.status import (
+            collect_build_info,
+            collect_container_info,
+            collect_docker_disk_usage,
+            collect_folder_info,
+            collect_git_info,
+            collect_platform_info,
+            format_status,
+            format_status_json,
+        )
+
+        platform_info = collect_platform_info()
+        git_info = collect_git_info(self.HOLOHUB_ROOT)
+        containers = collect_container_info()
+        builds = collect_build_info(self.DEFAULT_BUILD_PARENT_DIR)
+        build_folders = collect_folder_info(self.HOLOHUB_ROOT, ["build", "build-*"])
+        data_folders = collect_folder_info(self.HOLOHUB_ROOT, ["data", "data-*"])
+        docker_disk = collect_docker_disk_usage()
+
+        fmt_args = (
+            platform_info,
+            git_info,
+            containers,
+            builds,
+            build_folders,
+            data_folders,
+            docker_disk,
+        )
+        if args.json:
+            print(format_status_json(*fmt_args))
+        else:
+            print(format_status(*fmt_args))
 
     def handle_install(self, args: argparse.Namespace) -> None:
         """Handle install command"""
