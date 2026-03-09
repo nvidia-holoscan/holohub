@@ -51,7 +51,9 @@ RUN pip install --no-cache-dir \
     gsplat \
     lpips \
     torchmetrics \
-    plyfile
+    plyfile \
+    fpsample==1.0.2 \
+    open3d==0.19.0
 
 # ── Fix decord↔libxcb conflict for HoloViz/Vulkan ───────────
 RUN apt-get update -qq && \
