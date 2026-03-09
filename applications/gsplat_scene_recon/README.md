@@ -217,7 +217,7 @@ libraries.**
 
 ### VGGT (Visual Geometry Grounded Transformer)
 
-- **Source**: https://github.com/facebookresearch/vggt
+- **Source**: <https://github.com/facebookresearch/vggt>
 - **License**: [Meta License](https://github.com/facebookresearch/vggt) (see repository for license terms)
 - **Installation**: Pip-installed from source at Docker build time
 - **Model weights**: `facebook/VGGT-1B` from HuggingFace
