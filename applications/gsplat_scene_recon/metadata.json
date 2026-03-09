@@ -9,7 +9,7 @@
 			}
 		],
 		"language": "Python",
-		"version": "1.0",
+		"version": "0.2",
 		"changelog": {
 			"0.2": "Initial prototype — MedSAM3 + Long Tracks 4D + GSplat data prep",
 			"1.0": "Self-contained pipeline with VGGT poses, DA2 depth, MedSAM3 masks, GSplat training"

@@ -86,7 +86,7 @@ class DepthAnythingV2Op(Operator):
         config = {**MODEL_CONFIGS[self.encoder], "max_depth": self.max_depth}
         self._model = DepthAnythingV2(**config)
 
-        ckpt = torch.load(self.checkpoint, map_location="cuda", weights_only=False)
+        ckpt = torch.load(self.checkpoint, map_location="cuda", weights_only=True)
         if "state_dict" in ckpt:
             ckpt = ckpt["state_dict"]
         self._model.load_state_dict(ckpt, strict=True)

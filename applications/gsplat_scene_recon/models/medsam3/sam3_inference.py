@@ -99,7 +99,7 @@ class SAM3Model:
         """
         print(f"Loading custom checkpoint: {checkpoint_path}")
 
-        ckpt = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
+        ckpt = torch.load(checkpoint_path, map_location="cpu", weights_only=True)
 
         # Extract model state dict
         if "model" in ckpt and isinstance(ckpt["model"], dict):

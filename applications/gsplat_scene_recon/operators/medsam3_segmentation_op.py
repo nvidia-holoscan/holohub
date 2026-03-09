@@ -38,6 +38,7 @@ class MedSAM3SegmentationOp(Operator):
     def __init__(self, fragment, *args, **kwargs):
         super().__init__(fragment, *args, **kwargs)
         self.sam3_model = None
+        self._torch_stream = None
         self._frame_count = 0
 
     def setup(self, spec: OperatorSpec):

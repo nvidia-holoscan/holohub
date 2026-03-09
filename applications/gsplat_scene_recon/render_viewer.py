@@ -68,7 +68,7 @@ def _load_endonerf_poses(data_dir: str) -> list[dict]:
 def _load_checkpoint(ckpt_path: str):
     from argparse import Namespace as NS
 
-    ckpt = torch.load(ckpt_path, map_location="cuda", weights_only=False)
+    ckpt = torch.load(ckpt_path, map_location="cuda", weights_only=True)
     splats = ckpt["splats"]
     colors = torch.cat([splats["sh0"].cuda(), splats["shN"].cuda()], dim=-2)
     result = {"colors": colors}
