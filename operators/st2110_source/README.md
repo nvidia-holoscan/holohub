@@ -55,7 +55,7 @@ The operator provides three output ports:
 ## Parameters
 
 | Parameter | Type | Description | Default |
-|-----------|------|-------------|---------|
+| --------- | ---- | ----------- | ------- |
 | `multicast_address` | string | Multicast IP address for ST 2110 stream | "239.0.0.1" |
 | `port` | uint16_t | UDP port for ST 2110 stream | 5004 |
 | `interface_name` | string | Linux network interface name (e.g., "mgbe0_0", "eth0") | "eth0" |

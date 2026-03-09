@@ -78,7 +78,7 @@ ip link show
 The application supports multiple run modes via the holohub CLI:
 
 | Mode | Command | Description |
-|------|---------|-------------|
+| ---- | ------- | ----------- |
 | default | `./holohub run st2110_demo` | Both RGBA and NV12 outputs displayed |
 | rgba | `./holohub run st2110_demo rgba` | RGBA output only |
 | nv12 | `./holohub run st2110_demo nv12` | NV12 output only |
