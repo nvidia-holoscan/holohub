@@ -7,9 +7,9 @@
 				"affiliation": "XRlabs"
 			}
 		],
-		"version": "1.0",
+		"version": "1.0.0",
 		"changelog": {
-			"1.0": "Initial Release - SMPTE ST 2110-20 video ingestion via Linux sockets"
+			"1.0.0": "Initial Release - SMPTE ST 2110-20 video ingestion via Linux sockets"
 		},
 		"language": ["C++", "Python"],
 		"holoscan_sdk": {
@@ -25,7 +25,7 @@
 			"aarch64"
 		],
 		"tags": ["Networking and Distributed Computing", "Video Capture", "ST 2110", "Broadcast"],
-		"ranking": 1,
+		"ranking": 2,
 		"requirements": {
 			"hardware": [
 				{
