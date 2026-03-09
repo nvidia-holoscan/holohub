@@ -1,7 +1,7 @@
 {
 	"operator": {
-		"name": "UCXXReceiverOp",
-        "description": "Operator for receiving messages through a UCXX endpoint.",
+		"name": "UCXX Send/Receive Operators",
+        "description": "Operators for sending and receiving messages through a UCXX endpoint.",
 		"authors": [
 			{
 				"name": "Holoscan Team",
