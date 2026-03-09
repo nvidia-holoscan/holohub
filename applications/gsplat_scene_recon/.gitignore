@@ -26,6 +26,9 @@ dev_updates/
 # Review discussion (temporary; outcomes folded into MR responses)
 REVIEW_ITEMS_DISCUSSION.md
 
+# GitHub PR review tracker (local only; do not push)
+GITHUB_REVIEW_TRACKER.md
+
 # Python caches
 __pycache__/
 *.pyc

@@ -231,7 +231,8 @@ class DinoVisionTransformer(nn.Module):
         B, nc, w, h = x.shape
         x = self.patch_embed(x)
         if masks is not None:
-            x = torch.where(masks.unsqueeze(-1), self.mask_token.to(x.dtype).unsqueeze(0), x)
+            mask_tok = self.mask_token.to(dtype=x.dtype, device=x.device).unsqueeze(0)
+            x = torch.where(masks.unsqueeze(-1), mask_tok, x)
 
         x = torch.cat((self.cls_token.expand(x.shape[0], -1, -1), x), dim=1)
         x = x + self.interpolate_pos_encoding(x, w, h)

@@ -15,6 +15,9 @@ Key operations:
   4. Copy images and masks unchanged
   5. Validate that the resulting scene_scale is in a healthy range
 
+Output layout is binocular only (images/, depth/, masks/). The training loader
+expects mode="binocular" for pipeline-generated datasets; monodepth/ is not created.
+
 Usage:
     python format_conversion.py \
         --phase1-dir /path/to/phase1_output \
@@ -95,6 +98,7 @@ def _build_poses_bounds(
         poses_bounds[i, :15] = pose_3x5.flatten()
 
     near = depth_scale_metric[0] * depth_scale_factor * 0.8
+    near = max(near, 1.0)  # avoid zero near-plane (degenerate VGGT depth min)
     far = depth_scale_metric[1] * depth_scale_factor * 1.2
     poses_bounds[:, 15] = near
     poses_bounds[:, 16] = far
@@ -149,10 +153,18 @@ def run_format_conversion(
     sample_img = cv2.imread(str(phase1 / "images" / img_names[0]))
     orig_H, orig_W = sample_img.shape[:2]
 
-    # VGGT default preprocessing → height cropped to multiple of 14, width 518
-    # Standard VGGT: longest side → 518, then crop/pad to 14-divisible
-    vggt_W = 518
-    vggt_H = (orig_H * vggt_W // orig_W) // 14 * 14
+    vggt_hw_path = vggt / "vggt_hw.npy"
+    if vggt_hw_path.exists():
+        vggt_hw_arr = np.load(str(vggt_hw_path))
+        vggt_H, vggt_W = int(vggt_hw_arr[0]), int(vggt_hw_arr[1])
+    else:
+        # Fallback: VGGT default preprocessing (longest side → 518, 14-divisible)
+        vggt_W = 518
+        vggt_H = (orig_H * vggt_W // orig_W) // 14 * 14
+        print(
+            f"[Phase3] vggt_hw.npy not found; using fallback VGGT resolution. "
+            f"Re-run Phase 2 to save vggt_hw.npy for correct intrinsic scaling."
+        )
     print(f"[Phase3] Original: {orig_H}x{orig_W}, VGGT: {vggt_H}x{vggt_W}")
 
     focal, fx, fy = _scale_intrinsics(intr, (vggt_H, vggt_W), (orig_H, orig_W))

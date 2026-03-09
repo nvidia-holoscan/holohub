@@ -5,12 +5,15 @@
 # G-SHARP Surgical Scene Reconstruction — Self-Contained Image
 #
 # This image bundles all model code (DA2, VGGT, MedSAM3, GSplat
-# training) so only two volume mounts are needed at runtime:
+# training). At runtime, mount:
 #
-#   1. assets/  — model checkpoints  (see assets/README.md)
-#   2. data/    — input frames and pipeline output
+#   1. assets/     — model checkpoints (see assets/README.md)
+#   2. data/       — input frames (e.g. /workspace/data/frames)
+#   3. output/     — pipeline output (e.g. /workspace/output)
+#   Optional: ~/.cache/huggingface for VGGT-1B weights
 #
-# Build:
+# Build (run from applications/gsplat_scene_recon or use -f):
+#   cd applications/gsplat_scene_recon
 #   docker build -t gsplat_scene_recon:latest \
 #     --build-arg BASE_IMAGE=holohub:surgical_scene_recon .
 #
@@ -31,31 +34,11 @@
 ARG BASE_IMAGE=holohub:surgical_scene_recon
 FROM ${BASE_IMAGE}
 
-# ── Python dependencies for all pipeline stages ──────────────
-RUN pip install --no-cache-dir \
-    huggingface_hub \
-    einops \
-    safetensors \
-    timm \
-    ftfy \
-    regex \
-    iopath \
-    decord \
-    pycocotools \
-    psutil \
-    scikit-image \
-    scikit-learn \
-    pandas \
-    matplotlib \
-    "imageio[ffmpeg]" \
-    gsplat \
-    lpips \
-    torchmetrics \
-    plyfile \
-    fpsample==1.0.2 \
-    open3d==0.19.0
+# ── Python dependencies for all pipeline stages (pinned for reproducibility) ──
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# ── Fix decord↔libxcb conflict for HoloViz/Vulkan ───────────
+# ── Fix decord↔libxcb conflict for HoloViz/Vulkan (x86_64; aarch64 not tested) ──
 RUN apt-get update -qq && \
     apt-get install -y --no-install-recommends \
         libxcb1 libxcb-xfixes0 libxcb-shape0 libxcb-shm0 libxcb-render0 \
@@ -65,7 +48,7 @@ RUN apt-get update -qq && \
     if [ -n "$DECORD_LIBS" ] && [ -d "$DECORD_LIBS" ]; then \
         for f in "$DECORD_LIBS"/libxcb*.so*; do \
             base=$(basename "$f" | sed 's/-[a-f0-9]*\./\./') && \
-            sys_lib=$(find /usr/lib/x86_64-linux-gnu -name "${base%%.*}*" -type f 2>/dev/null | head -1) && \
+            sys_lib=$(find /usr/lib/$(dpkg-architecture -q DEB_HOST_MULTIARCH 2>/dev/null || echo x86_64-linux-gnu) -name "${base%%.*}*" -type f 2>/dev/null | head -1) && \
             if [ -n "$sys_lib" ]; then ln -sf "$sys_lib" "$f"; fi; \
         done; \
     fi
@@ -82,7 +65,7 @@ RUN pip install --no-cache-dir \
 
 # ── Pre-cache VGG-16 weights (used by LPIPS loss) ───────────
 RUN python -c "import torch; torch.hub.load_state_dict_from_url( \
-    'https://download.pytorch.org/models/vgg16-397923af.pth')"
+    'https://download.pytorch.org/models/vgg16-397923af.pth', check_hash=True)"
 
 # ── Copy the full application into the image ─────────────────
 COPY . /workspace/app

@@ -225,6 +225,7 @@ class DepthAnythingV2(nn.Module):
     @torch.no_grad()
     def infer_image(self, raw_image, input_size=518):
         image, (h, w) = self.image2tensor(raw_image, input_size)
+        image = image.to(next(self.parameters()).device)
 
         depth = self.forward(image)
 

@@ -1,0 +1,25 @@
+# Pinned dependencies for reproducible Docker builds.
+# Base image provides PyTorch/CUDA; these are the application-layer deps.
+# Install with: pip install --no-cache-dir -r requirements.txt
+
+huggingface_hub>=0.20.0
+einops>=0.7.0
+safetensors>=0.4.0
+timm>=0.9.0
+ftfy>=6.1.0
+regex
+iopath
+decord
+pycocotools
+psutil
+scikit-image
+scikit-learn
+pandas
+matplotlib
+imageio[ffmpeg]
+gsplat
+lpips
+torchmetrics
+plyfile
+fpsample==1.0.2
+open3d==0.19.0

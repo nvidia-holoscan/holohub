@@ -83,32 +83,30 @@ def _load_checkpoint(ckpt_path: str):
 
         from scene.deformation import deform_network
 
-        cfg = ckpt.get(
-            "config",
-            NS(
-                bounds=1.5,
-                kplanes_config={
-                    "grid_dimensions": 2,
-                    "input_coordinate_dim": 4,
-                    "output_coordinate_dim": 64,
-                    "resolution": [64, 64, 64, 100],
-                },
-                multires=[1, 2, 4, 8],
-                no_grid=False,
-                no_dx=False,
-                no_ds=False,
-                no_dr=False,
-                no_do=False,
-                net_width=32,
-                timebase_pe=6,
-                defor_depth=0,
-                posebase_pe=10,
-                scale_rotation_pe=10,
-                opacity_pe=10,
-                timenet_width=64,
-                timenet_output=32,
-            ),
+        _default_cfg = NS(
+            bounds=1.5,
+            kplanes_config={
+                "grid_dimensions": 2,
+                "input_coordinate_dim": 4,
+                "output_coordinate_dim": 64,
+                "resolution": [64, 64, 64, 100],
+            },
+            multires=[1, 2, 4, 8],
+            no_grid=False,
+            no_dx=False,
+            no_ds=False,
+            no_dr=False,
+            no_do=False,
+            net_width=32,
+            timebase_pe=6,
+            defor_depth=0,
+            posebase_pe=10,
+            scale_rotation_pe=10,
+            opacity_pe=10,
+            timenet_width=64,
+            timenet_output=32,
         )
+        cfg = NS(**ckpt["config"]) if "config" in ckpt else _default_cfg
         dnet = deform_network(cfg).cuda()
         dnet.load_state_dict(ckpt["deform_net"])
         dnet.eval()

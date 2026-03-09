@@ -18,6 +18,7 @@ Outputs (saved to ``--output-dir``):
     intrinsics.npy   — (N, 3, 3) camera intrinsic matrices (at VGGT resolution)
     depth_scale.npy  — [min, max] metric depth across all frames
     image_names.npy  — ordered list of source image filenames
+    vggt_hw.npy      — [H, W] actual VGGT preprocessing resolution for Phase 3 intrinsic scaling
 
 Usage:
     python vggt_inference.py \
@@ -69,19 +70,22 @@ def _run_single_batch(
     image_paths: list[str],
     device: str,
     dtype: torch.dtype,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Run VGGT on a single batch and return (extrinsics, intrinsics, depth_scale).
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, tuple[int, int]]:
+    """Run VGGT on a single batch and return (extrinsics, intrinsics, depth_scale, vggt_hw).
 
     Returns
     -------
     extrinsics : (S, 3, 4) float64
     intrinsics : (S, 3, 3) float64
     depth_scale : (2,) float64 — [min, max] of metric depth for this batch
+    vggt_hw : (H, W) int — actual VGGT preprocessing resolution for intrinsic scaling
     """
     from vggt.utils.load_fn import load_and_preprocess_images
     from vggt.utils.pose_enc import pose_encoding_to_extri_intri
 
     images = load_and_preprocess_images(image_paths).to(device)
+    vggt_hw = (int(images.shape[-2]), int(images.shape[-1]))
+
     with torch.no_grad():
         with torch.cuda.amp.autocast(dtype=dtype):
             preds = model(images)
@@ -95,7 +99,7 @@ def _run_single_batch(
 
     del images, preds, ext, intr
     torch.cuda.empty_cache()
-    return ext_np, intr_np, d_scale
+    return ext_np, intr_np, d_scale, vggt_hw
 
 
 def _normalize_to_frame0(extrinsics: np.ndarray) -> np.ndarray:
@@ -241,10 +245,13 @@ def run_vggt_inference(
                 "running",
             )
 
-        ext_batch, intr_batch, ds_batch = _run_single_batch(model, batch_paths, device, dtype)
+        ext_batch, intr_batch, ds_batch, vggt_hw_batch = _run_single_batch(
+            model, batch_paths, device, dtype
+        )
 
         if intrinsics_first is None:
             intrinsics_first = intr_batch
+            vggt_hw = vggt_hw_batch
 
         all_depth_scales.append(ds_batch)
 
@@ -309,12 +316,17 @@ def run_vggt_inference(
     np.save(os.path.join(output_dir, "intrinsics.npy"), intrinsics)
     np.save(os.path.join(output_dir, "depth_scale.npy"), depth_scale)
     np.save(os.path.join(output_dir, "image_names.npy"), np.array(image_names))
+    np.save(
+        os.path.join(output_dir, "vggt_hw.npy"),
+        np.array([vggt_hw[0], vggt_hw[1]], dtype=np.int64),
+    )
 
     print(f"\n[VGGT] Saved outputs to {output_dir}:")
     print(f"  extrinsics.npy  — {extrinsics.shape}")
     print(f"  intrinsics.npy  — {intrinsics.shape}")
     print(f"  depth_scale.npy — {depth_scale}")
     print(f"  image_names.npy — {len(image_names)} names")
+    print(f"  vggt_hw.npy    — [{vggt_hw[0]}, {vggt_hw[1]}] (H, W) for intrinsic scaling")
 
     return {
         "extrinsics": extrinsics,

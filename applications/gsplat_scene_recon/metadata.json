@@ -9,10 +9,9 @@
 			}
 		],
 		"language": "Python",
-		"version": "0.2",
+		"version": "0.2.0",
 		"changelog": {
-			"0.2": "Initial prototype — MedSAM3 + Long Tracks 4D + GSplat data prep",
-			"1.0": "Self-contained pipeline with VGGT poses, DA2 depth, MedSAM3 masks, GSplat training"
+			"0.2.0": "Initial release: VGGT poses, DA2 depth, MedSAM3 masks, GSplat training, five-phase pipeline"
 		},
 		"dockerfile": "applications/gsplat_scene_recon/Dockerfile",
 		"holoscan_sdk": {
@@ -25,13 +24,13 @@
 			"x86_64"
 		],
 		"tags": [
+			"Healthcare AI",
 			"3D Reconstruction",
 			"Gaussian Splatting",
 			"Depth Estimation",
 			"Segmentation",
 			"Pose Estimation",
-			"Surgical AI",
-			"Healthcare AI"
+			"Surgical AI"
 		],
 		"ranking": 1,
 		"dependencies": {
@@ -144,8 +143,8 @@
 			]
 		},
 		"run": {
-			"command": "python3 <holohub_app_source>/gsplat_scene_recon.py --images <holohub_data_dir>/frames --output <holohub_data_dir>/output",
-			"workdir": "holohub_app_source"
+			"command": "python3 <holohub_app_source>/run_gsharp.py --data-dir <holohub_data_dir>/frames --output-dir <holohub_data_dir>/output",
+			"workdir": "holohub_app_bin"
 		}
 	}
 }

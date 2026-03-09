@@ -70,6 +70,8 @@ class CameraInfo(NamedTuple):
 
 
 class EndoNeRF_Dataset(object):
+    """EndoNeRF dataset. Use mode='binocular' for pipeline output (depth/ only; no monodepth/)."""
+
     def __init__(self, datadir, downsample=1.0, test_every=8, mode="binocular"):
         # img_wh will be set in load_meta() from poses_bounds.npy
         self.img_wh = None
@@ -140,6 +142,12 @@ class EndoNeRF_Dataset(object):
             self.depth_paths = get_file_paths("depth")
         elif self.mode == "monocular":
             self.depth_paths = get_file_paths("monodepth")
+            if len(self.depth_paths) == 0:
+                raise ValueError(
+                    "Monocular depth mode expects a 'monodepth/' subdirectory, but none was "
+                    "found. This pipeline's format_conversion.py only writes 'depth/' "
+                    "(binocular layout). Use mode='binocular' for pipeline-generated datasets."
+                )
         else:
             raise ValueError(f"{self.mode} has not been implemented.")
         self.masks_paths = get_file_paths("masks")

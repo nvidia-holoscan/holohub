@@ -257,115 +257,116 @@ def main():
         print("[Pipeline] Starting progress monitor (background)...")
         progress_proc = subprocess.Popen(monitor_cmd, env=monitor_env)
 
-    # ── Phase 2: VGGT Batch Pose Estimation ──────────────────────────
-    if not args.skip_phase2:
-        phase2_cmd = [
-            sys.executable,
-            str(APP_DIR / "models" / "vggt" / "vggt_inference.py"),
-            "--image-dir",
-            str(phase1_output / "images"),
-            "--output-dir",
-            str(vggt_output),
-            "--batch-size",
-            str(args.batch_size),
-            "--progress-file",
-            progress_file,
-        ]
-
-        ret = run_phase("Phase 2: VGGT Batch Pose Estimation", phase2_cmd)
-        if ret != 0:
-            print("\n[Pipeline] ABORTED: Phase 2 failed.")
-            return ret
-    else:
-        print("\n[Pipeline] Skipping Phase 2 (--skip-phase2)")
-
-    # ── Phase 3: EndoNeRF Format Conversion ──────────────────────────
-    if not args.skip_phase3:
-        phase3_cmd = [
-            sys.executable,
-            str(APP_DIR / "stages" / "format_conversion.py"),
-            "--phase1-dir",
-            str(phase1_output),
-            "--vggt-dir",
-            str(vggt_output),
-            "--output-dir",
-            str(endonerf_dir),
-            "--depth-scale",
-            str(args.depth_scale),
-            "--progress-file",
-            progress_file,
-        ]
-
-        ret = run_phase("Phase 3: EndoNeRF Format Conversion", phase3_cmd)
-        if ret != 0:
-            print("\n[Pipeline] ABORTED: Phase 3 failed.")
-            return ret
-    else:
-        print("\n[Pipeline] Skipping Phase 3 (--skip-phase3)")
-
-    # ── Phase 4: GSplat Training ─────────────────────────────────────
     best_ckpt = None
-    if not args.skip_training:
-        train_script = Path(args.train_script).resolve()
-        if not train_script.exists():
-            print(f"\n[Pipeline] ERROR: Training script not found: {train_script}")
-            return 1
+    try:
+        # ── Phase 2: VGGT Batch Pose Estimation ──────────────────────────
+        if not args.skip_phase2:
+            phase2_cmd = [
+                sys.executable,
+                str(APP_DIR / "models" / "vggt" / "vggt_inference.py"),
+                "--image-dir",
+                str(phase1_output / "images"),
+                "--output-dir",
+                str(vggt_output),
+                "--batch-size",
+                str(args.batch_size),
+                "--progress-file",
+                progress_file,
+            ]
 
-        # train_standalone.py calls gsplat_train.py as a sibling, and
-        # gsplat_train.py imports scene.* and utils.* relative to CWD.
-        train_cwd = str(train_script.parent)
-
-        phase4_cmd = [
-            sys.executable,
-            str(APP_DIR / "stages" / "train_with_progress.py"),
-            "--progress-file",
-            progress_file,
-            "--train-script",
-            str(train_script),
-            "--",
-            "--data_dir",
-            str(endonerf_dir),
-            "--output_dir",
-            str(train_output),
-            "--training_iterations",
-            str(args.training_iterations),
-            "--coarse_iterations",
-            str(args.coarse_iterations),
-        ]
-        if args.no_deformation:
-            phase4_cmd.append("--no_deformation")
-
-        ret = run_phase("Phase 4: GSplat Training", phase4_cmd, cwd=train_cwd)
-        if ret != 0:
-            print("\n[Pipeline] WARNING: Phase 4 (training) failed.")
-            return ret
-
-        # Locate best checkpoint
-        ckpt_dir = train_output / "trained_model" / "ckpts"
-        candidate = ckpt_dir / "fine_best_psnr.pt"
-        if candidate.exists():
-            best_ckpt = candidate
+            ret = run_phase("Phase 2: VGGT Batch Pose Estimation", phase2_cmd)
+            if ret != 0:
+                print("\n[Pipeline] ABORTED: Phase 2 failed.")
+                return ret
         else:
-            # Fall back to final step checkpoint
-            ckpts = sorted(ckpt_dir.glob("fine_step*.pt")) if ckpt_dir.exists() else []
-            if ckpts:
-                best_ckpt = ckpts[-1]
-    else:
-        print("\n[Pipeline] Skipping Phase 4 (--skip-training)")
-        # Look for existing checkpoint
-        candidate = train_output / "trained_model" / "ckpts" / "fine_best_psnr.pt"
-        if candidate.exists():
-            best_ckpt = candidate
+            print("\n[Pipeline] Skipping Phase 2 (--skip-phase2)")
 
-    # ── Stop progress monitor ────────────────────────────────────────
-    if progress_proc is not None and progress_proc.poll() is None:
-        print("[Pipeline] Stopping progress monitor...")
-        progress_proc.send_signal(signal.SIGINT)
-        try:
-            progress_proc.wait(timeout=5)
-        except subprocess.TimeoutExpired:
-            progress_proc.kill()
-            progress_proc.wait()
+        # ── Phase 3: EndoNeRF Format Conversion ──────────────────────────
+        if not args.skip_phase3:
+            phase3_cmd = [
+                sys.executable,
+                str(APP_DIR / "stages" / "format_conversion.py"),
+                "--phase1-dir",
+                str(phase1_output),
+                "--vggt-dir",
+                str(vggt_output),
+                "--output-dir",
+                str(endonerf_dir),
+                "--depth-scale",
+                str(args.depth_scale),
+                "--progress-file",
+                progress_file,
+            ]
+
+            ret = run_phase("Phase 3: EndoNeRF Format Conversion", phase3_cmd)
+            if ret != 0:
+                print("\n[Pipeline] ABORTED: Phase 3 failed.")
+                return ret
+        else:
+            print("\n[Pipeline] Skipping Phase 3 (--skip-phase3)")
+
+        # ── Phase 4: GSplat Training ─────────────────────────────────────
+        if not args.skip_training:
+            train_script = Path(args.train_script).resolve()
+            if not train_script.exists():
+                print(f"\n[Pipeline] ERROR: Training script not found: {train_script}")
+                return 1
+
+            # train_standalone.py calls gsplat_train.py as a sibling, and
+            # gsplat_train.py imports scene.* and utils.* relative to CWD.
+            train_cwd = str(train_script.parent)
+
+            phase4_cmd = [
+                sys.executable,
+                str(APP_DIR / "stages" / "train_with_progress.py"),
+                "--progress-file",
+                progress_file,
+                "--train-script",
+                str(train_script),
+                "--",
+                "--data_dir",
+                str(endonerf_dir),
+                "--output_dir",
+                str(train_output),
+                "--training_iterations",
+                str(args.training_iterations),
+                "--coarse_iterations",
+                str(args.coarse_iterations),
+            ]
+            if args.no_deformation:
+                phase4_cmd.append("--no_deformation")
+
+            ret = run_phase("Phase 4: GSplat Training", phase4_cmd, cwd=train_cwd)
+            if ret != 0:
+                print("\n[Pipeline] WARNING: Phase 4 (training) failed.")
+                return ret
+
+            # Locate best checkpoint
+            ckpt_dir = train_output / "trained_model" / "ckpts"
+            candidate = ckpt_dir / "fine_best_psnr.pt"
+            if candidate.exists():
+                best_ckpt = candidate
+            else:
+                # Fall back to final step checkpoint
+                ckpts = sorted(ckpt_dir.glob("fine_step*.pt")) if ckpt_dir.exists() else []
+                if ckpts:
+                    best_ckpt = ckpts[-1]
+        else:
+            print("\n[Pipeline] Skipping Phase 4 (--skip-training)")
+            # Look for existing checkpoint
+            candidate = train_output / "trained_model" / "ckpts" / "fine_best_psnr.pt"
+            if candidate.exists():
+                best_ckpt = candidate
+    finally:
+        # Always stop progress monitor so it is not orphaned on phase failure
+        if progress_proc is not None and progress_proc.poll() is None:
+            print("[Pipeline] Stopping progress monitor...")
+            progress_proc.send_signal(signal.SIGINT)
+            try:
+                progress_proc.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                progress_proc.kill()
+                progress_proc.wait()
 
     # ── Phase 5: Live Render Viewer ──────────────────────────────────
     if not args.skip_viewer and best_ckpt is not None:

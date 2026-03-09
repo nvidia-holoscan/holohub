@@ -35,6 +35,25 @@ def sparse_depths_to_dense(
     Returns:
         dense_depth: [H, W] dense depth image (float32, 0 where unknown)
     """
+    n_pts = len(tracks_2d)
+    if n_pts != len(depths) or n_pts != len(visibility):
+        raise ValueError(
+            "sparse_depths_to_dense: tracks_2d, depths, and visibility must have the same "
+            f"first dimension, got {n_pts}, {len(depths)}, {len(visibility)}"
+        )
+    if tracks_2d.ndim != 2 or tracks_2d.shape[1] != 2:
+        raise ValueError(
+            f"sparse_depths_to_dense: tracks_2d must be [N, 2], got shape {tracks_2d.shape}"
+        )
+    if method not in ("nearest", "linear"):
+        raise ValueError(
+            f"sparse_depths_to_dense: method must be 'nearest' or 'linear', got {method!r}"
+        )
+    if height <= 0 or width <= 0:
+        raise ValueError(
+            f"sparse_depths_to_dense: height and width must be positive, got {height}, {width}"
+        )
+
     dense_depth = np.zeros((height, width), dtype=np.float32)
 
     visible = visibility.astype(bool) if visibility.dtype != bool else visibility
