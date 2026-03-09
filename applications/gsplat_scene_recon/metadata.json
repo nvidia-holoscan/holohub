@@ -1,0 +1,151 @@
+{
+	"application": {
+		"name": "G-SHARP: Gaussian Splatting for Holographic Anatomical Reconstruction Pipeline",
+		"description": "Real-time surgical scene reconstruction using Gaussian Splatting: DA2 depth, MedSAM3 segmentation, VGGT poses, and GSplat training in a five-phase pipeline.",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"0.2": "Initial prototype — MedSAM3 + Long Tracks 4D + GSplat data prep",
+			"1.0": "Self-contained pipeline with VGGT poses, DA2 depth, MedSAM3 masks, GSplat training"
+		},
+		"dockerfile": "applications/gsplat_scene_recon/Dockerfile",
+		"holoscan_sdk": {
+			"minimum_required_version": "3.8.0",
+			"tested_versions": [
+				"3.8.0"
+			]
+		},
+		"platforms": [
+			"x86_64"
+		],
+		"tags": [
+			"3D Reconstruction",
+			"Gaussian Splatting",
+			"Depth Estimation",
+			"Segmentation",
+			"Pose Estimation",
+			"Surgical AI",
+			"Healthcare AI"
+		],
+		"ranking": 1,
+		"dependencies": {
+			"third_party": [
+			{
+				"name": "VGGT (Visual Geometry Grounded Transformer)",
+				"license": "Meta License (custom, see repo)",
+				"url": "https://github.com/facebookresearch/vggt",
+				"description": "Camera pose and metric depth estimation. Pip-installed at build time.",
+				"license_url": "https://github.com/facebookresearch/vggt/blob/main/LICENSE"
+			},
+			{
+				"name": "Depth Anything V2",
+				"license": "Apache-2.0",
+				"url": "https://github.com/DepthAnything/Depth-Anything-V2",
+				"description": "Dense monocular depth estimation"
+			},
+			{
+				"name": "SAM3 (Segment Anything Model 3)",
+				"license": "SAM License (custom, see repo)",
+				"url": "https://github.com/facebookresearch/sam3",
+				"description": "Surgical tool segmentation. Pip-installed at build time.",
+				"license_url": "https://github.com/facebookresearch/sam3/blob/main/LICENSE"
+			},
+				{
+					"name": "EndoGaussian / GSplat Training",
+					"license": "MIT",
+					"url": "https://github.com/yifliu3/EndoGaussian",
+					"description": "Gaussian splatting training with deformation network"
+				}
+			],
+			"python_libraries": [
+				{
+					"name": "torch",
+					"version": ">=2.1.0",
+					"license": "BSD-3-Clause",
+					"url": "https://github.com/pytorch/pytorch"
+				},
+				{
+					"name": "cupy",
+					"version": ">=13.0.0",
+					"license": "MIT",
+					"url": "https://github.com/cupy/cupy"
+				},
+				{
+					"name": "gsplat",
+					"license": "Apache-2.0",
+					"url": "https://github.com/nerfstudio-project/gsplat"
+				},
+				{
+					"name": "lpips",
+					"license": "BSD-2-Clause",
+					"url": "https://github.com/richzhang/PerceptualSimilarity"
+				},
+				{
+					"name": "huggingface_hub",
+					"license": "Apache-2.0",
+					"url": "https://github.com/huggingface/huggingface_hub"
+				},
+				{
+					"name": "einops",
+					"license": "MIT",
+					"url": "https://github.com/arogozhnikov/einops"
+				},
+				{
+					"name": "safetensors",
+					"license": "Apache-2.0",
+					"url": "https://github.com/huggingface/safetensors"
+				},
+				{
+					"name": "timm",
+					"license": "Apache-2.0",
+					"url": "https://github.com/huggingface/pytorch-image-models"
+				},
+				{
+					"name": "torchmetrics",
+					"license": "Apache-2.0",
+					"url": "https://github.com/Lightning-AI/torchmetrics"
+				},
+				{
+					"name": "plyfile",
+					"license": "MIT",
+					"url": "https://github.com/dranjan/python-plyfile"
+				},
+				{
+					"name": "opencv-python",
+					"license": "Apache-2.0",
+					"url": "https://github.com/opencv/opencv-python"
+				},
+				{
+					"name": "scikit-image",
+					"license": "BSD-3-Clause",
+					"url": "https://github.com/scikit-image/scikit-image"
+				}
+			]
+		},
+		"requirements": {
+			"data": [
+				{
+					"name": "Surgical Video Frames",
+					"description": "Directory of PNG frames from a surgical video sequence."
+				}
+			],
+			"hardware": [
+				{
+					"name": "NVIDIA GPU",
+					"description": "NVIDIA GPU with CUDA 12+ and Vulkan support (e.g. RTX 6000 Ada).",
+					"required": true
+				}
+			]
+		},
+		"run": {
+			"command": "python3 <holohub_app_source>/gsplat_scene_recon.py --images <holohub_data_dir>/frames --output <holohub_data_dir>/output",
+			"workdir": "holohub_app_source"
+		}
+	}
+}

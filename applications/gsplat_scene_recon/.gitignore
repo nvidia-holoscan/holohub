@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+# TRT engines, ONNX models, and checkpoints (generated artifacts)
+*.engine
+*.onnx
+*.onnx.data
+*.npz
+
+# Model checkpoint files (large binaries)
+*.pt
+*.pth
+
+# Asset checkpoint directories (users download these separately)
+assets/da2/*.pth
+assets/medsam3/*.pt
+
+# Build staging model/checkpoint directories
+build_staging/models/
+build_staging/checkpoints/
+
+# Planning and dev log (kept locally, not in repo to satisfy MR feedback)
+planning/
+dev_updates/
+
+# Review discussion (temporary; outcomes folded into MR responses)
+REVIEW_ITEMS_DISCUSSION.md
+
+# Python caches
+__pycache__/
+*.pyc
