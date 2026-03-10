@@ -1,8 +1,8 @@
-### WebRTC Client Operator
+# WebRTC Client Operator
 
 The `webrtc_client` operator receives video frames through a WebRTC connection. The application using this operator needs to call the `offer` method of the operator when a new WebRTC connection is available.
 
-### Methods
+## Methods
 
 - **`async def offer(self, sdp, type) -> (local_sdp, local_type)`**
   Start a connection between the local computer and the peer.
@@ -15,7 +15,7 @@ The `webrtc_client` operator receives video frames through a WebRTC connection. 
   - **sdp** local Session Description Protocol object
   - **type** local session type
 
-### Outputs
+## Outputs
 
 - **`output`**: Tensor with 8 bit per component RGB data
   - type: `Tensor`

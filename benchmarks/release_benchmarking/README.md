@@ -31,6 +31,7 @@ maintained by the NVIDIA Holoscan team and demonstrate baseline Holoscan SDK inf
 with video replay and Holoviz rendering output.
 
 Benchmark scenarios include:
+
 - Running multiple Holoscan SDK pipelines concurrently on a single machine
 - Running video replay input at real-time speeds or as fast as possible
 - Running Holoviz output with either visual rendering or in headless mode
@@ -39,6 +40,7 @@ We plan to release HoloHub benchmarks in the [release subfolder](release) follow
 releases. You can follow the tutorial below to similarly evaluate performance on your own machine.
 
 Refer to related documents for more information:
+
 - the [results report template file](template/results.md.tmpl) provides additional information on
 definitions and background
 - versioned releases are available for review in the [release subfolder](release)
@@ -69,6 +71,7 @@ Data collection can be run in the HoloHub base container for both the Endoscopy 
 ```
 
 Run the benchmarking script with no arguments to collect performance logs in the `./output` directory.
+
 ```bash
 ./holohub run release_benchmarking --no-local-build
 ```
@@ -76,21 +79,28 @@ Run the benchmarking script with no arguments to collect performance logs in the
 ## Summarizing Data
 
 After running benchmarks, inside the dev environment, use `./holohub run` to process data statistics and create bar plot PNGs:
+
 ```bash
 ./holohub run-container --img holohub:release_benchmarking --no-docker-build
 ./holohub run release_benchmarking --no-local-build --run-args "--process benchmarks/release_benchmarking"
 ```
 
 Alternatively, collect results across platforms. On each machine:
+
 1. Run benchmarks:
+
 ```bash
 ./holohub run release_benchmarking --no-local-build
 ```
-2. Add platform configuration information:
+
+1. Add platform configuration information:
+
 ```bash
 ./holohub run release_benchmarking --no-local-build --run-args "--print" > benchmarks/release_benchmarking/output/platform.txt
 ```
-3. Transfer output contents from each platform to a single machine:
+
+1. Transfer output contents from each platform to a single machine:
+
 ```bash
 # Compress information for transfer
 pushd benchmarks/release_benchmarking
@@ -103,7 +113,9 @@ mkdir -p output/<release>/<platform-name>/
 pushd output/<release>/<platform-name>
 tar xvf benchmarks-<platform-name>
 ```
-4. Use multiple `--process` flags to generate a batch of bar plots for multiple platform results:
+
+1. Use multiple `--process` flags to generate a batch of bar plots for multiple platform results:
+
 ```bash
 ./holohub run release_benchmarking --no-local-build --run-args "\
     --process benchmarks/release_benchmarking/2.4/x86_64 \
@@ -119,11 +131,14 @@ or PDF report with benchmark data with `pandoc` and `Jinja2`.
 1. Copy and edit `template/release.json` with information about the benchmarking configuration, including
 the release version, platform configurations, and local paths to processed data. Run
 `./holohub run` to print JSON-formatted platform details to the console about the current system:
+
 ```bash
 ./holohub run-container --img holohub:release_benchmarking --no-docker-build
 ./holohub run release_benchmarking --no-local-build --run-args="--print"
 ```
-2. Render the document with the Jinja CLI tool:
+
+1. Render the document with the Jinja CLI tool:
+
 ```bash
 pushd benchmarks/release_benchmarking
 jinja2 template/results.md.tmpl template/<release-version>.json --format=json > output/<release-version>.md
@@ -137,6 +152,7 @@ with embedded plots.
 1. In your copy of `template/release.json`, update the `"format"` string to `"pdf"`.
 2. Follow the instructions above to generate your markdown report with Jinja2.
 3. Use `pandoc` to convert the markdown file to PDF:
+
 ```bash
 pushd output
 pandoc <release-version>.md -o <release-version>.pdf --toc
@@ -151,7 +167,9 @@ The Holoscan SDK team may submit release benchmarking reports to HoloHub git his
 3. Commit changes, push to GitHub, and open a Pull Request.
 
 ## Cleanup
+
 Benchmarking changes to application YAML files can be discarded after benchmarks complete.
+
 ```bash
 git checkout applications/*.yaml
 ```
@@ -170,10 +188,12 @@ __Benchmark applications are failing silently without writing log files.__
 
 Silent failures may indicate an issue with the underlying applications undergoing benchmarking.
 Try running the applications directly and verify execution is as expected:
+
 - `./holohub run endoscopy_tool_tracking --language=cpp`
 - `./holohub run multiai_ultrasound --language=cpp`
 
 In some cases you may need to clear your HoloHub build or data folders to address errors:
+
 - `./holohub clear-cache`
 - `rm -rf ./data`
 

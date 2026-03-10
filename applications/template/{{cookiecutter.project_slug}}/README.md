@@ -65,7 +65,7 @@ For custom Docker builds:
 
 ### Project Structure
 
-```
+```text
 {{ cookiecutter.project_slug }}/
 ├── CMakeLists.txt
 ├── Dockerfile

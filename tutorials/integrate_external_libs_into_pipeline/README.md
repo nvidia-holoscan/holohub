@@ -4,14 +4,13 @@ The Holoscan SDK is part of NVIDIA Holoscan, the AI sensor processing platform t
 
 With the Holoscan SDK, one can develop an end-to-end GPU-accelerated pipeline with RDMA support. However, with increasing requirements for pre-processing and post-processing beyond inference-only pipelines, integration with other powerful, GPU-accelerated libraries is needed.
 
-<div align="center">
-<img src="./images/typical_pipeline_holoscan.png" style="border: 2px solid black;">
-</div>
+![Typical Holoscan pipeline](images/typical_pipeline_holoscan.png)
 
 One of the key features of the Holoscan SDK is its seamless interoperability with other libraries.
 
 This tutorial explains how to leverage this capability in your applications.
 For detailed examples of integrating various libraries with Holoscan applications, refer to the following sections:
+
 - Tensor Interoperability
   - [Integrate **MatX** library](#integrate-matx-library) - DLPack support in C++
   - [Integrate RAPIDS **cuCIM** library](#integrate-rapids-cucim-library)
@@ -31,10 +30,12 @@ The Holoscan SDK supports [DLPack](https://dmlc.github.io/dlpack/latest/), enabl
 ### Array Interface Support
 
 The SDK also supports the array interface, including:
+
 - [`__array_interface__`](https://numpy.org/doc/stable/reference/arrays.interface.html)
 - [`__cuda_array_interface__`](https://numba.readthedocs.io/en/stable/cuda/cuda_array_interface.html)
 
 This allows for seamless integration with various Python libraries such as:
+
 - [CuPy](https://docs.cupy.dev/en/stable/user_guide/interoperability.html)
 - [PyTorch](https://github.com/pytorch/pytorch/issues/15601)
 - [JAX](https://github.com/jax-ml/jax/issues/1100#issuecomment-580773098)
@@ -46,6 +47,7 @@ This allows for seamless integration with various Python libraries such as:
 The `Tensor` class is a wrapper around the `DLManagedTensorContext` struct, which holds the `DLManagedTensor` object (a [DLPack structure](https://dmlc.github.io/dlpack/latest/c_api.html#c.DLManagedTensor)).
 
 For more information on interoperability, refer to the following sections in the Holoscan SDK documentation:
+
 - [Interoperability between GXF and native C++ operators](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_operator.html#interoperability-between-gxf-and-native-c-operators)
 - [Interoperability between wrapped and native Python operators](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_operator.html#interoperability-between-wrapped-and-native-python-operators)
 
@@ -105,7 +107,7 @@ cupy_to_holoscan = hs.as_tensor(cupy_tensor)
 
 [MatX library (An efficient C++17 GPU numerical computing library with Python-like syntax)](https://github.com/NVIDIA/MatX) is an open-source, efficient C++17 GPU numerical computing library created by NVIDIA. It provides a NumPy-like interface for GPU-accelerated numerical computing, enabling developers to write high-performance, GPU-accelerated code with ease.
 
-#### Installation
+#### Installation (MatX)
 
 MatX is a header-only library. Using it in your own projects is as simple as including only the core `matx.h` file.
 
@@ -113,7 +115,7 @@ Please refer to the [MatX documentation](https://nvidia.github.io/MatX/build.htm
 
 The following is a sample CMakeLists.txt file for a project that uses MatX:
 
-```
+```cmake
 cmake_minimum_required(VERSION 3.20)
 project(my_app CXX)
 
@@ -147,7 +149,7 @@ target_link_libraries(my_app
 
 ```
 
-#### Sample code
+#### Sample code (MatX)
 
 The following are the sample applications that use the MatX library to integrate with Holoscan SDK.
 
@@ -158,7 +160,7 @@ The following are the sample applications that use the MatX library to integrate
 - [Simple Radar Pipeline Application](https://github.com/nvidia-holoscan/holohub/tree/main/applications/simple_radar_pipeline/cpp)
   - `applications/simple_radar_pipeline/cpp`
 
-**On the GPU**
+### On the GPU
 
 - <https://github.com/nvidia-holoscan/holohub/blob/main/applications/multiai_endoscopy/cpp/post-proc-matx-gpu/multi_ai.cu>
 
@@ -190,7 +192,7 @@ void compute(InputContext& op_input, OutputContext& op_output,
 }
 ```
 
-**On the CPU**
+### On the CPU
 
 - <https://github.com/nvidia-holoscan/holohub/blob/main/applications/multiai_endoscopy/cpp/post-proc-matx-cpu/multi_ai.cpp>
 
@@ -233,11 +235,11 @@ See the supported Operators in [cuCIM documentation](https://docs.rapids.ai/api/
 
 cuCIM offers interoperability with CuPy. We can initialize CuPy arrays directly from Holoscan Tensors and use the arrays in cuCIM operators for processing without memory transfer between host and device.
 
-#### Installation
+#### Installation (cuCIM)
 
 Follow the [cuCIM documentation](https://github.com/rapidsai/cucim?tab=readme-ov-file#install-cucim) to install the RAPIDS cuCIM library.
 
-#### Sample code
+#### Sample code (cuCIM)
 
 ```py
 import cupy as cp
@@ -269,13 +271,13 @@ def CustomizedcuCIMOperator(Operator):
 
 See the supported CV-CUDA Operators in the [CV-CUDA developer guide](https://github.com/CVCUDA/CV-CUDA/blob/main/DEVELOPER_GUIDE.md)
 
-#### Installation
+#### Installation (CV-CUDA)
 
 Follow the [CV-CUDA documentation](https://cvcuda.github.io/CV-CUDA/installation.html) to install the CV-CUDA library.
 
 Requirement: CV-CUDA >= 0.2.1 (From which version DLPack interop is supported)
 
-#### Sample code
+#### Sample code (CV-CUDA)
 
 CV-CUDA is implemented with DLPack standards. A CV-CUDA tensor can directly access a Holoscan Tensor.
 
@@ -323,18 +325,19 @@ class CustomizedCVCUDAOp(Operator):
 
 OpenCV also supports GPU [acceleration](https://docs.opencv.org/4.8.0/d2/dbc/cuda_intro.html) and includes a CUDA module which is a set of classes and functions to utilize CUDA computational capabilities. It is implemented using NVIDIA CUDA Runtime API and provides utility functions, low-level vision primitives, and high-level algorithms.
 
-#### Installation
+#### Installation (OpenCV)
 
 Prerequisites:
+
 - OpenCV >= 4.8.0 (From which version, OpenCV GpuMat supports initialization with GPU Memory pointer)
 
 Install OpenCV with its CUDA module following the guide in [opencv/opencv_contrib](https://github.com/opencv/opencv_contrib/tree/4.x)
 
 We also recommend referring to the [Holoscan Endoscopy Depth Estimation application container](https://github.com/nvidia-holoscan/holohub/blob/main/applications/endoscopy_depth_estimation/Dockerfile) as an example of how to build an image with Holoscan SDK and OpenCV CUDA.
 
-#### Sample code
+#### Sample code (OpenCV)
 
-The data type of OpenCV is GpuMat which implements neither the __cuda_array_interface__ nor the standard DLPack. To achieve the end-to-end GPU accelerated pipeline/application, we need to implement 2 functions to convert the GpuMat to CuPy array which can be accessed directly with Holoscan Tensor and vice versa.
+The data type of OpenCV is GpuMat which implements neither the **cuda_array_interface** nor the standard DLPack. To achieve the end-to-end GPU accelerated pipeline/application, we need to implement 2 functions to convert the GpuMat to CuPy array which can be accessed directly with Holoscan Tensor and vice versa.
 
 Refer to the [Holoscan Endoscopy Depth Estimation sample application](https://github.com/nvidia-holoscan/holohub/tree/main/applications/cvcuda_basic) for an example of how to use the OpenCV operator with Holoscan SDK.
 
@@ -386,7 +389,7 @@ def gpumat_to_cupy(gpu_mat: cv2.cuda.GpuMat) -> cp.ndarray:
 
 Note: In this function, we used the [UnownedMemory](https://docs.cupy.dev/en/stable/reference/generated/cupy.cuda.UnownedMemory.html#cupy.cuda.UnownedMemory) API to create the CuPy array. In some cases, the OpenCV operators will allocate new device memory which needs to be handled by CuPy and the lifetime is not limited to one operator but the whole pipeline. In this case, the CuPy array initiated from the GpuMat shall know the owner and keep the reference to the object. Check the CuPy documentation for more details on [CuPy interoperability](https://docs.cupy.dev/en/stable/user_guide/interoperability.html#device-memory-pointers).
 
-2. Conversion from Holoscan Tensor to GpuMat via CuPy array
+1. Conversion from Holoscan Tensor to GpuMat via CuPy array
 
 With the release of OpenCV 4.8, the Python bindings for OpenCV now support the initialization of GpuMat objects directly from GPU memory pointers. This capability facilitates more efficient data handling and processing by allowing direct interaction with GPU-resident data, bypassing the need for data transfer between host and device memory.
 
@@ -424,7 +427,7 @@ def gpumat_from_cp_array(arr: cp.ndarray) -> cv2.cuda.GpuMat:
     return mat
 ```
 
-3. Integrate OpenCV Operators inside customized Operator
+1. Integrate OpenCV Operators inside customized Operator
 
 The demonstration code is provided below. For the complete source code, please refer to the [holohub/applications/endoscopy_depth_estimation-customized Operator](https://github.com/nvidia-holoscan/holohub/blob/main/applications/endoscopy_depth_estimation/endoscopy_depth_estimation.py#L161).
 
@@ -449,9 +452,9 @@ The demonstration code is provided below. For the complete source code, please r
 
 [PyTorch](https://pytorch.org/) is a popular open-source machine learning library developed by Facebook's AI Research lab. It provides a flexible and dynamic computational graph that allows for easy model building and training. PyTorch also supports GPU acceleration, making it ideal for deep learning applications that require high-performance computing.
 
-Since PyTorch tensors support the array interface and DLPack ([link](https://github.com/pytorch/pytorch/issues/15601)), they can be interoperable with other array/tensor objects including Holoscan Tensors.
+Since PyTorch tensors support the array interface and DLPack ([PyTorch issue on DLPack](https://github.com/pytorch/pytorch/issues/15601)), they can be interoperable with other array/tensor objects including Holoscan Tensors.
 
-#### Installation
+#### Installation (PyTorch)
 
 Follow the [PyTorch documentation](https://pytorch.org/) to install the PyTorch library.
 
@@ -461,7 +464,7 @@ e.g., for CUDA 12.x with pip:
 python3 -m pip install torch torchvision torchaudio
 ```
 
-#### Sample code
+#### Sample code (PyTorch)
 
 The following is a sample application that demonstrates how to use PyTorch with Holoscan SDK:
 
@@ -489,11 +492,11 @@ def CustomizedTorchOperator(Operator):
 
 [CUDA Python](https://developer.nvidia.com/cuda-python) is a Python library that provides Cython/Python wrappers for CUDA driver and runtime APIs. It offers a convenient way to leverage GPU acceleration for complex computations, making it ideal for high-performance applications that require intensive numerical processing.
 
-When using CUDA Python with the Holoscan SDK, you need to use the Primary context ([CUDA doc link](https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__DRIVER.html#group__CUDART__DRIVER)) by calling `cuda.cuDevicePrimaryCtxRetain()` ([link](https://nvidia.github.io/cuda-python/cuda-core).
+When using CUDA Python with the Holoscan SDK, you need to use the Primary context ([CUDA doc link](https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__DRIVER.html#group__CUDART__DRIVER)) by calling `cuda.cuDevicePrimaryCtxRetain()` ([CUDA Python cuda-core docs](https://nvidia.github.io/cuda-python/cuda-core).
 
 Since the Holoscan Operator is executed in an arbitrary non-main thread, you may need to set the CUDA context using the [cuda.cuCtxSetCurrent()](https://nvidia.github.io/cuda-python/cuda-core) method in the `Operator.compute()` method.
 
-#### Installation
+#### Installation (CUDA Python)
 
 Follow the instructions in the [CUDA Python documentation](https://nvidia.github.io/cuda-python/cuda-core/latest/install.html) to install the CUDA Python library.
 
@@ -503,7 +506,7 @@ CUDA Python can be installed using `pip`:
 python3 -m pip install cuda-python
 ```
 
-#### Sample code
+#### Sample code (CUDA Python)
 
 Please see the example application ([cuda_example.py](cuda_example.py)) that demonstrates how to use CUDA Python with the Holoscan SDK.
 
@@ -553,7 +556,7 @@ Please don't confuse this with the `cuda.cuda.CUstream.getPtr()` method. If you 
 
 [CuPy](https://cupy.dev/) is an open-source array library for GPU-accelerated computing with a NumPy-compatible API. It provides a convenient way to perform high-performance numerical computations on NVIDIA GPUs, making it ideal for applications that require efficient data processing and manipulation.
 
-#### Installation
+#### Installation (CuPy)
 
 CuPy can be installed using `pip`:
 
@@ -563,7 +566,7 @@ python3 -m pip install cupy-cuda12x  # for CUDA v12.x
 
 For more detailed installation instructions, refer to the [CuPy documentation](https://docs.cupy.dev/en/stable/install.html).
 
-#### Sample code
+#### Sample code (CuPy)
 
 Please see the example application ([cupy_example.py](cupy_example.py)) that demonstrates how to use CuPy with the Holoscan SDK.
 
@@ -571,11 +574,12 @@ This example performs the same operations as the previous example but uses CuPy 
 
 With CuPy, you can conveniently perform GPU-accelerated computations on multidimensional arrays, making it an excellent choice for high-performance data processing tasks in Holoscan applications.
 
-Please note that CuPy does not fully support certain CUDA APIs, such as `cupy.cuda.driver.occupancyMaxPotentialBlockSize()`. While the driver API may be available ([link](https://github.com/cupy/cupy/pull/2424)), it is currently undocumented ([link](https://docs.cupy.dev/en/stable/reference/cuda.html)) and lacks support for calling the API with RawKernel's pointer ([link](https://github.com/cupy/cupy/issues/2450)), or using CUDA Python's `cuda.cuOccupancyMaxPotentialBlockSize()` Driver API with CuPy-generated RawKernel functions.
+Please note that CuPy does not fully support certain CUDA APIs, such as `cupy.cuda.driver.occupancyMaxPotentialBlockSize()`. While the driver API may be available ([CuPy PR 2424](https://github.com/cupy/cupy/pull/2424)), it is currently undocumented ([CuPy CUDA reference](https://docs.cupy.dev/en/stable/reference/cuda.html)) and lacks support for calling the API with RawKernel's pointer ([CuPy issue 2450](https://github.com/cupy/cupy/issues/2450)), or using CUDA Python's `cuda.cuOccupancyMaxPotentialBlockSize()` Driver API with CuPy-generated RawKernel functions.
 
 Currently, direct assignment of a non-default CUDA stream to HolovizOp in Holoscan applications is not supported without utilizing the `holoscan.resources.CudaStreamPool` resource. CuPy also has limited support for custom stream management, necessitating reliance on the default stream in this context.
 
 For more detailed information, please refer to the following resources:
+
 - [New RawKernel Calling Convention / Kernel Occupancy Functions · Issue #3684 · cupy/cupy · GitHub](https://github.com/cupy/cupy/issues/3684)
 - CUDA Stream Support:
   - [Enhancing stream support in CuPy's default memory pool · Issue #8068 · cupy/cupy](https://github.com/cupy/cupy/issues/8068)

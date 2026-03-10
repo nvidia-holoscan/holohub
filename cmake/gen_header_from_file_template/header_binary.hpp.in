@@ -20,4 +20,3 @@
 static uint8_t @FILE_ARRAY_NAME@[] = {
   @FILE_CONTENT@
 };
-

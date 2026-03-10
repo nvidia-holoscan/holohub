@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # C++ Integration Test for Video Streaming Demo
-# 
+#
 # IMPORTANT: This test runs in Docker and builds from committed source code.
 # If you have local C++ fixes, make sure they are committed before running this test.
 # The test will use --no-cache to ensure Docker picks up your latest commits.
@@ -79,7 +79,7 @@ else
             SERVER_SUCCESS=0
         fi
         if grep -q "streaming.*client.*test" applications/video_streaming/integration_test.log; then
-            echo "✗ Client test failed" 
+            echo "✗ Client test failed"
             CLIENT_SUCCESS=0
         fi
     else

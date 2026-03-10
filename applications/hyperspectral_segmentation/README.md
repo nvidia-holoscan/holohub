@@ -1,6 +1,6 @@
 # Hyperspectral Image Segmentation
 
-![](screenshot.png)<br>
+![Hyperspectral segmentation screenshot](screenshot.png)
 
 This application segments endoscopic hyperspectral cubes into 20 organ classes. It visualizes the result together with the RGB image corresponding to the cube.
 

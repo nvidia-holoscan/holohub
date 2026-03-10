@@ -29,7 +29,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional, Tuple, Union
 
-DEFAULT_BASE_SDK_VERSION = "3.11.0"
+DEFAULT_BASE_SDK_VERSION = "4.0.0"
 
 DEFAULT_GIT_REF = "latest"
 
@@ -414,6 +414,17 @@ def get_host_gpu() -> str:
     return "dgpu"
 
 
+def cuda_major_from_driver(driver_version_str: str) -> Optional[str]:
+    """Map a driver version string (e.g. '580.126.20') to a CUDA major version.
+
+    Returns '13' for driver >= 580, '12' otherwise, or None on parse failure.
+    """
+    try:
+        return "13" if int(driver_version_str.split(".")[0]) >= 580 else "12"
+    except (ValueError, IndexError):
+        return None
+
+
 def get_default_cuda_version() -> str:
     """
     Get default CUDA version based on NVIDIA driver version.
@@ -422,12 +433,10 @@ def get_default_cuda_version() -> str:
         - "13" if driver version >= 580 or if nvidia-smi is not available
         - "12" if driver version < 580
     """
-    # Default to CUDA 13 if nvidia-smi is not available
     if not shutil.which("nvidia-smi"):
         warn("nvidia-smi not found, default CUDA version is 13")
         return "13"
 
-    # Check the driver version using nvidia-smi
     driver_version = run_info_command(
         ["nvidia-smi", "--query-gpu=driver_version", "--format=csv,noheader"]
     )
@@ -436,15 +445,11 @@ def get_default_cuda_version() -> str:
         warn("Unable to detect NVIDIA driver version, default CUDA version is 13")
         return "13"
 
-    try:
-        driver_major_version = int(driver_version.split(".")[0])
-        if driver_major_version >= 580:
-            return "13"
-        else:
-            return "12"
-    except (ValueError, IndexError):
+    result = cuda_major_from_driver(driver_version)
+    if result is None:
         warn(f"Unable to parse driver version '{driver_version}', default CUDA version is 13")
         return "13"
+    return result
 
 
 def get_cuda_tag(cuda_version: Optional[Union[str, int]] = None, sdk_version: str = "3.6.1") -> str:
@@ -503,7 +508,7 @@ def get_arch_gpu_str() -> str:
     return arch
 
 
-def _is_valid_sdk_installation(path: Union[str, Path]) -> bool:
+def is_valid_sdk_installation(path: Union[str, Path]) -> bool:
     """
     Validate if a directory contains a valid Holoscan SDK installation.
     """
@@ -541,7 +546,7 @@ def find_hsdk_build_rel_dir(local_sdk_root: Optional[Union[str, Path]] = None) -
         local_sdk_root = Path(local_sdk_root) if isinstance(local_sdk_root, str) else local_sdk_root
         if local_sdk_root.exists():
             # Check if this is a direct SDK installation directory
-            if _is_valid_sdk_installation(local_sdk_root):
+            if is_valid_sdk_installation(local_sdk_root):
                 return str(local_sdk_root)
             else:
                 # Treat as SDK root directory to search
@@ -551,7 +556,7 @@ def find_hsdk_build_rel_dir(local_sdk_root: Optional[Union[str, Path]] = None) -
     if os.environ.get("HOLOSCAN_SDK_ROOT"):
         env_path = Path(os.environ["HOLOSCAN_SDK_ROOT"])
         if env_path.exists():
-            if _is_valid_sdk_installation(env_path):
+            if is_valid_sdk_installation(env_path):
                 return str(env_path)
             else:
                 search_paths.append(env_path)
@@ -560,20 +565,17 @@ def find_hsdk_build_rel_dir(local_sdk_root: Optional[Union[str, Path]] = None) -
     arch_gpu = get_arch_gpu_str()
     for sdk_path in search_paths:
         for install_dir in [f"install-{arch_gpu}", "install"]:
-            if _is_valid_sdk_installation(sdk_path / install_dir):
+            if is_valid_sdk_installation(sdk_path / install_dir):
                 return install_dir
         for install_dir in sorted([d.name for d in sdk_path.glob("install-*") if d.is_dir()]):
-            if _is_valid_sdk_installation(sdk_path / install_dir):
+            if is_valid_sdk_installation(sdk_path / install_dir):
                 return install_dir
         for build_dir in [f"build-{arch_gpu}", "build"]:
-            if _is_valid_sdk_installation(sdk_path / build_dir):
+            if is_valid_sdk_installation(sdk_path / build_dir):
                 return build_dir
         for build_dir in sorted([d.name for d in sdk_path.glob("build-*") if d.is_dir()]):
-            if _is_valid_sdk_installation(sdk_path / build_dir):
+            if is_valid_sdk_installation(sdk_path / build_dir):
                 return build_dir
-    info(
-        f"Valid SDK installation not found. Looking for 'install-{arch_gpu}' or 'build-{arch_gpu}'."
-    )
     return f"build-{arch_gpu}"
 
 

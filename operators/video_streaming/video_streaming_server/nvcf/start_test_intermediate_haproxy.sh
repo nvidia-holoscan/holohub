@@ -82,4 +82,3 @@ backend webrtc_backend
         server s1 $NVCF_SERVER:443 ssl verify none
 EOF
 docker run --rm --net=host --name test-intermediate-haproxy -v $CONF_DIR:/usr/local/etc/haproxy:ro haproxy:2.4
-

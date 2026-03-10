@@ -30,5 +30,5 @@
 +    segmentation_visualizer->add_arg(Arg("allocator", make_resource<UnboundedAllocator>("allocator")));
 +
    }
- 
+
   private:
