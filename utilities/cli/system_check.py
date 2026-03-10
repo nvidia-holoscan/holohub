@@ -138,6 +138,12 @@ def check_cuda() -> CheckResult:
             build_str = build_match.group(1) if build_match else ""
             msg = f"{version_str} (nvcc {build_str})" if build_str else version_str
             return CheckResult(status="OK", name="CUDA", message=msg)
+        return CheckResult(
+            status="WARN",
+            name="CUDA",
+            message=f"nvcc found at {nvcc} but could not read version",
+            fix_suggestion="Check that nvcc is not corrupted: nvcc --version",
+        )
 
     # Fallback: check driver-based CUDA version and runtime package
     # Derive CUDA version silently (get_default_cuda_version() prints warnings to stdout
@@ -266,15 +272,18 @@ def check_holoscan() -> CheckResult:
         if root_path.exists() and is_valid_sdk_installation(root_path):
             version = _get_sdk_version(root_path)
             return CheckResult(status="OK", name="Holoscan", message=f"SDK {version} at {sdk_root}")
-        resolved = find_hsdk_build_rel_dir(root_path)
-        resolved_path = root_path / resolved if not Path(resolved).is_absolute() else Path(resolved)
-        if resolved_path.exists() and is_valid_sdk_installation(resolved_path):
-            version = _get_sdk_version(resolved_path)
-            return CheckResult(
-                status="OK",
-                name="Holoscan",
-                message=f"SDK {version} at {resolved_path} (via HOLOSCAN_SDK_ROOT)",
+        if root_path.exists():
+            resolved = find_hsdk_build_rel_dir(root_path)
+            resolved_path = (
+                root_path / resolved if not Path(resolved).is_absolute() else Path(resolved)
             )
+            if resolved_path.exists() and is_valid_sdk_installation(resolved_path):
+                version = _get_sdk_version(resolved_path)
+                return CheckResult(
+                    status="OK",
+                    name="Holoscan",
+                    message=f"SDK {version} at {resolved_path} (via HOLOSCAN_SDK_ROOT)",
+                )
 
     searched = sdk_dir
     if sdk_root:
