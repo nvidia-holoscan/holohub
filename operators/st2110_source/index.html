@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://nvidia-holoscan.github.io/holohub/operators/vtk_renderer/">
+        <link rel="canonical" href="https://nvidia-holoscan.github.io/holohub/operators/st2110_source/">
       
       
-        <link rel="prev" href="../volume_renderer/">
+        <link rel="prev" href="../slang_shader/">
       
       
-        <link rel="next" href="../webrtc_client/">
+        <link rel="next" href="../streaming_server/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>VtkRendererOp (latest) - NVIDIA Holoscan Reference Applications</title>
+        <title>ST2110SourceOp (latest) - NVIDIA Holoscan Reference Applications</title>
       
     
     
@@ -96,7 +96,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#vtk-renderer-operator" class="md-skip">
+        <a href="#st-2110-source-operator" class="md-skip">
           Skip to content
         </a>
       
@@ -142,7 +142,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              VtkRendererOp (latest)
+              ST2110SourceOp (latest)
             
           </span>
         </div>
@@ -14767,6 +14767,8 @@
                 
   
   
+    
+  
   
   
     
@@ -14783,15 +14785,15 @@
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_33" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_33" checked>
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../st2110_source/" class="md-nav__link ">
+            <a href="./" class="md-nav__link md-nav__link--active">
               
   
   
@@ -14810,7 +14812,7 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_33_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_33_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4_33">
             <span class="md-nav__icon md-icon"></span>
             
@@ -15920,8 +15922,6 @@
                 
   
   
-    
-  
   
   
     
@@ -15938,15 +15938,15 @@
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_46" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_46" >
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="./" class="md-nav__link md-nav__link--active">
+            <a href="../vtk_renderer/" class="md-nav__link ">
               
   
   
@@ -15965,7 +15965,7 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_46_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_46_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4_46">
             <span class="md-nav__icon md-icon"></span>
             
@@ -18209,10 +18209,32 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#how-to-build-this-operator" class="md-nav__link">
+  <a href="#overview" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How to build this operator
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-ports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output Ports
       
     </span>
   </a>
@@ -18224,6 +18246,217 @@
     <span class="md-ellipsis">
       
         Parameters
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Requirements
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Requirements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hardware" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hardware
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#software" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Software
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#c-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C++ Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#building" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Building
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#network-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Network Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Network Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#system-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        System Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multicast-routing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multicast Routing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#supported-video-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supported Video Formats
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#no-packets-received" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        No packets received
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#packet-drops-frame-tearing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Packet drops / frame tearing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#color-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Color issues
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#platform-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Platform Support
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        References
       
     </span>
   </a>
@@ -18255,10 +18488,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#vtkrendererop" class="md-nav__link">
+  <a href="#st2110sourceop" class="md-nav__link">
     <span class="md-ellipsis">
       
-        VtkRendererOp
+        ST2110SourceOp
       
     </span>
   </a>
@@ -18272,17 +18505,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#parameters_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Parameters
-      
-    </span>
-  </a>
   
 </li>
       
@@ -18350,7 +18572,7 @@
         <a href="./" class="md-path__link">
           
   <span class="md-ellipsis">
-    VTK Renderer
+    ST 2110 Source
   </span>
 
         </a>
@@ -18373,74 +18595,433 @@
       
       
       
-        <a href="../../tags/#tag:visualization" class="md-tag">Visualization</a>
+        <a href="../../tags/#tag:broadcast" class="md-tag">Broadcast</a>
+      
+    
+      
+      
+      
+      
+        <a href="../../tags/#tag:networking-and-distributed-computing" class="md-tag">Networking and Distributed Computing</a>
+      
+    
+      
+      
+      
+      
+        <a href="../../tags/#tag:st-2110" class="md-tag">ST 2110</a>
+      
+    
+      
+      
+      
+      
+        <a href="../../tags/#tag:video-capture" class="md-tag">Video Capture</a>
       
     
   </nav>
 
 
 
-<h1 id="vtk-renderer-operator"><a href="https://github.com/nvidia-holoscan/holohub/blob/main/operators/vtk_renderer">VTK Renderer Operator</a><a class="headerlink" href="#vtk-renderer-operator" title="Permanent link">#</a></h1>
-<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/></svg></span> <strong>Authors:</strong> Kitware Team (Kitware Inc)<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"/></svg></span> <strong>Supported platforms:</strong> x86_64, aarch64<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"/><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"/></svg></span> <strong>Language:</strong> C++, Python<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> <strong>Last modified:</strong> August 5, 2025<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> <strong>Latest version:</strong> 1.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"/><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/></svg></span> <strong>Minimum Holoscan SDK version:</strong> 1.0.3<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"/></svg></span> <strong>Tested Holoscan SDK versions:</strong> 1.0.3<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"/></svg></span> <strong>Contribution metric:</strong> Level 1 - Highly Reliable<br><br></p>
-<p>The <code>vtk_renderer</code> extension takes the output of the source video player and the
-output of the <code>tool_tracking_postprocessor</code> operator and renders the video
-stream with an overlay annotation of the label using VTK.</p>
-<p>VTK can be a useful addition to holohub stack since VTK is a industry leading
-visualization toolkit. It is important to mention that this renderer operator
-needs to copy the input from device memory to host due to limitations of VTK.
-While this is a strong limitation for VTK we believe that VTK can still be a
-good addition and VTK is an evolving project. Perhaps in the future we could
-overcome this limitation.</p>
-<h2 id="how-to-build-this-operator">How to build this operator<a class="headerlink" href="#how-to-build-this-operator" title="Permanent link">#</a></h2>
-<p>Using Holohub CLI, you can create and run a container, which includes VTK,
-by running the following command from the root directory of Holohub:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>vtk_renderer
-</code></pre></div>
-<p>This command will create and run a container based on the provided <a href="https://github.com/nvidia-holoscan/holohub/blob/main/operators/vtk_renderer/Dockerfile"><code>Dockerfile</code></a>.</p>
-<blockquote>
-<p>[!NOTE]
-If you want to only build the docker image without running it, you can use the following command,
-which will only create the image and tag it as <code>holohub:vtk_renderer</code>.</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build-container<span class="w"> </span>vtk_renderer
-</code></pre></div>
-</blockquote>
-<p>Inside the container you can build the holohub application with:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>&lt;application&gt;<span class="w"> </span>--build-with<span class="w"> </span>vtk_renderer
-</code></pre></div>
-<h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">#</a></h2>
+<h1 id="st-2110-source-operator"><a href="https://github.com/nvidia-holoscan/holohub/blob/main/operators/st2110_source">ST 2110 Source Operator</a><a class="headerlink" href="#st-2110-source-operator" title="Permanent link">#</a></h1>
+<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/></svg></span> <strong>Authors:</strong> Oliver Cleveley-Jones (XRlabs)<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"/></svg></span> <strong>Supported platforms:</strong> x86_64, aarch64<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"/><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"/></svg></span> <strong>Language:</strong> C++, Python<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> <strong>Last modified:</strong> March 10, 2026<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> <strong>Latest version:</strong> 1.0.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"/><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/></svg></span> <strong>Minimum Holoscan SDK version:</strong> 3.7.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"/></svg></span> <strong>Tested Holoscan SDK versions:</strong> 3.7.0, 3.10.0, 3.11.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"/></svg></span> <strong>Contribution metric:</strong> Level 2 - Trusted<br><br></p>
+<p><img alt="ST 2110 Source" src="https://github.com/nvidia-holoscan/holohub/blob/main/operators/st2110_source/st2110_source.jpg?raw=true" /></p>
+<p>The ST 2110 Source operator receives SMPTE ST 2110-20 uncompressed video streams over IP networks. This operator is designed for professional broadcast and media production workflows requiring video ingestion from ST 2110-compliant sources.</p>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h2>
+<p>SMPTE ST 2110 is a suite of standards for the transmission of professional media over managed IP networks. ST 2110-20 specifically defines the transport of uncompressed video using RTP (Real-time Transport Protocol). This operator:</p>
 <ul>
-<li><strong><code>videostream</code></strong>: Input channel for the videostream, type <code>gxf::Tensor</code></li>
-<li>type: <code>gxf::Handle&lt;gxf::Receiver&gt;</code></li>
-<li><strong><code>annotations</code></strong>: Input channel for the annotations, type <code>gxf::Tensor</code></li>
-<li>type: <code>gxf::Handle&lt;gxf::Receiver&gt;</code></li>
-<li><strong><code>window_name</code></strong>: Compositor window name.</li>
-<li>type: <code>std::string</code></li>
-<li><strong><code>width</code></strong>: width of the renderer window.</li>
-<li>type: <code>int</code></li>
-<li><strong><code>height</code></strong>: height of the renderer window.</li>
-<li>type: <code>int</code></li>
-<li><strong><code>labels</code></strong>: labels to be displayed on the rendered image.</li>
-<li>type: <code>std::vector&lt;std::string&gt;&gt;</code></li>
+<li>Receives ST 2110-20 RTP packets via Linux UDP sockets</li>
+<li>Parses RTP and ST 2110-20 headers for frame reassembly</li>
+<li>Reassembles packets into complete video frames using line number/offset addressing</li>
+<li>Provides CUDA kernels for 10-bit YCbCr to RGBA/NV12 conversion</li>
+<li>Supports multiple simultaneous output formats</li>
+<li>Compatible with both x86_64 and aarch64 (ARM64) platforms including NVIDIA Thor AGX</li>
+</ul>
+<h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">#</a></h2>
+<p>The operator uses a triple-buffer architecture with CUDA pinned memory for efficient CPU-to-GPU transfer:</p>
+<div class="highlight"><pre><span></span><code>UDP Socket (multicast)
+        │
+        ▼
+   recvmmsg() batch receive
+        │
+        ▼
+   RTP/ST2110 header parsing
+        │
+        ▼
+   Triple-buffer (pinned memory)
+   [Assembling] [Complete] [Complete]
+        │
+        ▼
+   cudaMemcpyAsync (H2D)
+        │
+        ├──► raw_output (YCbCr-4:2:2-10bit)
+        │
+        ├──► CUDA kernel ──► rgba_output (RGBA 8-bit)
+        │
+        └──► CUDA kernel ──► nv12_output (NV12 8-bit)
+</code></pre></div>
+<h2 id="output-ports">Output Ports<a class="headerlink" href="#output-ports" title="Permanent link">#</a></h2>
+<p>The operator provides three output ports:</p>
+<table>
+<thead>
+<tr>
+<th>Port</th>
+<th>Format</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>raw_output</code></td>
+<td>YCbCr-4:2:2-10bit</td>
+<td>Raw ST 2110-20 frame data (always emitted)</td>
+</tr>
+<tr>
+<td><code>rgba_output</code></td>
+<td>RGBA 8-bit</td>
+<td>Converted frame for visualization (optional)</td>
+</tr>
+<tr>
+<td><code>nv12_output</code></td>
+<td>NV12 8-bit</td>
+<td>Converted frame for video encoding (optional)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>multicast_address</code></td>
+<td>string</td>
+<td>Multicast IP address for ST 2110 stream</td>
+<td>"239.0.0.1"</td>
+</tr>
+<tr>
+<td><code>port</code></td>
+<td>uint16_t</td>
+<td>UDP port for ST 2110 stream</td>
+<td>5004</td>
+</tr>
+<tr>
+<td><code>interface_name</code></td>
+<td>string</td>
+<td>Linux network interface name (e.g., "mgbe0_0", "eth0")</td>
+<td>"eth0"</td>
+</tr>
+<tr>
+<td><code>width</code></td>
+<td>uint32_t</td>
+<td>Width of the video stream in pixels</td>
+<td>1920</td>
+</tr>
+<tr>
+<td><code>height</code></td>
+<td>uint32_t</td>
+<td>Height of the video stream in pixels</td>
+<td>1080</td>
+</tr>
+<tr>
+<td><code>framerate</code></td>
+<td>uint32_t</td>
+<td>Expected frame rate of the video stream</td>
+<td>60</td>
+</tr>
+<tr>
+<td><code>stream_format</code></td>
+<td>string</td>
+<td>Input format: "YCbCr-4:2:2-10bit", "YCbCr-4:2:2-8bit", "RGBA-8bit"</td>
+<td>"YCbCr-4:2:2-10bit"</td>
+</tr>
+<tr>
+<td><code>enable_rgba_output</code></td>
+<td>bool</td>
+<td>Enable RGBA conversion and emission</td>
+<td>false</td>
+</tr>
+<tr>
+<td><code>enable_nv12_output</code></td>
+<td>bool</td>
+<td>Enable NV12 conversion and emission</td>
+<td>false</td>
+</tr>
+<tr>
+<td><code>batch_size</code></td>
+<td>uint32_t</td>
+<td>Number of packets to receive per compute() call</td>
+<td>1000</td>
+</tr>
+<tr>
+<td><code>max_packet_size</code></td>
+<td>uint16_t</td>
+<td>Maximum ST 2110 packet size in bytes</td>
+<td>1514</td>
+</tr>
+</tbody>
+</table>
+<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h2>
+<h3 id="hardware">Hardware<a class="headerlink" href="#hardware" title="Permanent link">#</a></h3>
+<ul>
+<li>CUDA-capable NVIDIA GPU</li>
+<li>Network interface with multicast support</li>
+<li>ST 2110-compliant video source (e.g., Blackmagic Design equipment)</li>
+</ul>
+<h3 id="software">Software<a class="headerlink" href="#software" title="Permanent link">#</a></h3>
+<ul>
+<li>Holoscan SDK 3.7.0 or later</li>
+<li>CUDA Toolkit 12.x or later</li>
+<li>Linux with multicast routing configured</li>
+</ul>
+<h2 id="usage-examples">Usage Examples<a class="headerlink" href="#usage-examples" title="Permanent link">#</a></h2>
+<h3 id="python-example">Python Example<a class="headerlink" href="#python-example" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">holoscan.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Application</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">holoscan.operators</span><span class="w"> </span><span class="kn">import</span> <span class="n">HolovizOp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">holohub.st2110_source</span><span class="w"> </span><span class="kn">import</span> <span class="n">ST2110SourceOp</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ST2110App</span><span class="p">(</span><span class="n">Application</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Create ST 2110 source operator with RGBA output enabled</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">ST2110SourceOp</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;st2110_source&quot;</span><span class="p">,</span>
+            <span class="n">multicast_address</span><span class="o">=</span><span class="s2">&quot;239.255.66.60&quot;</span><span class="p">,</span>
+            <span class="n">port</span><span class="o">=</span><span class="mi">16388</span><span class="p">,</span>
+            <span class="n">interface_name</span><span class="o">=</span><span class="s2">&quot;mgbe0_0&quot;</span><span class="p">,</span>
+            <span class="n">width</span><span class="o">=</span><span class="mi">1920</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="mi">1080</span><span class="p">,</span>
+            <span class="n">framerate</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+            <span class="n">stream_format</span><span class="o">=</span><span class="s2">&quot;YCbCr-4:2:2-10bit&quot;</span><span class="p">,</span>
+            <span class="n">enable_rgba_output</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Visualize received video</span>
+        <span class="n">visualizer</span> <span class="o">=</span> <span class="n">HolovizOp</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;visualizer&quot;</span><span class="p">,</span>
+            <span class="n">width</span><span class="o">=</span><span class="mi">1920</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="mi">1080</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Connect RGBA output to visualizer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">visualizer</span><span class="p">,</span> <span class="p">{(</span><span class="s2">&quot;rgba_output&quot;</span><span class="p">,</span> <span class="s2">&quot;receivers&quot;</span><span class="p">)})</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">app</span> <span class="o">=</span> <span class="n">ST2110App</span><span class="p">()</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</code></pre></div>
+<h3 id="c-example">C++ Example<a class="headerlink" href="#c-example" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;holoscan/holoscan.hpp&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;st2110_source.hpp&quot;</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ST2110App</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">holoscan</span><span class="o">::</span><span class="n">Application</span><span class="w"> </span><span class="p">{</span>
+<span class="w"> </span><span class="k">public</span><span class="o">:</span>
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="n">compose</span><span class="p">()</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">holoscan</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">source</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">ops</span><span class="o">::</span><span class="n">ST2110SourceOp</span><span class="o">&gt;</span><span class="p">(</span>
+<span class="w">        </span><span class="s">&quot;st2110_source&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;multicast_address&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;239.255.66.60&quot;</span><span class="p">),</span>
+<span class="w">        </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;port&quot;</span><span class="p">,</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">uint16_t</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">16388</span><span class="p">)),</span>
+<span class="w">        </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;interface_name&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;mgbe0_0&quot;</span><span class="p">),</span>
+<span class="w">        </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;width&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">1920u</span><span class="p">),</span>
+<span class="w">        </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;height&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">1080u</span><span class="p">),</span>
+<span class="w">        </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;framerate&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">50u</span><span class="p">),</span>
+<span class="w">        </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;stream_format&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;YCbCr-4:2:2-10bit&quot;</span><span class="p">),</span>
+<span class="w">        </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;enable_rgba_output&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">));</span>
+
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">visualizer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">ops</span><span class="o">::</span><span class="n">HolovizOp</span><span class="o">&gt;</span><span class="p">(</span>
+<span class="w">        </span><span class="s">&quot;visualizer&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;width&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">1920</span><span class="p">),</span>
+<span class="w">        </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;height&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">1080</span><span class="p">));</span>
+
+<span class="w">    </span><span class="n">add_flow</span><span class="p">(</span><span class="n">source</span><span class="p">,</span><span class="w"> </span><span class="n">visualizer</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="err">&#39;</span><span class="n">rgba_output</span><span class="err">&#39;</span><span class="p">,</span><span class="w"> </span><span class="err">&#39;</span><span class="n">receivers</span><span class="err">&#39;</span><span class="p">));</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">};</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">app</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">holoscan</span><span class="o">::</span><span class="n">make_application</span><span class="o">&lt;</span><span class="n">ST2110App</span><span class="o">&gt;</span><span class="p">();</span>
+<span class="w">  </span><span class="n">app</span><span class="o">-&gt;</span><span class="n">run</span><span class="p">();</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="building">Building<a class="headerlink" href="#building" title="Permanent link">#</a></h2>
+<p>To build the operator:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>st2110_source
+</code></pre></div>
+<p>To build with Python bindings:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>st2110_source<span class="w"> </span>--configure-args<span class="w"> </span><span class="s2">&quot;-DHOLOHUB_BUILD_PYTHON=ON&quot;</span>
+</code></pre></div>
+<h2 id="network-configuration">Network Configuration<a class="headerlink" href="#network-configuration" title="Permanent link">#</a></h2>
+<h3 id="system-configuration">System Configuration<a class="headerlink" href="#system-configuration" title="Permanent link">#</a></h3>
+<p>Increase the socket buffer size for high-bandwidth streams:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Temporary (until reboot)</span>
+sudo<span class="w"> </span>sysctl<span class="w"> </span>-w<span class="w"> </span>net.core.rmem_max<span class="o">=</span><span class="m">268435456</span>
+sudo<span class="w"> </span>sysctl<span class="w"> </span>-w<span class="w"> </span>net.core.rmem_default<span class="o">=</span><span class="m">268435456</span>
+
+<span class="c1"># Permanent (add to /etc/sysctl.conf)</span>
+net.core.rmem_max<span class="o">=</span><span class="m">268435456</span>
+net.core.rmem_default<span class="o">=</span><span class="m">268435456</span>
+</code></pre></div>
+<h3 id="multicast-routing">Multicast Routing<a class="headerlink" href="#multicast-routing" title="Permanent link">#</a></h3>
+<p>Ensure multicast traffic is routed to the correct interface:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Add multicast route for your interface</span>
+sudo<span class="w"> </span>ip<span class="w"> </span>route<span class="w"> </span>add<span class="w"> </span><span class="m">239</span>.0.0.0/8<span class="w"> </span>dev<span class="w"> </span>mgbe0_0
+
+<span class="c1"># Verify multicast group membership</span>
+ip<span class="w"> </span>maddr<span class="w"> </span>show<span class="w"> </span>dev<span class="w"> </span>mgbe0_0
+</code></pre></div>
+<h2 id="supported-video-formats">Supported Video Formats<a class="headerlink" href="#supported-video-formats" title="Permanent link">#</a></h2>
+<p>The operator supports ST 2110-20 uncompressed video at various resolutions:</p>
+<ul>
+<li>720p (1280x720)</li>
+<li>1080p/1080i (1920x1080)</li>
+<li>2K (2048x1080)</li>
+<li>UHD/4K (3840x2160, 4096x2160)</li>
+</ul>
+<p>Supported input formats:</p>
+<ul>
+<li><strong>YCbCr-4:2:2-10bit</strong>: 2.5 bytes per pixel (default, common for broadcast)</li>
+<li><strong>YCbCr-4:2:2-8bit</strong>: 2 bytes per pixel</li>
+<li><strong>RGBA-8bit</strong>: 4 bytes per pixel</li>
+</ul>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h2>
+<h3 id="no-packets-received">No packets received<a class="headerlink" href="#no-packets-received" title="Permanent link">#</a></h3>
+<ul>
+<li>Verify multicast address and port match your ST 2110 source</li>
+<li>Check interface name is correct (<code>ip link show</code>)</li>
+<li>Ensure multicast routing is configured</li>
+<li>Check firewall allows UDP traffic: <code>sudo ufw allow 5004/udp</code></li>
+</ul>
+<h3 id="packet-drops-frame-tearing">Packet drops / frame tearing<a class="headerlink" href="#packet-drops-frame-tearing" title="Permanent link">#</a></h3>
+<ul>
+<li>Increase socket buffer size (see Network Configuration)</li>
+<li>Reduce other network traffic on the interface</li>
+<li>Check CPU load - ensure sufficient cores available</li>
+</ul>
+<h3 id="color-issues">Color issues<a class="headerlink" href="#color-issues" title="Permanent link">#</a></h3>
+<ul>
+<li>Verify <code>stream_format</code> matches your source (10-bit vs 8-bit)</li>
+<li>Check source colorimetry settings (BT.709 assumed)</li>
+</ul>
+<h2 id="platform-support">Platform Support<a class="headerlink" href="#platform-support" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>x86_64</strong>: Full support</li>
+<li><strong>aarch64 (ARM64)</strong>: Full support including NVIDIA Thor AGX with MGBE</li>
+</ul>
+<h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">#</a></h2>
+<ul>
+<li><a href="https://www.smpte.org/">SMPTE ST 2110-20:2017</a> - Uncompressed Video</li>
+<li><a href="https://www.smpte.org/">SMPTE ST 2110-21:2017</a> - Traffic Shaping and Delivery Timing</li>
+<li><a href="https://docs.nvidia.com/holoscan/">Holoscan SDK Documentation</a></li>
 </ul>
 <h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
 <h3 id="python">Python<a class="headerlink" href="#python" title="Permanent link">#</a></h3>
-<h4 id="vtkrendererop"><code>VtkRendererOp</code><a class="headerlink" href="#vtkrendererop" title="Permanent link">#</a></h4>
-<p>Operator for using VTK for rendering.</p>
-<p><strong>==Named Inputs==</strong></p>
-<div class="highlight"><pre><span></span><code>annotations: Input channel for the annotations, type `gxf::Tensor`
-videostream: Input channel for the videostream, type `gxf::Tensor`
-</code></pre></div>
-<h2 id="parameters_1">Parameters<a class="headerlink" href="#parameters_1" title="Permanent link">#</a></h2>
-<p>labels: std::vector<std::string>&gt;
-    labels to be displayed on the rendered image.
-width: int
-    width of the renderer window.
-eight: int
-    height of the renderer window.
-window_name: std::string
-    Compositor window name.
-name : str, optional
-    The name of the operator.</p>
+<h4 id="st2110sourceop"><code>ST2110SourceOp</code><a class="headerlink" href="#st2110sourceop" title="Permanent link">#</a></h4>
+<h5 id="constructor-parameters">Constructor Parameters<a class="headerlink" href="#constructor-parameters" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>fragment</code></td>
+<td><code>Fragment</code></td>
+<td>Required</td>
+<td>The fragment that the operator belongs to.</td>
+</tr>
+<tr>
+<td><code>multicast_address</code></td>
+<td><code>str</code></td>
+<td>Optional</td>
+<td>Multicast IP address for ST 2110 stream (e.g., "239.255.66.60"). Default value is <code>"239.0.0.1"</code>.</td>
+</tr>
+<tr>
+<td><code>port</code></td>
+<td><code>int</code></td>
+<td>Optional</td>
+<td>UDP port for ST 2110 stream. Default value is <code>5004</code>.</td>
+</tr>
+<tr>
+<td><code>interface_name</code></td>
+<td><code>str</code></td>
+<td>Optional</td>
+<td>Linux network interface name (e.g., "mgbe0_0", "eth0"). Default value is <code>"eth0"</code>.</td>
+</tr>
+<tr>
+<td><code>width</code></td>
+<td><code>int</code></td>
+<td>Optional</td>
+<td>Width of the video stream in pixels. Default value is <code>1920</code>.</td>
+</tr>
+<tr>
+<td><code>height</code></td>
+<td><code>int</code></td>
+<td>Optional</td>
+<td>Height of the video stream in pixels. Default value is <code>1080</code>.</td>
+</tr>
+<tr>
+<td><code>framerate</code></td>
+<td><code>int</code></td>
+<td>Optional</td>
+<td>Expected frame rate of the video stream. Default value is <code>60</code>.</td>
+</tr>
+<tr>
+<td><code>stream_format</code></td>
+<td><code>str</code></td>
+<td>Optional</td>
+<td>Input stream format. Supported: "YCbCr-4:2:2-10bit", "YCbCr-4:2:2-8bit", "RGBA-8bit". Default value is <code>"YCbCr-4:2:2-10bit"</code>.</td>
+</tr>
+<tr>
+<td><code>enable_rgba_output</code></td>
+<td><code>bool</code></td>
+<td>Optional</td>
+<td>Enable RGBA conversion and emission on rgba_output port. Default value is <code>False</code>.</td>
+</tr>
+<tr>
+<td><code>enable_nv12_output</code></td>
+<td><code>bool</code></td>
+<td>Optional</td>
+<td>Enable NV12 conversion and emission on nv12_output port. Default value is <code>False</code>.</td>
+</tr>
+<tr>
+<td><code>batch_size</code></td>
+<td><code>int</code></td>
+<td>Optional</td>
+<td>Number of packets to receive per compute() call. Default value is <code>1000</code>.</td>
+</tr>
+<tr>
+<td><code>max_packet_size</code></td>
+<td><code>int</code></td>
+<td>Optional</td>
+<td>Maximum size of ST 2110 packets in bytes. Default value is <code>1514</code>.</td>
+</tr>
+<tr>
+<td><code>rtp_header_size</code></td>
+<td><code>int</code></td>
+<td>Optional</td>
+<td>Size of RTP header in bytes. Default value is <code>12</code>.</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code>str</code></td>
+<td>Optional</td>
+<td>The name of the operator. Default value is <code>"st2110_source"</code>.</td>
+</tr>
+</tbody>
+</table>
 
 
 
@@ -18481,7 +19062,7 @@ name : str, optional
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../volume_renderer/" class="md-footer__link md-footer__link--prev" aria-label="Previous: VolumeRendererOp (latest)">
+          <a href="../slang_shader/" class="md-footer__link md-footer__link--prev" aria-label="Previous: SlangShaderOp (latest)">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -18491,20 +19072,20 @@ name : str, optional
                 Previous
               </span>
               <div class="md-ellipsis">
-                VolumeRendererOp (latest)
+                SlangShaderOp (latest)
               </div>
             </div>
           </a>
         
         
           
-          <a href="../webrtc_client/" class="md-footer__link md-footer__link--next" aria-label="Next: WebRTCClientOp (latest)">
+          <a href="../streaming_server/" class="md-footer__link md-footer__link--next" aria-label="Next: streaming_server (latest)">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                WebRTCClientOp (latest)
+                streaming_server (latest)
               </div>
             </div>
             <div class="md-footer__button md-icon">
