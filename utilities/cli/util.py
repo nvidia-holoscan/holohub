@@ -576,9 +576,6 @@ def find_hsdk_build_rel_dir(local_sdk_root: Optional[Union[str, Path]] = None) -
         for build_dir in sorted([d.name for d in sdk_path.glob("build-*") if d.is_dir()]):
             if is_valid_sdk_installation(sdk_path / build_dir):
                 return build_dir
-    info(
-        f"Valid SDK installation not found. Looking for 'install-{arch_gpu}' or 'build-{arch_gpu}'."
-    )
     return f"build-{arch_gpu}"
 
 

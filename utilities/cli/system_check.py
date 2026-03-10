@@ -422,19 +422,19 @@ def check_devices() -> CheckResult:
 def run_all_checks() -> List[CheckResult]:
     """Run all system info checks and return results"""
     checks = [
-        check_gpu,
-        check_cuda,
-        check_docker,
-        check_holoscan,
-        check_disk,
-        check_cli,
-        check_container,
-        check_display,
-        check_devices,
+        ("GPU", check_gpu),
+        ("CUDA", check_cuda),
+        ("Docker", check_docker),
+        ("Holoscan", check_holoscan),
+        ("Disk", check_disk),
+        ("CLI", check_cli),
+        ("Container", check_container),
+        ("Display", check_display),
+        ("Devices", check_devices),
     ]
 
     results = []
-    for check_fn in checks:
+    for canonical_name, check_fn in checks:
         try:
             result = check_fn()
             results.append(result)
@@ -442,7 +442,7 @@ def run_all_checks() -> List[CheckResult]:
             results.append(
                 CheckResult(
                     status="FAIL",
-                    name=getattr(check_fn, "__name__", "Unknown").replace("check_", "").title(),
+                    name=canonical_name,
                     message=f"Check failed: {e}",
                 )
             )
