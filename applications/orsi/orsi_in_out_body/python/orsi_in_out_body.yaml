@@ -1,5 +1,5 @@
 %YAML 1.2
-# SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,14 +35,14 @@ format_converter:  # FormatConverter
     out_tensor_name: source_video
     out_dtype: "float32"
     src_roi_rect: [ 328, 36, 1264, 1008 ]
-    output_img_size : [512, 512] 
+    output_img_size : [512, 512]
 
 format_converter_anonymization:  # FormatConverter
     # in_tensor_name: source_video
     out_tensor_name: source_video
     out_dtype: "float32"
     src_roi_rect: [ 328, 36, 1264, 1008 ]
-    output_img_size : [224, 224] 
+    output_img_size : [224, 224]
 
 anonymization_preprocessor: # Preprocessor
    in_tensor_name: source_video
@@ -64,4 +64,3 @@ orsi_visualizer:  # OrsiVizGXF Codelet
   stl_names: []
   stl_colors: [] # in RGBA format
   stl_keys: [] # see https://www.glfw.org/docs/3.3/group__keys.html
-

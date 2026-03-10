@@ -1,24 +1,26 @@
-## Using NVTX Profiling on ssd_step1.py
+# Using NVTX Profiling on ssd_step1.py
+
 *This file relates to the `Step 2: Optimize performance for postprocessing code from Step 1` section in the [README](README.md).*
 
 Before we get started, make sure you have installed NVTX:
-```
+
+```bash
 python3 -m pip install nvtx
 ```
 
-First, see the profiling of 15 seconds of running the app without doing any code modification to the python app: 
+First, see the profiling of 15 seconds of running the app without doing any code modification to the python app:
 
-```
+```bash
 nsys profile -d 15 python3 ssd_step1.py
 ```
-Open the generated report `report*.nsys-rep` in NVIDIA Nsight Systems. 
-![Nsys 0](./images/nsys0.PNG)
-Zooming in, we can already see that the postprocessor is taking ~60 ms by itself! 
 
+Open the generated report `report*.nsys-rep` in NVIDIA Nsight Systems.
+![Nsys 0](./images/nsys0.PNG)
+Zooming in, we can already see that the postprocessor is taking ~60 ms by itself!
 
 We tag each part of the postprocessor with NVTX like the following, and running the command `nsys profile -d 15 python3 ssd_step1.py` again to get more details in the postprocessor's `compute()`.
 
-```
+```python
 def compute(self, op_input, op_output, context):
     with nvtx.annotate("in_tensor_interop", color = "green"):
         in_message = op_input.receive("in")
@@ -44,12 +46,12 @@ def compute(self, op_input, op_output, context):
     with nvtx.annotate("get_bboxes_from_decoded", color = "red"):
         bboxes, classes, confidences = [x.detach().cpu().numpy().astype(np.float32) for x in encoded[0]]
         best = np.argwhere(confidences > 0.3).squeeze()
-    
-        # Holoviz takes in rectangles of shapes [1, n/2, 2] where 
-        # n is the number of rectangles to render. bboxes[idx] has 
+
+        # Holoviz takes in rectangles of shapes [1, n/2, 2] where
+        # n is the number of rectangles to render. bboxes[idx] has
         # four values in range [0,1], representing [left, top, right, bottom]
         bboxes_output = bboxes[best].reshape(1, -1, 2)
-    
+
     # output
     with nvtx.annotate("out_tensor_interop", color = "purple"):
         out_message = Entity(context)
@@ -59,14 +61,14 @@ def compute(self, op_input, op_output, context):
 
 ```
 
-Run the same `nsys profile` profiling command again. We can see the most time goes into the highlighted part in orange: 
+Run the same `nsys profile` profiling command again. We can see the most time goes into the highlighted part in orange:
 `encoded = encoder.decode_batch(locs_pyt, labels_pyt, criteria=0.5, max_output=20).`
 ![Nsys 1](./images/nsys1.PNG)
-The yellow part can be avoided by declaring in `__init__()` instead of every time in `compute()`. Then we will see: 
+The yellow part can be avoided by declaring in `__init__()` instead of every time in `compute()`. Then we will see:
 ![Nsys 2](./images/nsys2.PNG)
 Let’s take a look at part highlighted in orange: `decode_batch()` and highlights its components further in green, pink, blue:
 
-```
+```python
 def decode_batch(self, bboxes_in, scores_in,  criteria = 0.45, max_output=200):
     with nvtx.annotate("scale_back_batch", color="green"):
         bboxes, probs = self.scale_back_batch(bboxes_in, scores_in)
@@ -82,11 +84,12 @@ def decode_batch(self, bboxes_in, scores_in,  criteria = 0.45, max_output=200):
 @nvtx.annotate(color="blue")
 def decode_single(self, bboxes_in, scores_in, criteria, max_output, max_num=200):
 ```
+
 Then we can see that the majority comes from the one call to `decode_single()`. (one call since we have batch size 1).
 ![Nsys 3](./images/nsys3.PNG)
 Let's do some more digging into `decode_single()`, label its components further with magenta, orange, red, green:
 
-```
+```python
 # perform non-maximum suppression
 @nvtx.annotate(color="blue")
 def decode_single(self, bboxes_in, scores_in, criteria, max_output, max_num=200):
@@ -141,11 +144,12 @@ def decode_single(self, bboxes_in, scores_in, criteria, max_output, max_num=200)
         max_ids = max_ids[-max_output:]
         return bboxes_out[max_ids, :], labels_out[max_ids], scores_out[max_ids]
 ```
-We can see that the for loop for non-maximum suppression that enumerates through each of the 81 classes for the scores_in tensor of shape [8732, 81] is taking up a lot of time, therefore we should look for a way to optimize the NMS implementation so we don't have the for loop. 
+
+We can see that the for loop for non-maximum suppression that enumerates through each of the 81 classes for the scores_in tensor of shape [8732, 81] is taking up a lot of time, therefore we should look for a way to optimize the NMS implementation so we don't have the for loop.
 
 The reason we only see two iterations of the for loop having the orange plus red parts after the black part is because the original model was trained with only 7 classes for ground truth, and most of the 81 classes don't pass the thresholding step annotated in black. If we train a model with the full 81 classes and run on a video with various objects of various classes, after each black block there will be a larger orange and red block, resulting in a much longer processing time than ~60 ms. (For example, with the SSD model trained on the full 81 classes running on a traffic cam video full of people, cars, buses and more, the ~60 ms latency becomes ~160 ms).
 ![Nsys 4](./images/nsys4.PNG)
-If we zoom in closer and look at the CUDA memory activities, we can see there are a lot of copies between Device and Host. 
+If we zoom in closer and look at the CUDA memory activities, we can see there are a lot of copies between Device and Host.
 ![Nsys 45](./images/nsys45.PNG)
 
 After searching online, we find that PyTorch has an optimized function we can utilize [https://pytorch.org/vision/stable/generated/torchvision.ops.nms.html#torchvision.ops.nms](https://pytorch.org/vision/stable/generated/torchvision.ops.nms.html#torchvision.ops.nms). With this implementation, we see the postprocessor gained a speedup from ~60 ms in `ssd_step1.py` to ~ 6 ms in `ssd_step2_route1.py`!

@@ -29,6 +29,7 @@ system or an NVIDIA IGX developer kit.
 
 To run the application you need a live or replayer source to stream Velodyne VLP-16 packet
 data to the application. That may be either:
+
 - A Velodyne VLP-16 lidar sensor. Review the [VLP-16 user manual](https://data.ouster.io/downloads/velodyne/user-manual/vlp-16-user-manual-revf.pdf)
 - A VLP-16 `.pcap` recording file and a packet replayer software.
   - Visit Kitware's VeloView [Velodyne Lidar collection](https://www.paraview.org/veloview/#download) for sample VLP-16 `.pcap` files.
@@ -77,6 +78,7 @@ according to the Velodyne lidar specification, where the VLP-16 packet defines 3
 ### What are some limitations of the application?
 
 This application is intended as a simple demonstration of how a lidar sensor can be integrated for input to Holoscan SDK for low latency processing. It does not propose any novel features. Some limitations compared with more complete lidar solutions are:
+
 - No cloud filtering -- all zero-ranged points are kept in the buffer and visualized.
 - No advanced inference techniques -- the cloud is simply translated and visualized.
 - No RDMA -- VLP-16 lidar packets are received via the host ethernet interface on the IGX or x86_64 machine and then copied to the GPU device.
@@ -88,6 +90,7 @@ Each of these limitations is merely a result of our scope of work, and could be 
 
 In most cases this indicates that the Holoscan application is not receiving UDP packets.
 There are several reasons that this could be the case:
+
 - The VLP-16 lidar sensor is not turned on, or the ethernet cable is disconnected.
   The sensor typically takes approximately 30 seconds between powering on and transmitting packets.
 - The VLP-16 lidar sensor network interface is not properly configured to receive packets. You can use a tool

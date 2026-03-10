@@ -35,7 +35,7 @@ advanced_network:
       kind: "huge"
       affinity: 0
       num_bufs: 51200
-      buf_size: 64    
+      buf_size: 64
     - name: "Data_TX_GPU"
       kind: "device"
       affinity: 0

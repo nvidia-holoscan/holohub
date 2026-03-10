@@ -16,4 +16,4 @@ find_package(StreamingServer REQUIRED)
 include("${CMAKE_CURRENT_LIST_DIR}/video_streaming_server-targets.cmake")
 
 # Check that the targets exist
-check_required_components(video_streaming_server) 
+check_required_components(video_streaming_server)

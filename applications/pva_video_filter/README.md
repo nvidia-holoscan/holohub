@@ -31,28 +31,32 @@ Numerous algorithm examples leveraging the PVA can be found in the [Vision Progr
 
 Build the application inside docker
 
-```
-$ ./holohub build-container pva_video_filter --base-img nvcr.io/nvidia/clara-holoscan/holoscan:v2.1.0-dgpu 
+```bash
+$ ./holohub build-container pva_video_filter --base-img nvcr.io/nvidia/clara-holoscan/holoscan:v2.1.0-dgpu
 # Check which version of CUPVA is installed on your platform at /opt/nvidia
 $ ./holohub run-container pva_video_filter --no-docker-build --docker_opts "-v /opt/nvidia/cupva-<version>:/opt/nvidia/cupva-<version> --device /dev/nvhost-ctrl-pva0:/dev/nvhost-ctrl-pva0 --device /dev/nvmap:/dev/nvmap --device /dev/dri/renderD129:/dev/dri/renderD129"
 ```
 
 Inside docker, add to your environment variable the following directories:
-```
+
+```bash
 # inside docker
 $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/aarch64-linux-gnu/tegra/:/opt/nvidia/cupva-2.5/lib/aarch64-linux-gnu/
 ```
 
 Build the application inside docker:
+
+```bash
+./holohub build pva_video_filter --local
 ```
-$ ./holohub build pva_video_filter --local
-```
+
 ## Running the application
 
 The application takes an endoscopy video stream as input, applies the unsharp mask filter, and shows it in
 HoloViz window.
 
 Before running the application, deploy VPU application signature allowlist on target in your host (outside a container):
+
 ```bash
 sudo cp <HOLOHUB_BUILD_DIR>/applications/pva_video_filter/cpp/pva_unsharp_mask/cupva_allowlist_pva_unsharp_mask /etc/pva/allow.d/cupva_allowlist_pva_unsharp_mask
 sudo pva_allow
@@ -60,7 +64,7 @@ sudo pva_allow
 
 Run the same docker container you used to build your application
 
-```
+```bash
 $ ./holohub run-container pva_video_filter --no-docker-build --docker_opts "-v /opt/nvidia/cupva-<version>:/opt/nvidia/cupva-<version> --device /dev/nvhost-ctrl-pva0:/dev/nvhost-ctrl-pva0 --device /dev/nvmap:/dev/nvmap --device /dev/dri/renderD129:/dev/dri/renderD129"
 
 # inside docker
@@ -68,6 +72,5 @@ $ ./holohub run-container pva_video_filter --no-docker-build --docker_opts "-v /
 $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/aarch64-linux-gnu/tegra/:/opt/nvidia/cupva-2.5/lib/aarch64-linux-gnu/
 $ ./holohub run pva_video_filter --local --no-local-build
 ```
-
 
 ![PVA Example](pva_example.png)

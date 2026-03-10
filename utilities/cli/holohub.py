@@ -14,6 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# See cli_dev_guide.md for more information about the CLI and how to use it.
+# See README.md for command and flag reference.
+
 import sys
 
 # Python version check - must be before other imports that use Python 3.10+ features
@@ -45,7 +48,7 @@ import utilities.cli.util as holohub_cli_util
 import utilities.metadata.gather_metadata as metadata_util
 from utilities.cli.container import HoloHubContainer
 from utilities.cli.util import Color
-from utilities.metadata.utils import list_normalized_languages, normalize_language
+from utilities.metadata.utils import get_schema_path, list_normalized_languages, normalize_language
 
 
 class HoloHubCLI:
@@ -136,6 +139,9 @@ class HoloHubCLI:
         self.subparsers["build-container"] = build_container
         build_container.add_argument("project", nargs="?", help="Project to build container for")
         build_container.add_argument(
+            "mode", nargs="?", help="Mode to build container for (optional)"
+        )
+        build_container.add_argument(
             "--verbose", action="store_true", help="Print variables passed to docker build command"
         )
         build_container.add_argument(
@@ -151,10 +157,11 @@ class HoloHubCLI:
             "run-container",
             help="Build and launch the development container",
             parents=[container_build_argparse, container_run_argparse],
-            epilog="Any trailing arguments after ' -- ' are forwarded to 'docker run'",
+            epilog="Any arguments after ' -- ' are executed as a command inside the container",
         )
         self.subparsers["run-container"] = run_container
         run_container.add_argument("project", nargs="?", help="Project to run container for")
+        run_container.add_argument("mode", nargs="?", help="Mode to run container for (optional)")
         run_container.add_argument(
             "--verbose", action="store_true", help="Print variables passed to docker run command"
         )
@@ -340,6 +347,15 @@ class HoloHubCLI:
         )
         self.subparsers["env-info"] = env_info
         env_info.set_defaults(func=self.handle_env_info)
+
+        # Add env-check command
+        env_check = subparsers.add_parser(
+            "env-check",
+            help="Run system checks (GPU, CUDA, Docker, Holoscan SDK, disk, display, devices)",
+        )
+        self.subparsers["env-check"] = env_check
+        env_check.add_argument("--json", action="store_true", help="Output check results as JSON")
+        env_check.set_defaults(func=self.handle_env_check)
 
         # Add install command
         install = subparsers.add_parser(
@@ -759,6 +775,20 @@ class HoloHubCLI:
 
     def handle_build_container(self, args: argparse.Namespace) -> None:
         """Handle build-container command"""
+        # Resolve mode for docker_build_args if a project with modes is specified
+        build_args = args.build_args
+        if args.project:
+            project_data = self.find_project(args.project, language=getattr(args, "language", None))
+            mode_name, mode_config = self.resolve_mode(project_data, getattr(args, "mode", None))
+            if mode_config:
+                self.validate_mode(
+                    args, mode_name, mode_config, project_data, getattr(args, "mode", None)
+                )
+                effective = self.get_effective_build_config(args, mode_config)
+                build_args = effective.get("build_args") or build_args
+                if mode_name:
+                    print(f"Building container for {args.project} in '{mode_name}' mode")
+
         container = self._make_project_container(
             project_name=args.project,
             language=args.language if hasattr(args, "language") else None,
@@ -769,13 +799,29 @@ class HoloHubCLI:
             base_img=args.base_img,
             img=args.img,
             no_cache=args.no_cache,
-            build_args=args.build_args,
+            build_args=build_args,
             cuda_version=getattr(args, "cuda", None),
             extra_scripts=getattr(args, "extra_scripts", []),
         )
 
     def handle_run_container(self, args: argparse.Namespace) -> None:
         """Handle run-container command"""
+        # Resolve mode for docker_build_args / docker_run_args if project with modes
+        build_args = args.build_args
+        docker_opts = args.docker_opts
+        if args.project:
+            project_data = self.find_project(args.project, language=getattr(args, "language", None))
+            mode_name, mode_config = self.resolve_mode(project_data, getattr(args, "mode", None))
+            if mode_config:
+                self.validate_mode(
+                    args, mode_name, mode_config, project_data, getattr(args, "mode", None)
+                )
+                effective_build = self.get_effective_build_config(args, mode_config)
+                build_args = effective_build.get("build_args") or build_args
+                docker_opts = effective_build.get("docker_opts") or docker_opts
+                if mode_name:
+                    print(f"Running container for {args.project} in '{mode_name}' mode")
+
         skip_docker_build, _ = holohub_cli_util.check_skip_builds(args)
         container = self._make_project_container(
             project_name=args.project, language=args.language if hasattr(args, "language") else None
@@ -788,7 +834,7 @@ class HoloHubCLI:
                 base_img=args.base_img,
                 img=args.img,
                 no_cache=args.no_cache,
-                build_args=args.build_args,
+                build_args=build_args,
                 cuda_version=getattr(args, "cuda", None),
                 extra_scripts=getattr(args, "extra_scripts", []),
             )
@@ -797,7 +843,6 @@ class HoloHubCLI:
                 container.cuda_version = args.cuda
 
         trailing_args = getattr(args, "_trailing_args", [])
-        docker_opts = args.docker_opts
         if trailing_args:  # additional commands requires a bash entrypoint
             command = holohub_cli_util.normalize_args_str(trailing_args)
             docker_opts_extra, extra_args = holohub_cli_util.get_entrypoint_command_args(
@@ -1449,7 +1494,9 @@ class HoloHubCLI:
             # Only add mode name if it was explicitly requested by user (not implicitly resolved)
             if mode_name and getattr(args, "mode", None) is not None:
                 run_cmd += f" {mode_name}"
-            run_cmd += f" --language {language} --local"
+            if language:
+                run_cmd += f" --language {language}"
+            run_cmd += " --local"
             if args.verbose:
                 run_cmd += " --verbose"
             if args.build_type:
@@ -1557,6 +1604,7 @@ class HoloHubCLI:
             "setup",
             "install",
             "create",
+            "env-check",
             "cpp",
             "python",
             "autocompletion_list",
@@ -1889,6 +1937,29 @@ class HoloHubCLI:
             )
         )
 
+    def handle_env_check(self, args: argparse.Namespace) -> None:
+        """Handle env-check command to run system checks"""
+        import time as _time
+
+        from utilities.cli.system_check import (
+            format_results,
+            format_results_json,
+            run_all_checks,
+        )
+
+        t0 = _time.monotonic()
+        results = run_all_checks()
+        elapsed = _time.monotonic() - t0
+
+        if args.json:
+            print(format_results_json(results, elapsed))
+        else:
+            print(format_results(results, elapsed))
+
+        # Exit 1 only on FAIL; warnings are informational
+        if any(r.status == "FAIL" for r in results):
+            sys.exit(1)
+
     def handle_install(self, args: argparse.Namespace) -> None:
         """Handle install command"""
         # Handle mode-specific configuration (if project has modes)
@@ -2112,13 +2183,12 @@ class HoloHubCLI:
                 f"Failed to read metadata.json ({exc}). File location: {metadata_path}"
             )
         is_valid, message = metadata_validator.validate_json(metadata_contents, str(schema_root))
+        schema_file = get_schema_path(schema_root)
         if not is_valid:
             holohub_cli_util.fatal(
-                f"Generated metadata.json failed validation against {schema_root / 'metadata.schema.json'}:\n{message}"
+                f"Generated metadata.json failed validation against {schema_file}:\n{message}"
             )
-        print(
-            Color.green(f"Validated metadata.json against {schema_root / 'metadata.schema.json'}")
-        )
+        print(Color.green(f"Validated metadata.json against {schema_file}"))
 
     def handle_vscode(self, args: argparse.Namespace) -> None:
         """Builds a dev container and launches VS Code with proper devcontainer configuration."""
@@ -2262,9 +2332,8 @@ class HoloHubCLI:
         metadata_path = project_dir / "metadata.json"
         src_dir = project_dir / "src"
         main_file = next(src_dir.glob(f"{actual_slug}.*"), None)
-        schema_root = Path(__file__).resolve().parents[2] / "applications"
-        if not (schema_root / "metadata.schema.json").exists():
-            schema_root = None
+        schema_path = get_schema_path("applications")
+        schema_root = "applications" if schema_path.exists() else None
         self.validate_generated_metadata(metadata_path, schema_root)
 
         msg_next = ""

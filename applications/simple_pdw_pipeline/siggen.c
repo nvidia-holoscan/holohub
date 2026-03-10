@@ -77,7 +77,7 @@ struct live_signal {
 };
 
 /*
-The fpsin and fpcos functions were from 
+The fpsin and fpcos functions were from
 
 Implements the 5-order polynomial approximation to sin(x).
 @param i   angle (with 2^15 units/circle)
@@ -86,7 +86,7 @@ Implements the 5-order polynomial approximation to sin(x).
 The result is accurate to within +- 1 count. ie: +/-2.44e-4.
 */
 int16_t fpsin(int16_t i) {
-    /* Convert (signed) input to a value between 0 and 8192. (8192 is pi/2, 
+    /* Convert (signed) input to a value between 0 and 8192. (8192 is pi/2,
     *  which is the region of the curve fit). */
     /* ------------------------------------------------------------------- */
     i = (int16_t)(i << 1);

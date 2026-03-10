@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -83,7 +83,7 @@ if command_exists nc; then
     timeout 2 nc -l $PORT </dev/null >/dev/null 2>&1 &
     NC_PID=$!
     sleep 0.5
-    
+
     # Check if nc is still running (successful bind)
     if kill -0 $NC_PID 2>/dev/null; then
         echo "✅ Port $PORT is AVAILABLE (can bind successfully)"

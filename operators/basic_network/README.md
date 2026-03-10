@@ -1,5 +1,4 @@
-
-### Basic networking operator
+# Basic networking operator
 
 The `basic_network_operator` operator provides a way to send and receive data over Linux sockets. The
 destination can be on the same machine or over a network. The basic network operator contains separate
@@ -11,11 +10,11 @@ may expand this to launch multiple threads to listen on different streams.
 
 The basic networking operators use class names: `BasicNetworkOpTx` and `BasicNetworkOpRx`
 
-#### `nvidia::holoscan::basic_network_operator`
+## `nvidia::holoscan::basic_network_operator`
 
 Basic networking operator
 
-##### Receiver Configuration Parameters
+### Receiver Configuration Parameters
 
 - **`batch_size`**: Bytes in batch
   - type: `integer`
@@ -30,7 +29,7 @@ Basic networking operator
 - **`max_burst_interval` (Optional)**: Maximum time interval between bursts (ms)
   - type: `integer`
 
-##### Transmitter Configuration Parameters
+### Transmitter Configuration Parameters
 
 - **`max_payload_size`**: Maximum payload size for a single packet
   - type: `integer`
@@ -45,7 +44,7 @@ Basic networking operator
 - **`delete_payload` (Optional)**: Delete payload memory after sending (only applicable for C++ implementation)
   - type: `boolean`
 
-##### Transmitter and Receiver Operator Parameters
+### Transmitter and Receiver Operator Parameters
 
 The transmitter and receiver operator both use the `NetworkOpBurstParams` structure as input
 and output to their ports, respectively. `NetworkOpBurstParams` contains the following fields:

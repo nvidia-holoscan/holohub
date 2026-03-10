@@ -2,7 +2,7 @@
 
 This application demonstrates decoding H.264 elementary stream files using the NVIDIA Video Codec SDK. The application reads H.264 files directly, decodes them with the NVIDIA Video Decoder, and displays the results with Holoviz.
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > By using the NVIDIA Video Codec Demo application and its operators, you agree to the [NVIDIA Software Developer License Agreement](https://developer.nvidia.com/designworks/sdk-samples-tools-software-license-agreement). If you disagree with the EULA, please do not run this application.
 
 ## Key Features
@@ -42,16 +42,19 @@ graph TD;
 The application expects H.264 elementary stream files (pure H.264 bitstream without container). You can create these files using FFmpeg:
 
 ### From MP4/Container Format
+
 ```bash
 ffmpeg -i input_video.mp4 -c:v copy -f h264 output.h264
 ```
 
 ### From Endoscopy Sample Data
+
 ```bash
 ffmpeg -i surgical_video.mp4 -c:v copy -f h264 surgical_video.264
 ```
 
 ### Verification
+
 You can verify your H.264 file format in several ways:
 
 - **Run the application** with a small test file to ensure it decodes and displays correctly.
@@ -64,11 +67,13 @@ If the file fails to play or is not recognized by these tools, double-check your
 ## Building and Running
 
 ### Python
+
 ```bash
 ./holohub run nvc_decode --language python
 ```
 
 ### C++
+
 ```bash
 ./holohub run nvc_decode --language cpp
 ```
@@ -121,7 +126,8 @@ The application tracks several performance metrics:
 - **Jitter Time**: Frame timing variability
 
 Example output:
-```
+
+```text
 Decode Latency (min, max, avg): 2.145, 5.234, 2.876
 FPS (min, max, avg): 95.234, 120.456, 108.765
 Jitter Time (min, max, avg): 0.123, 0.456, 0.234

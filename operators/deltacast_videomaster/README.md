@@ -3,18 +3,20 @@
 The DELTACAST VideoMaster operator provides functionality to capture and stream high-quality video streams from DELTACAST cards. It supports both SDI and HDMI input and output sources, enabling professional video capture in various formats and resolutions. DELTACAST VideoMaster operators are designed to work seamlessly with DELTACAST's hardware capabilities.
 
 This library contains two operators:
+
 - videomaster_source: Captures a signal from the DELTACAST capture card.
 - videomaster_transmitter: Streams a signal through the DELTACAST capture card.
 
 ## Requirements
 
-* VideoMaster SDK: Operators require the VideoMaster SDK from Deltacast.
-* DELTACAST Hardware: Compatible DELTACAST capture cards.
-* VideoMaster driver: To detect and use DELTACAST capture cards.
+- VideoMaster SDK: Operators require the VideoMaster SDK from Deltacast.
+- DELTACAST Hardware: Compatible DELTACAST capture cards.
+- VideoMaster driver: To detect and use DELTACAST capture cards.
 
 ## Parameters
 
 ### videomaster_source
+
 The following parameters can be configured for this operator:
 
 | Parameter | Type     | Description                                                                                          | Default |
@@ -24,6 +26,7 @@ The following parameters can be configured for this operator:
 | `input`   | uint32_t | Index of the RX channel to use on the selected board                                                 | 0       |
 
 ### videomaster_transmitter
+
 The following parameters can be configured for this operator:
 
 | Parameter        | Type     | Description                                                                                          | Default |
