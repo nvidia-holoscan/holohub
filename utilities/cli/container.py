@@ -36,6 +36,7 @@ from .util import (
     docker_args_to_devcontainer_format,
     fatal,
     find_hsdk_build_rel_dir,
+    get_arch_gpu_str,
     get_compute_capacity,
     get_cuda_tag,
     get_current_branch_slug,
@@ -49,6 +50,7 @@ from .util import (
     get_image_pythonpath,
     get_sccache_dir,
     info,
+    is_valid_sdk_installation,
     replace_placeholders,
     run_command,
     warn,
@@ -868,6 +870,13 @@ class HoloHubContainer:
 
         if local_sdk_root or os.environ.get("HOLOSCAN_SDK_ROOT"):
             sdk_dir = find_hsdk_build_rel_dir(local_sdk_root)
+            root = local_sdk_root or Path(os.environ["HOLOSCAN_SDK_ROOT"])
+            if not Path(sdk_dir).is_absolute() and not is_valid_sdk_installation(root / sdk_dir):
+                arch_gpu = get_arch_gpu_str()
+                info(
+                    f"Valid SDK installation not found."
+                    f" Looking for 'install-{arch_gpu}' or 'build-{arch_gpu}'."
+                )
             sdk_paths = f"/workspace/holoscan-sdk/{sdk_dir}/python/lib:{benchmarking_path}"
         else:
             sdk_paths = f"{self.SDK_PATH}/python/lib:{benchmarking_path}"
@@ -883,6 +892,14 @@ class HoloHubContainer:
     def get_local_sdk_options(self, local_sdk_root: Path) -> List[str]:
         """Get Holoscan SDK-related options"""
         build_dir = find_hsdk_build_rel_dir(local_sdk_root)
+        if not Path(build_dir).is_absolute() and not is_valid_sdk_installation(
+            local_sdk_root / build_dir
+        ):
+            arch_gpu = get_arch_gpu_str()
+            info(
+                f"Valid SDK installation not found."
+                f" Looking for 'install-{arch_gpu}' or 'build-{arch_gpu}'."
+            )
         return [
             "-v",
             f"{local_sdk_root}:/workspace/holoscan-sdk",
