@@ -29,4 +29,3 @@ ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data/bci_visualization
 # Install Python dependencies
 COPY applications/bci_visualization/requirements.txt /tmp/requirements.txt
 RUN pip install -r /tmp/requirements.txt --no-cache-dir
-    

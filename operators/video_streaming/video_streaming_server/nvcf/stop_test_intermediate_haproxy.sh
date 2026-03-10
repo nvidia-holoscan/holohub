@@ -16,4 +16,3 @@
 # limitations under the License.
 
 docker stop test-intermediate-haproxy
-

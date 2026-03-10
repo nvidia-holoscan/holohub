@@ -119,7 +119,7 @@ if [ "$RUN_INFERENCE" = true ]; then
     echo ""
     echo "Testing with existing checkpoint to verify no breaking changes..."
     echo ""
-    
+
     # Run inference for just a few frames
     timeout 60 python run_surgical_recon.py \
         --mode inference \
@@ -131,7 +131,7 @@ if [ "$RUN_INFERENCE" = true ]; then
         echo "⚠ Inference test timed out or had display issues (expected in headless)"
         echo "   This is OK - checking if operators loaded correctly..."
     }
-    
+
     echo ""
     echo "✅ TEST 2 PASSED: Inference mode operators loaded (display may fail in headless)"
     echo ""

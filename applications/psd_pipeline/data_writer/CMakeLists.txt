@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2024 Valley Tech Systems, Inc.
+# SPDX-FileCopyrightText: 2024-2026 Valley Tech Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 cmake_minimum_required(VERSION 3.20)
@@ -25,4 +25,3 @@ target_link_libraries(data_writer
 )
 
 install(TARGETS data_writer)
-

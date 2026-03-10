@@ -2180,18 +2180,18 @@ def main(local_rank: int, world_rank: int, world_size: int, cfg: EndoConfig):
 if __name__ == "__main__":
     """
     Usage:
-    
+
     # One-stage training (standard gsplat)
     python gsplat_train.py --data_dir data/EndoNeRF/pulling \
         --result_dir output/endo_one_stage \
         --max_steps 10000
-    
-    # Two-stage training (EndoGaussian style)  
+
+    # Two-stage training (EndoGaussian style)
     python gsplat_train.py --data_dir data/EndoNeRF/pulling \
         --result_dir output/endo_two_stage \
         --two_stage \
         --coarse_iterations 3000
-    
+
     # Quick smoke test
     python gsplat_train.py --data_dir data/EndoNeRF/pulling \
         --result_dir output/smoke_test \

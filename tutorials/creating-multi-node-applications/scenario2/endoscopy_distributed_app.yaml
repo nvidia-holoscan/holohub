@@ -1,5 +1,5 @@
 %YAML 1.2
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -151,13 +151,13 @@ out_of_body_preprocessor:
   out_dtype: "float32"
   resize_width: 256
   resize_height: 256
-  
+
 
 out_of_body_inference:
   backend: "trt"
-  pre_processor_map: 
+  pre_processor_map:
     "out_of_body": ["out_of_body_preprocessed"]
-  inference_map: 
+  inference_map:
     "out_of_body": "out_of_body_inferred"
   in_tensor_names: ["out_of_body_preprocessed"]
   out_tensor_names: ["out_of_body_inferred"]
