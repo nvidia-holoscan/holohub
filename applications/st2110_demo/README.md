@@ -35,8 +35,8 @@ This application demonstrates ST 2110-20 video reception by:
 ## Build Instructions
 
 ```bash
-# Build the operator and demo application
-./holohub build st2110_source --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+# Build the demo application (includes the st2110_source operator)
+./holohub build st2110_demo
 ```
 
 ## Configuration
@@ -211,6 +211,13 @@ Press **ESC** or **Ctrl+C** to quit.
 
 3. **Verify multicast routing:** `ip route show | grep 239`
 
+4. **Disable reverse path filtering** if packets appear in tcpdump but the app reports 0 packets:
+
+   ```bash
+   sudo sysctl -w net.ipv4.conf.<interface>.rp_filter=0
+   sudo sysctl -w net.ipv4.conf.all.rp_filter=0
+   ```
+
 ### Packet Drops / Frame Tearing
 
 - Increase socket buffer size (see [Network Setup](#network-setup))
@@ -219,10 +226,10 @@ Press **ESC** or **Ctrl+C** to quit.
 
 ### "Cannot import ST2110SourceOp" Error
 
-Ensure you build with Python bindings enabled:
+Ensure the demo has been built:
 
 ```bash
-./holohub build st2110_source --configure-args='-DHOLOHUB_BUILD_PYTHON=ON'
+./holohub build st2110_demo
 ```
 
 ### Color Issues

@@ -79,12 +79,8 @@ batch_size : int, optional
     Number of packets to receive per compute() call. Default value is ``1000``.
 max_packet_size : int, optional
     Maximum size of ST 2110 packets in bytes. Default value is ``1514``.
-header_size : int, optional
-    Size of L2-L4 headers (Ethernet + IP + UDP) in bytes. Default value is ``42``.
 rtp_header_size : int, optional
     Size of RTP header in bytes. Default value is ``12``.
-enable_reorder_kernel : bool, optional
-    Enable CUDA kernel for packet reordering. Default value is ``True``.
 name : str, optional
     The name of the operator. Default value is ``"st2110_source"``.
 

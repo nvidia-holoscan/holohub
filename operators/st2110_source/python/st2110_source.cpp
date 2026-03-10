@@ -67,9 +67,7 @@ class PyST2110SourceOp : public ST2110SourceOp {
                     bool enable_nv12_output = false,
                     uint32_t batch_size = 1000,
                     uint16_t max_packet_size = 1514,
-                    uint16_t header_size = 42,
                     uint16_t rtp_header_size = 12,
-                    bool enable_reorder_kernel = true,
                     const std::string& name = "st2110_source")
       : ST2110SourceOp(ArgList{Arg{"multicast_address", multicast_address},
                                 Arg{"port", port},
@@ -82,9 +80,7 @@ class PyST2110SourceOp : public ST2110SourceOp {
                                 Arg{"enable_nv12_output", enable_nv12_output},
                                 Arg{"batch_size", batch_size},
                                 Arg{"max_packet_size", max_packet_size},
-                                Arg{"header_size", header_size},
-                                Arg{"rtp_header_size", rtp_header_size},
-                                Arg{"enable_reorder_kernel", enable_reorder_kernel}}) {
+                                Arg{"rtp_header_size", rtp_header_size}}) {
     add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;
@@ -130,8 +126,6 @@ PYBIND11_MODULE(_st2110_source, m) {
                     uint32_t,
                     uint16_t,
                     uint16_t,
-                    uint16_t,
-                    bool,
                     const std::string&>(),
            "fragment"_a,
            "multicast_address"_a = "239.0.0.1"s,
@@ -145,9 +139,7 @@ PYBIND11_MODULE(_st2110_source, m) {
            "enable_nv12_output"_a = false,
            "batch_size"_a = 1000,
            "max_packet_size"_a = 1514,
-           "header_size"_a = 42,
            "rtp_header_size"_a = 12,
-           "enable_reorder_kernel"_a = true,
            "name"_a = "st2110_source"s,
            doc::ST2110SourceOp::doc_ST2110SourceOp_python);
 }  // PYBIND11_MODULE

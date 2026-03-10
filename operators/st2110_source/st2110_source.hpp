@@ -73,10 +73,7 @@ namespace holoscan::ops {
  *   Optional (default: false).
  * - **batch_size**: Number of packets to receive per compute() call. Optional (default: `1000`).
  * - **max_packet_size**: Maximum size of ST 2110 packets in bytes. Optional (default: `1514`).
- * - **header_size**: Size of L2-L4 headers (Ethernet + IP + UDP). Optional (default: `42`).
  * - **rtp_header_size**: Size of RTP header. Optional (default: `12`).
- * - **enable_reorder_kernel**: Enable CUDA kernel for packet reordering.
- *   Optional (default: `true`).
  *
  * ==Device Support==
  *
@@ -164,16 +161,14 @@ class ST2110SourceOp : public holoscan::Operator {
   Parameter<bool> enable_nv12_output_;
   Parameter<uint32_t> batch_size_;
   Parameter<uint16_t> max_packet_size_;
-  Parameter<uint16_t> header_size_;
   Parameter<uint16_t> rtp_header_size_;
-  Parameter<bool> enable_reorder_kernel_;
   Parameter<std::shared_ptr<PeriodicCondition>> periodic_condition_;
 
   // Socket state
   int socket_fd_ = -1;
 
   // Internal state
-  uint16_t payload_size_ = 0;  // max_packet_size - header_size - rtp_header_size
+  uint16_t payload_size_ = 0;  // max_packet_size - rtp_header_size - ST2110Header
   int64_t total_bytes_received_ = 0;
   int64_t total_packets_received_ = 0;
   int64_t total_packets_dropped_ = 0;

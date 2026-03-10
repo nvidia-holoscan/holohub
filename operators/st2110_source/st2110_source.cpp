@@ -147,23 +147,11 @@ void ST2110SourceOp::setup(OperatorSpec& spec) {
              "Maximum size of ST 2110 packets in bytes",
              static_cast<uint16_t>(1514));
 
-  spec.param(header_size_,
-             "header_size",
-             "Header Size",
-             "Size of L2-L4 headers (Ethernet + IP + UDP) in bytes",
-             static_cast<uint16_t>(42));
-
   spec.param(rtp_header_size_,
              "rtp_header_size",
              "RTP Header Size",
              "Size of RTP header in bytes",
              static_cast<uint16_t>(12));
-
-  spec.param(enable_reorder_kernel_,
-             "enable_reorder_kernel",
-             "Enable Reorder Kernel",
-             "Enable CUDA kernel for packet reordering",
-             true);
 
   // Add periodic condition to trigger compute() at framerate
   // This is essential for source operators with no inputs
@@ -263,7 +251,9 @@ void ST2110SourceOp::initialize() {
 void ST2110SourceOp::start() {
   HOLOSCAN_LOG_INFO("ST2110SourceOp::start()");
 
-  CUDA_TRY(cudaSetDevice(0));
+  int current_device = 0;
+  CUDA_TRY(cudaGetDevice(&current_device));
+  CUDA_TRY(cudaSetDevice(current_device));
   CUDA_TRY(cudaFree(0));
 
   create_socket();
@@ -1167,9 +1157,9 @@ void ST2110SourceOp::compute(InputContext& op_input, OutputContext& op_output,
     if (detected_format_.depth != 10 || detected_format_.sampling != "YCbCr-4:2:2") {
       HOLOSCAN_LOG_ERROR("RGBA conversion only supports YCbCr-4:2:2-10bit, got {}-{}bit",
                          detected_format_.sampling, detected_format_.depth);
-    } else {
-      convert_and_emit_rgba(op_output);
+      return;
     }
+    convert_and_emit_rgba(op_output);
   }
 
   // Step 4: Optionally convert and emit NV12
@@ -1177,9 +1167,9 @@ void ST2110SourceOp::compute(InputContext& op_input, OutputContext& op_output,
     if (detected_format_.depth != 10 || detected_format_.sampling != "YCbCr-4:2:2") {
       HOLOSCAN_LOG_ERROR("NV12 conversion only supports YCbCr-4:2:2-10bit, got {}-{}bit",
                          detected_format_.sampling, detected_format_.depth);
-    } else {
-      convert_and_emit_nv12(op_output);
+      return;
     }
+    convert_and_emit_nv12(op_output);
   }
 }
 

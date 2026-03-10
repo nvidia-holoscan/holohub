@@ -36,7 +36,6 @@ st2110_source:
   # Performance settings
   batch_size: 4320
   max_packet_size: 1514
-  header_size: 42
   rtp_header_size: 12
 
 # RGBA Holoviz Visualizer Configuration
