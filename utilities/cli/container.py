@@ -871,9 +871,7 @@ class HoloHubContainer:
         if local_sdk_root or os.environ.get("HOLOSCAN_SDK_ROOT"):
             sdk_dir = find_hsdk_build_rel_dir(local_sdk_root)
             root = local_sdk_root or Path(os.environ["HOLOSCAN_SDK_ROOT"])
-            if not Path(sdk_dir).is_absolute() and not is_valid_sdk_installation(
-                root / sdk_dir
-            ):
+            if not Path(sdk_dir).is_absolute() and not is_valid_sdk_installation(root / sdk_dir):
                 arch_gpu = get_arch_gpu_str()
                 info(
                     f"Valid SDK installation not found."
