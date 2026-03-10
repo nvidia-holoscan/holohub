@@ -34,6 +34,7 @@ from utilities.cli.system_check import (
     check_display,
     check_docker,
     check_gpu,
+    check_holoscan,
     format_results,
     format_results_json,
     run_all_checks,
@@ -226,6 +227,41 @@ class TestIndividualChecks(unittest.TestCase):
         result = check_display()
         self._assert_valid_result(result)
         self.assertEqual(result.status, "WARN")
+
+
+class TestCheckHoloscan(unittest.TestCase):
+    """Test check_holoscan with various SDK locations"""
+
+    @patch("utilities.cli.system_check.is_valid_sdk_installation", return_value=True)
+    @patch("utilities.cli.system_check._get_sdk_version", return_value="3.1.0")
+    def test_check_holoscan_default_path(self, mock_ver, mock_valid):
+        with patch.object(Path, "exists", return_value=True):
+            result = check_holoscan()
+        self.assertEqual(result.status, "OK")
+        self.assertIn("3.1.0", result.message)
+
+    @patch.dict(os.environ, {"HOLOSCAN_SDK_ROOT": "/home/user/holoscan-sdk"})
+    @patch("utilities.cli.system_check.is_valid_sdk_installation")
+    @patch("utilities.cli.system_check._get_sdk_version", return_value="3.2.0")
+    def test_check_holoscan_sdk_root_direct(self, mock_ver, mock_valid):
+        def valid_side_effect(p):
+            return str(p) == "/home/user/holoscan-sdk"
+
+        mock_valid.side_effect = valid_side_effect
+        with patch.object(Path, "exists", return_value=True):
+            result = check_holoscan()
+        self.assertEqual(result.status, "OK")
+        self.assertIn("3.2.0", result.message)
+        self.assertIn("/home/user/holoscan-sdk", result.message)
+
+    @patch.dict(os.environ, {}, clear=False)
+    @patch("utilities.cli.system_check.is_valid_sdk_installation", return_value=False)
+    def test_check_holoscan_not_found(self, mock_valid):
+        os.environ.pop("HOLOSCAN_SDK_ROOT", None)
+        with patch.object(Path, "exists", return_value=False):
+            result = check_holoscan()
+        self.assertEqual(result.status, "WARN")
+        self.assertIn("not found", result.message)
 
 
 class TestRunAllChecks(unittest.TestCase):

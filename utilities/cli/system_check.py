@@ -26,6 +26,7 @@ from typing import List, Optional
 
 from .util import (
     Color,
+    find_hsdk_build_rel_dir,
     get_cuda_runtime_version,
     get_git_short_sha,
     get_gpu_name,
@@ -160,7 +161,8 @@ def check_cuda() -> CheckResult:
 
 def check_docker() -> CheckResult:
     """Check Docker installation and runtime"""
-    docker = shutil.which("docker")
+    docker_exe = os.environ.get("HOLOHUB_DOCKER_EXE", "docker")
+    docker = shutil.which(docker_exe)
     if not docker:
         if is_running_in_docker():
             return CheckResult(
@@ -169,14 +171,13 @@ def check_docker() -> CheckResult:
         return CheckResult(
             status="WARN",
             name="Docker",
-            message="Docker not installed (container mode unavailable)",
+            message=f"{docker_exe} not installed (container mode unavailable)",
             fix_suggestion="Install Docker: https://docs.docker.com/engine/install/",
         )
 
-    # Use explicit timeout + stderr capture for docker info (can hang on misconfigured systems)
     try:
         proc = subprocess.run(
-            ["docker", "info"],
+            [docker_exe, "info"],
             capture_output=True,
             text=True,
             timeout=10,
@@ -211,7 +212,7 @@ def check_docker() -> CheckResult:
             fix_suggestion="sudo systemctl start docker",
         )
 
-    docker_version = run_info_command(["docker", "--version"])
+    docker_version = run_info_command([docker_exe, "--version"])
     version_str = ""
     if docker_version:
         match = re.search(r"(\d+\.\d+\.\d+)", docker_version)
@@ -238,40 +239,53 @@ def check_docker() -> CheckResult:
     return CheckResult(status=status, name="Docker", message=" + ".join(parts), fix_suggestion=fix)
 
 
+def _get_sdk_version(sdk_path: Path) -> str:
+    """Extract Holoscan SDK version from a valid SDK installation path."""
+    version_file = sdk_path / "VERSION"
+    if version_file.exists():
+        return version_file.read_text().strip()
+    cmake_config = sdk_path / "lib" / "cmake" / "holoscan" / "holoscan-config-version.cmake"
+    if cmake_config.exists():
+        content = cmake_config.read_text()
+        match = re.search(r'PACKAGE_VERSION\s+"([^"]+)"', content)
+        if match:
+            return match.group(1)
+    return "unknown"
+
+
 def check_holoscan() -> CheckResult:
     """Check Holoscan SDK availability"""
     sdk_dir = os.environ.get("HOLOHUB_DEFAULT_HSDK_DIR", "/opt/nvidia/holoscan")
     sdk_path = Path(sdk_dir)
+    if sdk_path.exists() and is_valid_sdk_installation(sdk_path):
+        version = _get_sdk_version(sdk_path)
+        return CheckResult(status="OK", name="Holoscan", message=f"SDK {version} at {sdk_dir}")
 
-    if not sdk_path.exists():
-        return CheckResult(
-            status="WARN",
-            name="Holoscan",
-            message=f"SDK not found at {sdk_dir}",
-            fix_suggestion="Install Holoscan SDK or use container mode",
-        )
+    sdk_root = os.environ.get("HOLOSCAN_SDK_ROOT")
+    if sdk_root:
+        root_path = Path(sdk_root)
+        if root_path.exists() and is_valid_sdk_installation(root_path):
+            version = _get_sdk_version(root_path)
+            return CheckResult(status="OK", name="Holoscan", message=f"SDK {version} at {sdk_root}")
+        resolved = find_hsdk_build_rel_dir(root_path)
+        resolved_path = root_path / resolved if not Path(resolved).is_absolute() else Path(resolved)
+        if resolved_path.exists() and is_valid_sdk_installation(resolved_path):
+            version = _get_sdk_version(resolved_path)
+            return CheckResult(
+                status="OK",
+                name="Holoscan",
+                message=f"SDK {version} at {resolved_path} (via HOLOSCAN_SDK_ROOT)",
+            )
 
-    if not is_valid_sdk_installation(sdk_path):
-        return CheckResult(
-            status="WARN",
-            name="Holoscan",
-            message=f"Directory exists at {sdk_dir} but missing SDK cmake config",
-            fix_suggestion="Reinstall Holoscan SDK or use container mode",
-        )
-
-    version = "unknown"
-    version_file = sdk_path / "VERSION"
-    if version_file.exists():
-        version = version_file.read_text().strip()
-    else:
-        cmake_config = sdk_path / "lib" / "cmake" / "holoscan" / "holoscan-config-version.cmake"
-        if cmake_config.exists():
-            content = cmake_config.read_text()
-            match = re.search(r'PACKAGE_VERSION\s+"([^"]+)"', content)
-            if match:
-                version = match.group(1)
-
-    return CheckResult(status="OK", name="Holoscan", message=f"SDK {version} at {sdk_dir}")
+    searched = sdk_dir
+    if sdk_root:
+        searched += f", HOLOSCAN_SDK_ROOT={sdk_root}"
+    return CheckResult(
+        status="WARN",
+        name="Holoscan",
+        message=f"SDK not found (searched: {searched})",
+        fix_suggestion="Install Holoscan SDK or use container mode",
+    )
 
 
 def check_disk() -> CheckResult:
