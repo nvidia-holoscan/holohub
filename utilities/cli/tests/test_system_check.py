@@ -215,11 +215,20 @@ class TestIndividualChecks(unittest.TestCase):
         self.assertIn(result.status, ("OK", "SKIP"))
 
     @patch.dict(os.environ, {"DISPLAY": ":0"})
-    @patch("os.path.exists", return_value=True)
+    @patch("os.path.exists", side_effect=lambda p: p == "/tmp/.X11-unix/X0")
     def test_check_display_with_display(self, mock_exists):
         result = check_display()
         self._assert_valid_result(result)
         self.assertEqual(result.status, "OK")
+
+    @patch.dict(os.environ, {"DISPLAY": ":5"})
+    @patch("os.path.exists", side_effect=lambda p: p == "/tmp/.X11-unix/X0")
+    def test_check_display_wrong_screen(self, mock_exists):
+        """DISPLAY=:5 but only X0 socket exists -> WARN"""
+        result = check_display()
+        self._assert_valid_result(result)
+        self.assertEqual(result.status, "WARN")
+        self.assertIn("X11 socket not found", result.message)
 
     @patch.dict(os.environ, {}, clear=True)
     @patch("utilities.cli.system_check.is_running_in_docker", return_value=False)

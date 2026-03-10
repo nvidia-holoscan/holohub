@@ -122,7 +122,8 @@ def _get_driver_cuda_version() -> str:
     )
     if not driver_version:
         return "unknown"
-    return cuda_major_from_driver(driver_version) or "unknown"
+    first_line = driver_version.splitlines()[0].strip()
+    return cuda_major_from_driver(first_line) or "unknown"
 
 
 def check_cuda() -> CheckResult:
@@ -344,7 +345,14 @@ def check_container() -> CheckResult:
 def check_display() -> CheckResult:
     """Check X11/display availability for visualization apps"""
     display = os.environ.get("DISPLAY")
-    x11_socket = os.path.exists("/tmp/.X11-unix")
+
+    x11_socket = False
+    if display:
+        try:
+            screen = display.split(":")[1].split(".")[0]
+            x11_socket = os.path.exists(f"/tmp/.X11-unix/X{screen}")
+        except (IndexError, ValueError):
+            x11_socket = os.path.exists("/tmp/.X11-unix")
 
     if display and x11_socket:
         return CheckResult(
@@ -354,7 +362,7 @@ def check_display() -> CheckResult:
         return CheckResult(
             status="WARN",
             name="Display",
-            message=f"DISPLAY={display} but /tmp/.X11-unix missing",
+            message=f"DISPLAY={display} but X11 socket not found",
             fix_suggestion="X11 socket not found - visualization apps may fail. "
             "If using SSH, try: ssh -X or set up X11 forwarding",
         )
