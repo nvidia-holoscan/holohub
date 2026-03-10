@@ -26,7 +26,7 @@ Usage:
         --mode inference \
         --data_dir /path/to/EndoNeRF/pulling \
         --checkpoint /path/to/checkpoint.pt
-    
+
     # Train-then-render mode (new functionality)
     python run_surgical_recon.py \
         --mode train \

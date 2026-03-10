@@ -38,7 +38,7 @@ class GstSinkOp : public Operator {
 
   /**
    * @brief Setup the operator specification
-   * 
+   *
    * Defines the operator's outputs and parameters:
    * - output: GXF Entity containing video frame tensor(s)
    * - gst_sink_resource: GstSinkResource for pipeline communication
@@ -48,12 +48,12 @@ class GstSinkOp : public Operator {
 
   /**
    * @brief Compute function that processes GStreamer buffers
-   * 
+   *
    * This function:
    * 1. Pops a buffer from the GStreamer pipeline (with timeout)
    * 2. Creates a GXF Entity with tensor(s) from the buffer
    * 3. Emits the entity to downstream operators
-   * 
+   *
    * @param input Input context (unused - this is a source operator)
    * @param output Output context for emitting entities
    * @param context Execution context for GXF operations

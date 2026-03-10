@@ -11,17 +11,17 @@ index 6d518011..bcb77949 100644
 @@ -15,11 +15,11 @@
  #define DLPACK_EXTERN_C
  #endif
- 
+
 -/*! \brief The current version of dlpack */
 -#define DLPACK_VERSION 80
 +/*! \brief The current major version of dlpack */
 +#define DLPACK_MAJOR_VERSION 1
- 
+
 -/*! \brief The current ABI version of dlpack */
 -#define DLPACK_ABI_VERSION 1
 +/*! \brief The current minor version of dlpack */
 +#define DLPACK_MINOR_VERSION 0
- 
+
  /*! \brief DLPACK_DLL prefix for windows */
  #ifdef _WIN32
 @@ -38,6 +38,33 @@
@@ -65,7 +65,7 @@ index 6d518011..bcb77949 100644
 +  /*! \brief Microsoft MAIA devices */
 +  kDLMAIA = 17,
  } DLDeviceType;
- 
+
  /*!
 @@ -186,6 +215,9 @@ typedef struct {
     *   return size;

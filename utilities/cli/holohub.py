@@ -356,6 +356,15 @@ class HoloHubCLI:
         status.add_argument("--json", action="store_true", help="Output status as JSON")
         status.set_defaults(func=self.handle_status)
 
+        # Add env-check command
+        env_check = subparsers.add_parser(
+            "env-check",
+            help="Run system checks (GPU, CUDA, Docker, Holoscan SDK, disk, display, devices)",
+        )
+        self.subparsers["env-check"] = env_check
+        env_check.add_argument("--json", action="store_true", help="Output check results as JSON")
+        env_check.set_defaults(func=self.handle_env_check)
+
         # Add install command
         install = subparsers.add_parser(
             "install",
@@ -1604,6 +1613,7 @@ class HoloHubCLI:
             "install",
             "create",
             "status",
+            "env-check",
             "cpp",
             "python",
             "autocompletion_list",
@@ -1974,6 +1984,29 @@ class HoloHubCLI:
             print(format_status_json(*fmt_args))
         else:
             print(format_status(*fmt_args))
+
+    def handle_env_check(self, args: argparse.Namespace) -> None:
+        """Handle env-check command to run system checks"""
+        import time as _time
+
+        from utilities.cli.system_check import (
+            format_results,
+            format_results_json,
+            run_all_checks,
+        )
+
+        t0 = _time.monotonic()
+        results = run_all_checks()
+        elapsed = _time.monotonic() - t0
+
+        if args.json:
+            print(format_results_json(results, elapsed))
+        else:
+            print(format_results(results, elapsed))
+
+        # Exit 1 only on FAIL; warnings are informational
+        if any(r.status == "FAIL" for r in results):
+            sys.exit(1)
 
     def handle_install(self, args: argparse.Namespace) -> None:
         """Handle install command"""

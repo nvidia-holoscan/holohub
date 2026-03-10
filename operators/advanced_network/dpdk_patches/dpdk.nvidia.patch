@@ -3,7 +3,7 @@
 @@ -234,6 +234,24 @@
      }
  }
- 
+
 +implementer_nvidia = {
 +    'description': 'NVIDIA',
 +    'flags': [
@@ -22,7 +22,7 @@
 +}
 +
 +
- 
+
  implementer_qualcomm = {
      'description': 'Qualcomm',
 @@ -262,6 +280,7 @@

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,11 +26,11 @@
 
 /**
  * @brief A simple Holoscan operator that publishes string messages to ROS2.
- * 
+ *
  * This operator demonstrates basic integration between Holoscan and ROS2 by periodically
  * publishing incrementing "Hello, world!" messages to a ROS2 topic. It inherits from
  * PublisherOp to leverage the built-in ROS2 publishing capabilities.
- * 
+ *
  * The operator runs on a periodic schedule and maintains an internal counter to create
  * unique messages on each execution cycle.
  */

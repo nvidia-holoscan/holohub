@@ -78,10 +78,10 @@ class GstSrcBridge::MemoryWrapper {
 
   /**
    * @brief Validate that a tensor is acceptable for this wrapper
-   * 
+   *
    * Checks tensor validity (non-null data, non-zero size) and device type compatibility.
    * Logs detailed error messages if validation fails.
-   * 
+   *
    * @param tensor Tensor to validate
    * @return true if tensor is valid and acceptable, false otherwise
    */
@@ -89,10 +89,10 @@ class GstSrcBridge::MemoryWrapper {
 
   /**
    * @brief Wrap a tensor into a GStreamer memory object
-   * 
+   *
    * Wraps the tensor's memory into a GStreamer memory object with appropriate lifetime management.
    * Caller should call validate() first to ensure the tensor is acceptable.
-   * 
+   *
    * @param tensor Tensor to wrap (must be validated first)
    * @param user_data User data to pass to the notify callback
    * @param destroy_notify Notify callback to free the user data when the memory is destroyed
