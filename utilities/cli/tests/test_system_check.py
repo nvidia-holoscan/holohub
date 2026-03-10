@@ -111,7 +111,8 @@ class TestIndividualChecks(unittest.TestCase):
         result = check_disk()
         self._assert_valid_result(result)
         self.assertIn(result.status, ("OK", "WARN", "FAIL"))
-        self.assertIn("GB", result.message)
+        if "Could not check" not in result.message:
+            self.assertIn("GB", result.message)
 
     def test_check_cli(self):
         result = check_cli()

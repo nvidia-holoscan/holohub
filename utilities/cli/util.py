@@ -414,6 +414,17 @@ def get_host_gpu() -> str:
     return "dgpu"
 
 
+def cuda_major_from_driver(driver_version_str: str) -> Optional[str]:
+    """Map a driver version string (e.g. '580.126.20') to a CUDA major version.
+
+    Returns '13' for driver >= 580, '12' otherwise, or None on parse failure.
+    """
+    try:
+        return "13" if int(driver_version_str.split(".")[0]) >= 580 else "12"
+    except (ValueError, IndexError):
+        return None
+
+
 def get_default_cuda_version() -> str:
     """
     Get default CUDA version based on NVIDIA driver version.
@@ -422,12 +433,10 @@ def get_default_cuda_version() -> str:
         - "13" if driver version >= 580 or if nvidia-smi is not available
         - "12" if driver version < 580
     """
-    # Default to CUDA 13 if nvidia-smi is not available
     if not shutil.which("nvidia-smi"):
         warn("nvidia-smi not found, default CUDA version is 13")
         return "13"
 
-    # Check the driver version using nvidia-smi
     driver_version = run_info_command(
         ["nvidia-smi", "--query-gpu=driver_version", "--format=csv,noheader"]
     )
@@ -436,15 +445,11 @@ def get_default_cuda_version() -> str:
         warn("Unable to detect NVIDIA driver version, default CUDA version is 13")
         return "13"
 
-    try:
-        driver_major_version = int(driver_version.split(".")[0])
-        if driver_major_version >= 580:
-            return "13"
-        else:
-            return "12"
-    except (ValueError, IndexError):
+    result = cuda_major_from_driver(driver_version)
+    if result is None:
         warn(f"Unable to parse driver version '{driver_version}', default CUDA version is 13")
         return "13"
+    return result
 
 
 def get_cuda_tag(cuda_version: Optional[Union[str, int]] = None, sdk_version: str = "3.6.1") -> str:

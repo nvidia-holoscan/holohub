@@ -26,6 +26,7 @@ from typing import List, Optional
 
 from .util import (
     Color,
+    cuda_major_from_driver,
     find_hsdk_build_rel_dir,
     get_cuda_runtime_version,
     get_git_short_sha,
@@ -121,10 +122,7 @@ def _get_driver_cuda_version() -> str:
     )
     if not driver_version:
         return "unknown"
-    try:
-        return "13" if int(driver_version.split(".")[0]) >= 580 else "12"
-    except (ValueError, IndexError):
-        return "unknown"
+    return cuda_major_from_driver(driver_version) or "unknown"
 
 
 def check_cuda() -> CheckResult:
