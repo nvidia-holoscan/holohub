@@ -11,7 +11,8 @@
 		"language": "Python",
 		"version": "0.2.0",
 		"changelog": {
-			"0.2.0": "Initial release: VGGT poses, DA2 depth, MedSAM3 masks, GSplat training, five-phase pipeline"
+			"0.2.0": "Improvements to the pipeline: VGGT poses, DA2 depth, MedSAM3 masks, GSplat training, five-phase pipeline",
+			"0.1.0": "Initial Release - Static and Dynamic Gaussian Splatting with Temporal Deformation"
 		},
 		"dockerfile": "applications/gsplat_scene_recon/Dockerfile",
 		"holoscan_sdk": {
@@ -32,7 +33,7 @@
 			"Pose Estimation",
 			"Surgical AI"
 		],
-		"ranking": 1,
+		"ranking": 2,
 		"dependencies": {
 			"third_party": [
 			{
@@ -60,70 +61,6 @@
 					"license": "MIT",
 "url": "https://yifliu3.github.io/EndoGaussian/",
 				"description": "Gaussian splatting training with deformation network (project page; upstream repo may have moved)"
-				}
-			],
-			"python_libraries": [
-				{
-					"name": "torch",
-					"version": ">=2.1.0",
-					"license": "BSD-3-Clause",
-					"url": "https://github.com/pytorch/pytorch"
-				},
-				{
-					"name": "cupy",
-					"version": ">=13.0.0",
-					"license": "MIT",
-					"url": "https://github.com/cupy/cupy"
-				},
-				{
-					"name": "gsplat",
-					"license": "Apache-2.0",
-					"url": "https://github.com/nerfstudio-project/gsplat"
-				},
-				{
-					"name": "lpips",
-					"license": "BSD-2-Clause",
-					"url": "https://github.com/richzhang/PerceptualSimilarity"
-				},
-				{
-					"name": "huggingface_hub",
-					"license": "Apache-2.0",
-					"url": "https://github.com/huggingface/huggingface_hub"
-				},
-				{
-					"name": "einops",
-					"license": "MIT",
-					"url": "https://github.com/arogozhnikov/einops"
-				},
-				{
-					"name": "safetensors",
-					"license": "Apache-2.0",
-					"url": "https://github.com/huggingface/safetensors"
-				},
-				{
-					"name": "timm",
-					"license": "Apache-2.0",
-					"url": "https://github.com/huggingface/pytorch-image-models"
-				},
-				{
-					"name": "torchmetrics",
-					"license": "Apache-2.0",
-					"url": "https://github.com/Lightning-AI/torchmetrics"
-				},
-				{
-					"name": "plyfile",
-					"license": "MIT",
-					"url": "https://github.com/dranjan/python-plyfile"
-				},
-				{
-					"name": "opencv-python",
-					"license": "Apache-2.0",
-					"url": "https://github.com/opencv/opencv-python"
-				},
-				{
-					"name": "scikit-image",
-					"license": "BSD-3-Clause",
-					"url": "https://github.com/scikit-image/scikit-image"
 				}
 			]
 		},
