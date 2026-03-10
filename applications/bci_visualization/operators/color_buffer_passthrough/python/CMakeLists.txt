@@ -20,7 +20,3 @@ pybind11_add_holohub_module(
   CLASS_NAME "ColorBufferPassthroughOp"
   SOURCES color_buffer_passthrough.cpp
 )
-
-
-
-

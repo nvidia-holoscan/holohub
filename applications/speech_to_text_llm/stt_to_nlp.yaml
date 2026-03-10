@@ -1,5 +1,5 @@
 %YAML 1.2
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,5 +23,5 @@ ChatGPTOp:
   #model: "gpt-4"
   model: "gpt-3.5-turbo"
 
-  context: 'Make summary of the transcript (and correct any transcription errors in CAPS).\n Create a Patient Summary with no medical jargon. \n 
+  context: 'Make summary of the transcript (and correct any transcription errors in CAPS).\n Create a Patient Summary with no medical jargon. \n
   Create a full radiological report write-up. \n Give likely ICD-10 Codes \n Suggested follow-up steps.'

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText:  Copyright (c) 2022, DELTACAST.TV. All rights reserved.
+# SPDX-FileCopyrightText:  Copyright (c) 2022-2026, DELTACAST.TV. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,4 +41,3 @@ find_package_handle_standard_args(Prohawk
     FOUND_VAR Prohawk_FOUND
     REQUIRED_VARS ptgde
 )
-

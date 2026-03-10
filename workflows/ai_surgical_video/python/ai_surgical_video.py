@@ -856,8 +856,8 @@ if __name__ == "__main__":
         choices=["replayer", "aja", "hsb"],
         default="replayer",
         help="""
-        If 'replayer', replay a prerecorded video. 
-        If 'aja' use an AJA capture card as the source. 
+        If 'replayer', replay a prerecorded video.
+        If 'aja' use an AJA capture card as the source.
         If 'hsb' use the Holoscan Sensor Bridge as the source.""",
     )
     parser.add_argument(

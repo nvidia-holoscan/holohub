@@ -40,7 +40,7 @@ void main() {
 
   vec2 video_tex_coords = tex_coords;
   // surgical video
-  
+
   if(applyAnonymizationEffect) {
     vec2 pixelation_f = vec2(40.0 / 1920.0, 40.0 / 1080.0);
     video_tex_coords = pixelation_f * floor(video_tex_coords / pixelation_f);
@@ -63,7 +63,7 @@ void main() {
   if(applySurgicalToolOverlayEffect) {
     out_color = texture2D(surgical_tool_mask, tex_coords).r > 0.0 ? video_rgba : out_color;
   }
-  
+
 
 // change to #if 1 to enable debug display of tool segmentation mask
 #if 0
@@ -74,9 +74,9 @@ void main() {
 
 
 #ifdef DEBUG_VIS
-  vec2 debug_rect_size = vec2(0.33);  
+  vec2 debug_rect_size = vec2(0.33);
 
-  if(tex_coords.x > 1.0 - debug_rect_size.x && tex_coords.y > 1.0 - debug_rect_size.y) 
+  if(tex_coords.x > 1.0 - debug_rect_size.x && tex_coords.y > 1.0 - debug_rect_size.y)
   {
     vec2 debug_texcoords = tex_coords;
     debug_texcoords -= (vec2(1.0) - debug_rect_size);

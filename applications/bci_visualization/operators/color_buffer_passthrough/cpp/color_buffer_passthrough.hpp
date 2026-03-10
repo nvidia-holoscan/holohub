@@ -36,5 +36,3 @@ class ColorBufferPassthroughOp : public Operator {
 };
 
 }  // namespace holoscan::ops
-
-

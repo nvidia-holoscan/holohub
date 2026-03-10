@@ -25,7 +25,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 # --------------------------------------------------------------------------
 #
-# Holohub dev setup 
+# Holohub dev setup
 #
 RUN mkdir -p /tmp/scripts
 COPY holohub /tmp/scripts/
@@ -63,4 +63,3 @@ WORKDIR /
 #ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/aarch64-linux-gnu/tegra/
 
 RUN /install_dependencies.sh
-

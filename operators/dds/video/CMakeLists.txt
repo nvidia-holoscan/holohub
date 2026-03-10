@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,4 +21,3 @@ if(OP_dds_video_publisher OR OP_dds_video_subscriber)
   include(RTIConnextDDS)
   add_rti_type_library(dds_video_frame ${CMAKE_CURRENT_SOURCE_DIR}/VideoFrame.idl UNBOUNDED)
 endif()
-

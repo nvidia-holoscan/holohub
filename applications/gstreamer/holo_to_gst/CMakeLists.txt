@@ -48,4 +48,3 @@ if(BUILD_TESTING)
                        PASS_REGULAR_EXPRESSION "Application finished successfully"
                        FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
 endif()
-
