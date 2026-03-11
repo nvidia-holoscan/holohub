@@ -296,6 +296,51 @@ def check_holoscan() -> CheckResult:
     )
 
 
+def check_holoscan_python() -> CheckResult:
+    """Check if the Holoscan Python package is importable and report its location.
+
+    Runs ``python3 -c "import holoscan"`` in a subprocess so a failed import
+    (e.g. missing libcudart) does not crash the CLI itself.
+    """
+    snippet = (
+        "import holoscan; "
+        "print(holoscan.__version__); "
+        "print(holoscan.__file__)"
+    )
+    try:
+        proc = subprocess.run(
+            ["python3", "-c", snippet],
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+    except subprocess.TimeoutExpired:
+        return CheckResult(
+            status="WARN",
+            name="HSDK Python",
+            message="import holoscan timed out (>15s)",
+        )
+
+    if proc.returncode != 0:
+        err = proc.stderr.strip().splitlines()
+        short_err = err[-1] if err else "unknown error"
+        return CheckResult(
+            status="WARN",
+            name="HSDK Python",
+            message=f"import holoscan failed ({short_err})",
+        )
+
+    lines = proc.stdout.strip().splitlines()
+    version = lines[0].strip() if len(lines) > 0 else "unknown"
+    location = lines[1].strip() if len(lines) > 1 else "unknown"
+    pkg_dir = str(Path(location).parent) if location != "unknown" else "unknown"
+    return CheckResult(
+        status="OK",
+        name="HSDK Python",
+        message=f"{version} ({pkg_dir})",
+    )
+
+
 def check_disk() -> CheckResult:
     """Check free disk space on the filesystem containing the build directory"""
     holohub_root = get_holohub_root()
@@ -435,6 +480,7 @@ def run_all_checks() -> List[CheckResult]:
         ("CUDA", check_cuda),
         ("Docker", check_docker),
         ("Holoscan", check_holoscan),
+        ("HSDK Python", check_holoscan_python),
         ("Disk", check_disk),
         ("CLI", check_cli),
         ("Container", check_container),
