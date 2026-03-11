@@ -44,6 +44,7 @@ Run the CLI from the repository root:
 | [lint](#lint)                               | Run linting tools                                                          |
 | [setup](#setup)                             | Install HoloHub recommended packages for development                       |
 | [env-info](#env-info)                       | Display environment debugging information                                  |
+| [env-check](#env-check)                     | Run system health checks (GPU, CUDA, Docker, SDK, disk, display, devices)  |
 | [install](#install)                         | Install a built project                                                    |
 | [test](#test)                               | Run tests for a project                                                    |
 | [clear-cache](#clear-cache)                 | Clear cache folders (build, data, install)                                 |
@@ -427,6 +428,50 @@ No arguments or options.
 
 ---
 
+### Env-Check
+
+Run quick system checks for GPU, CUDA, Docker, Holoscan SDK, disk, display, devices, and related runtime state. Each check is reported as `OK`, `WARN`, `FAIL`, or `SKIP`.
+
+**Difference from `env-info`:**
+
+- `env-info` prints raw environment variables and paths for debugging.
+- `env-check` validates the host setup and reports status for each check. It exits with code 1 if any check fails.
+
+**Typical uses:**
+
+- First-time device setup before building or running applications
+- After upgrading drivers, Docker, CUDA, or the Holoscan SDK
+- At CI node startup as a quick health check
+- During troubleshooting when a system may be misconfigured
+
+**Usage:**
+
+```bash
+./holohub env-check [options]
+```
+
+**Options:**
+
+| Option   | Description                                                 |
+| -------- | ----------------------------------------------------------- |
+| `--json` | Output results as machine-readable JSON (for CI pipelines)  |
+
+**Exit code:** `0` when there are no failures, `1` if any check fails.
+
+**Examples:**
+
+```bash
+# Run env-check on the host
+./holohub env-check
+./holohub env-check --json
+
+# Run env-check inside the container
+./holohub run-container -- ./holohub env-check
+./holohub run-container -- ./holohub env-check --json
+```
+
+---
+
 ### Install
 
 Build and install a project (container or local). Installs built artifacts (for example, using cpack).
@@ -530,7 +575,7 @@ Clear cache directories (build, data, install).
 | `--install` | Clear install folders only       |
 | `--dryrun`  | Print commands without executing |
 
-If none of `--build`, `--data`, `--install` are given, all are cleared.
+If none of `--build`, `--data`, `--install` are given, all are cleared. Use `--dryrun` to preview what would be deleted.
 
 **Examples:**
 

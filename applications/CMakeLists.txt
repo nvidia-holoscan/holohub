@@ -118,6 +118,9 @@ add_holohub_application(qt_video_replayer DEPENDS OPERATORS qt_video npp_filter)
 
 add_holohub_application(realsense_visualizer DEPENDS OPERATORS realsense_camera)
 
+add_holohub_application(st2110_demo DEPENDS
+                        OPERATORS st2110_source)
+
 add_holohub_application(stereo_vision)
 
 add_holohub_application(surgical_scene_recon)
