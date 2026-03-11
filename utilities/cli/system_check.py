@@ -20,6 +20,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import List, Optional
@@ -305,7 +306,7 @@ def check_holoscan_python() -> CheckResult:
     snippet = "import holoscan; " "print(holoscan.__version__); " "print(holoscan.__file__)"
     try:
         proc = subprocess.run(
-            ["python3", "-c", snippet],
+            [sys.executable, "-c", snippet],
             capture_output=True,
             text=True,
             timeout=15,
