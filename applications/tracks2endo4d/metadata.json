@@ -1,6 +1,7 @@
 {
 	"application": {
-		"name": "Tracks2Endo4D Workflow",
+		"name": "Tracks2Endo4D",
+		"description": "Tracks2Endo4D: Real-time 3D point tracking and camera parameter estimation from video.",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -23,7 +24,7 @@
 			"aarch64"
 		],
 		"tags": ["Healthcare AI", "Tracking", "Colonoscopy"],
-		"ranking": 1,
+		"ranking": 2,
 		"requirements": {
 			"data": [
 				{
