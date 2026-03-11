@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights
+ * reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,29 +35,26 @@ using pybind11::literals::operator""_a;
 
 namespace py = pybind11;
 
-using holoscan::Operator;
-using holoscan::OperatorSpec;
-using holoscan::Fragment;
 using holoscan::Allocator;
 using holoscan::Arg;
 using holoscan::ArgList;
+using holoscan::Fragment;
+using holoscan::Operator;
+using holoscan::OperatorSpec;
 using holoscan::ops::VizOp;
 
 namespace holoscan::ops {
 
-  /* Trampoline class for handling Python kwargs */
-  class PyVizOp : public VizOp {
-  public:
+/* Trampoline class for handling Python kwargs */
+class PyVizOp : public VizOp {
+ public:
   /* Inherit the constructors */
   using VizOp::VizOp;
 
   // Define a constructor that fully initializes the object.
-  PyVizOp(
-      Fragment* fragment, const py::args& args, std::shared_ptr<Allocator> device_allocator,
-      const std::string& name = "viz_op",
-      uint32_t width = 1280, uint32_t height = 720,
-      const std::string& window_title = "Holoviz", bool headless = false,
-      bool verbose = false)
+  PyVizOp(Fragment* fragment, const py::args& args, std::shared_ptr<Allocator> device_allocator,
+          const std::string& name = "viz_op", uint32_t width = 1280, uint32_t height = 720,
+          const std::string& window_title = "Holoviz", bool headless = false, bool verbose = false)
       : VizOp(ArgList{Arg{"device_allocator", device_allocator},
                       Arg{"width", width},
                       Arg{"height", height},
@@ -65,12 +62,12 @@ namespace holoscan::ops {
                       Arg{"headless", headless},
                       Arg{"verbose", verbose}}) {
     add_positional_condition_and_resource_args(this, args);
-      name_ = name;
-      fragment_ = fragment;
-      spec_ = std::make_shared<OperatorSpec>(fragment);
-      setup(*spec_.get());
+    name_ = name;
+    fragment_ = fragment;
+    spec_ = std::make_shared<OperatorSpec>(fragment);
+    setup(*spec_.get());
   }
-  };
+};
 
 PYBIND11_MODULE(_tracks2endo4d_viz, m) {
   m.doc() = R"pbdoc(
@@ -82,14 +79,13 @@ PYBIND11_MODULE(_tracks2endo4d_viz, m) {
            VizOp
     )pbdoc";
 
-  #ifdef VERSION_INFO
+#ifdef VERSION_INFO
   m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
-  #else
+#else
   m.attr("__version__") = "dev";
-  #endif
+#endif
 
-  py::class_<VizOp, PyVizOp, Operator, std::shared_ptr<VizOp>>(
-      m, "VizOp", "Visualizer Operator")
+  py::class_<VizOp, PyVizOp, Operator, std::shared_ptr<VizOp>>(m, "VizOp", "Visualizer Operator")
       .def(py::init<Fragment*,
                     const py::args&,
                     std::shared_ptr<Allocator>,
@@ -108,5 +104,5 @@ PYBIND11_MODULE(_tracks2endo4d_viz, m) {
            "headless"_a = false,
            "verbose"_a = false,
            "Visualizer Operator");
-  }
 }
+}  // namespace holoscan::ops

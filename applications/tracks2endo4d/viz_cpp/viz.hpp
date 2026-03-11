@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights
+ * reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,15 @@
 
 #pragma once
 
+#include <array>
+#include <deque>
 #include <memory>
 #include <vector>
-#include <deque>
-#include <array>
 
 #include <holoscan/core/operator.hpp>
 #include <holoscan/core/operator_spec.hpp>
-#include <holoscan/utils/cuda_stream_handler.hpp>
 #include <holoscan/core/resources/gxf/allocator.hpp>
+#include <holoscan/utils/cuda_stream_handler.hpp>
 
 namespace holoscan::ops {
 
@@ -43,7 +43,8 @@ class VizOp : public holoscan::Operator {
 
  private:
   // Helper methods
-  std::shared_ptr<holoscan::Tensor> readTensorMap(const holoscan::TensorMap& tensormap, const std::string& tensor_name);
+  std::shared_ptr<holoscan::Tensor> readTensorMap(const holoscan::TensorMap& tensormap,
+                                                  const std::string& tensor_name);
   void processIncomingTrajectory(const std::shared_ptr<holoscan::Tensor>& input_tensor);
   void processWindowTrajectory(const std::shared_ptr<holoscan::Tensor>& input_tensor);
   void computeTrajectoryBounds();
@@ -54,7 +55,7 @@ class VizOp : public holoscan::Operator {
   void renderWindowTrajectory();
   void renderPointCloud(const std::shared_ptr<holoscan::Tensor>& input_tensor);
   void renderFramePoints(const std::shared_ptr<holoscan::Tensor>& frame,
-    const std::shared_ptr<holoscan::Tensor>& point_coords);
+                         const std::shared_ptr<holoscan::Tensor>& point_coords);
   void renderAxisGizmo();
   void renderGroundPlaneGrid();
   void renderCameraFrustum(const std::shared_ptr<holoscan::Tensor>& camera_position,
@@ -71,20 +72,20 @@ class VizOp : public holoscan::Operator {
   holoscan::Parameter<bool> verbose_;
 
   // Full trajectory data (received each frame)
-  std::vector<float> trajectory_host_;   // Host buffer for transformed trajectory
-  float* dev_trajectory_ = nullptr;      // GPU buffer for trajectory
-  size_t dev_trajectory_capacity_ = 0;   // Capacity of GPU buffer in floats
-  size_t trajectory_num_points_ = 0;     // Current number of points in trajectory
+  std::vector<float> trajectory_host_;  // Host buffer for transformed trajectory
+  float* dev_trajectory_ = nullptr;     // GPU buffer for trajectory
+  size_t dev_trajectory_capacity_ = 0;  // Capacity of GPU buffer in floats
+  size_t trajectory_num_points_ = 0;    // Current number of points in trajectory
 
   // Window trajectory (sliding window of last N points)
-  std::deque<float> window_trajectory_buffer_;  // Stores x, y, z values sequentially
-  float* dev_window_trajectory_ = nullptr;      // GPU buffer for window trajectory
-  size_t dev_window_trajectory_capacity_ = 0;   // Capacity of GPU buffer in floats
+  std::deque<float> window_trajectory_buffer_;              // Stores x, y, z values sequentially
+  float* dev_window_trajectory_ = nullptr;                  // GPU buffer for window trajectory
+  size_t dev_window_trajectory_capacity_ = 0;               // Capacity of GPU buffer in floats
   static constexpr size_t kWindowTrajectoryMaxPoints = 20;  // Max points in window trajectory
 
   // Point cloud (transformed with global rotation)
-  float* dev_pointcloud_ = nullptr;             // GPU buffer for transformed point cloud
-  size_t dev_pointcloud_capacity_ = 0;          // Capacity of GPU buffer in floats
+  float* dev_pointcloud_ = nullptr;     // GPU buffer for transformed point cloud
+  size_t dev_pointcloud_capacity_ = 0;  // Capacity of GPU buffer in floats
 
   // Trajectory bounding box
   std::array<float, 3> bounds_min_ = {0.0f, 0.0f, 0.0f};
@@ -93,9 +94,9 @@ class VizOp : public holoscan::Operator {
   float bounds_radius_ = 1.0f;  // Radius of bounding sphere
 
   // Orbit camera state
-  float camera_distance_ = 2.0f;         // Distance from look-at point
-  float camera_azimuth_ = 0.785f;        // Horizontal angle (radians), ~45 degrees
-  float camera_elevation_ = 0.615f;      // Vertical angle (radians), ~35 degrees
+  float camera_distance_ = 2.0f;     // Distance from look-at point
+  float camera_azimuth_ = 0.785f;    // Horizontal angle (radians), ~45 degrees
+  float camera_elevation_ = 0.615f;  // Vertical angle (radians), ~35 degrees
   std::array<float, 3> camera_target_ = {0.0f, 0.0f, 0.0f};  // Look-at point
 
   // User zoom multiplier (1.0 = auto-fit, >1 = zoomed out, <1 = zoomed in)

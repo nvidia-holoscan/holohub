@@ -1,19 +1,19 @@
 /*
-* SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
-* SPDX-License-Identifier: Apache-2.0
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights
+ * reserved. SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include "viz.hpp"
 
@@ -25,26 +25,26 @@
 #include <utility>
 #include <vector>
 
+#include <holoviz/imgui/imgui.h>
 #include <holoscan/core/execution_context.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 #include <holoviz/holoviz.hpp>
-#include <holoviz/imgui/imgui.h>
 
 #include <gxf/std/tensor.hpp>
 
 #include <cuda_runtime.h>
 #include <thrust/device_ptr.h>
-#include <thrust/transform.h>
 #include <thrust/iterator/counting_iterator.h>
 #include <thrust/iterator/zip_iterator.h>
+#include <thrust/transform.h>
 #include <thrust/tuple.h>
 
-#define CUDA_TRY(stmt)                                                                            \
-  {                                                                                               \
-    cudaError_t cuda_error = stmt;                                                                \
-    if (cuda_error != cudaSuccess) {                                                              \
-      throw std::runtime_error(std::string("CUDA error: ") + cudaGetErrorString(cuda_error));     \
-    }                                                                                             \
+#define CUDA_TRY(stmt)                                                                        \
+  {                                                                                           \
+    cudaError_t cuda_error = stmt;                                                            \
+    if (cuda_error != cudaSuccess) {                                                          \
+      throw std::runtime_error(std::string("CUDA error: ") + cudaGetErrorString(cuda_error)); \
+    }                                                                                         \
   }
 
 namespace viz = holoscan::viz;
@@ -65,7 +65,9 @@ void VizOp::setup(OperatorSpec& spec) {
 }
 
 void VizOp::start() {
-  viz::Init(width_.get(), height_.get(), window_title_.get().c_str(),
+  viz::Init(width_.get(),
+            height_.get(),
+            window_title_.get().c_str(),
             headless_.get() ? viz::InitFlags::HEADLESS : viz::InitFlags::NONE);
 
   // GPU buffers will be allocated dynamically as needed
@@ -105,8 +107,10 @@ void VizOp::processIncomingTrajectory(const std::shared_ptr<holoscan::Tensor>& i
   trajectory_num_points_ = num_points;
 
   // Copy from GPU to host
-  CUDA_TRY(cudaMemcpy(trajectory_host_.data(), input_tensor->data(),
-                       num_floats * sizeof(float), cudaMemcpyDeviceToHost));
+  CUDA_TRY(cudaMemcpy(trajectory_host_.data(),
+                      input_tensor->data(),
+                      num_floats * sizeof(float),
+                      cudaMemcpyDeviceToHost));
 
   // Apply global rotation to flip Y and Z: [[1,0,0],[0,-1,0],[0,0,-1]]
   // Transform each point: (x, y, z) -> (x, -y, -z)
@@ -127,8 +131,10 @@ void VizOp::processIncomingTrajectory(const std::shared_ptr<holoscan::Tensor>& i
 
   // Copy transformed trajectory to GPU
   if (num_floats >= 6) {  // Need at least 2 points for a line
-    CUDA_TRY(cudaMemcpy(dev_trajectory_, trajectory_host_.data(),
-                         num_floats * sizeof(float), cudaMemcpyHostToDevice));
+    CUDA_TRY(cudaMemcpy(dev_trajectory_,
+                        trajectory_host_.data(),
+                        num_floats * sizeof(float),
+                        cudaMemcpyHostToDevice));
   }
 }
 
@@ -138,8 +144,10 @@ void VizOp::processWindowTrajectory(const std::shared_ptr<holoscan::Tensor>& inp
   size_t num_floats = num_points * 3;
 
   std::vector<float> host_points(num_floats);
-  CUDA_TRY(cudaMemcpy(host_points.data(), input_tensor->data(),
-                       num_floats * sizeof(float), cudaMemcpyDeviceToHost));
+  CUDA_TRY(cudaMemcpy(host_points.data(),
+                      input_tensor->data(),
+                      num_floats * sizeof(float),
+                      cudaMemcpyDeviceToHost));
 
   // Apply global rotation to flip Y and Z: [[1,0,0],[0,-1,0],[0,0,-1]]
   for (size_t i = 0; i < num_points; ++i) {
@@ -148,9 +156,7 @@ void VizOp::processWindowTrajectory(const std::shared_ptr<holoscan::Tensor>& inp
   }
 
   // Add new points to the window trajectory buffer
-  for (size_t i = 0; i < num_floats; ++i) {
-    window_trajectory_buffer_.push_back(host_points[i]);
-  }
+  for (size_t i = 0; i < num_floats; ++i) { window_trajectory_buffer_.push_back(host_points[i]); }
 
   // Enforce sliding window: remove oldest points if we exceed max length
   size_t max_floats = kWindowTrajectoryMaxPoints * 3;
@@ -163,9 +169,12 @@ void VizOp::processWindowTrajectory(const std::shared_ptr<holoscan::Tensor>& inp
   // Copy window trajectory buffer to GPU
   size_t trajectory_size = window_trajectory_buffer_.size();
   if (trajectory_size >= 6) {  // Need at least 2 points for a line
-    std::vector<float> trajectory_vec(window_trajectory_buffer_.begin(), window_trajectory_buffer_.end());
-    CUDA_TRY(cudaMemcpy(dev_window_trajectory_, trajectory_vec.data(),
-                         trajectory_size * sizeof(float), cudaMemcpyHostToDevice));
+    std::vector<float> trajectory_vec(window_trajectory_buffer_.begin(),
+                                      window_trajectory_buffer_.end());
+    CUDA_TRY(cudaMemcpy(dev_window_trajectory_,
+                        trajectory_vec.data(),
+                        trajectory_size * sizeof(float),
+                        cudaMemcpyHostToDevice));
   }
 }
 
@@ -207,15 +216,15 @@ void VizOp::computeTrajectoryBounds() {
   float dx = bounds_max_[0] - bounds_min_[0];
   float dy = bounds_max_[1] - bounds_min_[1];
   float dz = bounds_max_[2] - bounds_min_[2];
-  bounds_radius_ = std::sqrt(dx*dx + dy*dy + dz*dz) * 0.5f;
+  bounds_radius_ = std::sqrt(dx * dx + dy * dy + dz * dz) * 0.5f;
 
   // Ensure minimum radius
   bounds_radius_ = std::max(bounds_radius_, 0.1f);
 
   if (verbose_.get()) {
-    std::cout << "Trajectory bounds: min=(" << bounds_min_[0] << ", " << bounds_min_[1] << ", " << bounds_min_[2]
-            << ") max=(" << bounds_max_[0] << ", " << bounds_max_[1] << ", " << bounds_max_[2]
-            << ") radius=" << bounds_radius_ << std::endl;
+    std::cout << "Trajectory bounds: min=(" << bounds_min_[0] << ", " << bounds_min_[1] << ", "
+              << bounds_min_[2] << ") max=(" << bounds_max_[0] << ", " << bounds_max_[1] << ", "
+              << bounds_max_[2] << ") radius=" << bounds_radius_ << std::endl;
   }
 }
 
@@ -231,8 +240,9 @@ void VizOp::fitCameraToTrajectory() {
   camera_distance_ = std::clamp(desired_distance, kMinDistance, kMaxDistance);
 
   if (verbose_.get()) {
-    std::cout << "Camera: target=(" << camera_target_[0] << ", " << camera_target_[1] << ", " << camera_target_[2]
-            << ") desired_dist=" << desired_distance << " actual_dist=" << camera_distance_ << std::endl;
+    std::cout << "Camera: target=(" << camera_target_[0] << ", " << camera_target_[1] << ", "
+              << camera_target_[2] << ") desired_dist=" << desired_distance
+              << " actual_dist=" << camera_distance_ << std::endl;
   }
 }
 
@@ -298,13 +308,18 @@ void VizOp::updateCamera() {
   float up_y = -sin_el * sin_az;
   float up_z = cos_el;
 
-  viz::SetCamera(eye_x, eye_y, eye_z,
-                 camera_target_[0], camera_target_[1], camera_target_[2],
-                 up_x, up_y, up_z);
+  viz::SetCamera(eye_x,
+                 eye_y,
+                 eye_z,
+                 camera_target_[0],
+                 camera_target_[1],
+                 camera_target_[2],
+                 up_x,
+                 up_y,
+                 up_z);
 }
 
 void VizOp::renderTrajectory() {
-
   size_t num_trajectory_points = trajectory_num_points_;
 
   // Draw full trajectory as LINE_STRIP (green-cyan)
@@ -314,9 +329,9 @@ void VizOp::renderTrajectory() {
 
     CUdeviceptr dev_ptr = reinterpret_cast<CUdeviceptr>(dev_trajectory_);
     viz::PrimitiveCudaDevice(viz::PrimitiveTopology::LINE_STRIP_3D,
-                              static_cast<uint32_t>(num_trajectory_points - 1),
-                              3 * num_trajectory_points,
-                              dev_ptr);
+                             static_cast<uint32_t>(num_trajectory_points - 1),
+                             3 * num_trajectory_points,
+                             dev_ptr);
   }
 
   // Draw the current point as a larger point for visibility
@@ -325,25 +340,24 @@ void VizOp::renderTrajectory() {
     viz::PointSize(8.0f);
 
     CUdeviceptr dev_ptr_last = reinterpret_cast<CUdeviceptr>(dev_trajectory_) +
-                                (num_trajectory_points - 1) * 3 * sizeof(float);
+                               (num_trajectory_points - 1) * 3 * sizeof(float);
     viz::PrimitiveCudaDevice(viz::PrimitiveTopology::POINT_LIST, 1, 3, dev_ptr_last);
   }
 }
 
 void VizOp::renderWindowTrajectory() {
-
   size_t num_window_points = window_trajectory_buffer_.size() / 3;
 
   // Draw window trajectory as LINE_STRIP (orange/yellow for contrast)
   if (num_window_points >= 2) {
     viz::Color(1.0f, 0.6f, 0.0f, 1.0f);  // Orange color
-    viz::LineWidth(3.0f);  // Slightly thicker
+    viz::LineWidth(3.0f);                // Slightly thicker
 
     CUdeviceptr dev_ptr = reinterpret_cast<CUdeviceptr>(dev_window_trajectory_);
     viz::PrimitiveCudaDevice(viz::PrimitiveTopology::LINE_STRIP_3D,
-                              static_cast<uint32_t>(num_window_points - 1),
-                              3 * num_window_points,
-                              dev_ptr);
+                             static_cast<uint32_t>(num_window_points - 1),
+                             3 * num_window_points,
+                             dev_ptr);
   }
 
   // Draw the latest point in the window as a bright point
@@ -352,7 +366,7 @@ void VizOp::renderWindowTrajectory() {
     viz::PointSize(10.0f);
 
     CUdeviceptr dev_ptr_last = reinterpret_cast<CUdeviceptr>(dev_window_trajectory_) +
-                                (num_window_points - 1) * 3 * sizeof(float);
+                               (num_window_points - 1) * 3 * sizeof(float);
     viz::PrimitiveCudaDevice(viz::PrimitiveTopology::POINT_LIST, 1, 3, dev_ptr_last);
   }
 }
@@ -372,7 +386,8 @@ struct FlipYZFunctor {
 void VizOp::renderPointCloud(const std::shared_ptr<holoscan::Tensor>& input_tensor) {
   // Point cloud comes with shape (N, 3)
   auto num_points = input_tensor->shape()[0];
-  if (num_points == 0) return;
+  if (num_points == 0)
+    return;
 
   size_t num_floats = num_points * 3;
 
@@ -393,23 +408,26 @@ void VizOp::renderPointCloud(const std::shared_ptr<holoscan::Tensor>& input_tens
   // Transform on GPU: flip Y and Z components
   // Uses counting iterator to track index for component selection
   thrust::transform(
-    thrust::make_zip_iterator(thrust::make_tuple(src_ptr, thrust::counting_iterator<size_t>(0))),
-    thrust::make_zip_iterator(thrust::make_tuple(src_ptr + num_floats, thrust::counting_iterator<size_t>(num_floats))),
-    dst_ptr,
-    FlipYZFunctor()
-  );
+      thrust::make_zip_iterator(thrust::make_tuple(src_ptr, thrust::counting_iterator<size_t>(0))),
+      thrust::make_zip_iterator(
+          thrust::make_tuple(src_ptr + num_floats, thrust::counting_iterator<size_t>(num_floats))),
+      dst_ptr,
+      FlipYZFunctor());
 
   viz::Color(1.0f, 0.8f, 0.2f, 0.5f);  // Semi-transparent (alpha = 0.5)
   viz::PointSize(4.0f);
-  viz::PrimitiveCudaDevice(viz::PrimitiveTopology::POINT_LIST_3D, num_points, num_floats,
-                            reinterpret_cast<CUdeviceptr>(dev_pointcloud_));
+  viz::PrimitiveCudaDevice(viz::PrimitiveTopology::POINT_LIST_3D,
+                           num_points,
+                           num_floats,
+                           reinterpret_cast<CUdeviceptr>(dev_pointcloud_));
 }
 
 void VizOp::renderGroundPlaneGrid() {
   // Render a grid on the XY plane at Z=0 for spatial reference
   // Grid is FIXED at the world origin and grows to encompass the trajectory
 
-  if (trajectory_num_points_ == 0) return;
+  if (trajectory_num_points_ == 0)
+    return;
 
   // Grid is always centered at origin (0, 0, 0)
   constexpr float grid_z = 0.0f;
@@ -463,18 +481,26 @@ void VizOp::renderGroundPlaneGrid() {
   viz::Color(0.4f, 0.4f, 0.5f, 0.3f);  // Gray-blue, semi-transparent
   viz::LineWidth(1.0f);
   viz::Primitive(viz::PrimitiveTopology::LINE_LIST_3D,
-                  num_lines * 2,  // Number of line segments
-                  grid_lines.size(),
-                  grid_lines.data());
+                 num_lines * 2,  // Number of line segments
+                 grid_lines.size(),
+                 grid_lines.data());
 
   // Highlight the X and Y axes through origin (world axes)
   std::vector<float> axis_lines = {
-    // X axis (red-ish)
-    -half_size, 0.0f, grid_z,
-    half_size, 0.0f, grid_z,
-    // Y axis (green-ish)
-    0.0f, -half_size, grid_z,
-    0.0f, half_size, grid_z,
+      // X axis (red-ish)
+      -half_size,
+      0.0f,
+      grid_z,
+      half_size,
+      0.0f,
+      grid_z,
+      // Y axis (green-ish)
+      0.0f,
+      -half_size,
+      grid_z,
+      0.0f,
+      half_size,
+      grid_z,
   };
 
   // X axis highlight
@@ -493,9 +519,9 @@ void VizOp::renderAxisGizmo() {
   // This avoids using SetCamera() which interferes with the main 3D view
 
   // Gizmo position and size in normalized screen coordinates
-  constexpr float kGizmoSize = 0.10f;      // Size of gizmo area
-  constexpr float kGizmoMargin = 0.02f;    // Margin from edge
-  constexpr float kAxisLength = 0.035f;    // Length of axes in screen coords
+  constexpr float kGizmoSize = 0.10f;    // Size of gizmo area
+  constexpr float kGizmoMargin = 0.02f;  // Margin from edge
+  constexpr float kAxisLength = 0.035f;  // Length of axes in screen coords
 
   // Center of gizmo in screen coordinates (bottom-right corner)
   float cx = 1.0f - kGizmoSize / 2.0f - kGizmoMargin;
@@ -573,11 +599,12 @@ void VizOp::renderAxisGizmo() {
 }
 
 void VizOp::renderCameraFrustum(const std::shared_ptr<holoscan::Tensor>& camera_position,
-                                 const std::shared_ptr<holoscan::Tensor>& camera_rotation) {
+                                const std::shared_ptr<holoscan::Tensor>& camera_rotation) {
   // camera_position is the latest window position (single point)
   // camera_rotation is the latest window rotation (single 3x3 matrix)
   auto num_frames = camera_position->shape()[0];
-  if (num_frames == 0) return;
+  if (num_frames == 0)
+    return;
 
   // Copy the latest position and rotation from GPU to host
   // Since camera_position_window is already sliced to [t:t+1], we use index 0
@@ -588,14 +615,8 @@ void VizOp::renderCameraFrustum(const std::shared_ptr<holoscan::Tensor>& camera_
   const float* rot_data = static_cast<const float*>(camera_rotation->data());
 
   // Use first (and only) frame since window tensors are already sliced
-  CUDA_TRY(cudaMemcpy(host_pos.data(),
-                       pos_data,
-                       3 * sizeof(float),
-                       cudaMemcpyDeviceToHost));
-  CUDA_TRY(cudaMemcpy(host_rot.data(),
-                       rot_data,
-                       9 * sizeof(float),
-                       cudaMemcpyDeviceToHost));
+  CUDA_TRY(cudaMemcpy(host_pos.data(), pos_data, 3 * sizeof(float), cudaMemcpyDeviceToHost));
+  CUDA_TRY(cudaMemcpy(host_rot.data(), rot_data, 9 * sizeof(float), cudaMemcpyDeviceToHost));
 
   // Apply global rotation to flip Y and Z: [[1,0,0],[0,-1,0],[0,0,-1]]
   // Transform camera center: (x, y, z) -> (x, -y, -z)
@@ -609,9 +630,15 @@ void VizOp::renderCameraFrustum(const std::shared_ptr<holoscan::Tensor>& camera_
   // Result: row 0 stays same, row 1 negated, row 2 negated
   // Input is row-major: [r00, r01, r02, r10, r11, r12, r20, r21, r22]
   float r[9];
-  r[0] = host_rot[0];  r[1] = host_rot[1];  r[2] = host_rot[2];   // row 0
-  r[3] = -host_rot[3]; r[4] = -host_rot[4]; r[5] = -host_rot[5];  // row 1 negated
-  r[6] = -host_rot[6]; r[7] = -host_rot[7]; r[8] = -host_rot[8];  // row 2 negated
+  r[0] = host_rot[0];
+  r[1] = host_rot[1];
+  r[2] = host_rot[2];  // row 0
+  r[3] = -host_rot[3];
+  r[4] = -host_rot[4];
+  r[5] = -host_rot[5];  // row 1 negated
+  r[6] = -host_rot[6];
+  r[7] = -host_rot[7];
+  r[8] = -host_rot[8];  // row 2 negated
 
   // Frustum dimensions in world units
   constexpr float kFocalWorldUnits = 1.5f;
@@ -627,23 +654,23 @@ void VizOp::renderCameraFrustum(const std::shared_ptr<holoscan::Tensor>& camera_
   // Order: bottom-left, bottom-right, top-right, top-left
   float local_corners[4][3] = {
       {-hw, -hh, f},  // square1
-      { hw, -hh, f},  // square2
-      { hw,  hh, f},  // square3
-      {-hw,  hh, f}   // square4
+      {hw, -hh, f},   // square2
+      {hw, hh, f},    // square3
+      {-hw, hh, f}    // square4
   };
 
   // Transform corners: camera_orientation @ corner + camera_center
   float world_corners[4][3];
   for (int i = 0; i < 4; ++i) {
-      float lx = local_corners[i][0];
-      float ly = local_corners[i][1];
-      float lz = local_corners[i][2];
+    float lx = local_corners[i][0];
+    float ly = local_corners[i][1];
+    float lz = local_corners[i][2];
 
-      // Matrix-vector multiply: r @ [lx, ly, lz]
-      // r is row-major, so r[row*3 + col]
-      world_corners[i][0] = r[0]*lx + r[1]*ly + r[2]*lz + cx;
-      world_corners[i][1] = r[3]*lx + r[4]*ly + r[5]*lz + cy;
-      world_corners[i][2] = r[6]*lx + r[7]*ly + r[8]*lz + cz;
+    // Matrix-vector multiply: r @ [lx, ly, lz]
+    // r is row-major, so r[row*3 + col]
+    world_corners[i][0] = r[0] * lx + r[1] * ly + r[2] * lz + cx;
+    world_corners[i][1] = r[3] * lx + r[4] * ly + r[5] * lz + cy;
+    world_corners[i][2] = r[6] * lx + r[7] * ly + r[8] * lz + cz;
   }
 
   // Draw lines from apex (camera center) to each corner
@@ -652,31 +679,32 @@ void VizOp::renderCameraFrustum(const std::shared_ptr<holoscan::Tensor>& camera_
 
   std::vector<float> apex_lines;
   for (int i = 0; i < 4; ++i) {
-      // Line from camera center to corner
-      apex_lines.push_back(cx);
-      apex_lines.push_back(cy);
-      apex_lines.push_back(cz);
-      apex_lines.push_back(world_corners[i][0]);
-      apex_lines.push_back(world_corners[i][1]);
-      apex_lines.push_back(world_corners[i][2]);
+    // Line from camera center to corner
+    apex_lines.push_back(cx);
+    apex_lines.push_back(cy);
+    apex_lines.push_back(cz);
+    apex_lines.push_back(world_corners[i][0]);
+    apex_lines.push_back(world_corners[i][1]);
+    apex_lines.push_back(world_corners[i][2]);
   }
   viz::Primitive(viz::PrimitiveTopology::LINE_LIST_3D, 4, apex_lines.size(), apex_lines.data());
 
   // Draw rectangle connecting corners (square base of the pyramid)
   std::vector<float> rect_lines;
   for (int i = 0; i < 4; ++i) {
-      int j = (i + 1) % 4;
-      rect_lines.push_back(world_corners[i][0]);
-      rect_lines.push_back(world_corners[i][1]);
-      rect_lines.push_back(world_corners[i][2]);
-      rect_lines.push_back(world_corners[j][0]);
-      rect_lines.push_back(world_corners[j][1]);
-      rect_lines.push_back(world_corners[j][2]);
+    int j = (i + 1) % 4;
+    rect_lines.push_back(world_corners[i][0]);
+    rect_lines.push_back(world_corners[i][1]);
+    rect_lines.push_back(world_corners[i][2]);
+    rect_lines.push_back(world_corners[j][0]);
+    rect_lines.push_back(world_corners[j][1]);
+    rect_lines.push_back(world_corners[j][2]);
   }
   viz::Primitive(viz::PrimitiveTopology::LINE_LIST_3D, 4, rect_lines.size(), rect_lines.data());
 }
 
-std::shared_ptr<holoscan::Tensor> VizOp::readTensorMap(const TensorMap& tensormap, const std::string& tensor_name) {
+std::shared_ptr<holoscan::Tensor> VizOp::readTensorMap(const TensorMap& tensormap,
+                                                       const std::string& tensor_name) {
   auto maybe_input_tensor = tensormap.find(tensor_name);
   if (maybe_input_tensor == tensormap.end()) {
     throw std::runtime_error(
@@ -691,12 +719,14 @@ std::shared_ptr<holoscan::Tensor> VizOp::readTensorMap(const TensorMap& tensorma
   return input_tensor;
 }
 
-void VizOp::renderFramePoints(const std::shared_ptr<holoscan::Tensor>& frame, const std::shared_ptr<holoscan::Tensor>& point_coords) {
+void VizOp::renderFramePoints(const std::shared_ptr<holoscan::Tensor>& frame,
+                              const std::shared_ptr<holoscan::Tensor>& point_coords) {
   // Render frame. It comes with shape (H, W, 3)
   viz::BeginImageLayer();
   viz::LayerAddView(0.0, 0.0, left_side_ratio_, 1.0);
   // ImageCudaDevice takes width, height, format, and device pointer
-  viz::ImageCudaDevice(256, 256, viz::ImageFormat::R8G8B8_UNORM, reinterpret_cast<CUdeviceptr>(frame->data()));
+  viz::ImageCudaDevice(
+      256, 256, viz::ImageFormat::R8G8B8_UNORM, reinterpret_cast<CUdeviceptr>(frame->data()));
   viz::EndLayer();
 
   // Render point cloud. It comes with shape (N, 2)
@@ -705,18 +735,20 @@ void VizOp::renderFramePoints(const std::shared_ptr<holoscan::Tensor>& frame, co
   viz::LayerAddView(0.0, 0.0, left_side_ratio_, 1.0);
   viz::Color(1.0f, 0.8f, 0.2f, 1.0f);
   viz::PointSize(5.5f);
-  viz::PrimitiveCudaDevice(viz::PrimitiveTopology::POINT_LIST, num_points, num_points * 2, reinterpret_cast<CUdeviceptr>(point_coords->data()));
+  viz::PrimitiveCudaDevice(viz::PrimitiveTopology::POINT_LIST,
+                           num_points,
+                           num_points * 2,
+                           reinterpret_cast<CUdeviceptr>(point_coords->data()));
   viz::EndLayer();
 }
 
-void VizOp::compute(InputContext& op_input, OutputContext& op_output,
-                    ExecutionContext& context) {
+void VizOp::compute(InputContext& op_input, OutputContext& op_output, ExecutionContext& context) {
   // Receive and validate input
   auto maybe_tensormap = op_input.receive<TensorMap>("receivers");
   if (!maybe_tensormap) {
-    throw std::runtime_error(
-        fmt::format("Operator '{}' failed to receive input on 'receivers': {}",
-                    name_, maybe_tensormap.error().what()));
+    throw std::runtime_error(fmt::format("Operator '{}' failed to receive input on 'receivers': {}",
+                                         name_,
+                                         maybe_tensormap.error().what()));
   }
 
   auto& tensormap = maybe_tensormap.value();
@@ -745,11 +777,12 @@ void VizOp::compute(InputContext& op_input, OutputContext& op_output,
   // Main 3D view layer - camera must be set INSIDE the layer
   viz::BeginGeometryLayer();
   viz::LayerAddView(left_side_ratio_, 0.0, 1.0 - left_side_ratio_, 1.0);
-  updateCamera();  // Set camera inside the layer context
-  renderGroundPlaneGrid();      // Ground reference grid (render first, behind other elements)
-  renderTrajectory();           // Full trajectory (green-cyan)
-  renderWindowTrajectory();     // Window trajectory (orange)
-  renderCameraFrustum(input_camera_position_window, input_camera_rotation);  // Frustum at latest window position
+  updateCamera();            // Set camera inside the layer context
+  renderGroundPlaneGrid();   // Ground reference grid (render first, behind other elements)
+  renderTrajectory();        // Full trajectory (green-cyan)
+  renderWindowTrajectory();  // Window trajectory (orange)
+  renderCameraFrustum(input_camera_position_window,
+                      input_camera_rotation);  // Frustum at latest window position
   renderPointCloud(input_3d_points);
   viz::EndLayer();
 
@@ -762,4 +795,4 @@ void VizOp::compute(InputContext& op_input, OutputContext& op_output,
   viz::End();
 }
 
-} // namespace holoscan::ops
+}  // namespace holoscan::ops

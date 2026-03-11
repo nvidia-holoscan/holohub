@@ -1,6 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights
+ * reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,9 +68,11 @@ class TapNextInference : public gxf::Codelet {
   // Helper to return a string for the TRT engine capability.
   gxf::Expected<std::string> queryHostEngineCapability(int dev_id) const;
   // Helper to search for the engine file path.
-  gxf::Expected<std::string> findEngineFilePath(const std::string& host_engine_capability, const std::string& model_path) const;
+  gxf::Expected<std::string> findEngineFilePath(const std::string& host_engine_capability,
+                                                const std::string& model_path) const;
   // Helper to convert model to engine
-  gxf::Expected<std::vector<char>> convertModelToEngine(const std::string& model_path, int32_t max_batch_size);
+  gxf::Expected<std::vector<char>> convertModelToEngine(const std::string& model_path,
+                                                        int32_t max_batch_size);
 
   // Helper deleter to call destroy while destroying the cuda objects
   template <typename T>
@@ -106,8 +108,7 @@ class TapNextInference : public gxf::Codelet {
     std::vector<std::string> output_binding_names;
   };
 
-  gxf_result_t setupEngine(EngineContext& ctx,
-                           const std::string& model_path,
+  gxf_result_t setupEngine(EngineContext& ctx, const std::string& model_path,
                            const std::vector<std::string>& in_tensors,
                            const std::vector<std::string>& in_bindings,
                            const std::vector<std::string>& out_tensors,
