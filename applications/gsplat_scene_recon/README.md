@@ -16,6 +16,87 @@ video frames:
 | **4** | GSplat training with deformation network | Standalone PyTorch |
 | **5** | Live render viewer / interactive 3D viewer | Holoscan streaming |
 
+## Running with HoloHub
+
+From the **HoloHub repository root**, you can build, run, and test this application using the `holohub` CLI.
+
+### Prerequisites
+
+- HoloHub repo cloned; you are in the repo root (`/path/to/holohub`).
+- [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) and Docker installed.
+- For visualization (full pipeline or render mode): X11 display (`export DISPLAY`; run `xhost +local:docker` if needed).
+
+### 1. Prepare data
+
+Place your input frames and optional MedSAM3 checkpoint where the app expects them:
+
+| What | Where (under HoloHub repo root) |
+|------|---------------------------------|
+| **Input frames** | `data/gsplat_scene_recon/frames/` — directory of PNG frames (filenames sort in temporal order). |
+| **MedSAM3 checkpoint** (optional) | `data/gsplat_scene_recon/medsam3/checkpoint_8_new_best.pt` — if missing, the app may use a bundled or HuggingFace path depending on build. |
+
+Example:
+
+```bash
+mkdir -p data/gsplat_scene_recon/frames data/gsplat_scene_recon/medsam3
+cp /path/to/your/*.png data/gsplat_scene_recon/frames/
+# Optional: copy your MedSAM3 checkpoint
+cp /path/to/checkpoint_8_new_best.pt data/gsplat_scene_recon/medsam3/
+```
+
+### 2. Run the application (modes)
+
+The first run will build the container and application if needed. All commands are from the **HoloHub repo root**:
+
+| Mode | Command | Description |
+|------|---------|-------------|
+| **Full pipeline** | `./holohub run gsplat_scene_recon full` | All five phases: DA2+MedSAM3 → VGGT → EndoNeRF → training → live viewer. |
+| **Train only** | `./holohub run gsplat_scene_recon train` | Phases 1–4 (depth, segmentation, poses, format, training). No viewer; exits after training. |
+| **Render only** | `./holohub run gsplat_scene_recon render` | Phase 5 only (live viewer). Use after a prior run that produced output; skips Phase 1–4. |
+| **Verify train** | `./holohub run gsplat_scene_recon verify_train` | Short run for CI/testing: 20 training iters, 5 coarse, no viewer, headless. |
+
+Examples:
+
+```bash
+# Full pipeline with live viewer (requires display)
+./holohub run gsplat_scene_recon full
+
+# Train only, then later run the viewer
+./holohub run gsplat_scene_recon train
+./holohub run gsplat_scene_recon render
+
+# Quick sanity check (no display needed)
+./holohub run gsplat_scene_recon verify_train
+```
+
+To pass extra arguments to the app (e.g. more iterations), use `--run-args`:
+
+```bash
+./holohub run gsplat_scene_recon full --run-args="--training-iterations 7000 --coarse-iterations 1000"
+```
+
+### 3. Run tests
+
+Run all tests for this application (builds and runs CTest in the container):
+
+```bash
+./holohub test gsplat_scene_recon
+```
+
+Run a **single test** by name (e.g. the import test) using CTest regex:
+
+```bash
+./holohub test gsplat_scene_recon --ctest-options="-R gsplat_scene_recon_test_all_imports -VV"
+```
+
+List available tests (from repo root):
+
+```bash
+./holohub run-container gsplat_scene_recon -- bash -c "cd build/gsplat_scene_recon && ctest -N"
+```
+
+---
+
 ## Requirements
 
 ### Hardware
