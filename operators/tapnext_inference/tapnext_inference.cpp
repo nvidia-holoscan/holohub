@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +30,7 @@ void TapNextInferenceOp::setup(OperatorSpec& spec) {
 
   spec.param(model_file_path_init_, "model_file_path_init", "Init Model File Path", "Path to ONNX model for initialization.");
   spec.param(model_file_path_fwd_, "model_file_path_fwd", "Forward Model File Path", "Path to ONNX model for forward tracking.");
-  
+
   spec.param(engine_cache_dir_, "engine_cache_dir", "Engine Cache Directory", "Path to folder for cached engine files.");
   spec.param(plugins_lib_namespace_, "plugins_lib_namespace", "Plugins Lib Namespace", "", std::string(""));
   spec.param(force_engine_update_, "force_engine_update", "Force Engine Update", "", false);
@@ -49,7 +49,7 @@ void TapNextInferenceOp::setup(OperatorSpec& spec) {
 
   spec.param(pool_, "pool", "Pool", "Allocator instance.");
   spec.param(cuda_stream_pool_, "cuda_stream_pool", "Cuda Stream Pool", "CUDA Stream Pool");
-  
+
   spec.param(max_workspace_size_, "max_workspace_size", "Max Workspace Size", "", 67108864l);
   spec.param(max_batch_size_, "max_batch_size", "Max Batch Size", "", 1);
   spec.param(enable_fp16_, "enable_fp16", "Enable FP16", "", false);
@@ -65,4 +65,3 @@ void TapNextInferenceOp::setup(OperatorSpec& spec) {
 }
 
 }  // namespace holoscan::ops
-

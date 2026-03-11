@@ -1,5 +1,5 @@
 /*
-* SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+* SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 * SPDX-License-Identifier: Apache-2.0
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -105,7 +105,7 @@ void VizOp::compute(InputContext& op_input, OutputContext& op_output,
   // }
 
   viz::Begin();
-  
+
   viz::BeginGeometryLayer();
 
   const size_t stride_bytes = 3 * sizeof(float);

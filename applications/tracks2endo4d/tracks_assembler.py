@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import cupy as cp
-
 import holoscan as hs
 from holoscan.core import Operator, OperatorSpec
 from holoscan.gxf import Entity
@@ -126,7 +125,7 @@ class TracksAssemblerOp(Operator):
         window_visibility[:, :, s_full, :] = vis_full
 
         T_half = tracks_half.shape[0]
-        
+
         if T_half == T:
             # Full-length half tracks - use directly
             window_tracks[:, :, s_half, :] = tracks_half

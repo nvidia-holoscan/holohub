@@ -15,8 +15,8 @@
 
 import cupy as cp
 import holoscan as hs
+from holoscan.core import ConditionType, Operator, OperatorSpec
 from holoscan.gxf import Entity
-from holoscan.core import Operator, OperatorSpec, ConditionType
 
 
 class PostprocessorOp(Operator):
@@ -80,11 +80,11 @@ class PostprocessorOp(Operator):
             return
 
         # Inputs
-        tracks = cp.asarray(inference_result["tracks"])        # (T, 1, N, 2)
+        tracks = cp.asarray(inference_result["tracks"])  # (T, 1, N, 2)
         visibility = cp.asarray(inference_result["visible_tracks"])  # (T, 1, N, 1), bool
-        frames = cp.asarray(inference_result["frames"])        # (T, H, W, 3) in [-1, 1]
+        frames = cp.asarray(inference_result["frames"])  # (T, H, W, 3) in [-1, 1]
 
-        idx_slice = -self.overlap_size-1 if self.overlap_size > 0 and self.idx > 0 else 0
+        idx_slice = -self.overlap_size - 1 if self.overlap_size > 0 and self.idx > 0 else 0
         tracks = tracks[idx_slice:]
         visibility = visibility[idx_slice:]
         frames = frames[idx_slice:]
@@ -141,7 +141,7 @@ class Visualize3DPostprocessorOp(Operator):
         self._batch_visibility = None
         self._batch_camera_position = None
         self._batch_points3D = None
-        self.global_rotation = cp.array([[1.0,0.0,0.0],[0.0,-1.0,0.0],[0.0,0.0,-1.0]])
+        self.global_rotation = cp.array([[1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, -1.0]])
         self._batch_camera_rotation = None
 
     def _prepare_output(self):
@@ -165,12 +165,19 @@ class Visualize3DPostprocessorOp(Operator):
             # Guard against empty selection
             pts_visible = cp.zeros((1, 2), dtype=cp.float32)
 
-        camera_position_window = self._batch_camera_position_window[t: t+1]
-        camera_rotation = self._batch_camera_rotation[t: t+1]
+        camera_position_window = self._batch_camera_position_window[t : t + 1]
+        camera_rotation = self._batch_camera_rotation[t : t + 1]
         points3D = self._batch_points3D[t]  # 3, N
         points3D = cp.transpose(points3D, (1, 0))  # N, 3
 
-        return frame_t, pts_visible, self._batch_camera_position, camera_position_window, points3D, camera_rotation
+        return (
+            frame_t,
+            pts_visible,
+            self._batch_camera_position,
+            camera_position_window,
+            points3D,
+            camera_rotation,
+        )
 
     def _emit_message(self, op_output, context):
         output = self._prepare_output()
@@ -199,8 +206,12 @@ class Visualize3DPostprocessorOp(Operator):
         tracks = cp.asarray(inference_result["tracks_with_depth"])  # [B, N, 3, T_window]
         visibility = cp.asarray(inference_result["visible_tracks"])  # [B, N, 1, T_window]
         frames = cp.asarray(inference_result["frames"])  # (T, H, W, 3) in [-1, 1]
-        camera_position = cp.asarray(inference_result["camera_position"])  # (T, 3)  T being the whole trajectory! Not the window!
-        camera_position_window = cp.asarray(inference_result["camera_position_window"])  # (T, 3)  This T is only the window.
+        camera_position = cp.asarray(
+            inference_result["camera_position"]
+        )  # (T, 3)  T being the whole trajectory! Not the window!
+        camera_position_window = cp.asarray(
+            inference_result["camera_position_window"]
+        )  # (T, 3)  This T is only the window.
         points3D = cp.asarray(inference_result["points3D"])  # (B, T, 3, N)
         camera_rotation = cp.asarray(inference_result["camera_rotation"])  # (T, 3, 3)
 
@@ -223,7 +234,7 @@ class Visualize3DPostprocessorOp(Operator):
         # Normalize in place or copy
         point_coords[:, 0, :] = point_coords[:, 0, :] / float(W)
         point_coords[:, 1, :] = point_coords[:, 1, :] / float(H)
-        point_coords[:, 2, :] = point_coords[:, 2, :] / 100.
+        point_coords[:, 2, :] = point_coords[:, 2, :] / 100.0
 
         # Transpose to (T, N, 3)
         point_coords = cp.transpose(point_coords, (2, 0, 1))
@@ -233,9 +244,9 @@ class Visualize3DPostprocessorOp(Operator):
             visibility = visibility > 0.5
         if visibility.ndim == 4:
             # (B, N, 1, T) -> (1, N, 1, T)
-            visibility = visibility[0, :, 0, :] # (N, T)
+            visibility = visibility[0, :, 0, :]  # (N, T)
 
-        visibility = cp.transpose(visibility, (1, 0)) # (T, N)
+        visibility = cp.transpose(visibility, (1, 0))  # (T, N)
 
         T, N = visibility.shape
 
@@ -243,7 +254,7 @@ class Visualize3DPostprocessorOp(Operator):
         self._batch_frames = frames
         self._batch_point_coords = point_coords
         self._batch_visibility = visibility
-        self._batch_camera_position = camera_position[0, :-self.window_size]
+        self._batch_camera_position = camera_position[0, : -self.window_size]
         self._batch_camera_position_window = camera_position_window
         self._batch_camera_rotation = camera_rotation
         self._batch_points3D = points3D[0]

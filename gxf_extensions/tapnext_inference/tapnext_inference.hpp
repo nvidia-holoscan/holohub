@@ -98,7 +98,7 @@ class TapNextInference : public gxf::Codelet {
     NvInferHandle<nvinfer1::IRuntime> infer_runtime;
     std::vector<void*> cuda_buffers;
     std::unordered_map<std::string, BindingInfo> binding_infos;
-    
+
     // Config
     std::vector<std::string> input_tensor_names;
     std::vector<std::string> input_binding_names;
@@ -106,8 +106,8 @@ class TapNextInference : public gxf::Codelet {
     std::vector<std::string> output_binding_names;
   };
 
-  gxf_result_t setupEngine(EngineContext& ctx, 
-                           const std::string& model_path, 
+  gxf_result_t setupEngine(EngineContext& ctx,
+                           const std::string& model_path,
                            const std::vector<std::string>& in_tensors,
                            const std::vector<std::string>& in_bindings,
                            const std::vector<std::string>& out_tensors,
@@ -169,4 +169,3 @@ class TapNextInference : public gxf::Codelet {
 }  // namespace nvidia::holoscan::tapnext_inference
 
 #endif  // NVIDIA_CLARA_HOLOSCAN_GXF_EXTENSIONS_TAPNEXT_INFERENCE_HPP_
-

@@ -45,7 +45,7 @@ if(CONVERT_ENGINE)
     COMMAND cp /models/* ${HOLOHUB_DATA_DIR}/tracks2endo4d/models/
     COMMAND trtexec --onnx=tapnext_forward.onnx --saveEngine=tapnext_forward.bf16.engine --bf16 --skipInference
     COMMAND trtexec --onnx=tapnext_init.onnx --saveEngine=tapnext_init.bf16.engine --bf16 --skipInference
-    BYPRODUCTS "${HOLOHUB_DATA_DIR}/tracks2endo4d/models/tapnext_forward.bf16.engine" 
+    BYPRODUCTS "${HOLOHUB_DATA_DIR}/tracks2endo4d/models/tapnext_forward.bf16.engine"
                 "${HOLOHUB_DATA_DIR}/tracks2endo4d/models/tapnext_init.bf16.engine"
   )
   add_custom_target(convert_engine_tracks_to_4d ALL
@@ -120,10 +120,9 @@ if(BUILD_TESTING)
   )
   set_property(TEST tracks2endo4d_python_test PROPERTY ENVIRONMENT
     "PYTHONPATH=${GXF_LIB_DIR}/../python/lib:${CMAKE_BINARY_DIR}/python/lib:${CMAKE_SOURCE_DIR}")
-    
+
   set_tests_properties(tracks2endo4d_python_test PROPERTIES
     PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking."
     FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed"
   )
 endif()
-

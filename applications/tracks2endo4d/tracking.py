@@ -13,10 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import copy
-import cupy as cp
+import os
 
+import cupy as cp
 import holoscan as hs
 from holoscan.core import Operator, OperatorSpec
 from holoscan.gxf import Entity
@@ -24,9 +24,7 @@ from holoscan.gxf import Entity
 
 def get_model_path(args, data_path, name):
     args_return = copy.deepcopy(args)
-    args_return["model_path_map"] = {
-        name: os.path.join(data_path, args["model_file"])
-    }
+    args_return["model_path_map"] = {name: os.path.join(data_path, args["model_file"])}
     del args_return["model_file"]
     return args_return
 
@@ -92,7 +90,7 @@ class BatchMergerOp(Operator):
 
 class BatchMergerSchedulingOp(Operator):
     """Accumulates incoming messages until a condition is reached, then emits merged batch.
-    
+
     Buffer clearing is done by the schedule_clear condition.
 
     Args:
@@ -166,6 +164,7 @@ class BatchMergerSchedulingOp(Operator):
 
 class ReverseBatch(Operator):
     """Reverses the order of a batch of frames only if do_backwards is True. Otherwise, it just passes the batch through."""
+
     def setup(self, spec: OperatorSpec):
         spec.input("in")
         spec.output("out")

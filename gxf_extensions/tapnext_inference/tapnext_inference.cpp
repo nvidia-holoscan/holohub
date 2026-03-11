@@ -174,7 +174,7 @@ gxf_result_t TapNextInference::registerInterface(gxf::Registrar* registrar) {
 
   result &= registrar->parameter(model_file_path_init_, "model_file_path_init", "Init Model File Path", "Path to ONNX model for initialization.");
   result &= registrar->parameter(model_file_path_fwd_, "model_file_path_fwd", "Forward Model File Path", "Path to ONNX model for forward tracking.");
-  
+
   result &= registrar->parameter(engine_cache_dir_, "engine_cache_dir", "Engine Cache Directory", "Path to folder for cached engine files.");
   result &= registrar->parameter(plugins_lib_namespace_, "plugins_lib_namespace", "Plugins Lib Namespace", "", std::string(""));
   result &= registrar->parameter(force_engine_update_, "force_engine_update", "Force Engine Update", "", false);
@@ -277,7 +277,7 @@ gxf_result_t TapNextInference::setupEngine(EngineContext& ctx,
         GXF_LOG_ERROR("Supports ONNX (.onnx) or Engine (.engine/.plan) models: %s", model_path.c_str());
         return GXF_FAILURE;
       }
-      
+
       gxf::Expected<std::string> maybe_host_engine_capability =
           queryHostEngineCapability(cuda_stream_handler_.getStreamHandle()->dev_id());
       if (!maybe_host_engine_capability) return GXF_FAILURE;
@@ -285,7 +285,7 @@ gxf_result_t TapNextInference::setupEngine(EngineContext& ctx,
       std::string host_engine_capability = maybe_host_engine_capability.value();
       gxf::Expected<std::string> maybe_engine_file_path = findEngineFilePath(host_engine_capability, model_path);
       if (!maybe_engine_file_path) return GXF_FAILURE;
-      
+
       ctx.engine_file_path = maybe_engine_file_path.value();
 
       if (force_engine_update_) {
@@ -310,14 +310,14 @@ gxf_result_t TapNextInference::setupEngine(EngineContext& ctx,
 
   ctx.infer_runtime.reset(nvinfer1::createInferRuntime(cuda_logger_));
   ctx.cuda_engine.reset(ctx.infer_runtime->deserializeCudaEngine(plan.data(), plan.size()));
-  
+
   if (!ctx.cuda_engine) {
      GXF_LOG_ERROR("Failed to deserialize engine: %s", ctx.engine_file_path.c_str());
      return GXF_FAILURE;
   }
 
   ctx.cuda_execution_ctx.reset(ctx.cuda_engine->createExecutionContext());
-  
+
   // Allocate buffer pointers
   ctx.cuda_buffers.resize(in_tensors.size() + out_tensors.size(), nullptr);
   ctx.binding_infos.clear();
@@ -332,15 +332,15 @@ gxf_result_t TapNextInference::setupEngine(EngineContext& ctx,
 #if NV_TENSORRT_MAJOR < 8 || (NV_TENSORRT_MAJOR == 8 && NV_TENSORRT_MINOR < 5)
     int32_t binding_index = ctx.cuda_engine->getBindingIndex(binding_name.c_str());
 #else
-    int32_t binding_index = i; // EnqueueV3 uses flat indices usually, but we need names mostly. 
+    int32_t binding_index = i; // EnqueueV3 uses flat indices usually, but we need names mostly.
 #endif
-    
-    // We will use names for lookup in V3. 
+
+    // We will use names for lookup in V3.
     // BindingInfo is used for validation.
-    
+
     nvinfer1::DataType dtype;
     nvinfer1::Dims dims;
-    
+
 #if NV_TENSORRT_MAJOR < 8 || (NV_TENSORRT_MAJOR == 8 && NV_TENSORRT_MINOR < 5)
     dtype = ctx.cuda_engine->getBindingDataType(binding_index);
     dims = ctx.cuda_engine->getBindingDimensions(binding_index);
@@ -348,7 +348,7 @@ gxf_result_t TapNextInference::setupEngine(EngineContext& ctx,
     dtype = ctx.cuda_engine->getTensorDataType(binding_name.c_str());
     dims = ctx.cuda_engine->getTensorShape(binding_name.c_str());
     // binding_index is not really used for V3 except as an ID we assign
-    binding_index = i; 
+    binding_index = i;
 #endif
 
     auto elem_type_exp = NvInferDatatypeToTensorElementType(dtype);
@@ -361,21 +361,21 @@ gxf_result_t TapNextInference::setupEngine(EngineContext& ctx,
         elem_type_exp.value(),
         Dims2Dimensions(dims)
     };
-    
+
     // Initialize state tensors in internal_states_ if they appear here
     // Check if this tensor is a state tensor
     bool is_state = false;
     for(const auto& s : state_tensor_names_.get()) {
         if (s == tensor_name) { is_state = true; break; }
     }
-    
+
     if (is_state && is_input) {
         // Allocate input state tensor
         auto maybe_state_tensor = internal_states_.value().add<gxf::Tensor>(tensor_name.c_str());
         if (!maybe_state_tensor) return maybe_state_tensor.error();
-        
+
         gxf::Shape shape{Dims2Dimensions(dims), static_cast<uint32_t>(dims.nbDims)};
-        auto res = maybe_state_tensor.value()->reshapeCustom(shape, elem_type_exp.value(), 
+        auto res = maybe_state_tensor.value()->reshapeCustom(shape, elem_type_exp.value(),
                                                   gxf::PrimitiveTypeSize(elem_type_exp.value()),
                                                   gxf::Unexpected{GXF_UNINITIALIZED_VALUE},
                                                   gxf::MemoryStorageType::kDevice,
@@ -393,7 +393,7 @@ gxf_result_t TapNextInference::stop() {
   init_engine_ctx_.cuda_execution_ctx.reset();
   init_engine_ctx_.cuda_engine.reset();
   init_engine_ctx_.infer_runtime.reset();
-  
+
   fwd_engine_ctx_.cuda_execution_ctx.reset();
   fwd_engine_ctx_.cuda_engine.reset();
   fwd_engine_ctx_.infer_runtime.reset();
@@ -413,7 +413,7 @@ gxf_result_t TapNextInference::tick() {
   if (messages.empty()) return GXF_CONTRACT_MESSAGE_NOT_AVAILABLE;
 
   if (cuda_stream_handler_.fromMessages(context(), messages) != GXF_SUCCESS) return GXF_FAILURE;
-  
+
   // Find frame and step
   gxf::Handle<gxf::Tensor> step_tensor;
   gxf::Handle<gxf::Tensor> frame_tensor;
@@ -422,10 +422,10 @@ gxf_result_t TapNextInference::tick() {
   for (auto& msg : messages) {
     auto maybe_step = msg.get<gxf::Tensor>("step");
     if (maybe_step) step_tensor = maybe_step.value();
-    
+
     auto maybe_frame = msg.get<gxf::Tensor>("frame");
     if (maybe_frame) frame_tensor = maybe_frame.value();
-    
+
     auto maybe_ts = msg.get<gxf::Timestamp>("timestamp");
     if (maybe_ts) input_timestamp = maybe_ts.value();
   }
@@ -434,9 +434,9 @@ gxf_result_t TapNextInference::tick() {
     GXF_LOG_ERROR("No 'step' tensor found in input.");
     return GXF_FAILURE;
   }
-  
+
   int32_t step = 0;
-  if (CUDA_TRY(cudaMemcpyAsync(&step, step_tensor->pointer(), sizeof(int32_t), 
+  if (CUDA_TRY(cudaMemcpyAsync(&step, step_tensor->pointer(), sizeof(int32_t),
                            cudaMemcpyDeviceToHost, cuda_stream_handler_.getCudaStream()))) {
     return GXF_FAILURE;
   }
@@ -450,7 +450,7 @@ gxf_result_t TapNextInference::tick() {
       GXF_LOG_INFO("Step: %d. Using %s Model.", step, is_init ? "Init" : "Fwd");
   }
   EngineContext& ctx = is_init ? init_engine_ctx_ : fwd_engine_ctx_;
-  
+
   // Prepare Outputs
   auto result_msg = gxf::Entity::New(context());
   if (!result_msg) return result_msg.error();
@@ -460,10 +460,10 @@ gxf_result_t TapNextInference::tick() {
     const auto& name = ctx.input_tensor_names[i];
     const auto& binding_name = ctx.input_binding_names[i];
     const auto& info = ctx.binding_infos[name];
-    
+
     void* ptr = nullptr;
     gxf::Shape shape;
-    
+
     // Check if it is a state tensor
     bool is_state = false;
     for(const auto& s : state_tensor_names_.get()) {
@@ -491,16 +491,16 @@ gxf_result_t TapNextInference::tick() {
         }
         if (!input_t && name == "video" && frame_tensor) input_t = frame_tensor;
         if (!input_t && name == "frame" && frame_tensor) input_t = frame_tensor;
-        
+
         if (!input_t) { GXF_LOG_ERROR("Missing input tensor %s", name.c_str()); return GXF_FAILURE; }
         ptr = input_t->pointer();
         shape = input_t->shape();
     }
-    
+
     // Set Dimensions and Address
     nvinfer1::Dims dims;
     dims.nbDims = info.rank;
-    
+
     int32_t rank_diff = static_cast<int32_t>(info.rank) - static_cast<int32_t>(shape.rank());
     if (rank_diff > 0) {
       if (verbose_.get()) {
@@ -526,7 +526,7 @@ gxf_result_t TapNextInference::tick() {
     const auto& name = ctx.output_tensor_names[i];
     const auto& binding_name = ctx.output_binding_names[i];
     const auto& info = ctx.binding_infos[name];
-    
+
     // Determine shape
 #if NV_TENSORRT_MAJOR < 8 || (NV_TENSORRT_MAJOR == 8 && NV_TENSORRT_MINOR < 5)
     auto dims = ctx.cuda_execution_ctx->getBindingDimensions(info.index);
@@ -537,7 +537,7 @@ gxf_result_t TapNextInference::tick() {
 
     auto out_tensor = result_msg.value().add<gxf::Tensor>(name.c_str());
     if (!out_tensor) return out_tensor.error();
-    
+
     auto res = out_tensor.value()->reshapeCustom(shape, info.element_type, gxf::PrimitiveTypeSize(info.element_type),
                                       gxf::Unexpected{GXF_UNINITIALIZED_VALUE}, gxf::MemoryStorageType::kDevice, pool_);
     if (!res) return gxf::ToResultCode(res);
@@ -582,10 +582,10 @@ gxf_result_t TapNextInference::tick() {
              return GXF_FAILURE;
         }
         auto out_t = out_t_expected.value();
-        
+
         auto maybe_state_t = internal_states_.value().get<gxf::Tensor>(name.c_str());
         gxf::Handle<gxf::Tensor> state_t;
-        
+
         if (!maybe_state_t) {
              GXF_LOG_WARNING("State tensor %s not found in internal states. Allocating new state tensor.", name.c_str());
              auto added_t = internal_states_.value().add<gxf::Tensor>(name.c_str());
@@ -594,8 +594,8 @@ gxf_result_t TapNextInference::tick() {
                  return gxf::ToResultCode(added_t);
              }
              state_t = added_t.value();
-             
-             auto res = state_t->reshapeCustom(out_t->shape(), out_t->element_type(), out_t->bytes_per_element(), 
+
+             auto res = state_t->reshapeCustom(out_t->shape(), out_t->element_type(), out_t->bytes_per_element(),
                                                gxf::Unexpected{GXF_UNINITIALIZED_VALUE}, gxf::MemoryStorageType::kDevice, pool_);
              if (!res) return gxf::ToResultCode(res);
         } else {
@@ -606,7 +606,7 @@ gxf_result_t TapNextInference::tick() {
              }
         }
 
-        if (CUDA_TRY(cudaMemcpyAsync(state_t->pointer(), out_t->pointer(), out_t->size(), 
+        if (CUDA_TRY(cudaMemcpyAsync(state_t->pointer(), out_t->pointer(), out_t->size(),
                                  cudaMemcpyDeviceToDevice, cuda_stream_handler_.getCudaStream()))) {
           return GXF_FAILURE;
         }
@@ -640,7 +640,7 @@ gxf_result_t TapNextInference::tick() {
       return gxf::ToResultCode(result);
     }
 
-    if (CUDA_TRY(cudaMemcpyAsync(out_tensor->pointer(), step_tensor->pointer(), step_tensor->size(), 
+    if (CUDA_TRY(cudaMemcpyAsync(out_tensor->pointer(), step_tensor->pointer(), step_tensor->size(),
                              cudaMemcpyDeviceToDevice, cuda_stream_handler_.getCudaStream()))) {
       return GXF_FAILURE;
     }
@@ -651,7 +651,7 @@ gxf_result_t TapNextInference::tick() {
 gxf::Expected<std::vector<char>> TapNextInference::convertModelToEngine(const std::string& model_path, int32_t max_batch) {
   NvInferHandle<nvinfer1::IBuilder> builder(nvinfer1::createInferBuilder(cuda_logger_));
   NvInferHandle<nvinfer1::IBuilderConfig> config(builder->createBuilderConfig());
-  
+
 #if NV_TENSORRT_MAJOR < 8 || (NV_TENSORRT_MAJOR == 8 && NV_TENSORRT_MINOR < 5)
   config->setMaxWorkspaceSize(max_workspace_size_.get());
 #else
@@ -674,7 +674,7 @@ gxf::Expected<std::vector<char>> TapNextInference::convertModelToEngine(const st
 #endif
   NvInferHandle<nvinfer1::INetworkDefinition> network(builder->createNetworkV2(explicitBatch));
   NvInferHandle<nvonnxparser::IParser> parser(nvonnxparser::createParser(*network, cuda_logger_));
-  
+
   if (!parser->parseFromFile(model_path.c_str(), static_cast<int>(nvinfer1::ILogger::Severity::kWARNING))) {
       GXF_LOG_ERROR("Failed to parse ONNX: %s", model_path.c_str());
       return gxf::Unexpected{GXF_FAILURE};
@@ -702,7 +702,7 @@ gxf::Expected<std::vector<char>> TapNextInference::convertModelToEngine(const st
 #endif
 
   if (!plan) return gxf::Unexpected{GXF_FAILURE};
-  
+
   std::vector<char> result(plan->size());
   std::copy((const char*)plan->data(), (const char*)plan->data() + plan->size(), result.data());
   return result;
@@ -737,11 +737,11 @@ gxf_result_t TapNextInference::createQueryPoints(int32_t batch_size) {
     int32_t grid_size = grid_size_.get();
     int32_t height = grid_height_.get();
     int32_t width = grid_width_.get();
-    
+
     // Create query points tensor
     auto qp = static_states_.value().add<gxf::Tensor>("query_points");
     if (!qp) return qp.error();
-    
+
     int32_t num_points = grid_size * grid_size;
     gxf::Shape shape{std::vector<int32_t>{batch_size, num_points, 3}};
 
@@ -754,7 +754,7 @@ gxf_result_t TapNextInference::createQueryPoints(int32_t batch_size) {
     float margin = 8.0f;
     float h_step = (height - 2*margin) / (grid_size - 1);
     float w_step = (width - 2*margin) / (grid_size - 1);
-    
+
     std::vector<float> host_data(batch_size * num_points * 3);
     for (int b = 0; b < batch_size; ++b) {
         int pt_idx = 0;
@@ -770,22 +770,21 @@ gxf_result_t TapNextInference::createQueryPoints(int32_t batch_size) {
             }
         }
     }
-    
+
     // Allocate on Device
     auto res = qp.value()->reshapeCustom(shape, gxf::PrimitiveType::kFloat32, sizeof(float),
-                                     gxf::Unexpected{GXF_UNINITIALIZED_VALUE}, 
-                                     gxf::MemoryStorageType::kDevice, 
+                                     gxf::Unexpected{GXF_UNINITIALIZED_VALUE},
+                                     gxf::MemoryStorageType::kDevice,
                                      pool_);
     if (!res) return gxf::ToResultCode(res);
-    
+
     if (CUDA_TRY(cudaMemcpy(qp.value()->pointer(), host_data.data(), host_data.size() * sizeof(float), cudaMemcpyHostToDevice))) {
       return GXF_FAILURE;
     }
-    
+
     return GXF_SUCCESS;
 }
 
 }  // namespace tapnext_inference
 }  // namespace holoscan
 }  // namespace nvidia
-

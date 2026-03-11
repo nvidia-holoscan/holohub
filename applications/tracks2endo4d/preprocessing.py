@@ -13,11 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import cupy as cp
 import logging
 
+import cupy as cp
 import holoscan as hs
-from holoscan.core import Operator, OperatorSpec, ConditionType
+from holoscan.core import ConditionType, Operator, OperatorSpec
 from holoscan.gxf import Entity
 
 
@@ -42,7 +42,7 @@ class OverlapWindowCoordinatorOp(Operator):
         self._pool_idx = 0
         self._write_idx = 0
         self._step_tensors = []
-        
+
         self._frame_idx = 0
         self._slots = [
             {"active": False, "start": 0, "step": 0},
@@ -60,16 +60,15 @@ class OverlapWindowCoordinatorOp(Operator):
     def _ensure_buffers(self, frame_shape):
         if self._batch_pool:
             return
-            
+
         T = int(self.window_size)
         # Allocate batch pool (3 buffers to cycle through safely)
         # Shape: (T, 1, H, W, C)
         batch_shape = (T, 1) + frame_shape
         self._batch_pool = [cp.zeros(batch_shape, dtype=cp.float32) for _ in range(3)]
-        
+
         # Allocate step scalars (0 to T)
         self._step_tensors = [cp.array([i], dtype=cp.int32) for i in range(T + 1)]
-
 
     def _maybe_start_run(self):
         """Start a new forward run every overlap_size frames, reusing slots."""
@@ -90,7 +89,7 @@ class OverlapWindowCoordinatorOp(Operator):
         out_message = Entity(context)
         # Emit as 'video' [1, H, W, C]
         out_message.add(hs.as_tensor(frame_view[None]), "video")
-        
+
         step = slot["step"]
         # Fallback if step exceeds pre-allocated range (shouldn't happen with correct logic)
         if step < len(self._step_tensors):
@@ -115,40 +114,40 @@ class OverlapWindowCoordinatorOp(Operator):
             # We updated BatchSplitterVideoOp to accept "frames" or "frame".
             # Original used "frames". Let's use "frame" to be standard.
             out_message.add(hs.as_tensor(current_batch), "frame")
-            
+
             op_output.emit(out_message, "batch_out")
 
             # Prepare next batch by copying overlap region
             next_pool_idx = (self._pool_idx + 1) % 3
             next_batch = self._batch_pool[next_pool_idx]
-            
+
             # Keep the last (T - stride) frames
             keep_count = T - stride
             if keep_count > 0:
                 # Copy from end of current to start of next
                 cp.copyto(next_batch[:keep_count], current_batch[stride:])
-            
+
             self._pool_idx = next_pool_idx
             self._write_idx = keep_count
 
     def compute(self, op_input, op_output, context):
         msg = op_input.receive("in")
         frame = msg.get("source_video")
-        
+
         # Lazy initialization of buffers
         if not self._batch_pool:
             shape = frame.shape
             self._ensure_buffers(shape)
-        
+
         # Get current batch buffer
         batch = self._batch_pool[self._pool_idx]
-        
+
         # Write frame to buffer
         batch[self._write_idx, 0] = frame
-        
+
         # Get view for forward emission (1, H, W, C)
         frame_view = batch[self._write_idx]
-        
+
         # Maybe start a new forward run on this frame
         self._maybe_start_run()
 
@@ -171,6 +170,7 @@ class OverlapWindowCoordinatorOp(Operator):
 
 class BatchSplitterVideoOp(Operator):
     """Splits a batch tensor into individual frames"""
+
     def __init__(self, fragment, *args, max_frames=0, **kwargs):
         self.max_frames = max_frames
         super().__init__(fragment, *args, **kwargs)
@@ -181,10 +181,10 @@ class BatchSplitterVideoOp(Operator):
         self.logger: logging.Logger = logging.getLogger(__name__)
 
     def setup(self, spec: OperatorSpec):
-        spec.input("in").condition(ConditionType.NONE)   # batched input tensor
+        spec.input("in").condition(ConditionType.NONE)  # batched input tensor
         spec.output("out")
         spec.param("grid_query_frame")
-    
+
     def _emit_message(self, context, op_output):
         if len(self.output_queue) == 0:
             return
@@ -193,14 +193,16 @@ class BatchSplitterVideoOp(Operator):
         # Emit as 'video' to match TapNextInferenceOp expectation
         out_message.add(hs.as_tensor(m[0][None]), "video")
         out_message.add(hs.as_tensor(m[1]), "step")
-        out_message.add(hs.as_tensor(m[1]), "step.1") # For state initialization if needed
+        out_message.add(hs.as_tensor(m[1]), "step.1")  # For state initialization if needed
         op_output.emit(out_message, "out")
         self.emitted_frames += 1
 
     def compute(self, op_input, op_output, context):
         message = op_input.receive("in")
         if self.max_frames > 0 and self.emitted_frames == self.max_frames:
-            self.logger.warning(f"No more frames. Stopping app... {self.emitted_frames=} {self.max_frames=}")
+            self.logger.warning(
+                f"No more frames. Stopping app... {self.emitted_frames=} {self.max_frames=}"
+            )
             self.fragment.stop_execution()
             return
 
@@ -213,7 +215,9 @@ class BatchSplitterVideoOp(Operator):
         elif "frames" in message:
             batch = cp.asarray(message["frames"])
         else:
-            raise RuntimeError("BatchSplitterVideoOp: Input message missing 'frame' or 'frames' tensor.")
+            raise RuntimeError(
+                "BatchSplitterVideoOp: Input message missing 'frame' or 'frames' tensor."
+            )
 
         for i in range(self.grid_query_frame, batch.shape[0]):
             frame = cp.ascontiguousarray(batch[i])

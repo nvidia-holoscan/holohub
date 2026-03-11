@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,7 +53,7 @@ class VizOp : public holoscan::Operator {
   void renderTrajectory();
   void renderWindowTrajectory();
   void renderPointCloud(const std::shared_ptr<holoscan::Tensor>& input_tensor);
-  void renderFramePoints(const std::shared_ptr<holoscan::Tensor>& frame, 
+  void renderFramePoints(const std::shared_ptr<holoscan::Tensor>& frame,
     const std::shared_ptr<holoscan::Tensor>& point_coords);
   void renderAxisGizmo();
   void renderGroundPlaneGrid();
@@ -69,43 +69,43 @@ class VizOp : public holoscan::Operator {
   holoscan::Parameter<bool> headless_;
   holoscan::CudaStreamHandler cuda_stream_handler_;
   holoscan::Parameter<bool> verbose_;
-  
+
   // Full trajectory data (received each frame)
   std::vector<float> trajectory_host_;   // Host buffer for transformed trajectory
   float* dev_trajectory_ = nullptr;      // GPU buffer for trajectory
   size_t dev_trajectory_capacity_ = 0;   // Capacity of GPU buffer in floats
   size_t trajectory_num_points_ = 0;     // Current number of points in trajectory
-  
+
   // Window trajectory (sliding window of last N points)
   std::deque<float> window_trajectory_buffer_;  // Stores x, y, z values sequentially
   float* dev_window_trajectory_ = nullptr;      // GPU buffer for window trajectory
   size_t dev_window_trajectory_capacity_ = 0;   // Capacity of GPU buffer in floats
   static constexpr size_t kWindowTrajectoryMaxPoints = 20;  // Max points in window trajectory
-  
+
   // Point cloud (transformed with global rotation)
   float* dev_pointcloud_ = nullptr;             // GPU buffer for transformed point cloud
   size_t dev_pointcloud_capacity_ = 0;          // Capacity of GPU buffer in floats
-  
+
   // Trajectory bounding box
   std::array<float, 3> bounds_min_ = {0.0f, 0.0f, 0.0f};
   std::array<float, 3> bounds_max_ = {0.0f, 0.0f, 0.0f};
   std::array<float, 3> bounds_center_ = {0.0f, 0.0f, 0.0f};
   float bounds_radius_ = 1.0f;  // Radius of bounding sphere
-  
+
   // Orbit camera state
   float camera_distance_ = 2.0f;         // Distance from look-at point
   float camera_azimuth_ = 0.785f;        // Horizontal angle (radians), ~45 degrees
   float camera_elevation_ = 0.615f;      // Vertical angle (radians), ~35 degrees
   std::array<float, 3> camera_target_ = {0.0f, 0.0f, 0.0f};  // Look-at point
-  
+
   // User zoom multiplier (1.0 = auto-fit, >1 = zoomed out, <1 = zoomed in)
   float user_zoom_factor_ = 1.0f;
-  
+
   // Mouse state for camera control
   float last_mouse_x_ = 0.0f;
   float last_mouse_y_ = 0.0f;
   bool mouse_dragging_ = false;
-  
+
   // Camera control sensitivity and limits
   static constexpr float kRotateSensitivity = 0.01f;
   static constexpr float kZoomSensitivity = 0.1f;

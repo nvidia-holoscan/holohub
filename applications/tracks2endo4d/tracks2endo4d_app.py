@@ -5,35 +5,33 @@ Uses overlapping forward runs with TapNextInferenceOp (C++) for robust long-rang
 point tracking combined with TracksTo4D for 3D reconstruction.
 """
 
-import os
 import copy
+import os
 from argparse import ArgumentParser
 
-from holoscan.core import Application, Operator
-from holoscan.operators import VideoStreamReplayerOp, FormatConverterOp, HolovizOp, InferenceOp
+from holoscan.conditions import BooleanCondition, PeriodicCondition, PeriodicConditionPolicy
+from holoscan.core import Application
+from holoscan.operators import FormatConverterOp, HolovizOp, InferenceOp, VideoStreamReplayerOp
 from holoscan.resources import (
+    BlockMemoryPool,
+    CudaStreamPool,
+    MemoryStorageType,
     RMMAllocator,
     UnboundedAllocator,
-    CudaStreamPool,
-    BlockMemoryPool,
-    MemoryStorageType,
 )
-from holoscan.conditions import PeriodicCondition, PeriodicConditionPolicy, BooleanCondition
-
-from holohub.tapnext_inference import TapNextInferenceOp
-import holohub.tracks2endo4d_viz as viz_cpp
-
-from preprocessing import OverlapWindowCoordinatorOp, BatchSplitterVideoOp
-from tracks_assembler import TracksAssemblerOp
+from postprocessing import PostprocessorOp, Visualize3DPostprocessorOp
+from preprocessing import BatchSplitterVideoOp, OverlapWindowCoordinatorOp
 from tracking import (
-    get_model_path,
-    ReverseBatch,
     BatchMergerOp,
     BatchMergerSchedulingOp,
+    ReverseBatch,
+    get_model_path,
 )
-from tracks_3d import Preprocessor3DOp, Postprocess3DOp, StitchPredictionsOp
-from postprocessing import PostprocessorOp, Visualize3DPostprocessorOp
+from tracks_3d import Postprocess3DOp, Preprocessor3DOp, StitchPredictionsOp
+from tracks_assembler import TracksAssemblerOp
 
+import holohub.tracks2endo4d_viz as viz_cpp
+from holohub.tapnext_inference import TapNextInferenceOp
 
 bytes_per_float32 = 4
 
@@ -74,6 +72,7 @@ def get_bytes_tracks_4d():
     )
     size = bytes_per_float32 * size_float
     return size
+
 
 class Tracks2Endo4DApp(Application):
     def __init__(self, data=None, model=None, viz_2d=False, count=None):
@@ -124,9 +123,7 @@ class Tracks2Endo4DApp(Application):
 
         width_preprocessor = self.kwargs("preprocessor")["resize_width"]
         height_preprocessor = self.kwargs("preprocessor")["resize_height"]
-        preprocessor_block_size = (
-            width_preprocessor * height_preprocessor * bytes_per_float32 * 3
-        )
+        preprocessor_block_size = width_preprocessor * height_preprocessor * bytes_per_float32 * 3
         preprocessor = FormatConverterOp(
             self,
             name="preprocessor",
@@ -154,9 +151,7 @@ class Tracks2Endo4DApp(Application):
 
         # Helper to resolve model path
         def resolve_model_path(path):
-            return (
-                os.path.join(self.model_path, path) if not os.path.isabs(path) else path
-            )
+            return os.path.join(self.model_path, path) if not os.path.isabs(path) else path
 
         tapnext_kwargs = copy.deepcopy(self.kwargs("tapnext"))
         tapnext_kwargs["model_file_path_init"] = resolve_model_path(
@@ -191,15 +186,12 @@ class Tracks2Endo4DApp(Application):
             overlap_size=merger_args_fwd["overlap_size"],
             suffix="_fwd0",
             schedule_emission=lambda x: (
-                x >= merger_args_fwd["window_size"]
-                and x % merger_args_fwd["overlap_size"] == 0
+                x >= merger_args_fwd["window_size"] and x % merger_args_fwd["overlap_size"] == 0
             ),
         )
 
         self.add_flow(coordinator, tapnext_fwd0, {("fwd0_frame", "receivers")})
-        self.add_flow(
-            tapnext_fwd0, batch_merger_fwd0, {("transmitter", "predictions_in")}
-        )
+        self.add_flow(tapnext_fwd0, batch_merger_fwd0, {("transmitter", "predictions_in")})
         self.add_flow(coordinator, batch_merger_fwd0, {("fwd0_frame", "frame_in")})
 
         # --------------------------
@@ -226,15 +218,12 @@ class Tracks2Endo4DApp(Application):
             overlap_size=merger_args_fwd["overlap_size"],
             suffix="_fwd1",
             schedule_emission=lambda x: (
-                x >= merger_args_fwd["overlap_size"]
-                and x % merger_args_fwd["overlap_size"] == 0
+                x >= merger_args_fwd["overlap_size"] and x % merger_args_fwd["overlap_size"] == 0
             ),
         )
 
         self.add_flow(coordinator, tapnext_fwd1, {("fwd1_frame", "receivers")})
-        self.add_flow(
-            tapnext_fwd1, batch_merger_fwd1, {("transmitter", "predictions_in")}
-        )
+        self.add_flow(tapnext_fwd1, batch_merger_fwd1, {("transmitter", "predictions_in")})
         self.add_flow(coordinator, batch_merger_fwd1, {("fwd1_frame", "frame_in")})
 
         # --------------------------
@@ -283,9 +272,7 @@ class Tracks2Endo4DApp(Application):
         self.add_flow(reverse_frames_bwd, splitter_bwd, {("out", "in")})
         self.add_flow(splitter_bwd, tapnext_bwd, {("out", "receivers")})
 
-        self.add_flow(
-            tapnext_bwd, batch_merger_bwd, {("transmitter", "predictions_in")}
-        )
+        self.add_flow(tapnext_bwd, batch_merger_bwd, {("transmitter", "predictions_in")})
         self.add_flow(splitter_bwd, batch_merger_bwd, {("out", "frame_in")})
 
         self.add_flow(batch_merger_bwd, reverse_tracks_bwd, {("out", "in")})
@@ -351,9 +338,7 @@ class Tracks2Endo4DApp(Application):
                 cuda_stream_pool=cuda_stream_pool,
                 **tracks_4d_args,
             )
-            stitcher = StitchPredictionsOp(
-                self, name="stitcher", **self.kwargs("window")
-            )
+            stitcher = StitchPredictionsOp(self, name="stitcher", **self.kwargs("window"))
             postprocess_3d = Postprocess3DOp(
                 self,
                 name="postprocess_3d",
@@ -382,9 +367,7 @@ class Tracks2Endo4DApp(Application):
 
             self.add_flow(assembler, preprocessor_3d, {("out", "in")})
             self.add_flow(preprocessor_3d, inference_tracks_4d, {("out", "receivers")})
-            self.add_flow(
-                inference_tracks_4d, stitcher, {("transmitter", "predictions")}
-            )
+            self.add_flow(inference_tracks_4d, stitcher, {("transmitter", "predictions")})
             self.add_flow(assembler, stitcher, {("track_ids_out", "track_ids")})
 
             self.add_flow(stitcher, postprocess_3d, {("out", "predictions")})
@@ -432,8 +415,6 @@ if __name__ == "__main__":
     config_file = os.path.join(os.path.dirname(__file__), "config.yaml")
 
     print(f"args: {args}")
-    app = Tracks2Endo4DApp(
-        data=args.data, model=args.model, viz_2d=args.viz_2d, count=args.count
-    )
+    app = Tracks2Endo4DApp(data=args.data, model=args.model, viz_2d=args.viz_2d, count=args.count)
     app.config(config_file)
     app.run()

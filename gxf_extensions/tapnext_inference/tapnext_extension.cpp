@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,4 +26,3 @@ GXF_EXT_FACTORY_ADD(0x9876543210fedcba, 0xabcdef1234567890,
                     nvidia::gxf::Codelet,
                     "Codelet for TapNext inference (Init and Forward models).");
 GXF_EXT_FACTORY_END()
-

@@ -13,12 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import ast
+
 import cupy as cp
 import holoscan as hs
-from holoscan.core import Operator, OperatorSpec, ConditionType
+from holoscan.core import Operator, OperatorSpec
 from holoscan.gxf import Entity
-
-import ast
 
 
 class Preprocessor3DOp(Operator):
@@ -85,16 +85,33 @@ def transform_predictions(predictions, R, t, scale=1):
         t: [B, 3] translation
     """
     # Unpack predictions
-    (_, projections, projections_static, rotation_params, translation_params,
-     B, points3D, points3D_static, depths, depths_static, _, basis_params,
-     _, _, _, NR) = predictions
+    (
+        _,
+        projections,
+        projections_static,
+        rotation_params,
+        translation_params,
+        B,
+        points3D,
+        points3D_static,
+        depths,
+        depths_static,
+        _,
+        basis_params,
+        _,
+        _,
+        _,
+        NR,
+    ) = predictions
 
     # Transform camera poses
     # rotation_params: [B, F, 3, 3]
     new_rotation_params = cp.matmul(R[:, None, ...], rotation_params)
 
     # Transform translation: [B, F, 3] -> [B, F, 3]
-    new_translation_params = cp.matmul((scale * R)[:, None, ...], translation_params[..., None])[..., 0] + t[:, None, :]
+    new_translation_params = (
+        cp.matmul((scale * R)[:, None, ...], translation_params[..., None])[..., 0] + t[:, None, :]
+    )
 
     # Transform 3D points [B, F, 3, P]
     # Work with [B, F, P, 3] then back
@@ -133,7 +150,9 @@ def transform_predictions(predictions, R, t, scale=1):
     new_projections = new_points3D_camera[..., :2, :] / (new_points3D_camera[..., 2:3, :] + 1e-8)
     new_depths = new_points3D_camera[..., 2, :]
 
-    new_projections_static = new_points3D_static_camera[..., :2, :] / (new_points3D_static_camera[..., 2:3, :] + 1e-8)
+    new_projections_static = new_points3D_static_camera[..., :2, :] / (
+        new_points3D_static_camera[..., 2:3, :] + 1e-8
+    )
     new_depths_static = new_points3D_static_camera[..., 2, :]
 
     return (
@@ -246,25 +265,26 @@ class StitchPredictionsOp(Operator):
         self._growth_factor = 1.5
 
         # Allocate empty device buffers (lazy-allocated on first use)
-        self.full_projections = None          # (1, Fcap, 2, Pcap)
-        self.full_projections_static = None   # (1, Fcap, 2, Pcap)
-        self.full_rotation_params = None      # (1, Fcap, 3, 3)
-        self.full_translation_params = None   # (1, Fcap, 3)
-        self.full_points3D = None             # (1, Fcap, 3, Pcap)
-        self.full_points3D_static = None      # (1, Fcap, 3, Pcap)
-        self.full_depths = None               # (1, Fcap, Pcap)
-        self.full_depths_static = None        # (1, Fcap, Pcap)
+        self.full_projections = None  # (1, Fcap, 2, Pcap)
+        self.full_projections_static = None  # (1, Fcap, 2, Pcap)
+        self.full_rotation_params = None  # (1, Fcap, 3, 3)
+        self.full_translation_params = None  # (1, Fcap, 3)
+        self.full_points3D = None  # (1, Fcap, 3, Pcap)
+        self.full_points3D_static = None  # (1, Fcap, 3, Pcap)
+        self.full_depths = None  # (1, Fcap, Pcap)
+        self.full_depths_static = None  # (1, Fcap, Pcap)
 
         # Tracking arrays (device)
-        self.last_update_frame = None         # (Pcap,) int64, -1 when unseen
-        self.point_start_frame = None         # (Pcap,) int64, -1 when unseen
-        self.seen_mask = None                 # (Pcap,) bool
+        self.last_update_frame = None  # (Pcap,) int64, -1 when unseen
+        self.point_start_frame = None  # (Pcap,) int64, -1 when unseen
+        self.seen_mask = None  # (Pcap,) bool
 
         # Previous indices for overlap blending
         self.prev_indices = None
 
         # GPU kernel for forward/backfill
-        self._forward_fill_kernel = cp.RawKernel(r"""
+        self._forward_fill_kernel = cp.RawKernel(
+            r"""
         extern "C" __global__ void forward_fill(
             const long* __restrict__ last_update_frame,   // [Pcap] - only [:P] are valid
             const long* __restrict__ point_start_frame,   // [Pcap]
@@ -323,7 +343,9 @@ class StitchPredictionsOp(Operator):
                 }
             }
         }
-        """, name="forward_fill")
+        """,
+            name="forward_fill",
+        )
 
     def setup(self, spec: OperatorSpec):
         spec.input("predictions")
@@ -361,8 +383,9 @@ class StitchPredictionsOp(Operator):
 
         # Allocate new buffers on device
         b = 1
+
         def alloc_like(shape, dtype, fill_zero=True):
-            return (cp.zeros(shape, dtype=dtype) if fill_zero else cp.empty(shape, dtype=dtype))
+            return cp.zeros(shape, dtype=dtype) if fill_zero else cp.empty(shape, dtype=dtype)
 
         new_full_projections = alloc_like((b, new_fcap, 2, new_pcap), cp.float32)
         new_full_projections_static = alloc_like((b, new_fcap, 2, new_pcap), cp.float32)
@@ -378,17 +401,30 @@ class StitchPredictionsOp(Operator):
         new_seen_mask = cp.zeros((new_pcap,), dtype=cp.bool_)
 
         # Copy existing used region
-        if self.frame_capacity > 0 and self.point_capacity > 0 and self.num_frames > 0 and self.num_points > 0:
+        if (
+            self.frame_capacity > 0
+            and self.point_capacity > 0
+            and self.num_frames > 0
+            and self.num_points > 0
+        ):
             f_slice = slice(0, self.num_frames)
             p_slice = slice(0, self.num_points)
-            new_full_projections[:, f_slice, :, p_slice] = self.full_projections[:, f_slice, :, p_slice]
-            new_full_projections_static[:, f_slice, :, p_slice] = self.full_projections_static[:, f_slice, :, p_slice]
+            new_full_projections[:, f_slice, :, p_slice] = self.full_projections[
+                :, f_slice, :, p_slice
+            ]
+            new_full_projections_static[:, f_slice, :, p_slice] = self.full_projections_static[
+                :, f_slice, :, p_slice
+            ]
             new_full_rotation_params[:, f_slice] = self.full_rotation_params[:, f_slice]
             new_full_translation_params[:, f_slice] = self.full_translation_params[:, f_slice]
             new_full_points3D[:, f_slice, :, p_slice] = self.full_points3D[:, f_slice, :, p_slice]
-            new_full_points3D_static[:, f_slice, :, p_slice] = self.full_points3D_static[:, f_slice, :, p_slice]
+            new_full_points3D_static[:, f_slice, :, p_slice] = self.full_points3D_static[
+                :, f_slice, :, p_slice
+            ]
             new_full_depths[:, f_slice, p_slice] = self.full_depths[:, f_slice, p_slice]
-            new_full_depths_static[:, f_slice, p_slice] = self.full_depths_static[:, f_slice, p_slice]
+            new_full_depths_static[:, f_slice, p_slice] = self.full_depths_static[
+                :, f_slice, p_slice
+            ]
 
             new_last_update_frame[: self.last_update_frame.shape[0]] = self.last_update_frame
             new_point_start_frame[: self.point_start_frame.shape[0]] = self.point_start_frame
@@ -417,12 +453,22 @@ class StitchPredictionsOp(Operator):
         src_end = int(min(src_end, int(preds[1].shape[1])))
 
         # Copy point-indexed predictions
-        self.full_projections[:, frame_start:frame_end, :][..., indices] = preds[1][:, src_start:src_end]
-        self.full_projections_static[:, frame_start:frame_end, :][..., indices] = preds[2][:, src_start:src_end]
-        self.full_points3D[:, frame_start:frame_end, :][..., indices] = preds[6][:, src_start:src_end]
-        self.full_points3D_static[:, frame_start:frame_end, :][..., indices] = preds[7][:, src_start:src_end]
+        self.full_projections[:, frame_start:frame_end, :][..., indices] = preds[1][
+            :, src_start:src_end
+        ]
+        self.full_projections_static[:, frame_start:frame_end, :][..., indices] = preds[2][
+            :, src_start:src_end
+        ]
+        self.full_points3D[:, frame_start:frame_end, :][..., indices] = preds[6][
+            :, src_start:src_end
+        ]
+        self.full_points3D_static[:, frame_start:frame_end, :][..., indices] = preds[7][
+            :, src_start:src_end
+        ]
         self.full_depths[:, frame_start:frame_end][..., indices] = preds[8][:, src_start:src_end]
-        self.full_depths_static[:, frame_start:frame_end][..., indices] = preds[9][:, src_start:src_end]
+        self.full_depths_static[:, frame_start:frame_end][..., indices] = preds[9][
+            :, src_start:src_end
+        ]
 
         # Copy camera params
         self.full_rotation_params[:, frame_start:frame_end] = preds[3][:, src_start:src_end]
@@ -440,7 +486,8 @@ class StitchPredictionsOp(Operator):
 
     def _blend_camera_params(self, preds, overlap_start, overlap_end, alpha):
         self.full_rotation_params[:, overlap_start:overlap_end] = (
-            self.full_rotation_params[:, overlap_start:overlap_end] + preds[3][:, : self.overlap_size]
+            self.full_rotation_params[:, overlap_start:overlap_end]
+            + preds[3][:, : self.overlap_size]
         ) / 2.0
 
         self.full_translation_params[:, overlap_start:overlap_end] = (
@@ -454,7 +501,8 @@ class StitchPredictionsOp(Operator):
             + (1.0 - alpha) * preds[1][:, : self.overlap_size, ...][..., mask]
         )
         self.full_projections_static[:, overlap_start:overlap_end, ...][..., common_indices] = (
-            alpha * self.full_projections_static[:, overlap_start:overlap_end, ...][..., common_indices]
+            alpha
+            * self.full_projections_static[:, overlap_start:overlap_end, ...][..., common_indices]
             + (1.0 - alpha) * preds[2][:, : self.overlap_size, ...][..., mask]
         )
         self.full_points3D[:, overlap_start:overlap_end, ...][..., common_indices] = (
@@ -462,7 +510,8 @@ class StitchPredictionsOp(Operator):
             + (1.0 - alpha) * preds[6][:, : self.overlap_size, ...][..., mask]
         )
         self.full_points3D_static[:, overlap_start:overlap_end, ...][..., common_indices] = (
-            alpha * self.full_points3D_static[:, overlap_start:overlap_end, ...][..., common_indices]
+            alpha
+            * self.full_points3D_static[:, overlap_start:overlap_end, ...][..., common_indices]
             + (1.0 - alpha) * preds[7][:, : self.overlap_size, ...][..., mask]
         )
         self.full_depths[:, overlap_start:overlap_end, ...][..., common_indices] = (
@@ -497,7 +546,8 @@ class StitchPredictionsOp(Operator):
         blocks = (P + threads - 1) // threads  # Only iterate over used points
 
         self._forward_fill_kernel(
-            (blocks,), (threads,),
+            (blocks,),
+            (threads,),
             (
                 self.last_update_frame,  # Full array, kernel only reads [:P]
                 self.point_start_frame,
@@ -507,14 +557,21 @@ class StitchPredictionsOp(Operator):
                 p3d_static.reshape(-1),
                 depths.reshape(-1),
                 depths_static.reshape(-1),
-                F, Pcap, P, 1 if self.enable_backfill else 0,
+                F,
+                Pcap,
+                P,
+                1 if self.enable_backfill else 0,
             ),
         )
 
     def _get_predictions(self):
         F = slice(0, self.num_frames)
         P = slice(0, self.num_points)
-        indices = cp.arange(self.num_points, dtype=cp.int64) if self.num_points > 0 else cp.asarray([], dtype=cp.int64)
+        indices = (
+            cp.arange(self.num_points, dtype=cp.int64)
+            if self.num_points > 0
+            else cp.asarray([], dtype=cp.int64)
+        )
         return (
             None,  # focal_params
             self.full_projections[:, F, :, P],
@@ -561,7 +618,9 @@ class StitchPredictionsOp(Operator):
         self.num_points = new_max_idx
 
         if self.window_idx == 0:
-            self._copy_predictions(predictions, indices, frame_start=start_frame, frame_end=end_frame)
+            self._copy_predictions(
+                predictions, indices, frame_start=start_frame, frame_end=end_frame
+            )
         else:
             overlap_start = start_frame
             overlap_end = start_frame + int(self.overlap_size)
@@ -592,7 +651,9 @@ class StitchPredictionsOp(Operator):
                 _mask = cp.isin(indices, self.prev_indices)
                 common_indices = indices[_mask]
                 if common_indices.size > 0:
-                    self._blend_overlap(aligned_preds, common_indices, _mask, overlap_start, overlap_end, alpha)
+                    self._blend_overlap(
+                        aligned_preds, common_indices, _mask, overlap_start, overlap_end, alpha
+                    )
 
         self.prev_indices = indices
         self.window_idx += 1
@@ -638,7 +699,9 @@ class StitchPredictionsOp(Operator):
 
         op_output.emit(out_message, "out")
 
-    def _emit_necessary_predictions(self, op_output, context, out_preds, indices, start_frame, end_frame):
+    def _emit_necessary_predictions(
+        self, op_output, context, out_preds, indices, start_frame, end_frame
+    ):
         # Optionally emit only the incremental slice (after overlap)
         if self.emit_incremental and self.window_idx > 1:
             inc_start = start_frame + int(self.overlap_size)
@@ -652,7 +715,9 @@ class StitchPredictionsOp(Operator):
         out_message.add(hs.as_tensor(indices), "track_ids")
         out_message.add(hs.as_tensor(cp.asarray(out_preds[3])), "rotation_params")
         out_message.add(hs.as_tensor(cp.asarray(out_preds[4])), "position_params")
-        out_message.add(hs.as_tensor(cp.asarray(out_preds[7])), "points3D")  # These are actually the static points3D
+        out_message.add(
+            hs.as_tensor(cp.asarray(out_preds[7])), "points3D"
+        )  # These are actually the static points3D
         op_output.emit(out_message, "out")
 
     def compute(self, op_input, op_output, context):
@@ -669,10 +734,26 @@ class StitchPredictionsOp(Operator):
         depths = cp.asarray(pred_msg.get("depths"))
         depths_static = cp.asarray(pred_msg.get("depths_static"))
 
-        B = cp.asarray(pred_msg.get("B")) if "B" in pred_msg and pred_msg.get("B") is not None else None
-        basis_params = cp.asarray(pred_msg.get("basis_params")) if "basis_params" in pred_msg and pred_msg.get("basis_params") is not None else None
-        points3D_camera = cp.asarray(pred_msg.get("points3D_camera")) if "points3D_camera" in pred_msg and pred_msg.get("points3D_camera") is not None else None
-        NR = cp.asarray(pred_msg.get("NR")) if "NR" in pred_msg and pred_msg.get("NR") is not None else None
+        B = (
+            cp.asarray(pred_msg.get("B"))
+            if "B" in pred_msg and pred_msg.get("B") is not None
+            else None
+        )
+        basis_params = (
+            cp.asarray(pred_msg.get("basis_params"))
+            if "basis_params" in pred_msg and pred_msg.get("basis_params") is not None
+            else None
+        )
+        points3D_camera = (
+            cp.asarray(pred_msg.get("points3D_camera"))
+            if "points3D_camera" in pred_msg and pred_msg.get("points3D_camera") is not None
+            else None
+        )
+        NR = (
+            cp.asarray(pred_msg.get("NR"))
+            if "NR" in pred_msg and pred_msg.get("NR") is not None
+            else None
+        )
 
         preds = (
             None,
@@ -701,7 +782,9 @@ class StitchPredictionsOp(Operator):
         out_preds = self.add_window(preds, indices, start_frame)
 
         end_frame = start_frame + int(preds[1].shape[1])
-        self._emit_necessary_predictions(op_output, context, out_preds, indices, start_frame, end_frame)
+        self._emit_necessary_predictions(
+            op_output, context, out_preds, indices, start_frame, end_frame
+        )
 
 
 class Postprocess3DOp(Operator):
@@ -722,7 +805,9 @@ class Postprocess3DOp(Operator):
         self.calibration_matrix = cp.array(ast.literal_eval(self.calibration_matrix))
 
     def compute(self, op_input, op_output, context):
-        pred_msg = op_input.receive("predictions")  # ['depths', 'track_ids', 'rotation_params', 'position_params']
+        pred_msg = op_input.receive(
+            "predictions"
+        )  # ['depths', 'track_ids', 'rotation_params', 'position_params']
         depths = cp.asarray(pred_msg.get("depths"))
         indices = cp.asarray(pred_msg.get("track_ids"))
         camera_position = cp.asarray(pred_msg.get("position_params"))  # b t 3
@@ -746,7 +831,9 @@ class Postprocess3DOp(Operator):
         depths_reshaped = depths_window.transpose(0, 2, 1)
         depths_reshaped = depths_reshaped[:, :, None, :]  # [B, N, 1, T_window]
 
-        tracks_with_depth = cp.concatenate((tracks_2d, depths_reshaped), axis=2)  # [B, N, 3, T_window]
+        tracks_with_depth = cp.concatenate(
+            (tracks_2d, depths_reshaped), axis=2
+        )  # [B, N, 3, T_window]
 
         self.window_idx += 1
 

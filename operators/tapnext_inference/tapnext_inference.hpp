@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,7 +49,7 @@ class TapNextInferenceOp : public holoscan::ops::GXFOperator {
   Parameter<std::string> engine_cache_dir_;
   Parameter<std::string> plugins_lib_namespace_;
   Parameter<bool> force_engine_update_;
-  
+
   Parameter<std::vector<std::string>> input_tensor_names_init_;
   Parameter<std::vector<std::string>> input_binding_names_init_;
   Parameter<std::vector<std::string>> output_tensor_names_init_;
@@ -59,12 +59,12 @@ class TapNextInferenceOp : public holoscan::ops::GXFOperator {
   Parameter<std::vector<std::string>> input_binding_names_fwd_;
   Parameter<std::vector<std::string>> output_tensor_names_fwd_;
   Parameter<std::vector<std::string>> output_binding_names_fwd_;
-  
+
   Parameter<std::vector<std::string>> state_tensor_names_;
 
   Parameter<std::shared_ptr<Allocator>> pool_;
   Parameter<std::shared_ptr<CudaStreamPool>> cuda_stream_pool_;
-  
+
   Parameter<int64_t> max_workspace_size_;
   Parameter<int32_t> max_batch_size_;
   Parameter<bool> enable_fp16_;
@@ -82,4 +82,3 @@ class TapNextInferenceOp : public holoscan::ops::GXFOperator {
 }  // namespace holoscan::ops
 
 #endif /* HOLOSCAN_OPERATORS_TAPNEXT_INFERENCE_HPP */
-
