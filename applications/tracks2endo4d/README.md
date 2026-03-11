@@ -2,9 +2,7 @@
 
 A GPU-accelerated application for real-time 3D point tracking and camera parameter estimation from video, built on [NVIDIA Holoscan](https://developer.nvidia.com/holoscan-sdk).
 
-<p align="center">
-  <img src="images/output.gif" alt="TracksTo4D visualization" width="600"/>
-</p>
+![TracksTo4D visualization](images/output.gif)
 
 ## Overview
 
@@ -18,11 +16,11 @@ Tracks2Endo4D combines state-of-the-art point tracking with 3D reconstruction to
 
 ### Core Technologies
 
-| Component | Description | Link |
-|-----------|-------------|------|
-| **TapNext** | "Tracking Any Point" reformulated as next-token prediction for robust long-range point tracking | [GitHub](https://github.com/google-deepmind/tapnet) |
-| **TracksTo4D** | NVIDIA Research's encoder-based method that infers 3D structure and camera motion from 2D tracks without 3D supervision | [Project Page](https://tracks-to-4d.github.io/) |
-| **Holoscan SDK** | NVIDIA's platform for building high-performance streaming AI applications | [Documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/index.html) |
+| Component        | Description                                                                                                             | Link                                                                        |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| **TapNext**      | "Tracking Any Point" reformulated as next-token prediction for robust long-range point tracking                         | [GitHub](https://github.com/google-deepmind/tapnet)                         |
+| **TracksTo4D**   | NVIDIA Research's encoder-based method that infers 3D structure and camera motion from 2D tracks without 3D supervision | [Project Page](https://tracks-to-4d.github.io/)                             |
+| **Holoscan SDK** | NVIDIA's platform for building high-performance streaming AI applications                                               | [Documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/index.html) |
 
 ## Requirements
 
@@ -40,11 +38,11 @@ Tracks2Endo4D combines state-of-the-art point tracking with 3D reconstruction to
 
 This application uses the following AI models:
 
-| Model | Description | Source |
-|-------|-------------|--------|
-| TapNext Init | Initialization model for point tracking | Converted from PyTorch to ONNX during Docker build |
-| TapNext Forward | Forward pass model for point tracking | Converted from PyTorch to ONNX during Docker build |
-| TracksTo4D | 3D reconstruction from 2D tracks | Downloaded with sample data from NGC |
+| Model           | Description                             | Source                                             |
+| --------------- | --------------------------------------- | -------------------------------------------------- |
+| TapNext Init    | Initialization model for point tracking | Converted from PyTorch to ONNX during Docker build |
+| TapNext Forward | Forward pass model for point tracking   | Converted from PyTorch to ONNX during Docker build |
+| TracksTo4D      | 3D reconstruction from 2D tracks        | Downloaded with sample data from NGC               |
 
 The TapNext models are **not** hosted as pre-built ONNX files. Instead, the [Dockerfile](./Dockerfile) clones the [TapNet repository](https://github.com/deepmind/tapnet), downloads the official PyTorch checkpoint, and converts the models to ONNX format on the fly during the Docker image build. All ONNX models are then converted to TensorRT engines (BF16 precision) at CMake build time.
 
@@ -74,11 +72,11 @@ This command will:
 
 The build produces the following TensorRT engine files:
 
-| ONNX Model | TensorRT Engine |
-|------------|-----------------|
-| `tapnext_init.onnx` | `tapnext_init.bf16.engine` |
+| ONNX Model             | TensorRT Engine               |
+| ---------------------- | ----------------------------- |
+| `tapnext_init.onnx`    | `tapnext_init.bf16.engine`    |
 | `tapnext_forward.onnx` | `tapnext_forward.bf16.engine` |
-| `tracksto4d.onnx` | `tracksto4d.bf16.engine` |
+| `tracksto4d.onnx`      | `tracksto4d.bf16.engine`      |
 
 > **Important:** TensorRT engines are GPU-architecture specific. You must rebuild when switching to a different GPU.
 
@@ -149,9 +147,9 @@ python3 tracks2endo4d_app.py --data <DATA_DIR> --model <MODEL_DIR>
 
 This application supports the following CMake options that can be passed via `--configure-args`:
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `CONVERT_ENGINE` | Convert ONNX models to TensorRT engines during build | `ON` |
+| Option           | Description                                          | Default |
+| ---------------- | ---------------------------------------------------- | ------- |
+| `CONVERT_ENGINE` | Convert ONNX models to TensorRT engines during build | `ON`    |
 
 Example usage:
 
@@ -163,25 +161,25 @@ Example usage:
 
 The application accepts the following command line arguments:
 
-| Argument | Description | Default |
-|----------|-------------|---------|
-| `-d, --data` | Path to data directory containing videos | Uses the `HOLOHUB_DATA_PATH` environment variable |
+| Argument      | Description                                         | Default                                           |
+| ------------- | --------------------------------------------------- | ------------------------------------------------- |
+| `-d, --data`  | Path to data directory containing videos            | Uses the `HOLOHUB_DATA_PATH` environment variable |
 | `-m, --model` | Path to model directory containing TensorRT engines | Uses the `HOLOHUB_DATA_PATH` environment variable |
-| `--viz-2d` | Enable 2D visualization overlay | False |
+| `--viz-2d`    | Enable 2D visualization overlay                     | False                                             |
 
 ## Configuration
 
 The application is configured via [config.yaml](./config.yaml). Key parameters include:
 
-| Section | Parameter | Description |
-|---------|-----------|-------------|
-| `replayer` | `basename` | Video file basename (without extension) |
-| `replayer` | `frame_rate` | Playback frame rate |
-| `window` | `window_size` | Temporal window for tracking |
-| `window` | `overlap_size` | Overlap between consecutive windows |
-| `window` | `grid_size` | Grid size for point sampling |
-| `preprocessor_3d` | `calibration_matrix` | Camera intrinsic matrix (if known) |
-| `tapnext` | `model_file_path_*` | Paths to TensorRT engines |
+| Section           | Parameter            | Description                             |
+| ----------------- | -------------------- | --------------------------------------- |
+| `replayer`        | `basename`           | Video file basename (without extension) |
+| `replayer`        | `frame_rate`         | Playback frame rate                     |
+| `window`          | `window_size`        | Temporal window for tracking            |
+| `window`          | `overlap_size`       | Overlap between consecutive windows     |
+| `window`          | `grid_size`          | Grid size for point sampling            |
+| `preprocessor_3d` | `calibration_matrix` | Camera intrinsic matrix (if known)      |
+| `tapnext`         | `model_file_path_*`  | Paths to TensorRT engines               |
 
 ## Using Your Own Videos
 
@@ -196,14 +194,14 @@ Once converted, update the `replayer/basename` parameter in [config.yaml](./conf
 
 For real-time processing from a capture card, replace the video replayer with the `V4L2VideoCaptureOp` operator.
 
-### Configuration
+### Capture Card Configuration
 
 Use the following settings for the capture operator:
 
-| Parameter | Value |
-|-----------|-------|
-| Pixel Format | `RGBA8888` |
-| Resolution | `1920x1080` |
+| Parameter    | Value       |
+| ------------ | ----------- |
+| Pixel Format | `RGBA8888`  |
+| Resolution   | `1920x1080` |
 
 ### Example Usage
 
