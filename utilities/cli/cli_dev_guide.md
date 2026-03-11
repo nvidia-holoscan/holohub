@@ -143,7 +143,7 @@ Everything after `--` is joined into a single string and executed via `bash -c`,
 ### Resource management
 
 - `CMAKE_BUILD_PARALLEL_LEVEL=N` — cap parallel jobs to prevent OOM.
-- `./holohub clear-cache` removes `build/`, `build-*/`, `data/`, `data-*/`, `install/`, `install-*/` at the repo root. Ask for approval before running; Use `--dryrun` first to preview.
+- `./holohub clear-cache` removes cache directories matching `build*/`, `data*/`, and `install*/` at the repo root (e.g., `build/`, `build-*/`, `data/`, `data-*/`, `install/`, `install-*/`), plus any overridden build/data parent directories configured via `HOLOHUB_BUILD_PARENT_DIR` and `HOLOHUB_DATA_DIR` (which may live outside the repo). Ask for approval before running; Use `--dryrun` first to preview.
   - `--build` — most common. Use when builds are broken, stale, or after switching branches, SDK versions, or build types.
   - `--data` — use when downloaded models or datasets are corrupt/incomplete, or to reclaim disk space. Re-downloading can be slow.
   - `--install` — use when installed artifacts are stale or from a different build configuration.
