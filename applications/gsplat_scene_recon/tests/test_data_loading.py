@@ -5,7 +5,6 @@
 # Minimal test that EndoNeRF-style data loading works (no GPU required).
 """Test that EndoNeRF dataset loader can load minimal fixture data."""
 
-import os
 import sys
 import tempfile
 from pathlib import Path
@@ -23,6 +22,7 @@ for d in (app_dir, str(training_dir)):
 def _make_minimal_endonerf_dir(tmpdir: Path, n_frames: int = 2, H: int = 64, W: int = 64):
     """Create minimal EndoNeRF layout: poses_bounds.npy and images/depth/masks PNGs."""
     import cv2
+
     # poses_bounds.npy: (N, 3, 5) then flatten and append 2 bounds -> (N, 17)
     focal = 64.0
     poses = np.eye(3, 5)

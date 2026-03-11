@@ -20,8 +20,8 @@ if str(training_dir) not in sys.path:
 
 def main():
     try:
-        import torch
         import cupy
+        import torch
     except (ImportError, ModuleNotFoundError) as e:
         print(f"SKIP: GPU deps not available ({e})")
         return 0
@@ -42,7 +42,9 @@ def main():
     # SH coeffs: (N, K, 3) with K=(sh_degree+1)^2; sh_degree=3 -> 16
     colors = torch.ones(N, 16, 3, device=device) * 0.5
     viewmats = torch.eye(4, device=device).unsqueeze(0)
-    K = torch.tensor([[64, 0, 32], [0, 64, 32], [0, 0, 1]], device=device, dtype=torch.float32).unsqueeze(0)
+    K = torch.tensor(
+        [[64, 0, 32], [0, 64, 32], [0, 0, 1]], device=device, dtype=torch.float32
+    ).unsqueeze(0)
     W, H = 8, 8
 
     try:

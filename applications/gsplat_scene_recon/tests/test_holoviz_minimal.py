@@ -33,6 +33,7 @@ def main():
 
         def compute(self, op_input, op_output, context):
             import numpy as np
+
             # HolovizOp expects an Entity with a named tensor matching tensors=[dict(name="image", ...)]
             img = np.ones((4, 4, 4), dtype=np.float32) * 0.5
             out_message = hs.gxf.Entity(context)

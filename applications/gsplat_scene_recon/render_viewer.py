@@ -74,15 +74,20 @@ def _load_checkpoint(ckpt_path: str):
         torch.serialization.add_safe_globals([NS, np.dtype])
         try:
             from numpy._core.multiarray import scalar as np_multiarray_scalar
+
             torch.serialization.add_safe_globals([np_multiarray_scalar])
         except ImportError:
             try:
-                from numpy.core.multiarray import scalar as np_multiarray_scalar  # type: ignore[attr-defined]
+                from numpy.core.multiarray import (
+                    scalar as np_multiarray_scalar,  # type: ignore[attr-defined]
+                )
+
                 torch.serialization.add_safe_globals([np_multiarray_scalar])
             except ImportError:
                 pass
         try:
             import numpy.dtypes as np_dtypes
+
             for name in dir(np_dtypes):
                 obj = getattr(np_dtypes, name)
                 if isinstance(obj, type):

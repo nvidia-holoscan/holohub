@@ -14,6 +14,7 @@ app_dir = Path(__file__).resolve().parent.parent
 if str(app_dir) not in sys.path:
     sys.path.insert(0, str(app_dir))
 
+
 def main():
     try:
         import holoscan  # noqa: F401
@@ -32,11 +33,12 @@ def main():
 
     # Import application modules
     import gsplat_scene_recon  # noqa: F401
-    import run_gsharp  # noqa: F401
     import progress_monitor  # noqa: F401
+    import run_gsharp  # noqa: F401
 
     print("SUCCESS: imports OK")
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())
