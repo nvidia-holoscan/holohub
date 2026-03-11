@@ -92,7 +92,11 @@ class TracksAssemblerOp(Operator):
 
         # Basic sanity: all inputs must have the same temporal length.
         T = max(tracks0.shape[0], tracks1.shape[0])
-        assert T == int(self.window_size)
+        if T != int(self.window_size):
+            raise RuntimeError(
+                f"TracksAssemblerOp: expected T={self.window_size}, got T={T} "
+                f"(tracks0={tracks0.shape[0]}, tracks1={tracks1.shape[0]})"
+            )
 
         # Identify which tracking is full and which one is half-window
         is_full_window0 = tracks0.shape[0] == self.window_size
@@ -106,11 +110,19 @@ class TracksAssemblerOp(Operator):
         backward_tracks = cp.asarray(backward_in.get("tracks"))
         backward_visibility = cp.asarray(backward_in.get("visible_tracks"))
 
-        assert T == backward_tracks.shape[0]
+        if T != backward_tracks.shape[0]:
+            raise RuntimeError(
+                f"TracksAssemblerOp: expected T={T}, got T={backward_tracks.shape[0]} "
+                f"(backward_tracks={backward_tracks.shape[0]})"
+            )
 
         # Number of points per branch (assumed equal across branches).
         _, B, N, _ = tracks0.shape
-        assert B == 1
+        if B != 1:
+            raise RuntimeError(
+                f"TracksAssemblerOp: expected B=1, got B={B} "
+                f"(tracks0={tracks0.shape[0]}, tracks1={tracks1.shape[0]})"
+            )
 
         total_points = 3 * N
         window_tracks = cp.zeros((T, 1, total_points, 2), dtype=cp.float32)

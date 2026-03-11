@@ -56,7 +56,8 @@ namespace holoscan::ops {
       Fragment* fragment, const py::args& args, std::shared_ptr<Allocator> device_allocator,
       const std::string& name = "viz_op",
       uint32_t width = 1280, uint32_t height = 720,
-      const std::string& window_title = "Holoviz", bool headless = false)
+      const std::string& window_title = "Holoviz", bool headless = false,
+      bool verbose = false)
       : VizOp(ArgList{Arg{"device_allocator", device_allocator},
                       Arg{"width", width},
                       Arg{"height", height},
@@ -97,7 +98,6 @@ PYBIND11_MODULE(_tracks2endo4d_viz, m) {
                     uint32_t,
                     const std::string&,
                     bool,
-                    uint32_t,
                     bool>(),
            "fragment"_a,
            "device_allocator"_a,
@@ -106,7 +106,6 @@ PYBIND11_MODULE(_tracks2endo4d_viz, m) {
            "height"_a = 720,
            "window_title"_a = "Holoviz"s,
            "headless"_a = false,
-           "max_trajectory_length"_a = 500,
            "verbose"_a = false,
            "Visualizer Operator");
   }
