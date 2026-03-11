@@ -1,93 +1,113 @@
 # SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 ############################################################
-# G-SHARP Surgical Scene Reconstruction — Self-Contained Image
+# G-SHARP Surgical Scene Reconstruction
 #
-# This image bundles all model code (DA2, VGGT, MedSAM3, GSplat
-# training). At runtime, mount:
-#
-#   1. assets/     — model checkpoints (see assets/README.md)
-#   2. data/       — input frames (e.g. /workspace/data/frames)
-#   3. output/     — pipeline output (e.g. /workspace/output)
-#   Optional: ~/.cache/huggingface for VGGT-1B weights
-#
-# Build (run from applications/gsplat_scene_recon or use -f):
-#   cd applications/gsplat_scene_recon
-#   docker build -t gsplat_scene_recon:latest \
-#     --build-arg BASE_IMAGE=holohub:surgical_scene_recon .
-#
-# Run:
-#   docker run --gpus all --rm --runtime nvidia \
-#     --ipc=host --network host \
-#     -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix \
-#     -v /path/to/assets:/workspace/app/assets \
-#     -v /path/to/data:/workspace/data \
-#     -v /path/to/output:/workspace/output \
-#     -v ~/.cache/huggingface:/root/.cache/huggingface \
-#     gsplat_scene_recon:latest \
-#     python /workspace/app/run_gsharp.py \
-#       --data-dir /workspace/data/frames \
-#       --output-dir /workspace/output
+# Build context: HoloHub repo root (same as surgical_scene_recon).
+# Base image: NGC Holoscan (passed by holohub build-container).
+# No local base image; no COPY . from app dir.
 ############################################################
 
-ARG BASE_IMAGE=holohub:surgical_scene_recon
-FROM ${BASE_IMAGE}
+ARG GPU_TYPE
+ARG BASE_SDK_VERSION
+ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v${BASE_SDK_VERSION}-${GPU_TYPE}
+FROM ${BASE_IMAGE} AS base
 
-# ── Python dependencies for all pipeline stages (pinned for reproducibility) ──
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+ARG DEBIAN_FRONTEND=noninteractive
+ARG CMAKE_BUILD_TYPE=Release
 
-# ── Fix decord↔libxcb conflict for HoloViz/Vulkan (x86_64; aarch64 not tested) ──
+# --------------------------------------------------------------------------
+# Set up prerequisites to run HoloHub CLI (same as surgical_scene_recon)
+# --------------------------------------------------------------------------
+FROM base AS holohub-cli-prerequisites
+
+ARG PYTHON_VERSION=python3
+RUN if ! command -v python3 >/dev/null 2>&1; then \
+        apt-get update \
+        && apt-get install --no-install-recommends -y \
+            software-properties-common curl gpg-agent \
+        && add-apt-repository ppa:deadsnakes/ppa \
+        && apt-get update \
+        && apt-get install --no-install-recommends -y \
+            ${PYTHON_VERSION} \
+        && apt purge -y \
+            python3-pip \
+            software-properties-common \
+        && apt-get autoremove --purge -y \
+        && rm -rf /var/lib/apt/lists/* \
+        && update-alternatives --install /usr/bin/python python /usr/bin/${PYTHON_VERSION} 100 \
+        && if [ "${PYTHON_VERSION}" != "python3" ]; then \
+            update-alternatives --install /usr/bin/python3 python3 /usr/bin/${PYTHON_VERSION} 100 \
+            ; fi \
+    ; fi
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
+RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
+        curl -sS https://bootstrap.pypa.io/get-pip.py | ${PYTHON_VERSION} \
+    ; fi
+
+# --------------------------------------------------------------------------
+# HoloHub CLI setup (same as surgical_scene_recon)
+# --------------------------------------------------------------------------
+FROM holohub-cli-prerequisites AS holohub-cli
+
+RUN mkdir -p /tmp/scripts
+COPY holohub /tmp/scripts/
+RUN mkdir -p /tmp/scripts/utilities
+COPY utilities /tmp/scripts/utilities/
+RUN chmod +x /tmp/scripts/holohub
+RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
+
+RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
+ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data
+
+# --------------------------------------------------------------------------
+# G-SHARP application dependencies and app copy
+# Build context is HoloHub root; copy only this application.
+# --------------------------------------------------------------------------
+FROM holohub-cli AS application-dependencies
+
+COPY applications/gsplat_scene_recon/requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+# Fix decord↔libxcb conflict for HoloViz/Vulkan
 RUN apt-get update -qq && \
     apt-get install -y --no-install-recommends \
         libxcb1 libxcb-xfixes0 libxcb-shape0 libxcb-shm0 libxcb-render0 \
         libxcb-xinerama0 libxcb-randr0 && \
     rm -rf /var/lib/apt/lists/* && \
-    DECORD_LIBS=$(python -c "import pathlib; print(next(pathlib.Path('/usr/local/lib').rglob('decord.libs'), ''))" 2>/dev/null) && \
+    DECORD_LIBS=$(python3 -c "import pathlib; print(next(pathlib.Path('/usr/local/lib').rglob('decord.libs'), ''))" 2>/dev/null) && \
     if [ -n "$DECORD_LIBS" ] && [ -d "$DECORD_LIBS" ]; then \
         for f in "$DECORD_LIBS"/libxcb*.so*; do \
+            [ -e "$f" ] || continue; \
             base=$(basename "$f" | sed 's/-[a-f0-9]*\./\./') && \
             sys_lib=$(find /usr/lib/$(dpkg-architecture -q DEB_HOST_MULTIARCH 2>/dev/null || echo x86_64-linux-gnu) -name "${base%%.*}*" -type f 2>/dev/null | head -1) && \
             if [ -n "$sys_lib" ]; then ln -sf "$sys_lib" "$f"; fi; \
         done; \
     fi
 
-# ── Install VGGT and SAM3 from their upstream repos ──────────
-# These are NOT bundled in the repo; they are installed at build
-# time. Pinned to specific commits for reproducibility.
-#
-# VGGT: Meta custom license — see https://github.com/facebookresearch/vggt
-# SAM3: SAM License — see https://github.com/facebookresearch/sam3/blob/main/LICENSE
-RUN pip install --no-cache-dir \
+# Install VGGT and SAM3 from upstream (pinned commits)
+RUN pip install --no-cache-dir --no-deps \
     "git+https://github.com/facebookresearch/vggt.git@44b3afbd1869d8bde4894dd8ea1e293112dd5eba" \
     "git+https://github.com/facebookresearch/sam3.git@f6e51f59500a87c576c2df2323ce56b9fd7a12de"
 
-# ── Pre-cache VGG-16 weights (used by LPIPS loss) ───────────
-RUN python -c "import torch; torch.hub.load_state_dict_from_url( \
+# Pre-cache VGG-16 for LPIPS loss
+RUN python3 -c "import torch; torch.hub.load_state_dict_from_url( \
     'https://download.pytorch.org/models/vgg16-397923af.pth', check_hash=True)"
 
-# ── Copy the full application into the image ─────────────────
-COPY . /workspace/app
-
-# ── Workspace layout ─────────────────────────────────────────
-# /workspace/app/                  — Application code (baked in)
-#   ├── run_gsharp.py              — Pipeline orchestrator
-#   ├── operators/                 — Holoscan operators
-#   ├── stages/                    — Pipeline stage scripts
-#   ├── models/                    — Inference model code (NVIDIA-adapted)
-#   │   ├── depth_anything_v2/    — DA2 model architecture
-#   │   ├── medsam3/              — MedSAM3 inference wrapper
-#   │   └── vggt/                 — VGGT inference wrapper
-#   ├── training/                  — GSplat training code + scene/utils
-#   └── assets/                   — Checkpoints (mount at runtime)
-#       ├── da2/                  — depth_anything_v2_vits.pth
-#       └── medsam3/              — checkpoint_8_new_best.pt
-#
-# VGGT and SAM3 core libraries are pip-installed (see above).
-#
-# /workspace/data/                 — Input frames (mount at runtime)
-# /workspace/output/               — Pipeline output (mount at runtime)
-# ~/.cache/huggingface/            — VGGT-1B weights (mount to persist)
+# Copy only this application (context is HoloHub root)
+COPY applications/gsplat_scene_recon /workspace/app
 
 WORKDIR /workspace

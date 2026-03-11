@@ -117,7 +117,7 @@ Before building the Docker image, place the following checkpoints in the
 | File | Path | Source |
 | ---- | ---- | ------ |
 | Depth Anything V2 (Small) | `assets/da2/depth_anything_v2_vits.pth` | [HuggingFace](https://huggingface.co/depth-anything/Depth-Anything-V2-Small) |
-| MedSAM3 checkpoint | `assets/medsam3/checkpoint_8_new_best.pt` | Custom fine-tuned checkpoint |
+| MedSAM3 checkpoint | `assets/medsam3/checkpoint_8_new_best.pt` | [Medical-SAM3 (Hugging Face)](https://huggingface.co/ChongCong/Medical-SAM3) or custom fine-tuned |
 
 > **Important**: The MedSAM3 checkpoint must be a real `.pt` file (not a
 > placeholder). Verify it is non-empty before building:
@@ -215,6 +215,82 @@ docker run --name gsharp --rm \
     --headless \
     --skip-viewer
 ```
+
+## Using the HoloHub CLI
+
+When working from a HoloHub repository checkout, you can build, run, and test the
+application with the HoloHub CLI. All commands below are run from the **HoloHub
+repository root** (the directory containing the `holohub` script and
+`applications/`).
+
+### Build the container
+
+```bash
+cd /path/to/holohub
+./holohub build-container gsplat_scene_recon
+```
+
+Build context is the HoloHub root; the Dockerfile uses the NGC Holoscan base
+image and installs application dependencies. Place DA2 and MedSAM3 checkpoints in
+`applications/gsplat_scene_recon/assets/` before building (see
+[Assets (Checkpoints)](#assets-checkpoints)).
+
+### Prepare data
+
+HoloHub expects application data under the HoloHub data directory. For
+`gsplat_scene_recon`:
+
+- **Input frames**: `<holohub_data_dir>/gsplat_scene_recon/frames/` — put your
+  PNG frames here (e.g. `frame_000000.png`, `frame_000001.png`, …).
+- **MedSAM3 checkpoint**: `<holohub_data_dir>/gsplat_scene_recon/medsam3/checkpoint_8_new_best.pt`
+
+When you run with `./holohub run`, `<holohub_data_dir>` is set automatically
+(e.g. `data-gsplat_scene_recon-<tag>` under the repo). Copy or symlink your
+frames and checkpoint into that tree, or configure your data path accordingly.
+
+### Run modes
+
+| Mode | Command | Description |
+|------|---------|-------------|
+| **full** (default) | `./holohub run gsplat_scene_recon` or `./holohub run gsplat_scene_recon full` | Full pipeline: Phase 1–5 (depth + segmentation → poses → EndoNeRF → training → live viewer). |
+| **train** | `./holohub run gsplat_scene_recon train` | Same as full but skips the live viewer (train only, then exit). |
+| **render** | `./holohub run gsplat_scene_recon render` | Viewer only: skips Phase 1–3 and training; runs the live viewer on existing `<output>/phase4_training/` checkpoints. |
+| **verify_train** | `./holohub run gsplat_scene_recon verify_train` | Quick sanity check: 20 training iterations, 5 coarse, headless, no viewer. |
+
+Examples:
+
+```bash
+# Full pipeline with live viewer (default)
+./holohub run gsplat_scene_recon
+
+# Training only, no viewer
+./holohub run gsplat_scene_recon train
+
+# Only run the render/viewer on existing training output
+./holohub run gsplat_scene_recon render
+
+# List all available modes
+./holohub modes gsplat_scene_recon
+```
+
+### Run tests
+
+To run the application test suite (imports, data loading, gsplat rendering,
+minimal Holoviz) inside the container:
+
+```bash
+./holohub test gsplat_scene_recon
+```
+
+For verbose CTest output:
+
+```bash
+./holohub test gsplat_scene_recon --verbose --ctest-options "-VV --output-on-failure"
+```
+
+Tests are defined in `applications/gsplat_scene_recon/tests/` and registered in
+`CMakeLists.txt`; they run in the same container built by
+`./holohub build-container gsplat_scene_recon`.
 
 ## Command Line Arguments
 
@@ -323,7 +399,9 @@ libraries.**
 > - Publications using SAM3 must acknowledge the SAM Materials
 > - Redistribution must include the same license terms
 >
-> HuggingFace checkpoints for SAM3 may require **access approval** at
+> A MedSAM3 checkpoint suitable for this pipeline can be downloaded from
+> [ChongCong/Medical-SAM3](https://huggingface.co/ChongCong/Medical-SAM3) on
+> Hugging Face. The base SAM3 model may require access approval at
 > <https://huggingface.co/facebook/sam3>.
 
 ### Depth Anything V2

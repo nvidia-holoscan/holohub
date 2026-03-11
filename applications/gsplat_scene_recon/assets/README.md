@@ -26,12 +26,13 @@ wget -O assets/da2/depth_anything_v2_vits.pth \
 
 ### MedSAM3 (`medsam3/`)
 
-Obtain the fine-tuned MedSAM3 checkpoint from your internal model registry or
-the training pipeline output. Place it at:
+Download the MedSAM3 checkpoint from [ChongCong/Medical-SAM3 on Hugging Face](https://huggingface.co/ChongCong/Medical-SAM3) (or use your own fine-tuned `.pt`). Place it at:
 
 ```text
 assets/medsam3/checkpoint_8_new_best.pt
 ```
+
+If the Hugging Face repo uses a different filename, copy or symlink that file to `checkpoint_8_new_best.pt`.
 
 ## Automatically Managed Weights
 

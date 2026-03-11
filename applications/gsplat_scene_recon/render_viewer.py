@@ -68,6 +68,28 @@ def _load_endonerf_poses(data_dir: str) -> list[dict]:
 def _load_checkpoint(ckpt_path: str):
     from argparse import Namespace as NS
 
+    # Allow loading our own training checkpoints (saved with config/splats) with weights_only=True.
+    # PyTorch 2.6+ requires allowlisting; checkpoint can contain numpy._core.multiarray.scalar (and others).
+    if hasattr(torch.serialization, "add_safe_globals"):
+        torch.serialization.add_safe_globals([NS, np.dtype])
+        try:
+            from numpy._core.multiarray import scalar as np_multiarray_scalar
+            torch.serialization.add_safe_globals([np_multiarray_scalar])
+        except ImportError:
+            try:
+                from numpy.core.multiarray import scalar as np_multiarray_scalar  # type: ignore[attr-defined]
+                torch.serialization.add_safe_globals([np_multiarray_scalar])
+            except ImportError:
+                pass
+        try:
+            import numpy.dtypes as np_dtypes
+            for name in dir(np_dtypes):
+                obj = getattr(np_dtypes, name)
+                if isinstance(obj, type):
+                    torch.serialization.add_safe_globals([obj])
+        except Exception:
+            pass
+
     ckpt = torch.load(ckpt_path, map_location="cuda", weights_only=True)
     splats = ckpt["splats"]
     colors = torch.cat([splats["sh0"].cuda(), splats["shN"].cuda()], dim=-2)
