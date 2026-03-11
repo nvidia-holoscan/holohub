@@ -41,6 +41,7 @@ add_holohub_operator(qt_video)
 add_holohub_operator(realsense_camera)
 add_holohub_operator(streaming_client)
 add_holohub_operator(streaming_server)
+add_holohub_operator(tapnext_inference DEPENDS EXTENSIONS tapnext_inference)
 add_subdirectory(orsi)
 add_holohub_operator(slang_shader)
 # Unified streaming operator

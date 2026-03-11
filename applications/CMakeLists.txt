@@ -86,6 +86,8 @@ add_holohub_application(iio DEPENDS OPERATORS iio_controller fft)
 
 add_subdirectory(laser_detection_latency)
 
+add_holohub_application(tracks2endo4d DEPENDS OPERATORS tapnext_inference)
+
 add_holohub_application(monai_endoscopic_tool_seg DEPENDS
                         OPERATORS OPTIONAL aja_source)
 add_holohub_application(multiai_endoscopy DEPENDS

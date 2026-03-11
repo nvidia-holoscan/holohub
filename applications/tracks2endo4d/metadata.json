@@ -1,0 +1,49 @@
+{
+	"workflow": {
+		"name": "Tracks2Endo4D Workflow",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "3.8.0",
+			"tested_versions": [
+				"3.8.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": ["tracking"],
+		"ranking": 1,
+		"requirements": {
+			"data": [
+				{
+					"name": "Holoscan Tracking Sample Data",
+					"description": "This dataset contains a sample video for tracking.",
+					"url": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_tracking_sample_data",
+					"version": "1.2"
+				}
+
+			],
+			"libraries": [
+				{
+					"name": "cupy",
+					"version": "13.3.0"
+				}
+			]
+		},
+		"run": {
+			"command": "python3 <holohub_app_source>/tracks2endo4d_app.py --data <holohub_data_dir>/tracks2endo4d --model <holohub_data_dir>/tracks2endo4d",
+			"workdir": "holohub_bin"
+		}
+	}
+}
