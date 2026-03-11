@@ -143,7 +143,11 @@ Everything after `--` is joined into a single string and executed via `bash -c`,
 ### Resource management
 
 - `CMAKE_BUILD_PARALLEL_LEVEL=N` — cap parallel jobs to prevent OOM.
-- `./holohub clear-cache --build` — reset build dir only. Bare `./holohub clear-cache` also deletes `data/` (models, datasets) and other cache directories (ask for approval before running).
+- `./holohub clear-cache` removes `build/`, `build-*/`, `data/`, `data-*/`, `install/`, `install-*/` at the repo root. Ask for approval before running; Use `--dryrun` first to preview.
+  - `--build` — most common. Use when builds are broken, stale, or after switching branches, SDK versions, or build types.
+  - `--data` — use when downloaded models or datasets are corrupt/incomplete, or to reclaim disk space. Re-downloading can be slow.
+  - `--install` — use when installed artifacts are stale or from a different build configuration.
+  - No flags — clears everything for a fresh start (e.g., switching SDK or CUDA versions).
 - `docker image prune` / `docker system prune` — reclaim disk (ask for approval before running).
 - Don't use `sudo ./holohub` — sudo filters `PATH` and other env vars.
 
