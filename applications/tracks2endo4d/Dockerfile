@@ -39,7 +39,7 @@ RUN apt-get update && apt-get install -y \
 # Set the working directory
 WORKDIR /app
 
-RUN git clone --depth 1 https://github.com/deepmind/tapnet.git 
+RUN git clone --depth 1 https://github.com/deepmind/tapnet.git
 
 # Override tapnext modules with custom versions before installing
 COPY applications/tracks2endo4d/onnx_conversion/tapnext_torch.py tapnet/tapnet/tapnext/tapnext_torch.py
