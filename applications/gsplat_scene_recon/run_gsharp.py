@@ -19,8 +19,11 @@ Usage (inside the Docker container):
         --data-dir /workspace/data/my_frames \\
         --output-dir /workspace/output
 
-    Model code is bundled under ``models/`` and ``training/``, and
-    checkpoints are expected in ``assets/``. See ``assets/README.md`` for details.
+    Model code is bundled under ``models/`` and ``training/``. Checkpoints
+    (DA2, MedSAM3) are read from the same directory tree as the input frames
+    by default: if ``--data-dir`` is ``.../frames``, checkpoints are expected
+    at ``.../da2/`` and ``.../medsam3/``. Override with ``--da2-checkpoint``
+    and ``--sam3-checkpoint``.
 """
 
 from __future__ import annotations
@@ -37,13 +40,10 @@ APP_DIR = Path(__file__).resolve().parent
 MODELS_DIR = APP_DIR / "models"
 TRAINING_DIR = APP_DIR / "training"
 
-# Default paths resolve to the bundled models/ , training/ , and assets/
-# directories so the pipeline works out-of-the-box when run from the
-# application directory (or its Docker image). Override via CLI for other layouts.
+# Default paths: models/ and training/ are bundled; checkpoint paths are
+# derived from --data-dir parent in main() (so they live with your data).
 DEFAULTS = {
     "da2_root": str(MODELS_DIR / "depth_anything_v2"),
-    "da2_checkpoint": str(APP_DIR / "assets" / "da2" / "depth_anything_v2_vits.pth"),
-    "sam3_checkpoint": str(APP_DIR / "assets" / "medsam3" / "checkpoint_8_new_best.pt"),
     "train_script": str(TRAINING_DIR / "train_standalone.py"),
     "training_iterations": 1400,
     "coarse_iterations": 200,
@@ -105,18 +105,20 @@ def main():
         "--output-dir", required=True, help="Base output directory for all pipeline artifacts"
     )
 
-    # Model paths (with container defaults)
+    # Model paths (checkpoint defaults set from data-dir parent after parse)
     parser.add_argument("--da2-root", default=DEFAULTS["da2_root"], help="DA2 model code directory")
     parser.add_argument(
-        "--da2-checkpoint", default=DEFAULTS["da2_checkpoint"], help="DA2 .pth checkpoint"
+        "--da2-checkpoint",
+        default=None,
+        help="DA2 .pth checkpoint (default: <parent of data-dir>/da2/depth_anything_v2_vits.pth)",
     )
     parser.add_argument(
         "--da2-encoder", default=DEFAULTS["da2_encoder"], choices=["vits", "vitb", "vitl"]
     )
     parser.add_argument(
         "--sam3-checkpoint",
-        default=DEFAULTS["sam3_checkpoint"],
-        help="MedSAM3 .pt checkpoint (empty = HuggingFace)",
+        default=None,
+        help="MedSAM3 .pt checkpoint (default: <parent of data-dir>/medsam3/checkpoint_8_new_best.pt)",
     )
     parser.add_argument(
         "--train-script", default=DEFAULTS["train_script"], help="Path to train_standalone.py"
@@ -184,6 +186,13 @@ def main():
     )
 
     args = parser.parse_args()
+
+    # Default checkpoints next to data: <parent of data-dir>/da2/ and .../medsam3/
+    data_base = Path(args.data_dir).resolve().parent
+    if args.da2_checkpoint is None:
+        args.da2_checkpoint = str(data_base / "da2" / "depth_anything_v2_vits.pth")
+    if args.sam3_checkpoint is None:
+        args.sam3_checkpoint = str(data_base / "medsam3" / "checkpoint_8_new_best.pt")
 
     # ── Derived paths ────────────────────────────────────────────────
     data_dir = Path(args.data_dir).resolve()

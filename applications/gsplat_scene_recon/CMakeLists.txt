@@ -24,22 +24,38 @@ find_package(holoscan 3.7 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 # -----------------------------------------------------------------------------
-# Data
+# Data (checkpoints in ${HOLOHUB_DATA_DIR}/gsplat_scene_recon/da2 and .../medsam3)
 # -----------------------------------------------------------------------------
-# MedSAM3 checkpoint: obtain from https://huggingface.co/ChongCong/Medical-SAM3
-# (or custom fine-tuned .pt) and place at
-# <HOLOHUB_DATA_DIR>/gsplat_scene_recon/medsam3/checkpoint_8_new_best.pt
-# Optional: set MEDSAM3_GDOWN_FILE_ID to a Google Drive file ID to download via
-# holoscan_download_data (e.g. from .../file/d/FILE_ID/view). Leave empty to skip.
-set(MEDSAM3_GDOWN_FILE_ID "" CACHE STRING "Google Drive file ID for MedSAM3 checkpoint. Empty = skip download.")
-if(HOLOHUB_DOWNLOAD_DATASETS AND MEDSAM3_GDOWN_FILE_ID)
-  include(holoscan_download_data)
-  holoscan_download_data(medsam3
-    URL "https://drive.google.com/file/d/${MEDSAM3_GDOWN_FILE_ID}/view"
-    DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}/gsplat_scene_recon
-    DOWNLOAD_NAME checkpoint_8_new_best.pt
-    ALL
+# When HOLOHUB_DOWNLOAD_DATASETS is ON, automatically download Depth Anything V2
+# (Apache-2.0) and MedSAM3 checkpoints to the application data dir.
+if(HOLOHUB_DOWNLOAD_DATASETS)
+  set(GSPLAT_DATA_DIR "${HOLOHUB_DATA_DIR}/gsplat_scene_recon")
+  set(DA2_DIR "${GSPLAT_DATA_DIR}/da2")
+  set(MEDSAM3_DIR "${GSPLAT_DATA_DIR}/medsam3")
+  set(DA2_URL "https://huggingface.co/depth-anything/Depth-Anything-V2-Small/resolve/main/depth_anything_v2_vits.pth")
+  set(DA2_FILE "${DA2_DIR}/depth_anything_v2_vits.pth")
+  set(MEDSAM3_URL "https://huggingface.co/ChongCong/Medical-SAM3/resolve/main/checkpoint_8_new_best.pt")
+  set(MEDSAM3_FILE "${MEDSAM3_DIR}/checkpoint_8_new_best.pt")
+
+  # Depth Anything V2 (ViT-S) - Apache-2.0, single file
+  set(DA2_STAMP "${CMAKE_CURRENT_BINARY_DIR}/da2_checkpoint.stamp")
+  add_custom_command(OUTPUT "${DA2_STAMP}"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${DA2_DIR}"
+    COMMAND bash -c "curl -L -f -o '${DA2_FILE}' '${DA2_URL}' && touch '${DA2_STAMP}'"
+    COMMENT "Download DA2 checkpoint to ${DA2_FILE}"
+    VERBATIM
   )
+  add_custom_target(da2_checkpoint_data ALL DEPENDS "${DA2_STAMP}")
+
+  # MedSAM3 checkpoint - single file (Hugging Face; may require login for gated repos)
+  set(MEDSAM3_STAMP "${CMAKE_CURRENT_BINARY_DIR}/medsam3_checkpoint.stamp")
+  add_custom_command(OUTPUT "${MEDSAM3_STAMP}"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${MEDSAM3_DIR}"
+    COMMAND bash -c "curl -L -f -o '${MEDSAM3_FILE}' '${MEDSAM3_URL}' && touch '${MEDSAM3_STAMP}'"
+    COMMENT "Download MedSAM3 checkpoint to ${MEDSAM3_FILE}"
+    VERBATIM
+  )
+  add_custom_target(medsam3_checkpoint_data ALL DEPENDS "${MEDSAM3_STAMP}")
 endif()
 
 # -----------------------------------------------------------------------------

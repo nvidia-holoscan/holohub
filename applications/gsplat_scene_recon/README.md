@@ -33,7 +33,8 @@ Place your input frames and optional MedSAM3 checkpoint where the app expects th
 | What | Where (under HoloHub repo root) |
 | ---- | ------------------------------- |
 | **Input frames** | `data/gsplat_scene_recon/frames/` — directory of PNG frames (filenames sort in temporal order). |
-| **MedSAM3 checkpoint** (optional) | `data/gsplat_scene_recon/medsam3/checkpoint_8_new_best.pt` — if missing, the app may use a bundled or HuggingFace path depending on build. |
+| **DA2 checkpoint** (optional) | `data/gsplat_scene_recon/da2/depth_anything_v2_vits.pth` — Depth Anything V2 Small. |
+| **MedSAM3 checkpoint** (optional) | `data/gsplat_scene_recon/medsam3/checkpoint_8_new_best.pt` — if missing, the app may use HuggingFace or fail depending on config. |
 
 Example:
 
@@ -109,23 +110,35 @@ List available tests (from repo root):
 - **Docker** with [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
 - **Base image**: `holohub:surgical_scene_recon` (see Holohub build instructions)
 
-## Assets (Checkpoints)
+## Checkpoints (place with your data)
 
-Before building the Docker image, place the following checkpoints in the
-`assets/` directory:
+Checkpoints are **not** bundled in the image. Place them in the **same directory tree as your input frames** so one data location holds everything.
 
-| File | Path | Source |
-| ---- | ---- | ------ |
-| Depth Anything V2 (Small) | `assets/da2/depth_anything_v2_vits.pth` | [HuggingFace](https://huggingface.co/depth-anything/Depth-Anything-V2-Small) |
-| MedSAM3 checkpoint | `assets/medsam3/checkpoint_8_new_best.pt` | [Medical-SAM3 (Hugging Face)](https://huggingface.co/ChongCong/Medical-SAM3) or custom fine-tuned |
+**Layout:** If your frames are in `DATA_BASE/frames/`, put checkpoints in `DATA_BASE/da2/` and `DATA_BASE/medsam3/` (create these directories if needed).
 
-> **Important**: The MedSAM3 checkpoint must be a real `.pt` file (not a
-> placeholder). Verify it is non-empty before building:
-> `ls -lh assets/medsam3/checkpoint_8_new_best.pt`
+| File | Path (under your data base) | Source |
+| ---- | --------------------------- | ------ |
+| Depth Anything V2 (Small) | `da2/depth_anything_v2_vits.pth` | [HuggingFace](https://huggingface.co/depth-anything/Depth-Anything-V2-Small) |
+| MedSAM3 checkpoint | `medsam3/checkpoint_8_new_best.pt` | [Medical-SAM3 (Hugging Face)](https://huggingface.co/ChongCong/Medical-SAM3) or custom fine-tuned |
 
-VGGT weights (`facebook/VGGT-1B`) are downloaded automatically from
-HuggingFace on first run. Mount `~/.cache/huggingface` to persist them across
-runs so they are not re-downloaded each time.
+Example (HoloHub layout: `data/gsplat_scene_recon/`):
+
+```bash
+mkdir -p data/gsplat_scene_recon/frames data/gsplat_scene_recon/da2 data/gsplat_scene_recon/medsam3
+# Add your PNG frames to data/gsplat_scene_recon/frames/
+wget -O data/gsplat_scene_recon/da2/depth_anything_v2_vits.pth \
+  https://huggingface.co/depth-anything/Depth-Anything-V2-Small/resolve/main/depth_anything_v2_vits.pth
+# Download MedSAM3 to data/gsplat_scene_recon/medsam3/checkpoint_8_new_best.pt (see Hugging Face link above)
+```
+
+When you run with `--data-dir .../frames`, the pipeline will look for `da2/` and `medsam3/` in the parent of the frames directory by default. You can override with `--da2-checkpoint` and `--sam3-checkpoint`.
+
+**Automatic download (HoloHub):** When building or testing with the HoloHub CLI and `HOLOHUB_DOWNLOAD_DATASETS=ON`, the application CMakeLists.txt automatically downloads both checkpoints into `${HOLOHUB_DATA_DIR}/gsplat_scene_recon/da2/` and `.../medsam3/` (Depth Anything V2 is Apache-2.0; MedSAM3 from Hugging Face may require login if the repo is gated).
+
+> **Important**: MedSAM3 must be a real `.pt` file (not a placeholder). Verify:
+> `ls -lh data/gsplat_scene_recon/medsam3/checkpoint_8_new_best.pt`
+
+**Automatically managed (do not place in your data dir):** VGGT-1B is downloaded from HuggingFace on first run (cache at `~/.cache/huggingface`). VGG-16 for LPIPS is pre-cached in the Docker image at build time.
 
 ## Quick Start
 
@@ -172,12 +185,7 @@ docker run --name gsharp --rm \
 Replace `/path/to/input/frames` with the directory containing your PNG frames,
 and `/path/to/output` with where you want the pipeline artifacts written.
 
-> **Note on the MedSAM3 checkpoint**: If the `assets/medsam3/` checkpoint
-> baked into the image is a placeholder (0 bytes), bind-mount the real file:
->
-> ```bash
-> -v /path/to/checkpoint_8_new_best.pt:/workspace/app/assets/medsam3/checkpoint_8_new_best.pt:ro
-> ```
+> **Note on checkpoints**: Place DA2 and MedSAM3 in the same data tree as your frames (e.g. `data/gsplat_scene_recon/da2/` and `.../medsam3/`), or bind-mount and pass `--da2-checkpoint` and `--sam3-checkpoint` explicitly.
 
 ### 4. What Happens
 
@@ -231,9 +239,8 @@ cd /path/to/holohub
 ```
 
 Build context is the HoloHub root; the Dockerfile uses the NGC Holoscan base
-image and installs application dependencies. Place DA2 and MedSAM3 checkpoints in
-`applications/gsplat_scene_recon/assets/` before building (see
-[Assets (Checkpoints)](#assets-checkpoints)).
+image and installs application dependencies. Place DA2 and MedSAM3 checkpoints next to your frames (see
+[Checkpoints (place with your data)](#checkpoints-place-with-your-data)).
 
 ### Prepare data
 

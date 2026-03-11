@@ -186,14 +186,14 @@ def main():
     )
     parser.add_argument(
         "--da2-checkpoint",
-        default=os.path.join(_app_dir, "assets", "da2", "depth_anything_v2_vits.pth"),
-        help="Path to Depth Anything V2 .pth checkpoint",
+        default=os.path.join(_app_dir, "data", "da2", "depth_anything_v2_vits.pth"),
+        help="Path to Depth Anything V2 .pth checkpoint (default: app data/da2/...)",
     )
     # Optional
     parser.add_argument(
         "--sam3-checkpoint",
-        default=os.path.join(_app_dir, "assets", "medsam3", "checkpoint_8_new_best.pt"),
-        help="Path to MedSAM3 checkpoint (empty = HuggingFace default)",
+        default=os.path.join(_app_dir, "data", "medsam3", "checkpoint_8_new_best.pt"),
+        help="Path to MedSAM3 checkpoint (default: app data/medsam3/...)",
     )
     parser.add_argument(
         "--da2-encoder",

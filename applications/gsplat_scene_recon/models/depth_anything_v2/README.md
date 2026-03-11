@@ -6,4 +6,4 @@ This directory contains a **custom fork** of [Depth Anything V2](https://github.
 
 **License:** The code in this directory is derived from Depth Anything V2 / DINOv2. Original copyright (c) Meta Platforms, Inc. and affiliates. It is licensed under the **Apache License, Version 2.0**. See **[LICENSE](LICENSE)** in this directory.
 
-**Checkpoint:** Use the application’s `assets/da2/` checkpoint (e.g. `depth_anything_v2_vits.pth`); it is not compatible with upstream DA2.
+**Checkpoint:** Place the DA2 checkpoint in the same data tree as your frames (e.g. `da2/depth_anything_v2_vits.pth` under your data base directory); see the main application README. It is not compatible with upstream DA2.

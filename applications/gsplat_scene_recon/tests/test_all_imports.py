@@ -6,6 +6,7 @@
 # If holoscan/cupy are not available (e.g. host without container), skip and exit 0.
 """Test that gsplat_scene_recon and dependencies can be imported."""
 
+import importlib.util
 import sys
 from pathlib import Path
 
@@ -23,13 +24,9 @@ def main():
             print("SKIP: holoscan not available (run inside container)")
             return 0
         raise
-    try:
-        import cupy  # noqa: F401
-    except ModuleNotFoundError as e:
-        if "cupy" in str(e).lower():
-            print("SKIP: cupy not available (run inside container)")
-            return 0
-        raise
+    if importlib.util.find_spec("cupy") is None:
+        print("SKIP: cupy not available (run inside container)")
+        return 0
 
     # Import application modules
     import gsplat_scene_recon  # noqa: F401

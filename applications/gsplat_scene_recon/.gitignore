@@ -11,10 +11,6 @@
 *.pt
 *.pth
 
-# Asset checkpoint directories (users download these separately)
-assets/da2/*.pth
-assets/medsam3/*.pt
-
 # Build staging model/checkpoint directories
 build_staging/models/
 build_staging/checkpoints/
@@ -22,6 +18,9 @@ build_staging/checkpoints/
 # Planning and dev log (kept locally, not in repo to satisfy MR feedback)
 planning/
 dev_updates/
+
+# Dev notes (local only; do not push)
+DEV_NOTES.md
 
 # Review discussion (temporary; outcomes folded into MR responses)
 REVIEW_ITEMS_DISCUSSION.md

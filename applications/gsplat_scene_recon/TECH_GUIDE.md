@@ -331,8 +331,7 @@ script:
    frames are symlinks pointing outside the container. Use hard links or
    copy the files instead.
 
-3. **SAM3 checkpoint is 0 bytes** — Bind-mount the real checkpoint:
-   `-v /path/to/checkpoint_8_new_best.pt:/workspace/app/assets/medsam3/checkpoint_8_new_best.pt:ro`
+3. **SAM3 checkpoint missing or 0 bytes** — Place the real checkpoint in the same data tree as your frames (e.g. `data/gsplat_scene_recon/medsam3/checkpoint_8_new_best.pt`) or bind-mount and pass `--sam3-checkpoint`.
 
 ### Symptom: Phase 2 (VGGT) Out-of-Memory
 
@@ -403,10 +402,6 @@ gsplat_scene_recon/
 │   │   ├── endo_loader.py         — EndoNeRF dataset loader
 │   │   └── cameras.py             — Camera utilities
 │   └── utils/                     — Loss functions, SH utils, image utils
-│
-├── assets/                        — Model checkpoints (mount at runtime)
-│   ├── da2/                       — depth_anything_v2_vits.pth
-│   └── medsam3/                   — checkpoint_8_new_best.pt
 │
 ├── planning/                      — Architecture design documents
 │   ├── architecture_analysis.md   — v1 design (LT4D-based, historical)

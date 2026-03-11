@@ -5,6 +5,7 @@
 # Minimal test that render_viewer and gsplat rendering path can be exercised (GPU).
 """Test that dynamic/static rendering code path runs without error."""
 
+import importlib.util
 import sys
 from pathlib import Path
 
@@ -19,8 +20,10 @@ if str(training_dir) not in sys.path:
 
 
 def main():
+    if importlib.util.find_spec("cupy") is None:
+        print("SKIP: cupy not available (run inside container)")
+        return 0
     try:
-        import cupy
         import torch
     except (ImportError, ModuleNotFoundError) as e:
         print(f"SKIP: GPU deps not available ({e})")
