@@ -6,7 +6,7 @@ runtime via `-v /path/to/assets:/workspace/assets`.
 
 ## Required Files
 
-```
+```text
 assets/
 ├── da2/
 │   └── depth_anything_v2_vits.pth          # ~95 MB
@@ -29,7 +29,7 @@ wget -O assets/da2/depth_anything_v2_vits.pth \
 Obtain the fine-tuned MedSAM3 checkpoint from your internal model registry or
 the training pipeline output. Place it at:
 
-```
+```text
 assets/medsam3/checkpoint_8_new_best.pt
 ```
 
@@ -39,7 +39,7 @@ The following weights are handled automatically and do **not** need to be
 placed in this directory:
 
 | Model | Size | How It's Loaded |
-|-------|------|----------------|
+| ----- | ---- | --------------- |
 | VGGT-1B | ~4 GB | Auto-downloaded from HuggingFace Hub on first run; cached at `~/.cache/huggingface/` |
 | VGG-16 (LPIPS) | ~528 MB | Pre-cached in the Docker image at build time |
 

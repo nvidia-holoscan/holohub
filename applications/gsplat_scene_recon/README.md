@@ -9,7 +9,7 @@ G-SHARP runs five sequential phases to reconstruct a 3D scene from surgical
 video frames:
 
 | Phase | Component | Framework |
-|-------|-----------|-----------|
+| ----- | --------- | --------- |
 | **1** | Parallel DA2 depth + MedSAM3 segmentation | Holoscan streaming |
 | **2** | VGGT batch camera pose estimation | Standalone PyTorch |
 | **3** | EndoNeRF format assembly | Python script |
@@ -31,7 +31,7 @@ From the **HoloHub repository root**, you can build, run, and test this applicat
 Place your input frames and optional MedSAM3 checkpoint where the app expects them:
 
 | What | Where (under HoloHub repo root) |
-|------|---------------------------------|
+| ---- | ------------------------------- |
 | **Input frames** | `data/gsplat_scene_recon/frames/` — directory of PNG frames (filenames sort in temporal order). |
 | **MedSAM3 checkpoint** (optional) | `data/gsplat_scene_recon/medsam3/checkpoint_8_new_best.pt` — if missing, the app may use a bundled or HuggingFace path depending on build. |
 
@@ -49,7 +49,7 @@ cp /path/to/checkpoint_8_new_best.pt data/gsplat_scene_recon/medsam3/
 The first run will build the container and application if needed. All commands are from the **HoloHub repo root**:
 
 | Mode | Command | Description |
-|------|---------|-------------|
+| ---- | ------- | ----------- |
 | **Full pipeline** | `./holohub run gsplat_scene_recon full` | All five phases: DA2+MedSAM3 → VGGT → EndoNeRF → training → live viewer. |
 | **Train only** | `./holohub run gsplat_scene_recon train` | Phases 1–4 (depth, segmentation, poses, format, training). No viewer; exits after training. |
 | **Render only** | `./holohub run gsplat_scene_recon render` | Phase 5 only (live viewer). Use after a prior run that produced output; skips Phase 1–4. |
@@ -115,7 +115,7 @@ Before building the Docker image, place the following checkpoints in the
 `assets/` directory:
 
 | File | Path | Source |
-|------|------|--------|
+| ---- | ---- | ------ |
 | Depth Anything V2 (Small) | `assets/da2/depth_anything_v2_vits.pth` | [HuggingFace](https://huggingface.co/depth-anything/Depth-Anything-V2-Small) |
 | MedSAM3 checkpoint | `assets/medsam3/checkpoint_8_new_best.pt` | Custom fine-tuned checkpoint |
 
@@ -219,7 +219,7 @@ docker run --name gsharp --rm \
 ## Command Line Arguments
 
 | Argument | Description | Default |
-|----------|-------------|---------|
+| -------- | ----------- | ------- |
 | `--data-dir` | Directory containing input PNG frames | **Required** |
 | `--output-dir` | Base output directory for all pipeline artifacts | **Required** |
 | `--training-iterations` | Total GSplat training iterations | `1400` |
@@ -268,7 +268,7 @@ docker run --name gsharp --rm \
 
 After a full run, `<output-dir>/` contains:
 
-```
+```text
 <output-dir>/
 ├── phase1_raw/
 │   ├── images/          # Resized input frames
@@ -348,7 +348,7 @@ libraries.**
 ### Additional Python Libraries
 
 | Library | License | URL |
-|---------|---------|-----|
+| ------- | ------- | --- |
 | PyTorch | BSD-3-Clause | <https://github.com/pytorch/pytorch> |
 | CuPy | MIT | <https://github.com/cupy/cupy> |
 | gsplat | Apache-2.0 | <https://github.com/nerfstudio-project/gsplat> |

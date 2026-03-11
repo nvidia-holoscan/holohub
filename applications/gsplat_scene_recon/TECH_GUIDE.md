@@ -27,7 +27,7 @@ GSplat training, and finally a HoloViz render viewer.
 
 **Pipeline flowchart (typical throughput, ~90-frame clip, single GPU):**
 
-```
+```text
   RGB frames
        │
        ├────────────────────┬────────────────────┐
@@ -52,7 +52,7 @@ Viewer FPS is configurable (default 30). Training time depends on `--training-it
 ### Why the Hybrid Architecture?
 
 | Phase | Execution Model | Rationale |
-|-------|----------------|-----------|
+| ----- | --------------- | --------- |
 | **1** | Holoscan streaming | DA2 and MedSAM3 are frame-by-frame GPU inference — natural streaming operators with parallel scheduling and zero-copy GPU sharing |
 | **2** | Standalone batch | VGGT is a vision transformer that needs all frames at once for globally consistent poses; doesn't fit the streaming model |
 | **3** | Standalone CPU | Pure NumPy, <5 seconds, no GPU; Holoscan overhead would add complexity without benefit |
@@ -108,7 +108,7 @@ and scale alignment happen.
 
 **Key transformation:**
 
-```
+```text
 DA2 raw depth (float32, meters) × DEPTH_SCALE → uint8 (0–255)
 VGGT translations (meters) × DEPTH_SCALE → centimeters
 ```
@@ -152,7 +152,7 @@ During Phases 2–4, a background Holoscan app (`progress_monitor.py`) displays
 real-time progress bars in a HoloViz window. The system works through a shared
 JSON file:
 
-```
+```text
 Pipeline phases          Progress JSON file         HoloViz display
 ─────────────           ──────────────────         ────────────────
                          progress.json
@@ -200,7 +200,7 @@ orchestrator skips launching it. Progress is still printed to stdout.
 ### Orchestrator-Level Parameters (CLI)
 
 | Parameter | Default | What it does | When to change |
-|-----------|---------|-------------|----------------|
+| --------- | ------- | ------------ | --------------- |
 | `--training-iterations` | 1400 | Total training steps (coarse + fine) | Increase for more detail (3000–7000 for production) |
 | `--coarse-iterations` | 200 | Steps with static Gaussians | Increase if geometry is poor before deformation kicks in |
 | `--no-deformation` | off | Disable temporal deformation | Use for static scenes (synthetic data, rigid objects) |
@@ -215,7 +215,7 @@ extent, and the deformation learning rate is `base_lr × scene_scale`. If the
 scale is wrong, training diverges.
 
 | depth-scale | Units | Typical depth range | scene_scale | Outcome |
-|-------------|-------|-------------------|-------------|---------|
+| ----------- | ----- | ------------------- | ----------- | ------- |
 | 1000 | mm | 305–1306 (uint16) | ~1420 | **NaN losses, divergence** |
 | **100** | **cm** | **31–131 (uint8)** | **~142** | **Stable (default)** |
 | 10 | dm | 3–13 (uint8) | ~14 | Extremely slow convergence |
@@ -230,7 +230,7 @@ These require editing the source code or passing them through the training
 script:
 
 | Parameter | Default | Effect | Tuning advice |
-|-----------|---------|--------|---------------|
+| --------- | ------- | ------ | ------------- |
 | `means_lr` | 1.6e-4 | Gaussian position learning rate | Increase for faster geometry convergence; decrease if positions oscillate |
 | `deformation_lr` | 1.0e-5 | Deformation network LR | Increase if deformation looks static; decrease if NaN appears late in training |
 | `grid_lr` | 1.0e-5 | Hexplane grid LR | Typically matches `deformation_lr` |
@@ -371,7 +371,7 @@ simply reuse the existing output.
 
 ## Codebase Layout
 
-```
+```text
 gsplat_scene_recon/
 ├── run_gsharp.py                  — Top-level orchestrator (entry point)
 ├── gsplat_scene_recon.py          — Phase 1: Holoscan streaming app
