@@ -696,14 +696,16 @@ gxf_result_t TapNextInference::tick() {
   // EXECUTE
 #if NV_TENSORRT_MAJOR < 8 || (NV_TENSORRT_MAJOR == 8 && NV_TENSORRT_MINOR < 5)
   if (!ctx.cuda_execution_ctx->enqueueV2(
-          ctx.cuda_buffers.data(), cuda_stream_handler_.getCudaStream(), nullptr))
-#else
-  if (!ctx.cuda_execution_ctx->enqueueV3(cuda_stream_handler_.getCudaStream()))
-#endif
-  {
+          ctx.cuda_buffers.data(), cuda_stream_handler_.getCudaStream(), nullptr)) {
     GXF_LOG_ERROR("Failed to enqueue TensorRT inference");
     return GXF_FAILURE;
   }
+#else
+  if (!ctx.cuda_execution_ctx->enqueueV3(cuda_stream_handler_.getCudaStream())) {
+    GXF_LOG_ERROR("Failed to enqueue TensorRT inference");
+    return GXF_FAILURE;
+  }
+#endif
 
   // UPDATE STATE
   for (size_t i = 0; i < ctx.output_tensor_names.size(); ++i) {
