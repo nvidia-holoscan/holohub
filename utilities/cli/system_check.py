@@ -302,11 +302,7 @@ def check_holoscan_python() -> CheckResult:
     Runs ``python3 -c "import holoscan"`` in a subprocess so a failed import
     (e.g. missing libcudart) does not crash the CLI itself.
     """
-    snippet = (
-        "import holoscan; "
-        "print(holoscan.__version__); "
-        "print(holoscan.__file__)"
-    )
+    snippet = "import holoscan; " "print(holoscan.__version__); " "print(holoscan.__file__)"
     try:
         proc = subprocess.run(
             ["python3", "-c", snippet],
