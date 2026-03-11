@@ -54,9 +54,7 @@ namespace holoscan::ops {
 void VizOp::setup(OperatorSpec& spec) {
   auto& in_tensor = spec.input<gxf::Entity>("receivers");
   spec.param(in_, "receivers", "Input", "Input port.", &in_tensor);
-
   spec.param(device_allocator_, "device_allocator", "Allocator", "Output Allocator");
-
   spec.param(width_, "width", "Width", "Window width", 1280u);
   spec.param(height_, "height", "Height", "Window height", 720u);
   spec.param(window_title_, "window_title", "Window Title", "Window title", std::string("Holoviz"));

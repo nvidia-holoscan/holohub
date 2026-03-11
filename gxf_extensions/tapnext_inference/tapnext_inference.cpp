@@ -122,7 +122,7 @@ gxf::Expected<gxf::PrimitiveType> NvInferDatatypeToTensorElementType(nvinfer1::D
     case nvinfer1::DataType::kFLOAT: return gxf::PrimitiveType::kFloat32;
     case nvinfer1::DataType::kINT8: return gxf::PrimitiveType::kInt8;
     case nvinfer1::DataType::kINT32: return gxf::PrimitiveType::kInt32;
-    case nvinfer1::DataType::kHALF:
+    case nvinfer1::DataType::kHALF: return gxf::PrimitiveType::kFloat16;
     default: {
       GXF_LOG_ERROR("Unsupported DataType %d", static_cast<int>(data_type));
       return gxf::Unexpected{GXF_FAILURE};
@@ -235,7 +235,7 @@ gxf_result_t TapNextInference::start() {
                                  output_binding_names_init_.get());
   if (res != GXF_SUCCESS) return res;
 
-  std::cout << "Init Engine Setup Done" << std::endl;
+  GXF_LOG_INFO("Init Engine Setup Done");
 
   // Setup Fwd Engine
   res = setupEngine(fwd_engine_ctx_,
@@ -246,13 +246,13 @@ gxf_result_t TapNextInference::start() {
                                  output_binding_names_fwd_.get());
   if (res != GXF_SUCCESS) return res;
 
-  std::cout << "Fwd Engine Setup Done" << std::endl;
+  GXF_LOG_INFO("Fwd Engine Setup Done");
 
   // Create Query Points
   res = createQueryPoints(max_batch_size_.get());
   if (res != GXF_SUCCESS) return res;
 
-  std::cout << "Query Points Created" << std::endl;
+  GXF_LOG_INFO("Query Points Created");
 
   return GXF_SUCCESS;
 }
@@ -288,17 +288,23 @@ gxf_result_t TapNextInference::setupEngine(EngineContext& ctx,
 
       ctx.engine_file_path = maybe_engine_file_path.value();
 
-      if (force_engine_update_) {
+      const bool force_engine_update = force_engine_update_.get();
+
+      if (force_engine_update) {
         std::remove(ctx.engine_file_path.c_str());
       }
 
       std::vector<char> plan;
-      if (force_engine_update_ || !ReadEntireBinaryFile(ctx.engine_file_path, plan)) {
+      if (force_engine_update || !ReadEntireBinaryFile(ctx.engine_file_path, plan)) {
         GXF_LOG_WARNING("Rebuilding CUDA engine %s. This may take a while.", ctx.engine_file_path.c_str());
         auto result = convertModelToEngine(model_path, max_batch_size_.get());
         if (!result) return gxf::ToResultCode(result);
         plan = std::move(result.value());
-        SerializeEnginePlan(plan, ctx.engine_file_path);
+        auto serialize_result = SerializeEnginePlan(plan, ctx.engine_file_path);
+        if (!serialize_result) {
+          GXF_LOG_ERROR("Failed to serialize engine plan to file: %s", ctx.engine_file_path.c_str());
+          return gxf::ToResultCode(serialize_result);
+        }
       }
   }
 
@@ -459,7 +465,13 @@ gxf_result_t TapNextInference::tick() {
   for (size_t i = 0; i < ctx.input_tensor_names.size(); ++i) {
     const auto& name = ctx.input_tensor_names[i];
     const auto& binding_name = ctx.input_binding_names[i];
-    const auto& info = ctx.binding_infos[name];
+    const auto it = ctx.binding_infos.find(name);
+    if (it == ctx.binding_infos.end()) {
+      GXF_LOG_ERROR("No binding info found for input tensor '%s' (binding name: '%s')",
+                    name.c_str(), binding_name.c_str());
+      return GXF_FAILURE;
+    }
+    const auto& info = it->second;
 
     void* ptr = nullptr;
     gxf::Shape shape;
@@ -525,7 +537,12 @@ gxf_result_t TapNextInference::tick() {
   for (size_t i = 0; i < ctx.output_tensor_names.size(); ++i) {
     const auto& name = ctx.output_tensor_names[i];
     const auto& binding_name = ctx.output_binding_names[i];
-    const auto& info = ctx.binding_infos[name];
+    const auto it = ctx.binding_infos.find(name);
+    if (it == ctx.binding_infos.end()) {
+      GXF_LOG_ERROR("Output tensor name '%s' not found in binding_infos", name.c_str());
+      return GXF_FAILURE;
+    }
+    const auto& info = it->second;
 
     // Determine shape
 #if NV_TENSORRT_MAJOR < 8 || (NV_TENSORRT_MAJOR == 8 && NV_TENSORRT_MINOR < 5)

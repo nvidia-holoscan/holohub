@@ -1,3 +1,18 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """
 Tracks2Endo4D: 3D point tracking and camera parameter estimation from video.
 
@@ -89,7 +104,7 @@ class Tracks2Endo4DApp(Application):
         self.data_path = os.path.join(data, "video")
         self.model_path = model
         self.viz_2d = viz_2d
-        self.frame_count = count if count is not None and count > 0 else 0
+        self.frame_count = count if (count is not None and count > 0) else 0
 
     def print_models_in_directory(self, directory):
         if not os.path.exists(directory):
@@ -109,7 +124,7 @@ class Tracks2Endo4DApp(Application):
         cuda_stream_pool = CudaStreamPool(self, name="cuda_stream_pool", max_size=6)
 
         replayer_kwargs = self.kwargs("replayer")
-        if self.frame_count is not None:
+        if self.frame_count != 0:
             replayer_kwargs["count"] = self.frame_count
 
         # Input and formatting

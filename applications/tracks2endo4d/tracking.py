@@ -53,8 +53,7 @@ class BatchMergerOp(Operator):
         frame = cp.asarray(frame_message.get("video"))  # "frame" / "video"
         if frame.ndim == 5:
             frame = frame[0]
-        tracks_name = [key for key in preds.keys() if "tracks" in key][0]
-        # visibility_name = [key for key in preds.keys() if "visible_tracks" in key][0]
+        tracks_name = [key for key in preds.keys() if "tracks" in key and "visible" not in key][0]
         visibility_name = "visible_" + tracks_name
 
         # We copy the arrays to free GPU memory

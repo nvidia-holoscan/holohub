@@ -206,8 +206,8 @@ class RGLRU(nn.Module):
     def forward(
         self, x: torch.Tensor, cache: torch.Tensor | None = None, use_linear_scan: bool = True
     ):
-        _, l, _ = x.shape
-        segment_pos = torch.arange(l, device=x.device)
+        _, length, _ = x.shape
+        segment_pos = torch.arange(length, device=x.device)
         if cache is not None:
             segment_pos += 1
         reset = segment_pos == 0

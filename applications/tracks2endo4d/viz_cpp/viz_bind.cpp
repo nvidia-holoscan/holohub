@@ -56,14 +56,12 @@ namespace holoscan::ops {
       Fragment* fragment, const py::args& args, std::shared_ptr<Allocator> device_allocator,
       const std::string& name = "viz_op",
       uint32_t width = 1280, uint32_t height = 720,
-      const std::string& window_title = "Holoviz", bool headless = false,
-      uint32_t max_trajectory_length = 500, bool verbose = false)
+      const std::string& window_title = "Holoviz", bool headless = false)
       : VizOp(ArgList{Arg{"device_allocator", device_allocator},
                       Arg{"width", width},
                       Arg{"height", height},
                       Arg{"window_title", window_title},
                       Arg{"headless", headless},
-                      Arg{"max_trajectory_length", max_trajectory_length},
                       Arg{"verbose", verbose}}) {
     add_positional_condition_and_resource_args(this, args);
       name_ = name;

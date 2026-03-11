@@ -254,7 +254,7 @@ class Visualize3DPostprocessorOp(Operator):
         self._batch_frames = frames
         self._batch_point_coords = point_coords
         self._batch_visibility = visibility
-        self._batch_camera_position = camera_position[0, : -self.window_size]
+        self._batch_camera_position = camera_position[: -self.window_size]
         self._batch_camera_position_window = camera_position_window
         self._batch_camera_rotation = camera_rotation
         self._batch_points3D = points3D[0]

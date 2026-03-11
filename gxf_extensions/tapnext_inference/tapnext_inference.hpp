@@ -44,12 +44,12 @@ namespace nvidia::holoscan::tapnext_inference {
 // Logger for TensorRT to redirect logging into gxf console spew.
 class TensorRTInferenceLogger : public nvinfer1::ILogger {
  public:
-  void log(ILogger::Severity severity, const char* msg) throw() override;
+  void log(ILogger::Severity severity, const char* msg) noexcept override;
   // Sets verbose flag for logging
   void setVerbose(bool verbose);
 
  private:
-  bool verbose_;
+  bool verbose_ = false;
 };
 
 /// @brief Loads ONNX models (Init and Fwd), takes input tensors and run inference.
