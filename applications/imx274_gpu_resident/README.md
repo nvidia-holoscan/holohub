@@ -1,18 +1,44 @@
 # IMX274 GPU-Resident Application
 
-This application demonstrates an end-to-end example of a GPU-resident Holoscan
-SDK application. It leverages Holoscan Sensor Bridge (HSB) to visualize IMX274
+This application demonstrates an end-to-end example of a [GPU-resident Holoscan
+SDK application](https://docs.nvidia.com/holoscan/sdk-user-guide/gpu_resident.html). It leverages Holoscan Sensor Bridge (HSB) to visualize IMX274
 camera stream to a connected monitor (G-SYNC enabled monitor is recommended).
 With the help of GPU-resident execution, CPU is kept out of the fast and
 latency-critical camera to display path, and the application achieves ultra-low
 jitter and predictable end-to-end latency, not possible with traditional
 CPU-driven applications.
 
+
+
+## Table of Contents
+
+- [Architecture](#architecture)
+- [Performance](#performance)
+- [Running the Application](#running-the-application)
+  - [Hardware Requirements](#hardware-requirements)
+  - [Prerequisites](#prerequisites)
+    - [Driver Version](#driver-version)
+    - [Display Manager (Mandatory)](#display-manager-mandatory)
+    - [HoloHub Commands](#holohub-commands)
+  - [Development Container](#development-container)
+  - [Build and Run](#build-and-run)
+    - [Build the Container](#build-the-container)
+    - [Run the Container](#run-the-container)
+    - [Build the Application](#build-the-application)
+    - [Run the Application](#run-the-application)
+- [Known Issues](#known-issues)
+
+## Architecture
+
+The following diagram shows the split in application components between the **CPU** (receiver fragment and cuDisp present thread) and the **GPU** (GPU-resident fragment and pipeline). The receiver fragment runs on the CPU and only performs CQ/QP acknowledgment (see `hsb_roce_receiver_nmd` / `RoceReceiverNoHostMetadata`). The GPU-resident fragment runs the full CSI→Bayer→demosaic→display pipeline on the GPU. A lightweight cuDisp present thread on the CPU triggers display flips (e.g. in G-SYNC mode).
+
+![IMX274 GPU-Resident Architecture](imx274_gpu_resident_architecture.png)
+
 **Note:** Although the entire application runs from the GPU after initial
 configuration, two components still remain on the CPU, which will be
 removed in a later release.
 
-1. The RoCE receiver operator acknowledges interrupts on the CPU. This will be removed
+1. The Holoscan Sensor Bridge RoCE (RDMA Over Converged Ethernet) receiver operator acknowledges interrupts on the CPU. This will be removed
    with a DOCA GPUNetIO-based GPU-resident operator in the future, which will enable GPU-native CQ/QP management, keeping the frame receival entirely out of the CPU control.
 
 2. The GPU-resident display operator uses a background thread on the CPU to
@@ -23,21 +49,6 @@ removed in a later release.
 In spite of the two lightweight components on the CPU, the application's primary
 control flow and the full data flow are executed on the GPU, enabling it to achieve
 deterministic latency.
-
-## Architecture
-
-The following diagram shows the split in application components between the **CPU** (receiver fragment and cuDisp present thread) and the **GPU** (GPU-resident fragment and pipeline). The receiver fragment runs on the CPU and only performs CQ/QP acknowledgment (see `hsb_roce_receiver_nmd` / `RoceReceiverNoHostMetadata`). The GPU-resident fragment runs the full CSI→Bayer→demosaic→display pipeline on the GPU. A lightweight cuDisp present thread on the CPU triggers display flips (e.g. in G-SYNC mode).
-
-![IMX274 GPU-Resident Architecture](imx274_gpu_resident_architecture.png)
-
-## Development container
-
-This application also provides a development container for the IMX274 camera with
-**Holoscan Sensor Bridge (HSB)** and HoloHub, targeting GPU-resident execution
-on aarch64 (e.g., IGX Orin). The container uses an HSDK dev container base image that already
-provides HSB (e.g. at `/opt/nvidia/hololink`). This Dockerfile adds build dependencies and the
-HoloHub CLI on top of the base image so you can build and run HSB-based
-operators and applications.
 
 ## Performance
 
@@ -53,7 +64,21 @@ The graphs below illustrate the latency comparison between the CPU-driven (vanil
 
 ![IMX274 Photon-to-Display Latency Comparison](imx274_photon_to_display_latency_comparison_ms.png)
 
-## Running the application
+## Running the Application
+
+### Hardware Requirements
+
+- NVIDIA IGX Orin w/ Ampere or later discrete GPUs (e.g. RTX A6000, RTX Ada
+  6000, etc.)
+- Holoscan SDK 4.0.0 or later
+- Holoscan Sensor Bridge (HSB) 2.5.0 or later
+- [Lattice CPNX100-ETH-SENSOR-BRIDGE board](https://www.latticesemi.com/en/Products/DevelopmentBoardsAndKits/lattice-nvidia-edge-ai)
+- IMX274 Camera
+- ConntectX SmartNIC Transceivers and adapters
+- Ethernet cables
+- G-SYNC enabled monitor (preferred, but other monitors will also work)
+
+Hardware details available in [Holoscan Sensor Bridge](https://docs.nvidia.com/holoscan/sensor-bridge/latest/index.html).
 
 ### Prerequisites
 
@@ -126,18 +151,27 @@ sudo service display-manager stop
 This application uses `./holohub` commands to build and run the application.
   Please refer to the [README.md](../../README.md) for more details on its usage.
 
-### Building and Running the Application
+### Development Container
+
+This application also provides a development container for the IMX274 camera with
+**Holoscan Sensor Bridge (HSB)** and HoloHub, targeting GPU-resident execution
+on aarch64 (e.g., IGX Orin). The container uses a Holoscan SDK development container base image that already
+provides HSB (e.g. at `/opt/nvidia/hololink`). This Dockerfile adds build dependencies and the
+HoloHub CLI on top of the base image so you can build and run HSB-based
+operators and applications.
+
+### Build and Run
 
 Ensure you are in the HoloHub repository root for all commands below.
 
 ---
 
-### 1. Build the container
+#### Build the Container
 
 From the **HoloHub repository root**:
 
 ```bash
-./holohub build-container --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v4.0.0-cuda12-dgpu imx274_gpu_resident
+./holohub build-container imx274_gpu_resident
 ```
 
 The Holoscan `v4.0.0-cuda12-dgpu` container image is built on top of a Holoscan container that **already includes HSB** (e.g. installed at `/opt/nvidia/hololink`).
@@ -145,7 +179,7 @@ The Holoscan `v4.0.0-cuda12-dgpu` container image is built on top of a Holoscan 
 **Note:** You can pull the base image before building, e.g.
 `docker pull nvcr.io/nvidia/clara-holoscan/holoscan:v4.0.0-cuda12-dgpu`
 
-#### Verify the image
+##### Verify the Image
 
 ```bash
 docker images
@@ -154,7 +188,7 @@ docker images
 
 ---
 
-### 2. Run the container
+#### Run the Container
 
 From the **HoloHub repository root**:
 
@@ -164,7 +198,7 @@ From the **HoloHub repository root**:
 
 This uses the application's configured Docker options for HSB (privileged mode, device mounts, hugepages, etc.).
 
-### 3. Build the application
+#### Build the Application
 
 After launching the container with the command above, you can build the application:
 
@@ -172,13 +206,13 @@ After launching the container with the command above, you can build the applicat
 ./holohub build imx274_gpu_resident
 ```
 
-#### List buildable components
+##### List Buildable Components
 
 ```bash
 ./holohub list
 ```
 
-#### Build a single operator
+##### Build a Single Operator
 
 Use the operator name as reported by `./holohub list` (e.g. under operators):
 
@@ -196,14 +230,14 @@ Examples for operators used with this application:
 
 Artifacts are produced under `./build/<operator_name>/` (e.g. `./build/csi_to_bayer_gpu_resident/`).
 
-#### Build options
+##### Build Options
 
 - **Debug build**: `./holohub build <operator_name> --build-type debug`
 - **Extra CMake options**: `./holohub build <operator_name> --configure-args '-DCMAKE_VERBOSE_MAKEFILE=ON'`
 
 Run `./holohub build --help` for more options.
 
-### 4. Run the application
+#### Run the Application
 
 In the container, run the application:
 
