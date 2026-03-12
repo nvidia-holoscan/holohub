@@ -57,11 +57,11 @@
 				"license_url": "https://github.com/facebookresearch/sam3/blob/main/LICENSE"
 			},
 				{
-					"name": "EndoGaussian / GSplat Training",
-					"license": "MIT",
-"url": "https://yifliu3.github.io/EndoGaussian/",
-				"description": "Gaussian splatting training with deformation network (project page; upstream repo may have moved)"
-				}
+				"name": "EndoGaussian / GSplat Training",
+				"license": "MIT",
+				"url": "https://github.com/yifliu3/EndoGaussian",
+				"description": "Gaussian splatting training with temporal deformation network for endoscopic scenes"
+			}
 			]
 		},
 		"requirements": {
@@ -84,14 +84,14 @@
 			"full": {
 				"description": "Full pipeline: Phase 1–5 (DA2+MedSAM3 → VGGT → EndoNeRF → training → live viewer)",
 				"run": {
-					"command": "python3 <holohub_app_source>/run_gsharp.py --data-dir <holohub_data_dir>/gsplat_scene_recon/frames --output-dir <holohub_app_bin>/output --da2-checkpoint <holohub_data_dir>/gsplat_scene_recon/da2/depth_anything_v2_vits.pth --sam3-checkpoint <holohub_data_dir>/gsplat_scene_recon/medsam3/checkpoint_8_new_best.pt",
+					"command": "python3 <holohub_app_source>/run_gsharp.py --data-dir <holohub_data_dir>/gsplat_scene_recon/frames --output-dir <holohub_app_bin>/output --da2-checkpoint <holohub_data_dir>/gsplat_scene_recon/da2/depth_anything_v2_vits.pth --sam3-checkpoint <holohub_data_dir>/gsplat_scene_recon/medsam3/checkpoint.pt",
 					"workdir": "holohub_app_bin"
 				}
 			},
 			"train": {
 				"description": "Full pipeline without live viewer (train only, then exit)",
 				"run": {
-					"command": "python3 <holohub_app_source>/run_gsharp.py --data-dir <holohub_data_dir>/gsplat_scene_recon/frames --output-dir <holohub_app_bin>/output --da2-checkpoint <holohub_data_dir>/gsplat_scene_recon/da2/depth_anything_v2_vits.pth --sam3-checkpoint <holohub_data_dir>/gsplat_scene_recon/medsam3/checkpoint_8_new_best.pt --skip-viewer",
+					"command": "python3 <holohub_app_source>/run_gsharp.py --data-dir <holohub_data_dir>/gsplat_scene_recon/frames --output-dir <holohub_app_bin>/output --da2-checkpoint <holohub_data_dir>/gsplat_scene_recon/da2/depth_anything_v2_vits.pth --sam3-checkpoint <holohub_data_dir>/gsplat_scene_recon/medsam3/checkpoint.pt --skip-viewer",
 					"workdir": "holohub_app_bin"
 				}
 			},
@@ -105,7 +105,7 @@
 			"verify_train": {
 				"description": "Quick verify: 20 training iters, 5 coarse, headless, no viewer",
 				"run": {
-					"command": "python3 <holohub_app_source>/run_gsharp.py --data-dir <holohub_data_dir>/gsplat_scene_recon/frames --output-dir <holohub_app_bin>/output --da2-checkpoint <holohub_data_dir>/gsplat_scene_recon/da2/depth_anything_v2_vits.pth --sam3-checkpoint <holohub_data_dir>/gsplat_scene_recon/medsam3/checkpoint_8_new_best.pt --training-iterations 20 --coarse-iterations 5 --skip-viewer --headless",
+					"command": "python3 <holohub_app_source>/run_gsharp.py --data-dir <holohub_data_dir>/gsplat_scene_recon/frames --output-dir <holohub_app_bin>/output --da2-checkpoint <holohub_data_dir>/gsplat_scene_recon/da2/depth_anything_v2_vits.pth --sam3-checkpoint <holohub_data_dir>/gsplat_scene_recon/medsam3/checkpoint.pt --training-iterations 20 --coarse-iterations 5 --skip-viewer --headless",
 					"workdir": "holohub_app_bin"
 				}
 			}

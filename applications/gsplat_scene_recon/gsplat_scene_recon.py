@@ -31,7 +31,7 @@ Usage:
         --da2-checkpoint /path/to/depth_anything_v2_vits.pth \\
         [--sam3-checkpoint /path/to/medsam3_checkpoint.pt] \\
         [--headless] \\
-        [--config phase1_config.yaml]
+        [--config utils/phase1_config.yaml]
 """
 
 import glob
@@ -192,7 +192,7 @@ def main():
     # Optional
     parser.add_argument(
         "--sam3-checkpoint",
-        default=os.path.join(_app_dir, "data", "medsam3", "checkpoint_8_new_best.pt"),
+        default=os.path.join(_app_dir, "data", "medsam3", "checkpoint.pt"),
         help="Path to MedSAM3 checkpoint (default: app data/medsam3/...)",
     )
     parser.add_argument(
@@ -217,7 +217,7 @@ def main():
     # Load config if provided
     app = SceneReconInferenceApp(args)
 
-    config_path = args.config or os.path.join(os.path.dirname(__file__), "phase1_config.yaml")
+    config_path = args.config or os.path.join(os.path.dirname(__file__), "utils", "phase1_config.yaml")
     if os.path.exists(config_path):
         app.config(config_path)
         print(f"[Phase1] Config loaded: {config_path}")

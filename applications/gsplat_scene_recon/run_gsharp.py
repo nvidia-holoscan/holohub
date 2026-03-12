@@ -118,7 +118,7 @@ def main():
     parser.add_argument(
         "--sam3-checkpoint",
         default=None,
-        help="MedSAM3 .pt checkpoint (default: <parent of data-dir>/medsam3/checkpoint_8_new_best.pt)",
+        help="MedSAM3 .pt checkpoint (default: <parent of data-dir>/medsam3/checkpoint.pt)",
     )
     parser.add_argument(
         "--train-script", default=DEFAULTS["train_script"], help="Path to train_standalone.py"
@@ -192,7 +192,7 @@ def main():
     if args.da2_checkpoint is None:
         args.da2_checkpoint = str(data_base / "da2" / "depth_anything_v2_vits.pth")
     if args.sam3_checkpoint is None:
-        args.sam3_checkpoint = str(data_base / "medsam3" / "checkpoint_8_new_best.pt")
+        args.sam3_checkpoint = str(data_base / "medsam3" / "checkpoint.pt")
 
     # ── Derived paths ────────────────────────────────────────────────
     data_dir = Path(args.data_dir).resolve()
@@ -254,7 +254,7 @@ def main():
     if any_batch_phase and not args.headless:
         monitor_cmd = [
             sys.executable,
-            str(APP_DIR / "progress_monitor.py"),
+            str(APP_DIR / "utils" / "progress_monitor.py"),
             "--progress-file",
             progress_file,
         ]
@@ -345,7 +345,11 @@ def main():
             if args.no_deformation:
                 phase4_cmd.append("--no_deformation")
 
-            ret = run_phase("Phase 4: GSplat Training", phase4_cmd, cwd=train_cwd)
+            # Avoid OMP "Can't open SHM" (permission denied) in containers
+            phase4_env = {"OMP_NUM_THREADS": "1"}
+            ret = run_phase(
+                "Phase 4: GSplat Training", phase4_cmd, cwd=train_cwd, env_extra=phase4_env
+            )
             if ret != 0:
                 print("\n[Pipeline] WARNING: Phase 4 (training) failed.")
                 return ret
@@ -381,7 +385,7 @@ def main():
     if not args.skip_viewer and best_ckpt is not None:
         phase5_cmd = [
             sys.executable,
-            str(APP_DIR / "render_viewer.py"),
+            str(APP_DIR / "utils" / "render_viewer.py"),
             "--data-dir",
             str(endonerf_dir),
             "--checkpoint",
@@ -392,7 +396,7 @@ def main():
         if args.headless:
             phase5_cmd.append("--headless")
 
-        # render_viewer.py imports scene.deformation from the training/
+        # utils/render_viewer.py imports scene.deformation from the training/
         # directory, so we put it on PYTHONPATH.
         train_dir = str(Path(args.train_script).resolve().parent)
         pp_parts = [train_dir, str(APP_DIR)]

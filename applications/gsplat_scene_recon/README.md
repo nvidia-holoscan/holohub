@@ -1,59 +1,102 @@
 # G-SHARP: Gaussian Splatting for Holographic Anatomical Reconstruction Pipeline
 
-Real-time surgical scene reconstruction using Gaussian Splatting, powered by
-the NVIDIA Holoscan SDK.
+This application demonstrates real-time 3D surgical scene reconstruction by combining **Holoscan SDK** for high-performance streaming, **3D Gaussian Splatting** for neural 3D representation, and **temporal deformation networks** for accurate modeling of dynamic tissue.
+
+![G-SHARP Rendering — Ground Truth vs Reconstructed (CMR surgical video)](docs/cmr_render.gif)
+
+The application provides a complete end-to-end pipeline — from raw surgical video frames to real-time 3D reconstruction — with no manual preprocessing. Researchers and developers can use it to train custom models on their own endoscopic data and visualize results with GPU-accelerated rendering.
+
+Features of this application include:
+
+- **Fully Automated Pipeline:** Five-phase pipeline (depth, segmentation, poses, training, rendering) with zero manual preprocessing
+- **Real-time Visualization:** Stream reconstructed scenes at **>30 FPS** using Holoscan HoloViz
+- **High-Quality Reconstruction:** Achieves **35+ dB PSNR** with **~50,000 Gaussians** on surgical video
+- **Temporal Deformation:** Per-frame tissue modeling captures dynamic deformation over time
+- **Tool Segmentation:** MedSAM3-based tool masks automatically exclude instruments from reconstruction
+- **Auto-Download:** Sample data and all model checkpoints download automatically on first build
+
+It takes input from a directory of sequential PNG frames (e.g., endoscopic video). It processes the input through DA2 depth estimation, MedSAM3 segmentation, VGGT camera pose estimation, and GSplat training. And it outputs a real-time 3D Gaussian Splatting reconstruction with temporal deformation.
+
+It is ideal for use cases such as:
+
+- Surgical scene understanding and visualization
+- Tool-free tissue reconstruction for analysis
+- Research in surgical vision and 3D reconstruction
+- Development of real-time surgical guidance systems
+
+## Quick Start
+
+### Step 1: Clone the HoloHub Repository
+
+```bash
+git clone https://github.com/nvidia-holoscan/holohub.git
+cd holohub
+```
+
+### Step 2: Read and Agree to the Terms and Conditions of the EndoNeRF Sample Dataset
+
+1. Read and agree to the [Terms and Conditions](https://docs.google.com/document/d/1P6q2hXoGpVMKeD-PpjYYdZ0Yx1rKZdJF1rXxpobbFMY/edit?usp=share_link) for the EndoNeRF dataset.
+2. The EndoNeRF sample dataset, DA2 checkpoint, and MedSAM3 checkpoint are downloaded automatically when building the application.
+3. Optionally, for manual download of the dataset, refer to the [Data](#data) section below.
+4. Optionally, if you do not agree to the terms and conditions, set the `HOLOHUB_DOWNLOAD_DATASETS` environment variable to `OFF` and manually download the dataset and place it in the correct location by following the instructions in the [Data](#data) section below.
+
+    ```bash
+    export HOLOHUB_DOWNLOAD_DATASETS=OFF
+    ```
+
+### Step 3: Run the Full Pipeline
+
+To run the complete pipeline (depth + segmentation + poses + training + live viewer):
+
+```bash
+./holohub run gsplat_scene_recon full
+```
+
+The first run builds the Docker container and downloads all data and checkpoints automatically. This may take several minutes.
+
+### Step 4: View Results
+
+After training completes, the live render viewer opens automatically, showing side-by-side ground truth and reconstructed frames at 30 FPS. Close the window to exit.
+
+To re-render from existing training output without re-training:
+
+```bash
+./holohub run gsplat_scene_recon render
+```
 
 ## Pipeline Overview
 
-G-SHARP runs five sequential phases to reconstruct a 3D scene from surgical
-video frames:
+G-SHARP runs five sequential phases to reconstruct a 3D scene from surgical video frames:
 
-| Phase | Component | Framework |
-| ----- | --------- | --------- |
-| **1** | Parallel DA2 depth + MedSAM3 segmentation | Holoscan streaming |
-| **2** | VGGT batch camera pose estimation | Standalone PyTorch |
-| **3** | EndoNeRF format assembly | Python script |
-| **4** | GSplat training with deformation network | Standalone PyTorch |
-| **5** | Live render viewer / interactive 3D viewer | Holoscan streaming |
+| Phase | Component | Framework | Description |
+| ----- | --------- | --------- | ----------- |
+| **1** | DA2 depth + MedSAM3 segmentation | Holoscan streaming | Dense monocular depth estimation and surgical tool segmentation |
+| **2** | VGGT camera pose estimation | Standalone PyTorch | Batch camera extrinsic and intrinsic estimation |
+| **3** | EndoNeRF format assembly | Python script | Assembles depth, masks, and poses into training-ready format |
+| **4** | GSplat training with deformation network | Standalone PyTorch | Two-stage Gaussian Splatting: coarse (static) then fine (deformation) |
+| **5** | Live render viewer | Holoscan streaming | Real-time side-by-side GT vs rendered visualization |
 
-## Running with HoloHub
+### Phase 1: DA2 Depth + MedSAM3 Segmentation
 
-From the **HoloHub repository root**, you can build, run, and test this application using the `holohub` CLI.
+Phase 1 runs as a Holoscan streaming application. Each frame passes through Depth Anything V2 for dense monocular depth and MedSAM3 for surgical tool segmentation, all in a single streaming pass.
 
-### Prerequisites
+![Phase 1 — Source | Depth | Mask (CMR surgical video)](docs/cmr_sam3_depth.gif)
 
-- HoloHub repo cloned; you are in the repo root (`/path/to/holohub`).
-- [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) and Docker installed.
-- For visualization (full pipeline or render mode): X11 display (`export DISPLAY`; run `xhost +local:docker` if needed).
+### Pipeline Progress Monitor
 
-### 1. Prepare data
+The pipeline reports progress through a live monitor window:
 
-Place your input frames and optional MedSAM3 checkpoint where the app expects them:
+![Pipeline Progress Monitor](docs/cmr_progress_monitor.gif)
 
-| What | Where (under HoloHub repo root) |
-| ---- | ------------------------------- |
-| **Input frames** | `data/gsplat_scene_recon/frames/` — directory of PNG frames (filenames sort in temporal order). |
-| **DA2 checkpoint** (optional) | `data/gsplat_scene_recon/da2/depth_anything_v2_vits.pth` — Depth Anything V2 Small. |
-| **MedSAM3 checkpoint** (optional) | `data/gsplat_scene_recon/medsam3/checkpoint_8_new_best.pt` — if missing, the app may use HuggingFace or fail depending on config. |
+## Run Modes
 
-Example:
-
-```bash
-mkdir -p data/gsplat_scene_recon/frames data/gsplat_scene_recon/medsam3
-cp /path/to/your/*.png data/gsplat_scene_recon/frames/
-# Optional: copy your MedSAM3 checkpoint
-cp /path/to/checkpoint_8_new_best.pt data/gsplat_scene_recon/medsam3/
-```
-
-### 2. Run the application (modes)
-
-The first run will build the container and application if needed. All commands are from the **HoloHub repo root**:
+All commands are from the **HoloHub repo root**:
 
 | Mode | Command | Description |
 | ---- | ------- | ----------- |
 | **Full pipeline** | `./holohub run gsplat_scene_recon full` | All five phases: DA2+MedSAM3 → VGGT → EndoNeRF → training → live viewer. |
-| **Train only** | `./holohub run gsplat_scene_recon train` | Phases 1–4 (depth, segmentation, poses, format, training). No viewer; exits after training. |
-| **Render only** | `./holohub run gsplat_scene_recon render` | Phase 5 only (live viewer). Use after a prior run that produced output; skips Phase 1–4. |
+| **Train only** | `./holohub run gsplat_scene_recon train` | Phases 1–4 (no viewer; exits after training). |
+| **Render only** | `./holohub run gsplat_scene_recon render` | Phase 5 only (live viewer on existing output). |
 | **Verify train** | `./holohub run gsplat_scene_recon verify_train` | Short run for CI/testing: 20 training iters, 5 coarse, no viewer, headless. |
 
 Examples:
@@ -76,276 +119,134 @@ To pass extra arguments to the app (e.g. more iterations), use `--run-args`:
 ./holohub run gsplat_scene_recon full --run-args="--training-iterations 7000 --coarse-iterations 1000"
 ```
 
-### 3. Run tests
+## Data
 
-Run all tests for this application (builds and runs CTest in the container):
+### Automatic Download (Default)
 
-```bash
-./holohub test gsplat_scene_recon
+All data and checkpoints are downloaded automatically on first build:
+
+| Asset | Source | License | Size |
+| ----- | ------ | ------- | ---- |
+| EndoNeRF "pulling" frames (50 images) | [Google Drive](https://drive.google.com/drive/folders/1vvKkdi0UiA3-7q0NykQEIE3bkbkuwUF5) | [Terms](https://docs.google.com/document/d/1P6q2hXoGpVMKeD-PpjYYdZ0Yx1rKZdJF1rXxpobbFMY/edit?usp=share_link) | ~20 MB |
+| Depth Anything V2 (Small) | [HuggingFace](https://huggingface.co/depth-anything/Depth-Anything-V2-Small) | Apache-2.0 | ~95 MB |
+| MedSAM3 checkpoint | [HuggingFace](https://huggingface.co/ChongCong/Medical-SAM3) | MIT | ~9.3 GB |
+
+The application downloads the EndoNeRF "pulling" dataset by default, providing a ready-to-run experience out of the box.
+
+### Dataset Layout
+
+```text
+<HOLOHUB_ROOT>/data/gsplat_scene_recon/
+├── frames/          ← PNG images (downloaded or your own)
+├── da2/depth_anything_v2_vits.pth
+└── medsam3/checkpoint.pt
 ```
 
-Run a **single test** by name (e.g. the import test) using CTest regex:
+### Using Your Own Data
+
+To use your own surgical video frames instead of the default EndoNeRF dataset:
+
+1. Place your PNG frames in `data/gsplat_scene_recon/frames/`. Filenames should sort alphabetically in temporal order (e.g., `frame-000000.color.png`, `frame-000001.color.png`, ...).
+2. Checkpoints (DA2 and MedSAM3) are downloaded automatically. If they already exist on disk, the download is skipped.
 
 ```bash
-./holohub test gsplat_scene_recon --ctest-options="-R gsplat_scene_recon_test_all_imports -VV"
+mkdir -p data/gsplat_scene_recon/frames
+cp /path/to/your/*.png data/gsplat_scene_recon/frames/
 ```
 
-List available tests (from repo root):
+### Manual Download
+
+To skip automatic downloads and supply your own data manually:
 
 ```bash
-./holohub run-container gsplat_scene_recon -- bash -c "cd build/gsplat_scene_recon && ctest -N"
-```
-
----
-
-## Requirements
-
-### Hardware
-
-- **NVIDIA GPU** with CUDA 12+ and Vulkan support (tested on RTX 6000 Ada)
-- **Display** configured for X11 (for Phase 1 / Phase 5 visualization)
-
-### Software
-
-- **Docker** with [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
-- **Base image**: `holohub:surgical_scene_recon` (see Holohub build instructions)
-
-## Checkpoints (place with your data)
-
-Checkpoints are **not** bundled in the image. Place them in the **same directory tree as your input frames** so one data location holds everything.
-
-**Layout:** If your frames are in `DATA_BASE/frames/`, put checkpoints in `DATA_BASE/da2/` and `DATA_BASE/medsam3/` (create these directories if needed).
-
-| File | Path (under your data base) | Source |
-| ---- | --------------------------- | ------ |
-| Depth Anything V2 (Small) | `da2/depth_anything_v2_vits.pth` | [HuggingFace](https://huggingface.co/depth-anything/Depth-Anything-V2-Small) |
-| MedSAM3 checkpoint | `medsam3/checkpoint_8_new_best.pt` | [Medical-SAM3 (Hugging Face)](https://huggingface.co/ChongCong/Medical-SAM3) or custom fine-tuned |
-
-Example (HoloHub layout: `data/gsplat_scene_recon/`):
-
-```bash
+export HOLOHUB_DOWNLOAD_DATASETS=OFF
 mkdir -p data/gsplat_scene_recon/frames data/gsplat_scene_recon/da2 data/gsplat_scene_recon/medsam3
-# Add your PNG frames to data/gsplat_scene_recon/frames/
+cp /path/to/your/*.png data/gsplat_scene_recon/frames/
 wget -O data/gsplat_scene_recon/da2/depth_anything_v2_vits.pth \
   https://huggingface.co/depth-anything/Depth-Anything-V2-Small/resolve/main/depth_anything_v2_vits.pth
-# Download MedSAM3 to data/gsplat_scene_recon/medsam3/checkpoint_8_new_best.pt (see Hugging Face link above)
+# Download MedSAM3 checkpoint (~9.3 GB) from https://huggingface.co/ChongCong/Medical-SAM3
 ```
-
-When you run with `--data-dir .../frames`, the pipeline will look for `da2/` and `medsam3/` in the parent of the frames directory by default. You can override with `--da2-checkpoint` and `--sam3-checkpoint`.
-
-**Automatic download (HoloHub):** When building or testing with the HoloHub CLI and `HOLOHUB_DOWNLOAD_DATASETS=ON`, the application CMakeLists.txt automatically downloads both checkpoints into `${HOLOHUB_DATA_DIR}/gsplat_scene_recon/da2/` and `.../medsam3/` (Depth Anything V2 is Apache-2.0; MedSAM3 from Hugging Face may require login if the repo is gated).
-
-> **Important**: MedSAM3 must be a real `.pt` file (not a placeholder). Verify:
-> `ls -lh data/gsplat_scene_recon/medsam3/checkpoint_8_new_best.pt`
 
 **Automatically managed (do not place in your data dir):** VGGT-1B is downloaded from HuggingFace on first run (cache at `~/.cache/huggingface`). VGG-16 for LPIPS is pre-cached in the Docker image at build time.
 
-## Quick Start
+## Models Used by the `gsplat_scene_recon` Application
 
-### 1. Build the Docker Image
+The `gsplat_scene_recon` application uses a five-model pipeline:
 
-```bash
-cd applications/gsplat_scene_recon
+| Model | Purpose | License |
+| ----- | ------- | ------- |
+| Depth Anything V2 (Small) | Dense monocular depth estimation | Apache-2.0 |
+| MedSAM3 | Surgical tool segmentation | MIT |
+| VGGT-1B | Camera pose estimation (extrinsics + intrinsics) | Meta License |
+| 4D Gaussian Splatting | Neural 3D scene representation | MIT / Apache-2.0 |
+| HexPlane Deformation Network | Temporal tissue deformation modeling | MIT / Apache-2.0 |
 
-docker build -t gsplat_scene_recon:latest \
-  --build-arg BASE_IMAGE=holohub:surgical_scene_recon .
-```
+### Gaussian Splatting Model
 
-The build installs all Python dependencies, pip-installs VGGT and SAM3 from
-their upstream repos, pre-caches VGG-16 weights for the LPIPS loss, and copies
-the application code into the image. Dependency layers are cached, so
-subsequent rebuilds after code-only changes complete in seconds.
+- Architecture: 3D Gaussians with learned position, scale, rotation, opacity, and color
+- Initialization: Multi-frame point cloud (~30,000–50,000 points)
+- Renderer: `gsplat` library (CUDA-accelerated differentiable rasterization)
+- Spherical Harmonics degree 3 (16 coefficients per Gaussian for view-dependent color)
 
-### 2. Prepare Input Data
+### Temporal Deformation Network
 
-The pipeline expects a directory of sequential PNG frames as input. Frame
-filenames should sort alphabetically in temporal order (e.g.,
-`frame-000000.color.png`, `frame-000001.color.png`, ...).
+- Architecture: HexPlane 4D spatiotemporal grid + MLP decoder
+- Input: 3D position + normalized time value [0, 1]
+- Output: Deformed position, scale, rotation, and opacity per Gaussian
+- Training: Two-stage (coarse: static base, fine: with deformation)
 
-### 3. Run the Full End-to-End Pipeline
+## About the Model Training Process
 
-```bash
-docker run --name gsharp --rm \
-  --runtime nvidia --gpus all --ipc=host --network host \
-  --ulimit memlock=-1 --ulimit stack=67108864 \
-  -e DISPLAY=$DISPLAY \
-  -v /tmp/.X11-unix:/tmp/.X11-unix \
-  -v /path/to/input/frames:/workspace/data/frames:ro \
-  -v /path/to/output:/workspace/output \
-  -v ~/.cache/huggingface:/root/.cache/huggingface \
-  -e PYTHONUNBUFFERED=1 \
-  gsplat_scene_recon:latest \
-  python /workspace/app/run_gsharp.py \
-    --data-dir /workspace/data/frames \
-    --output-dir /workspace/output \
-    --training-iterations 1400 \
-    --coarse-iterations 200
-```
+The application trains in two stages:
 
-Replace `/path/to/input/frames` with the directory containing your PNG frames,
-and `/path/to/output` with where you want the pipeline artifacts written.
+1. **Coarse Stage** — learns the base static Gaussian model without deformation.
+2. **Fine Stage** — adds the temporal deformation network for dynamic tissue modeling.
 
-> **Note on checkpoints**: Place DA2 and MedSAM3 in the same data tree as your frames (e.g. `data/gsplat_scene_recon/da2/` and `.../medsam3/`), or bind-mount and pass `--da2-checkpoint` and `--sam3-checkpoint` explicitly.
+The training uses:
 
-### 4. What Happens
+- **Multi-modal Data:** RGB images, depth maps, tool segmentation masks
+- **Loss Functions:** RGB loss, depth loss, TV loss, masking losses
+- **Optimization:** Adam optimizer with batch-size scaled learning rates
+- **Tool Removal:** Segmentation masks applied during training for tissue-only reconstruction
 
-The orchestrator (`run_gsharp.py`) runs all five phases sequentially:
+Training outputs are saved to `<output-dir>/phase4_training/trained_model/`:
 
-1. **Phase 1** — DA2 depth estimation + MedSAM3 segmentation (Holoscan
-   streaming app). Writes `images/`, `depth/`, `masks/` to
-   `<output>/phase1_raw/`.
-2. **Phase 2** — VGGT batch camera pose estimation. Writes camera extrinsics
-   and intrinsics to `<output>/phase2_vggt/`.
-3. **Phase 3** — EndoNeRF format conversion. Assembles everything into
-   `<output>/phase3_endonerf/`.
-4. **Phase 4** — GSplat training with deformation network. Writes checkpoints
-   to `<output>/phase4_training/`.
-5. **Phase 5** — Live render viewer. Opens a HoloViz window looping through
-   rendered frames at 30 fps. Close the window to exit.
+- `ckpts/fine_best_psnr.pt` — Best checkpoint (use for rendering)
+- `ckpts/fine_step00XXX.pt` — Regular step checkpoints
+- `renders/` — Saved render frames
 
-### 5. Headless / Automated Runs
+## Performance
 
-To run without any display (e.g., on a remote server), add `--headless` and
-optionally `--skip-viewer`:
+Tested Configuration:
 
-```bash
-docker run --name gsharp --rm \
-  --runtime nvidia --gpus all --ipc=host \
-  --ulimit memlock=-1 --ulimit stack=67108864 \
-  -v /path/to/input/frames:/workspace/data/frames:ro \
-  -v /path/to/output:/workspace/output \
-  -v ~/.cache/huggingface:/root/.cache/huggingface \
-  -e PYTHONUNBUFFERED=1 \
-  gsplat_scene_recon:latest \
-  python /workspace/app/run_gsharp.py \
-    --data-dir /workspace/data/frames \
-    --output-dir /workspace/output \
-    --headless \
-    --skip-viewer
-```
+- **GPU:** NVIDIA RTX 6000 Ada Generation
+- **Container:** Holoscan SDK 4.0.0
 
-## Using the HoloHub CLI
+### Pipeline Timing
 
-When working from a HoloHub repository checkout, you can build, run, and test the
-application with the HoloHub CLI. All commands below are run from the **HoloHub
-repository root** (the directory containing the `holohub` script and
-`applications/`).
+| Phase | Description | Time |
+| ----- | ----------- | ---- |
+| Phase 1 | DA2 + MedSAM3 streaming inference | ~24 s (63 frames) |
+| Phase 2 | VGGT batch pose estimation | ~15 s |
+| Phase 3 | EndoNeRF format conversion | ~1.5 s |
+| Phase 4 | GSplat training (1400 iter) | ~2.5 min |
+| Phase 5 | Live render viewer | Real-time |
+| **Total** | **End-to-end (63 frames)** | **~3.5 min** |
 
-### Build the container
+### Quality Metrics
 
-```bash
-cd /path/to/holohub
-./holohub build-container gsplat_scene_recon
-```
+| Metric | Value |
+| ------ | ----- |
+| PSNR | **35–38 dB** |
+| Rendering FPS | **>30 FPS** (real-time) |
+| Gaussians | ~35,000–65,000 splats |
+| Training iterations | 1400 (200 coarse + 1200 fine) |
 
-Build context is the HoloHub root; the Dockerfile uses the NGC Holoscan base
-image and installs application dependencies. Place DA2 and MedSAM3 checkpoints next to your frames (see
-[Checkpoints (place with your data)](#checkpoints-place-with-your-data)).
+### EndoNeRF "Pulling" Dataset Results
 
-### Prepare data
+The default EndoNeRF "pulling" dataset (50 frames, 640×512) provides a ready-to-run benchmark:
 
-HoloHub expects application data under the HoloHub data directory. For
-`gsplat_scene_recon`:
-
-- **Input frames**: `<holohub_data_dir>/gsplat_scene_recon/frames/` — put your
-  PNG frames here (e.g. `frame_000000.png`, `frame_000001.png`, …).
-- **MedSAM3 checkpoint**: `<holohub_data_dir>/gsplat_scene_recon/medsam3/checkpoint_8_new_best.pt`
-
-When you run with `./holohub run`, `<holohub_data_dir>` is set automatically
-(e.g. `data-gsplat_scene_recon-<tag>` under the repo). Copy or symlink your
-frames and checkpoint into that tree, or configure your data path accordingly.
-
-### Run modes
-
-| Mode | Command | Description |
-|------|---------|-------------|
-| **full** (default) | `./holohub run gsplat_scene_recon` or `./holohub run gsplat_scene_recon full` | Full pipeline: Phase 1–5 (depth + segmentation → poses → EndoNeRF → training → live viewer). |
-| **train** | `./holohub run gsplat_scene_recon train` | Same as full but skips the live viewer (train only, then exit). |
-| **render** | `./holohub run gsplat_scene_recon render` | Viewer only: skips Phase 1–3 and training; runs the live viewer on existing `<output>/phase4_training/` checkpoints. |
-| **verify_train** | `./holohub run gsplat_scene_recon verify_train` | Quick sanity check: 20 training iterations, 5 coarse, headless, no viewer. |
-
-Examples:
-
-```bash
-# Full pipeline with live viewer (default)
-./holohub run gsplat_scene_recon
-
-# Training only, no viewer
-./holohub run gsplat_scene_recon train
-
-# Only run the render/viewer on existing training output
-./holohub run gsplat_scene_recon render
-
-# List all available modes
-./holohub modes gsplat_scene_recon
-```
-
-### Run tests
-
-To run the application test suite (imports, data loading, gsplat rendering,
-minimal Holoviz) inside the container:
-
-```bash
-./holohub test gsplat_scene_recon
-```
-
-For verbose CTest output:
-
-```bash
-./holohub test gsplat_scene_recon --verbose --ctest-options "-VV --output-on-failure"
-```
-
-Tests are defined in `applications/gsplat_scene_recon/tests/` and registered in
-`CMakeLists.txt`; they run in the same container built by
-`./holohub build-container gsplat_scene_recon`.
-
-## Command Line Arguments
-
-| Argument | Description | Default |
-| -------- | ----------- | ------- |
-| `--data-dir` | Directory containing input PNG frames | **Required** |
-| `--output-dir` | Base output directory for all pipeline artifacts | **Required** |
-| `--training-iterations` | Total GSplat training iterations | `1400` |
-| `--coarse-iterations` | Coarse stage iterations (fixed camera) | `200` |
-| `--no-deformation` | Disable deformation network (static scene) | `False` |
-| `--batch-size` | VGGT batch size (frames per batch) | `30` |
-| `--depth-scale` | Depth scale factor (100 = centimeters) | `100.0` |
-| `--fps` | Render viewer playback FPS | `30` |
-| `--headless` | Run Holoscan apps without visualization | `False` |
-| `--skip-phase1` | Skip Phase 1 (reuse existing depth/masks) | `False` |
-| `--skip-phase2` | Skip Phase 2 (reuse existing VGGT poses) | `False` |
-| `--skip-phase3` | Skip Phase 3 (reuse existing EndoNeRF data) | `False` |
-| `--skip-training` | Skip Phase 4 (no training) | `False` |
-| `--skip-viewer` | Skip Phase 5 (no live viewer) | `False` |
-| `--da2-root` | DA2 model code directory | Auto (bundled) |
-| `--da2-checkpoint` | DA2 `.pth` checkpoint | Auto (bundled) |
-| `--da2-encoder` | DA2 encoder variant (`vits`, `vitb`, `vitl`) | `vits` |
-| `--sam3-checkpoint` | MedSAM3 `.pt` checkpoint | Auto (bundled) |
-| `--train-script` | Path to `train_standalone.py` | Auto (bundled) |
-| `--progress-file` | JSON file for progress monitor | Auto-generated |
-
-## Incremental Runs
-
-Use `--skip-*` flags to re-run only specific phases. For example, to re-train
-with more iterations while reusing Phase 1–3 output:
-
-```bash
-docker run --name gsharp --rm \
-  --runtime nvidia --gpus all --ipc=host --network host \
-  --ulimit memlock=-1 --ulimit stack=67108864 \
-  -e DISPLAY=$DISPLAY \
-  -v /tmp/.X11-unix:/tmp/.X11-unix \
-  -v /path/to/output:/workspace/output \
-  -v ~/.cache/huggingface:/root/.cache/huggingface \
-  -e PYTHONUNBUFFERED=1 \
-  gsplat_scene_recon:latest \
-  python /workspace/app/run_gsharp.py \
-    --data-dir /workspace/data/frames \
-    --output-dir /workspace/output \
-    --skip-phase1 --skip-phase2 --skip-phase3 \
-    --training-iterations 7000 \
-    --coarse-iterations 1000
-```
+![EndoNeRF Pulling — Ground Truth vs Reconstructed](docs/endonerf_pulling_render.gif)
 
 ## Output Structure
 
@@ -373,64 +274,190 @@ After a full run, `<output-dir>/` contains:
 └── progress.json        # Live progress (updated during run)
 ```
 
-## Third-Party Dependencies and Licenses
+## Requirements
 
-This application uses several third-party libraries. **By building and running
-this application, you acknowledge and accept the license terms of these
-libraries.**
+### Hardware
 
-### VGGT (Visual Geometry Grounded Transformer)
+- **NVIDIA GPU** with CUDA 12+ and Vulkan support (tested on RTX 6000 Ada)
+- **~30 GB free disk space** for Docker containers
+- **Display** configured for X11 (for Phase 1 / Phase 5 visualization)
+
+### Software
+
+- **Docker** with [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
+- **Holoscan SDK** 3.8.0 or later (automatically provided in containers)
+
+## Application Integration Testing
+
+We provide integration tests.
+
+To test the application, run:
+
+```bash
+./holohub test gsplat_scene_recon --verbose
+```
+
+Run a **single test** by name:
+
+```bash
+./holohub test gsplat_scene_recon --ctest-options="-R gsplat_scene_recon_test_all_imports -VV"
+```
+
+## Command Line Arguments
+
+| Argument | Description | Default |
+| -------- | ----------- | ------- |
+| `--data-dir` | Directory containing input PNG frames | **Required** |
+| `--output-dir` | Base output directory for all pipeline artifacts | **Required** |
+| `--training-iterations` | Total GSplat training iterations | `1400` |
+| `--coarse-iterations` | Coarse stage iterations (fixed camera) | `200` |
+| `--no-deformation` | Disable deformation network (static scene) | `False` |
+| `--batch-size` | VGGT batch size (frames per batch) | `30` |
+| `--depth-scale` | Depth scale factor (100 = centimeters) | `100.0` |
+| `--fps` | Render viewer playback FPS | `30` |
+| `--headless` | Run Holoscan apps without visualization | `False` |
+| `--skip-phase1` | Skip Phase 1 (reuse existing depth/masks) | `False` |
+| `--skip-phase2` | Skip Phase 2 (reuse existing VGGT poses) | `False` |
+| `--skip-phase3` | Skip Phase 3 (reuse existing EndoNeRF data) | `False` |
+| `--skip-training` | Skip Phase 4 (no training) | `False` |
+| `--skip-viewer` | Skip Phase 5 (no live viewer) | `False` |
+| `--da2-checkpoint` | DA2 `.pth` checkpoint | Auto (data dir) |
+| `--da2-encoder` | DA2 encoder variant (`vits`, `vitb`, `vitl`) | `vits` |
+| `--sam3-checkpoint` | MedSAM3 `.pt` checkpoint | Auto (data dir) |
+
+## Incremental Runs
+
+Use `--skip-*` flags to re-run only specific phases. For example, to re-train with more iterations while reusing Phase 1–3 output:
+
+```bash
+./holohub run gsplat_scene_recon full --run-args="--skip-phase1 --skip-phase2 --skip-phase3 --training-iterations 7000 --coarse-iterations 1000"
+```
+
+## Troubleshooting
+
+### Problem: "FileNotFoundError: No PNG files found"
+
+- **Cause:** Frames not in the correct location
+- **Solution:** Ensure PNG frames are in `data/gsplat_scene_recon/frames/`
+- **Verify:** `ls data/gsplat_scene_recon/frames/*.png | head`
+
+### Problem: "Unable to find image holohub-gsplat_scene_recon"
+
+- **Cause:** Container not built yet
+- **Solution:** Remove `--no-docker-build` flag (let CLI build automatically)
+- **Or:** Manually build: `./holohub build-container gsplat_scene_recon`
+
+### Problem: Holoviz window doesn't appear
+
+- **Cause:** X11 forwarding not enabled
+- **Solution:** Run `xhost +local:docker` before running
+- **Verify:** Check `echo $DISPLAY` shows a value
+
+### Problem: GPU out of memory
+
+- **Cause:** Another process using GPU memory
+- **Solution:** Check `nvidia-smi` and stop other processes
+- **Or:** Reduce training batch or frame count
+
+### Problem: MedSAM3 checkpoint download fails or is 0 bytes
+
+- **Cause:** Network issue or HuggingFace rate limiting
+- **Solution:** Manually download from [ChongCong/Medical-SAM3](https://huggingface.co/ChongCong/Medical-SAM3) and place at `data/gsplat_scene_recon/medsam3/checkpoint.pt`
+- **Verify:** `ls -lh data/gsplat_scene_recon/medsam3/checkpoint.pt` (should be ~9.3 GB)
+
+### Problem: Google Drive data download fails
+
+- **Cause:** Google Drive rate limiting for automated downloads
+- **Solution:** Download the EndoNeRF "pulling" images manually from [Google Drive](https://drive.google.com/drive/folders/1vvKkdi0UiA3-7q0NykQEIE3bkbkuwUF5) and place them in `data/gsplat_scene_recon/frames/`
+
+## Acknowledgements
+
+### Citation
+
+If you use this work, please cite the following:
+
+- G-SHARP:
+
+  ```bibtex
+  @article{nath2025g,
+    title={G-SHARP: Gaussian Surgical Hardware Accelerated Real-time Pipeline},
+    author={Nath, Vishwesh and Tejero, Javier G and Li, Ruilong and Filicori, Filippo and Azizian, Mahdi and Huver, Sean D},
+    journal={arXiv preprint arXiv:2512.02482},
+    year={2025}
+  }
+  ```
+
+- EndoNeRF:
+
+  ```bibtex
+  @inproceedings{wang2022endonerf,
+    title={EndoNeRF: Neural Rendering for Stereo 3D Reconstruction of Deformable Tissues in Robotic Surgery},
+    author={Wang, Yuehao and Yifan, Wang and Tao, Rui and others},
+    booktitle={MICCAI},
+    year={2022}
+  }
+  ```
+
+- 3D Gaussian Splatting:
+
+  ```bibtex
+  @article{kerbl20233d,
+    title={3d gaussian splatting for real-time radiance field rendering},
+    author={Kerbl, Bernhard and Kopanas, Georgios and Leimk{\"u}hler, Thomas and Drettakis, George},
+    journal={ACM Transactions on Graphics},
+    year={2023}
+  }
+  ```
+
+- `gsplat` Library:
+
+  ```bibtex
+  @software{ye2024gsplat,
+    title={gsplat},
+    author={Ye, Vickie and Turkulainen, Matias and others},
+    year={2024},
+    url={https://github.com/nerfstudio-project/gsplat}
+  }
+  ```
+
+### Third-Party Dependencies and Licenses
+
+This application uses several third-party libraries. **By building and running this application, you acknowledge and accept the license terms of these libraries.**
+
+#### VGGT (Visual Geometry Grounded Transformer)
 
 - **Source**: <https://github.com/facebookresearch/vggt>
 - **License**: [Meta License](https://github.com/facebookresearch/vggt) (see repository for license terms)
 - **Installation**: Pip-installed from source at Docker build time
 - **Model weights**: `facebook/VGGT-1B` from HuggingFace
 
-> **Important**: The VGGT code and model weights are released under a custom
-> Meta license. By using VGGT, you agree to be bound by its terms. The
-> `facebook/VGGT-1B` checkpoint is licensed for **non-commercial use** only.
-> A separate `facebook/VGGT-1B-Commercial` checkpoint is available for
-> commercial use — see the [VGGT repository](https://github.com/facebookresearch/vggt)
-> for details.
+> **Important**: The VGGT code and model weights are released under a custom Meta license. By using VGGT, you agree to be bound by its terms. The `facebook/VGGT-1B` checkpoint is licensed for **non-commercial use** only. A separate `facebook/VGGT-1B-Commercial` checkpoint is available for commercial use — see the [VGGT repository](https://github.com/facebookresearch/vggt) for details.
 
-### SAM3 (Segment Anything Model 3)
+#### SAM3 (Segment Anything Model 3)
 
 - **Source**: <https://github.com/facebookresearch/sam3>
 - **License**: [SAM License](https://github.com/facebookresearch/sam3/blob/main/LICENSE)
 - **Installation**: Pip-installed from source at Docker build time
 
-> **Important**: SAM3 is released under a custom SAM License. By using SAM3,
-> you agree to be bound by its terms. Key restrictions include:
->
-> - No military, weapons, ITAR, nuclear, espionage, or sanctions-violating use
-> - Publications using SAM3 must acknowledge the SAM Materials
-> - Redistribution must include the same license terms
->
-> A MedSAM3 checkpoint suitable for this pipeline can be downloaded from
-> [ChongCong/Medical-SAM3](https://huggingface.co/ChongCong/Medical-SAM3) on
-> Hugging Face. The base SAM3 model may require access approval at
-> <https://huggingface.co/facebook/sam3>.
+> **Important**: SAM3 is released under a custom SAM License. By using SAM3, you agree to be bound by its terms. A MedSAM3 checkpoint suitable for this pipeline can be downloaded from [ChongCong/Medical-SAM3](https://huggingface.co/ChongCong/Medical-SAM3) on Hugging Face.
 
-### Depth Anything V2
+#### Depth Anything V2
 
 - **Source**: <https://github.com/DepthAnything/Depth-Anything-V2>
 - **License**: Apache-2.0 (code and Small model)
 - **Bundled**: `models/depth_anything_v2/`
 
-> The Small model (`depth_anything_v2_vits.pth`) used by this application is
-> Apache-2.0 licensed. Base/Large/Giant models are CC-BY-NC-4.0.
+> The Small model (`depth_anything_v2_vits.pth`) used by this application is Apache-2.0 licensed. Base/Large/Giant models are CC-BY-NC-4.0.
 
-### EndoGaussian / GSplat Training
+#### EndoGaussian / GSplat Training
 
-- **Source**: Derived from [EndoGaussian](https://yifliu3.github.io/EndoGaussian/) (project page; upstream code may have moved)
+- **Source**: Derived from [EndoGaussian](https://github.com/yifliu3/EndoGaussian)
 - **License**: MIT (upstream EndoGaussian) + Apache-2.0 (NVIDIA modifications)
 - **Bundled**: `training/`
 
-> The bundled training code is a custom derivative that replaces the original
-> CUDA rasterizer with the `gsplat` library. It is not a direct copy of the
-> upstream repository.
+> The bundled training code is a custom derivative that replaces the original CUDA rasterizer with the `gsplat` library. It is not a direct copy of the upstream repository.
 
-### Additional Python Libraries
+#### Additional Python Libraries
 
 | Library | License | URL |
 | ------- | ------- | --- |
@@ -441,3 +468,11 @@ libraries.**
 | HuggingFace Hub | Apache-2.0 | <https://github.com/huggingface/huggingface_hub> |
 | einops | MIT | <https://github.com/arogozhnikov/einops> |
 | timm | Apache-2.0 | <https://github.com/huggingface/pytorch-image-models> |
+
+### License
+
+This application is licensed under Apache 2.0. See individual files for specific licensing:
+
+- Application code: Apache 2.0 (NVIDIA)
+- Training utilities: MIT License (EndoGaussian Project)
+- Spherical harmonics utils: BSD-2-Clause (PlenOctree)

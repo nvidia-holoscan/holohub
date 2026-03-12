@@ -9,7 +9,7 @@ conversion, GSplat training) by reading a shared progress JSON file and
 rendering status via HoloViz rectangles and text overlays.
 
 Usage (inside Docker with display forwarding):
-    python progress_monitor.py --progress-file /path/to/progress.json
+    python -m utils.progress_monitor --progress-file /path/to/progress.json
 
 The progress file is written by each pipeline stage using the
 ``stages.progress.update_progress()`` utility.

@@ -98,6 +98,9 @@ RUN apt-get update -qq && \
         done; \
     fi
 
+# gdown for downloading datasets from Google Drive (used by holoscan_download_data)
+RUN pip install --no-cache-dir gdown
+
 # Install VGGT and SAM3 from upstream (pinned commits)
 RUN pip install --no-cache-dir --no-deps \
     "git+https://github.com/facebookresearch/vggt.git@44b3afbd1869d8bde4894dd8ea1e293112dd5eba" \

@@ -49,6 +49,7 @@ class ImageDirectorySourceOp(Operator):
         sample = cv2.imread(self._files[0])
         h, w = sample.shape[:2]
         print(f"[ImageSource] {len(self._files)} images ({w}x{h}) in {self.directory}")
+        # Note: frames may have different resolutions; DataPrepOp normalizes to first frame's size
 
     def compute(self, op_input, op_output, context):
         if self._idx >= len(self._files):

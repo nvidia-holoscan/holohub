@@ -9,7 +9,7 @@ result directly to HoloViz — no intermediate disk I/O. Optionally shows
 ground-truth images side-by-side for comparison.
 
 Usage (inside Docker with display forwarding):
-    python render_viewer.py \
+    python -m utils.render_viewer \
         --data-dir  /path/to/endonerf_dataset \
         --checkpoint /path/to/fine_best_psnr.pt \
         [--gt-dir /path/to/endonerf/images] \

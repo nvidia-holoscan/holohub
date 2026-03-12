@@ -203,6 +203,10 @@ def run_training(
     print(f"Command: {' '.join(cmd)}\n")
     print(f"Training (~{training_iterations//100} minutes)...\n")
 
+    # Avoid OMP "Can't open SHM" (permission denied) in containers
+    train_env = os.environ.copy()
+    train_env["OMP_NUM_THREADS"] = "1"
+
     try:
         process = subprocess.Popen(
             cmd,
@@ -210,6 +214,7 @@ def run_training(
             stderr=subprocess.STDOUT,
             universal_newlines=True,
             bufsize=1,
+            env=train_env,
         )
 
         for line in process.stdout:

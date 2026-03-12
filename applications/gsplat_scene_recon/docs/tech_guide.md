@@ -59,8 +59,6 @@ Viewer FPS is configurable (default 30). Training time depends on `--training-it
 | **4** | Standalone iterative | 2000+ backward passes over the same data; iterative PyTorch optimization, not streaming |
 | **5** | Holoscan streaming | Real-time rendering at 15–30 fps is a natural streaming output |
 
-This design is documented in detail in `planning/architecture_analysis_v2.md`.
-
 ---
 
 ## Phase-by-Phase Walkthrough
@@ -79,10 +77,19 @@ When not running headless, an `OverlayComposerOp` renders a 3-panel live preview
 - `operators/depth_anything_v2_op.py` — DA2 Holoscan operator
 - `operators/medsam3_segmentation_op.py` — MedSAM3 Holoscan operator
 - `operators/data_prep_op.py` — Disk writer, synchronizes by frame index
-- `models/depth_anything_v2/` — Custom DA2 model architecture (see `DEV_NOTES.md`)
+- `models/depth_anything_v2/` — Custom DA2 model architecture
 - `models/medsam3/sam3_inference.py` — SAM3 inference wrapper
 
-**Output:** `<output>/phase1_raw/images/`, `depth/`, `masks/`
+**Output:** `<output>/phase1_raw/images/`, `depth_raw/`, `masks/`
+
+**Resolution handling:** The image source (`ImageDirectorySourceOp`) reads frames
+as-is from disk. If the input directory contains frames from different sources
+(e.g. `frame_00000.png` at 240×320 and `frame-000000.color.png` at 512×640),
+Phase 1 would historically write mixed resolutions and cause training to fail
+with shape/broadcast errors. `DataPrepOp` now normalizes every frame to the
+**first frame’s (H, W)** before writing; any later frame with different
+dimensions is resized so Phase 2, Phase 3, and training always see a single
+resolution. Phase 3 (`format_conversion.py`) also resizes as a safety net.
 
 ### Phase 2: VGGT Batch Pose Estimation
 
@@ -138,7 +145,7 @@ PSNR) is saved automatically.
 
 ### Phase 5: Live Render Viewer
 
-**Entry point:** `render_viewer.py` (Holoscan Application)
+**Entry point:** `utils/render_viewer.py` (Holoscan Application)
 
 Loads the trained checkpoint and renders each camera pose from the training set.
 Opens a HoloViz window showing GT vs Rendered side-by-side at configurable fps.
@@ -148,7 +155,7 @@ Close the window to exit.
 
 ## Progress Monitor Workflow
 
-During Phases 2–4, a background Holoscan app (`progress_monitor.py`) displays
+During Phases 2–4, a background Holoscan app (`utils/progress_monitor.py`) displays
 real-time progress bars in a HoloViz window. The system works through a shared
 JSON file:
 
@@ -166,7 +173,7 @@ Phase 4 (Training) ──→   write(train, 700/1400)──→  │ Train  50%  
 
 ### How it works
 
-1. `run_gsharp.py` launches `progress_monitor.py` as a background process before
+1. `run_gsharp.py` launches `utils/progress_monitor.py` as a background process before
    Phase 2 starts.
 
 2. Each phase writes progress updates to `progress.json` using
@@ -177,7 +184,7 @@ Phase 4 (Training) ──→   write(train, 700/1400)──→  │ Train  50%  
                    current=30, total=91, detail="Batch 1/3", status="running")
    ```
 
-3. `progress_monitor.py` polls the JSON file every 400ms and renders:
+3. `utils/progress_monitor.py` polls the JSON file every 400ms and renders:
    - Colored progress bars (blue = running, green = complete, red = error)
    - Percentage and detail text per stage
    - Title header
@@ -277,6 +284,17 @@ script:
 3. **Too few frames.** The deformation network needs enough temporal variation
    to learn meaningful dynamics. Below ~30 frames, it may overfit.
 
+### Symptom: Mixed Resolutions / Broadcast Error During Training
+
+If training fails with `ValueError: operands could not be broadcast together with
+shapes (H1,W1) (H2,W2)`, the ingestion contained images (or depth/masks) at two
+different resolutions. **Root cause:** the input frame directory had mixed
+sources (e.g. synthetic `frame_*.png` and original `frame-*.color.png`), and
+Phase 1 used to write each frame at its native size. **Fix:** Phase 1
+`DataPrepOp` now resizes every frame to the first frame’s resolution before
+writing; Phase 3 also resizes when building the EndoNeRF dataset. For best
+results, use a single resolution and avoid mixing frame sources.
+
 ### Symptom: Low PSNR (< 25 dB)
 
 **Check these in order:**
@@ -331,7 +349,7 @@ script:
    frames are symlinks pointing outside the container. Use hard links or
    copy the files instead.
 
-3. **SAM3 checkpoint missing or 0 bytes** — Place the real checkpoint in the same data tree as your frames (e.g. `data/gsplat_scene_recon/medsam3/checkpoint_8_new_best.pt`) or bind-mount and pass `--sam3-checkpoint`.
+3. **SAM3 checkpoint missing or 0 bytes** — Place the real checkpoint in the same data tree as your frames (e.g. `data/gsplat_scene_recon/medsam3/checkpoint.pt`) or bind-mount and pass `--sam3-checkpoint`.
 
 ### Symptom: Phase 2 (VGGT) Out-of-Memory
 
@@ -374,8 +392,11 @@ simply reuse the existing output.
 gsplat_scene_recon/
 ├── run_gsharp.py                  — Top-level orchestrator (entry point)
 ├── gsplat_scene_recon.py          — Phase 1: Holoscan streaming app
-├── render_viewer.py               — Phase 5: Holoscan render viewer
-├── progress_monitor.py            — HoloViz progress bar display
+│
+├── utils/                         — Helpers and Phase 5 viewer
+│   ├── progress_monitor.py        — HoloViz progress bar display
+│   ├── render_viewer.py           — Phase 5: Holoscan render viewer
+│   └── phase1_config.yaml         — Phase 1 operator config (optional)
 │
 ├── operators/                     — Holoscan operators
 │   ├── depth_anything_v2_op.py    — DA2 inference operator
@@ -403,12 +424,9 @@ gsplat_scene_recon/
 │   │   └── cameras.py             — Camera utilities
 │   └── utils/                     — Loss functions, SH utils, image utils
 │
-├── planning/                      — Architecture design documents
-│   ├── architecture_analysis.md   — v1 design (LT4D-based, historical)
-│   └── architecture_analysis_v2.md — v2 design (VGGT-based, active)
+├── docs/                          — Documentation
+│   └── tech_guide.md              — This technical guide
 │
-├── dev_updates/                   — Development log
-├── DEV_NOTES.md                   — DA2 provenance analysis
 ├── Dockerfile                     — Self-contained Docker image
 └── README.md                      — User-facing documentation
 ```

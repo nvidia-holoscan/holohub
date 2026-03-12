@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
-# Minimal test that render_viewer and gsplat rendering path can be exercised (GPU).
+# Minimal test that utils.render_viewer and gsplat rendering path can be exercised (GPU).
 """Test that dynamic/static rendering code path runs without error."""
 
 import importlib.util
@@ -13,7 +13,7 @@ app_dir = Path(__file__).resolve().parent.parent
 if str(app_dir) not in sys.path:
     sys.path.insert(0, str(app_dir))
 
-# Training dir for scene.deformation and render_viewer's _render_frame
+# Training dir for scene.deformation and utils.render_viewer's _render_frame
 training_dir = app_dir / "training"
 if str(training_dir) not in sys.path:
     sys.path.insert(0, str(training_dir))

@@ -212,10 +212,14 @@ def run_format_conversion(
             "running",
         )
 
+    target_h, target_w = int(orig_H), int(orig_W)
     for i, name in enumerate(img_names):
         dst_name = f"frame_{i:04d}.png"
 
-        shutil.copy2(str(phase1 / "images" / name), str(out / "images" / dst_name))
+        img = cv2.imread(str(phase1 / "images" / name))
+        if img.shape[:2] != (target_h, target_w):
+            img = cv2.resize(img, (target_w, target_h), interpolation=cv2.INTER_LINEAR)
+        cv2.imwrite(str(out / "images" / dst_name), img)
 
         d_uint8 = _convert_depth(
             str(depth_raw_dir / name.replace(".png", ".npy")),
@@ -225,11 +229,20 @@ def run_format_conversion(
             ds[1],
             depth_scale,
         )
+        if d_uint8.shape != (target_h, target_w):
+            d_uint8 = cv2.resize(
+                d_uint8, (target_w, target_h), interpolation=cv2.INTER_NEAREST
+            )
         cv2.imwrite(str(out / "depth" / dst_name), d_uint8)
 
         mask_src = phase1 / "masks" / name
         if mask_src.exists():
-            shutil.copy2(str(mask_src), str(out / "masks" / dst_name))
+            mask = cv2.imread(str(mask_src), cv2.IMREAD_GRAYSCALE)
+            if mask.shape != (target_h, target_w):
+                mask = cv2.resize(
+                    mask, (target_w, target_h), interpolation=cv2.INTER_NEAREST
+                )
+            cv2.imwrite(str(out / "masks" / dst_name), mask)
 
         if progress_file and (i % 10 == 0 or i == N - 1):
             update_progress(

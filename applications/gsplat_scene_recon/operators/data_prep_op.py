@@ -14,6 +14,10 @@ Output structure:
         depth_raw/ *.npy     — float32 dense depth maps from DA2
         masks/     *.png     — uint8 binary tool masks from MedSAM3
 
+Resolution: All outputs are normalized to the first frame's (H, W). If a later
+frame has different dimensions (e.g. mixed sources in the image directory),
+it is resized so Phase 2/3 and training see a single consistent resolution.
+
 Note: poses_bounds.npy is NOT written here. That requires VGGT (Phase 2)
 and format conversion (Phase 3) to complete the EndoNeRF dataset.
 """
@@ -42,6 +46,7 @@ class DataPrepOp(Operator):
     def __init__(self, fragment, *args, **kwargs):
         super().__init__(fragment, *args, **kwargs)
         self._frame_count = 0
+        self._target_hw = None  # (H, W) from first frame; all outputs normalized to this
 
     def setup(self, spec: OperatorSpec):
         spec.input("frame_in")
@@ -70,6 +75,27 @@ class DataPrepOp(Operator):
 
         if frame.ndim == 4:
             frame = frame[0]
+
+        h, w = frame.shape[:2]
+        if self._target_hw is None:
+            self._target_hw = (h, w)
+            print(f"[DataPrep] Reference resolution: {h}x{w} (all frames will match)")
+        target_h, target_w = self._target_hw
+        if (h, w) != (target_h, target_w):
+            frame = cv2.resize(
+                frame, (target_w, target_h), interpolation=cv2.INTER_LINEAR
+            )
+            depth = cv2.resize(
+                depth, (target_w, target_h), interpolation=cv2.INTER_LINEAR
+            )
+            mask = cv2.resize(
+                mask, (target_w, target_h), interpolation=cv2.INTER_NEAREST
+            )
+            if self._frame_count % 10 == 0:
+                print(
+                    f"[DataPrep] Frame {self._frame_count}: resized {h}x{w} -> "
+                    f"{target_h}x{target_w}"
+                )
 
         idx = self._frame_count
         out = Path(self.output_dir)
