@@ -43,10 +43,6 @@
 				}
 			]
 		},
-		"run": {
-			"command": "<holohub_app_bin>/cpp/imx274_gpu_resident",
-			"workdir": "holohub_bin"
-		},
 		"modes": {
 			"default": {
 				"description": "Run with IMX274 camera with Holoscan Sensor Bridge",
