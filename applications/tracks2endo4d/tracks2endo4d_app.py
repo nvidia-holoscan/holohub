@@ -90,7 +90,7 @@ def get_bytes_tracks_4d():
 
 
 class Tracks2Endo4DApp(Application):
-    def __init__(self, data=None, model=None, viz_2d=False, count=None):
+    def __init__(self, data=None, model=None, viz_2d=False, count=None, source=None):
         super().__init__()
 
         self.name = "Tracks2Endo4D"
@@ -105,36 +105,43 @@ class Tracks2Endo4DApp(Application):
         self.model_path = model
         self.viz_2d = viz_2d
         self.frame_count = count if (count is not None and count > 0) else 0
-
-    def print_models_in_directory(self, directory):
-        if not os.path.exists(directory):
-            print(f"Directory does not exist: {directory}")
-            return
-        print(f"Files in {directory}:")
-        for f in os.listdir(directory):
-            print(f)
+        self.source = source
 
     def compose(self):
-        video_dir = self.data_path
-        if not os.path.exists(video_dir):
-            raise ValueError(f"Could not find video data: {video_dir=}")
-
         host_allocator = UnboundedAllocator(self, name="host_allocator")
         video_allocator = RMMAllocator(self, name="video_replayer_allocator")
         cuda_stream_pool = CudaStreamPool(self, name="cuda_stream_pool", max_size=6)
 
-        replayer_kwargs = self.kwargs("replayer")
-        if self.frame_count != 0:
-            replayer_kwargs["count"] = self.frame_count
+        if self.source == "replayer":
+            video_dir = self.data_path
+            if not os.path.exists(video_dir):
+                raise ValueError(f"Could not find video data: {video_dir=}")
+            replayer_kwargs = self.kwargs("replayer")
+            if self.frame_count != 0:
+                replayer_kwargs["count"] = self.frame_count
 
-        # Input and formatting
-        replayer = VideoStreamReplayerOp(
-            self,
-            name="replayer",
-            directory=video_dir,
-            allocator=video_allocator,
-            **replayer_kwargs,
-        )
+            # Input and formatting
+            replayer = VideoStreamReplayerOp(
+                self,
+                name="replayer",
+                directory=video_dir,
+                allocator=video_allocator,
+                **replayer_kwargs,
+            )
+        elif self.source == "aja":
+            from holohub.aja_source import AJASourceOp
+
+            source_dtype = "rgb888"
+
+            aja = AJASourceOp(self, name="aja_source", **self.kwargs("aja"))
+            # Convert VideoBuffer from AJA to Tensor (drop alpha channel for downstream compatibility)
+            aja_format_converter = FormatConverterOp(
+                self,
+                name="aja_format_converter",
+                pool=host_allocator,
+                out_dtype=source_dtype,
+                **self.kwargs("aja_format_converter"),
+            )
 
         width_preprocessor = self.kwargs("preprocessor")["resize_width"]
         height_preprocessor = self.kwargs("preprocessor")["resize_height"]
@@ -161,7 +168,12 @@ class Tracks2Endo4DApp(Application):
             overlap_size=window_args["overlap_size"],
         )
 
-        self.add_flow(replayer, preprocessor, {("output", "source_video")})
+        if self.source == "replayer":
+            self.add_flow(replayer, preprocessor, {("output", "source_video")})
+        elif self.source == "aja":
+            self.add_flow(aja, aja_format_converter, {("output", "source_video")})
+            self.add_flow(aja_format_converter, preprocessor, {("", "source_video")})
+        
         self.add_flow(preprocessor, coordinator, {("tensor", "in")})
 
         # Helper to resolve model path
@@ -401,6 +413,12 @@ if __name__ == "__main__":
         description="Tracks2Endo4D: 3D point tracking and camera estimation from video."
     )
     parser.add_argument(
+        "--source",
+        choices=["replayer", "aja"],
+        default="replayer",
+        help="Set the source type",
+    )
+    parser.add_argument(
         "-d",
         "--data",
         default="none",
@@ -430,6 +448,8 @@ if __name__ == "__main__":
     config_file = os.path.join(os.path.dirname(__file__), "config.yaml")
 
     print(f"args: {args}")
-    app = Tracks2Endo4DApp(data=args.data, model=args.model, viz_2d=args.viz_2d, count=args.count)
+    app = Tracks2Endo4DApp(
+        data=args.data, model=args.model, viz_2d=args.viz_2d, count=args.count, source=args.source,
+    )
     app.config(config_file)
     app.run()

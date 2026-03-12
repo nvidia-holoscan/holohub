@@ -24,6 +24,16 @@ replayer:
   realtime: false
   count: 0
 
+aja: # AJASourceOp
+  width: 1920
+  height: 1080
+  rdma: true
+  enable_overlay: false
+
+aja_format_converter: # converts to rgb888 (drop alpha channel)
+  in_dtype: "rgba8888"
+  out_tensor_name: ""
+
 window:
   window_size: 20
   overlap_size: 10

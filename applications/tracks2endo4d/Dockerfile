@@ -45,6 +45,9 @@ RUN git clone --depth 1 https://github.com/deepmind/tapnet.git
 COPY applications/tracks2endo4d/onnx_conversion/tapnext_torch.py tapnet/tapnet/tapnext/tapnext_torch.py
 COPY applications/tracks2endo4d/onnx_conversion/tapnext_lru_modules.py tapnet/tapnet/tapnext/tapnext_lru_modules.py
 
+# Override evaluation_datasets.py to avoid tensorflow import error
+RUN echo "" > tapnet/tapnet/tapvid/evaluation_datasets.py
+
 RUN cd tapnet && pip install .
 
 RUN pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128

@@ -1,0 +1,31 @@
+{
+	"gxf_extension": {
+		"name": "tapnext_inference",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"gxf_version": {
+			"minimum_required_version": "2.5",
+			"tested_versions": [
+				"2.5"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": [
+			"Inference",
+			"Tracking",
+			"TapNext"
+		],
+		"ranking": 2
+	}
+}

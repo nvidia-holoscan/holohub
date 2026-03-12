@@ -69,6 +69,10 @@ void VizOp::start() {
             height_.get(),
             window_title_.get().c_str(),
             headless_.get() ? viz::InitFlags::HEADLESS : viz::InitFlags::NONE);
+  
+  if (width_.get() == 0 || height_.get() == 0) {
+    throw std::runtime_error("VizOp width and height must be greater than zero");
+  }
 
   // GPU buffers will be allocated dynamically as needed
   dev_trajectory_ = nullptr;
@@ -78,7 +82,7 @@ void VizOp::start() {
   dev_window_trajectory_capacity_ = kWindowTrajectoryMaxPoints * 3;
   CUDA_TRY(cudaMalloc(&dev_window_trajectory_, dev_window_trajectory_capacity_ * sizeof(float)));
 
-  left_side_ratio_ = 480.0f / width_.get();
+  left_side_ratio_ = 480.0f / static_cast<float>(width_.get());
 }
 
 void VizOp::stop() {
@@ -722,11 +726,20 @@ std::shared_ptr<holoscan::Tensor> VizOp::readTensorMap(const TensorMap& tensorma
 void VizOp::renderFramePoints(const std::shared_ptr<holoscan::Tensor>& frame,
                               const std::shared_ptr<holoscan::Tensor>& point_coords) {
   // Render frame. It comes with shape (H, W, 3)
+  if (frame->shape().size() != 3 || frame->shape()[2] != 3) {
+    throw std::runtime_error("frame tensor must have shape (H, W, 3)");
+  }
+  const auto image_height = static_cast<uint32_t>(frame->shape()[0]);
+  const auto image_width = static_cast<uint32_t>(frame->shape()[1]);
+
   viz::BeginImageLayer();
   viz::LayerAddView(0.0, 0.0, left_side_ratio_, 1.0);
   // ImageCudaDevice takes width, height, format, and device pointer
   viz::ImageCudaDevice(
-      256, 256, viz::ImageFormat::R8G8B8_UNORM, reinterpret_cast<CUdeviceptr>(frame->data()));
+    image_width,
+    image_height,
+    viz::ImageFormat::R8G8B8_UNORM,
+    reinterpret_cast<CUdeviceptr>(frame->data()));
   viz::EndLayer();
 
   // Render point cloud. It comes with shape (N, 2)

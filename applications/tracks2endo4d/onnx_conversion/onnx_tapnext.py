@@ -23,7 +23,7 @@ import numpy as np
 import torch
 
 # Mock problematic module to avoid tensorflow import
-sys.modules["tapnet.tapvid.evaluation_datasets"] = type("MockModule", (), {})()
+# sys.modules["tapnet.tapvid.evaluation_datasets"] = type("MockModule", (), {})()
 
 # Import TapNext modules
 from tapnet.tapnext.tapnext_torch import TAPNext

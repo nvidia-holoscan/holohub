@@ -209,9 +209,7 @@ class Visualize3DPostprocessorOp(Operator):
         camera_position = cp.asarray(
             inference_result["camera_position"]
         )  # (T, 3)  T being the whole trajectory! Not the window!
-        camera_position_window = cp.asarray(
-            inference_result["camera_position_window"]
-        )  # (T, 3)  This T is only the window.
+        camera_position_window = cp.asarray(inference_result["camera_position_window"])
         points3D = cp.asarray(inference_result["points3D"])  # (B, T, 3, N)
         camera_rotation = cp.asarray(inference_result["camera_rotation"])  # (T, 3, 3)
 
@@ -254,7 +252,7 @@ class Visualize3DPostprocessorOp(Operator):
         self._batch_frames = frames
         self._batch_point_coords = point_coords
         self._batch_visibility = visibility
-        self._batch_camera_position = camera_position[: -self.window_size]
+        self._batch_camera_position = camera_position[0, : -self.window_size]
         self._batch_camera_position_window = camera_position_window
         self._batch_camera_rotation = camera_rotation
         self._batch_points3D = points3D[0]

@@ -163,6 +163,7 @@ The application accepts the following command line arguments:
 
 | Argument      | Description                                         | Default                                           |
 | ------------- | --------------------------------------------------- | ------------------------------------------------- |
+| `--source`    | Source of video input: `replayer` or `aja`          | `replayer`                                        |
 | `-d, --data`  | Path to data directory containing videos            | Uses the `HOLOHUB_DATA_PATH` environment variable |
 | `-m, --model` | Path to model directory containing TensorRT engines | Uses the `HOLOHUB_DATA_PATH` environment variable |
 | `--viz-2d`    | Enable 2D visualization overlay                     | False                                             |
@@ -190,39 +191,15 @@ See the official instructions in the Holoscan SDK repo:
 
 Once converted, update the `replayer/basename` parameter in [config.yaml](./config.yaml) to point to your new video file (without extension).
 
-## Using a Capture Card (Live Input)
+## Using AJA Card as I/O
 
-For real-time processing from a capture card, replace the video replayer with the `V4L2VideoCaptureOp` operator.
+To use an AJA capture card for real-time input:
 
-### Capture Card Configuration
-
-Use the following settings for the capture operator:
-
-| Parameter    | Value       |
-| ------------ | ----------- |
-| Pixel Format | `RGBA8888`  |
-| Resolution   | `1920x1080` |
-
-### Example Usage
-
-```python
-from holoscan.operators import V4L2VideoCaptureOp
-
-# Replace VideoStreamReplayerOp with V4L2VideoCaptureOp
-source = V4L2VideoCaptureOp(
-    self,
-    name="capture",
-    device="/dev/video0",  # Adjust to your capture device
-    width=1920,
-    height=1080,
-    pixel_format="RGBA8888",
-)
+```sh
+./holohub run tracks2endo4d --run-args "--source aja"
 ```
 
-### Notes
-
-- You may need to add `--device /dev/video0:/dev/video0` to your Docker run command
-- See the [V4L2VideoCaptureOp documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/api/python/holoscan_python_api_operators.html#holoscan.operators.V4L2VideoCaptureOp) for additional parameters
+> **Note:** The AJA video buffer dtype is set to `rgba8888` by default. If your camera is not providing an alpha channel, you can change it to `rgb888` by modifying `in_dtype` in the `aja_format_converter` section of the [config.yaml](./config.yaml) file.
 
 ## References
 

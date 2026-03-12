@@ -135,16 +135,16 @@ def transform_predictions(predictions, R, t, scale=1):
 
     # Camera-space points: P_cam = R^T (P_world - t)
     b = int(new_rotation_params.shape[0])
-    l = int(new_rotation_params.shape[1])
+    f = int(new_rotation_params.shape[1])
     n = int(new_points3D.shape[-1])
 
-    R_bt = cp.transpose(new_rotation_params.reshape(b * l, 3, 3), (0, 2, 1))
-    Pw = new_points3D.reshape(b * l, 3, n)
-    tw = new_translation_params.reshape(b * l, 3)[:, :, None]
-    new_points3D_camera = cp.matmul(R_bt, Pw - tw).reshape(b, l, 3, n)
+    R_bt = cp.transpose(new_rotation_params.reshape(b * f, 3, 3), (0, 2, 1))
+    Pw = new_points3D.reshape(b * f, 3, n)
+    tw = new_translation_params.reshape(b * f, 3)[:, :, None]
+    new_points3D_camera = cp.matmul(R_bt, Pw - tw).reshape(b, f, 3, n)
 
-    Pw_s = new_points3D_static.reshape(b * l, 3, n)
-    new_points3D_static_camera = cp.matmul(R_bt, Pw_s - tw).reshape(b, l, 3, n)
+    Pw_s = new_points3D_static.reshape(b * f, 3, n)
+    new_points3D_static_camera = cp.matmul(R_bt, Pw_s - tw).reshape(b, f, 3, n)
 
     # Projections and depths
     new_projections = new_points3D_camera[..., :2, :] / (new_points3D_camera[..., 2:3, :] + 1e-8)

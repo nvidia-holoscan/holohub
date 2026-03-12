@@ -42,9 +42,26 @@
 				}
 			]
 		},
-		"run": {
-			"command": "python3 <holohub_app_source>/tracks2endo4d_app.py --data <holohub_data_dir>/tracks2endo4d --model <holohub_data_dir>/tracks2endo4d",
-			"workdir": "holohub_bin"
+		"default_mode": "replayer",
+		"modes": {
+			"replayer": {
+				"description": "Use a pre-recorded video as input",
+				"run": {
+					"command": "python3 <holohub_app_source>/tracks2endo4d_app.py --source replayer --data <holohub_data_dir>/tracks2endo4d --model <holohub_data_dir>/tracks2endo4d",
+					"workdir": "holohub_bin"
+				}
+			},
+			"aja": {
+				"description": "Use an AJA device for video input",
+				"build": {
+					"depends": ["aja_source"],
+					"docker_build_args": ["--target", "holohub-aja"]
+				},
+				"run": {
+					"command": "python3 <holohub_app_source>/tracks2endo4d_app.py --source aja --model <holohub_data_dir>/tracks2endo4d",
+					"workdir": "holohub_bin"
+				}
+			}
 		}
 	}
 }
