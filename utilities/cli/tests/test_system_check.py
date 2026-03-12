@@ -35,6 +35,7 @@ from utilities.cli.system_check import (
     check_docker,
     check_gpu,
     check_holoscan,
+    check_holoscan_python,
     format_results,
     format_results_json,
     run_all_checks,
@@ -239,6 +240,32 @@ class TestIndividualChecks(unittest.TestCase):
         self.assertEqual(result.status, "WARN")
 
 
+class TestCheckHoloscanPython(unittest.TestCase):
+    """Test check_holoscan_python with mocked subprocess"""
+
+    @patch("utilities.cli.system_check.subprocess.run")
+    def test_check_holoscan_python(self, mock_run):
+        # Successful import reports OK with version and path
+        mock_run.return_value = unittest.mock.Mock(
+            returncode=0,
+            stdout="4.0.0\n/opt/nvidia/holoscan/python/lib/holoscan/__init__.py\n",
+            stderr="",
+        )
+        result = check_holoscan_python()
+        self.assertEqual(result.status, "OK")
+        self.assertIn("4.0.0", result.message)
+
+        # Failed import reports WARN with the error
+        mock_run.return_value = unittest.mock.Mock(
+            returncode=1,
+            stdout="",
+            stderr="Traceback:\nModuleNotFoundError: No module named 'holoscan'\n",
+        )
+        result = check_holoscan_python()
+        self.assertEqual(result.status, "WARN")
+        self.assertIn("ModuleNotFoundError", result.message)
+
+
 class TestCheckHoloscan(unittest.TestCase):
     """Test check_holoscan with various SDK locations"""
 
@@ -282,6 +309,7 @@ class TestRunAllChecks(unittest.TestCase):
         CheckResult(status="OK", name="CUDA", message="mock cuda"),
         CheckResult(status="OK", name="Docker", message="mock docker"),
         CheckResult(status="OK", name="Holoscan", message="mock sdk"),
+        CheckResult(status="OK", name="Holoscan SDK Python", message="mock holoscan python"),
         CheckResult(status="OK", name="Disk", message="mock disk"),
         CheckResult(status="OK", name="CLI", message="mock cli"),
         CheckResult(status="OK", name="Container", message="mock container"),
@@ -296,6 +324,7 @@ class TestRunAllChecks(unittest.TestCase):
             "check_cuda",
             "check_docker",
             "check_holoscan",
+            "check_holoscan_python",
             "check_disk",
             "check_cli",
             "check_container",
@@ -314,7 +343,7 @@ class TestRunAllChecks(unittest.TestCase):
         try:
             results = run_all_checks()
             self.assertIsInstance(results, list)
-            self.assertEqual(len(results), 9)
+            self.assertEqual(len(results), 10)
             for r in results:
                 self.assertIsInstance(r, CheckResult)
         finally:
@@ -331,6 +360,7 @@ class TestRunAllChecks(unittest.TestCase):
                 "CUDA",
                 "Docker",
                 "Holoscan",
+                "Holoscan SDK Python",
                 "Disk",
                 "CLI",
                 "Container",
@@ -351,15 +381,17 @@ class TestRunAllChecks(unittest.TestCase):
         ), patch(
             "utilities.cli.system_check.check_holoscan", return_value=self._mock_results[3]
         ), patch(
-            "utilities.cli.system_check.check_disk", return_value=self._mock_results[4]
+            "utilities.cli.system_check.check_holoscan_python", return_value=self._mock_results[4]
         ), patch(
-            "utilities.cli.system_check.check_cli", return_value=self._mock_results[5]
+            "utilities.cli.system_check.check_disk", return_value=self._mock_results[5]
         ), patch(
-            "utilities.cli.system_check.check_container", return_value=self._mock_results[6]
+            "utilities.cli.system_check.check_cli", return_value=self._mock_results[6]
         ), patch(
-            "utilities.cli.system_check.check_display", return_value=self._mock_results[7]
+            "utilities.cli.system_check.check_container", return_value=self._mock_results[7]
         ), patch(
-            "utilities.cli.system_check.check_devices", return_value=self._mock_results[8]
+            "utilities.cli.system_check.check_display", return_value=self._mock_results[8]
+        ), patch(
+            "utilities.cli.system_check.check_devices", return_value=self._mock_results[9]
         ):
             results = run_all_checks()
             self.assertEqual(results[0].status, "FAIL")
