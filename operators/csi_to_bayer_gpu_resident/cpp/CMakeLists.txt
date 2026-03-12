@@ -24,12 +24,13 @@ find_package(Hololink 2.5 REQUIRED CONFIG
 add_library(csi_to_bayer_converter_base STATIC
   csi_to_bayer_converter_base.cpp
 )
-set_property(TARGET csi_to_bayer_converter_base PROPERTY POSITION_INDEPENDENT_CODE ON)
+set_target_properties(csi_to_bayer_converter_base PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 target_include_directories(csi_to_bayer_converter_base
   PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:include>
 )
 
 target_link_libraries(csi_to_bayer_converter_base
@@ -48,8 +49,9 @@ add_library(holoscan::ops::csi_to_bayer_gpu_resident ALIAS csi_to_bayer_gpu_resi
 
 target_include_directories(csi_to_bayer_gpu_resident
   PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:include>
 )
 
 target_link_libraries(csi_to_bayer_gpu_resident

@@ -31,8 +31,9 @@ set_target_properties(display_gpu_resident PROPERTIES
 
 target_include_directories(display_gpu_resident
   PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/../cudisp/include
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../cudisp/include>
+    $<INSTALL_INTERFACE:include>
 )
 
 target_link_libraries(display_gpu_resident

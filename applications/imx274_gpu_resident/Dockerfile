@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# SPDX-FileCopyrightText: Copyright (c) 2024-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,13 +22,9 @@
 # Builds a development container with Holoscan Sensor Bridge (HSB) and HoloHub
 # CLI, starting from the Holoscan SDK base image.
 #
-# ---- Build ----
+# ---- Build and Run ----
 #
-#     ./holohub build-container --base-img=<base> imx274_gpu_resident
-#
-# ---- Run ----
-#
-#     ./holohub run-container imx274_gpu_resident --no-docker-build
+#     ./holohub run-container imx274_gpu_resident
 #
 # =============================================================================
 
@@ -46,10 +42,6 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y -q \
     libdrm-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# -----------------------------------------------------------------------------
-# Holoscan Sensor Bridge: clone, build, install
-# -----------------------------------------------------------------------------
-ARG HSB_BRANCH=release-2.5.0
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y -q \
     python3-dev \
