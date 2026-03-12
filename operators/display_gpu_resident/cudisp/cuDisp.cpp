@@ -99,7 +99,8 @@ struct VulkanContext {
   uint32_t queueFamilyIndex;
 };
 
-static void releaseImportedCudaBuffer(CUdeviceptr* d_ptr, CUexternalMemory* ext_mem, int* dmabuf_fd) {
+static void releaseImportedCudaBuffer(CUdeviceptr* d_ptr, CUexternalMemory* ext_mem,
+                                      int* dmabuf_fd) {
   // CUDA requires the mapped buffer to be freed before releasing the external memory object.
   if (d_ptr && *d_ptr) {
     cuMemFree(*d_ptr);
