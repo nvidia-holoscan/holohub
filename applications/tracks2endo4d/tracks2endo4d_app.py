@@ -173,7 +173,7 @@ class Tracks2Endo4DApp(Application):
         elif self.source == "aja":
             self.add_flow(aja, aja_format_converter, {("output", "source_video")})
             self.add_flow(aja_format_converter, preprocessor, {("", "source_video")})
-        
+
         self.add_flow(preprocessor, coordinator, {("tensor", "in")})
 
         # Helper to resolve model path
@@ -449,7 +449,11 @@ if __name__ == "__main__":
 
     print(f"args: {args}")
     app = Tracks2Endo4DApp(
-        data=args.data, model=args.model, viz_2d=args.viz_2d, count=args.count, source=args.source,
+        data=args.data,
+        model=args.model,
+        viz_2d=args.viz_2d,
+        count=args.count,
+        source=args.source,
     )
     app.config(config_file)
     app.run()

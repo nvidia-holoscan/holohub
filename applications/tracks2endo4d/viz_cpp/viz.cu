@@ -69,7 +69,7 @@ void VizOp::start() {
             height_.get(),
             window_title_.get().c_str(),
             headless_.get() ? viz::InitFlags::HEADLESS : viz::InitFlags::NONE);
-  
+
   if (width_.get() == 0 || height_.get() == 0) {
     throw std::runtime_error("VizOp width and height must be greater than zero");
   }

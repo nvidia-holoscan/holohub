@@ -22,12 +22,13 @@ from typing import Optional
 import numpy as np
 import torch
 
-# Mock problematic module to avoid tensorflow import
-# sys.modules["tapnet.tapvid.evaluation_datasets"] = type("MockModule", (), {})()
-
 # Import TapNext modules
 from tapnet.tapnext.tapnext_torch import TAPNext
 from tapnet.tapnext.tapnext_torch_utils import restore_model_from_jax_checkpoint
+
+# Mock problematic module to avoid tensorflow import
+# sys.modules["tapnet.tapvid.evaluation_datasets"] = type("MockModule", (), {})()
+
 
 # Add parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
