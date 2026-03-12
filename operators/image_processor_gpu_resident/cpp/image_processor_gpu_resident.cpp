@@ -155,7 +155,7 @@ void ImageProcessorGpuResidentOp::initialize() {
 
   const size_t input_size = static_cast<size_t>(width_.get()) * height_.get() * sizeof(uint16_t);
   // allocate the internal buffer of the input size
-  // the internal buffer is used for in-place computation and hence, 
+  // the internal buffer is used for in-place computation and hence,
   // used for both input and output
   CudaCheck(cuMemAlloc(&internal_compute_buffer_, input_size));
   spec()->device_input("in", internal_compute_buffer_);
