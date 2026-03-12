@@ -23,7 +23,34 @@ from PIL import Image
 from sam3 import build_sam3_image_model
 from sam3.model.box_ops import box_xywh_to_cxcywh
 from sam3.model.sam3_image_processor import Sam3Processor
-from sam3.visualization_utils import normalize_bbox
+
+
+def normalize_bbox(bbox_xywh, img_w, img_h):
+    """Normalize bounding box coordinates to [0, 1] range.
+
+    Inlined from ``sam3.visualization_utils`` to avoid pulling in heavy
+    transitive dependencies (pandas, pycocotools, scikit-image) that the
+    upstream module imports at the top level.
+    """
+    if isinstance(bbox_xywh, list):
+        normalized_bbox = bbox_xywh.copy()
+        normalized_bbox[0] /= img_w
+        normalized_bbox[1] /= img_h
+        normalized_bbox[2] /= img_w
+        normalized_bbox[3] /= img_h
+    else:
+        assert isinstance(bbox_xywh, torch.Tensor), (
+            "Only torch tensors are supported for batching."
+        )
+        normalized_bbox = bbox_xywh.clone()
+        assert normalized_bbox.size(-1) == 4, (
+            "bbox_xywh tensor must have last dimension of size 4."
+        )
+        normalized_bbox[..., 0] /= img_w
+        normalized_bbox[..., 1] /= img_h
+        normalized_bbox[..., 2] /= img_w
+        normalized_bbox[..., 3] /= img_h
+    return normalized_bbox
 
 _SAM3_PACKAGE_ROOT = Path(_sam3_pkg.__file__).resolve().parent
 

@@ -82,21 +82,16 @@ FROM holohub-cli AS application-dependencies
 COPY applications/gsplat_scene_recon/requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
-# Fix decord↔libxcb conflict for HoloViz/Vulkan
-RUN apt-get update -qq && \
-    apt-get install -y --no-install-recommends \
-        libxcb1 libxcb-xfixes0 libxcb-shape0 libxcb-shm0 libxcb-render0 \
-        libxcb-xinerama0 libxcb-randr0 && \
-    rm -rf /var/lib/apt/lists/* && \
-    DECORD_LIBS=$(python3 -c "import pathlib; print(next(pathlib.Path('/usr/local/lib').rglob('decord.libs'), ''))" 2>/dev/null) && \
-    if [ -n "$DECORD_LIBS" ] && [ -d "$DECORD_LIBS" ]; then \
-        for f in "$DECORD_LIBS"/libxcb*.so*; do \
-            [ -e "$f" ] || continue; \
-            base=$(basename "$f" | sed 's/-[a-f0-9]*\./\./') && \
-            sys_lib=$(find /usr/lib/$(dpkg-architecture -q DEB_HOST_MULTIARCH 2>/dev/null || echo x86_64-linux-gnu) -name "${base%%.*}*" -type f 2>/dev/null | head -1) && \
-            if [ -n "$sys_lib" ]; then ln -sf "$sys_lib" "$f"; fi; \
-        done; \
-    fi
+# SAM3 imports decord at module level (sam3/train/data/sam3_image_dataset.py) but
+# we only use SAM3 for image inference, never video decoding.  Install a tiny stub
+# so the import succeeds on all architectures (decord has no ARM wheels).
+RUN mkdir -p /usr/local/lib/python3.12/dist-packages/decord && \
+    printf '%s\n' \
+      '"""Minimal decord stub - satisfies SAM3 import without native libs."""' \
+      'def cpu(n=0): return n' \
+      'class VideoReader:' \
+      '    def __init__(self, *a, **kw): raise NotImplementedError("decord stub: video decoding not available")' \
+      > /usr/local/lib/python3.12/dist-packages/decord/__init__.py
 
 # gdown for downloading datasets from Google Drive (used by holoscan_download_data)
 RUN pip install --no-cache-dir gdown
