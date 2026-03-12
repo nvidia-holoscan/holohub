@@ -97,7 +97,6 @@ class OverlapWindowCoordinatorOp(Operator):
         else:
             s_tensor = cp.array([step], dtype=cp.int32)
         out_message.add(hs.as_tensor(s_tensor), "step")
-        out_message.add(hs.as_tensor(s_tensor), "step.1")
 
         op_output.emit(out_message, port_name)
 
@@ -193,7 +192,6 @@ class BatchSplitterVideoOp(Operator):
         # Emit as 'video' to match TapNextInferenceOp expectation
         out_message.add(hs.as_tensor(m[0][None]), "video")
         out_message.add(hs.as_tensor(m[1]), "step")
-        out_message.add(hs.as_tensor(m[1]), "step.1")  # For state initialization if needed
         op_output.emit(out_message, "out")
         self.emitted_frames += 1
 

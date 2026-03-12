@@ -26,6 +26,7 @@
 			"Tracking",
 			"TapNext"
 		],
-		"ranking": 2
+		"ranking": 2,
+        "requirements": {}
 	}
 }

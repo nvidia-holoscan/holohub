@@ -421,7 +421,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-d",
         "--data",
-        default="none",
+        default=None,
         help="Set the data path",
     )
     parser.add_argument(
