@@ -136,7 +136,9 @@ class BatchMergerSchedulingOp(Operator):
         self._buffer_tracks.append(tracks)
         self._buffer_visibility.append(visibility)
 
-        if not (len(self._buffer_frames) == len(self._buffer_tracks) == len(self._buffer_visibility)):
+        if not (
+            len(self._buffer_frames) == len(self._buffer_tracks) == len(self._buffer_visibility)
+        ):
             raise RuntimeError(
                 f"Buffer length mismatch: frames={len(self._buffer_frames)}, "
                 f"tracks={len(self._buffer_tracks)}, vis={len(self._buffer_visibility)}"
