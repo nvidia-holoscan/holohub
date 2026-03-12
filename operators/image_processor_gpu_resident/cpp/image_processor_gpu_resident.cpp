@@ -171,9 +171,10 @@ void ImageProcessorGpuResidentOp::stop() {
   cuda_function_launcher_.reset();
   histogram_memory_.reset();
   white_balance_gains_memory_.reset();
-  // free the internal compute buffer
-  CudaCheck(cuMemFree(internal_compute_buffer_));
-  internal_compute_buffer_ = 0;
+  if (internal_compute_buffer_ != 0) {
+    CudaCheck(cuMemFree(internal_compute_buffer_));
+    internal_compute_buffer_ = 0;
+  }
   if (cuda_context_) {
     CudaCheck(cuDevicePrimaryCtxRelease(cuda_device_));
     cuda_context_ = nullptr;

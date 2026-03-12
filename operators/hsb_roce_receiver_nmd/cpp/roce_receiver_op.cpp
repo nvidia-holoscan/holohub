@@ -170,7 +170,9 @@ void RoceReceiverOp::run() {
 void RoceReceiverOp::stop_receiver() {
   hololink_channel_->unconfigure();
   data_socket_.reset();
-  receiver_->close();
+  if (receiver_) {
+    receiver_->close();
+  }
   if (receiver_thread_ && receiver_thread_->joinable()) { receiver_thread_->join(); }
   receiver_thread_.reset();
   frame_memory_.reset();

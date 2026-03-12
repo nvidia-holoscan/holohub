@@ -490,7 +490,8 @@ int main(int argc, char** argv) {
             return EXIT_SUCCESS;
 
           default:
-            throw std::runtime_error("Unhandled option ");
+            throw std::runtime_error(
+                fmt::format("Unhandled option \"{}\"", static_cast<char>(c)));
         }
       }
     }
