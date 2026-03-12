@@ -30,8 +30,8 @@ def main():
 
     # Import application modules
     import gsplat_scene_recon  # noqa: F401
-    from utils import progress_monitor  # noqa: F401
     import run_gsharp  # noqa: F401
+    from utils import progress_monitor  # noqa: F401
 
     print("SUCCESS: imports OK")
     return 0

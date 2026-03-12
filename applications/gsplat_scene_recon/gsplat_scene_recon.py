@@ -217,7 +217,9 @@ def main():
     # Load config if provided
     app = SceneReconInferenceApp(args)
 
-    config_path = args.config or os.path.join(os.path.dirname(__file__), "utils", "phase1_config.yaml")
+    config_path = args.config or os.path.join(
+        os.path.dirname(__file__), "utils", "phase1_config.yaml"
+    )
     if os.path.exists(config_path):
         app.config(config_path)
         print(f"[Phase1] Config loaded: {config_path}")

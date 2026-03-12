@@ -29,7 +29,6 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import shutil
 from pathlib import Path
 
 import cv2
@@ -230,18 +229,14 @@ def run_format_conversion(
             depth_scale,
         )
         if d_uint8.shape != (target_h, target_w):
-            d_uint8 = cv2.resize(
-                d_uint8, (target_w, target_h), interpolation=cv2.INTER_NEAREST
-            )
+            d_uint8 = cv2.resize(d_uint8, (target_w, target_h), interpolation=cv2.INTER_NEAREST)
         cv2.imwrite(str(out / "depth" / dst_name), d_uint8)
 
         mask_src = phase1 / "masks" / name
         if mask_src.exists():
             mask = cv2.imread(str(mask_src), cv2.IMREAD_GRAYSCALE)
             if mask.shape != (target_h, target_w):
-                mask = cv2.resize(
-                    mask, (target_w, target_h), interpolation=cv2.INTER_NEAREST
-                )
+                mask = cv2.resize(mask, (target_w, target_h), interpolation=cv2.INTER_NEAREST)
             cv2.imwrite(str(out / "masks" / dst_name), mask)
 
         if progress_file and (i % 10 == 0 or i == N - 1):

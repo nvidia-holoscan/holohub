@@ -82,15 +82,9 @@ class DataPrepOp(Operator):
             print(f"[DataPrep] Reference resolution: {h}x{w} (all frames will match)")
         target_h, target_w = self._target_hw
         if (h, w) != (target_h, target_w):
-            frame = cv2.resize(
-                frame, (target_w, target_h), interpolation=cv2.INTER_LINEAR
-            )
-            depth = cv2.resize(
-                depth, (target_w, target_h), interpolation=cv2.INTER_LINEAR
-            )
-            mask = cv2.resize(
-                mask, (target_w, target_h), interpolation=cv2.INTER_NEAREST
-            )
+            frame = cv2.resize(frame, (target_w, target_h), interpolation=cv2.INTER_LINEAR)
+            depth = cv2.resize(depth, (target_w, target_h), interpolation=cv2.INTER_LINEAR)
+            mask = cv2.resize(mask, (target_w, target_h), interpolation=cv2.INTER_NEAREST)
             if self._frame_count % 10 == 0:
                 print(
                     f"[DataPrep] Frame {self._frame_count}: resized {h}x{w} -> "
