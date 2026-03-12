@@ -1,12 +1,8 @@
-# HSB RoCE Receiver Operator (nmd)
-
-**nmd** = No Host Metadata.
+# HSB RoCE Receiver Operator with No Host Metadata
 
 This operator receives video frames over RoCE (RDMA over Converged Ethernet)
 directly to GPU memory for high-performance, low-latency video ingestion.
-It has an option to skip metadata processing on the host, so that metadata
-is never copied from the device to the host CPU. This is useful Holoscan SDK
-GPU-resident applications.
+It has an option to skip metadata processing on the host, so that metadata is never copied from the device to the host CPU. This is useful for Holoscan SDK GPU-resident applications.
 
 ## Overview
 
@@ -19,8 +15,8 @@ The `RoceReceiverOp` is a Holoscan operator that:
 
 ## Requirements
 
-- Holoscan SDK 3.5.0 or later
-- Hololink library installed and available
+- Holoscan SDK 4.0.0 or later
+- Holoscan Sensor Bridge ("Hololink") library installed and available
 - CUDA-capable GPU with GPUDirect RDMA support
 - libibverbs (InfiniBand Verbs library)
 - RoCE-capable NIC (e.g., ConnectX)

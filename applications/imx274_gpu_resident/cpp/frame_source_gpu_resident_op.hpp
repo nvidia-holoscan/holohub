@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef HOLOHUB_IMX274_GPU_RESIDENT_FRAME_SOURCE_OP_GR
-#define HOLOHUB_IMX274_GPU_RESIDENT_FRAME_SOURCE_OP_GR
+#ifndef HOLOHUB_IMX274_GPU_RESIDENT_FRAME_SOURCE_GPU_RESIDENT_OP
+#define HOLOHUB_IMX274_GPU_RESIDENT_FRAME_SOURCE_GPU_RESIDENT_OP
 
 #include <memory>
 #include <stdexcept>
@@ -29,9 +29,10 @@
 
 namespace imx274_gpu_resident {
 
-class FrameSourceOpGR : public holoscan::GPUResidentOperator {
+class FrameSourceGPUResidentOp : public holoscan::GPUResidentOperator {
  public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS_SUPER(FrameSourceOpGR, holoscan::GPUResidentOperator);
+  HOLOSCAN_OPERATOR_FORWARD_ARGS_SUPER(FrameSourceGPUResidentOp,
+                                       holoscan::GPUResidentOperator);
 
   void setup(holoscan::OperatorSpec& spec) override {
     spec.param(output_size_, "output_size", "OutputSize", "Output size in bytes", 0UL);
@@ -39,32 +40,33 @@ class FrameSourceOpGR : public holoscan::GPUResidentOperator {
   }
 
   void initialize() override {
-    HOLOSCAN_LOG_INFO("FrameSourceOpGR::initialize() called");
+    HOLOSCAN_LOG_INFO("FrameSourceGPUResidentOp::initialize() called");
     holoscan::GPUResidentOperator::initialize();
     if (output_size_.get() == 0) {
-      throw std::runtime_error("FrameSourceOpGR requires output_size.");
+      throw std::runtime_error("FrameSourceGPUResidentOp requires output_size.");
     }
     spec()->device_output("out", output_size_.get());
-    HOLOSCAN_LOG_INFO("FrameSourceOpGR::initialize() completed, output_size={}",
+    HOLOSCAN_LOG_INFO("FrameSourceGPUResidentOp::initialize() completed, output_size={}",
                       output_size_.get());
   }
 
   void compute(holoscan::InputContext&, holoscan::OutputContext&,
                holoscan::ExecutionContext&) override {
     if (!shared_state_ || !shared_state_->chosen_frame_memory) {
-      throw std::runtime_error("FrameSourceOpGR: shared_state or chosen_frame_memory not set");
+      throw std::runtime_error(
+          "FrameSourceGPUResidentOp: shared_state or chosen_frame_memory not set");
     }
 
     unsigned char** chosen_frame_memory = shared_state_->chosen_frame_memory;
 
     auto* output_ptr = device_memory("out");
     if (!output_ptr) {
-      throw std::runtime_error("FrameSourceOpGR: output device memory is null");
+      throw std::runtime_error("FrameSourceGPUResidentOp: output device memory is null");
     }
 
     auto stream_ptr = cuda_stream();
     if (!stream_ptr) {
-      throw std::runtime_error("FrameSourceOpGR: CUDA stream is not available");
+      throw std::runtime_error("FrameSourceGPUResidentOp: CUDA stream is not available");
     }
     cudaStream_t stream = reinterpret_cast<cudaStream_t>(*stream_ptr);
 
@@ -92,4 +94,4 @@ class FrameSourceOpGR : public holoscan::GPUResidentOperator {
 
 }  // namespace imx274_gpu_resident
 
-#endif /* HOLOHUB_IMX274_GPU_RESIDENT_FRAME_SOURCE_OP_GR */
+#endif /* HOLOHUB_IMX274_GPU_RESIDENT_FRAME_SOURCE_GPU_RESIDENT_OP */

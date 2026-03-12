@@ -1,7 +1,7 @@
 {
 	"operator": {
-		"name": "RoceReceiverOp",
-		"description": "Operator for receiving video frames over RoCE (RDMA over Converged Ethernet) directly to GPU memory.",
+		"name": "RoceReceiverOpNmd",
+		"description": "Operator for receiving video frames over RoCE (RDMA over Converged Ethernet) directly to GPU memory. In addition to the Holoscan Sensor Bridge (v2.5) implementation, this operator provides an option to skip copying metadata from the device memory to the host memory. This is useful for GPU-resident processing pipelines.",
 		"authors": [
 			{
 				"name": "Holoscan Team",

@@ -15,8 +15,8 @@ All operations are performed entirely on GPU memory for low-latency processing.
 
 ## Requirements
 
-- Holoscan SDK 3.5.0 or later
-- Hololink library installed and available
+- Holoscan SDK 4.0.0 or later
+- Holoscan Sensor Bridge ("Hololink") library installed and available
 - CUDA-capable GPU
 
 ## Usage

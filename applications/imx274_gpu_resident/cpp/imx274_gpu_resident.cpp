@@ -64,7 +64,7 @@
 
 // Application-local operators
 #include "data_ready_input_op.hpp"
-#include "frame_source_op_gr.hpp"
+#include "frame_source_gpu_resident_op.hpp"
 #include "noop_sink_op.hpp"
 #include "shared_frame_state.hpp"
 
@@ -100,8 +100,7 @@ class ReceiverFragment : public holoscan::Fragment {
   }
 
   void compose() override {
-    receiver_tick_condition_ =
-        make_condition<holoscan::BooleanCondition>("receiver_tick", true);
+    receiver_tick_condition_ = make_condition<holoscan::BooleanCondition>("receiver_tick", true);
     auto receiver = make_operator<hololink::operators::RoceReceiverOp>(
         "receiver",
         receiver_tick_condition_,
@@ -146,8 +145,8 @@ class Imx274GpuResidentFragment : public holoscan::Fragment {
                  hololink::csi::PixelFormat pixel_format, hololink::csi::BayerFormat bayer_format,
                  std::shared_ptr<hololink::sensors::NativeImx274Sensor> camera,
                  std::shared_ptr<SharedFrameState> shared_state, bool gsync,
-                 bool front_buffer_rendering, int32_t refresh_rate_hz,
-                 int32_t display_width, int32_t display_height) {
+                 bool front_buffer_rendering, int32_t refresh_rate_hz, int32_t display_width,
+                 int32_t display_height) {
     frame_size_ = frame_size;
     width_ = width;
     height_ = height;
@@ -163,8 +162,8 @@ class Imx274GpuResidentFragment : public holoscan::Fragment {
   }
 
   void compose() override {
-    auto source_op =
-        make_operator<FrameSourceOpGR>("source_op", holoscan::Arg("output_size", frame_size_));
+    auto source_op = make_operator<FrameSourceGPUResidentOp>(
+        "source_op", holoscan::Arg("output_size", frame_size_));
     source_op->set_shared_state(shared_state_);
 
     // CSI-to-Bayer GPU-resident operator (holohub)
@@ -344,14 +343,9 @@ class Imx274GrApplication : public holoscan::Application {
   AppConfig config_;
 };
 
-}  // anonymous namespace
-
-// ============================================================================
-// main
-// ============================================================================
-
-int main(int argc, char** argv) {
-  auto camera_mode = hololink::sensors::imx274_mode::IMX274_MODE_1920X1080_60FPS;
+struct CommandLineOptions {
+  hololink::sensors::imx274_mode::Mode camera_mode =
+      hololink::sensors::imx274_mode::IMX274_MODE_1920X1080_60FPS;
   std::string configuration;
   std::string hololink_ip = "192.168.0.2";
   holoscan::LogLevel log_level = holoscan::LogLevel::INFO;
@@ -363,15 +357,54 @@ int main(int argc, char** argv) {
   int32_t refresh_rate_hz = 60;
   int32_t display_width = 2560;
   int32_t display_height = 1440;
-  enum class DisplayModeOverride { None, Gsync, Fbr };
+  std::string ibv_name;
+  bool show_help = false;
+};
+
+enum class DisplayModeOverride { None, Gsync, Fbr };
+
+holoscan::LogLevel parse_log_level(const std::string& argument) {
+  if ((argument == "trace") || (argument == "TRACE")) {
+    return holoscan::LogLevel::TRACE;
+  } else if ((argument == "debug") || (argument == "DEBUG")) {
+    return holoscan::LogLevel::DEBUG;
+  } else if ((argument == "info") || (argument == "INFO")) {
+    return holoscan::LogLevel::INFO;
+  } else if ((argument == "warn") || (argument == "WARN")) {
+    return holoscan::LogLevel::WARN;
+  } else if ((argument == "error") || (argument == "ERROR")) {
+    return holoscan::LogLevel::ERROR;
+  } else if ((argument == "critical") || (argument == "CRITICAL")) {
+    return holoscan::LogLevel::CRITICAL;
+  } else if ((argument == "off") || (argument == "OFF")) {
+    return holoscan::LogLevel::OFF;
+  }
+
+  throw std::runtime_error(fmt::format("Unhandled log level \"{}\"", argument));
+}
+
+void print_usage(const char* program_name) {
+  std::cout << "Usage: " << program_name << " [options]" << std::endl
+            << "Options:" << std::endl
+            << "  -h, --help     display this information" << std::endl
+            << "  --hololink     IP address of Hololink board (default `192.168.0.2`)" << std::endl
+            << "  --camera-mode  Camera mode (default `"
+            << int(hololink::sensors::imx274_mode::IMX274_MODE_1920X1080_60FPS) << "`)" << std::endl
+            << "  --gsync        Enable VRR (disabled by default)" << std::endl
+            << "  --fbr          Enable front-buffer rendering (enabled by default)" << std::endl
+            << "  -r, --refresh  Display refresh rate in Hz (default `60`)" << std::endl
+            << "  -l, --resolution   Display resolution as WxH (default `2560x1440`)" << std::endl
+            << std::endl;
+}
+
+CommandLineOptions parse_command_line(int argc, char** argv) {
+  CommandLineOptions options;
   DisplayModeOverride display_mode_override = DisplayModeOverride::None;
 
-  std::string ibv_name("roceP5p3s0f0");
   try {
-    ibv_name = hololink::infiniband_devices()[0];
+    options.ibv_name = hololink::infiniband_devices()[0];
   } catch (const std::exception& e) {
-    std::cerr << "Error getting IBV name: " << e.what() << std::endl;
-    return EXIT_FAILURE;
+    throw std::runtime_error(fmt::format("Error getting IBV name: {}", e.what()));
   }
 
   const struct option long_options[] = {{"help", no_argument, nullptr, 'h'},
@@ -388,117 +421,104 @@ int main(int argc, char** argv) {
                                         {"resolution", required_argument, nullptr, 'l'},
                                         {"log-level", required_argument, nullptr, 0},
                                         {0, 0, nullptr, 0}};
-  try {
-    while (true) {
-      int option_index = 0;
-      const int c = getopt_long(argc, argv, "hl:r:", long_options, &option_index);
 
-      if (c == -1) {
-        break;
-      }
+  optind = 1;
+  while (true) {
+    int option_index = 0;
+    const int c = getopt_long(argc, argv, "hl:r:", long_options, &option_index);
 
-      const std::string argument(optarg ? optarg : "");
-      if (c == 0) {
-        const struct option* cur_option = &long_options[option_index];
-        if (cur_option->name == std::string("camera-mode")) {
-          camera_mode = static_cast<hololink::sensors::imx274_mode::Mode>(std::stoi(argument));
-        } else if (cur_option->name == std::string("configuration")) {
-          configuration = argument;
-        } else if (cur_option->name == std::string("hololink")) {
-          hololink_ip = argument;
-        } else if (cur_option->name == std::string("log-level")) {
-          if ((argument == "trace") || (argument == "TRACE")) {
-            log_level = holoscan::LogLevel::TRACE;
-          } else if ((argument == "debug") || (argument == "DEBUG")) {
-            log_level = holoscan::LogLevel::DEBUG;
-          } else if ((argument == "info") || (argument == "INFO")) {
-            log_level = holoscan::LogLevel::INFO;
-          } else if ((argument == "warn") || (argument == "WARN")) {
-            log_level = holoscan::LogLevel::WARN;
-          } else if ((argument == "error") || (argument == "ERROR")) {
-            log_level = holoscan::LogLevel::ERROR;
-          } else if ((argument == "critical") || (argument == "CRITICAL")) {
-            log_level = holoscan::LogLevel::CRITICAL;
-          } else if ((argument == "off") || (argument == "OFF")) {
-            log_level = holoscan::LogLevel::OFF;
-          } else {
-            throw std::runtime_error(fmt::format("Unhandled log level \"{}\"", argument));
-          }
-        } else if (cur_option->name == std::string("ibv-name")) {
-          ibv_name = argument;
-        } else if (cur_option->name == std::string("ibv-port")) {
-          ibv_port = std::stoul(argument);
-        } else if (cur_option->name == std::string("expander-configuration")) {
-          expander_configuration = std::stoul(argument);
-        } else if (cur_option->name == std::string("pattern")) {
-          pattern = std::stoi(argument);
-          pattern_set = true;
-        } else if (cur_option->name == std::string("gsync")) {
-          if (display_mode_override == DisplayModeOverride::Fbr) {
-            throw std::runtime_error("Options --gsync and --fbr are mutually exclusive.");
-          }
-          display_mode_override = DisplayModeOverride::Gsync;
-          gsync = true;
-        } else if (cur_option->name == std::string("fbr")) {
-          if (display_mode_override == DisplayModeOverride::Gsync) {
-            throw std::runtime_error("Options --gsync and --fbr are mutually exclusive.");
-          }
-          display_mode_override = DisplayModeOverride::Fbr;
-          gsync = false;
-        } else {
-          throw std::runtime_error(fmt::format("Unhandled option \"{}\"", cur_option->name));
-        }
-      } else {
-        switch (c) {
-          case 'l': {
-            const std::string res_arg(optarg ? optarg : "");
-            auto x_pos = res_arg.find('x');
-            if (x_pos == std::string::npos) {
-              throw std::runtime_error(
-                  fmt::format("Invalid resolution format \"{}\", expected WxH (e.g. 1920x1080)",
-                              res_arg));
-            }
-            display_width = std::stoi(res_arg.substr(0, x_pos));
-            display_height = std::stoi(res_arg.substr(x_pos + 1));
-            if (display_width <= 0 || display_height <= 0) {
-              throw std::runtime_error("Resolution width and height must be positive.");
-            }
-            break;
-          }
-          case 'r':
-            refresh_rate_hz = std::stoi(optarg ? optarg : "");
-            if (refresh_rate_hz <= 0) {
-              throw std::runtime_error("-r/--refresh must be greater than 0.");
-            }
-            break;
-          case 'h':
-            std::cout << "Usage: " << argv[0] << " [options]" << std::endl
-                      << "Options:" << std::endl
-                      << "  -h, --help     display this information" << std::endl
-                      << "  --hololink     IP address of Hololink board (default `192.168.0.2`)"
-                      << std::endl
-                      << "  --camera-mode  Camera mode (default `"
-                      << int(hololink::sensors::imx274_mode::IMX274_MODE_1920X1080_60FPS) << "`)"
-                      << std::endl
-                      << "  --gsync        Enable VRR (disabled by default)" << std::endl
-                      << "  --fbr          Enable front-buffer rendering (enabled by default)"
-                      << std::endl
-                      << "  -r, --refresh  Display refresh rate in Hz (default `60`)" << std::endl
-                      << "  -l, --resolution   Display resolution as WxH (default `2560x1440`)"
-                      << std::endl
-                      << std::endl;
-            return EXIT_SUCCESS;
-
-          default:
-            throw std::runtime_error(
-                fmt::format("Unhandled option \"{}\"", static_cast<char>(c)));
-        }
-      }
+    if (c == -1) {
+      break;
     }
 
-    const bool front_buffer_rendering = !gsync;
+    const std::string argument(optarg ? optarg : "");
+    if (c == 0) {
+      const struct option* cur_option = &long_options[option_index];
+      if (cur_option->name == std::string("camera-mode")) {
+        options.camera_mode =
+            static_cast<hololink::sensors::imx274_mode::Mode>(std::stoi(argument));
+      } else if (cur_option->name == std::string("configuration")) {
+        options.configuration = argument;
+      } else if (cur_option->name == std::string("hololink")) {
+        options.hololink_ip = argument;
+      } else if (cur_option->name == std::string("log-level")) {
+        options.log_level = parse_log_level(argument);
+      } else if (cur_option->name == std::string("ibv-name")) {
+        options.ibv_name = argument;
+      } else if (cur_option->name == std::string("ibv-port")) {
+        options.ibv_port = std::stoul(argument);
+      } else if (cur_option->name == std::string("expander-configuration")) {
+        options.expander_configuration = std::stoul(argument);
+      } else if (cur_option->name == std::string("pattern")) {
+        options.pattern = std::stoi(argument);
+        options.pattern_set = true;
+      } else if (cur_option->name == std::string("gsync")) {
+        if (display_mode_override == DisplayModeOverride::Fbr) {
+          throw std::runtime_error("Options --gsync and --fbr are mutually exclusive.");
+        }
+        display_mode_override = DisplayModeOverride::Gsync;
+        options.gsync = true;
+      } else if (cur_option->name == std::string("fbr")) {
+        if (display_mode_override == DisplayModeOverride::Gsync) {
+          throw std::runtime_error("Options --gsync and --fbr are mutually exclusive.");
+        }
+        display_mode_override = DisplayModeOverride::Fbr;
+        options.gsync = false;
+      } else {
+        throw std::runtime_error(fmt::format("Unhandled option \"{}\"", cur_option->name));
+      }
+    } else {
+      switch (c) {
+        case 'l': {
+          const std::string res_arg(optarg ? optarg : "");
+          auto x_pos = res_arg.find('x');
+          if (x_pos == std::string::npos) {
+            throw std::runtime_error(fmt::format(
+                "Invalid resolution format \"{}\", expected WxH (e.g. 1920x1080)", res_arg));
+          }
+          options.display_width = std::stoi(res_arg.substr(0, x_pos));
+          options.display_height = std::stoi(res_arg.substr(x_pos + 1));
+          if (options.display_width <= 0 || options.display_height <= 0) {
+            throw std::runtime_error("Resolution width and height must be positive.");
+          }
+          break;
+        }
+        case 'r':
+          options.refresh_rate_hz = std::stoi(optarg ? optarg : "");
+          if (options.refresh_rate_hz <= 0) {
+            throw std::runtime_error("-r/--refresh must be greater than 0.");
+          }
+          break;
+        case 'h':
+          print_usage(argv[0]);
+          options.show_help = true;
+          return options;
 
-    holoscan::set_log_level(log_level);
+        default:
+          throw std::runtime_error(fmt::format("Unhandled option \"{}\"", static_cast<char>(c)));
+      }
+    }
+  }
+
+  return options;
+}
+
+}  // anonymous namespace
+
+// ============================================================================
+// main
+// ============================================================================
+
+int main(int argc, char** argv) {
+  try {
+    const CommandLineOptions options = parse_command_line(argc, argv);
+    if (options.show_help) {
+      return EXIT_SUCCESS;
+    }
+
+    const bool front_buffer_rendering = !options.gsync;
+
+    holoscan::set_log_level(options.log_level);
 
     std::cout << "Initializing." << std::endl;
 
@@ -511,13 +531,13 @@ int main(int argc, char** argv) {
     CudaCheck(cuCtxSetCurrent(cu_context));
 
     // Get a handle to the data source
-    hololink::Metadata channel_metadata = hololink::Enumerator::find_channel(hololink_ip);
+    hololink::Metadata channel_metadata = hololink::Enumerator::find_channel(options.hololink_ip);
     hololink::DataChannel hololink_channel(channel_metadata);
 
     // Get a handle to the camera
-    auto camera = std::make_shared<hololink::sensors::NativeImx274Sensor>(hololink_channel,
-                                                                          expander_configuration);
-    camera->set_mode(camera_mode);
+    auto camera = std::make_shared<hololink::sensors::NativeImx274Sensor>(
+        hololink_channel, options.expander_configuration);
+    camera->set_mode(options.camera_mode);
 
     // Calculate CSI frame size using the csi_to_bayer converter base
     auto csi_calculator = std::make_shared<hololink::operators::CsiToBayerConverterBase>();
@@ -534,24 +554,24 @@ int main(int argc, char** argv) {
     AppConfig config;
     config.cuda_context = cu_context;
     config.hololink_channel = &hololink_channel;
-    config.ibv_name = ibv_name;
-    config.ibv_port = ibv_port;
+    config.ibv_name = options.ibv_name;
+    config.ibv_port = options.ibv_port;
     config.camera = camera;
-    config.camera_mode = camera_mode;
+    config.camera_mode = options.camera_mode;
     config.frame_size = frame_size;
     config.width = width;
     config.height = height;
     config.pixel_format = pixel_format;
     config.bayer_format = bayer_format;
-    config.gsync = gsync;
+    config.gsync = options.gsync;
     config.front_buffer_rendering = front_buffer_rendering;
-    config.refresh_rate_hz = refresh_rate_hz;
-    config.display_width = display_width;
-    config.display_height = display_height;
+    config.refresh_rate_hz = options.refresh_rate_hz;
+    config.display_width = options.display_width;
+    config.display_height = options.display_height;
     config.shared_state = shared_state;
 
     auto application = holoscan::make_application<Imx274GrApplication>(config);
-    application->config(configuration);
+    application->config(options.configuration);
 
     // Compose the application graph to create the fragment objects
     application->compose_graph();
@@ -570,10 +590,10 @@ int main(int argc, char** argv) {
     hololink->start();
     hololink->reset();
     camera->setup_clock();
-    camera->configure(camera_mode);
+    camera->configure(options.camera_mode);
     camera->set_digital_gain_reg(0x4);
-    if (pattern_set) {
-      camera->test_pattern(pattern);
+    if (options.pattern_set) {
+      camera->test_pattern(options.pattern);
     }
     auto future = application->run_async();
     future.get();
