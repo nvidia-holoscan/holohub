@@ -1,0 +1,84 @@
+{
+	"application": {
+		"name": "IMX274 GPU-Resident",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "C++",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial Release"
+		},
+		"dockerfile": "applications/imx274_gpu_resident/Dockerfile",
+		"holoscan_sdk": {
+			"minimum_required_version": "4.0.0",
+			"tested_versions": [
+				"4.0.0"
+			]
+		},
+		"platforms": [
+			"aarch64"
+		],
+		"tags": [
+			"Hololink",
+			"Camera",
+			"IMX274",
+			"GPU Resident",
+			"Sensor Bridge",
+			"RDMA",
+			"Deterministic",
+			"Predictable",
+			"Low-jitter"
+		],
+		"ranking": 1,
+		"requirements": {
+			"hardware": [
+				{
+					"name": "IMX274 camera with Holoscan Sensor Bridge and Holoscan SDK GPU-resident Execution",
+					"description": "Requires an IMX274 camera connected via a Holoscan Sensor Bridge device.",
+					"required": true
+				}
+			]
+		},
+		"run": {
+			"command": "<holohub_app_bin>/cpp/imx274_gpu_resident",
+			"workdir": "holohub_bin"
+		},
+		"modes": {
+			"default": {
+				"description": "Run with IMX274 camera with Holoscan Sensor Bridge",
+				"run": {
+					"command": "<holohub_app_bin>/cpp/imx274_gpu_resident",
+					"workdir": "holohub_bin",
+					"docker_run_args": [
+						"-u",
+						"root",
+						"--shm-size=1gb",
+						"--privileged",
+						"-v",
+						"/sys/bus/pci/devices:/sys/bus/pci/devices",
+						"-v",
+						"/sys/kernel/mm/hugepages:/sys/kernel/mm/hugepages",
+						"-v",
+						"/dev:/dev",
+						"-v",
+						"/tmp/.X11-unix:/tmp/.X11-unix",
+						"-v",
+						"/tmp/argus_socket:/tmp/argus_socket",
+						"-v",
+						"/sys/devices:/sys/devices",
+						"-v",
+						"/var/nvidia/nvcam/settings:/var/nvidia/nvcam/settings",
+						"-e",
+						"enableRawReprocess=2",
+						"-e",
+						"DISPLAY="
+					]
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,40 @@
+{
+	"operator": {
+		"name": "CsiToBayerGpuResidentOp",
+		"description": "GPU-resident operator that converts CSI (Camera Serial Interface) packed data to Bayer format for image processing pipelines.",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": [
+			"C++"
+		],
+		"version": "0.1.0",
+		"changelog": {
+			"0.1.0": "Initial Release - migrated from hololink repository"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "4.0.0",
+			"tested_versions": [
+				"4.0.0"
+			]
+		},
+		"platforms": [
+			"aarch64"
+		],
+		"tags": [
+			"Hololink",
+			"Camera",
+			"CSI",
+			"Bayer",
+			"Image Processing",
+			"GPU Resident"
+		],
+		"ranking": 1,
+		"requirements": {
+			"hololink": "Requires hololink library to be installed"
+		}
+	}
+}
