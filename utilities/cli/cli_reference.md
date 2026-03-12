@@ -610,7 +610,7 @@ Clear cache directories (build, data, install).
 | `--install` | Clear install folders only       |
 | `--dryrun`  | Print commands without executing |
 
-If none of `--build`, `--data`, `--install` are given, all are cleared.
+If none of `--build`, `--data`, `--install` are given, all are cleared. Use `--dryrun` to preview what would be deleted.
 
 **Examples:**
 

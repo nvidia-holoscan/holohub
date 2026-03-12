@@ -245,7 +245,7 @@ set_property(TEST test_cli_env_info PROPERTY
 
 add_test(
     NAME test_cli_env_check
-    COMMAND ${CMAKE_COMMAND} -E env -- sh -c "${CMAKE_SOURCE_DIR}/holohub env-check || true"
+    COMMAND sh -c "${CMAKE_SOURCE_DIR}/holohub env-check || true"
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 set_tests_properties(test_cli_env_check PROPERTIES
@@ -254,7 +254,7 @@ set_tests_properties(test_cli_env_check PROPERTIES
 
 add_test(
     NAME test_cli_env_check_json
-    COMMAND ${CMAKE_COMMAND} -E env -- sh -c "${CMAKE_SOURCE_DIR}/holohub env-check --json || true"
+    COMMAND sh -c "${CMAKE_SOURCE_DIR}/holohub env-check --json || true"
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 set_tests_properties(test_cli_env_check_json PROPERTIES
