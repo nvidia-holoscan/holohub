@@ -8,8 +8,6 @@ latency-critical camera to display path, and the application achieves ultra-low
 jitter and predictable end-to-end latency, not possible with traditional
 CPU-driven applications.
 
-
-
 ## Table of Contents
 
 - [Architecture](#architecture)
