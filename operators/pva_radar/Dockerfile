@@ -63,9 +63,28 @@ RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
 
 # --------------------------------------------------------------------------
 #
+# Use HoloHub CLI to set up common packages for developing with Holoscan SDK
+#
+# --------------------------------------------------------------------------
+FROM holohub-cli-prerequisites AS holohub-cli
+
+RUN mkdir -p /tmp/scripts
+COPY holohub /tmp/scripts/
+RUN mkdir -p /tmp/scripts/utilities
+COPY utilities /tmp/scripts/utilities/
+RUN chmod +x /tmp/scripts/holohub
+RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
+
+# Enable autocomplete
+RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
+
+# --------------------------------------------------------------------------
+#
 # Set up dependencies for developing with PVA-SDK and pva-solutions
 #
 # --------------------------------------------------------------------------
+
+FROM holohub-cli AS holohub-cli-pva-base
 
 # Install deb packages for the PVA-SDK and pva-solutions.
 # The pva-sdk packages are expected to be the local installer meta packages named
@@ -99,7 +118,7 @@ RUN cd /workspace/pva-solutions/3rdparty && \
 
 # Set up PVA-SDK development environment on amd64 host PC (x86_64)
 # This enables the PVA emulator environment for prototyping.
-FROM holohub-cli-prerequisites AS holohub-pva-prerequisites-amd64
+FROM holohub-cli-pva-base AS holohub-cli-pva-amd64
 ARG PVA_SDK_MAJOR_MINOR_VERSION=2.8
 RUN apt-get update \
     && apt-get install -y \
@@ -112,7 +131,7 @@ RUN apt-get update \
 
 
 # Set up the PVA host runtime on Jetson target device (arm64)
-FROM holohub-cli-prerequisites AS holohub-pva-prerequisites-arm64
+FROM holohub-cli-pva-base AS holohub-cli-pva-arm64
 ARG PVA_SDK_MAJOR_MINOR_VERSION=2.8
 ARG PVA_SDK_VERSION=2.8.0
 RUN apt-get update \
@@ -128,97 +147,9 @@ RUN mkdir -p /tmp/pva-sdk-dev-files \
     && cp -r /tmp/pva-sdk-dev-files/opt/nvidia/pva-sdk-${PVA_SDK_MAJOR_MINOR_VERSION}/include /opt/nvidia/pva-sdk-${PVA_SDK_MAJOR_MINOR_VERSION}/ \
     && rm -rf /tmp/pva-sdk-dev-files
 
-
 # --------------------------------------------------------------------------
 #
-# Use HoloHub CLI to set up common packages for developing with Holoscan SDK
+# Default development stage chosen based on the target architecture
 #
 # --------------------------------------------------------------------------
-FROM holohub-pva-prerequisites-${TARGETARCH} AS holohub-cli
-
-RUN mkdir -p /tmp/scripts
-COPY holohub /tmp/scripts/
-RUN mkdir -p /tmp/scripts/utilities
-COPY utilities /tmp/scripts/utilities/
-RUN chmod +x /tmp/scripts/holohub
-RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
-
-# Enable autocomplete
-RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
-
-
-# --------------------------------------------------------------------------
-#
-# Set up common packages for advanced development with
-# Holoscan SDK Flow Benchmarking performance tools
-#
-# --------------------------------------------------------------------------
-FROM holohub-cli AS benchmarking-setup
-
-ARG CMAKE_BUILD_TYPE=Release
-
-# For benchmarking
-RUN apt update \
-    && apt install --no-install-recommends -y \
-    libcairo2-dev \
-    libgirepository1.0-dev \
-    gobject-introspection \
-    libgtk-3-dev \
-    libcanberra-gtk-module \
-    graphviz
-
-RUN pip install meson
-
-RUN if ! grep -q "VERSION_ID=\"22.04\"" /etc/os-release; then \
-    pip install setuptools; \
-    fi
-COPY benchmarks/holoscan_flow_benchmarking/requirements.txt /tmp/benchmarking_requirements.txt
-RUN pip install -r /tmp/benchmarking_requirements.txt
-ENV PYTHONPATH=/workspace/holohub/benchmarks/holoscan_flow_benchmarking
-
-# --------------------------------------------------------------------------
-#
-# Set up common packages for developing with Yuan Qcap
-#
-# --------------------------------------------------------------------------
-FROM holohub-cli AS yuan-qcap
-
-# Qcap dependency
-RUN apt update \
-    && apt install --no-install-recommends -y \
-    libgstreamer1.0-0 \
-    libgstreamer-plugins-base1.0-0 \
-    libgles2 \
-    libopengl0
-
-# --------------------------------------------------------------------------
-#
-# Set up common packages for developing with RTI Connext DDS
-#
-# --------------------------------------------------------------------------
-FROM holohub-cli AS dds
-
-RUN apt update \
-    && apt install --no-install-recommends -y \
-    openjdk-21-jre
-RUN echo 'export JREHOME=$(readlink /etc/alternatives/java | sed -e "s/\/bin\/java//")' >> /etc/bash.bashrc
-
-# --------------------------------------------------------------------------
-#
-# Set up packages for developing with AJA Capture Cards
-#
-# --------------------------------------------------------------------------
-FROM holohub-cli AS holohub-aja
-
-RUN apt update \
-    && apt install --no-install-recommends -y \
-    libudev-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# --------------------------------------------------------------------------
-#
-# Default development stage. Use "--target <layer>" to build a different stage above
-# as the environment for project development.
-#
-# --------------------------------------------------------------------------
-FROM holohub-cli AS holohub-dev
+FROM holohub-cli-pva-${TARGETARCH} AS holohub-dev

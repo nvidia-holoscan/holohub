@@ -1,5 +1,7 @@
 # PVA-Accelerated Radar Pipeline
 
+![RADAR processing using PVA](./images/pva_radar_pipeline.gif)
+
 This application demonstrates the usage of the [Programmable Vision Accelerator (PVA)](#about-pva) to process
 raw samples from a FMCW RADAR array like the kind used for perception in autonomous vehicles.
 
@@ -22,16 +24,14 @@ program logic, and SIMD algorithm verification.  However, the x86 emulator is no
 
 ## Usage
 
-Launch the container you built by following the pva_radar operator instructions. Then, simply run:
+To build a container, launch it, build the application with all dependencies and run the application
+all in one command, use:
 
 ```sh
 ./holohub run pva_radar_pipeline
 ```
-
 Two windows will appear. One shows the range-doppler signal after Non-coherent Integration (NCI).
-The other shows a 3D point cloud of positive radar detections.
-
-![RADAR processing using PVA](./images/pva_radar_pipeline.gif)
+The other shows a 3D point cloud of positive radar detections (see image above).
 
 The pva-solutions 0.4 source package comes with one frame of sample data included. Contact NVIDIA to access more frames
 of sample data and information about compatible RADAR systems.
@@ -43,9 +43,12 @@ environment has basic access to the GPU, the DISPLAY environment variable is set
 you are able to run basic graphics samples like [holoviz_srgb](../holoviz/holoviz_srgb/).
 
 If some libraries could not be found at runtime on the Jetson target device, try adding the LD_LIBRARY_PATH variable
-before the run command:
+before the run command within the running container.
 
 ```sh
+# launch container
+./holohub run-container pva_radar_pipeline
+# run the application within the container and include tegra system library path
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/aarch64-linux-gnu/tegra ./holohub run pva_radar_pipeline
 ```
 
@@ -55,7 +58,7 @@ support the PVA-SDK. You may also need to add additional device mapping paramete
 container:
 
 ```sh
-./holohub run-container --no-docker-build --img <my-image-name:tag> \
+./holohub run-container pva_radar_pipeline \
   --docker-opts='--device /dev/nvhost-ctrl-pva0:/dev/nvhost-ctrl-pva0 --device /dev/nvmap:/dev/nvmap --device /dev/dri/renderD128:/dev/dri/renderD128'
 ```
 
