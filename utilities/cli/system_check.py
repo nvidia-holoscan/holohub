@@ -20,6 +20,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import List, Optional
@@ -296,6 +297,47 @@ def check_holoscan() -> CheckResult:
     )
 
 
+def check_holoscan_python() -> CheckResult:
+    """Check if the Holoscan Python package is importable and report its location.
+
+    Runs ``python3 -c "import holoscan"`` in a subprocess so a failed import
+    (e.g. missing libcudart) does not crash the CLI itself.
+    """
+    snippet = "import holoscan; " "print(holoscan.__version__); " "print(holoscan.__file__)"
+    try:
+        proc = subprocess.run(
+            [sys.executable, "-c", snippet],
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+    except subprocess.TimeoutExpired:
+        return CheckResult(
+            status="WARN",
+            name="Holoscan SDK Python",
+            message="import holoscan timed out (>15s)",
+        )
+
+    if proc.returncode != 0:
+        err = proc.stderr.strip().splitlines()
+        short_err = err[-1] if err else "unknown error"
+        return CheckResult(
+            status="WARN",
+            name="Holoscan SDK Python",
+            message=f"import holoscan failed ({short_err})",
+        )
+
+    lines = proc.stdout.strip().splitlines()
+    version = lines[0].strip() if len(lines) > 0 else "unknown"
+    location = lines[1].strip() if len(lines) > 1 else "unknown"
+    pkg_dir = str(Path(location).parent) if location != "unknown" else "unknown"
+    return CheckResult(
+        status="OK",
+        name="Holoscan SDK Python",
+        message=f"{version} ({pkg_dir})",
+    )
+
+
 def check_disk() -> CheckResult:
     """Check free disk space on the filesystem containing the build directory"""
     holohub_root = get_holohub_root()
@@ -435,6 +477,7 @@ def run_all_checks() -> List[CheckResult]:
         ("CUDA", check_cuda),
         ("Docker", check_docker),
         ("Holoscan", check_holoscan),
+        ("Holoscan SDK Python", check_holoscan_python),
         ("Disk", check_disk),
         ("CLI", check_cli),
         ("Container", check_container),
@@ -474,21 +517,21 @@ def format_results(results: List[CheckResult], elapsed: float) -> str:
 
     for r in results:
         prefix = status_formats.get(r.status, f"[{r.status}]")
-        name_padded = f"{r.name:<12}"
+        name_padded = f"{r.name:<20}"
         lines.append(f"  {prefix} {name_padded} {r.message}")
 
         if r.details:
             for detail_line in r.details.split("\n"):
-                lines.append(f"                     {detail_line}")
+                lines.append(f"                             {detail_line}")
 
         if r.status == "FAIL":
             fail_count += 1
             if r.fix_suggestion:
-                lines.append(f"                     Fix: {Color.yellow(r.fix_suggestion)}")
+                lines.append(f"                             Fix: {Color.yellow(r.fix_suggestion)}")
         elif r.status == "WARN":
             warn_count += 1
             if r.fix_suggestion:
-                lines.append(f"                     Hint: {Color.yellow(r.fix_suggestion)}")
+                lines.append(f"                             Hint: {Color.yellow(r.fix_suggestion)}")
 
     lines.append("")
 
