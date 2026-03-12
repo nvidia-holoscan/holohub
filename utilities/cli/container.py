@@ -898,24 +898,23 @@ class HoloHubContainer:
         else:
             sdk_python_lib = f"{self.SDK_PATH}/python/lib"
 
-        sdk_paths = [sdk_python_lib, benchmarking_path]
-
-        # Collect paths already set in the Docker image
         image_paths = []
         if img:
             image_pythonpath = get_image_pythonpath(img, self.dryrun)
             if image_pythonpath:
                 image_paths = [p for p in image_pythonpath.split(":") if p]
 
-        # Merge: local SDK paths first so they shadow the base image;
-        # otherwise keep image paths first (preserving upstream defaults).
+        # Local SDK paths first (if configured);
+        # then image paths (preserving upstream defaults) and benchmarking path.
         if using_local_sdk:
-            primary, secondary = sdk_paths, image_paths
+            primary, secondary = [sdk_python_lib], image_paths
         else:
-            primary, secondary = image_paths, sdk_paths
+            primary, secondary = image_paths, [sdk_python_lib]
 
         all_paths = list(primary)
         all_paths.extend(p for p in secondary if p not in all_paths)
+        if benchmarking_path not in all_paths:
+            all_paths.append(benchmarking_path)
         return ["-e", f"PYTHONPATH={':'.join(all_paths)}"]
 
     def get_local_sdk_options(self, local_sdk_root: Optional[Union[str, Path]]) -> List[str]:
