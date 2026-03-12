@@ -10,7 +10,7 @@ CPU-driven applications.
 
 **Note:** Although the entire application runs from the GPU after initial
 configuration, two components still remain on the CPU, which will be
-removed in a later release. 
+removed in a later release.
 
 1. The RoCE receiver operator acknowledges interrupts on the CPU. This will be removed
    with a DOCA GPUNetIO-based GPU-resident operator in the future, which will enable GPU-native CQ/QP management, keeping the frame receival entirely out of the CPU control.
@@ -19,7 +19,7 @@ removed in a later release.
    trigger a *display flip* operation on the GPU in *G-SYNC* mode because of
    hardware and software limitations. This will also be optimized in a later
    release.
-   
+
 In spite of the two small components on the CPU, the application's primary
 control flow and the full data flow are executed on the GPU, enabling it to
 deterministic latency.
@@ -74,39 +74,48 @@ out of the box, you need to manually install the driver.
 1. **Download** the NVIDIA driver runfile for IGX Orin from the [NVIDIA Driver Downloads](https://download.nvidia.com/XFree86/Linux-aarch64/590.48.01/) page. Select the appropriate product (e.g., Jetson/IGX Orin) and choose version **590.48.01** or newer.
 
 2. **Stop the display manager** (required before removing or installing drivers):
+
    ```bash
    sudo service display-manager stop
    ```
 
 3. **Unload all NVIDIA kernel modules**:
+
    ```bash
    sudo rmmod nvidia_drm nvidia_modeset nvidia_uvm nvidia_peermem nvidia
    ```
+
    If a module is not loaded on your system, `rmmod` will report an error for that name. Run `lsmod | grep nvidia` to see which modules are currently loaded.
 
 4. **Remove the existing NVIDIA driver.** If the NVIDIA uninstaller is present, use it:
+
    ```bash
    sudo /usr/bin/nvidia-uninstall
    ```
+
    If `/usr/bin/nvidia-uninstall` is not available, purge the NVIDIA installation with:
+
    ```bash
    sudo apt-get purge 'nvidia-*' 'libnvidia-*'
    sudo apt-get autoremove
    ```
 
 5. **Install the driver** using the downloaded runfile (replace with your exact filename and version):
+
    ```bash
    chmod +x NVIDIA-Linux-aarch64-590.48.01.run
    sudo ./NVIDIA-Linux-aarch64-590.48.01.run
    ```
+
    Follow the installer prompts.
 
 6. **Verify** the driver version:
+
    ```bash
    nvidia-smi
    ```
-   Confirm the driver version shown is **590.48.01** or higher.
 
+   Confirm the driver version shown is **590.48.01** or higher.
 
 #### Display Manager (Mandatory)
 
@@ -122,7 +131,6 @@ sudo service display-manager stop
 
 This application uses `./holohub` commands to build and run the application.
   Please refer to the [README.md](../../README.md) for more details on its usage.
-
 
 ### Building and Running the Application
 
@@ -140,7 +148,7 @@ From the **HoloHub repository root**:
 
 The Holoscan `v4.0.0-cuda12-dgpu` container image is built on top of a Holoscan container that **already includes HSB** (e.g. installed at `/opt/nvidia/hololink`).
 
-**Note:** You can pull the base image before building, e.g.  
+**Note:** You can pull the base image before building, e.g.
 `docker pull nvcr.io/nvidia/clara-holoscan/holoscan:v4.0.0-cuda12-dgpu`
 
 #### Verify the image

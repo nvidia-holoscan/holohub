@@ -5,6 +5,7 @@ This operator performs image processing operations on Bayer image data using GPU
 ## Overview
 
 The `ImageProcessorGpuResidentOp` is a GPU-resident Holoscan operator that:
+
 - Applies optical black level correction
 - Calculates per-channel histograms
 - Computes white balance gains automatically

@@ -5,6 +5,7 @@ This operator converts CSI (Camera Serial Interface) packed data to Bayer format
 ## Overview
 
 The `CsiToBayerGpuResidentOp` is a GPU-resident Holoscan operator that:
+
 - Receives packed CSI data from camera sensors
 - Unpacks the data to 16-bit Bayer format
 - Operates entirely on GPU memory for low-latency processing

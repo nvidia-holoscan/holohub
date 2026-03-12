@@ -5,6 +5,7 @@
 ## Overview
 
 The `RoceReceiverOp` is a Holoscan operator that:
+
 - Receives video frames via RDMA directly to GPU memory
 - Supports multi-page buffering for continuous streaming
 - Provides optional GPU-resident metadata processing
@@ -64,6 +65,7 @@ add_flow(receiver, next_operator, {{"output", "input"}});
 ## Output Metadata
 
 The operator publishes the following metadata with each frame:
+
 - `received_frame_number`: Sequence number of received frame
 - `rx_write_requests`: Total RDMA write requests
 - `received_s`, `received_ns`: Receive timestamp
