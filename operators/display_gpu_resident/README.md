@@ -63,11 +63,11 @@ CUDISP_BENCH_PRESENT=1 ./build/imx274_gpu_resident/applications/imx274_gpu_resid
 The following variables are available when the operator is built with `CUDISP_BENCH=ON`
 and the present thread is active:
 
-| Variable                      | Description                                                                                                                       |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `CUDISP_BENCH_PRESENT`        | Set to `1` to enable present-thread timing and counters. No benchmark output is produced when unset or `0`.                      |
-| `CUDISP_BENCH_EVERY_SUCCESS`  | Set to `1` to print a line for every successful present with slot index and latency.                                             |
-| `CUDISP_BENCH_REPORT_INTERVAL`| Number of successful presents between summary lines (default: `120`). Each summary reports success count, avg/min/max latency in microseconds, and ebusy/error counts. |
+| Variable | Description |
+| --- | --- |
+| `CUDISP_BENCH_PRESENT` | Set to `1` to enable present-thread timing and counters. No benchmark output is produced when unset or `0`. |
+| `CUDISP_BENCH_EVERY_SUCCESS` | Set to `1` to print a line for every successful present with slot index and latency. |
+| `CUDISP_BENCH_REPORT_INTERVAL` | Number of successful presents between summary lines (default: `120`). Each summary reports success count, avg/min/max latency in microseconds, and ebusy/error counts. |
 
 Example:
 
@@ -80,9 +80,9 @@ export CUDISP_BENCH_REPORT_INTERVAL=30
 
 ### General
 
-| Variable             | Description                                                                                               |
-| -------------------- | --------------------------------------------------------------------------------------------------------- |
-| `CUDISP_DRM_DEVICE`  | Override the DRM device. Accepts a card number (e.g. `1` for `/dev/dri/card1`) or a full path.          |
+| Variable | Description |
+| --- | --- |
+| `CUDISP_DRM_DEVICE` | Override the DRM device. Accepts a card number (e.g. `1` for `/dev/dri/card1`) or a full path. |
 
 ## Tests
 
@@ -93,30 +93,30 @@ Test binaries are built when `-DBUILD_TESTING=ON` is passed and are placed under
 
 Validate platform DRM/GBM/Vulkan capabilities. These do **not** link against or call the cuDisp library.
 
-| Binary                 | Description                                                              |
-| ---------------------- | ------------------------------------------------------------------------ |
-| `drm_basic_test`       | DRM modeset, atomic commit, overlay, scaling, VRR, alpha, blend, rotation |
-| `gbm_drm_test`         | GBM buffer allocation and DRM scanout with configurable flags            |
-| `buffer_pipeline_test` | GBM to Vulkan to CUDA buffer pipeline with CPU or CUDA fill              |
-| `format_test`          | DRM pixel format support (all DRM formats, GBM + dumb buffer fallback)   |
+| Binary | Description |
+| --- | --- |
+| `drm_basic_test` | DRM modeset, atomic commit, overlay, scaling, VRR, alpha, blend, rotation |
+| `gbm_drm_test` | GBM buffer allocation and DRM scanout with configurable flags |
+| `buffer_pipeline_test` | GBM to Vulkan to CUDA buffer pipeline with CPU or CUDA fill |
+| `format_test` | DRM pixel format support (all DRM formats, GBM + dumb buffer fallback) |
 
 ### API validation
 
 GTest-based suite that validates cuDisp error handling and attribute parsing.
 
-| Binary                | Description                                                           |
-| --------------------- | --------------------------------------------------------------------- |
-| `api_validation_test` | Attribute validation, error paths, unsupported feature detection      |
+| Binary | Description |
+| --- | --- |
+| `api_validation_test` | Attribute validation, error paths, unsupported feature detection |
 
 ### Integration tests and demo
 
 Exercise cuDisp host and GPU present paths with visual output.
 
-| Binary              | Description                                               |
-| ------------------- | --------------------------------------------------------- |
-| `host_present_test` | Host-driven present with CUDA-rendered patterns           |
-| `perf_test`         | Latency and throughput benchmarks for host and GPU present |
-| `cudisp_demo`       | Standalone GPU-present demo with animated color bars      |
+| Binary | Description |
+| --- | --- |
+| `host_present_test` | Host-driven present with CUDA-rendered patterns |
+| `perf_test` | Latency and throughput benchmarks for host and GPU present |
+| `cudisp_demo` | Standalone GPU-present demo with animated color bars |
 
 ### Running tests
 
