@@ -99,6 +99,22 @@ struct VulkanContext {
   uint32_t queueFamilyIndex;
 };
 
+static void releaseImportedCudaBuffer(CUdeviceptr* d_ptr, CUexternalMemory* ext_mem, int* dmabuf_fd) {
+  // CUDA requires the mapped buffer to be freed before releasing the external memory object.
+  if (d_ptr && *d_ptr) {
+    cuMemFree(*d_ptr);
+    *d_ptr = 0;
+  }
+  if (ext_mem && *ext_mem) {
+    cuDestroyExternalMemory(*ext_mem);
+    *ext_mem = nullptr;
+  }
+  if (dmabuf_fd && *dmabuf_fd >= 0) {
+    close(*dmabuf_fd);
+    *dmabuf_fd = -1;
+  }
+}
+
 // Main swapchain context structure
 struct cuDispSwapchain_t {
   // DRM objects
@@ -490,6 +506,11 @@ static int drm_util_find_device(char* buf, size_t bufsize) {
 }
 
 static int initVulkanContext(struct VulkanContext* vkCtx) {
+  vkCtx->instance = VK_NULL_HANDLE;
+  vkCtx->physicalDevice = VK_NULL_HANDLE;
+  vkCtx->device = VK_NULL_HANDLE;
+  vkCtx->queueFamilyIndex = 0;
+
   // 1. Create Vulkan instance
   VkApplicationInfo appInfo = {};
   appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -517,12 +538,16 @@ static int initVulkanContext(struct VulkanContext* vkCtx) {
   vkEnumeratePhysicalDevices(vkCtx->instance, &deviceCount, nullptr);
   if (deviceCount == 0) {
     printf("No Vulkan physical devices found\n");
+    vkDestroyInstance(vkCtx->instance, nullptr);
+    vkCtx->instance = VK_NULL_HANDLE;
     return -1;
   }
 
   VkPhysicalDevice* devices = (VkPhysicalDevice*)malloc(deviceCount * sizeof(VkPhysicalDevice));
   if (!devices) {
     printf("Failed to allocate memory for Vulkan physical devices\n");
+    vkDestroyInstance(vkCtx->instance, nullptr);
+    vkCtx->instance = VK_NULL_HANDLE;
     return -1;
   }
   vkEnumeratePhysicalDevices(vkCtx->instance, &deviceCount, devices);
@@ -536,6 +561,8 @@ static int initVulkanContext(struct VulkanContext* vkCtx) {
       (VkQueueFamilyProperties*)malloc(queueFamilyCount * sizeof(VkQueueFamilyProperties));
   if (!queueFamilies) {
     printf("Failed to allocate memory for Vulkan queue families\n");
+    vkDestroyInstance(vkCtx->instance, nullptr);
+    vkCtx->instance = VK_NULL_HANDLE;
     return -1;
   }
   vkGetPhysicalDeviceQueueFamilyProperties(vkCtx->physicalDevice, &queueFamilyCount, queueFamilies);
@@ -563,6 +590,8 @@ static int initVulkanContext(struct VulkanContext* vkCtx) {
 
   if (vkCreateDevice(vkCtx->physicalDevice, &deviceInfo, nullptr, &vkCtx->device) != VK_SUCCESS) {
     printf("Failed to create Vulkan device\n");
+    vkDestroyInstance(vkCtx->instance, nullptr);
+    vkCtx->instance = VK_NULL_HANDLE;
     return -1;
   }
 
@@ -1252,6 +1281,10 @@ cuDispStatus cuDispCreateSwapchain(cuDispSwapchain* swapchain, cuDispCreateAttri
     return cuDispErrorOutOfResources;
   }
 
+  for (uint32_t i = 0; i < MAX_BUFFERS; i++) {
+    sc->dmabuf_fds[i] = -1;
+  }
+
   sc->num_buffers = numBuffers;
   sc->first_flip = true;
   sc->exit_thread.store(false);
@@ -1566,8 +1599,7 @@ cuDispStatus cuDispCreateSwapchain(cuDispSwapchain* swapchain, cuDispCreateAttri
       printf("Failed to create buffer %d\n", i);
       // Cleanup already created buffers
       for (uint32_t j = 0; j < i; j++) {
-        cuDestroyExternalMemory(sc->ext_mems[j]);
-        close(sc->dmabuf_fds[j]);
+        releaseImportedCudaBuffer(&sc->d_ptrs[j], &sc->ext_mems[j], &sc->dmabuf_fds[j]);
       }
       gbm_device_destroy(sc->gbm);
       vkDestroyDevice(sc->vk_ctx.device, nullptr);
@@ -1595,8 +1627,7 @@ cuDispStatus cuDispCreateSwapchain(cuDispSwapchain* swapchain, cuDispCreateAttri
       printf("drmPrimeFDToHandle failed for buffer %d (errno=%d)\n", i, errno);
       // Cleanup
       for (uint32_t j = 0; j < numBuffers; j++) {
-        cuDestroyExternalMemory(sc->ext_mems[j]);
-        close(sc->dmabuf_fds[j]);
+        releaseImportedCudaBuffer(&sc->d_ptrs[j], &sc->ext_mems[j], &sc->dmabuf_fds[j]);
       }
       gbm_device_destroy(sc->gbm);
       vkDestroyDevice(sc->vk_ctx.device, nullptr);
@@ -1639,8 +1670,7 @@ cuDispStatus cuDispCreateSwapchain(cuDispSwapchain* swapchain, cuDispCreateAttri
           handle);
       // Cleanup
       for (uint32_t j = 0; j < numBuffers; j++) {
-        cuDestroyExternalMemory(sc->ext_mems[j]);
-        close(sc->dmabuf_fds[j]);
+        releaseImportedCudaBuffer(&sc->d_ptrs[j], &sc->ext_mems[j], &sc->dmabuf_fds[j]);
       }
       gbm_device_destroy(sc->gbm);
       vkDestroyDevice(sc->vk_ctx.device, nullptr);
@@ -1677,8 +1707,7 @@ cuDispStatus cuDispCreateSwapchain(cuDispSwapchain* swapchain, cuDispCreateAttri
     // Cleanup
     for (uint32_t i = 0; i < numBuffers; i++) {
       drmModeRmFB(sc->fd, sc->fb_ids[i]);
-      cuDestroyExternalMemory(sc->ext_mems[i]);
-      close(sc->dmabuf_fds[i]);
+      releaseImportedCudaBuffer(&sc->d_ptrs[i], &sc->ext_mems[i], &sc->dmabuf_fds[i]);
     }
     gbm_device_destroy(sc->gbm);
     vkDestroyDevice(sc->vk_ctx.device, nullptr);
@@ -1698,8 +1727,7 @@ cuDispStatus cuDispCreateSwapchain(cuDispSwapchain* swapchain, cuDispCreateAttri
       // Cleanup
       for (uint32_t i = 0; i < numBuffers; i++) {
         drmModeRmFB(sc->fd, sc->fb_ids[i]);
-        cuDestroyExternalMemory(sc->ext_mems[i]);
-        close(sc->dmabuf_fds[i]);
+        releaseImportedCudaBuffer(&sc->d_ptrs[i], &sc->ext_mems[i], &sc->dmabuf_fds[i]);
       }
       gbm_device_destroy(sc->gbm);
       vkDestroyDevice(sc->vk_ctx.device, nullptr);
@@ -1929,12 +1957,7 @@ cuDispStatus cuDispDestroySwapchain(cuDispSwapchain swapchain) {
 
   // Free CUDA external memory
   for (uint32_t i = 0; i < sc->num_buffers; i++) {
-    if (sc->ext_mems[i]) {
-      cuDestroyExternalMemory(sc->ext_mems[i]);
-    }
-    if (sc->dmabuf_fds[i] >= 0) {
-      close(sc->dmabuf_fds[i]);
-    }
+    releaseImportedCudaBuffer(&sc->d_ptrs[i], &sc->ext_mems[i], &sc->dmabuf_fds[i]);
   }
 
   // Free planes
