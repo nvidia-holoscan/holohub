@@ -50,7 +50,7 @@ The TapNext models are **not** hosted as pre-built ONNX files. Instead, the [Doc
 
 Sample video data and the TracksTo4D model are automatically downloaded from NGC during the build process.
 
-- 📦 [Download Data (NGC)](https://registry.ngc.nvidia.com/orgs/nvstaging/teams/holoscan/resources/holoscan_tracking_sample_data) - Pre-trained models and sample
+- 📦 [Download Data (NGC)](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_tracking_sample_data?version=1.2) - Pre-trained models and sample
 videos
 
 ## Quick Start Guide

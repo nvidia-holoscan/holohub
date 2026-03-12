@@ -46,7 +46,7 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
   message(STATUS "Downloading sample data to ${HOLOHUB_DATA_DIR}")
   include(holoscan_download_data)
   holoscan_download_data(tracks2endo4d
-    URL nvstaging/holoscan/holoscan_tracking_sample_data:1.2
+    URL nvidia/clara-holoscan/holoscan_tracking_sample_data:1.2
     DOWNLOAD_NAME holoscan_tracking_sample_data_1.2.zip
     DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
     ALL
