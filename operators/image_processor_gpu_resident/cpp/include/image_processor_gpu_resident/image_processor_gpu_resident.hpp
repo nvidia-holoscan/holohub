@@ -55,7 +55,7 @@ class ImageProcessorGpuResidentOp : public holoscan::GPUResidentOperator {
   hololink::common::UniqueCUdeviceptr histogram_memory_;
   hololink::common::UniqueCUdeviceptr white_balance_gains_memory_;
 
-  // Since this is in-place computation, we use an internal compute buffer to avoid 
+  // Since this is in-place computation, we use an internal compute buffer to avoid
   // HSDK-allocated separated input and output buffers.
   CUdeviceptr internal_compute_buffer_ = 0;
 

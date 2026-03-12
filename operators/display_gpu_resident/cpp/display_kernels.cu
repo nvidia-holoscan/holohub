@@ -173,7 +173,7 @@ __global__ void bilinearResizeRGBA16Kernel(
 
     for (int c = 0; c < channels; c++) {
         // __ldg() is used to load the data from a different global memory read-only path
-        // this will hit a different read-only cache, with more hits as more threads are accessing 
+        // this will hit a different read-only cache, with more hits as more threads are accessing
         // the same data
         const float val = w00 * static_cast<float>(__ldg(&input[idx00 + c]))
                         + w10 * static_cast<float>(__ldg(&input[idx10 + c]))

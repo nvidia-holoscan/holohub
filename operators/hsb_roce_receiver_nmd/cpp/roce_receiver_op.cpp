@@ -130,7 +130,8 @@ void RoceReceiverOp::start_receiver() {
     // Check boolean condition so distributed app shuts down properly
     if (boolean_condition && !boolean_condition->check_tick_enabled()) {
       HOLOSCAN_LOG_DEBUG(
-          "boolean_condition not there ir boolean condition check_tick_enabled() is false, returning");
+          "boolean_condition not there ir boolean condition "
+          "check_tick_enabled() is false, returning");
       this->frame_ready_condition_->event_state(holoscan::AsynchronousEventState::EVENT_NEVER);
       return;
     }

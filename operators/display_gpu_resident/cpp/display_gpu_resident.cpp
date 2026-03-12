@@ -174,7 +174,10 @@ void DisplayGpuResidentOp::initialize() {
   HOLOSCAN_LOG_DEBUG("DisplayGpuResidentOp: initial CPU present buffer dptr=0x{:x}",
                      static_cast<uint64_t>(initial_present_device_ptr));
   cuDispBufferMemory present_buf = {
-      .devicePtr = &initial_present_device_ptr, .size = nullptr, .stride = nullptr, .pHDRMetadata = nullptr};
+      .devicePtr = &initial_present_device_ptr,
+      .size = nullptr,
+      .stride = nullptr,
+      .pHDRMetadata = nullptr};
   cuDispStatus present_err = cuDispPresent(swapchain_, display_init_stream_, &present_buf, 1, 0);
   if (present_err != cuDispSuccess) {
     throw std::runtime_error("DisplayGpuResidentOp: initial cuDispPresent failed with error " +
@@ -231,7 +234,10 @@ void DisplayGpuResidentOp::initialize_backend() {
   }
 
   cuDispBufferMemory buf0 = {
-      .devicePtr = &display_device_ptr0_, .size = &buffer_size_, .stride = &display_stride_, .pHDRMetadata = nullptr};
+      .devicePtr = &display_device_ptr0_,
+      .size = &buffer_size_,
+      .stride = &display_stride_,
+      .pHDRMetadata = nullptr};
   err = cuDispGetBuffer(swapchain_, 0, 0, &buf0, 0);
   if (err != cuDispSuccess) {
     cleanup_cudisp();
@@ -245,7 +251,10 @@ void DisplayGpuResidentOp::initialize_backend() {
 
   if (!front_buffer_rendering_.get()) {
     cuDispBufferMemory buf1 = {
-        .devicePtr = &display_device_ptr1_, .size = nullptr, .stride = nullptr, .pHDRMetadata = nullptr};
+        .devicePtr = &display_device_ptr1_,
+        .size = nullptr,
+        .stride = nullptr,
+        .pHDRMetadata = nullptr};
     err = cuDispGetBuffer(swapchain_, 0, 1, &buf1, 0);
     if (err != cuDispSuccess) {
       cleanup_cudisp();
@@ -269,7 +278,6 @@ void DisplayGpuResidentOp::initialize_backend() {
       cleanup_cudisp();
       throw std::runtime_error("DisplayGpuResidentOp: cudaMemcpy for display_ptrs_device_ failed");
     }
-
   }
 
   HOLOSCAN_LOG_INFO(
