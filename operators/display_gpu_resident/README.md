@@ -1,7 +1,13 @@
 # GPU-resident Display Operator
 
 GPU-resident display operator is built on top of the cuDisp DRM/CUDA display library.
-Supports front-buffer rendering and G-SYNC (VRR) continuous flip mode. The operator can only work in exclusive display mode where no other display compositors are running. Turn off the default display manager, for example, on IGX systems, with `sudo service display-manager stop`.
+Supports front-buffer rendering and G-SYNC (VRR) continuous flip mode. The operator can only work in exclusive display mode where no other display compositors are running.
+
+## Prerequisites
+
+This operator only works in exclusive display mode where no other display servers and compositors are running.
+
+Turn off the default display manager, for example, on IGX systems, with `sudo service display-manager stop`.
 
 ## Building
 

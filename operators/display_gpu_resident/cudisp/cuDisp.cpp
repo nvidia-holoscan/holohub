@@ -761,6 +761,7 @@ static int createBufferGbmVulkanCuda(struct gbm_device* gbm_dev, struct VulkanCo
     return -1;
   }
 
+  // After a successful import, Vulkan owns vulkan_fd and closes it via vkFreeMemory.
   vkBindImageMemory(vkCtx->device, vkImage, vkMemory, 0);
 
   // 4. Export Vulkan memory as new fd for CUDA
@@ -778,7 +779,6 @@ static int createBufferGbmVulkanCuda(struct gbm_device* gbm_dev, struct VulkanCo
     printf("Failed to export Vulkan memory to fd\n");
     vkFreeMemory(vkCtx->device, vkMemory, nullptr);
     vkDestroyImage(vkCtx->device, vkImage, nullptr);
-    close(vulkan_fd);
     close(*dmabuf_fd);
     return -1;
   }
@@ -790,6 +790,7 @@ static int createBufferGbmVulkanCuda(struct gbm_device* gbm_dev, struct VulkanCo
   externalMemDesc.size = memReqs.size;
   externalMemDesc.flags = 0;
 
+  // CUDA takes ownership of cuda_fd and closes it before this call returns.
   CUresult cuErr = cuImportExternalMemory(extMem, &externalMemDesc);
   if (cuErr != CUDA_SUCCESS) {
     const char* errStr;
@@ -797,10 +798,8 @@ static int createBufferGbmVulkanCuda(struct gbm_device* gbm_dev, struct VulkanCo
     printf("Failed to import memory into CUDA: %s (memReqs.size=%llu)\n",
            errStr,
            (unsigned long long)memReqs.size);
-    close(cuda_fd);
     vkFreeMemory(vkCtx->device, vkMemory, nullptr);
     vkDestroyImage(vkCtx->device, vkImage, nullptr);
-    close(vulkan_fd);
     close(*dmabuf_fd);
     return -1;
   }
@@ -817,10 +816,8 @@ static int createBufferGbmVulkanCuda(struct gbm_device* gbm_dev, struct VulkanCo
     cuGetErrorString(cuErr, &errStr);
     printf("Failed to map CUDA buffer: %s\n", errStr);
     cuDestroyExternalMemory(*extMem);
-    close(cuda_fd);
     vkFreeMemory(vkCtx->device, vkMemory, nullptr);
     vkDestroyImage(vkCtx->device, vkImage, nullptr);
-    close(vulkan_fd);
     close(*dmabuf_fd);
     return -1;
   }
