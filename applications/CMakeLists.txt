@@ -67,8 +67,6 @@ add_subdirectory(gstreamer)
 
 add_subdirectory(h264)
 
-add_holohub_application(gsplat_scene_recon)
-
 add_holohub_application(high_speed_endoscopy DEPENDS
                         OPERATORS emergent_source)
 
