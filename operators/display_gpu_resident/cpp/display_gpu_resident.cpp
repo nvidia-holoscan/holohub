@@ -294,6 +294,11 @@ void DisplayGpuResidentOp::initialize_backend() {
 }
 
 void DisplayGpuResidentOp::cleanup_cudisp() {
+  if (display_ptr_location_ptr_ != nullptr) {
+    HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaFree(display_ptr_location_ptr_),
+                                   "Failed to free display_ptr_location_ptr_");
+    display_ptr_location_ptr_ = nullptr;
+  }
   if (display_ptrs_device_ != nullptr) {
     HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaFree(display_ptrs_device_),
                                    "Failed to free display_ptrs_device_");
@@ -327,13 +332,8 @@ void DisplayGpuResidentOp::stop() {
     display_init_stream_ = nullptr;
   }
   if (resize_buffer_) {
-    HOLOSCAN_CUDA_CALL_WARN(cudaFree(resize_buffer_), "Failed to free resize_buffer_");
+    HOLOSCAN_CUDA_CALL_WARN(cudaFree(resize_buffer_));
     resize_buffer_ = nullptr;
-  }
-  if (display_ptr_location_ptr_) {
-    HOLOSCAN_CUDA_CALL_WARN(cudaFree(display_ptr_location_ptr_),
-                                   "Failed to free display_ptr_location_ptr_");
-    display_ptr_location_ptr_ = nullptr;
   }
 
   cleanup_cudisp();
