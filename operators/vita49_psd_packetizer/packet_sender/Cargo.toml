@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2025 Valley Tech Systems, Inc.
+# SPDX-FileCopyrightText: 2025-2026 Valley Tech Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 [package]
@@ -16,11 +16,12 @@ license = "Apache-2.0"
 publish = false
 
 [dependencies]
-vita49 = "0.0.3"
-cxx = "1.0"
+vita49 = "0.1.0"
+cxx = "=1.0.176"
+az = "=1.2.1"
 
 [build-dependencies]
-cxx-build = "1.0"
+cxx-build = "=1.0.176"
 
 [lib]
 path = "src/packet_sender.rs"
