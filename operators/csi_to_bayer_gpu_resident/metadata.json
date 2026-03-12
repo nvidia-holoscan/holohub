@@ -25,8 +25,8 @@
 			"aarch64"
 		],
 		"tags": [
-			"Hololink",
 			"Camera",
+			"Hololink",
 			"CSI",
 			"Bayer",
 			"Image Processing",

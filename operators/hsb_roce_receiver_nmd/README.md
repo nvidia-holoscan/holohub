@@ -47,16 +47,16 @@ add_flow(receiver, next_operator, {{"output", "input"}});
 
 ## Parameters
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `hololink_channel` | DataChannel* | - | Pointer to Hololink DataChannel object |
-| `device_start` | std::function<void()> | - | Function called to start the device |
-| `device_stop` | std::function<void()> | - | Function called to stop the device |
-| `frame_context` | CUcontext | - | CUDA context for frame memory |
-| `frame_size` | size_t | - | Size of one frame in bytes |
-| `ibv_name` | string | "roceP5p3s0f0" | InfiniBand Verbs device name |
-| `ibv_port` | uint32_t | 1 | Port number of IBV device |
-| `pages` | uint32_t | 2 | Number of pages for receiver memory |
+| Parameter           | Type                    | Default          | Description                                  |
+| ------------------- | ----------------------- | ---------------- | -------------------------------------------- |
+| `hololink_channel`  | DataChannel*            | -                | Pointer to Hololink DataChannel object       |
+| `device_start`      | std::function<void()>   | -                | Function called to start the device          |
+| `device_stop`       | std::function<void()>   | -                | Function called to stop the device           |
+| `frame_context`     | CUcontext               | -                | CUDA context for frame memory                |
+| `frame_size`        | size_t                  | -                | Size of one frame in bytes                   |
+| `ibv_name`          | string                  | "roceP5p3s0f0"   | InfiniBand Verbs device name                 |
+| `ibv_port`          | uint32_t                | 1                | Port number of IBV device                    |
+| `pages`             | uint32_t                | 2                | Number of pages for receiver memory          |
 | `queue_size` | uint32_t | 1 | Number of buffers that can be queued |
 | `skip_host_metadata` | bool | false | Skip copying metadata to host |
 | `trim` | bool | false | Trim output to bytes_written |

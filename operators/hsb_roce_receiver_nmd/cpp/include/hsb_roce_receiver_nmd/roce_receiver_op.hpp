@@ -34,7 +34,7 @@ class RoceReceiverOp : public BaseReceiverOp {
  public:
     HOLOSCAN_OPERATOR_FORWARD_ARGS_SUPER(RoceReceiverOp, BaseReceiverOp);
 
-    ~RoceReceiverOp() = default;
+    ~RoceReceiverOp() override;
 
     // holoscan::Operator virtual functions
     void initialize() override;

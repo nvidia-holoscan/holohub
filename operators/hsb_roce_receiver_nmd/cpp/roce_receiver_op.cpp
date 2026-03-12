@@ -31,6 +31,10 @@
 
 namespace hololink::operators {
 
+RoceReceiverOp::~RoceReceiverOp() {
+  if (receiver_thread_ && receiver_thread_->joinable()) { receiver_thread_->join(); }
+}
+
 void RoceReceiverOp::initialize() {
   // Set default identity function if rename_metadata is not set
   if (!rename_metadata_) {
@@ -130,7 +134,7 @@ void RoceReceiverOp::start_receiver() {
     // Check boolean condition so distributed app shuts down properly
     if (boolean_condition && !boolean_condition->check_tick_enabled()) {
       HOLOSCAN_LOG_DEBUG(
-          "boolean_condition not there ir boolean condition "
+          "boolean_condition not there or boolean condition "
           "check_tick_enabled() is false, returning");
       this->frame_ready_condition_->event_state(holoscan::AsynchronousEventState::EVENT_NEVER);
       return;
@@ -167,7 +171,7 @@ void RoceReceiverOp::stop_receiver() {
   hololink_channel_->unconfigure();
   data_socket_.reset();
   receiver_->close();
-  receiver_thread_->join();
+  if (receiver_thread_ && receiver_thread_->joinable()) { receiver_thread_->join(); }
   receiver_thread_.reset();
   frame_memory_.reset();
 }

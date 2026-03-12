@@ -183,8 +183,10 @@ void DisplayGpuResidentOp::initialize() {
     throw std::runtime_error("DisplayGpuResidentOp: initial cuDispPresent failed with error " +
                              std::to_string(static_cast<int>(present_err)));
   }
-  cudaStreamSynchronize(display_init_stream_);
+  HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaStreamSynchronize(display_init_stream_),
+                                 "Failed to synchronize display init stream");
 
+  // wait for display hardware to initialize
   std::this_thread::sleep_for(std::chrono::seconds(3));
 
   initialized_ = true;

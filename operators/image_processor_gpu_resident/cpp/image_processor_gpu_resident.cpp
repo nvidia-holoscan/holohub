@@ -155,6 +155,8 @@ void ImageProcessorGpuResidentOp::initialize() {
 
   const size_t input_size = static_cast<size_t>(width_.get()) * height_.get() * sizeof(uint16_t);
   // allocate the internal buffer of the input size
+  // the internal buffer is used for in-place computation and hence, 
+  // used for both input and output
   CudaCheck(cuMemAlloc(&internal_compute_buffer_, input_size));
   spec()->device_input("in", internal_compute_buffer_);
   spec()->device_output("out", internal_compute_buffer_);
@@ -162,10 +164,16 @@ void ImageProcessorGpuResidentOp::initialize() {
 }
 
 void ImageProcessorGpuResidentOp::stop() {
+  if (!cuda_context_) {
+    return;
+  }
   hololink::common::CudaContextScopedPush cur_cuda_context(cuda_context_);
   cuda_function_launcher_.reset();
   histogram_memory_.reset();
   white_balance_gains_memory_.reset();
+  // free the internal compute buffer
+  CudaCheck(cuMemFree(internal_compute_buffer_));
+  internal_compute_buffer_ = 0;
   if (cuda_context_) {
     CudaCheck(cuDevicePrimaryCtxRelease(cuda_device_));
     cuda_context_ = nullptr;

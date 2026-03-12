@@ -588,7 +588,7 @@ int main(int argc, char** argv) {
     CudaCheck(cuDevicePrimaryCtxRelease(cu_device));
   } catch (std::exception& e) {
     std::cout << e.what() << std::endl;
-    return -1;
+    return EXIT_FAILURE;
   }
 
   return 0;

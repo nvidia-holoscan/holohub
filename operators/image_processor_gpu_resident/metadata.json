@@ -25,8 +25,8 @@
 			"aarch64"
 		],
 		"tags": [
-			"Hololink",
 			"Image Processing",
+			"Hololink",
 			"White Balance",
 			"Histogram",
 			"GPU Resident"

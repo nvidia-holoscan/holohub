@@ -222,7 +222,7 @@ void launch_display_image_gamma_corrected(cudaStream_t stream, const unsigned sh
     gamma_height = static_cast<int>(display_height);
   }
 
-  if (surface_format == 2) {
+  if (surface_format == 2) { // Placeholder for now
     displayImageRGBA16ToRGBA16Kernel<<<grid, block, 0, stream>>>(gamma_input,
                                                                  gamma_width,
                                                                  gamma_height,

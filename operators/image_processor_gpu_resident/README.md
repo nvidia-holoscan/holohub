@@ -43,13 +43,13 @@ add_flow(image_processor, next_operator, {{"out", "in"}});
 
 ## Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `width` | int32_t | Image width in pixels |
-| `height` | int32_t | Image height in pixels |
-| `pixel_format` | int | Pixel format (RAW_8=0, RAW_10=1, RAW_12=2) |
-| `bayer_format` | int | Bayer pattern (RGGB=0, GBRG=1, BGGR=2, GRBG=3) |
-| `optical_black` | int32_t | Optical black value to subtract (default: 0) |
+| Parameter         | Type      | Description                                              |
+| ----------------- | --------- | -------------------------------------------------------- |
+| `width`           | int32_t   | Image width in pixels                                    |
+| `height`          | int32_t   | Image height in pixels                                   |
+| `pixel_format`    | int       | Pixel format (RAW_8=0, RAW_10=1, RAW_12=2)               |
+| `bayer_format`    | int       | Bayer pattern (RGGB=0, GBRG=1, BGGR=2, GRBG=3)           |
+| `optical_black`   | int32_t   | Optical black value to subtract (default: 0)             |
 
 ## Processing Pipeline
 
