@@ -9,7 +9,6 @@ enable_language(CUDA)
 
 find_package(holoscan 2.5.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
-find_package(matx REQUIRED CONFIG)
 
 add_library(data_writer
   data_writer.cu
@@ -21,7 +20,7 @@ target_include_directories(data_writer INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(data_writer
   PRIVATE
     holoscan::core
-    matx::matx
+    holoscan::matx
 )
 
 install(TARGETS data_writer)

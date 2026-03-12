@@ -1,27 +1,21 @@
-# SPDX-FileCopyrightText: 2025 Valley Tech Systems, Inc.
+# SPDX-FileCopyrightText: 2025, 2026 Valley Tech Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
-ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v3.1.0-${GPU_TYPE}
+ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v4.0.0-${GPU_TYPE}
 
 FROM ${BASE_IMAGE} AS base
 
-RUN apt-get update && \
-    apt-get install -y rustc cargo && \
+RUN Cuda_Version=$(nvcc --version | sed -n 's/^.*release \([0-9]\+\.[0-9]\+\).*$/\1/p' | sed 's/\./-/g') && \
+    echo "Version:"$Cuda_Version && \
+    test -n "${Cuda_Version}" || (echo "Failed to parse CUDA version from nvcc output" >&2; exit 1) && \
+    apt-get update && \
+    apt-get install -y \
+        rustc \
+        cargo \
+        python3-numpy \
+        libcublas-dev-${Cuda_Version} \
+        libcusparse-dev-${Cuda_Version} \
+        libcurand-dev-${Cuda_Version} \
+        libcufft-dev-${Cuda_Version} \
+        libcusolver-dev-${Cuda_Version} && \
     apt-get clean
-
-ARG MATX_VERSION=0.9.0
-
-COPY applications/psd_pipeline/matx_patches /tmp/matx_patches/
-RUN mkdir /tmp/matx && \
-    cd /tmp/matx && \
-    curl -OL "https://github.com/NVIDIA/MatX/archive/refs/tags/v${MATX_VERSION}.tar.gz" && \
-    tar -xzf "v${MATX_VERSION}.tar.gz" && \
-    cd "./MatX-${MATX_VERSION}" && \
-    for p in /tmp/matx_patches/*.patch; do patch -p1 < "$p"; done && \
-    mkdir -p build && \
-    cd build && \
-    cmake .. && \
-    make && \
-    make install && \
-    cd /tmp && \
-    rm -rf /tmp/matx
