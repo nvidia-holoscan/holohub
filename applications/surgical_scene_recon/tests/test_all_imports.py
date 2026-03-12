@@ -29,8 +29,8 @@ def main():
         return 0
 
     # Import application modules
-    import surgical_scene_recon  # noqa: F401
     import run_gsharp  # noqa: F401
+    import surgical_scene_recon  # noqa: F401
     from utils import progress_monitor  # noqa: F401
 
     print("SUCCESS: imports OK")
