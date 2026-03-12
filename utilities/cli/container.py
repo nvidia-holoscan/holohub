@@ -591,6 +591,9 @@ class HoloHubContainer:
         if not self.dryrun:
             check_nvidia_ctk()
 
+        if local_sdk_root is not None:
+            local_sdk_root = Path(local_sdk_root)
+
         img = img or self.image_names[0]
         add_volumes = add_volumes or []
         extra_args = extra_args or []
@@ -863,34 +866,69 @@ class HoloHubContainer:
         return options
 
     def get_pythonpath_options(
-        self, local_sdk_root: Optional[Path], img: Optional[str] = None
+        self, local_sdk_root: Optional[Union[str, Path]], img: Optional[str] = None
     ) -> List[str]:
-        """Get PYTHONPATH configuration"""
+        """Build the PYTHONPATH docker environment flag for the container.
+
+        Merges paths from three sources (SDK python lib, benchmarking dir, and
+        any paths already baked into the Docker image) into a single,
+        deduplicated PYTHONPATH value.
+
+        When a local SDK is in use (via *local_sdk_root* or ``HOLOSCAN_SDK_ROOT``),
+        its paths are placed **before** the image paths so the locally-built
+        ``holoscan`` package is imported instead of the one shipped in the base image.
+        """
+        using_local_sdk = bool(local_sdk_root or os.environ.get("HOLOSCAN_SDK_ROOT"))
         benchmarking_path = f"/workspace/{self.WORKSPACE_NAME}/{self.BENCHMARKING_SUBDIR}"
 
-        if local_sdk_root or os.environ.get("HOLOSCAN_SDK_ROOT"):
+        # Resolve SDK python/lib path
+        if using_local_sdk:
             sdk_dir = find_hsdk_build_rel_dir(local_sdk_root)
-            root = local_sdk_root or Path(os.environ["HOLOSCAN_SDK_ROOT"])
+            root = Path(local_sdk_root) if local_sdk_root else Path(os.environ["HOLOSCAN_SDK_ROOT"])
             if not Path(sdk_dir).is_absolute() and not is_valid_sdk_installation(root / sdk_dir):
                 arch_gpu = get_arch_gpu_str()
                 info(
                     f"Valid SDK installation not found."
                     f" Looking for 'install-{arch_gpu}' or 'build-{arch_gpu}'."
                 )
-            sdk_paths = f"/workspace/holoscan-sdk/{sdk_dir}/python/lib:{benchmarking_path}"
+            if Path(sdk_dir).is_absolute():
+                sdk_python_lib = "/workspace/holoscan-sdk/python/lib"
+            else:
+                sdk_python_lib = f"/workspace/holoscan-sdk/{sdk_dir}/python/lib"
         else:
-            sdk_paths = f"{self.SDK_PATH}/python/lib:{benchmarking_path}"
-        all_paths = []
+            sdk_python_lib = f"{self.SDK_PATH}/python/lib"
+
+        image_paths = []
         if img:
             image_pythonpath = get_image_pythonpath(img, self.dryrun)
             if image_pythonpath:
-                all_paths.extend([p for p in image_pythonpath.split(":") if p])
-        all_paths.extend([p for p in sdk_paths.split(":") if p and p not in all_paths])
-        pythonpath = ":".join(all_paths)
-        return ["-e", f"PYTHONPATH={pythonpath}"]
+                image_paths = [p for p in image_pythonpath.split(":") if p]
 
-    def get_local_sdk_options(self, local_sdk_root: Path) -> List[str]:
+        # Local SDK paths first (if configured);
+        # then image paths (preserving upstream defaults) and benchmarking path.
+        if using_local_sdk:
+            primary, secondary = [sdk_python_lib], image_paths
+        else:
+            primary, secondary = image_paths, [sdk_python_lib]
+
+        all_paths = list(primary)
+        all_paths.extend(p for p in secondary if p not in all_paths)
+        if benchmarking_path not in all_paths:
+            all_paths.append(benchmarking_path)
+        return ["-e", f"PYTHONPATH={':'.join(all_paths)}"]
+
+    def get_local_sdk_options(self, local_sdk_root: Optional[Union[str, Path]]) -> List[str]:
         """Get Holoscan SDK-related options"""
+        if local_sdk_root is None:
+            env_root = os.environ.get("HOLOSCAN_SDK_ROOT")
+            if not env_root:
+                fatal(
+                    "Local Holoscan SDK root is not specified. "
+                    "Please provide --local-sdk-root or set the HOLOSCAN_SDK_ROOT environment variable."
+                )
+            local_sdk_root = Path(env_root)
+        else:
+            local_sdk_root = Path(local_sdk_root)
         build_dir = find_hsdk_build_rel_dir(local_sdk_root)
         if not Path(build_dir).is_absolute() and not is_valid_sdk_installation(
             local_sdk_root / build_dir
@@ -900,11 +938,15 @@ class HoloHubContainer:
                 f"Valid SDK installation not found."
                 f" Looking for 'install-{arch_gpu}' or 'build-{arch_gpu}'."
             )
+        if Path(build_dir).is_absolute():
+            lib_path = "/workspace/holoscan-sdk/lib"
+        else:
+            lib_path = f"/workspace/holoscan-sdk/{build_dir}/lib"
         return [
             "-v",
             f"{local_sdk_root}:/workspace/holoscan-sdk",
             "-e",
-            f"HOLOSCAN_LIB_PATH=/workspace/holoscan-sdk/{build_dir}/lib",
+            f"HOLOSCAN_LIB_PATH={lib_path}",
             "-e",
             "HOLOSCAN_SAMPLE_DATA_PATH=/workspace/holoscan-sdk/data",
             "-e",
