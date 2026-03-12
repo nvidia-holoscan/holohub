@@ -314,7 +314,7 @@ def check_holoscan_python() -> CheckResult:
     except subprocess.TimeoutExpired:
         return CheckResult(
             status="WARN",
-            name="HSDK Python",
+            name="Holoscan SDK Python",
             message="import holoscan timed out (>15s)",
         )
 
@@ -323,7 +323,7 @@ def check_holoscan_python() -> CheckResult:
         short_err = err[-1] if err else "unknown error"
         return CheckResult(
             status="WARN",
-            name="HSDK Python",
+            name="Holoscan SDK Python",
             message=f"import holoscan failed ({short_err})",
         )
 
@@ -333,7 +333,7 @@ def check_holoscan_python() -> CheckResult:
     pkg_dir = str(Path(location).parent) if location != "unknown" else "unknown"
     return CheckResult(
         status="OK",
-        name="HSDK Python",
+        name="Holoscan SDK Python",
         message=f"{version} ({pkg_dir})",
     )
 
@@ -477,7 +477,7 @@ def run_all_checks() -> List[CheckResult]:
         ("CUDA", check_cuda),
         ("Docker", check_docker),
         ("Holoscan", check_holoscan),
-        ("HSDK Python", check_holoscan_python),
+        ("Holoscan SDK Python", check_holoscan_python),
         ("Disk", check_disk),
         ("CLI", check_cli),
         ("Container", check_container),
@@ -517,21 +517,21 @@ def format_results(results: List[CheckResult], elapsed: float) -> str:
 
     for r in results:
         prefix = status_formats.get(r.status, f"[{r.status}]")
-        name_padded = f"{r.name:<12}"
+        name_padded = f"{r.name:<20}"
         lines.append(f"  {prefix} {name_padded} {r.message}")
 
         if r.details:
             for detail_line in r.details.split("\n"):
-                lines.append(f"                     {detail_line}")
+                lines.append(f"                             {detail_line}")
 
         if r.status == "FAIL":
             fail_count += 1
             if r.fix_suggestion:
-                lines.append(f"                     Fix: {Color.yellow(r.fix_suggestion)}")
+                lines.append(f"                             Fix: {Color.yellow(r.fix_suggestion)}")
         elif r.status == "WARN":
             warn_count += 1
             if r.fix_suggestion:
-                lines.append(f"                     Hint: {Color.yellow(r.fix_suggestion)}")
+                lines.append(f"                             Hint: {Color.yellow(r.fix_suggestion)}")
 
     lines.append("")
 
