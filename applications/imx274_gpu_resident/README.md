@@ -40,9 +40,9 @@ You can simply run application with the following command from the repository ro
 ```
 
 This will build and launch the development container, build the operators and build and run the application.
-For more details on using the CLI, see the [Holohub CLI Reference Guide](../../utilities/cli/cli_reference.md).
+For more details on using the Holohub CLI, see the [Holohub CLI Reference Guide](../../utilities/cli/cli_reference.md).
 
-For comprehensive, step-by-step instructions to build and run the application, refer to the [Detailed Build and Run Instructions](#detailed-build-and-run-instructions).
+For step-by-step instructions for building and running the application, refer to the [Detailed Build and Run Instructions](#detailed-build-and-run-instructions).
 
 ## Requirements
 

@@ -23,17 +23,17 @@
 			"aarch64"
 		],
 		"tags": [
+			"Holoscan Sensor Bridge",
 			"Hololink",
 			"Camera",
 			"IMX274",
 			"GPU Resident",
-			"Sensor Bridge",
 			"RDMA",
 			"Deterministic",
 			"Predictable",
 			"Low-jitter"
 		],
-		"ranking": 1,
+		"ranking": 2,
 		"requirements": {
 			"hardware": [
 				{
