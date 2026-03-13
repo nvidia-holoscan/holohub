@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+# G-SHARP Scene Reconstruction — Phase 1 Configuration
+#
+# Override defaults for streaming inference operators.
+# Required paths (--images, --output, --da2-root, etc.) are passed via CLI.
+
+depth_anything_v2:
+  encoder: "vits"
+  max_depth: 20.0
+  input_size: 518
+
+medsam3:
+  text_prompt: "surgical tool"
+  score_threshold: 0.3
+  max_masks: 0
+  mask_value: 255
+
+overlay:
+  depth_colormap: "turbo"
+  mask_overlay_alpha: 0.4

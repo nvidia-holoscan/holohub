@@ -67,18 +67,24 @@ add_subdirectory(gstreamer)
 
 add_subdirectory(h264)
 
-add_holohub_application(isaac_sim_holoscan_bridge)
-
 add_holohub_application(high_speed_endoscopy DEPENDS
                         OPERATORS emergent_source)
 
 add_holohub_application(holocat)
+
+add_holohub_application(isaac_sim_holoscan_bridge)
 
 add_subdirectory(holoscan_ros2)
 
 add_subdirectory(holoviz)
 
 add_holohub_application(imaging_ai_segmentator)
+
+add_holohub_application(imx274_gpu_resident DEPENDS
+                        OPERATORS hsb_roce_receiver_nmd
+                                  csi_to_bayer_gpu_resident
+                                  image_processor_gpu_resident
+                                  display_gpu_resident)
 
 add_holohub_application(hyperspectral_segmentation)
 

@@ -1,0 +1,39 @@
+{
+	"operator": {
+		"name": "RoceReceiverOpNmd",
+		"description": "Operator for receiving video frames over RoCE (RDMA over Converged Ethernet) directly to GPU memory. In addition to the Holoscan Sensor Bridge (v2.5) implementation, this operator provides an option to skip copying metadata from the device memory to the host memory. This is useful for GPU-resident processing pipelines.",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": [
+			"C++"
+		],
+		"version": "0.1.0",
+		"changelog": {
+			"0.1.0": "Initial Release - migrated from hololink repository"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "4.0.0",
+			"tested_versions": [
+				"4.0.0"
+			]
+		},
+		"platforms": [
+			"aarch64"
+		],
+		"tags": [
+			"Holoscan Sensor Bridge",
+			"RoCE",
+			"RDMA",
+			"Video Receiver",
+			"GPU Direct"
+		],
+		"ranking": 1,
+		"requirements": {
+			"holoscan_sensor_bridge": "Requires Holoscan Sensor Bridge library to be installed"
+		}
+	}
+}
