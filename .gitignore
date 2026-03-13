@@ -30,9 +30,12 @@ ci/
 *.tar.xz
 *.tar.bz2
 *.tar.7z
+*.pt
+*.pth
 
 # Development environment
 .venv/
+.venv_lint/
 .vscode-server/
 .vscode/
 ngc-cli/
