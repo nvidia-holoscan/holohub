@@ -30,6 +30,7 @@ Architecture:
 """
 
 import json
+import logging
 import math
 import os
 from collections import defaultdict
@@ -56,6 +57,8 @@ from utils.image_utils import psnr
 
 # Local imports
 from utils.loss_utils import TV_loss, l1_loss, lpips_loss, ssim
+
+logger = logging.getLogger(__name__)
 
 # ============================================================================
 # Configuration
@@ -738,15 +741,15 @@ class EndoRunner:
         opacities_raw = self.splats["opacities"]  # [N,] in logit space
 
         # Phase 6: Apply deformation ONLY in fine stage
-        # Debug: Check deformation conditions (only in fine stage)
         if stage == "fine" and not hasattr(self, "_deform_cond_logged"):
-            print("\n[DEBUG] Deformation conditions (fine stage):")
-            print(f"  stage={stage}")
-            print(f"  time_idx={time_idx}")
-            print(f"  time_idx is not None: {time_idx is not None}")
-            print(f"  hasattr deform_net: {hasattr(self, 'deform_net')}")
-            print(
-                f"  deform_net is not None: {hasattr(self, 'deform_net') and self.deform_net is not None}"
+            logger.debug(
+                "Deformation conditions (fine stage): stage=%s, time_idx=%s, "
+                "time_idx is not None=%s, has deform_net=%s, deform_net is not None=%s",
+                stage,
+                time_idx,
+                time_idx is not None,
+                hasattr(self, "deform_net"),
+                hasattr(self, "deform_net") and self.deform_net is not None,
             )
             self._deform_cond_logged = True
 
@@ -782,38 +785,38 @@ class EndoRunner:
                 times_sel=time_expanded[deform_mask],
             )
 
-            # Debug: Check deformation output shapes and values
             if not hasattr(self, "_deform_debug_logged"):
-                print("\n[DEBUG] Deformation output shapes (first call):")
-                print(
-                    f"  means_deformed: {means_deformed.shape}, range: [{means_deformed.min():.3f}, {means_deformed.max():.3f}]"
-                )
-                print(
-                    f"  scales_deformed: {scales_deformed.shape}, range: [{scales_deformed.min():.3f}, {scales_deformed.max():.3f}]"
-                )
-                print(
-                    f"  quats_deformed: {quats_deformed.shape}, range: [{quats_deformed.min():.3f}, {quats_deformed.max():.3f}]"
-                )
-                print(
-                    f"  opacities_deformed: {opacities_deformed.shape}, range: [{opacities_deformed.min():.3f}, {opacities_deformed.max():.3f}]"
-                )
-                print(f"  time_expanded shape: {time_expanded.shape}, sample: {time_expanded[0]}")
-                print(f"  deform_mask sum: {deform_mask.sum()}/{N}")
-
-                # Check for NaN/Inf
-                print(f"  NaN in means: {torch.isnan(means_deformed).any()}")
-                print(f"  NaN in scales: {torch.isnan(scales_deformed).any()}")
-                print(f"  NaN in quats: {torch.isnan(quats_deformed).any()}")
-                print(f"  NaN in opacities: {torch.isnan(opacities_deformed).any()}")
-
-                # Check activated values
                 scales_activated = torch.exp(scales_deformed)
                 opacities_activated = torch.sigmoid(opacities_deformed)
-                print(
-                    f"  scales_activated range: [{scales_activated.min():.6f}, {scales_activated.max():.6f}]"
-                )
-                print(
-                    f"  opacities_activated range: [{opacities_activated.min():.6f}, {opacities_activated.max():.6f}]"
+                logger.debug(
+                    "Deformation output shapes (first call): means_deformed %s [%.3f, %.3f], "
+                    "scales_deformed %s [%.3f, %.3f], quats_deformed %s [%.3f, %.3f], "
+                    "opacities_deformed %s [%.3f, %.3f]; time_expanded %s; deform_mask sum %s/%s; "
+                    "NaN means=%s scales=%s quats=%s opacities=%s; "
+                    "scales_activated [%.6f, %.6f], opacities_activated [%.6f, %.6f]",
+                    means_deformed.shape,
+                    means_deformed.min().item(),
+                    means_deformed.max().item(),
+                    scales_deformed.shape,
+                    scales_deformed.min().item(),
+                    scales_deformed.max().item(),
+                    quats_deformed.shape,
+                    quats_deformed.min().item(),
+                    quats_deformed.max().item(),
+                    opacities_deformed.shape,
+                    opacities_deformed.min().item(),
+                    opacities_deformed.max().item(),
+                    time_expanded.shape,
+                    deform_mask.sum().item(),
+                    N,
+                    torch.isnan(means_deformed).any().item(),
+                    torch.isnan(scales_deformed).any().item(),
+                    torch.isnan(quats_deformed).any().item(),
+                    torch.isnan(opacities_deformed).any().item(),
+                    scales_activated.min().item(),
+                    scales_activated.max().item(),
+                    opacities_activated.min().item(),
+                    opacities_activated.max().item(),
                 )
                 self._deform_debug_logged = True
 
@@ -939,16 +942,20 @@ class EndoRunner:
             # Monocular: Pearson correlation loss
             rendered_flat = rendered_depth.reshape(-1, 1)
             gt_flat = gt_depth.reshape(-1, 1)
-            mask_flat = mask.reshape(-1)
-
-            rendered_masked = rendered_flat[mask_flat != 0, :]
-            gt_masked = gt_flat[mask_flat != 0, :]
+            if mask is not None:
+                mask_flat = mask.reshape(-1)
+                rendered_masked = rendered_flat[mask_flat != 0, :]
+                gt_masked = gt_flat[mask_flat != 0, :]
+            else:
+                rendered_masked = rendered_flat
+                gt_masked = gt_flat
 
             if rendered_masked.numel() == 0 or gt_masked.numel() == 0:
                 return torch.tensor(0.0, device=self.device)
 
             corr = pearson_corrcoef(gt_masked, rendered_masked)
-            return self.cfg.pearson_lambda * (1.0 - corr)
+            # Return unscaled; caller applies pearson_lambda once (avoid double weight with depth_lambda)
+            return 1.0 - corr
         else:
             raise ValueError(f"Unknown depth mode: {mode}")
 
@@ -1020,13 +1027,6 @@ class EndoRunner:
         if stage == "coarse":
             _ = cfg.opacity_threshold_coarse  # opacity_threshold (unused)
             _ = cfg.densify_grad_threshold_coarse  # densify_threshold (unused)
-        else:
-            # Fine stage has decaying thresholds
-            opacity_threshold_init = cfg.opacity_threshold_fine_init
-            opacity_threshold_after = cfg.opacity_threshold_fine_after
-            densify_threshold_init = cfg.densify_grad_threshold_fine_init
-            densify_threshold_after = cfg.densify_grad_threshold_after
-
         # Training loop
         trainloader_iter = iter(trainloader)
         pbar = tqdm.tqdm(range(num_iterations), desc=f"{stage.capitalize()} stage")
@@ -1057,13 +1057,14 @@ class EndoRunner:
             time = data["time"].to(device) if "time" in data else None  # [B]
 
             # ===== PRIORITY 4: Apply mask to GT (SurgicalGaussian approach) =====
-            # This is CRITICAL to prevent network from learning tool appearance!
-            # Masks applied to BOTH GT and rendered images so they're in same space.
-            # CONFIGURABLE: Only if use_masks=True
+            # RGB: always zero tool regions when use_masks so network does not learn tool appearance.
+            # Depth: zero tool regions only when NOT depth_supervise_tools (when True, keep depth
+            # everywhere for 3D structure; depth_mask=None is passed to compute_depth_loss).
             if cfg.use_masks:
                 mask_expanded = mask.unsqueeze(-1)  # [B, H, W, 1]
                 image_gt = image_gt * mask_expanded  # Zero out tool regions in GT
-                depth_gt = depth_gt * mask  # Zero out tool depth in GT
+                if not cfg.depth_supervise_tools:
+                    depth_gt = depth_gt * mask  # Zero out tool depth when not supervising tools
             else:
                 # Full scene mode: Don't mask GT, reconstruct everything
                 mask_expanded = torch.ones_like(mask).unsqueeze(-1)  # All ones (no masking)
@@ -1270,10 +1271,11 @@ class EndoRunner:
                         + cfg.l1_time_planes_weight * l1_time
                     )
 
-            # Total loss
+            # Total loss (monocular: use pearson_lambda; binocular: use depth_lambda)
+            depth_weight = cfg.pearson_lambda if cfg.depth_mode == "monocular" else cfg.depth_lambda
             loss = (
                 l1_loss_val
-                + cfg.depth_lambda * depth_loss_val
+                + depth_weight * depth_loss_val
                 + tv_loss_val
                 + ssim_loss_val
                 + lpips_loss_val
@@ -1319,16 +1321,13 @@ class EndoRunner:
 
             # ===== Post-backward: Densification =====
 
-            # Update densification thresholds for fine stage
-            if stage == "fine":
-                # Threshold scheduling (currently unused but kept for future use)
-                progress = step / num_iterations
-                _ = opacity_threshold_init - progress * (
-                    opacity_threshold_init - opacity_threshold_after
-                )
-                _ = densify_threshold_init - progress * (
-                    densify_threshold_init - densify_threshold_after
-                )
+            # Threshold scheduling — reserved for future adaptive-threshold support.
+            # To activate: compute opacity_th/densify_th from progress and pass to
+            # strategy.step_post_backward (if the strategy accepts overrides).
+            # if stage == "fine":
+            #     progress = step / num_iterations
+            #     opacity_th = cfg.opacity_threshold_fine_init - progress * (cfg.opacity_threshold_fine_init - cfg.opacity_threshold_fine_after)
+            #     densify_th = cfg.densify_grad_threshold_fine_init - progress * (cfg.densify_grad_threshold_fine_init - cfg.densify_grad_threshold_after)
 
             # Track Gaussian count before densification
             num_gs_before = len(self.splats["means"]) if hasattr(self, "splats") else 0
@@ -1461,6 +1460,26 @@ class EndoRunner:
             "splats": self.splats.state_dict(),
             "optimizers": {k: v.state_dict() for k, v in self.optimizers.items()},
             "strategy_state": self.strategy_state,
+        }
+
+        # Save deformation config so viewer loads correct architecture
+        data["config"] = {
+            "bounds": self.cfg.bounds,
+            "kplanes_config": self.cfg.kplanes_config,
+            "multires": self.cfg.multires,
+            "no_grid": self.cfg.no_grid,
+            "no_dx": self.cfg.no_dx,
+            "no_ds": self.cfg.no_ds,
+            "no_dr": self.cfg.no_dr,
+            "no_do": self.cfg.no_do,
+            "net_width": self.cfg.net_width,
+            "timebase_pe": self.cfg.timebase_pe,
+            "defor_depth": self.cfg.defor_depth,
+            "posebase_pe": self.cfg.posebase_pe,
+            "scale_rotation_pe": self.cfg.scale_rotation_pe,
+            "opacity_pe": self.cfg.opacity_pe,
+            "timenet_width": self.cfg.timenet_width,
+            "timenet_output": self.cfg.timenet_output,
         }
 
         # Add best PSNR tracking info
@@ -1614,11 +1633,13 @@ class EndoRunner:
 
                 height, width = mask.shape
 
-                # Project Gaussians to 2D
-                means_2d = project_gaussians_to_image(means, c2w, K)  # [N, 2]
+                # Project Gaussians to 2D (exclude behind-camera points from tool classification)
+                means_2d, in_front = project_gaussians_to_image(means, c2w, K)  # [N, 2], [N]
 
                 # Check which are in tool regions
-                in_tool = check_gaussians_in_tool_region(means_2d, mask, width, height)  # [N]
+                in_tool = check_gaussians_in_tool_region(
+                    means_2d, mask, width, height, in_front=in_front
+                )  # [N]
 
                 # Accumulate hits
                 tool_region_hits += in_tool.int()
@@ -1652,8 +1673,8 @@ def project_gaussians_to_image(
     means: Tensor,
     c2w: Tensor,
     K: Tensor,
-) -> Tensor:
-    """Project 3D Gaussian means to 2D image coordinates
+) -> tuple[Tensor, Tensor]:
+    """Project 3D Gaussian means to 2D image coordinates.
 
     Args:
         means: Gaussian positions in world space [N, 3]
@@ -1662,6 +1683,7 @@ def project_gaussians_to_image(
 
     Returns:
         means_2d: 2D image coordinates [N, 2] (u, v)
+        in_front: Boolean [N], True where the point is in front of the camera (z > 0)
     """
     # Convert to homogeneous coordinates [N, 4]
     N = means.shape[0]
@@ -1676,23 +1698,19 @@ def project_gaussians_to_image(
     y = means_cam[:, 1]  # [N]
     z = means_cam[:, 2]  # [N]
 
-    # Project to image plane
-    # u = fx * x/z + cx
-    # v = fy * y/z + cy
+    in_front = z > 0
+
+    # Project to image plane (use safe z only for division; behind-camera points get finite but invalid coords)
     fx = K[0, 0]
     fy = K[1, 1]
     cx = K[0, 2]
     cy = K[1, 2]
-
-    # Avoid division by zero
     z_safe = torch.clamp(z, min=1e-6)
-
     u = fx * (x / z_safe) + cx
     v = fy * (y / z_safe) + cy
-
     means_2d = torch.stack([u, v], dim=-1)  # [N, 2]
 
-    return means_2d
+    return means_2d, in_front
 
 
 def check_gaussians_in_tool_region(
@@ -1700,14 +1718,16 @@ def check_gaussians_in_tool_region(
     mask: Tensor,
     width: int,
     height: int,
+    in_front: Tensor | None = None,
 ) -> Tensor:
-    """Check which Gaussians project into tool regions
+    """Check which Gaussians project into tool regions.
 
     Args:
         means_2d: 2D image coordinates [N, 2] (u, v)
         mask: Tool mask [H, W] where 0=tool, 1=tissue
         width: Image width
         height: Image height
+        in_front: Optional [N] boolean; only Gaussians with True count as in-frame (excludes behind-camera).
 
     Returns:
         in_tool: Boolean tensor [N] indicating if Gaussian is in tool region
@@ -1720,13 +1740,15 @@ def check_gaussians_in_tool_region(
     u_int = u.long()
     v_int = v.long()
 
-    # Check if out of bounds (will be marked as not in tool region)
+    # Check if in frame: image bounds and (if provided) in front of camera
     valid_mask = (
         (means_2d[:, 0] >= 0)
         & (means_2d[:, 0] < width)
         & (means_2d[:, 1] >= 0)
         & (means_2d[:, 1] < height)
     )
+    if in_front is not None:
+        valid_mask = valid_mask & in_front
 
     # Look up mask values: 0 = tool, 1 = tissue
     # mask shape is [H, W], access as mask[v, u]
