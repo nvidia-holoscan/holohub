@@ -23,11 +23,12 @@
 """
 EndoNeRF and SCARED dataset loaders for surgical scene reconstruction.
 MIT-licensed implementation derived from EndoGaussian project.
+
+Provenance: Kept in-tree (training/scene/) because upstream EndoGaussian does not
+publish an installable loader package; this code is adapted to our pipeline's
+EndoNeRF format and imports (scene.cameras, utils.graphics_utils). Not a bundled
+third-party library—derived implementation under the stated license.
 """
-
-import warnings
-
-warnings.filterwarnings("ignore")
 
 import glob  # noqa: E402
 import json  # noqa: E402
@@ -69,11 +70,11 @@ class CameraInfo(NamedTuple):
 
 
 class EndoNeRF_Dataset(object):
+    """EndoNeRF dataset. Use mode='binocular' for pipeline output (depth/ only; no monodepth/)."""
+
     def __init__(self, datadir, downsample=1.0, test_every=8, mode="binocular"):
-        self.img_wh = (
-            int(640 / downsample),
-            int(512 / downsample),
-        )
+        # img_wh will be set in load_meta() from poses_bounds.npy
+        self.img_wh = None
         self.root_dir = datadir
         self.downsample = downsample
         self.blender2opencv = np.eye(4)
@@ -95,59 +96,25 @@ class EndoNeRF_Dataset(object):
         """
         Load meta data from the dataset.
         """
-
-        # get paths of images, depths, masks first to determine frame count
-        def get_file_paths(filetype):
-            """Get sorted list of PNG files for a given data type."""
-            return sorted(glob.glob(os.path.join(self.root_dir, filetype, "*.png")))
-
-        self.image_paths = get_file_paths("images")
-        if self.mode == "binocular":
-            self.depth_paths = get_file_paths("depth")
-        elif self.mode == "monocular":
-            self.depth_paths = get_file_paths("monodepth")
-        else:
-            raise ValueError(f"{self.mode} has not been implemented.")
-        self.masks_paths = get_file_paths("masks")
-
         # load poses
         poses_arr = np.load(os.path.join(self.root_dir, "poses_bounds.npy"))
         poses = poses_arr[:, :-2].reshape([-1, 3, 5])  # (N_cams, 3, 5)
-
-        # determine usable frame count (minimum across all data sources)
-        num_poses = poses.shape[0]
-        num_images = len(self.image_paths)
-        num_depths = len(self.depth_paths)
-        num_masks = len(self.masks_paths)
-        usable_frames = min(num_poses, num_images, num_depths, num_masks)
-
-        if usable_frames == 0:
-            raise ValueError(
-                f"No usable frames: images={num_images}, depths={num_depths}, "
-                f"masks={num_masks}, poses={num_poses}. "
-                f"Check dataset directory: {self.root_dir}"
-            )
-
-        if usable_frames < max(num_poses, num_images, num_depths, num_masks):
-            print(
-                f"WARNING: Data source count mismatch. "
-                f"images={num_images}, depths={num_depths}, "
-                f"masks={num_masks}, poses={num_poses}. "
-                f"Using first {usable_frames} frames. "
-                f"Verify your dataset directory: {self.root_dir}"
-            )
-
-        # truncate all data to usable frame count
-        self.image_paths = self.image_paths[:usable_frames]
-        self.depth_paths = self.depth_paths[:usable_frames]
-        self.masks_paths = self.masks_paths[:usable_frames]
-        poses = poses[:usable_frames]
-
         # coordinate transformation OpenGL->Colmap, center poses
         H, W, focal = poses[0, :, -1]
+
+        # Set image dimensions from poses_bounds.npy (not hardcoded)
+        self.img_wh = (
+            int(W / self.downsample),
+            int(H / self.downsample),
+        )
+
         focal = focal / self.downsample
         self.focal = (focal, focal)
-        self.K = np.array([[focal, 0, W // 2], [0, focal, H // 2], [0, 0, 1]]).astype(np.float32)
+        W_ds, H_ds = self.img_wh  # Use downsampled dimensions for K
+        self.K = np.array([[focal, 0, W_ds // 2], [0, focal, H_ds // 2], [0, 0, 1]]).astype(
+            np.float32
+        )
+        # poses = np.concatenate([poses[..., :1], -poses[..., 1:2], -poses[..., 2:3], poses[..., 3:4]], -1)
         poses = np.concatenate(
             [poses[..., :1], poses[..., 1:2], poses[..., 2:3], poses[..., 3:4]], -1
         )
@@ -165,7 +132,35 @@ class EndoNeRF_Dataset(object):
             self.image_poses.append((R, T))
             self.image_times.append(idx / poses.shape[0])
 
-        print(f"Using {usable_frames} frames")
+        # get paths of images, depths, masks, etc.
+        def get_file_paths(filetype):
+            """Get sorted list of PNG files for a given data type."""
+            return sorted(glob.glob(os.path.join(self.root_dir, filetype, "*.png")))
+
+        self.image_paths = get_file_paths("images")
+        if self.mode == "binocular":
+            self.depth_paths = get_file_paths("depth")
+        elif self.mode == "monocular":
+            self.depth_paths = get_file_paths("monodepth")
+            if len(self.depth_paths) == 0:
+                raise ValueError(
+                    "Monocular depth mode expects a 'monodepth/' subdirectory, but none was "
+                    "found. This pipeline's format_conversion.py only writes 'depth/' "
+                    "(binocular layout). Use mode='binocular' for pipeline-generated datasets."
+                )
+        else:
+            raise ValueError(f"{self.mode} has not been implemented.")
+        self.masks_paths = get_file_paths("masks")
+
+        assert (
+            len(self.image_paths) == poses.shape[0]
+        ), "the number of images should equal to the number of poses"
+        assert (
+            len(self.depth_paths) == poses.shape[0]
+        ), "the number of depth images should equal to number of poses"
+        assert (
+            len(self.masks_paths) == poses.shape[0]
+        ), "the number of masks should equal to the number of poses"
 
     def format_infos(self, split):
         cameras = []
@@ -539,7 +534,11 @@ class SCARED_Dataset(object):
                 color, depth, mask = self.rgbs[idx], self.depths[idx], self.masks[idx]
                 if self.mode == "binocular":
                     mask = np.logical_and(
-                        mask, (depth > self.depth_near_thresh), (depth < self.depth_far_thresh)
+                        mask,
+                        np.logical_and(
+                            depth > self.depth_near_thresh,
+                            depth < self.depth_far_thresh,
+                        ),
                     )
                 pts, colors, _ = self.get_pts_cam(depth, mask, color, disable_mask=False)
                 pts = self.get_pts_wld(pts, self.pose_mat[idx])
