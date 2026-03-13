@@ -508,6 +508,20 @@ def get_arch_gpu_str() -> str:
     return arch
 
 
+def get_sdk_version(sdk_path: Path) -> str:
+    """Extract Holoscan SDK version from a valid SDK installation path."""
+    version_file = sdk_path / "VERSION"
+    if version_file.exists():
+        return version_file.read_text().strip()
+    cmake_config = sdk_path / "lib" / "cmake" / "holoscan" / "holoscan-config-version.cmake"
+    if cmake_config.exists():
+        content = cmake_config.read_text()
+        match = re.search(r'PACKAGE_VERSION\s+"([^"]+)"', content)
+        if match:
+            return match.group(1)
+    return "unknown"
+
+
 def is_valid_sdk_installation(path: Union[str, Path]) -> bool:
     """
     Validate if a directory contains a valid Holoscan SDK installation.

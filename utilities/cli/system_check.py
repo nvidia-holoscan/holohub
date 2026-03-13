@@ -33,6 +33,7 @@ from .util import (
     get_git_short_sha,
     get_gpu_name,
     get_holohub_root,
+    get_sdk_version,
     is_running_in_docker,
     is_valid_sdk_installation,
     run_info_command,
@@ -245,33 +246,19 @@ def check_docker() -> CheckResult:
     return CheckResult(status=status, name="Docker", message=" + ".join(parts), fix_suggestion=fix)
 
 
-def _get_sdk_version(sdk_path: Path) -> str:
-    """Extract Holoscan SDK version from a valid SDK installation path."""
-    version_file = sdk_path / "VERSION"
-    if version_file.exists():
-        return version_file.read_text().strip()
-    cmake_config = sdk_path / "lib" / "cmake" / "holoscan" / "holoscan-config-version.cmake"
-    if cmake_config.exists():
-        content = cmake_config.read_text()
-        match = re.search(r'PACKAGE_VERSION\s+"([^"]+)"', content)
-        if match:
-            return match.group(1)
-    return "unknown"
-
-
 def check_holoscan() -> CheckResult:
     """Check Holoscan SDK availability"""
     sdk_dir = os.environ.get("HOLOHUB_DEFAULT_HSDK_DIR", "/opt/nvidia/holoscan")
     sdk_path = Path(sdk_dir)
     if sdk_path.exists() and is_valid_sdk_installation(sdk_path):
-        version = _get_sdk_version(sdk_path)
+        version = get_sdk_version(sdk_path)
         return CheckResult(status="OK", name="Holoscan", message=f"SDK {version} at {sdk_dir}")
 
     sdk_root = os.environ.get("HOLOSCAN_SDK_ROOT")
     if sdk_root:
         root_path = Path(sdk_root)
         if root_path.exists() and is_valid_sdk_installation(root_path):
-            version = _get_sdk_version(root_path)
+            version = get_sdk_version(root_path)
             return CheckResult(status="OK", name="Holoscan", message=f"SDK {version} at {sdk_root}")
         if root_path.exists():
             resolved = find_hsdk_build_rel_dir(root_path)
@@ -279,7 +266,7 @@ def check_holoscan() -> CheckResult:
                 root_path / resolved if not Path(resolved).is_absolute() else Path(resolved)
             )
             if resolved_path.exists() and is_valid_sdk_installation(resolved_path):
-                version = _get_sdk_version(resolved_path)
+                version = get_sdk_version(resolved_path)
                 return CheckResult(
                     status="OK",
                     name="Holoscan",

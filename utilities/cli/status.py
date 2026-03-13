@@ -18,7 +18,6 @@
 
 import json
 import os
-import re
 import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -30,6 +29,7 @@ from .util import (
     get_gpu_name,
     get_host_arch,
     get_host_gpu,
+    get_sdk_version,
     run_info_command,
 )
 
@@ -77,20 +77,8 @@ def collect_platform_info() -> PlatformInfo:
     gpu_name = get_gpu_name()
     cuda_version = get_default_cuda_version()
 
-    sdk_dir = os.environ.get("HOLOHUB_DEFAULT_HSDK_DIR", "/opt/nvidia/holoscan")
-    holoscan_version = "not found"
-    version_file = Path(sdk_dir) / "VERSION"
-    if version_file.exists():
-        holoscan_version = version_file.read_text().strip()
-    else:
-        cmake_config = (
-            Path(sdk_dir) / "lib" / "cmake" / "holoscan" / "holoscan-config-version.cmake"
-        )
-        if cmake_config.exists():
-            content = cmake_config.read_text()
-            match = re.search(r'PACKAGE_VERSION\s+"([^"]+)"', content)
-            if match:
-                holoscan_version = match.group(1)
+    sdk_path = Path(os.environ.get("HOLOHUB_DEFAULT_HSDK_DIR", "/opt/nvidia/holoscan"))
+    holoscan_version = get_sdk_version(sdk_path)
 
     return PlatformInfo(
         arch=arch,
@@ -143,7 +131,7 @@ def collect_folder_info(paths: List[Path]) -> List[FolderInfo]:
 def collect_container_info() -> List[ContainerInfo]:
     containers = []
     container_prefix = os.environ.get("HOLOHUB_REPO_PREFIX", "holohub")
-    prefixes = [container_prefix, "i4h_build", "isaac"]
+    prefixes = [container_prefix]
 
     # Batch: get all running container images in one call
     running_images: set = set()
