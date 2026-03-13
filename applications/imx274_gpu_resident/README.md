@@ -12,9 +12,21 @@ CPU-driven applications.
 
 ## Architecture
 
-The following diagram shows the split in application components between the **CPU** (receiver fragment and cuDisp present thread) and the **GPU** (GPU-resident fragment and pipeline). The receiver fragment runs on the CPU and only performs CQ/QP acknowledgment (see `hsb_roce_receiver_nmd` / `RoceReceiverNoHostMetadata`). The GPU-resident fragment runs the full CSI→Bayer→demosaic→display pipeline on the GPU. A lightweight cuDisp present thread on the CPU triggers display flips (e.g. in G-SYNC mode).
+The following diagram shows the split in application components between the
+**CPU** (receiver fragment and `cuDisp` present thread) and the **GPU**
+(GPU-resident fragment and pipeline). The receiver fragment runs on the CPU and
+performs only the CQ/QP management (see `hsb_roce_receiver_nmd` /
+`RoceReceiverNoHostMetadata`). The GPU-resident fragment runs the full
+CSI→Bayer→demosaic→display pipeline on the GPU after receiving the frame in the
+GPU. A CUDA kernel in the `DataReadyInputOp` polls the metadata of the received
+frames to decide whether a new camera frame is available for processing. When a
+new frame arrives, the GPU-resident processing is triggered. From the detection of
+the new frame until the frame is displayed on the monitor, the entire
+computation is performed on the GPU, repeatedly on every new frame. No CPU
+control is involved. Only a lightweight `cuDisp` present
+thread on the CPU triggers display flips (e.g. in G-SYNC mode).
 
-**Note:** Although the entire application runs from the GPU after initial
+**Note:** Although the entire application runs mostly from the GPU after initial
 configuration, two components still remain on the CPU, which will be
 removed in a later release.
 
