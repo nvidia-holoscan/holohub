@@ -87,109 +87,115 @@ void DisplayGpuResidentOp::initialize() {
                              ". Supported resolutions are 2560x1440 and 1920x1080.");
   }
 
-  if (input_width != display_width || input_height != display_height) {
-    const size_t resize_buf_size = static_cast<size_t>(display_width) * display_height *
-                                   out_channels_.get() * sizeof(unsigned short);
-    HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaMalloc(&resize_buffer_, resize_buf_size),
-                                   "Failed to allocate resize buffer");
-    HOLOSCAN_LOG_INFO(
-        "DisplayGpuResidentOp: resize buffer allocated for {}x{} -> {}x{} ({} bytes)",
-        input_width, input_height, display_width, display_height, resize_buf_size);
-  }
-
-  HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaSetDevice(0), "Failed to set CUDA device");
-
-  HOLOSCAN_CUDA_CALL_THROW_ERROR(
-      cudaStreamCreateWithFlags(&display_init_stream_, cudaStreamNonBlocking),
-      "Failed to create display init stream");
-
-  initialize_backend();
-
-  if (!display_ptr0_) {
-    throw std::runtime_error(
-        "DisplayGpuResidentOp: display backend did not provide display buffer 0");
-  }
-
-  HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaMemset(display_ptr0_, 0, static_cast<size_t>(buffer_size_)),
-                                 "Failed to clear display buffer 0");
-  if (display_ptr1_) {
-    HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaMemset(display_ptr1_, 0, static_cast<size_t>(buffer_size_)),
-                                   "Failed to clear display buffer 1");
-  }
-
-  HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaMalloc(&display_ptr_location_ptr_, sizeof(void*)),
-                                 "Failed to allocate display pointer location");
-  // - initial CPU present uses buffer0
-  // - first render target pointer starts at buffer1 (if available)
-  void* initial_ptr =
-      (!front_buffer_rendering_.get() && display_ptr1_) ? display_ptr1_ : display_ptr0_;
-  HOLOSCAN_CUDA_CALL_THROW_ERROR(
-      cudaMemcpy(display_ptr_location_ptr_, &initial_ptr, sizeof(void*), cudaMemcpyHostToDevice),
-      "Failed to initialize display pointer location");
-  HOLOSCAN_LOG_DEBUG("DisplayGpuResidentOp: pointer init: ptr0={}, ptr1={}, initial render ptr={}",
-                    display_ptr0_,
-                    display_ptr1_,
-                    initial_ptr);
-
-  if (!front_buffer_rendering_.get()) {
-    // Allocate device-side array of per-layer buffer pointer locations
-    cudaError_t cuda_err = cudaMalloc(&display_ptr_locations_device_, 1 * sizeof(void*));
-    if (cuda_err != cudaSuccess) {
-      cleanup_cudisp();
-      throw std::runtime_error(
-          "DisplayGpuResidentOp: cudaMalloc for display_ptr_locations_device_ failed");
-    }
-    void* host_locations[1] = {display_ptr_location_ptr_};
-    cuda_err = cudaMemcpy(display_ptr_locations_device_, host_locations, 1 * sizeof(void*),
-                          cudaMemcpyHostToDevice);
-    if (cuda_err != cudaSuccess) {
-      cleanup_cudisp();
-      throw std::runtime_error(
-          "DisplayGpuResidentOp: cudaMemcpy for display_ptr_locations_device_ failed");
+  try {
+    if (input_width != display_width || input_height != display_height) {
+      const size_t resize_buf_size = static_cast<size_t>(display_width) * display_height *
+                                     out_channels_.get() * sizeof(unsigned short);
+      HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaMalloc(&resize_buffer_, resize_buf_size),
+                                     "Failed to allocate resize buffer");
+      HOLOSCAN_LOG_INFO(
+          "DisplayGpuResidentOp: resize buffer allocated for {}x{} -> {}x{} ({} bytes)",
+          input_width, input_height, display_width, display_height, resize_buf_size);
     }
 
-    // Allocate device-side numBuffersPerLayer array
-    cuda_err = cudaMalloc(&num_buffers_per_layer_device_, 1 * sizeof(unsigned int));
-    if (cuda_err != cudaSuccess) {
-      cleanup_cudisp();
+    HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaSetDevice(0), "Failed to set CUDA device");
+
+    HOLOSCAN_CUDA_CALL_THROW_ERROR(
+        cudaStreamCreateWithFlags(&display_init_stream_, cudaStreamNonBlocking),
+        "Failed to create display init stream");
+
+    initialize_backend();
+
+    if (!display_ptr0_) {
       throw std::runtime_error(
-          "DisplayGpuResidentOp: cudaMalloc for num_buffers_per_layer_device_ failed");
+          "DisplayGpuResidentOp: display backend did not provide display buffer 0");
     }
-    unsigned int host_num_bufs[1] = {NUM_BUFFERS};
-    cuda_err = cudaMemcpy(num_buffers_per_layer_device_, host_num_bufs, 1 * sizeof(unsigned int),
-                          cudaMemcpyHostToDevice);
-    if (cuda_err != cudaSuccess) {
-      cleanup_cudisp();
-      throw std::runtime_error(
-          "DisplayGpuResidentOp: cudaMemcpy for num_buffers_per_layer_device_ failed");
+
+    HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaMemset(display_ptr0_, 0, static_cast<size_t>(buffer_size_)),
+                                   "Failed to clear display buffer 0");
+    if (display_ptr1_) {
+      HOLOSCAN_CUDA_CALL_THROW_ERROR(
+          cudaMemset(display_ptr1_, 0, static_cast<size_t>(buffer_size_)),
+          "Failed to clear display buffer 1");
     }
+
+    HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaMalloc(&display_ptr_location_ptr_, sizeof(void*)),
+                                   "Failed to allocate display pointer location");
+    // - initial CPU present uses buffer0
+    // - first render target pointer starts at buffer1 (if available)
+    void* initial_ptr =
+        (!front_buffer_rendering_.get() && display_ptr1_) ? display_ptr1_ : display_ptr0_;
+    HOLOSCAN_CUDA_CALL_THROW_ERROR(
+        cudaMemcpy(display_ptr_location_ptr_, &initial_ptr, sizeof(void*), cudaMemcpyHostToDevice),
+        "Failed to initialize display pointer location");
+    HOLOSCAN_LOG_DEBUG(
+        "DisplayGpuResidentOp: pointer init: ptr0={}, ptr1={}, initial render ptr={}",
+        display_ptr0_,
+        display_ptr1_,
+        initial_ptr);
+
+    if (!front_buffer_rendering_.get()) {
+      // Allocate device-side array of per-layer buffer pointer locations
+      cudaError_t cuda_err = cudaMalloc(&display_ptr_locations_device_, 1 * sizeof(void*));
+      if (cuda_err != cudaSuccess) {
+        throw std::runtime_error(
+            "DisplayGpuResidentOp: cudaMalloc for display_ptr_locations_device_ failed");
+      }
+      void* host_locations[1] = {display_ptr_location_ptr_};
+      cuda_err = cudaMemcpy(display_ptr_locations_device_, host_locations, 1 * sizeof(void*),
+                            cudaMemcpyHostToDevice);
+      if (cuda_err != cudaSuccess) {
+        throw std::runtime_error(
+            "DisplayGpuResidentOp: cudaMemcpy for display_ptr_locations_device_ failed");
+      }
+
+      // Allocate device-side numBuffersPerLayer array
+      cuda_err = cudaMalloc(&num_buffers_per_layer_device_, 1 * sizeof(unsigned int));
+      if (cuda_err != cudaSuccess) {
+        throw std::runtime_error(
+            "DisplayGpuResidentOp: cudaMalloc for num_buffers_per_layer_device_ failed");
+      }
+      unsigned int host_num_bufs[1] = {NUM_BUFFERS};
+      cuda_err = cudaMemcpy(num_buffers_per_layer_device_, host_num_bufs, 1 * sizeof(unsigned int),
+                            cudaMemcpyHostToDevice);
+      if (cuda_err != cudaSuccess) {
+        throw std::runtime_error(
+            "DisplayGpuResidentOp: cudaMemcpy for num_buffers_per_layer_device_ failed");
+      }
+    }
+
+    // High-level API only exposes one supported format.
+    if (surface_format_.get() != kDisplayOpSurfaceFormatA8R8G8B8) {
+      throw std::runtime_error("DisplayGpuResidentOp: expected surface_format=0 (A8R8G8B8_RGB)");
+    }
+
+    CUdeviceptr initial_present_device_ptr = display_device_ptr0_;
+    HOLOSCAN_LOG_DEBUG("DisplayGpuResidentOp: initial CPU present buffer dptr=0x{:x}",
+                       static_cast<uint64_t>(initial_present_device_ptr));
+    cuDispBufferMemory present_buf = {
+        .devicePtr = &initial_present_device_ptr,
+        .size = nullptr,
+        .stride = nullptr,
+        .pHDRMetadata = nullptr};
+    cuDispStatus present_err = cuDispPresent(swapchain_, display_init_stream_, &present_buf, 1, 0);
+    if (present_err != cuDispSuccess) {
+      throw std::runtime_error("DisplayGpuResidentOp: initial cuDispPresent failed with error " +
+                               std::to_string(static_cast<int>(present_err)));
+    }
+    HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaStreamSynchronize(display_init_stream_),
+                                   "Failed to synchronize display init stream");
+
+    // wait for display hardware to initialize
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+
+    initialized_ = true;
+  } catch (...) {
+    try {
+      stop();
+    } catch (...) {
+    }
+    throw; // rethrows the original exception
   }
-
-  // High-level API only exposes one supported format.
-  if (surface_format_.get() != kDisplayOpSurfaceFormatA8R8G8B8) {
-    throw std::runtime_error("DisplayGpuResidentOp: expected surface_format=0 (A8R8G8B8_RGB)");
-  }
-
-  CUdeviceptr initial_present_device_ptr = display_device_ptr0_;
-  HOLOSCAN_LOG_DEBUG("DisplayGpuResidentOp: initial CPU present buffer dptr=0x{:x}",
-                     static_cast<uint64_t>(initial_present_device_ptr));
-  cuDispBufferMemory present_buf = {
-      .devicePtr = &initial_present_device_ptr,
-      .size = nullptr,
-      .stride = nullptr,
-      .pHDRMetadata = nullptr};
-  cuDispStatus present_err = cuDispPresent(swapchain_, display_init_stream_, &present_buf, 1, 0);
-  if (present_err != cuDispSuccess) {
-    throw std::runtime_error("DisplayGpuResidentOp: initial cuDispPresent failed with error " +
-                             std::to_string(static_cast<int>(present_err)));
-  }
-  HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaStreamSynchronize(display_init_stream_),
-                                 "Failed to synchronize display init stream");
-
-  // wait for display hardware to initialize
-  std::this_thread::sleep_for(std::chrono::seconds(3));
-
-  initialized_ = true;
 }
 
 void DisplayGpuResidentOp::initialize_backend() {
@@ -231,6 +237,7 @@ void DisplayGpuResidentOp::initialize_backend() {
 
   cuDispStatus err = cuDispCreateSwapchain(&swapchain_, attributes, attribute_size, 0);
   if (err != cuDispSuccess) {
+    stop();
     throw std::runtime_error("DisplayGpuResidentOp: cuDispCreateSwapchain failed with error " +
                              std::to_string(static_cast<int>(err)));
   }
@@ -242,7 +249,7 @@ void DisplayGpuResidentOp::initialize_backend() {
       .pHDRMetadata = nullptr};
   err = cuDispGetBuffer(swapchain_, 0, 0, &buf0, 0);
   if (err != cuDispSuccess) {
-    cleanup_cudisp();
+    stop();
     throw std::runtime_error("DisplayGpuResidentOp: cuDispGetBuffer(0) failed with error " +
                              std::to_string(static_cast<int>(err)));
   }
@@ -259,7 +266,7 @@ void DisplayGpuResidentOp::initialize_backend() {
         .pHDRMetadata = nullptr};
     err = cuDispGetBuffer(swapchain_, 0, 1, &buf1, 0);
     if (err != cuDispSuccess) {
-      cleanup_cudisp();
+      stop();
       throw std::runtime_error("DisplayGpuResidentOp: cuDispGetBuffer(1) failed with error " +
                                std::to_string(static_cast<int>(err)));
     }
@@ -267,17 +274,14 @@ void DisplayGpuResidentOp::initialize_backend() {
 
     cudaError_t cuda_err = cudaMalloc(&display_ptrs_device_, NUM_BUFFERS * sizeof(void*));
     if (cuda_err != cudaSuccess) {
-      cleanup_cudisp();
+      stop();
       throw std::runtime_error("DisplayGpuResidentOp: cudaMalloc for display_ptrs_device_ failed");
     }
     void* host_ptrs[NUM_BUFFERS] = {display_ptr0_, display_ptr1_};
     cuda_err = cudaMemcpy(
         display_ptrs_device_, host_ptrs, NUM_BUFFERS * sizeof(void*), cudaMemcpyHostToDevice);
     if (cuda_err != cudaSuccess) {
-      HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaFree(display_ptrs_device_),
-                                     "Failed to free display_ptrs_device_ during error cleanup");
-      display_ptrs_device_ = nullptr;
-      cleanup_cudisp();
+      stop();
       throw std::runtime_error("DisplayGpuResidentOp: cudaMemcpy for display_ptrs_device_ failed");
     }
   }
