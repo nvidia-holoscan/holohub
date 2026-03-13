@@ -52,12 +52,16 @@ class FrameSourceGPUResidentOp : public holoscan::GPUResidentOperator {
 
   void compute(holoscan::InputContext&, holoscan::OutputContext&,
                holoscan::ExecutionContext&) override {
-    if (!shared_state_ || !shared_state_->chosen_frame_memory) {
-      throw std::runtime_error(
-          "FrameSourceGPUResidentOp: shared_state or chosen_frame_memory not set");
-    }
+    unsigned char** chosen_frame_memory = nullptr;
+    {
+      std::lock_guard<std::mutex> lock(shared_state_->mutex);
+      if (!shared_state_ || !shared_state_->chosen_frame_memory) {
+        throw std::runtime_error(
+            "FrameSourceGPUResidentOp: shared_state or chosen_frame_memory not set");
+      }
 
-    unsigned char** chosen_frame_memory = shared_state_->chosen_frame_memory;
+      chosen_frame_memory = shared_state_->chosen_frame_memory;
+    }
 
     auto* output_ptr = device_memory("out");
     if (!output_ptr) {
