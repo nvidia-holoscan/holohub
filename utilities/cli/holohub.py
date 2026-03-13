@@ -1950,10 +1950,10 @@ class HoloHubCLI:
         """Handle status command — show environment overview"""
         from utilities.cli.status import (
             collect_build_info,
-            collect_container_info,
             collect_docker_disk_usage,
             collect_folder_info,
             collect_git_info,
+            collect_image_info,
             collect_platform_info,
             format_status,
             format_status_json,
@@ -1961,7 +1961,7 @@ class HoloHubCLI:
 
         platform_info = collect_platform_info()
         git_info = collect_git_info(self.HOLOHUB_ROOT)
-        containers = collect_container_info()
+        containers = collect_image_info()
         builds = collect_build_info(self.DEFAULT_BUILD_PARENT_DIR)
         build_folders = collect_folder_info(
             self._collect_cache_dirs(["build", "build-*"], self.DEFAULT_BUILD_PARENT_DIR)

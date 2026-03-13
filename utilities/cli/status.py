@@ -44,7 +44,7 @@ class PlatformInfo:
 
 
 @dataclass
-class ContainerInfo:
+class ImageInfo:
     image: str
     created: str
     status: str
@@ -76,7 +76,6 @@ def collect_platform_info() -> PlatformInfo:
     gpu_type = get_host_gpu()
     gpu_name = get_gpu_name()
     cuda_version = get_default_cuda_version()
-
     sdk_path = Path(os.environ.get("HOLOHUB_DEFAULT_HSDK_DIR", "/opt/nvidia/holoscan"))
     holoscan_version = get_sdk_version(sdk_path)
 
@@ -106,15 +105,12 @@ def collect_git_info(holohub_root: Path) -> Optional[GitInfo]:
 
 def _dir_size_mb(path: Path) -> float:
     total = 0
-    try:
-        for root, _dirs, files in os.walk(str(path)):
-            for f in files:
-                try:
-                    total += os.path.getsize(os.path.join(root, f))
-                except OSError:
-                    continue
-    except OSError:
-        pass
+    for root, _dirs, files in os.walk(str(path)):
+        for f in files:
+            try:
+                total += os.path.getsize(os.path.join(root, f))
+            except OSError:
+                continue
     return total / (1024 * 1024)
 
 
@@ -122,45 +118,55 @@ def collect_folder_info(paths: List[Path]) -> List[FolderInfo]:
     seen: set[Path] = set()
     results: List[FolderInfo] = []
     for path in sorted(paths):
-        if path.is_dir() and path not in seen:
-            seen.add(path)
+        resolved = path.resolve()
+        if path.is_dir() and resolved not in seen:
+            seen.add(resolved)
             results.append(FolderInfo(path=str(path), size_mb=_dir_size_mb(path)))
     return results
 
 
-def collect_container_info() -> List[ContainerInfo]:
-    containers = []
-    container_prefix = os.environ.get("HOLOHUB_REPO_PREFIX", "holohub")
-    prefixes = [container_prefix]
+def collect_image_info() -> List[ImageInfo]:
+    images = []
+    image_prefix = os.environ.get("HOLOHUB_REPO_PREFIX", "holohub")
+    prefixes = [image_prefix]
+    docker_exe = os.environ.get("HOLOHUB_DOCKER_EXE", "docker")
 
-    # Batch: get all running container images in one call
-    running_images: set = set()
-    ps_output = run_info_command(["docker", "ps", "--format", "{{.Image}}"])
+    # Use image IDs from running containers for reliable comparison
+    running_image_ids: set = set()
+    ps_output = run_info_command(
+        [docker_exe, "ps", "--format", "{{.Image}}\t{{.ID}}"]
+    )
     if ps_output:
-        running_images = {line.strip() for line in ps_output.split("\n") if line.strip()}
+        for line in ps_output.split("\n"):
+            parts = line.strip().split("\t")
+            if parts:
+                running_image_ids.add(parts[0].strip())
 
     images_output = run_info_command(
-        ["docker", "images", "--format", "{{.Repository}}:{{.Tag}}\t{{.CreatedSince}}"]
+        [docker_exe, "images", "--format", "{{.ID}}\t{{.Repository}}:{{.Tag}}\t{{.CreatedSince}}"]
     )
     if not images_output:
-        return containers
+        return images
 
     for line in images_output.split("\n"):
         parts = line.strip().split("\t")
-        if len(parts) < 2:
+        if len(parts) < 3:
             continue
-        image_name, created = parts[0], parts[1]
+        image_id, image_name, created = parts[0], parts[1], parts[2]
         if not any(prefix in image_name for prefix in prefixes):
             continue
 
-        status = "Running" if image_name in running_images else "Stopped"
-        containers.append(ContainerInfo(image=image_name, created=created, status=status))
-    return containers
+        # Check if any running container uses this image (by ID or name)
+        is_running = image_id in running_image_ids or image_name in running_image_ids
+        status = "Running" if is_running else "Stopped"
+        images.append(ImageInfo(image=image_name, created=created, status=status))
+    return images
 
 
 def collect_docker_disk_usage() -> Optional[str]:
     """Get total Docker disk usage summary in one call."""
-    output = run_info_command(["docker", "system", "df", "--format", "{{.Type}}\t{{.Size}}"])
+    docker_exe = os.environ.get("HOLOHUB_DOCKER_EXE", "docker")
+    output = run_info_command([docker_exe, "system", "df", "--format", "{{.Type}}\t{{.Size}}"])
     if not output:
         return None
     parts = {}
@@ -186,17 +192,21 @@ def _relative_time(mtime: float) -> str:
 
 def collect_build_info(build_parent_dir: Path) -> List[BuildInfo]:
     builds = []
-    if not build_parent_dir.exists():
+    if not build_parent_dir.is_dir():
         return builds
 
-    for subdir in sorted(build_parent_dir.iterdir()):
+    try:
+        entries = sorted(build_parent_dir.iterdir())
+    except OSError:
+        return builds
+
+    for subdir in entries:
         if not subdir.is_dir() or subdir.name.startswith("."):
             continue
         if not (subdir / "CMakeCache.txt").exists():
             continue
 
-        error_log = subdir / "CMakeFiles" / "CMakeError.log"
-        has_errors = error_log.exists() and error_log.stat().st_size > 0
+        has_build_system = (subdir / "Makefile").exists() or (subdir / "build.ninja").exists()
         try:
             time_str = _relative_time(subdir.stat().st_mtime)
         except OSError:
@@ -205,7 +215,7 @@ def collect_build_info(build_parent_dir: Path) -> List[BuildInfo]:
         builds.append(
             BuildInfo(
                 name=subdir.name,
-                status="FAIL" if has_errors else "OK",
+                status="OK" if has_build_system else "FAIL",
                 last_modified=time_str,
             )
         )
@@ -221,7 +231,7 @@ def _format_size(mb: float) -> str:
 def format_status(
     platform: PlatformInfo,
     git: Optional[GitInfo],
-    containers: List[ContainerInfo],
+    images: List[ImageInfo],
     builds: List[BuildInfo],
     build_folders: List[FolderInfo],
     data_folders: List[FolderInfo],
@@ -241,14 +251,14 @@ def format_status(
         dirty = Color.yellow(f" ({git.modified_count} modified)") if git.dirty else ""
         lines.append(f"Git:      {git.branch} @ {git.commit}{dirty}")
 
-    # Containers
-    if containers:
-        lines.append(f"\n{Color.white('Containers:', bold=True)}")
-        for c in containers:
-            color = Color.green if c.status == "Running" else Color.yellow
-            lines.append(f"  {c.image:<50} {c.created:<20} {color(c.status)}")
+    # Images
+    if images:
+        lines.append(f"\n{Color.white('Images:', bold=True)}")
+        for img in images:
+            color = Color.green if img.status == "Running" else Color.yellow
+            lines.append(f"  {img.image:<50} {img.created:<20} {color(img.status)}")
     else:
-        lines.append(f"\n{Color.white('Containers:', bold=True)} (none)")
+        lines.append(f"\n{Color.white('Images:', bold=True)} (none)")
 
     # Docker disk summary
     if docker_disk:
@@ -283,7 +293,7 @@ def format_status(
 def format_status_json(
     platform: PlatformInfo,
     git: Optional[GitInfo],
-    containers: List[ContainerInfo],
+    images: List[ImageInfo],
     builds: List[BuildInfo],
     build_folders: List[FolderInfo],
     data_folders: List[FolderInfo],
@@ -292,7 +302,7 @@ def format_status_json(
     data = {
         "platform": asdict(platform),
         "git": asdict(git) if git else None,
-        "containers": [asdict(c) for c in containers],
+        "images": [asdict(img) for img in images],
         "builds": [asdict(b) for b in builds],
         "build_folders": [asdict(f) for f in build_folders],
         "data_folders": [asdict(f) for f in data_folders],

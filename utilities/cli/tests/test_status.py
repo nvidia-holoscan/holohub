@@ -27,18 +27,18 @@ sys.path.append(str(Path(os.getcwd()) / "utilities"))
 
 from utilities.cli.status import (
     BuildInfo,
-    ContainerInfo,
     FolderInfo,
     GitInfo,
+    ImageInfo,
     PlatformInfo,
     _dir_size_mb,
     _format_size,
     _relative_time,
     collect_build_info,
-    collect_container_info,
     collect_docker_disk_usage,
     collect_folder_info,
     collect_git_info,
+    collect_image_info,
     collect_platform_info,
     format_status,
     format_status_json,
@@ -49,7 +49,7 @@ def _status_args():
     return [
         PlatformInfo("x86_64", "dgpu", "RTX 4090", "12.6", "2.5.0"),
         GitInfo("main", "abc1234", True, 2),
-        [ContainerInfo("holohub:latest", "2h ago", "Running")],
+        [ImageInfo("holohub:latest", "2h ago", "Running")],
         [BuildInfo("build", "OK", "1h ago")],
         [FolderInfo("/tmp/build", 512.0)],
         [FolderInfo("/tmp/data", 1024.0)],
@@ -104,22 +104,24 @@ class TestStatusCollectors(unittest.TestCase):
         self.assertIsNone(collect_git_info(Path("/tmp")))
 
     @patch("utilities.cli.status.run_info_command")
-    def test_collect_container_info(self, mock_run):
-        mock_run.side_effect = lambda cmd: "holohub:latest" if "ps" in cmd else ("holohub:latest\t2 hours ago\nother:v1\t1 day ago" if "images" in cmd else None)
-        containers = collect_container_info()
-        self.assertEqual((len(containers), containers[0].status), (1, "Running"))
+    def test_collect_image_info(self, mock_run):
+        mock_run.side_effect = lambda cmd: (
+            "holohub:latest\tabc123" if "ps" in cmd
+            else ("img001\tholohub:latest\t2 hours ago\nimg002\tother:v1\t1 day ago" if "images" in cmd else None)
+        )
+        images = collect_image_info()
+        self.assertEqual((len(images), images[0].status), (1, "Running"))
         mock_run.return_value = None
         mock_run.side_effect = None
-        self.assertEqual(collect_container_info(), [])
+        self.assertEqual(collect_image_info(), [])
 
     def test_collect_build_info(self):
-        def mk_build(root, name="build", error=False):
+        def mk_build(root, name="build", success=True):
             build = root / name
             build.mkdir()
             (build / "CMakeCache.txt").touch()
-            if error:
-                (build / "CMakeFiles").mkdir(parents=True)
-                (build / "CMakeFiles" / "CMakeError.log").write_text("error occurred")
+            if success:
+                (build / "Makefile").touch()
             return build
 
         with tempfile.TemporaryDirectory() as d:
@@ -128,7 +130,7 @@ class TestStatusCollectors(unittest.TestCase):
             builds = collect_build_info(root)
             self.assertEqual((len(builds), builds[0].name, builds[0].status), (1, "build-x86_64", "OK"))
         with tempfile.TemporaryDirectory() as d:
-            mk_build(Path(d), error=True)
+            mk_build(Path(d), success=False)
             self.assertEqual(collect_build_info(Path(d))[0].status, "FAIL")
         for path in [Path("/nonexistent"), Path(tempfile.mkdtemp())]:
             self.assertEqual(collect_build_info(path), [])
@@ -168,7 +170,7 @@ class TestStatusFormatting(unittest.TestCase):
         args = _status_args()
         args[2] = []
         output = format_status(*args)
-        self.assertIn("Containers:", output)
+        self.assertIn("Images:", output)
         self.assertIn("(none)", output)
 
     def test_format_status_json(self):
@@ -176,7 +178,7 @@ class TestStatusFormatting(unittest.TestCase):
         self.assertEqual(data["platform"]["arch"], "x86_64")
         self.assertEqual(data["git"]["branch"], "main")
         self.assertTrue(data["git"]["dirty"])
-        self.assertEqual(len(data["containers"]), 1)
+        self.assertEqual(len(data["images"]), 1)
         self.assertEqual(len(data["builds"]), 1)
         self.assertIn("docker_disk", data)
 

@@ -156,7 +156,7 @@ def fatal(message: str) -> None:
 
 
 def warn(message: str) -> None:
-    print(f"{Color.yellow('WARNING:')} {message}")
+    print(f"{Color.yellow('WARNING:')} {message}", file=sys.stderr)
 
 
 def _get_holohub_root() -> Path:
@@ -510,15 +510,18 @@ def get_arch_gpu_str() -> str:
 
 def get_sdk_version(sdk_path: Path) -> str:
     """Extract Holoscan SDK version from a valid SDK installation path."""
-    version_file = sdk_path / "VERSION"
-    if version_file.exists():
-        return version_file.read_text().strip()
-    cmake_config = sdk_path / "lib" / "cmake" / "holoscan" / "holoscan-config-version.cmake"
-    if cmake_config.exists():
-        content = cmake_config.read_text()
-        match = re.search(r'PACKAGE_VERSION\s+"([^"]+)"', content)
-        if match:
-            return match.group(1)
+    try:
+        version_file = sdk_path / "VERSION"
+        if version_file.exists():
+            return version_file.read_text().strip()
+        cmake_config = sdk_path / "lib" / "cmake" / "holoscan" / "holoscan-config-version.cmake"
+        if cmake_config.exists():
+            content = cmake_config.read_text()
+            match = re.search(r'PACKAGE_VERSION\s+"([^"]+)"', content)
+            if match:
+                return match.group(1)
+    except (OSError, UnicodeDecodeError):
+        pass
     return "unknown"
 
 
