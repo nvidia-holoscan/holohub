@@ -225,6 +225,10 @@
          <lastmod>2026-03-13</lastmod>
     </url>
     <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/applications/imx274_gpu_resident/</loc>
+         <lastmod>2026-03-13</lastmod>
+    </url>
+    <url>
          <loc>https://nvidia-holoscan.github.io/holohub/applications/isaac_sim_holoscan_bridge/</loc>
          <lastmod>2026-03-13</lastmod>
     </url>
@@ -577,6 +581,10 @@
          <lastmod>2026-03-13</lastmod>
     </url>
     <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/operators/csi_to_bayer_gpu_resident/</loc>
+         <lastmod>2026-03-13</lastmod>
+    </url>
+    <url>
          <loc>https://nvidia-holoscan.github.io/holohub/operators/cvcuda_holoscan_interop/</loc>
          <lastmod>2026-03-13</lastmod>
     </url>
@@ -602,6 +610,10 @@
     </url>
     <url>
          <loc>https://nvidia-holoscan.github.io/holohub/operators/deltacast_videomaster/</loc>
+         <lastmod>2026-03-13</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/operators/display_gpu_resident/</loc>
          <lastmod>2026-03-13</lastmod>
     </url>
     <url>
@@ -653,7 +665,15 @@
          <lastmod>2026-03-13</lastmod>
     </url>
     <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/operators/hsb_roce_receiver_nmd/</loc>
+         <lastmod>2026-03-13</lastmod>
+    </url>
+    <url>
          <loc>https://nvidia-holoscan.github.io/holohub/operators/iio_controller/</loc>
+         <lastmod>2026-03-13</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/operators/image_processor_gpu_resident/</loc>
          <lastmod>2026-03-13</lastmod>
     </url>
     <url>
