@@ -451,7 +451,7 @@ This application uses several third-party libraries. **By building and running t
 
 #### EndoGaussian / GSplat Training
 
-- **Source**: Derived from [EndoGaussian](https://github.com/yifliu3/EndoGaussian)
+- **Source**: Derived from [EndoGaussian](https://github.com/CUHK-AIM-Group/EndoGaussian)
 - **License**: MIT (upstream EndoGaussian) + Apache-2.0 (NVIDIA modifications)
 - **Bundled**: `training/`
 
