@@ -353,6 +353,10 @@
          <lastmod>2026-03-13</lastmod>
     </url>
     <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/applications/pva_radar_pipeline/</loc>
+         <lastmod>2026-03-13</lastmod>
+    </url>
+    <url>
          <loc>https://nvidia-holoscan.github.io/holohub/applications/pva_video_filter/</loc>
          <lastmod>2026-03-13</lastmod>
     </url>
@@ -766,6 +770,10 @@
     </url>
     <url>
          <loc>https://nvidia-holoscan.github.io/holohub/operators/prohawk_video_processing/</loc>
+         <lastmod>2026-03-13</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/operators/pva_radar/</loc>
          <lastmod>2026-03-13</lastmod>
     </url>
     <url>
