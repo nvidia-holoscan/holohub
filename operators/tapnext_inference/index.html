@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://nvidia-holoscan.github.io/holohub/operators/slang_shader/">
+        <link rel="canonical" href="https://nvidia-holoscan.github.io/holohub/operators/tapnext_inference/">
       
       
-        <link rel="prev" href="../pva_radar/">
+        <link rel="prev" href="../streaming_client/">
       
       
-        <link rel="next" href="../st2110_source/">
+        <link rel="next" href="../tensor_to_file/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>SlangShaderOp (latest) - NVIDIA Holoscan Reference Applications</title>
+        <title>TapNextInferenceOp (latest) - NVIDIA Holoscan Reference Applications</title>
       
     
     
@@ -96,7 +96,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#slang-shader-operator" class="md-skip">
+        <a href="#tapnext-inference-operator" class="md-skip">
           Skip to content
         </a>
       
@@ -142,7 +142,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              SlangShaderOp (latest)
+              TapNextInferenceOp (latest)
             
           </span>
         </div>
@@ -15261,8 +15261,6 @@
                 
   
   
-    
-  
   
   
     
@@ -15279,15 +15277,15 @@
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_37" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_37" >
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="./" class="md-nav__link md-nav__link--active">
+            <a href="../slang_shader/" class="md-nav__link ">
               
   
   
@@ -15306,7 +15304,7 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_37_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_37_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4_37">
             <span class="md-nav__icon md-icon"></span>
             
@@ -15535,6 +15533,8 @@
                 
   
   
+    
+  
   
   
     
@@ -15551,15 +15551,15 @@
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_41" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_41" checked>
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../tapnext_inference/" class="md-nav__link ">
+            <a href="./" class="md-nav__link md-nav__link--active">
               
   
   
@@ -15578,7 +15578,7 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_41_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_41_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4_41">
             <span class="md-nav__icon md-icon"></span>
             
@@ -18839,66 +18839,22 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
+  <a href="#holoscanopstapnextinferenceop" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Overview
+        holoscan::ops::TapNextInferenceOp
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#features" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Features
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#requirements" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Requirements
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#installation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Installation
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#usage" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Usage
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Usage">
+    <nav class="md-nav" aria-label="holoscan::ops::TapNextInferenceOp">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#basic-usage" class="md-nav__link">
+  <a href="#how-it-works" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Basic Usage
+        How It Works
       
     </span>
   </a>
@@ -18906,22 +18862,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#shader-attributes" class="md-nav__link">
+  <a href="#supported-model-formats" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Shader Attributes
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Shader Attributes">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#inputoutput-attributes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Input/Output Attributes
+        Supported Model Formats
       
     </span>
   </a>
@@ -18929,10 +18873,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#parameter-attributes" class="md-nav__link">
+  <a href="#parameters" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Parameter Attributes
+        Parameters
       
     </span>
   </a>
@@ -18940,26 +18884,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#compute-invocations" class="md-nav__link">
+  <a href="#inputs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Compute Invocations
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#core-operator-parameters" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Core Operator Parameters
+        Inputs
       
     </span>
   </a>
@@ -18967,10 +18895,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#dynamic-parameter-generation" class="md-nav__link">
+  <a href="#outputs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Dynamic Parameter Generation
+        Outputs
       
     </span>
   </a>
@@ -18978,341 +18906,13 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#port-names" class="md-nav__link">
+  <a href="#python-api" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Port names
+        Python API
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Port names">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-simple-resource-name" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        1. Simple Resource Name
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-tensor-map-reference" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2. Tensor Map Reference
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-resource-with-swizzle-for-allocation-or-invocations-size-attributes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Resource with Swizzle (for allocation or invocations size attributes)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#examples" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Examples
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#supported-data-types" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Supported Data Types
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Supported Data Types">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#scalar-parameters" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Scalar Parameters
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#buffer-types" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Buffer Types
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#example-image-processing-shader" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Example: Image Processing Shader
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#c-usage" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        C++ Usage
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#architecture" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Architecture
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Architecture">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#core-classes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Core Classes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#execution-flow" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Execution Flow
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#command-types" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Command Types
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#error-handling" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Error Handling
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#performance-considerations" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Performance Considerations
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#limitations" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Limitations
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#troubleshooting" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Troubleshooting
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Troubleshooting">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#common-issues" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Common Issues
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#debugging" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Debugging
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#testing" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Testing
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Testing">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#running-tests" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Running Tests
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#contributing" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Contributing
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#license" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        License
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#api-reference" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        API Reference
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="API Reference">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#python" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Python
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Python">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#slangshaderop" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        SlangShaderOp
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
         
@@ -19385,7 +18985,7 @@
         <a href="./" class="md-path__link">
           
   <span class="md-ellipsis">
-    Slang Shader
+    TapNext Inference
   </span>
 
         </a>
@@ -19408,383 +19008,157 @@
       
       
       
-        <a href="../../tags/#tag:slang" class="md-tag">Slang</a>
+        <a href="../../tags/#tag:inference" class="md-tag">Inference</a>
       
     
       
       
       
       
-        <a href="../../tags/#tag:visualization" class="md-tag">Visualization</a>
+        <a href="../../tags/#tag:tapnext" class="md-tag">TapNext</a>
       
     
       
       
       
       
-        <a href="../../tags/#tag:compute" class="md-tag">compute</a>
-      
-    
-      
-      
-      
-      
-        <a href="../../tags/#tag:cuda" class="md-tag">cuda</a>
-      
-    
-      
-      
-      
-      
-        <a href="../../tags/#tag:raytracing" class="md-tag">raytracing</a>
-      
-    
-      
-      
-      
-      
-        <a href="../../tags/#tag:rendering" class="md-tag">rendering</a>
-      
-    
-      
-      
-      
-      
-        <a href="../../tags/#tag:shader" class="md-tag">shader</a>
-      
-    
-      
-      
-      
-      
-        <a href="../../tags/#tag:shadertoy" class="md-tag">shadertoy</a>
-      
-    
-      
-      
-      
-      
-        <a href="../../tags/#tag:shading" class="md-tag">shading</a>
+        <a href="../../tags/#tag:tracking" class="md-tag">Tracking</a>
       
     
   </nav>
 
 
 
-<h1 id="slang-shader-operator"><a href="https://github.com/nvidia-holoscan/holohub/blob/main/operators/slang_shader">Slang Shader Operator</a><a class="headerlink" href="#slang-shader-operator" title="Permanent link">#</a></h1>
-<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/></svg></span> <strong>Authors:</strong> Holoscan Team (NVIDIA)<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"/></svg></span> <strong>Supported platforms:</strong> x86_64, aarch64<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"/><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"/></svg></span> <strong>Language:</strong> C++, Python<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> <strong>Last modified:</strong> March 9, 2026<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> <strong>Latest version:</strong> 0.1.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"/><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/></svg></span> <strong>Minimum Holoscan SDK version:</strong> 3.3.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"/></svg></span> <strong>Tested Holoscan SDK versions:</strong> 3.3.0, 3.4.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"/></svg></span> <strong>Contribution metric:</strong> Level 1 - Highly Reliable<br><br></p>
-<p>The <code>SlangShaderOp</code> is a Holoscan operator that enables execution of <a href="https://github.com/shader-slang/slang">Slang</a> shaders within Holoscan applications. It provides a bridge between the Slang shading language and Holoscan's data processing pipeline, allowing developers to write GPU-accelerated compute shaders that can process data flowing through Holoscan applications.</p>
-<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h2>
-<p>The SlangShaderOp compiles Slang shader source code into CUDA kernels and executes them on GPU devices. It supports dynamic parameter binding, automatic input/output port generation, and seamless integration with Holoscan's data flow model.</p>
-<h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">#</a></h2>
+<h1 id="tapnext-inference-operator"><a href="https://github.com/nvidia-holoscan/holohub/blob/main/operators/tapnext_inference">TapNext Inference Operator</a><a class="headerlink" href="#tapnext-inference-operator" title="Permanent link">#</a></h1>
+<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/></svg></span> <strong>Authors:</strong> Holoscan Team (NVIDIA)<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"/></svg></span> <strong>Supported platforms:</strong> x86_64, aarch64<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"/><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"/></svg></span> <strong>Language:</strong> C++, Python<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> <strong>Last modified:</strong> March 13, 2026<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> <strong>Latest version:</strong> 1.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"/><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/></svg></span> <strong>Minimum Holoscan SDK version:</strong> 3.8.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"/></svg></span> <strong>Tested Holoscan SDK versions:</strong> 3.8.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"/></svg></span> <strong>Contribution metric:</strong> Level 1 - Highly Reliable<br><br></p>
+<p>The <code>tapnext_inference</code> operator runs TensorRT inference for TapNext-style architectures,
+where an <strong>initialization model</strong> processes the first frame and a <strong>forward model</strong>
+processes all subsequent frames while maintaining internal state between steps. It is
+designed for dense point tracking across video sequences.</p>
+<p>This operator wraps the
+<a href="https://github.com/nvidia-holoscan/holohub/blob/main/gxf_extensions/tapnext_inference/README.md"><code>TapNextInference</code> GXF extension</a>.</p>
+<h2 id="holoscanopstapnextinferenceop"><code>holoscan::ops::TapNextInferenceOp</code><a class="headerlink" href="#holoscanopstapnextinferenceop" title="Permanent link">#</a></h2>
+<p>Operator class to perform TapNext inference (C++ and Python).</p>
+<h3 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">#</a></h3>
+<p>Each call receives one or more messages containing at least a <code>step</code> tensor (int32,
+device memory) and a video frame:</p>
+<ol>
+<li><strong>Step 0 (Init)</strong> -- The Init TensorRT engine runs. Its outputs include state
+   tensors that are copied into internal storage for the next step.</li>
+<li><strong>Step &gt; 0 (Forward)</strong> -- The Forward TensorRT engine runs. State tensors from the
+   previous step are fed as inputs, and updated state tensors are written back to
+   internal storage after inference.</li>
+</ol>
+<p>Query points are generated once at startup as an evenly-spaced grid and bound as the
+<code>query_points</code> input on every tick.</p>
+<h3 id="supported-model-formats">Supported Model Formats<a class="headerlink" href="#supported-model-formats" title="Permanent link">#</a></h3>
 <ul>
-<li><strong>Slang Shader Compilation</strong>: Compiles Slang shader source code to CUDA PTX</li>
-<li><strong>Dynamic Port Generation</strong>: Automatically creates input/output ports based on shader attributes</li>
-<li><strong>Parameter Binding</strong>: Supports scalar parameter types (bool, int, float, etc.)</li>
-<li><strong>Structured Buffer Support</strong>: Handles input/output structured buffers</li>
-<li><strong>Grid Size Configuration</strong>: Configurable compute grid dimensions</li>
-<li><strong>CUDA Stream Integration</strong>: Integrates with Holoscan's CUDA stream management</li>
-<li><strong>Python and C++ APIs</strong>: Available in both Python and C++ interfaces</li>
+<li><strong>ONNX</strong> (<code>.onnx</code>) -- Automatically converted to a TensorRT engine on first use and
+  cached in <code>engine_cache_dir</code>. Conversion can take several minutes.</li>
+<li><strong>Pre-built TensorRT engines</strong> (<code>.engine</code> / <code>.plan</code>) -- Used directly, skipping
+  conversion.</li>
 </ul>
-<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h2>
+<h3 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">#</a></h3>
 <ul>
-<li>Holoscan SDK 3.3.0 or later</li>
-<li>CUDA-compatible GPU</li>
-<li>Slang compiler (automatically fetched during build)</li>
-<li>Supported platforms: x86_64, aarch64</li>
+<li><strong><code>model_file_path_init</code></strong>: Path to ONNX (or engine) model for initialization.</li>
+<li>type: <code>std::string</code></li>
+<li><strong><code>model_file_path_fwd</code></strong>: Path to ONNX (or engine) model for forward tracking.</li>
+<li>type: <code>std::string</code></li>
+<li><strong><code>engine_cache_dir</code></strong>: Directory for cached TensorRT engine files.</li>
+<li>type: <code>std::string</code></li>
+<li><strong><code>plugins_lib_namespace</code></strong>: TensorRT plugins library namespace.</li>
+<li>type: <code>std::string</code></li>
+<li>default: <code>""</code></li>
+<li><strong><code>force_engine_update</code></strong>: Force rebuild of TensorRT engines even if a cached engine exists.</li>
+<li>type: <code>bool</code></li>
+<li>default: <code>false</code></li>
+<li><strong><code>input_tensor_names_init</code></strong>: Input tensor names for the Init model.</li>
+<li>type: <code>std::vector&lt;std::string&gt;</code></li>
+<li><strong><code>input_binding_names_init</code></strong>: Corresponding TensorRT binding names for Init inputs.</li>
+<li>type: <code>std::vector&lt;std::string&gt;</code></li>
+<li><strong><code>output_tensor_names_init</code></strong>: Output tensor names for the Init model.</li>
+<li>type: <code>std::vector&lt;std::string&gt;</code></li>
+<li><strong><code>output_binding_names_init</code></strong>: Corresponding TensorRT binding names for Init outputs.</li>
+<li>type: <code>std::vector&lt;std::string&gt;</code></li>
+<li><strong><code>input_tensor_names_fwd</code></strong>: Input tensor names for the Forward model.</li>
+<li>type: <code>std::vector&lt;std::string&gt;</code></li>
+<li><strong><code>input_binding_names_fwd</code></strong>: Corresponding TensorRT binding names for Forward inputs.</li>
+<li>type: <code>std::vector&lt;std::string&gt;</code></li>
+<li><strong><code>output_tensor_names_fwd</code></strong>: Output tensor names for the Forward model.</li>
+<li>type: <code>std::vector&lt;std::string&gt;</code></li>
+<li><strong><code>output_binding_names_fwd</code></strong>: Corresponding TensorRT binding names for Forward outputs.</li>
+<li>type: <code>std::vector&lt;std::string&gt;</code></li>
+<li><strong><code>state_tensor_names</code></strong>: Tensor names treated as internal state (preserved across steps).</li>
+<li>type: <code>std::vector&lt;std::string&gt;</code></li>
+<li><strong><code>pool</code></strong>: Allocator instance for device tensor memory.</li>
+<li>type: <code>std::shared_ptr&lt;Allocator&gt;</code></li>
+<li><strong><code>cuda_stream_pool</code></strong>: CUDA Stream Pool for asynchronous execution.</li>
+<li>type: <code>std::shared_ptr&lt;CudaStreamPool&gt;</code></li>
+<li><strong><code>max_workspace_size</code></strong>: TensorRT builder max workspace size in bytes.</li>
+<li>type: <code>int64_t</code></li>
+<li>default: <code>67108864</code> (64 MB)</li>
+<li><strong><code>max_batch_size</code></strong>: Max batch size for TensorRT optimization profiles.</li>
+<li>type: <code>int32_t</code></li>
+<li>default: <code>1</code></li>
+<li><strong><code>enable_fp16</code></strong>: Enable FP16 precision (ignored on TensorRT &gt;= 10.13).</li>
+<li>type: <code>bool</code></li>
+<li>default: <code>false</code></li>
+<li><strong><code>relaxed_dimension_check</code></strong>: Pad input rank with leading 1s when it is smaller than the binding rank.</li>
+<li>type: <code>bool</code></li>
+<li>default: <code>true</code></li>
+<li><strong><code>verbose</code></strong>: Enable verbose TensorRT and operator logging.</li>
+<li>type: <code>bool</code></li>
+<li>default: <code>false</code></li>
+<li><strong><code>grid_size</code></strong>: Grid dimension N for query point generation (N x N points).</li>
+<li>type: <code>int32_t</code></li>
+<li>default: <code>15</code></li>
+<li><strong><code>grid_height</code></strong>: Image height used for query point grid spacing.</li>
+<li>type: <code>int32_t</code></li>
+<li>default: <code>256</code></li>
+<li><strong><code>grid_width</code></strong>: Image width used for query point grid spacing.</li>
+<li>type: <code>int32_t</code></li>
+<li>default: <code>256</code></li>
 </ul>
-<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">#</a></h2>
-<p>The SlangShaderOp is included as part of the HoloHub operators. It will be automatically built when you build the HoloHub project.</p>
-<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">#</a></h2>
-<h3 id="basic-usage">Basic Usage<a class="headerlink" href="#basic-usage" title="Permanent link">#</a></h3>
-<p>The operator can be configured with either a shader source string or a shader source file:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">holoscan.operators</span><span class="w"> </span><span class="kn">import</span> <span class="n">SlangShaderOp</span>
-
-<span class="c1"># Using shader source string</span>
-<span class="n">shader_source</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">import holoscan</span>
-
-<span class="s2">[holoscan::input(&quot;input_data&quot;)]</span>
-<span class="s2">StructuredBuffer&lt;float&gt; input_buffer;</span>
-
-<span class="s2">[holoscan::output(&quot;output_data&quot;)]</span>
-<span class="s2">RWStructuredBuffer&lt;float&gt; output_buffer;</span>
-
-<span class="s2">[holoscan::parameter(&quot;scale_factor&quot;)]</span>
-<span class="s2">float scale;</span>
-
-<span class="s2">[numthreads(256, 1, 1)]</span>
-<span class="s2">[holoscan::invocations::size_of(&quot;input_data&quot;)]</span>
-<span class="s2">void main(uint3 tid : SV_DispatchThreadID) {</span>
-<span class="s2">    output_buffer[tid.x] = input_buffer[tid.x] * scale;</span>
-<span class="s2">}</span>
-<span class="s2">&quot;&quot;&quot;</span>
-
-<span class="n">op</span> <span class="o">=</span> <span class="n">SlangShaderOp</span><span class="p">(</span>
-    <span class="n">fragment</span><span class="o">=</span><span class="n">app</span><span class="p">,</span>
-    <span class="n">shader_source</span><span class="o">=</span><span class="n">shader_source</span><span class="p">,</span>
-    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;my_shader&quot;</span>
+<h3 id="inputs">Inputs<a class="headerlink" href="#inputs" title="Permanent link">#</a></h3>
+<ul>
+<li><strong><code>receivers</code></strong> (<code>gxf::Entity</code>) -- One or more input messages containing:</li>
+<li><strong><code>step</code></strong> (<code>int32</code> tensor, device) -- <code>0</code> selects the Init model, any other value
+    selects the Forward model.</li>
+<li><strong><code>frame</code></strong> / <strong><code>video</code></strong> (<code>Tensor</code>, device) -- The video frame to process.</li>
+<li>Any additional tensors matching configured <code>input_tensor_names_*</code> entries.</li>
+</ul>
+<h3 id="outputs">Outputs<a class="headerlink" href="#outputs" title="Permanent link">#</a></h3>
+<ul>
+<li><strong><code>transmitter</code></strong> (<code>gxf::Entity</code>) -- Output message containing:</li>
+<li>All tensors listed in <code>output_tensor_names_*</code> for the selected model.</li>
+<li><strong><code>step</code></strong> -- Passed through from the input.</li>
+<li>State tensors are also emitted as outputs but are additionally copied back into
+    internal storage for the next tick.</li>
+</ul>
+<h3 id="python-api">Python API<a class="headerlink" href="#python-api" title="Permanent link">#</a></h3>
+<p>The operator is available as <code>TapNextInferenceOp</code> via the Python bindings:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">holohub.tapnext_inference</span><span class="w"> </span><span class="kn">import</span> <span class="n">TapNextInferenceOp</span>
+</code></pre></div>
+<p>The constructor accepts the same parameters as keyword arguments:</p>
+<div class="highlight"><pre><span></span><code><span class="n">tapnext</span> <span class="o">=</span> <span class="n">TapNextInferenceOp</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">model_file_path_init</span><span class="o">=</span><span class="s2">&quot;/path/to/init.onnx&quot;</span><span class="p">,</span>
+    <span class="n">model_file_path_fwd</span><span class="o">=</span><span class="s2">&quot;/path/to/fwd.onnx&quot;</span><span class="p">,</span>
+    <span class="n">engine_cache_dir</span><span class="o">=</span><span class="s2">&quot;/tmp/engines&quot;</span><span class="p">,</span>
+    <span class="n">input_tensor_names_init</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;video&quot;</span><span class="p">,</span> <span class="s2">&quot;query_points&quot;</span><span class="p">],</span>
+    <span class="n">input_binding_names_init</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;video&quot;</span><span class="p">,</span> <span class="s2">&quot;query_points&quot;</span><span class="p">],</span>
+    <span class="n">output_tensor_names_init</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;tracks&quot;</span><span class="p">,</span> <span class="s2">&quot;visible&quot;</span><span class="p">,</span> <span class="s2">&quot;state&quot;</span><span class="p">],</span>
+    <span class="n">output_binding_names_init</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;tracks&quot;</span><span class="p">,</span> <span class="s2">&quot;visible&quot;</span><span class="p">,</span> <span class="s2">&quot;state&quot;</span><span class="p">],</span>
+    <span class="n">input_tensor_names_fwd</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;video&quot;</span><span class="p">,</span> <span class="s2">&quot;query_points&quot;</span><span class="p">,</span> <span class="s2">&quot;state&quot;</span><span class="p">],</span>
+    <span class="n">input_binding_names_fwd</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;video&quot;</span><span class="p">,</span> <span class="s2">&quot;query_points&quot;</span><span class="p">,</span> <span class="s2">&quot;state&quot;</span><span class="p">],</span>
+    <span class="n">output_tensor_names_fwd</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;tracks&quot;</span><span class="p">,</span> <span class="s2">&quot;visible&quot;</span><span class="p">,</span> <span class="s2">&quot;state&quot;</span><span class="p">],</span>
+    <span class="n">output_binding_names_fwd</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;tracks&quot;</span><span class="p">,</span> <span class="s2">&quot;visible&quot;</span><span class="p">,</span> <span class="s2">&quot;state&quot;</span><span class="p">],</span>
+    <span class="n">state_tensor_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;state&quot;</span><span class="p">],</span>
+    <span class="n">pool</span><span class="o">=</span><span class="n">allocator</span><span class="p">,</span>
+    <span class="n">cuda_stream_pool</span><span class="o">=</span><span class="n">cuda_stream_pool</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;tapnext_inference&quot;</span><span class="p">,</span>
 <span class="p">)</span>
 </code></pre></div>
-<p>Note that the data sent to the input of <code>SlangShaderOp</code> must be a data buffer (currently <code>holoscan::Tensor</code> and <code>nvidia::gxf::VideoBuffer</code> types are supported). For Python, any array-like objects implementing the <code>__dlpack__</code>, <code>__array_interface__</code> or <code>__cuda_array_interface__</code> are also supported.</p>
-<h3 id="shader-attributes">Shader Attributes<a class="headerlink" href="#shader-attributes" title="Permanent link">#</a></h3>
-<p>The SlangShaderOp uses special attributes to define how shader parameters interact with Holoscan:</p>
-<h4 id="inputoutput-attributes">Input/Output Attributes<a class="headerlink" href="#inputoutput-attributes" title="Permanent link">#</a></h4>
-<ul>
-<li><code>[holoscan::input("port_name")]</code>: Marks a structured buffer as an input port</li>
-<li><code>[holoscan::output("port_name")]</code>: Marks a structured buffer as an output port</li>
-<li><code>[holoscan::alloc::size_of("port_name")]</code>: Specifies allocation size based on input port</li>
-<li><code>[holoscan::alloc(x, y, z)]</code>: Specifies allocation size</li>
-<li><code>[holoscan::zeros()]</code>: Initializes a buffer to zero</li>
-</ul>
-<h4 id="parameter-attributes">Parameter Attributes<a class="headerlink" href="#parameter-attributes" title="Permanent link">#</a></h4>
-<ul>
-<li><code>[holoscan::parameter("param_name")]</code>: Marks a scalar as a configurable parameter</li>
-<li><code>[holoscan::size_of("port_name")]</code>: Provides size information from input port</li>
-<li><code>[holoscan::strides_of("port_name")]</code>: Provides stride information from input port</li>
-</ul>
-<h4 id="compute-invocations">Compute Invocations<a class="headerlink" href="#compute-invocations" title="Permanent link">#</a></h4>
-<ul>
-<li><code>[holoscan::invocations::size_of("port_name")]</code>: Sets invocations based on input tensor dimensions</li>
-<li><code>[holoscan::invocations(x, y, z)]</code>: Sets fixed invocations</li>
-</ul>
-<h3 id="core-operator-parameters">Core Operator Parameters<a class="headerlink" href="#core-operator-parameters" title="Permanent link">#</a></h3>
-<p>The operator registers these built-in parameters:</p>
-<ul>
-<li><strong><code>shader_source</code></strong>: The Slang shader source code as a string</li>
-<li><strong><code>shader_source_file</code></strong>: Path to a Slang shader source file (alternative to shader_source)</li>
-<li><strong><code>preprocessor_macros</code></strong>: Map of preprocessor macro names to values for shader compilation</li>
-<li><strong><code>allocator</code></strong>: Allocator resource for output buffers (defaults to RMMAllocator)</li>
-<li><strong><code>cuda_stream</code></strong>: CUDA stream pool resource</li>
-</ul>
-<h3 id="dynamic-parameter-generation">Dynamic Parameter Generation<a class="headerlink" href="#dynamic-parameter-generation" title="Permanent link">#</a></h3>
-<p>Based on shader reflection analysis, the operator automatically creates:</p>
-<ol>
-<li><strong>Input Ports</strong>: For each <code>[holoscan::input("port_name")]</code> attribute, creates an input port of type <code>gxf::Entity</code></li>
-<li><strong>Output Ports</strong>: For each <code>[holoscan::output("port_name")]</code> attribute, creates an output port of type <code>gxf::Entity</code></li>
-<li><strong>Shader Parameters</strong>: For each <code>[holoscan::parameter("param_name")]</code> attribute, creates a configurable parameter with the appropriate type</li>
-</ol>
-<h3 id="port-names">Port names<a class="headerlink" href="#port-names" title="Permanent link">#</a></h3>
-<p>Port names in Holoscan attributes follow a specific format to identify and bind resources to shader variables. The name string can take several forms:</p>
-<h4 id="1-simple-resource-name">1. Simple Resource Name<a class="headerlink" href="#1-simple-resource-name" title="Permanent link">#</a></h4>
-<ul>
-<li><strong>Format</strong>: <code>"resource_name"</code></li>
-<li><strong>Example</strong>: <code>"input_buffer"</code>, <code>"output_tensor"</code></li>
-<li><strong>Usage</strong>: Used when referencing a single resource directly</li>
-</ul>
-<h4 id="2-tensor-map-reference">2. Tensor Map Reference<a class="headerlink" href="#2-tensor-map-reference" title="Permanent link">#</a></h4>
-<ul>
-<li><strong>Format</strong>: <code>"tensor_map_name:tensor_name"</code></li>
-<li><strong>Example</strong>: <code>"model:weights"</code>, <code>"data:input_image"</code></li>
-<li><strong>Usage</strong>: Used when the resource is part of a named tensor map, where the part before the colon identifies the tensor map and the part after identifies the specific tensor within that map</li>
-</ul>
-<h4 id="3-resource-with-swizzle-for-allocation-or-invocations-size-attributes">3. Resource with Swizzle (for allocation or invocations size attributes)<a class="headerlink" href="#3-resource-with-swizzle-for-allocation-or-invocations-size-attributes" title="Permanent link">#</a></h4>
-<ul>
-<li><strong>Format</strong>: <code>"resource_name.swizzle_string"</code> or <code>"tensor_map_name:tensor_name.swizzle_string"</code></li>
-<li><strong>Example</strong>: <code>"input_tensor.cx"</code>, <code>"output_buffer.xy"</code>, <code>"data:input_image.xy"</code></li>
-<li><strong>Usage</strong>: The swizzle string selects specific dimensions of the resource for size matching</li>
-<li><strong>Allowed characters</strong>: <code>"x"</code>, <code>"y"</code>, <code>"z"</code>, <code>"c"</code>, <code>"0"</code> - <code>"9"</code></li>
-<li><code>"x"</code>, <code>"y"</code>, <code>"z"</code>: Select specific dimensions</li>
-<li><code>"c"</code>: Component count</li>
-<li><code>"0"</code> - <code>"9"</code>: Static values</li>
-</ul>
-<h4 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">#</a></h4>
-<div class="highlight"><pre><span></span><code>[holoscan::input(&quot;input_data&quot;)]           // Binds to a resource named &quot;input_data&quot;
-[holoscan::output(&quot;model:output&quot;)]        // Binds to the &quot;output&quot; tensor in the &quot;model&quot; tensor map
-[holoscan::alloc::size_of(&quot;input_tensor.cx&quot;)]  // Allocates based on the x dimension and component count of &quot;input_tensor&quot;
-[holoscan::alloc::size_of(&quot;buffer:coords.xyz&quot;)]       // Allocates based on x, y, z dimensions of &quot;buffer:coords&quot;
-[holoscan::invocations::size_of(&quot;image.cxy&quot;)]  // Sets invocations based on x, y dimensions and component count
-</code></pre></div>
-<h3 id="supported-data-types">Supported Data Types<a class="headerlink" href="#supported-data-types" title="Permanent link">#</a></h3>
-<h4 id="scalar-parameters">Scalar Parameters<a class="headerlink" href="#scalar-parameters" title="Permanent link">#</a></h4>
-<ul>
-<li><code>bool</code>, <code>int8</code>, <code>uint8</code>, <code>int16</code>, <code>uint16</code></li>
-<li><code>int32</code>, <code>uint32</code>, <code>int64</code>, <code>uint64</code></li>
-<li><code>float32</code>, <code>float64</code></li>
-</ul>
-<h4 id="buffer-types">Buffer Types<a class="headerlink" href="#buffer-types" title="Permanent link">#</a></h4>
-<ul>
-<li><code>StructuredBuffer&lt;T&gt;</code>: Input buffers</li>
-<li><code>RWStructuredBuffer&lt;T&gt;</code>: Output buffers</li>
-</ul>
-<h3 id="example-image-processing-shader">Example: Image Processing Shader<a class="headerlink" href="#example-image-processing-shader" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code>import holoscan
-
-// Simple image processing shader
-[holoscan::input(&quot;input_image&quot;)]
-StructuredBuffer&lt;float4&gt; input_image;
-
-[holoscan::output(&quot;output_image&quot;)]
-RWStructuredBuffer&lt;float4&gt; output_image;
-
-[holoscan::parameter(&quot;brightness&quot;)]
-float brightness;
-
-[holoscan::size_of(&quot;input_image&quot;)]
-int3 image_size;
-
-[numthreads(16, 16, 1)]
-[holoscan::invocations::size_of(&quot;input_image&quot;)]
-void main(uint3 tid : SV_DispatchThreadID) {
-    uint index = tid.y * image_size.x + tid.x;
-    float4 pixel = input_image[index];
-
-    // Apply brightness adjustment
-    output_image[index] = pixel * brightness;
-}
-</code></pre></div>
-<h3 id="c-usage">C++ Usage<a class="headerlink" href="#c-usage" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;slang_shader/slang_shader.hpp&gt;</span>
-
-<span class="c1">// Create the operator with shader source from a string</span>
-<span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">shader_source_string</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">R</span><span class="s">&quot;</span>
-<span class="n">include</span><span class="w"> </span><span class="n">holoscan</span><span class="p">;</span>
-<span class="p">...</span>
-<span class="s">&quot;;</span>
-<span class="k">auto</span><span class="w"> </span><span class="n">shader_op_str</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">holoscan</span><span class="o">::</span><span class="n">ops</span><span class="o">::</span><span class="n">SlangShaderOp</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;Slang&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;shader_source&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">shader_source_string</span><span class="p">));</span>
-
-<span class="c1">// Or create the operator with a Slang shader source file</span>
-<span class="k">auto</span><span class="w"> </span><span class="n">shader_op_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">holoscan</span><span class="o">::</span><span class="n">ops</span><span class="o">::</span><span class="n">SlangShaderOp</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;Slang&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;shader_source_file&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;my_shader.slang&quot;</span><span class="p">));</span>
-</code></pre></div>
-<h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">#</a></h2>
-<p>The SlangShaderOp consists of several key components:</p>
-<h3 id="core-classes">Core Classes<a class="headerlink" href="#core-classes" title="Permanent link">#</a></h3>
-<ul>
-<li><strong><code>SlangShaderOp</code></strong>: Main operator class that orchestrates shader execution</li>
-<li><strong><code>SlangShader</code></strong>: Manages shader compilation and CUDA kernel retrieval</li>
-<li><strong><code>Command</code></strong>: Command pattern implementation for various operations</li>
-<li><strong><code>CommandWorkspace</code></strong>: Centralized workspace for command execution</li>
-</ul>
-<h3 id="execution-flow">Execution Flow<a class="headerlink" href="#execution-flow" title="Permanent link">#</a></h3>
-<ol>
-<li><strong>Setup Phase</strong>:</li>
-<li>Compiles Slang shader source to PTX</li>
-<li>Analyzes shader reflection to generate ports and parameters</li>
-<li>
-<p>Creates command sequences for pre-launch, launch, and post-launch operations</p>
-</li>
-<li>
-<p><strong>Compute Phase</strong>:</p>
-</li>
-<li>Executes pre-launch commands (input handling, parameter setup)</li>
-<li>Launches CUDA kernels with configured grid/block dimensions</li>
-<li>Executes post-launch commands (output handling)</li>
-</ol>
-<h3 id="command-types">Command Types<a class="headerlink" href="#command-types" title="Permanent link">#</a></h3>
-<ul>
-<li><strong><code>CommandInput</code></strong>: Handles input port data reception</li>
-<li><strong><code>CommandOutput</code></strong>: Handles output port data emission</li>
-<li><strong><code>CommandParameter</code></strong>: Manages scalar parameter binding</li>
-<li><strong><code>CommandSizeOf</code></strong>: Provides size information to shaders</li>
-<li><strong><code>CommandStrideOf</code></strong>: Provides stride information to shaders</li>
-<li><strong><code>CommandAlloc</code></strong>: Handles resource allocation</li>
-<li><strong><code>CommandLaunch</code></strong>: Executes CUDA kernels</li>
-<li><strong><code>CommandZeros</code></strong>: Initializes a buffer with zeros</li>
-</ul>
-<h2 id="error-handling">Error Handling<a class="headerlink" href="#error-handling" title="Permanent link">#</a></h2>
-<p>The operator provides comprehensive error handling:</p>
-<ul>
-<li><strong>Compilation Errors</strong>: Detailed Slang compilation diagnostics</li>
-<li><strong>Runtime Errors</strong>: CUDA execution error reporting</li>
-<li><strong>Parameter Validation</strong>: Type checking and attribute validation</li>
-<li><strong>Resource Management</strong>: Automatic cleanup of CUDA resources</li>
-</ul>
-<h2 id="performance-considerations">Performance Considerations<a class="headerlink" href="#performance-considerations" title="Permanent link">#</a></h2>
-<ul>
-<li><strong>Kernel Compilation</strong>: Shaders are compiled once during setup</li>
-<li><strong>Memory Management</strong>: Uses Holoscan's allocator system for buffer management</li>
-<li><strong>Stream Management</strong>: Integrates with Holoscan's CUDA stream pool</li>
-<li><strong>Parameter Updates</strong>: Efficient parameter updates without recompilation</li>
-</ul>
-<h2 id="limitations">Limitations<a class="headerlink" href="#limitations" title="Permanent link">#</a></h2>
-<ul>
-<li>Only compute shaders are supported (no vertex/fragment shaders)</li>
-<li>Structured buffers are the only supported buffer type</li>
-<li>Grid size must be specified via attributes</li>
-<li>Shader compilation happens at operator setup time</li>
-</ul>
-<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h2>
-<h3 id="common-issues">Common Issues<a class="headerlink" href="#common-issues" title="Permanent link">#</a></h3>
-<ol>
-<li><strong>Compilation Errors</strong>: Check shader syntax and ensure all attributes are properly defined</li>
-<li><strong>Parameter Type Mismatches</strong>: Verify parameter types match between shader and operator</li>
-<li><strong>Grid Size Issues</strong>: Ensure grid size attributes are correctly specified</li>
-<li><strong>Memory Errors</strong>: Verify buffer sizes and allocation parameters</li>
-</ol>
-<h3 id="debugging">Debugging<a class="headerlink" href="#debugging" title="Permanent link">#</a></h3>
-<p>Enable debug logging to see detailed execution information:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
-</code></pre></div>
-<h2 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">#</a></h2>
-<p>The SlangShaderOp includes comprehensive testing to ensure reliability and correctness across different use cases and platforms.</p>
-<h3 id="running-tests">Running Tests<a class="headerlink" href="#running-tests" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span><span class="nb">test</span><span class="w"> </span>slang_simple
-</code></pre></div>
-<h2 id="contributing">Contributing<a class="headerlink" href="#contributing" title="Permanent link">#</a></h2>
-<p>The SlangShaderOp is part of the HoloHub project. Contributions are welcome through the standard HoloHub contribution process.</p>
-<h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">#</a></h2>
-<p>This operator is licensed under the Apache License 2.0, same as the HoloHub project.</p>
-<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
-<h3 id="python">Python<a class="headerlink" href="#python" title="Permanent link">#</a></h3>
-<h4 id="slangshaderop"><code>SlangShaderOp</code><a class="headerlink" href="#slangshaderop" title="Permanent link">#</a></h4>
-<p>The <code>slang_shader</code> operator runs a Slang shader.</p>
-<h5 id="constructor-parameters">Constructor Parameters<a class="headerlink" href="#constructor-parameters" title="Permanent link">#</a></h5>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Type</th>
-<th>Required</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>fragment</code></td>
-<td><code>Fragment</code></td>
-<td>Required</td>
-<td>The fragment that the operator belongs to.</td>
-</tr>
-<tr>
-<td><code>name</code></td>
-<td><code>str</code></td>
-<td>Optional</td>
-<td>The name of the operator.</td>
-</tr>
-<tr>
-<td><code>shader_source</code></td>
-<td><code>str</code></td>
-<td>Optional</td>
-<td>Slang shader source code</td>
-</tr>
-<tr>
-<td><code>shader_source_file</code></td>
-<td><code>str</code></td>
-<td>Optional</td>
-<td>Slang shader source file</td>
-</tr>
-<tr>
-<td><code>preprocessor_macros</code></td>
-<td><code>dict</code></td>
-<td>Optional</td>
-<td>Preprocessor macros to be used in the shader</td>
-</tr>
-<tr>
-<td><code>allocator</code></td>
-<td><code>holoscan.resources.Allocator</code></td>
-<td>Required</td>
-<td>Allocator used to allocate the data</td>
-</tr>
-</tbody>
-</table>
-<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
-<ul>
-<li><strong><code>initialize</code></strong>: Initialize the operator.</li>
-<li><strong><code>setup</code></strong>: Define the operator specification.</li>
-</ul>
 
 
 
@@ -19825,7 +19199,7 @@ void main(uint3 tid : SV_DispatchThreadID) {
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../pva_radar/" class="md-footer__link md-footer__link--prev" aria-label="Previous: RawRadarCubeSourceOp (latest)">
+          <a href="../streaming_client/" class="md-footer__link md-footer__link--prev" aria-label="Previous: streaming_client (latest)">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -19835,20 +19209,20 @@ void main(uint3 tid : SV_DispatchThreadID) {
                 Previous
               </span>
               <div class="md-ellipsis">
-                RawRadarCubeSourceOp (latest)
+                streaming_client (latest)
               </div>
             </div>
           </a>
         
         
           
-          <a href="../st2110_source/" class="md-footer__link md-footer__link--next" aria-label="Next: ST2110SourceOp (latest)">
+          <a href="../tensor_to_file/" class="md-footer__link md-footer__link--next" aria-label="Next: Tensor to File (latest)">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                ST2110SourceOp (latest)
+                Tensor to File (latest)
               </div>
             </div>
             <div class="md-footer__button md-icon">

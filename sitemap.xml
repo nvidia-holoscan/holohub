@@ -425,6 +425,10 @@
          <lastmod>2026-03-13</lastmod>
     </url>
     <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/applications/tracks2endo4d/</loc>
+         <lastmod>2026-03-13</lastmod>
+    </url>
+    <url>
          <loc>https://nvidia-holoscan.github.io/holohub/applications/ultrasound_postprocessing/</loc>
          <lastmod>2026-03-13</lastmod>
     </url>
@@ -798,6 +802,10 @@
     </url>
     <url>
          <loc>https://nvidia-holoscan.github.io/holohub/operators/streaming_server/</loc>
+         <lastmod>2026-03-13</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/operators/tapnext_inference/</loc>
          <lastmod>2026-03-13</lastmod>
     </url>
     <url>
