@@ -124,7 +124,6 @@ sudo service display-manager stop
 
 **Note:** To get back the default display manager, `sudo service display-manager start` will work.
 
-
 ## Detailed Build and Run Instructions
 
 ### Development Container
