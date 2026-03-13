@@ -1,5 +1,7 @@
 # IMX274 GPU-Resident Application
 
+![IMX274 GPU-Resident Architecture](imx274_gpu_resident_architecture.png)
+
 This application demonstrates an end-to-end example of a [GPU-resident Holoscan
 SDK application](https://docs.nvidia.com/holoscan/sdk-user-guide/gpu_resident.html). It leverages Holoscan Sensor Bridge (HSB) to visualize IMX274
 camera stream to a connected monitor (G-SYNC enabled monitor is recommended).
@@ -8,29 +10,9 @@ latency-critical camera to display path, and the application achieves ultra-low
 jitter and predictable end-to-end latency, not possible with traditional
 CPU-driven applications.
 
-## Table of Contents
-
-- [Architecture](#architecture)
-- [Performance](#performance)
-- [Running the Application](#running-the-application)
-  - [Hardware Requirements](#hardware-requirements)
-  - [Prerequisites](#prerequisites)
-    - [Driver Version](#driver-version)
-    - [Display Manager (Mandatory)](#display-manager-mandatory)
-    - [HoloHub Commands](#holohub-commands)
-  - [Development Container](#development-container)
-  - [Build and Run](#build-and-run)
-    - [Build the Container](#build-the-container)
-    - [Run the Container](#run-the-container)
-    - [Build the Application](#build-the-application)
-    - [Run the Application](#run-the-application)
-- [Known Issues](#known-issues)
-
 ## Architecture
 
 The following diagram shows the split in application components between the **CPU** (receiver fragment and cuDisp present thread) and the **GPU** (GPU-resident fragment and pipeline). The receiver fragment runs on the CPU and only performs CQ/QP acknowledgment (see `hsb_roce_receiver_nmd` / `RoceReceiverNoHostMetadata`). The GPU-resident fragment runs the full CSI→Bayer→demosaic→display pipeline on the GPU. A lightweight cuDisp present thread on the CPU triggers display flips (e.g. in G-SYNC mode).
-
-![IMX274 GPU-Resident Architecture](imx274_gpu_resident_architecture.png)
 
 **Note:** Although the entire application runs from the GPU after initial
 configuration, two components still remain on the CPU, which will be
@@ -48,21 +30,21 @@ In spite of the two lightweight components on the CPU, the application's primary
 control flow and the full data flow are executed on the GPU, enabling it to achieve
 deterministic latency.
 
-## Performance
+## Quick Start
 
-The GPU-resident version of the IMX274 application is designed to achieve predictable end-to-end latency by reducing the jitter. By keeping the main workload on the GPU and avoiding costly CPU-GPU synchronization and orchestration overheads, the application significantly reduces variation in processing times and consequently photon-to-display latency.
+Before getting started, make sure to review the [Requirements](#requirements) section to verify that your hardware and software meet all necessary prerequisites.
+You can simply run application with the following command from the repository root:
 
-The graphs below illustrate the latency comparison between the CPU-driven (vanilla) application (`imx274_player` in [holoscan-sensor-bridge](https://github.com/nvidia-holoscan/holoscan-sensor-bridge/tree/release-2.5.0)) and the GPU-resident application. The GPU-resident approach exhibits significantly lower jitter and improved consistency for both the compute pipeline and the overall photon-to-display latency.
+```bash
+./holohub run imx274_gpu_resident
+```
 
-### Compute Pipeline Latency
+This will build and launch the development container, build the operators and build and run the application.
+For more details on using the CLI, see the [Holohub CLI Reference Guide](../../utilities/cli/cli_reference.md).
 
-![IMX274 Compute Pipeline Latency Comparison](imx274_compute_pipeline_latency_comparison_ms.png)
+For comprehensive, step-by-step instructions to build and run the application, refer to the [Detailed Build and Run Instructions](#detailed-build-and-run-instructions).
 
-### Photon-to-Display Latency
-
-![IMX274 Photon-to-Display Latency Comparison](imx274_photon_to_display_latency_comparison_ms.png)
-
-## Running the Application
+## Requirements
 
 ### Hardware Requirements
 
@@ -78,9 +60,7 @@ The graphs below illustrate the latency comparison between the CPU-driven (vanil
 
 Hardware details available in [Holoscan Sensor Bridge](https://docs.nvidia.com/holoscan/sensor-bridge/latest/index.html).
 
-### Prerequisites
-
-#### Driver Version
+### NVIDIA Driver Version
 
 This application is currently only supported with NVIDIA driver version
 590.48.01 or higher. As IGX OS currently does not support this driver version
@@ -134,7 +114,7 @@ out of the box, you need to manually install the driver.
 
    Confirm the driver version shown is **590.48.01** or higher.
 
-#### Display Manager (Mandatory)
+### Display Manager (Mandatory)
 
 Before running the application on the host IGX system, turn off the default display manager. The GPU-resident display operator only works with exclusive display mode where no other display compositors are running.
 
@@ -144,10 +124,8 @@ sudo service display-manager stop
 
 **Note:** To get back the default display manager, `sudo service display-manager start` will work.
 
-#### HoloHub Commands
 
-This application uses `./holohub` commands to build and run the application.
-  Please refer to the [README.md](../../README.md) for more details on its usage.
+## Detailed Build and Run Instructions
 
 ### Development Container
 
@@ -161,8 +139,6 @@ operators and applications.
 ### Build and Run
 
 Ensure you are in the HoloHub repository root for all commands below.
-
----
 
 #### Build the Container
 
@@ -183,8 +159,6 @@ The Holoscan `v4.0.0-cuda12-dgpu` container image is built on top of a Holoscan 
 docker images
 # Look for an image associated with imx274_gpu_resident
 ```
-
----
 
 #### Run the Container
 
@@ -286,6 +260,20 @@ execution time measurements of the GPU-resident component will be printed:
 [info] [fragment.cpp:1380] Saved GPU-resident performance results as CSV to file 'gpu_resident_perf.csv'
 [info] [gxf_executor.cpp:536] Destroying context
 ```
+
+## Performance
+
+The GPU-resident version of the IMX274 application is designed to achieve predictable end-to-end latency by reducing the jitter. By keeping the main workload on the GPU and avoiding costly CPU-GPU synchronization and orchestration overheads, the application significantly reduces variation in processing times and consequently photon-to-display latency.
+
+The graphs below illustrate the latency comparison between the CPU-driven (vanilla) application (`imx274_player` in [holoscan-sensor-bridge](https://github.com/nvidia-holoscan/holoscan-sensor-bridge/tree/release-2.5.0)) and the GPU-resident application. The GPU-resident approach exhibits significantly lower jitter and improved consistency for both the compute pipeline and the overall photon-to-display latency.
+
+### Compute Pipeline Latency
+
+![IMX274 Compute Pipeline Latency Comparison](imx274_compute_pipeline_latency_comparison_ms.png)
+
+### Photon-to-Display Latency
+
+![IMX274 Photon-to-Display Latency Comparison](imx274_photon_to_display_latency_comparison_ms.png)
 
 ## Known Issues
 
