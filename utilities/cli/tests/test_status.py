@@ -31,9 +31,6 @@ from utilities.cli.status import (
     GitInfo,
     ImageInfo,
     PlatformInfo,
-    _dir_size_mb,
-    _format_size,
-    _relative_time,
     collect_build_info,
     collect_docker_disk_usage,
     collect_folder_info,
@@ -43,6 +40,7 @@ from utilities.cli.status import (
     format_status,
     format_status_json,
 )
+from utilities.cli.util import dir_size_mb, format_size, relative_time
 
 
 def _status_args():
@@ -65,20 +63,20 @@ class TestStatusUtilities(unittest.TestCase):
             (7200, "h ago", False),
             (172800, "d ago", False),
         ]:
-            result = _relative_time(time.time() - seconds)
+            result = relative_time(time.time() - seconds)
             self.assertEqual(result, expected) if exact else self.assertIn(expected, result)
 
     def test_format_size(self):
         for size_mb, expected in [(512, "512 MB"), (2048, "2.0 GB")]:
-            self.assertEqual(_format_size(size_mb), expected)
+            self.assertEqual(format_size(size_mb), expected)
 
     def test_dir_size_mb(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
-            self.assertEqual(_dir_size_mb(root), 0.0)
+            self.assertEqual(dir_size_mb(root), 0.0)
             (root / "test.bin").write_bytes(b"\x00" * 1024)
-            self.assertAlmostEqual(_dir_size_mb(root), 1024 / (1024 * 1024), places=4)
-        self.assertEqual(_dir_size_mb(Path("/nonexistent/path")), 0.0)
+            self.assertAlmostEqual(dir_size_mb(root), 1024 / (1024 * 1024), places=4)
+        self.assertEqual(dir_size_mb(Path("/nonexistent/path")), 0.0)
 
 
 class TestStatusCollectors(unittest.TestCase):

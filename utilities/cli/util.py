@@ -24,6 +24,7 @@ import shlex
 import shutil
 import subprocess
 import sys
+import time
 import traceback
 from datetime import datetime, timezone
 from pathlib import Path
@@ -336,6 +337,37 @@ def run_info_command(cmd: List[str], cwd: Optional[str] = None) -> Optional[str]
         return subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL, cwd=cwd).strip()
     except (subprocess.CalledProcessError, FileNotFoundError):
         return None
+
+
+def dir_size_mb(path: Path) -> float:
+    """Return the total size of a directory tree in megabytes."""
+    total = 0
+    for root, _dirs, files in os.walk(str(path)):
+        for f in files:
+            try:
+                total += os.path.getsize(os.path.join(root, f))
+            except OSError:
+                continue
+    return total / (1024 * 1024)
+
+
+def relative_time(mtime: float) -> str:
+    """Format an mtime as a human-readable relative time string."""
+    elapsed = time.time() - mtime
+    if elapsed < 60:
+        return "just now"
+    if elapsed < 3600:
+        return f"{int(elapsed / 60)}m ago"
+    if elapsed < 86400:
+        return f"{int(elapsed / 3600)}h ago"
+    return f"{int(elapsed / 86400)}d ago"
+
+
+def format_size(mb: float) -> str:
+    """Format a size in megabytes as a human-readable string."""
+    if mb >= 1024:
+        return f"{mb / 1024:.1f} GB"
+    return f"{mb:.0f} MB"
 
 
 def parse_semantic_version(version: str) -> Tuple[int, int, int]:

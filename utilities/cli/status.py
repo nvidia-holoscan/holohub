@@ -18,18 +18,20 @@
 
 import json
 import os
-import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import List, Optional
 
 from .util import (
     Color,
+    dir_size_mb,
+    format_size,
     get_default_cuda_version,
     get_gpu_name,
     get_host_arch,
     get_host_gpu,
     get_sdk_version,
+    relative_time,
     run_info_command,
 )
 
@@ -103,17 +105,6 @@ def collect_git_info(holohub_root: Path) -> Optional[GitInfo]:
     )
 
 
-def _dir_size_mb(path: Path) -> float:
-    total = 0
-    for root, _dirs, files in os.walk(str(path)):
-        for f in files:
-            try:
-                total += os.path.getsize(os.path.join(root, f))
-            except OSError:
-                continue
-    return total / (1024 * 1024)
-
-
 def collect_folder_info(paths: List[Path]) -> List[FolderInfo]:
     seen: set[Path] = set()
     results: List[FolderInfo] = []
@@ -121,7 +112,7 @@ def collect_folder_info(paths: List[Path]) -> List[FolderInfo]:
         resolved = path.resolve()
         if path.is_dir() and resolved not in seen:
             seen.add(resolved)
-            results.append(FolderInfo(path=str(path), size_mb=_dir_size_mb(path)))
+            results.append(FolderInfo(path=str(path), size_mb=dir_size_mb(path)))
     return results
 
 
@@ -177,17 +168,6 @@ def collect_docker_disk_usage() -> Optional[str]:
     return ", ".join(f"{k}: {v}" for k, v in parts.items())
 
 
-def _relative_time(mtime: float) -> str:
-    elapsed = time.time() - mtime
-    if elapsed < 60:
-        return "just now"
-    if elapsed < 3600:
-        return f"{int(elapsed / 60)}m ago"
-    if elapsed < 86400:
-        return f"{int(elapsed / 3600)}h ago"
-    return f"{int(elapsed / 86400)}d ago"
-
-
 def collect_build_info(build_parent_dir: Path) -> List[BuildInfo]:
     builds = []
     if not build_parent_dir.is_dir():
@@ -206,7 +186,7 @@ def collect_build_info(build_parent_dir: Path) -> List[BuildInfo]:
 
         has_build_system = (subdir / "Makefile").exists() or (subdir / "build.ninja").exists()
         try:
-            time_str = _relative_time(subdir.stat().st_mtime)
+            time_str = relative_time(subdir.stat().st_mtime)
         except OSError:
             time_str = "unknown"
 
@@ -218,12 +198,6 @@ def collect_build_info(build_parent_dir: Path) -> List[BuildInfo]:
             )
         )
     return builds
-
-
-def _format_size(mb: float) -> str:
-    if mb >= 1024:
-        return f"{mb / 1024:.1f} GB"
-    return f"{mb:.0f} MB"
 
 
 def format_status(
@@ -274,16 +248,16 @@ def format_status(
     # Build folders
     if build_folders:
         total = sum(f.size_mb for f in build_folders)
-        lines.append(f"\n{Color.white('Build folders:', bold=True)} {_format_size(total)} total")
+        lines.append(f"\n{Color.white('Build folders:', bold=True)} {format_size(total)} total")
         for f in build_folders:
-            lines.append(f"  {f.path:<55} {_format_size(f.size_mb):>10}")
+            lines.append(f"  {f.path:<55} {format_size(f.size_mb):>10}")
 
     # Data folders
     if data_folders:
         total = sum(f.size_mb for f in data_folders)
-        lines.append(f"\n{Color.white('Data folders:', bold=True)} {_format_size(total)} total")
+        lines.append(f"\n{Color.white('Data folders:', bold=True)} {format_size(total)} total")
         for f in data_folders:
-            lines.append(f"  {f.path:<55} {_format_size(f.size_mb):>10}")
+            lines.append(f"  {f.path:<55} {format_size(f.size_mb):>10}")
 
     return "\n".join(lines)
 
