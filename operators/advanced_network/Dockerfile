@@ -17,7 +17,7 @@
 
 # Define arguments for holoscan installation
 ARG HOLOSCAN_DEB_SRC="remote" # or "local"
-ARG HOLOSCAN_DEB_REMOTE_VERSION=3.11.0 # only used if HOLOSCAN_DEB_SRC is "remote"
+ARG HOLOSCAN_DEB_REMOTE_VERSION=4.0.0 # only used if HOLOSCAN_DEB_SRC is "remote"
 ARG HOLOSCAN_DEB_LOCAL_PATH="./holoscan.deb" # only used if HOLOSCAN_DEB_SRC is "local"
 
 # ============================================================

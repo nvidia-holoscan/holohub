@@ -71,5 +71,3 @@ RUN INDEX_URL=""; \
     fi \
     && echo "Installing torchvision ${TORCHVISION_VERSION}" \
     && python3 -m pip install torchvision==${TORCHVISION_VERSION} --no-cache-dir --index-url ${INDEX_URL}
-
-    

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,11 +24,11 @@
 
 /**
  * @brief A simple Holoscan operator that subscribes to string messages from ROS2.
- * 
+ *
  * This operator demonstrates basic integration between Holoscan and ROS2 by receiving
  * string messages from a ROS2 topic and logging them to the console. It inherits from
  * SubscriberOp to leverage the built-in ROS2 subscription capabilities.
- * 
+ *
  * The operator processes incoming messages as they arrive and displays the received
  * message content using Holoscan's logging system.
  */

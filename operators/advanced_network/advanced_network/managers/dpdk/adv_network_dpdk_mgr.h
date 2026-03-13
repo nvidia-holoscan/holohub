@@ -144,6 +144,7 @@ class DpdkMgr : public Manager {
   int setup_pools_and_rings(int max_rx_batch, int max_tx_batch);
   struct rte_flow* add_flow(int port, const FlowConfig& cfg);
   void create_dummy_rx_q();
+  void create_dummy_tx_q();
   struct rte_flow* add_modify_flow_set(int port, int queue, const char* buf, int len,
                                        Direction direction);
 

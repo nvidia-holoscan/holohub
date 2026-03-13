@@ -67,12 +67,12 @@ add_subdirectory(gstreamer)
 
 add_subdirectory(h264)
 
-add_holohub_application(isaac_sim_holoscan_bridge)
-
 add_holohub_application(high_speed_endoscopy DEPENDS
                         OPERATORS emergent_source)
 
 add_holohub_application(holocat)
+
+add_holohub_application(isaac_sim_holoscan_bridge)
 
 add_subdirectory(holoscan_ros2)
 
@@ -80,11 +80,19 @@ add_subdirectory(holoviz)
 
 add_holohub_application(imaging_ai_segmentator)
 
+add_holohub_application(imx274_gpu_resident DEPENDS
+                        OPERATORS hsb_roce_receiver_nmd
+                                  csi_to_bayer_gpu_resident
+                                  image_processor_gpu_resident
+                                  display_gpu_resident)
+
 add_holohub_application(hyperspectral_segmentation)
 
 add_holohub_application(iio DEPENDS OPERATORS iio_controller fft)
 
 add_subdirectory(laser_detection_latency)
+
+add_holohub_application(tracks2endo4d DEPENDS OPERATORS tapnext_inference)
 
 add_holohub_application(monai_endoscopic_tool_seg DEPENDS
                         OPERATORS OPTIONAL aja_source)
@@ -109,12 +117,16 @@ add_holohub_application(pipeline_visualization)
 add_holohub_application(polyp_detection)
 
 add_holohub_application(pva_video_filter)
+add_holohub_application(pva_radar_pipeline DEPENDS OPERATORS pva_radar pva_radar_graphics raw_radar_cube_source)
 
 add_holohub_application(prohawk_video_replayer DEPENDS OPERATORS prohawk_video_processing)
 
 add_holohub_application(qt_video_replayer DEPENDS OPERATORS qt_video npp_filter)
 
 add_holohub_application(realsense_visualizer DEPENDS OPERATORS realsense_camera)
+
+add_holohub_application(st2110_demo DEPENDS
+                        OPERATORS st2110_source)
 
 add_holohub_application(stereo_vision)
 
