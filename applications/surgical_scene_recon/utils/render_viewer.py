@@ -92,8 +92,9 @@ def _load_checkpoint(ckpt_path: str):
                 obj = getattr(np_dtypes, name)
                 if isinstance(obj, type):
                     torch.serialization.add_safe_globals([obj])
-        except Exception:
-            pass
+        except Exception as e:
+            # Best-effort registration of NumPy dtypes for safe PyTorch deserialization; failures are non-fatal.
+            print(f"[Renderer] Warning: failed to register NumPy dtypes for safe globals: {e}", file=sys.stderr)
 
     ckpt = torch.load(ckpt_path, map_location="cuda", weights_only=True)
     splats = ckpt["splats"]
