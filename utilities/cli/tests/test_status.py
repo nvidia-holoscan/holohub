@@ -91,11 +91,18 @@ class TestStatusCollectors(unittest.TestCase):
             (Path(d) / "VERSION").write_text("2.5.0")
             with patch.dict(os.environ, {"HOLOHUB_DEFAULT_HSDK_DIR": d}):
                 info = collect_platform_info()
-        self.assertEqual((info.arch, info.gpu_type, info.gpu_name, info.cuda_version, info.holoscan_version), ("x86_64", "dgpu", "NVIDIA RTX 4090", "12.6", "2.5.0"))
+        self.assertEqual(
+            (info.arch, info.gpu_type, info.gpu_name, info.cuda_version, info.holoscan_version),
+            ("x86_64", "dgpu", "NVIDIA RTX 4090", "12.6", "2.5.0"),
+        )
 
     @patch("utilities.cli.status.run_info_command")
     def test_collect_git_info(self, mock_run):
-        mock_run.side_effect = lambda cmd, **_: {"branch": "main", "rev-parse": "abc1234", "status": " M file.py\n"}.get(cmd[3] if len(cmd) > 3 else "", "")
+        mock_run.side_effect = lambda cmd, **_: {
+            "branch": "main",
+            "rev-parse": "abc1234",
+            "status": " M file.py\n",
+        }.get(cmd[3] if len(cmd) > 3 else "", "")
         info = collect_git_info(Path("/tmp"))
         self.assertIsNotNone(info)
         self.assertEqual((info.dirty, info.modified_count), (True, 1))
@@ -106,8 +113,13 @@ class TestStatusCollectors(unittest.TestCase):
     @patch("utilities.cli.status.run_info_command")
     def test_collect_image_info(self, mock_run):
         mock_run.side_effect = lambda cmd: (
-            "holohub:latest\tabc123" if "ps" in cmd
-            else ("img001\tholohub:latest\t2 hours ago\nimg002\tother:v1\t1 day ago" if "images" in cmd else None)
+            "holohub:latest\tabc123"
+            if "ps" in cmd
+            else (
+                "img001\tholohub:latest\t2 hours ago\nimg002\tother:v1\t1 day ago"
+                if "images" in cmd
+                else None
+            )
         )
         images = collect_image_info()
         self.assertEqual((len(images), images[0].status), (1, "Running"))
@@ -128,7 +140,9 @@ class TestStatusCollectors(unittest.TestCase):
             root = Path(d)
             mk_build(root, "build-x86_64")
             builds = collect_build_info(root)
-            self.assertEqual((len(builds), builds[0].name, builds[0].status), (1, "build-x86_64", "OK"))
+            self.assertEqual(
+                (len(builds), builds[0].name, builds[0].status), (1, "build-x86_64", "OK")
+            )
         with tempfile.TemporaryDirectory() as d:
             mk_build(Path(d), success=False)
             self.assertEqual(collect_build_info(Path(d))[0].status, "FAIL")
@@ -159,7 +173,16 @@ class TestStatusFormatting(unittest.TestCase):
     def test_format_status_text(self):
         args = _status_args()
         output = format_status(*args)
-        for expected in ["x86_64", "RTX 4090", "main", "abc1234", "2 modified", "holohub:latest", "Build folders:", "Data folders:"]:
+        for expected in [
+            "x86_64",
+            "RTX 4090",
+            "main",
+            "abc1234",
+            "2 modified",
+            "holohub:latest",
+            "Build folders:",
+            "Data folders:",
+        ]:
             self.assertIn(expected, output)
 
         args[1] = None

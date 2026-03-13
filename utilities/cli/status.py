@@ -133,9 +133,7 @@ def collect_image_info() -> List[ImageInfo]:
 
     # Use image IDs from running containers for reliable comparison
     running_image_ids: set = set()
-    ps_output = run_info_command(
-        [docker_exe, "ps", "--format", "{{.Image}}\t{{.ID}}"]
-    )
+    ps_output = run_info_command([docker_exe, "ps", "--format", "{{.Image}}\t{{.ID}}"])
     if ps_output:
         for line in ps_output.split("\n"):
             parts = line.strip().split("\t")
