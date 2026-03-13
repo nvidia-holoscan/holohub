@@ -2,6 +2,7 @@
 
 This operator receives video frames over RoCE (RDMA over Converged Ethernet)
 directly to GPU memory for high-performance, low-latency video ingestion.
+
 # HSB RoCE Receiver Operator with No Host Metadata
 
 This operator receives video frames over RoCE (RDMA over Converged Ethernet)
