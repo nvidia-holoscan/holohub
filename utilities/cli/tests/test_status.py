@@ -45,131 +45,95 @@ from utilities.cli.status import (
 )
 
 
-class TestRelativeTime(unittest.TestCase):
-    def test_just_now(self):
-        self.assertEqual(_relative_time(time.time() - 10), "just now")
-
-    def test_minutes(self):
-        self.assertIn("m ago", _relative_time(time.time() - 300))
-
-    def test_hours(self):
-        self.assertIn("h ago", _relative_time(time.time() - 7200))
-
-    def test_days(self):
-        self.assertIn("d ago", _relative_time(time.time() - 172800))
+def _status_args():
+    return [
+        PlatformInfo("x86_64", "dgpu", "RTX 4090", "12.6", "2.5.0"),
+        GitInfo("main", "abc1234", True, 2),
+        [ContainerInfo("holohub:latest", "2h ago", "Running")],
+        [BuildInfo("build", "OK", "1h ago")],
+        [FolderInfo("/tmp/build", 512.0)],
+        [FolderInfo("/tmp/data", 1024.0)],
+        "Images: 5GB, Containers: 100MB",
+    ]
 
 
-class TestFormatSize(unittest.TestCase):
-    def test_megabytes(self):
-        self.assertEqual(_format_size(512), "512 MB")
+class TestStatusUtilities(unittest.TestCase):
+    def test_relative_time(self):
+        for seconds, expected, exact in [
+            (10, "just now", True),
+            (300, "m ago", False),
+            (7200, "h ago", False),
+            (172800, "d ago", False),
+        ]:
+            result = _relative_time(time.time() - seconds)
+            self.assertEqual(result, expected) if exact else self.assertIn(expected, result)
 
-    def test_gigabytes(self):
-        self.assertEqual(_format_size(2048), "2.0 GB")
+    def test_format_size(self):
+        for size_mb, expected in [(512, "512 MB"), (2048, "2.0 GB")]:
+            self.assertEqual(_format_size(size_mb), expected)
 
-
-class TestDirSizeMb(unittest.TestCase):
-    def test_empty_dir(self):
+    def test_dir_size_mb(self):
         with tempfile.TemporaryDirectory() as d:
-            self.assertEqual(_dir_size_mb(Path(d)), 0.0)
-
-    def test_dir_with_file(self):
-        with tempfile.TemporaryDirectory() as d:
-            p = Path(d) / "test.bin"
-            p.write_bytes(b"\x00" * 1024)
-            size = _dir_size_mb(Path(d))
-            self.assertAlmostEqual(size, 1024 / (1024 * 1024), places=4)
-
-    def test_nonexistent_dir(self):
+            root = Path(d)
+            self.assertEqual(_dir_size_mb(root), 0.0)
+            (root / "test.bin").write_bytes(b"\x00" * 1024)
+            self.assertAlmostEqual(_dir_size_mb(root), 1024 / (1024 * 1024), places=4)
         self.assertEqual(_dir_size_mb(Path("/nonexistent/path")), 0.0)
 
 
-class TestCollectPlatformInfo(unittest.TestCase):
+class TestStatusCollectors(unittest.TestCase):
     @patch("utilities.cli.status.get_host_arch", return_value="x86_64")
     @patch("utilities.cli.status.get_host_gpu", return_value="dgpu")
     @patch("utilities.cli.status.get_gpu_name", return_value="NVIDIA RTX 4090")
     @patch("utilities.cli.status.get_default_cuda_version", return_value="12.6")
-    def test_basic(self, *_mocks):
+    def test_collect_platform_info(self, *_mocks):
         with tempfile.TemporaryDirectory() as d:
-            version_file = Path(d) / "VERSION"
-            version_file.write_text("2.5.0")
+            (Path(d) / "VERSION").write_text("2.5.0")
             with patch.dict(os.environ, {"HOLOHUB_DEFAULT_HSDK_DIR": d}):
                 info = collect_platform_info()
-        self.assertEqual(info.arch, "x86_64")
-        self.assertEqual(info.gpu_type, "dgpu")
-        self.assertEqual(info.gpu_name, "NVIDIA RTX 4090")
-        self.assertEqual(info.cuda_version, "12.6")
-        self.assertEqual(info.holoscan_version, "2.5.0")
+        self.assertEqual((info.arch, info.gpu_type, info.gpu_name, info.cuda_version, info.holoscan_version), ("x86_64", "dgpu", "NVIDIA RTX 4090", "12.6", "2.5.0"))
 
-
-class TestCollectGitInfo(unittest.TestCase):
     @patch("utilities.cli.status.run_info_command")
-    def test_normal(self, mock_run):
-        mock_run.side_effect = lambda cmd, **kw: {
-            "branch": "main",
-            "rev-parse": "abc1234",
-            "status": " M file.py\n",
-        }.get(cmd[3] if len(cmd) > 3 else "", "")
+    def test_collect_git_info(self, mock_run):
+        mock_run.side_effect = lambda cmd, **_: {"branch": "main", "rev-parse": "abc1234", "status": " M file.py\n"}.get(cmd[3] if len(cmd) > 3 else "", "")
         info = collect_git_info(Path("/tmp"))
         self.assertIsNotNone(info)
-        self.assertTrue(info.dirty)
-        self.assertEqual(info.modified_count, 1)
-
-    @patch("utilities.cli.status.run_info_command", return_value=None)
-    def test_no_git(self, _mock):
+        self.assertEqual((info.dirty, info.modified_count), (True, 1))
+        mock_run.side_effect = None
+        mock_run.return_value = None
         self.assertIsNone(collect_git_info(Path("/tmp")))
 
-
-class TestCollectContainerInfo(unittest.TestCase):
     @patch("utilities.cli.status.run_info_command")
-    def test_with_containers(self, mock_run):
-        def side_effect(cmd):
-            if "ps" in cmd:
-                return "holohub:latest"
-            if "images" in cmd:
-                return "holohub:latest\t2 hours ago\nother:v1\t1 day ago"
-            return None
-
-        mock_run.side_effect = side_effect
+    def test_collect_container_info(self, mock_run):
+        mock_run.side_effect = lambda cmd: "holohub:latest" if "ps" in cmd else ("holohub:latest\t2 hours ago\nother:v1\t1 day ago" if "images" in cmd else None)
         containers = collect_container_info()
-        self.assertEqual(len(containers), 1)
-        self.assertEqual(containers[0].status, "Running")
-
-    @patch("utilities.cli.status.run_info_command", return_value=None)
-    def test_no_docker(self, _mock):
+        self.assertEqual((len(containers), containers[0].status), (1, "Running"))
+        mock_run.return_value = None
+        mock_run.side_effect = None
         self.assertEqual(collect_container_info(), [])
 
-
-class TestCollectBuildInfo(unittest.TestCase):
-    def test_with_cmake_builds(self):
-        with tempfile.TemporaryDirectory() as d:
-            build = Path(d) / "build-x86_64"
+    def test_collect_build_info(self):
+        def mk_build(root, name="build", error=False):
+            build = root / name
             build.mkdir()
             (build / "CMakeCache.txt").touch()
-            builds = collect_build_info(Path(d))
-            self.assertEqual(len(builds), 1)
-            self.assertEqual(builds[0].name, "build-x86_64")
-            self.assertEqual(builds[0].status, "OK")
+            if error:
+                (build / "CMakeFiles").mkdir(parents=True)
+                (build / "CMakeFiles" / "CMakeError.log").write_text("error occurred")
+            return build
 
-    def test_with_error_log(self):
         with tempfile.TemporaryDirectory() as d:
-            build = Path(d) / "build"
-            cmake_files = build / "CMakeFiles"
-            cmake_files.mkdir(parents=True)
-            (build / "CMakeCache.txt").touch()
-            (cmake_files / "CMakeError.log").write_text("error occurred")
-            builds = collect_build_info(Path(d))
-            self.assertEqual(builds[0].status, "FAIL")
-
-    def test_empty_dir(self):
+            root = Path(d)
+            mk_build(root, "build-x86_64")
+            builds = collect_build_info(root)
+            self.assertEqual((len(builds), builds[0].name, builds[0].status), (1, "build-x86_64", "OK"))
         with tempfile.TemporaryDirectory() as d:
-            self.assertEqual(collect_build_info(Path(d)), [])
+            mk_build(Path(d), error=True)
+            self.assertEqual(collect_build_info(Path(d))[0].status, "FAIL")
+        for path in [Path("/nonexistent"), Path(tempfile.mkdtemp())]:
+            self.assertEqual(collect_build_info(path), [])
 
-    def test_nonexistent_dir(self):
-        self.assertEqual(collect_build_info(Path("/nonexistent")), [])
-
-
-class TestCollectFolderInfo(unittest.TestCase):
-    def test_existing_dirs(self):
+    def test_collect_folder_info(self):
         with tempfile.TemporaryDirectory() as d:
             sub = Path(d) / "data"
             sub.mkdir()
@@ -177,66 +141,38 @@ class TestCollectFolderInfo(unittest.TestCase):
             result = collect_folder_info([sub])
             self.assertEqual(len(result), 1)
             self.assertGreater(result[0].size_mb, 0)
+            self.assertEqual(len(collect_folder_info([sub, sub])), 1)
 
-    def test_deduplicates(self):
-        with tempfile.TemporaryDirectory() as d:
-            sub = Path(d) / "data"
-            sub.mkdir()
-            result = collect_folder_info([sub, sub])
-            self.assertEqual(len(result), 1)
-
-
-class TestCollectDockerDiskUsage(unittest.TestCase):
-    @patch("utilities.cli.status.run_info_command", return_value="Images\t5.2GB\nContainers\t100MB")
-    def test_parses_output(self, _mock):
+    @patch("utilities.cli.status.run_info_command")
+    def test_collect_docker_disk_usage(self, mock_run):
+        mock_run.return_value = "Images\t5.2GB\nContainers\t100MB"
         result = collect_docker_disk_usage()
         self.assertIn("Images: 5.2GB", result)
         self.assertIn("Containers: 100MB", result)
-
-    @patch("utilities.cli.status.run_info_command", return_value=None)
-    def test_no_docker(self, _mock):
+        mock_run.return_value = None
         self.assertIsNone(collect_docker_disk_usage())
 
 
-class TestFormatStatus(unittest.TestCase):
-    def _make_args(self):
-        platform = PlatformInfo("x86_64", "dgpu", "RTX 4090", "12.6", "2.5.0")
-        git = GitInfo("main", "abc1234", True, 2)
-        containers = [ContainerInfo("holohub:latest", "2h ago", "Running")]
-        builds = [BuildInfo("build", "OK", "1h ago")]
-        build_folders = [FolderInfo("/tmp/build", 512.0)]
-        data_folders = [FolderInfo("/tmp/data", 1024.0)]
-        docker_disk = "Images: 5GB, Containers: 100MB"
-        return platform, git, containers, builds, build_folders, data_folders, docker_disk
+class TestStatusFormatting(unittest.TestCase):
+    def test_format_status_text(self):
+        args = _status_args()
+        output = format_status(*args)
+        for expected in ["x86_64", "RTX 4090", "main", "abc1234", "2 modified", "holohub:latest", "Build folders:", "Data folders:"]:
+            self.assertIn(expected, output)
 
-    def test_text_output(self):
-        output = format_status(*self._make_args())
-        self.assertIn("x86_64", output)
-        self.assertIn("RTX 4090", output)
-        self.assertIn("main", output)
-        self.assertIn("abc1234", output)
-        self.assertIn("2 modified", output)
-        self.assertIn("holohub:latest", output)
-        self.assertIn("Build folders:", output)
-        self.assertIn("Data folders:", output)
-
-    def test_text_no_git(self):
-        args = list(self._make_args())
         args[1] = None
         output = format_status(*args)
         self.assertIn("x86_64", output)
         self.assertNotIn("Git:", output)
 
-    def test_text_empty_containers(self):
-        args = list(self._make_args())
+        args = _status_args()
         args[2] = []
         output = format_status(*args)
         self.assertIn("Containers:", output)
         self.assertIn("(none)", output)
 
-    def test_json_output(self):
-        output = format_status_json(*self._make_args())
-        data = json.loads(output)
+    def test_format_status_json(self):
+        data = json.loads(format_status_json(*_status_args()))
         self.assertEqual(data["platform"]["arch"], "x86_64")
         self.assertEqual(data["git"]["branch"], "main")
         self.assertTrue(data["git"]["dirty"])
@@ -244,11 +180,9 @@ class TestFormatStatus(unittest.TestCase):
         self.assertEqual(len(data["builds"]), 1)
         self.assertIn("docker_disk", data)
 
-    def test_json_no_docker_disk(self):
-        args = list(self._make_args())
+        args = _status_args()
         args[6] = None
-        data = json.loads(format_status_json(*args))
-        self.assertNotIn("docker_disk", data)
+        self.assertNotIn("docker_disk", json.loads(format_status_json(*args)))
 
 
 if __name__ == "__main__":
