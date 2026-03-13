@@ -95,7 +95,11 @@ void DisplayGpuResidentOp::initialize() {
                                      "Failed to allocate resize buffer");
       HOLOSCAN_LOG_INFO(
           "DisplayGpuResidentOp: resize buffer allocated for {}x{} -> {}x{} ({} bytes)",
-          input_width, input_height, display_width, display_height, resize_buf_size);
+          input_width,
+          input_height,
+          display_width,
+          display_height,
+          resize_buf_size);
     }
 
     HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaSetDevice(0), "Failed to set CUDA device");
@@ -142,8 +146,8 @@ void DisplayGpuResidentOp::initialize() {
             "DisplayGpuResidentOp: cudaMalloc for display_ptr_locations_device_ failed");
       }
       void* host_locations[1] = {display_ptr_location_ptr_};
-      cuda_err = cudaMemcpy(display_ptr_locations_device_, host_locations, 1 * sizeof(void*),
-                            cudaMemcpyHostToDevice);
+      cuda_err = cudaMemcpy(
+          display_ptr_locations_device_, host_locations, 1 * sizeof(void*), cudaMemcpyHostToDevice);
       if (cuda_err != cudaSuccess) {
         throw std::runtime_error(
             "DisplayGpuResidentOp: cudaMemcpy for display_ptr_locations_device_ failed");
@@ -156,7 +160,9 @@ void DisplayGpuResidentOp::initialize() {
             "DisplayGpuResidentOp: cudaMalloc for num_buffers_per_layer_device_ failed");
       }
       unsigned int host_num_bufs[1] = {NUM_BUFFERS};
-      cuda_err = cudaMemcpy(num_buffers_per_layer_device_, host_num_bufs, 1 * sizeof(unsigned int),
+      cuda_err = cudaMemcpy(num_buffers_per_layer_device_,
+                            host_num_bufs,
+                            1 * sizeof(unsigned int),
                             cudaMemcpyHostToDevice);
       if (cuda_err != cudaSuccess) {
         throw std::runtime_error(
@@ -172,11 +178,10 @@ void DisplayGpuResidentOp::initialize() {
     CUdeviceptr initial_present_device_ptr = display_device_ptr0_;
     HOLOSCAN_LOG_DEBUG("DisplayGpuResidentOp: initial CPU present buffer dptr=0x{:x}",
                        static_cast<uint64_t>(initial_present_device_ptr));
-    cuDispBufferMemory present_buf = {
-        .devicePtr = &initial_present_device_ptr,
-        .size = nullptr,
-        .stride = nullptr,
-        .pHDRMetadata = nullptr};
+    cuDispBufferMemory present_buf = {.devicePtr = &initial_present_device_ptr,
+                                      .size = nullptr,
+                                      .stride = nullptr,
+                                      .pHDRMetadata = nullptr};
     cuDispStatus present_err = cuDispPresent(swapchain_, display_init_stream_, &present_buf, 1, 0);
     if (present_err != cuDispSuccess) {
       throw std::runtime_error("DisplayGpuResidentOp: initial cuDispPresent failed with error " +
@@ -193,8 +198,9 @@ void DisplayGpuResidentOp::initialize() {
     try {
       stop();
     } catch (...) {
+      // ignore any exceptions thrown from stop()
     }
-    throw; // rethrows the original exception
+    throw;  // rethrows the original exception
   }
 }
 
