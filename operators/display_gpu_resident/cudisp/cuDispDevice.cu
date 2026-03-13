@@ -48,6 +48,7 @@ inline __device__ void cuDispGPUPresent(void** displayPtrLocations, void* swapch
     sc->bufSlots[next_slot][0] = *((void**)displayPtrLocations[0]);
     slotToNotify = next_slot;
     sc->prevSlot = next_slot;
+    asm volatile("membar.sys;" ::: "memory");  // make data visible to the host before signalling
 
     sc->notifySlots[slotToNotify] = 1;
   }
