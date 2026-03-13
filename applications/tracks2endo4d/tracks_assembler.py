@@ -45,10 +45,12 @@ class TracksAssemblerOp(Operator):
 
     def __init__(self, *args, grid_size=15, **kwargs):
         super().__init__(*args, **kwargs)
-        self.called_once = False
         self.n_points_per_op = grid_size * grid_size
-        self._initialize_ids()
         self.total_points_allocated = 3 * self.n_points_per_op
+
+    def initialize(self):
+        self.called_once = False
+        self._initialize_ids()
 
     def _initialize_ids(self):
         self.last_ids_0 = list(range(0, self.n_points_per_op))

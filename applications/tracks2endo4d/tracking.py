@@ -32,12 +32,11 @@ def get_model_path(args, data_path, name):
 class BatchMergerOp(Operator):
     """Accumulates incoming messages until batch_size is reached, then emits merged batch."""
 
-    def __init__(self, fragment, *args, **kwargs):
-        super().__init__(fragment, *args, **kwargs)
+    def initialize(self):
         self._buffer_frames = []
         self._buffer_tracks = []
         self._buffer_visibility = []
-        self._buffer_window_num = []
+        self._buffer_window_num = 0
 
     def setup(self, spec: OperatorSpec):
         spec.input("predictions_in")

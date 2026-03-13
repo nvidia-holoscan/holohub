@@ -49,6 +49,12 @@ holoviz_2d:
     - name: "frame"
       type: color
       priority: 0
+    - name: "point_coords"
+      type: points
+      opacity: 1.0
+      color: [1.0, 0.0, 0.0, 1.0]
+      point_size: 4
+      priority: 1
 
 holoviz_3d:
   width: 1280

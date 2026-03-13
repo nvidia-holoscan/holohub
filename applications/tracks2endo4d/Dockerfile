@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,29 +15,80 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ARG BASE_IMAGE
+
+############################################################
+# Base image
+############################################################
+
 ARG GPU_TYPE
+ARG BASE_SDK_VERSION
+ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v${BASE_SDK_VERSION}-${GPU_TYPE}
+FROM ${BASE_IMAGE} AS base
+
+ARG DEBIAN_FRONTEND=noninteractive
+ARG CMAKE_BUILD_TYPE=Release
 
 # --------------------------------------------------------------------------
 #
-# Build stage to export the pytorch model to ONNX
+# Set up prerequisites to run HoloHub CLI
 #
+# --------------------------------------------------------------------------
+FROM base AS holohub-cli-prerequisites
 
-FROM ${BASE_IMAGE} AS builder
+# Install python3 if not present (needed for holohub CLI)
+ARG PYTHON_VERSION=python3
+RUN if ! command -v python3 >/dev/null 2>&1; then \
+        apt-get update \
+        && apt-get install --no-install-recommends -y \
+            software-properties-common curl gpg-agent \
+        && add-apt-repository ppa:deadsnakes/ppa \
+        && apt-get update \
+        && apt-get install --no-install-recommends -y \
+            ${PYTHON_VERSION} \
+        && apt purge -y \
+            python3-pip \
+            software-properties-common \
+        && apt-get autoremove --purge -y \
+        && rm -rf /var/lib/apt/lists/* \
+        && update-alternatives --install /usr/bin/python python /usr/bin/${PYTHON_VERSION} 100 \
+        && if [ "${PYTHON_VERSION}" != "python3" ]; then \
+            update-alternatives --install /usr/bin/python3 python3 /usr/bin/${PYTHON_VERSION} 100 \
+            ; fi \
+    ; fi
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
+RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
+        curl -sS https://bootstrap.pypa.io/get-pip.py | ${PYTHON_VERSION} \
+    ; fi
 
-ARG MODEL=vits
+# --------------------------------------------------------------------------
+#
+# Use HoloHub CLI to set up common packages for developing with Holoscan SDK
+#
+# --------------------------------------------------------------------------
+FROM holohub-cli-prerequisites AS holohub-cli
 
-ARG DEBIAN_FRONTEND=noninteractive
+RUN mkdir -p /tmp/scripts
+COPY holohub /tmp/scripts/
+RUN mkdir -p /tmp/scripts/utilities
+COPY utilities /tmp/scripts/utilities/
+RUN chmod +x /tmp/scripts/holohub
+RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    libgl1 \
-    git \
-    wget \
-    && rm -rf /var/lib/apt/lists/*
+# Enable autocomplete
+RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
+
+# Set default Holohub data directory
+ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data
+
+# --------------------------------------------------------------------------
+#
+# Tracks2Endo4D application dependencies
+#
+# --------------------------------------------------------------------------
+FROM holohub-cli AS application-dependencies
 
 # Set the working directory
-WORKDIR /app
+WORKDIR /tmp
 
 RUN git clone --depth 1 https://github.com/deepmind/tapnet.git
 
@@ -61,28 +112,10 @@ RUN mkdir -p checkpoints \
 # Copy the ONNX tapnext conversion script to the builder stage and run the conversion
 COPY applications/tracks2endo4d/onnx_conversion/onnx_tapnext.py .
 
-RUN python onnx_tapnext.py --checkpoint checkpoints/bootstapnext_ckpt.npz --output_path checkpoints/ --device cpu
+RUN python onnx_tapnext.py --checkpoint checkpoints/bootstapnext_ckpt.npz --output_path /models/ --device cpu
 
-# --------------------------------------------------------------------------
-#
-# Final stage
-#
-
-FROM ${BASE_IMAGE} AS run
-
-ARG DEBIAN_FRONTEND=noninteractive
-
-# Install NGC CLI
-RUN if [ $(uname -m) = "aarch64" ]; then ARCH=arm64; else ARCH=linux; fi \
-    && wget --content-disposition https://api.ngc.nvidia.com/v2/resources/nvidia/ngc-apps/ngc_cli/versions/3.64.3/files/ngccli_${ARCH}.zip -O /tmp/ngccli_linux.zip \
-    && unzip /tmp/ngccli_linux.zip -d /tmp \
-    && chmod u+x /tmp/ngc-cli/ngc \
-    && mv /tmp/ngc-cli /usr/local/ngc-cli \
-    && ln -s /usr/local/ngc-cli/ngc /usr/local/bin/ngc \
-    && rm /tmp/ngccli_linux.zip
+# Copy only this application (context is HoloHub root)
+COPY applications/tracks2endo4d /workspace/app
 
 # Set the working directory
-WORKDIR /app/tracks2endo4d
-
-# Copy necessary files from the builder stage
-COPY --from=builder /app/checkpoints/*.onnx* /models/.
+WORKDIR /workspace

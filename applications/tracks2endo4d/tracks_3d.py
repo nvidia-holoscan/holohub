@@ -246,8 +246,6 @@ class StitchPredictionsOp(Operator):
     """
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
         # Defaults
         self.blend_alpha = 0.5
         self.enable_forward_fill = True
@@ -346,6 +344,7 @@ class StitchPredictionsOp(Operator):
         """,
             name="forward_fill",
         )
+        super().__init__(*args, **kwargs)
 
     def setup(self, spec: OperatorSpec):
         spec.input("predictions")

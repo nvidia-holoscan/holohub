@@ -26,10 +26,6 @@ import torch
 from tapnet.tapnext.tapnext_torch import TAPNext
 from tapnet.tapnext.tapnext_torch_utils import restore_model_from_jax_checkpoint
 
-# Mock problematic module to avoid tensorflow import
-# sys.modules["tapnet.tapvid.evaluation_datasets"] = type("MockModule", (), {})()
-
-
 # Add parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -65,8 +61,10 @@ class TapNextONNXWrapper(torch.nn.Module):
             - visibility: Shape (1, T_out, N) - visibility predictions
         """
         if step is not None:
-            assert rg_lru_state is not None
-            assert conv1d_state is not None
+            if rg_lru_state is None or conv1d_state is None:
+                raise ValueError(
+                    "rg_lru_state and conv1d_state must be provided when step is not None"
+                )
 
             tracking_state = {
                 "step": step,

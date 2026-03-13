@@ -65,14 +65,14 @@ void VizOp::setup(OperatorSpec& spec) {
 }
 
 void VizOp::start() {
+  if (width_.get() == 0 || height_.get() == 0) {
+    throw std::runtime_error("VizOp width and height must be greater than zero");
+  }
+
   viz::Init(width_.get(),
             height_.get(),
             window_title_.get().c_str(),
             headless_.get() ? viz::InitFlags::HEADLESS : viz::InitFlags::NONE);
-
-  if (width_.get() == 0 || height_.get() == 0) {
-    throw std::runtime_error("VizOp width and height must be greater than zero");
-  }
 
   // GPU buffers will be allocated dynamically as needed
   dev_trajectory_ = nullptr;
