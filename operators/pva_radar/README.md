@@ -56,6 +56,7 @@ Once the container is built, you can launch it for development:
 ```sh
 ./holohub run-container pva_radar
 ```
+
 Refer to the sample application [pva_radar_pipeline](../../applications/pva_radar_pipeline/README.md)
 for an end-to-end example of the radar pipeline in operation.
 

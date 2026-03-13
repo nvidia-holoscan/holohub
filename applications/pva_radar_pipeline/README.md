@@ -30,6 +30,7 @@ all in one command, use:
 ```sh
 ./holohub run pva_radar_pipeline
 ```
+
 Two windows will appear. One shows the range-doppler signal after Non-coherent Integration (NCI).
 The other shows a 3D point cloud of positive radar detections (see image above).
 
