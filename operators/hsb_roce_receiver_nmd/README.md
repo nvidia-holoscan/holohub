@@ -2,10 +2,6 @@
 
 This operator receives video frames over RoCE (RDMA over Converged Ethernet)
 directly to GPU memory for high-performance, low-latency video ingestion.
-# HSB RoCE Receiver Operator with No Host Metadata
-
-This operator receives video frames over RoCE (RDMA over Converged Ethernet)
-directly to GPU memory for high-performance, low-latency video ingestion.
 It has an option to skip metadata processing on the host, so that metadata is never copied from the device to the host CPU. This is useful for Holoscan SDK GPU-resident applications.
 
 This operator forks the [Holoscan Sensor Bridge 2.5.0 RoCE Receiver Operator](https://github.com/nvidia-holoscan/holoscan-sensor-bridge/blob/2.5.0-PB6/src/hololink/operators/roce_receiver/roce_receiver_op.hpp) implementation and extends it with `frame_memory_base` access to support GPU Resident operations.
