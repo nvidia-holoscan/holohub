@@ -87,35 +87,37 @@ ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data
 # --------------------------------------------------------------------------
 FROM holohub-cli AS application-dependencies
 
+# Install PyTorch and ONNX dependencies
+RUN pip install torch torchvision onnx onnxruntime numpy einops onnxscript
+
 # Set the working directory
 WORKDIR /tmp
 
+# Clone TapNet repository
 RUN git clone --depth 1 https://github.com/deepmind/tapnet.git
 
-# Override tapnext modules with custom versions before installing
+# Override TapNext modules with custom versions before installing
 COPY applications/tracks2endo4d/onnx_conversion/tapnext_torch.py tapnet/tapnet/tapnext/tapnext_torch.py
 COPY applications/tracks2endo4d/onnx_conversion/tapnext_lru_modules.py tapnet/tapnet/tapnext/tapnext_lru_modules.py
 
 # Override evaluation_datasets.py to avoid tensorflow import error
 RUN echo "" > tapnet/tapnet/tapvid/evaluation_datasets.py
 
+# Install TapNet
 RUN cd tapnet && pip install .
 
-RUN pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
-RUN pip install onnx onnxruntime numpy einops onnxscript
-
+# Download TapNext checkpoint
 RUN mkdir -p checkpoints \
     && wget --progress=dot:giga --tries=3 --timeout=300 \
        https://storage.googleapis.com/dm-tapnet/tapnext/bootstapnext_ckpt.npz \
        -O checkpoints/bootstapnext_ckpt.npz
 
-# Copy the ONNX tapnext conversion script to the builder stage and run the conversion
+# Convert TapNext models to ONNX
 COPY applications/tracks2endo4d/onnx_conversion/onnx_tapnext.py .
-
 RUN python onnx_tapnext.py --checkpoint checkpoints/bootstapnext_ckpt.npz --output_path /models/ --device cpu
 
-# Copy only this application (context is HoloHub root)
-COPY applications/tracks2endo4d /workspace/app
+# Clean up
+RUN rm -rf /tmp/*
 
 # Set the working directory
-WORKDIR /workspace
+WORKDIR /workspace/holohub
