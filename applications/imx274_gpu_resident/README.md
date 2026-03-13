@@ -300,4 +300,10 @@ execution time measurements of the GPU-resident component will be printed:
   do not work on some monitors. In such cases, other refresh rates may be tried.
 - `[5956799]` In some IGX Orin setups, camera frames from HSB may not arrive in the GPU,
     which leads to no frame being processed by the GPU-resident fragment. In
-    such cases, the application may not work.
+    such cases, the application may not work. Please make sure the [canonical
+    vanilla IMX274
+    example](https://github.com/nvidia-holoscan/holoscan-sensor-bridge/tree/release-2.5.0/examples/imx274_player.cpp)
+    from the HSB repository works.
+- If you are using `./holohub run imx274_gpu_resident` to run the application,
+  then Ctrl+C signal may not reach the application, and the application may not
+  shutdown gracefully with all the measurements being printed.

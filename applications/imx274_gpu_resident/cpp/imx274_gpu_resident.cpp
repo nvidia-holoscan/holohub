@@ -277,9 +277,9 @@ struct AppConfig {
   std::shared_ptr<SharedFrameState> shared_state;
 };
 
-class Imx274GrApplication : public holoscan::Application {
+class Imx274GPUResidentApplication : public holoscan::Application {
  public:
-  explicit Imx274GrApplication(AppConfig config) : config_(std::move(config)) {}
+  explicit Imx274GPUResidentApplication(AppConfig config) : config_(std::move(config)) {}
 
   void compose() override {
     config_.camera->set_mode(config_.camera_mode);
@@ -570,7 +570,7 @@ int main(int argc, char** argv) {
     config.display_height = options.display_height;
     config.shared_state = shared_state;
 
-    auto application = holoscan::make_application<Imx274GrApplication>(config);
+    auto application = holoscan::make_application<Imx274GPUResidentApplication>(config);
     application->config(options.configuration);
 
     // Compose the application graph to create the fragment objects
@@ -585,7 +585,6 @@ int main(int argc, char** argv) {
       gr_fragment->gpu_resident().data_not_ready_sleep_interval_us(100);
     }
 
-    // Run it.
     std::shared_ptr<hololink::Hololink> hololink = hololink_channel.hololink();
     hololink->start();
     hololink->reset();
