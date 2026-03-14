@@ -2533,7 +2533,6 @@ Status DpdkMgr::send_tx_burst(BurstParams* burst) {
 
   if (rte_ring_enqueue(ring->second, reinterpret_cast<void*>(burst)) != 0) {
     free_tx_burst(burst);
-    free_tx_metadata(burst);
     HOLOSCAN_LOG_CRITICAL("Failed to enqueue TX work");
     return Status::NO_SPACE_AVAILABLE;
   }
