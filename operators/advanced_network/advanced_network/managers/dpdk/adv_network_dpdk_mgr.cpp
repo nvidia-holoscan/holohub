@@ -2314,13 +2314,28 @@ Status DpdkMgr::get_tx_packet_burst(BurstParams* burst) {
     return Status::NO_FREE_BURST_BUFFERS;
   }
 
+  // Rollback helper: free mbufs and burst containers for segments 0..count-1
+  auto rollback_segments = [&](int count) {
+    for (int prev = 0; prev < count; prev++) {
+      auto mbufs = reinterpret_cast<rte_mbuf**>(burst->pkts[prev]);
+      for (size_t p = 0; p < burst->hdr.hdr.num_pkts; p++) {
+        rte_pktmbuf_free(mbufs[p]);
+      }
+      rte_mempool_put(burst_pool->second, burst->pkts[prev]);
+      burst->pkts[prev] = nullptr;
+    }
+  };
+
   for (int seg = 0; seg < burst->hdr.hdr.num_segs; seg++) {
+    burst->pkts[seg] = nullptr;
+
     if (rte_mempool_get(burst_pool->second, reinterpret_cast<void**>(&burst->pkts[seg])) != 0) {
       HOLOSCAN_LOG_WARN("get_tx_packet_burst: burst pool exhausted at seg={} "
                         "(avail={} in_use={})",
                         seg,
                         rte_mempool_avail_count(burst_pool->second),
                         rte_mempool_in_use_count(burst_pool->second));
+      rollback_segments(seg);
       return Status::NO_FREE_BURST_BUFFERS;
     }
 
@@ -2332,7 +2347,10 @@ Status DpdkMgr::get_tx_packet_burst(BurstParams* burst) {
                         seg,
                         rte_mempool_avail_count(q->pools[seg]),
                         burst->hdr.hdr.num_pkts);
+      // Free current seg's burst container (no mbufs to free — alloc failed)
       rte_mempool_put(burst_pool->second, reinterpret_cast<void*>(burst->pkts[seg]));
+      burst->pkts[seg] = nullptr;
+      rollback_segments(seg);
       return Status::NO_FREE_PACKET_BUFFERS;
     }
   }
