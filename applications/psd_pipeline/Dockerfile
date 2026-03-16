@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2025, 2026 Valley Tech Systems, Inc.
+# SPDX-FileCopyrightText: 2025-2026 Voyager Technologies, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v4.0.0-${GPU_TYPE}
