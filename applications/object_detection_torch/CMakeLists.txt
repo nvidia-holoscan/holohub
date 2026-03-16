@@ -133,6 +133,7 @@ set(MODEL_DATA_OUTPUT_FILES "")
 foreach(model_config_file IN LISTS MODEL_DATA_FILES)
   add_custom_command(OUTPUT "${MODEL_DATA_PATH}/${model_config_file}"
     DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${model_config_file}"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${MODEL_DATA_PATH}"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
       "${CMAKE_CURRENT_SOURCE_DIR}/${model_config_file}"
       "${MODEL_DATA_PATH}/${model_config_file}"
@@ -144,7 +145,7 @@ add_custom_target(object_detection_torch_copy_configs
   DEPENDS
     "${CMAKE_CURRENT_BINARY_DIR}/object_detection_torch.yaml"
     ${MODEL_DATA_OUTPUT_FILES}
-    object_detection_torch_data
+    $<TARGET_NAME_IF_EXISTS:object_detection_torch_data>
 )
 add_dependencies(object_detection_torch object_detection_torch_copy_configs)
 
