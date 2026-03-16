@@ -6,6 +6,10 @@ cuDisp is a display library that integrates with the Linux DRM stack and CUDA. I
 
 **Limitations (v1.0):**
 
+*G-SYNC (VRR) support:*
+
+- G-SYNC is only supported for NVIDIA driver version 590.48.01 or higher.
+
 *Display mode / output:*
 
 - `modeWidth` and `modeHeight` in `MODE_INFO` are currently ignored; mode selection is based solely on buffer dimensions provided in `BUFFER_INFO`. Buffer width and height must exactly match a supported mode on the connected display. Scaling and windowed mode are not supported.
