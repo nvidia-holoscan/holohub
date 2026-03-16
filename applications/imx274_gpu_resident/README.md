@@ -102,12 +102,7 @@ out of the box, you need to manually install the driver.
    sudo /usr/bin/nvidia-uninstall
    ```
 
-   If `/usr/bin/nvidia-uninstall` is not available, purge the NVIDIA installation with:
-
-   ```bash
-   sudo apt-get purge 'nvidia-*' 'libnvidia-*'
-   sudo apt-get autoremove
-   ```
+   In case `nvidia-uninstall` is not available, proceed with the installation in the next step which will uninstall the existing NVIDIA driver.
 
 5. **Install the driver** using the downloaded runfile (replace with your exact filename and version):
 
