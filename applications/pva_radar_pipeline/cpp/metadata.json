@@ -1,0 +1,56 @@
+{
+    "application": {
+        "name": "PVA-Accelerated Radar Pipeline",
+        "authors": [
+            {
+                "name": "Colin Tracey",
+                "affiliation": "NVIDIA"
+            }
+        ],
+        "language": "C++",
+        "version": "1.0.0",
+        "changelog": {
+            "1.0.0": "Initial Release"
+        },
+        "holoscan_sdk": {
+            "minimum_required_version": "2.6.0",
+            "tested_versions": [
+                "2.6.0",
+                "3.11.0"
+            ]
+        },
+        "platforms": [
+            "x86_64",
+            "aarch64"
+        ],
+        "tags": [
+            "Computer Vision and Perception",
+            "Optimization",
+            "PVA",
+            "RADAR",
+            "Visualization"
+        ],
+        "ranking": 1,
+        "dockerfile": "operators/pva_radar/Dockerfile",
+        "requirements": {
+            "operators": [
+                {
+                    "name": "pva_radar",
+                    "version": "1.0"
+                },
+                {
+                    "name": "raw_radar_cube_source",
+                    "version": "1.0"
+                },
+                {
+                    "name": "pva_radar_graphics",
+                    "version": "1.0"
+                }
+            ]
+        },
+        "run": {
+            "command": "<holohub_app_bin>/pva_radar_pipeline",
+            "workdir": "holohub_bin"
+        }
+    }
+}
