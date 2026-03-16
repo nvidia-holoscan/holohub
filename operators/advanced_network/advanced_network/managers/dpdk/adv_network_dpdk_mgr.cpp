@@ -2306,6 +2306,15 @@ Status DpdkMgr::get_tx_packet_burst(BurstParams* burst) {
   }
   const auto& q = q_it->second;
 
+  if (burst->hdr.hdr.num_segs <= 0 ||
+      static_cast<size_t>(burst->hdr.hdr.num_segs) != q->pools.size()) {
+    HOLOSCAN_LOG_ERROR("get_tx_packet_burst: num_segs {} does not match pools size {} "
+                       "for port {} queue {}",
+                       burst->hdr.hdr.num_segs, q->pools.size(),
+                       burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
+    return Status::INVALID_PARAMETER;
+  }
+
   const auto burst_pool = tx_burst_buffers.find(key);
   if (burst_pool == tx_burst_buffers.end()) {
     HOLOSCAN_LOG_ERROR("Failed to look up burst pool name for port {} queue {}",
@@ -2410,6 +2419,12 @@ bool DpdkMgr::is_tx_burst_available(BurstParams* burst) {
   }
 
   const auto& q = item->second;
+
+  if (burst->hdr.hdr.num_segs <= 0 ||
+      static_cast<size_t>(burst->hdr.hdr.num_segs) != q->pools.size()) {
+    return false;
+  }
+
   for (int seg = 0; seg < burst->hdr.hdr.num_segs; seg++) {
     if (rte_mempool_avail_count(q->pools[seg]) < burst->hdr.hdr.num_pkts * 2) { return false; }
   }
