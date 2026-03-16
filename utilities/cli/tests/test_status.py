@@ -126,14 +126,15 @@ class TestStatusCollectors(unittest.TestCase):
         self.assertEqual(collect_image_info(), [])
 
     def test_collect_build_info(self):
-        def mk_build(root, name="build", success=True):
+        def mk_build(root, name="build", configure_ok=True):
             build = root / name
             build.mkdir()
             (build / "CMakeCache.txt").touch()
-            if success:
+            if configure_ok:
                 (build / "Makefile").touch()
             return build
 
+        # Makefile present → configure succeeded → OK
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
             mk_build(root, "build-x86_64")
@@ -141,8 +142,18 @@ class TestStatusCollectors(unittest.TestCase):
             self.assertEqual(
                 (len(builds), builds[0].name, builds[0].status), (1, "build-x86_64", "OK")
             )
+
+        # build.ninja also indicates configure success → OK
         with tempfile.TemporaryDirectory() as d:
-            mk_build(Path(d), success=False)
+            build = Path(d) / "build"
+            build.mkdir()
+            (build / "CMakeCache.txt").touch()
+            (build / "build.ninja").touch()
+            self.assertEqual(collect_build_info(Path(d))[0].status, "OK")
+
+        # CMakeCache.txt only, no generator output → configure failed → FAIL
+        with tempfile.TemporaryDirectory() as d:
+            mk_build(Path(d), configure_ok=False)
             self.assertEqual(collect_build_info(Path(d))[0].status, "FAIL")
         for path in [Path("/nonexistent"), Path(tempfile.mkdtemp())]:
             self.assertEqual(collect_build_info(path), [])

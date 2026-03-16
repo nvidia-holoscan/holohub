@@ -63,7 +63,7 @@ class GitInfo:
 @dataclass
 class BuildInfo:
     name: str
-    status: str  # "OK" or "FAIL"
+    status: str  # "OK" (CMake configure succeeded) or "FAIL"
     last_modified: str
 
 
@@ -184,7 +184,9 @@ def collect_build_info(build_parent_dir: Path) -> List[BuildInfo]:
         if not (subdir / "CMakeCache.txt").exists():
             continue
 
-        has_build_system = (subdir / "Makefile").exists() or (subdir / "build.ninja").exists()
+        # Makefile / build.ninja are written by cmake -G (the configure step).
+        # Their presence confirms configure succeeded, not that compilation passed.
+        configure_ok = (subdir / "Makefile").exists() or (subdir / "build.ninja").exists()
         try:
             time_str = relative_time(subdir.stat().st_mtime)
         except OSError:
@@ -193,7 +195,7 @@ def collect_build_info(build_parent_dir: Path) -> List[BuildInfo]:
         builds.append(
             BuildInfo(
                 name=subdir.name,
-                status="OK" if has_build_system else "FAIL",
+                status="OK" if configure_ok else "FAIL",
                 last_modified=time_str,
             )
         )
