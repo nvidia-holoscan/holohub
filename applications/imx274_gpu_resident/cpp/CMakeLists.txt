@@ -51,3 +51,58 @@ target_link_libraries(imx274_gpu_resident
   fmt::fmt
   CUDA::cuda_driver
 )
+
+# Optional DOCA GPUNetIO support.
+# Enable explicitly with the 'doca' mode or:
+#   --configure-args='-DHOLOHUB_ENABLE_DOCA_GPUNETIO=ON'
+option(HOLOHUB_ENABLE_DOCA_GPUNETIO
+       "Enable DOCA GPUNetIO support for imx274_gpu_resident"
+       OFF)
+
+if(HOLOHUB_ENABLE_DOCA_GPUNETIO)
+  set(DOCA_PATH "/opt/mellanox/doca")
+
+  set(TARGET_ARCH "arm64")
+  if(DEFINED ENV{TARGET_ARCH})
+    set(TARGET_ARCH "$ENV{TARGET_ARCH}")
+  endif()
+
+  if(TARGET_ARCH STREQUAL "amd64" OR TARGET_ARCH STREQUAL "x86_64")
+    set(DOCA_LIB_DIR "${DOCA_PATH}/lib/x86_64-linux-gnu")
+  elseif(TARGET_ARCH STREQUAL "arm64" OR TARGET_ARCH STREQUAL "aarch64")
+    set(DOCA_LIB_DIR "${DOCA_PATH}/lib/aarch64-linux-gnu")
+  else()
+    set(DOCA_LIB_DIR "${DOCA_PATH}/lib")
+  endif()
+
+  find_path(DOCA_INCLUDE_DIR doca_verbs.h
+    PATHS ${DOCA_PATH}/include
+    NO_DEFAULT_PATH
+  )
+  find_path(DOCA_DEV_INCLUDE_DIR doca_dev.h
+    PATHS ${DOCA_PATH}/include
+    NO_DEFAULT_PATH
+  )
+  find_path(DOCA_GPUNETIO_INCLUDE_DIR doca_gpunetio.h
+    PATHS ${DOCA_PATH}/include
+    NO_DEFAULT_PATH
+  )
+  find_library(DOCA_GPUNETIO_LIB doca_gpunetio
+    PATHS ${DOCA_LIB_DIR}
+    NO_DEFAULT_PATH
+  )
+
+  if(DOCA_INCLUDE_DIR AND DOCA_DEV_INCLUDE_DIR AND DOCA_GPUNETIO_INCLUDE_DIR AND DOCA_GPUNETIO_LIB)
+    message(STATUS "DOCA GPUNetIO support enabled for imx274_gpu_resident "
+                   "(found at ${DOCA_PATH})")
+    target_compile_definitions(imx274_gpu_resident PRIVATE HOLOHUB_DOCA_GPUNETIO)
+    target_link_libraries(imx274_gpu_resident
+      holoscan::ops::hsb_roce_receiver_doca_gpunetio
+    )
+  else()
+    message(STATUS "DOCA SDK not found at ${DOCA_PATH} -- building without "
+                   "DOCA GPUNetIO support (--docagpunetio will error at runtime)")
+  endif()
+else()
+  message(STATUS "DOCA GPUNetIO support disabled for imx274_gpu_resident")
+endif()

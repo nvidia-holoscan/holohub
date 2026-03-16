@@ -26,6 +26,14 @@
 
 #include "cuDisp.h"
 
+static inline CUresult create_cuda_context(CUcontext* ctx, unsigned int flags, CUdevice dev) {
+#if CUDA_VERSION >= 13000
+  return cuCtxCreate(ctx, nullptr, flags, dev);
+#else
+  return cuCtxCreate(ctx, flags, dev);
+#endif
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -418,7 +426,7 @@ class DisplayTest : public ::testing::Test {
     }
     CUdevice dev;
     cuDeviceGet(&dev, 0);
-    if (cuCtxCreate(&ctx_, 0, dev) != CUDA_SUCCESS) {
+    if (create_cuda_context(&ctx_, 0, dev) != CUDA_SUCCESS) {
       GTEST_SKIP() << "Failed to create CUDA context; skipping display test";
     }
   }

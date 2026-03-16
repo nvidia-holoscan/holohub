@@ -6,7 +6,7 @@ camera stream to a connected monitor (G-SYNC enabled monitor is recommended).
 With the help of GPU-resident execution, CPU is kept out of the fast and
 latency-critical camera to display path, and the application achieves ultra-low
 jitter and predictable end-to-end latency, not possible with traditional
-CPU-driven applications.
+CPU-driven CUDA applications.
 
 ![IMX274 GPU-Resident Architecture](imx274_gpu_resident_architecture.png)
 
@@ -27,18 +27,15 @@ control is involved. Only a lightweight `cuDisp` present
 thread on the CPU triggers display flips (e.g. in G-SYNC mode).
 
 **Note:** Although the entire application runs mostly from the GPU after initial
-configuration, two components still remain on the CPU, which will be
+configuration, one component still remains on the CPU, which will be
 removed in a later release.
 
-1. The Holoscan Sensor Bridge RoCE (RDMA Over Converged Ethernet) receiver operator acknowledges interrupts on the CPU. This will be removed
-   with a DOCA GPUNetIO-based GPU-resident operator in the future, which will enable GPU-native CQ/QP management, keeping the frame receival entirely out of the CPU control.
-
-2. The GPU-resident display operator uses a background thread on the CPU to
+- The GPU-resident display operator uses a background thread on the CPU to
    trigger a *display flip* operation on the GPU in *G-SYNC* mode because of
    hardware and software limitations. This will also be optimized in a later
    release.
 
-In spite of the two lightweight components on the CPU, the application's primary
+In spite of the the lightweight thread on the CPU, the application's primary
 control flow and the full data flow are executed on the GPU, enabling it to achieve
 deterministic latency.
 
@@ -49,6 +46,8 @@ You can simply run application with the following command from the repository ro
 
 ```bash
 ./holohub run imx274_gpu_resident
+# or
+./holohub run imx274_gpu_resident doca
 ```
 
 This will build and launch the development container, build the operators and build and run the application.
@@ -57,8 +56,6 @@ For more details on using the Holohub CLI, see the [Holohub CLI Reference Guide]
 For step-by-step instructions for building and running the application, refer to the [Detailed Build and Run Instructions](#detailed-build-and-run-instructions).
 
 ## Requirements
-
-### Hardware Requirements
 
 - NVIDIA IGX Orin w/ Ampere or later discrete GPUs (e.g. RTX A6000, RTX Ada
   6000, etc.)
@@ -69,6 +66,7 @@ For step-by-step instructions for building and running the application, refer to
 - ConntectX SmartNIC Transceivers and adapters
 - Ethernet cables
 - G-SYNC enabled monitor (preferred, but other monitors will also work)
+- (Optional) [NVIDIA DOCA SDK 3.2.1+](https://docs.nvidia.com/doca/sdk/doca-developer-guide/index.html) with GPUNetIO support
 
 Hardware details available in [Holoscan Sensor Bridge](https://docs.nvidia.com/holoscan/sensor-bridge/latest/index.html).
 
@@ -95,6 +93,8 @@ out of the box, you need to manually install the driver.
    ```
 
    If a module is not loaded on your system, `rmmod` will report an error for that name. Run `lsmod | grep nvidia` to see which modules are currently loaded.
+
+   Check with `lsmod | grep nvidia` to see if there are any remaining modules, and remove them with `sudo rmmod <module_name>`.
 
 4. **Remove the existing NVIDIA driver.** If the NVIDIA uninstaller is present, use it:
 
@@ -152,6 +152,8 @@ From the **HoloHub repository root**:
 
 ```bash
 ./holohub build-container imx274_gpu_resident
+# or
+./holohub build-container imx274_gpu_resident doca
 ```
 
 The Holoscan `v4.0.0-cuda12-dgpu` container image is built on top of a Holoscan container that **already includes HSB** (e.g. installed at `/opt/nvidia/hololink`).
@@ -221,6 +223,8 @@ In the container, run the application:
 
 ```bash
 ./build/imx274_gpu_resident/applications/imx274_gpu_resident/cpp/imx274_gpu_resident
+# or
+./build/imx274_gpu_resident/applications/imx274_gpu_resident/cpp/imx274_gpu_resident --docagpunetio
 ```
 
 `--help` will show available command line options.
@@ -301,3 +305,4 @@ The graphs below illustrate the latency comparison between the CPU-driven (vanil
 - If you are using `./holohub run imx274_gpu_resident` to run the application,
   then Ctrl+C signal may not reach the application, and the application may not
   shutdown gracefully with all the measurements being printed.
+- Pressing Ctrl+C for the DOCA GPUNetIO version does not show any measurement outputs at the end.

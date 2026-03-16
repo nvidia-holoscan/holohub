@@ -58,6 +58,14 @@
 #include "cuDispDevice.h"
 #include "perf_test_kernels.h"
 
+static inline CUresult create_cuda_context(CUcontext* ctx, unsigned int flags, CUdevice dev) {
+#if CUDA_VERSION >= 13000
+  return cuCtxCreate(ctx, nullptr, flags, dev);
+#else
+  return cuCtxCreate(ctx, flags, dev);
+#endif
+}
+
 #define TAG "[perf_test] "
 
 static bool query_preferred_mode(int card, uint32_t* out_w, uint32_t* out_h,
@@ -329,7 +337,7 @@ int main(int argc, char** argv) {
   CUdevice dev;
   CUcontext ctx;
   cuDeviceGet(&dev, 0);
-  if (cuCtxCreate(&ctx, 0, dev) != CUDA_SUCCESS) {
+  if (create_cuda_context(&ctx, 0, dev) != CUDA_SUCCESS) {
     printf(TAG "ERROR: cuCtxCreate failed\n");
     return 1;
   }

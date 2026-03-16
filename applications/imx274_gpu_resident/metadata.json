@@ -31,7 +31,8 @@
 			"RDMA",
 			"Deterministic",
 			"Predictable",
-			"Low-jitter"
+			"Low-jitter",
+			"DOCA GPUNetIO"
 		],
 		"ranking": 2,
 		"requirements": {
@@ -43,11 +44,52 @@
 				}
 			]
 		},
+		"default_mode": "default",
 		"modes": {
 			"default": {
 				"description": "Run with IMX274 camera with Holoscan Sensor Bridge",
 				"run": {
 					"command": "<holohub_app_bin>/cpp/imx274_gpu_resident",
+					"workdir": "holohub_bin",
+					"docker_run_args": [
+						"-u",
+						"root",
+						"--shm-size=1gb",
+						"--privileged",
+						"-v",
+						"/sys/bus/pci/devices:/sys/bus/pci/devices",
+						"-v",
+						"/sys/kernel/mm/hugepages:/sys/kernel/mm/hugepages",
+						"-v",
+						"/dev:/dev",
+						"-v",
+						"/tmp/.X11-unix:/tmp/.X11-unix",
+						"-v",
+						"/tmp/argus_socket:/tmp/argus_socket",
+						"-v",
+						"/sys/devices:/sys/devices",
+						"-v",
+						"/var/nvidia/nvcam/settings:/var/nvidia/nvcam/settings",
+						"-e",
+						"enableRawReprocess=2",
+						"-e",
+						"DISPLAY="
+					]
+				}
+			},
+			"doca": {
+				"description": "Build and run with DOCA SDK and GPUNetIO for GPU-side RoCE CQ polling",
+				"build": {
+				"docker_build_args": [
+					"--build-arg",
+					"INSTALL_DOCA=1"
+				],
+				"cmake_options": [
+					"-DHOLOHUB_ENABLE_DOCA_GPUNETIO=ON"
+				]
+			},
+				"run": {
+					"command": "<holohub_app_bin>/cpp/imx274_gpu_resident --docagpunetio",
 					"workdir": "holohub_bin",
 					"docker_run_args": [
 						"-u",
