@@ -277,7 +277,6 @@ void DocaRoceReceiverOp::initialize() {
       // buffer's stride_sz (= page_size = round_up(frame_size, PAGE_SIZE)).
       hololink_channel_.get()->configure_roce(
           0, frame_size_.get(), page_size, pages_.get(), local_port);
-
     } catch (...) {
       cuCtxPopCurrent(&cu_context_);
       throw;
