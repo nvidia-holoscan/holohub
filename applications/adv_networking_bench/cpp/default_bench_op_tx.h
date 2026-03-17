@@ -241,6 +241,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
 
     if ((ret = get_tx_packet_burst(msg)) != Status::SUCCESS) {
       HOLOSCAN_LOG_ERROR("Error returned from get_tx_packet_burst: {}", static_cast<int>(ret));
+      free_tx_metadata(msg);
       return;
     }
 
