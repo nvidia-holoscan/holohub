@@ -28,14 +28,14 @@ find_package(Hololink 2.5 REQUIRED CONFIG
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(IBVERBS REQUIRED libibverbs)
 
-# DOCA SDK
+# DOCA SDK (aarch64-only)
 set(DOCA_PATH "/opt/mellanox/doca")
-if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
-    set(DOCA_PKGCONFIG_DIR "${DOCA_PATH}/lib/x86_64-linux-gnu/pkgconfig")
-elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
+if(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
     set(DOCA_PKGCONFIG_DIR "${DOCA_PATH}/lib/aarch64-linux-gnu/pkgconfig")
 else()
-    set(DOCA_PKGCONFIG_DIR "${DOCA_PATH}/lib/pkgconfig")
+    message(WARNING "hsb_roce_receiver_doca_gpunetio is only supported on aarch64 "
+                    "(detected ${CMAKE_SYSTEM_PROCESSOR}). Skipping.")
+    return()
 endif()
 set(ENV{PKG_CONFIG_PATH} "${DOCA_PKGCONFIG_DIR}:$ENV{PKG_CONFIG_PATH}")
 

@@ -75,15 +75,15 @@
 			},
 			"doca": {
 				"description": "Build and run with DOCA SDK and GPUNetIO for GPU-side RoCE CQ polling",
-			"build": {
-				"docker_build_args": [
-					"--build-arg",
-					"INSTALL_DOCA=1"
-				],
-				"cmake_options": [
-					"-DHOLOHUB_ENABLE_DOCA_GPUNETIO=ON"
-				]
-			},
+				"build": {
+					"docker_build_args": [
+						"--build-arg",
+						"INSTALL_DOCA=1"
+					],
+					"cmake_options": [
+						"-DHOLOHUB_ENABLE_DOCA_GPUNETIO=ON"
+					]
+				},
 				"run": {
 					"command": "<holohub_app_bin>/cpp/imx274_gpu_resident --docagpunetio",
 					"workdir": "holohub_bin",

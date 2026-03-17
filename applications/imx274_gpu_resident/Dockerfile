@@ -86,7 +86,9 @@ RUN if [ "${INSTALL_DOCA}" = "1" ]; then \
         && rm -f ./doca-host.deb \
         && apt-get install -y --no-install-recommends ninja-build pkgconf mlnx-dpdk-dev libdoca-sdk-gpunetio-dev libdoca-sdk-verbs-dev mlnx-ofed-kernel-utils ibverbs-utils python3-pyelftools \
         && rm -rf /var/lib/apt/lists/* \
-        && sed -i '335s/(\*wqe)/(wqe)/' /opt/mellanox/doca/include/doca_gpunetio_dev_verbs_qp.cuh; \
+        && grep -q '(\*wqe)' /opt/mellanox/doca/include/doca_gpunetio_dev_verbs_qp.cuh \
+        && sed -i 's/(\*wqe)/(wqe)/' /opt/mellanox/doca/include/doca_gpunetio_dev_verbs_qp.cuh \
+        && ! grep -q '(\*wqe)' /opt/mellanox/doca/include/doca_gpunetio_dev_verbs_qp.cuh; \
     else true; fi
 
 # Default working directory

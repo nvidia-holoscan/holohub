@@ -182,7 +182,7 @@ void DocaRoceReceiverOp::initialize() {
       struct ibv_gid_entry ib_gid_entry = {};
       for (gid_index = 0;; gid_index++) {
         int ret = ibv_query_gid_ex(ibv_pd_->context, ibv_port_.get(), gid_index, &ib_gid_entry, 0);
-        if (ret != 0 && errno != ENODATA)
+        if (ret != 0)
           break;
         if (ib_gid_entry.gid_type == IBV_GID_TYPE_ROCE_V2 &&
             ib_gid_entry.gid.global.subnet_prefix == 0 &&
@@ -360,7 +360,7 @@ std::tuple<std::string, uint32_t> DocaRoceReceiverOp::local_ip_and_port() {
     for (uint32_t idx = 0;; idx++) {
         int ret = ibv_query_gid_ex(ibv_pd_->context, ibv_port_.get(),
                                    idx, &ib_gid_entry, 0);
-        if (ret != 0 && errno != ENODATA) break;
+        if (ret != 0) break;
         if (ib_gid_entry.gid_type == IBV_GID_TYPE_ROCE_V2 &&
             ib_gid_entry.gid.global.subnet_prefix == 0 &&
             (ib_gid_entry.gid.global.interface_id & 0xFFFFFFFF) == 0xFFFF0000) {

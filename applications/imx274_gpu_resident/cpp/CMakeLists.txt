@@ -63,13 +63,11 @@ if(HOLOHUB_ENABLE_DOCA_GPUNETIO)
   find_package(PkgConfig REQUIRED)
 
   set(DOCA_PATH "/opt/mellanox/doca")
-  if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
-    set(DOCA_PKGCONFIG_DIR "${DOCA_PATH}/lib/x86_64-linux-gnu/pkgconfig")
-  elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
-    set(DOCA_PKGCONFIG_DIR "${DOCA_PATH}/lib/aarch64-linux-gnu/pkgconfig")
-  else()
-    set(DOCA_PKGCONFIG_DIR "${DOCA_PATH}/lib/pkgconfig")
+  if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
+    message(FATAL_ERROR "DOCA GPUNetIO for imx274_gpu_resident is only supported "
+                        "on aarch64 (detected ${CMAKE_SYSTEM_PROCESSOR})")
   endif()
+  set(DOCA_PKGCONFIG_DIR "${DOCA_PATH}/lib/aarch64-linux-gnu/pkgconfig")
   set(ENV{PKG_CONFIG_PATH} "${DOCA_PKGCONFIG_DIR}:$ENV{PKG_CONFIG_PATH}")
 
   pkg_check_modules(DOCA doca-verbs doca-gpunetio doca-common)

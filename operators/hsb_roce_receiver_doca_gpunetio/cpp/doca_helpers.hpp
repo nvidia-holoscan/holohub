@@ -59,7 +59,6 @@ struct gpu_roce_ring_buffer {
     size_t stride_sz = 0;
     uint32_t stride_num = 0;
     struct ibv_mr* addr_mr = nullptr;
-    int dmabuf_fd = 0;
     uint64_t* flag = nullptr;
 };
 

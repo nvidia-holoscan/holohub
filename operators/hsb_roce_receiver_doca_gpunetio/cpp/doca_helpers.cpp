@@ -20,6 +20,8 @@
 #include "doca_helpers.hpp"
 
 #include <cstring>
+#include <unistd.h>
+
 #include <holoscan/logger/logger.hpp>
 
 static uint32_t align_up_uint32(uint32_t value, uint32_t alignment) {
@@ -349,16 +351,18 @@ doca_error_t DocaQp::create_ring(size_t stride_sz, unsigned stride_num,
 
     gpu_rx_ring.addr_mr = nullptr;
     if (!umem_cpu) {
+        int dmabuf_fd = -1;
         result = doca_gpu_dmabuf_fd(gdev, (void*)gpu_rx_ring.addr,
                                    gpu_rx_ring.stride_sz * gpu_rx_ring.stride_num,
-                                   &gpu_rx_ring.dmabuf_fd);
+                                   &dmabuf_fd);
         if (result == DOCA_SUCCESS) {
             gpu_rx_ring.addr_mr = ibv_reg_dmabuf_mr(
                 ibv_pd, 0,
                 gpu_rx_ring.stride_sz * gpu_rx_ring.stride_num, 0,
-                gpu_rx_ring.dmabuf_fd,
+                dmabuf_fd,
                 IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_WRITE |
                 IBV_ACCESS_REMOTE_READ | IBV_ACCESS_RELAXED_ORDERING);
+            close(dmabuf_fd);
         }
     }
 
@@ -398,7 +402,10 @@ doca_error_t DocaQp::connect(struct doca_verbs_gid& doca_rgid, uint32_t gid_inde
     if (result != DOCA_SUCCESS) return result;
 
     result = doca_verbs_qp_attr_create(&verbs_qp_attr);
-    if (result != DOCA_SUCCESS) return result;
+    if (result != DOCA_SUCCESS) {
+        doca_verbs_ah_attr_destroy(ah_attr);
+        return result;
+    }
 
     doca_verbs_ah_attr_set_gid(ah_attr, doca_rgid);
     doca_verbs_ah_attr_set_dlid(ah_attr, 0);
