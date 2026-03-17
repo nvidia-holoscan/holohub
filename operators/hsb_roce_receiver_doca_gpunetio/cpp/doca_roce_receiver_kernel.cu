@@ -71,13 +71,15 @@ __global__ void doca_receive_data_ready_kernel(
     uint64_t* rx_state,
     unsigned char** chosen_frame_memory,
     unsigned int* data_ready_ptr) {
-
-    if (qp == nullptr) return;
+  if (qp == nullptr) {
+    printf("ERROR: qp is nullptr in doca_receive_data_ready_kernel\n");
+    *data_ready_ptr = CTRL_DATA_NOT_READY;
+    return;
+  }
 
     doca_gpu_dev_verbs_ticket_t out_ticket =
         (doca_gpu_dev_verbs_ticket_t)rx_state[0];  // which cqe to look
-    uint64_t wqe_idx = rx_state[1];  // which wqe to submit next
-    // printf ("doca kernel: out_ticket=%lu, wqe_idx=%ld\n", out_ticket, wqe_idx);
+    uint64_t wqe_idx = rx_state[1];                // which wqe to submit next
 
     struct doca_gpu_dev_verbs_cq* cq_rq = doca_gpu_dev_verbs_qp_get_cq_rq(qp);
 

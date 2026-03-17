@@ -52,7 +52,7 @@
 
 #define VERBS_TEST_DBR_SIZE (8)
 #define ROUND_UP(unaligned_mapping_size, align_val) \
-    ((unaligned_mapping_size) + (align_val)-1) & (~((align_val)-1))
+    (((unaligned_mapping_size) + (align_val)-1) & (~((align_val)-1)))
 
 struct gpu_roce_ring_buffer {
     uint8_t* addr = nullptr;

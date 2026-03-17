@@ -87,12 +87,21 @@ if(HOLOHUB_ENABLE_DOCA_GPUNETIO)
     PATHS ${DOCA_PATH}/include
     NO_DEFAULT_PATH
   )
+  find_library(DOCA_VERBS_LIB doca_verbs
+    PATHS ${DOCA_LIB_DIR}
+    NO_DEFAULT_PATH
+  )
   find_library(DOCA_GPUNETIO_LIB doca_gpunetio
     PATHS ${DOCA_LIB_DIR}
     NO_DEFAULT_PATH
   )
+  find_library(DOCA_COMMON_LIB doca_common
+    PATHS ${DOCA_LIB_DIR}
+    NO_DEFAULT_PATH
+  )
 
-  if(DOCA_INCLUDE_DIR AND DOCA_DEV_INCLUDE_DIR AND DOCA_GPUNETIO_INCLUDE_DIR AND DOCA_GPUNETIO_LIB)
+  if(DOCA_INCLUDE_DIR AND DOCA_DEV_INCLUDE_DIR AND DOCA_GPUNETIO_INCLUDE_DIR
+     AND DOCA_VERBS_LIB AND DOCA_COMMON_LIB AND DOCA_GPUNETIO_LIB)
     message(STATUS "DOCA GPUNetIO support enabled for imx274_gpu_resident "
                    "(found at ${DOCA_PATH})")
     target_compile_definitions(imx274_gpu_resident PRIVATE HOLOHUB_DOCA_GPUNETIO)
@@ -100,8 +109,8 @@ if(HOLOHUB_ENABLE_DOCA_GPUNETIO)
       holoscan::ops::hsb_roce_receiver_doca_gpunetio
     )
   else()
-    message(STATUS "DOCA SDK not found at ${DOCA_PATH} -- building without "
-                   "DOCA GPUNetIO support (--docagpunetio will error at runtime)")
+    message(FATAL_ERROR "DOCA SDK not found at ${DOCA_PATH} -- cannot build "
+                       "with DOCA GPUNetIO support")
   endif()
 else()
   message(STATUS "DOCA GPUNetIO support disabled for imx274_gpu_resident")

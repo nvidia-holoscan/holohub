@@ -75,6 +75,8 @@ DocaRoceReceiverOp::~DocaRoceReceiverOp() {
     if (doca_pd_) doca_verbs_pd_destroy(doca_pd_);
     if (doca_verbs_ctx_) doca_verbs_context_destroy(doca_verbs_ctx_);
     if (doca_device_) doca_dev_close(doca_device_);
+    if (cu_context_)
+      cuCtxDestroy(cu_context_);
 }
 
 void DocaRoceReceiverOp::setup(holoscan::OperatorSpec& spec) {
@@ -136,135 +138,150 @@ void DocaRoceReceiverOp::initialize() {
     // GPU context
     cudaFree(0);
     cudaSetDevice(gpu_id_.get());
-    cuDeviceGet(&cu_device_, gpu_id_.get());
-    // new context is helpful and may be required for DOCA GPUNetIO
-    create_cuda_context(&cu_context_, CU_CTX_SCHED_SPIN | CU_CTX_MAP_HOST, cu_device_);
-    cuCtxPushCurrent(cu_context_);
+    CUresult cu_result;
+    cu_result = cuDeviceGet(&cu_device_, gpu_id_.get());
+    if (cu_result != CUDA_SUCCESS)
+        throw std::runtime_error("Failed to get CUDA device " + std::to_string(gpu_id_.get()));
+    cu_result = create_cuda_context(&cu_context_, CU_CTX_SCHED_SPIN | CU_CTX_MAP_HOST, cu_device_);
+    if (cu_result != CUDA_SUCCESS)
+        throw std::runtime_error("Failed to create CUDA context");
+    cu_result = cuCtxPushCurrent(cu_context_);
+    if (cu_result != CUDA_SUCCESS)
+        throw std::runtime_error("Failed to push CUDA context");
 
-    char gpu_bus_id[256];
-    cudaDeviceGetPCIBusId(gpu_bus_id, 256, gpu_id_.get());
-    struct cudaDeviceProp prop;
-    cudaGetDeviceProperties(&prop, gpu_id_.get());
-    umem_cpu_ = prop.integrated;
-    HOLOSCAN_LOG_INFO("GPU {}: {} ({})", gpu_id_.get(), prop.name,
-                      umem_cpu_ ? "iGPU" : "dGPU");
+    try {
+      char gpu_bus_id[256];
+      cudaDeviceGetPCIBusId(gpu_bus_id, 256, gpu_id_.get());
+      struct cudaDeviceProp prop;
+      cudaGetDeviceProperties(&prop, gpu_id_.get());
+      umem_cpu_ = prop.integrated;
+      HOLOSCAN_LOG_INFO("GPU {}: {} ({})", gpu_id_.get(), prop.name, umem_cpu_ ? "iGPU" : "dGPU");
 
-    result = doca_gpu_create(gpu_bus_id, &doca_gpu_device_);
-    if (result != DOCA_SUCCESS)
+      result = doca_gpu_create(gpu_bus_id, &doca_gpu_device_);
+      if (result != DOCA_SUCCESS)
         throw std::runtime_error("Failed to create DOCA GPU device");
 
-    // PD + DOCA device
-    result = doca_verbs_pd_create(doca_verbs_ctx_, &doca_pd_);
-    if (result != DOCA_SUCCESS)
+      // PD + DOCA device
+      result = doca_verbs_pd_create(doca_verbs_ctx_, &doca_pd_);
+      if (result != DOCA_SUCCESS)
         throw std::runtime_error("Failed to create DOCA PD");
 
-    ibv_pd_ = doca_verbs_bridge_verbs_pd_get_ibv_pd(doca_pd_);
-    if (!ibv_pd_)
+      ibv_pd_ = doca_verbs_bridge_verbs_pd_get_ibv_pd(doca_pd_);
+      if (!ibv_pd_)
         throw std::runtime_error("Failed to get ibv_pd");
 
-    result = doca_rdma_bridge_open_dev_from_pd(ibv_pd_, &doca_device_);
-    if (result != DOCA_SUCCESS)
+      result = doca_rdma_bridge_open_dev_from_pd(ibv_pd_, &doca_device_);
+      if (result != DOCA_SUCCESS)
         throw std::runtime_error("Failed to open DOCA device from PD");
 
-    // Find RoCE v2 GID
-    uint32_t gid_index = 0;
-    bool gid_found = false;
-    struct ibv_gid_entry ib_gid_entry = {};
-    for (gid_index = 0;; gid_index++) {
-        int ret = ibv_query_gid_ex(ibv_pd_->context, ibv_port_.get(),
-                                   gid_index, &ib_gid_entry, 0);
-        if (ret != 0 && errno != ENODATA) break;
+      // Find RoCE v2 GID
+      uint32_t gid_index = 0;
+      bool gid_found = false;
+      struct ibv_gid_entry ib_gid_entry = {};
+      for (gid_index = 0;; gid_index++) {
+        int ret = ibv_query_gid_ex(ibv_pd_->context, ibv_port_.get(), gid_index, &ib_gid_entry, 0);
+        if (ret != 0 && errno != ENODATA)
+          break;
         if (ib_gid_entry.gid_type == IBV_GID_TYPE_ROCE_V2 &&
             ib_gid_entry.gid.global.subnet_prefix == 0 &&
             (ib_gid_entry.gid.global.interface_id & 0xFFFFFFFF) == 0xFFFF0000) {
-            gid_found = true;
-            break;
+          gid_found = true;
+          break;
         }
-    }
-    if (!gid_found)
+      }
+      if (!gid_found)
         throw std::runtime_error("Cannot find RoCE v2 GID");
-    HOLOSCAN_LOG_INFO("Found RoCE v2 GID at index {}", gid_index);
+      HOLOSCAN_LOG_INFO("Found RoCE v2 GID at index {}", gid_index);
 
-    // UAR
-    result = doca_uar_create(doca_device_,
-                             DOCA_UAR_ALLOCATION_TYPE_NONCACHE, &uar_);
-    if (result != DOCA_SUCCESS)
+      // UAR
+      result = doca_uar_create(doca_device_, DOCA_UAR_ALLOCATION_TYPE_NONCACHE, &uar_);
+      if (result != DOCA_SUCCESS)
         throw std::runtime_error("Failed to create UAR");
 
-    // CQs
-    doca_cq_rq_ = new DocaCq(WQE_NUM, doca_gpu_device_, doca_device_, uar_,
-                              doca_verbs_ctx_, umem_cpu_);
-    if (doca_cq_rq_->create() != DOCA_SUCCESS)
+      // CQs
+      doca_cq_rq_ =
+          new DocaCq(WQE_NUM, doca_gpu_device_, doca_device_, uar_, doca_verbs_ctx_, umem_cpu_);
+      if (doca_cq_rq_->create() != DOCA_SUCCESS)
         throw std::runtime_error("Failed to create RQ CQ");
 
-    doca_cq_sq_ = new DocaCq(WQE_NUM, doca_gpu_device_, doca_device_, uar_,
-                              doca_verbs_ctx_, umem_cpu_);
-    if (doca_cq_sq_->create() != DOCA_SUCCESS)
+      doca_cq_sq_ =
+          new DocaCq(WQE_NUM, doca_gpu_device_, doca_device_, uar_, doca_verbs_ctx_, umem_cpu_);
+      if (doca_cq_sq_->create() != DOCA_SUCCESS)
         throw std::runtime_error("Failed to create SQ CQ");
 
-    // QP + ring buffer
-    doca_qp_ = new DocaQp(WQE_NUM, doca_gpu_device_, doca_device_, uar_,
-                           doca_verbs_ctx_, doca_pd_, doca_cq_rq_->get(),
-                           doca_cq_sq_->get(), umem_cpu_);
+      // QP + ring buffer
+      doca_qp_ = new DocaQp(WQE_NUM,
+                            doca_gpu_device_,
+                            doca_device_,
+                            uar_,
+                            doca_verbs_ctx_,
+                            doca_pd_,
+                            doca_cq_rq_->get(),
+                            doca_cq_sq_->get(),
+                            umem_cpu_);
 
-    const size_t host_page_size = get_page_size();
-    size_t page_size =
-        hololink::core::round_up(frame_size_.get(), host_page_size);
+      const size_t host_page_size = get_page_size();
+      size_t page_size = hololink::core::round_up(frame_size_.get(), host_page_size);
 
-    if (doca_qp_->create(doca_verbs_ctx_, frame_size_.get()) != DOCA_SUCCESS)
+      if (doca_qp_->create(doca_verbs_ctx_, frame_size_.get()) != DOCA_SUCCESS)
         throw std::runtime_error("Failed to create DOCA QP");
 
-    if (doca_qp_->create_ring(page_size, pages_.get(), ibv_pd_) != DOCA_SUCCESS)
+      if (doca_qp_->create_ring(page_size, pages_.get(), ibv_pd_) != DOCA_SUCCESS)
         throw std::runtime_error("Failed to create DOCA ring buffer");
 
-    rkey_ = doca_qp_->gpu_rx_ring.addr_mr->rkey;
-    qp_number_ = doca_verbs_qp_get_qpn(doca_qp_->get());
-    HOLOSCAN_LOG_INFO("DOCA QP number: {:#x}, rkey: {}", qp_number_, rkey_);
+      rkey_ = doca_qp_->gpu_rx_ring.addr_mr->rkey;
+      qp_number_ = doca_verbs_qp_get_qpn(doca_qp_->get());
+      HOLOSCAN_LOG_INFO("DOCA QP number: {:#x}, rkey: {}", qp_number_, rkey_);
 
-    // Connect QP to peer (HSB)
-    const std::string& peer_ip = hololink_channel_.get()->peer_ip();
-    unsigned long client_ip = 0;
-    if (inet_pton(AF_INET, peer_ip.c_str(), &client_ip) != 1)
+      // Connect QP to peer (HSB)
+      const std::string& peer_ip = hololink_channel_.get()->peer_ip();
+      unsigned long client_ip = 0;
+      if (inet_pton(AF_INET, peer_ip.c_str(), &client_ip) != 1)
         throw std::runtime_error("Invalid peer IP: " + peer_ip);
 
-    uint64_t client_iid = ((uint64_t)client_ip << 32) | 0xFFFF0000ULL;
-    union ibv_gid rgid = {
-        .global = {.subnet_prefix = 0, .interface_id = client_iid}};
-    struct doca_verbs_gid doca_rgid;
-    memcpy(doca_rgid.raw, rgid.raw, 16);
+      uint64_t client_iid = ((uint64_t)client_ip << 32) | 0xFFFF0000ULL;
+      union ibv_gid rgid = {.global = {.subnet_prefix = 0, .interface_id = client_iid}};
+      struct doca_verbs_gid doca_rgid;
+      memcpy(doca_rgid.raw, rgid.raw, 16);
 
-    if (doca_qp_->connect(doca_rgid, gid_index, 0x2) != DOCA_SUCCESS)
+      if (doca_qp_->connect(doca_rgid, gid_index, 0x2) != DOCA_SUCCESS)
         throw std::runtime_error("Failed to connect DOCA QP");
 
-    // Pre-post receive WQEs
-    DocaRoceReceiverPrepareKernel(0, doca_qp_->get_gpu_dev(),
-                                  frame_size_.get(), 1, WQE_NUM);
-    cudaStreamSynchronize(0);
+      // Pre-post receive WQEs
+      DocaRoceReceiverPrepareKernel(0, doca_qp_->get_gpu_dev(), frame_size_.get(), 1, WQE_NUM);
+      cudaStreamSynchronize(0);
 
-    // Persistent state for single-thread CQ poller: [out_ticket, wqe_idx]
-    size_t state_bytes = 2 * sizeof(uint64_t);
-    result = doca_gpu_mem_alloc(doca_gpu_device_, state_bytes, get_page_size(),
-                               DOCA_GPU_MEM_TYPE_GPU,
-                               (void**)&rx_state_, nullptr);
-    if (result != DOCA_SUCCESS)
+      // Persistent state for single-thread CQ poller: [out_ticket, wqe_idx]
+      size_t state_bytes = 2 * sizeof(uint64_t);
+      result = doca_gpu_mem_alloc(doca_gpu_device_,
+                                  state_bytes,
+                                  get_page_size(),
+                                  DOCA_GPU_MEM_TYPE_GPU,
+                                  (void**)&rx_state_,
+                                  nullptr);
+      if (result != DOCA_SUCCESS)
         throw std::runtime_error("Failed to allocate rx_state");
 
-    std::vector<uint64_t> init_state = {0, 0};
+      std::vector<uint64_t> init_state = {0, 0};
     cudaMemcpy(rx_state_, init_state.data(), state_bytes,
                cudaMemcpyHostToDevice);
 
-    // HSB authentication & RoCE configuration
-    hololink_channel_.get()->authenticate(qp_number_, rkey_);
+      // HSB authentication & RoCE configuration
+      hololink_channel_.get()->authenticate(qp_number_, rkey_);
 
-    auto [local_ip, local_port] = local_ip_and_port();
-    HOLOSCAN_LOG_INFO("local_ip={} local_port={}", local_ip, local_port);
+      auto [local_ip, local_port] = local_ip_and_port();
+      HOLOSCAN_LOG_INFO("local_ip={} local_port={}", local_ip, local_port);
 
-    // The third argument to configure_roce is DP_PAGE_INC — the stride
-    // the HSB uses between successive pages.  It must match the DOCA ring
-    // buffer's stride_sz (= page_size = round_up(frame_size, PAGE_SIZE)).
-    hololink_channel_.get()->configure_roce(0, frame_size_.get(), page_size,
-                                            pages_.get(), local_port);
+      // The third argument to configure_roce is DP_PAGE_INC — the stride
+      // the HSB uses between successive pages.  It must match the DOCA ring
+      // buffer's stride_sz (= page_size = round_up(frame_size, PAGE_SIZE)).
+      hololink_channel_.get()->configure_roce(
+          0, frame_size_.get(), page_size, pages_.get(), local_port);
 
+    } catch (...) {
+      cuCtxPopCurrent(&cu_context_);
+      throw;
+    }
     cuCtxPopCurrent(&cu_context_);
     HOLOSCAN_LOG_INFO("DOCA RoCE receiver initialised");
 }

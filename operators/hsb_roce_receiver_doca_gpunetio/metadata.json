@@ -25,12 +25,14 @@
 			"aarch64"
 		],
 		"tags": [
+			"Networking and Distributed Computing",
 			"Holoscan Sensor Bridge",
 			"RoCE",
 			"RDMA",
 			"DOCA",
 			"GPUNetIO",
-			"GPU Direct"
+			"GPU Direct",
+			"GPU-resident"
 		],
 		"ranking": 1,
 		"requirements": {

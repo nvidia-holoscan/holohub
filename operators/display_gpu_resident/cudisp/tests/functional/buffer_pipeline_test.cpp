@@ -531,7 +531,13 @@ int main(int argc, char** argv) {
   CUdevice cuDev;
   CUcontext cuCtx;
   cuDeviceGet(&cuDev, 0);
-  create_cuda_context(&cuCtx, 0, cuDev);
+  err = create_cuda_context(&cuCtx, 0, cuDev);
+  if (err != CUDA_SUCCESS) {
+    const char* errStr = "unknown";
+    cuGetErrorString(err, &errStr);
+    printf("  [FAIL] cuCtxCreate: %s\n", errStr);
+    return 1;
+  }
 
   char devName[256];
   cuDeviceGetName(devName, sizeof(devName), cuDev);

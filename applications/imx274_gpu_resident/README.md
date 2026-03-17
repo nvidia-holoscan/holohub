@@ -35,7 +35,7 @@ removed in a later release.
    hardware and software limitations. This will also be optimized in a later
    release.
 
-In spite of the the lightweight thread on the CPU, the application's primary
+In spite of the lightweight thread on the CPU, the application's primary
 control flow and the full data flow are executed on the GPU, enabling it to achieve
 deterministic latency.
 
@@ -184,6 +184,8 @@ After launching the container with the command above, you can build the applicat
 
 ```bash
 ./holohub build imx274_gpu_resident
+# or, if building with DOCA GPUNetIO support:
+./holohub build imx274_gpu_resident doca
 ```
 
 ##### List Buildable Components

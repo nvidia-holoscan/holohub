@@ -79,7 +79,7 @@
 			},
 			"doca": {
 				"description": "Build and run with DOCA SDK and GPUNetIO for GPU-side RoCE CQ polling",
-				"build": {
+			"build": {
 				"docker_build_args": [
 					"--build-arg",
 					"INSTALL_DOCA=1"

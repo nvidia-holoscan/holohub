@@ -65,7 +65,7 @@ struct doca_verbs_context* open_doca_ib_device(char* name) {
     }
 
     for (int i = 0; i < nb_ibdevs; i++) {
-        if (strncmp(ibv_get_device_name(ibdev_list[i]), name, strlen(name)) == 0) {
+        if (strcmp(ibv_get_device_name(ibdev_list[i]), name) == 0) {
             struct ibv_device* dev_handle = ibdev_list[i];
             ibv_free_device_list(ibdev_list);
             if (doca_verbs_bridge_verbs_context_create(
@@ -155,7 +155,10 @@ doca_error_t DocaCq::create() {
     } else {
         cudaError_t rc = cudaMemcpy(umem_dev_ptr, (void*)(cq_ring_haddr),
                                     external_umem_size, cudaMemcpyDefault);
-        if (rc != cudaSuccess) goto exit;
+        if (rc != cudaSuccess) {
+            result = DOCA_ERROR_DRIVER;
+            goto exit;
+        }
     }
 
     result = doca_verbs_cq_attr_set_external_umem(cq_attr, umem, 0);
@@ -333,10 +336,13 @@ doca_error_t DocaQp::create_ring(size_t stride_sz, unsigned stride_num,
     }
     if (result != DOCA_SUCCESS || !gpu_rx_ring.addr) return DOCA_ERROR_NO_MEMORY;
 
-    if (umem_cpu)
+    if (umem_cpu) {
         memset(gpu_rx_ring.addr, 0, gpu_rx_ring.stride_sz * gpu_rx_ring.stride_num);
-    else
-        cudaMemset(gpu_rx_ring.addr, 0, gpu_rx_ring.stride_sz * gpu_rx_ring.stride_num);
+    } else {
+        cudaError_t rc = cudaMemset(gpu_rx_ring.addr, 0,
+                                    gpu_rx_ring.stride_sz * gpu_rx_ring.stride_num);
+        if (rc != cudaSuccess) return DOCA_ERROR_DRIVER;
+    }
 
     gpu_rx_ring.addr_mr = nullptr;
     if (!umem_cpu) {
@@ -370,7 +376,11 @@ doca_error_t DocaQp::create_ring(size_t stride_sz, unsigned stride_num,
                                (void**)&(gpu_rx_ring.flag), nullptr);
     if (result != DOCA_SUCCESS || !gpu_rx_ring.flag) return DOCA_ERROR_NO_MEMORY;
 
-    cudaMemset(gpu_rx_ring.flag, 0, sizeof(uint64_t) * gpu_rx_ring.stride_num);
+    {
+        cudaError_t rc = cudaMemset(gpu_rx_ring.flag, 0,
+                                    sizeof(uint64_t) * gpu_rx_ring.stride_num);
+        if (rc != cudaSuccess) return DOCA_ERROR_DRIVER;
+    }
 
     return DOCA_SUCCESS;
 }
