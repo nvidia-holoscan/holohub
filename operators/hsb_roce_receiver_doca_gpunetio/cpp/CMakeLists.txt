@@ -29,16 +29,11 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(IBVERBS REQUIRED libibverbs)
 
 # DOCA SDK
-set(TARGET_ARCH "arm64")
-if(DEFINED ENV{TARGET_ARCH})
-  set(TARGET_ARCH "$ENV{TARGET_ARCH}")
-endif()
-
 set(DOCA_PATH "/opt/mellanox/doca")
 
-if(TARGET_ARCH STREQUAL "amd64" OR TARGET_ARCH STREQUAL "x86_64")
+if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
     set(DOCA_LIB_DIR "${DOCA_PATH}/lib/x86_64-linux-gnu")
-elseif(TARGET_ARCH STREQUAL "arm64" OR TARGET_ARCH STREQUAL "aarch64")
+elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
     set(DOCA_LIB_DIR "${DOCA_PATH}/lib/aarch64-linux-gnu")
 else()
     set(DOCA_LIB_DIR "${DOCA_PATH}/lib")

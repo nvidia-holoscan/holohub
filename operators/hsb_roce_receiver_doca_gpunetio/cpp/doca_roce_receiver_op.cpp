@@ -112,12 +112,16 @@ void DocaRoceReceiverOp::initialize() {
     doca_error_t result;
     struct doca_log_backend* sdk_backend;
 
-    std::lock_guard lock(get_lock());
+    // GPU context - set device before any CUDA allocations
+    cudaFree(0);
+    HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaSetDevice(gpu_id_.get()), "Failed to set CUDA device");
 
     // chosen_frame_memory on GPU
     HOLOSCAN_CUDA_CALL_THROW_ERROR(
         cudaMalloc(&chosen_frame_memory_, sizeof(unsigned char*)),
         "Failed to allocate chosen_frame_memory");
+
+    std::lock_guard lock(get_lock());
 
     if (on_chosen_frame_memory_ready_) {
         on_chosen_frame_memory_ready_(chosen_frame_memory_);
@@ -134,10 +138,6 @@ void DocaRoceReceiverOp::initialize() {
     if (!doca_verbs_ctx_)
         throw std::runtime_error("Failed to open DOCA verbs device");
     HOLOSCAN_LOG_INFO("DOCA device opened: {}", ibv_name_.get());
-
-    // GPU context
-    cudaFree(0);
-    cudaSetDevice(gpu_id_.get());
     CUresult cu_result;
     cu_result = cuDeviceGet(&cu_device_, gpu_id_.get());
     if (cu_result != CUDA_SUCCESS)
@@ -151,9 +151,11 @@ void DocaRoceReceiverOp::initialize() {
 
     try {
       char gpu_bus_id[256];
-      cudaDeviceGetPCIBusId(gpu_bus_id, 256, gpu_id_.get());
+      HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaDeviceGetPCIBusId(gpu_bus_id, 256, gpu_id_.get()),
+                                     "Failed to get GPU PCI bus ID");
       struct cudaDeviceProp prop;
-      cudaGetDeviceProperties(&prop, gpu_id_.get());
+      HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaGetDeviceProperties(&prop, gpu_id_.get()),
+                                     "Failed to get GPU device properties");
       umem_cpu_ = prop.integrated;
       HOLOSCAN_LOG_INFO("GPU {}: {} ({})", gpu_id_.get(), prop.name, umem_cpu_ ? "iGPU" : "dGPU");
 
@@ -220,6 +222,11 @@ void DocaRoceReceiverOp::initialize() {
                             doca_cq_sq_->get(),
                             umem_cpu_);
 
+      if (frame_size_.get() == 0)
+        throw std::invalid_argument("frame_size must be non-zero");
+      if (pages_.get() == 0)
+        throw std::invalid_argument("pages must be non-zero");
+
       const size_t host_page_size = get_page_size();
       size_t page_size = hololink::core::round_up(frame_size_.get(), host_page_size);
 
@@ -235,7 +242,7 @@ void DocaRoceReceiverOp::initialize() {
 
       // Connect QP to peer (HSB)
       const std::string& peer_ip = hololink_channel_.get()->peer_ip();
-      unsigned long client_ip = 0;
+      uint32_t client_ip = 0;
       if (inet_pton(AF_INET, peer_ip.c_str(), &client_ip) != 1)
         throw std::runtime_error("Invalid peer IP: " + peer_ip);
 
@@ -249,7 +256,8 @@ void DocaRoceReceiverOp::initialize() {
 
       // Pre-post receive WQEs
       DocaRoceReceiverPrepareKernel(0, doca_qp_->get_gpu_dev(), frame_size_.get(), 1, WQE_NUM);
-      cudaStreamSynchronize(0);
+      HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaStreamSynchronize(0),
+                                     "Failed while pre-posting receive WQEs");
 
       // Persistent state for single-thread CQ poller: [out_ticket, wqe_idx]
       size_t state_bytes = 2 * sizeof(uint64_t);
@@ -263,8 +271,9 @@ void DocaRoceReceiverOp::initialize() {
         throw std::runtime_error("Failed to allocate rx_state");
 
       std::vector<uint64_t> init_state = {0, 0};
-    cudaMemcpy(rx_state_, init_state.data(), state_bytes,
-               cudaMemcpyHostToDevice);
+      HOLOSCAN_CUDA_CALL_THROW_ERROR(
+          cudaMemcpy(rx_state_, init_state.data(), state_bytes, cudaMemcpyHostToDevice),
+          "Failed to initialize rx_state");
 
       // HSB authentication & RoCE configuration
       hololink_channel_.get()->authenticate(qp_number_, rkey_);

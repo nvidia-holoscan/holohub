@@ -119,7 +119,10 @@ doca_error_t DocaCq::create() {
     external_umem_size = calc_cq_external_umem_size(cqe_num);
 
     cq_ring_haddr = (struct mlx5_cqe64*)(calloc(external_umem_size, sizeof(uint8_t)));
-    if (!cq_ring_haddr) goto exit;
+    if (!cq_ring_haddr) {
+        result = DOCA_ERROR_NO_MEMORY;
+        goto exit;
+    }
 
     mlx5_init_cqes(cq_ring_haddr, cqe_num);
 
