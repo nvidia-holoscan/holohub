@@ -30,55 +30,25 @@ pkg_check_modules(IBVERBS REQUIRED libibverbs)
 
 # DOCA SDK
 set(DOCA_PATH "/opt/mellanox/doca")
-
 if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
-    set(DOCA_LIB_DIR "${DOCA_PATH}/lib/x86_64-linux-gnu")
+    set(DOCA_PKGCONFIG_DIR "${DOCA_PATH}/lib/x86_64-linux-gnu/pkgconfig")
 elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
-    set(DOCA_LIB_DIR "${DOCA_PATH}/lib/aarch64-linux-gnu")
+    set(DOCA_PKGCONFIG_DIR "${DOCA_PATH}/lib/aarch64-linux-gnu/pkgconfig")
 else()
-    set(DOCA_LIB_DIR "${DOCA_PATH}/lib")
+    set(DOCA_PKGCONFIG_DIR "${DOCA_PATH}/lib/pkgconfig")
 endif()
+set(ENV{PKG_CONFIG_PATH} "${DOCA_PKGCONFIG_DIR}:$ENV{PKG_CONFIG_PATH}")
 
-find_path(DOCA_INCLUDE_DIR doca_verbs.h
-  PATHS ${DOCA_PATH}/include
-  NO_DEFAULT_PATH
-)
-find_path(DOCA_DEV_INCLUDE_DIR doca_dev.h
-  PATHS ${DOCA_PATH}/include
-  NO_DEFAULT_PATH
-)
-find_path(DOCA_GPUNETIO_INCLUDE_DIR doca_gpunetio.h
-  PATHS ${DOCA_PATH}/include
-  NO_DEFAULT_PATH
-)
-
-find_library(DOCA_VERBS_LIB doca_verbs
-  PATHS ${DOCA_LIB_DIR}
-  NO_DEFAULT_PATH
-)
-
-find_library(DOCA_GPUNETIO_LIB doca_gpunetio
-  PATHS ${DOCA_LIB_DIR}
-  NO_DEFAULT_PATH
-)
-
-find_library(DOCA_COMMON_LIB doca_common
-  PATHS ${DOCA_LIB_DIR}
-  NO_DEFAULT_PATH
-)
-
-if(NOT (DOCA_INCLUDE_DIR AND DOCA_DEV_INCLUDE_DIR AND DOCA_GPUNETIO_INCLUDE_DIR
-        AND DOCA_VERBS_LIB AND DOCA_COMMON_LIB AND DOCA_GPUNETIO_LIB))
-  message(WARNING "DOCA SDK not found at ${DOCA_PATH}. "
+pkg_check_modules(DOCA doca-verbs doca-gpunetio doca-common)
+if(NOT DOCA_FOUND)
+  message(WARNING "DOCA SDK not found (checked ${DOCA_PKGCONFIG_DIR}). "
                   "hsb_roce_receiver_doca_gpunetio will not be built.")
   return()
 endif()
 
-message(STATUS "DOCA found at ${DOCA_PATH}")
-message(STATUS "  include: ${DOCA_INCLUDE_DIR}")
-message(STATUS "  verbs:   ${DOCA_VERBS_LIB}")
-message(STATUS "  gpunetio: ${DOCA_GPUNETIO_LIB}")
-message(STATUS "  common:  ${DOCA_COMMON_LIB}")
+message(STATUS "DOCA found")
+message(STATUS "  include:   ${DOCA_INCLUDE_DIRS}")
+message(STATUS "  libraries: ${DOCA_LINK_LIBRARIES}")
 
 add_library(hsb_roce_receiver_doca_gpunetio SHARED
   doca_roce_receiver_op.cpp
@@ -89,15 +59,15 @@ add_library(hsb_roce_receiver_doca_gpunetio SHARED
 add_library(holoscan::ops::hsb_roce_receiver_doca_gpunetio
             ALIAS hsb_roce_receiver_doca_gpunetio)
 
-# Build DOCA receiver kernels for Ampere RTX A6000 (sm_86) and newer GPUs.
-set_property(TARGET hsb_roce_receiver_doca_gpunetio PROPERTY CUDA_ARCHITECTURES 86 87 90)
+set_property(TARGET hsb_roce_receiver_doca_gpunetio PROPERTY CUDA_ARCHITECTURES native)
 
 target_include_directories(hsb_roce_receiver_doca_gpunetio
   PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:include>
     ${IBVERBS_INCLUDE_DIRS}
-    ${DOCA_INCLUDE_DIR}
+    ${DOCA_INCLUDE_DIRS}
 )
 
 target_link_libraries(hsb_roce_receiver_doca_gpunetio
@@ -109,16 +79,14 @@ target_link_libraries(hsb_roce_receiver_doca_gpunetio
     CUDA::cuda_driver
     ${IBVERBS_LIBRARIES}
   PRIVATE
-    ${DOCA_VERBS_LIB}
-    ${DOCA_GPUNETIO_LIB}
-    ${DOCA_COMMON_LIB}
+    ${DOCA_LINK_LIBRARIES}
 )
 
 target_compile_options(hsb_roce_receiver_doca_gpunetio PRIVATE -Wno-deprecated-declarations)
 
 set_target_properties(hsb_roce_receiver_doca_gpunetio PROPERTIES
-  INSTALL_RPATH "$ORIGIN:${DOCA_LIB_DIR}"
-  BUILD_RPATH "${DOCA_LIB_DIR}"
+  INSTALL_RPATH "$ORIGIN;${DOCA_LIBRARY_DIRS}"
+  BUILD_RPATH "${DOCA_LIBRARY_DIRS}"
 )
 
 target_compile_definitions(hsb_roce_receiver_doca_gpunetio

@@ -60,52 +60,28 @@ option(HOLOHUB_ENABLE_DOCA_GPUNETIO
        OFF)
 
 if(HOLOHUB_ENABLE_DOCA_GPUNETIO)
+  find_package(PkgConfig REQUIRED)
+
   set(DOCA_PATH "/opt/mellanox/doca")
-
   if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
-    set(DOCA_LIB_DIR "${DOCA_PATH}/lib/x86_64-linux-gnu")
+    set(DOCA_PKGCONFIG_DIR "${DOCA_PATH}/lib/x86_64-linux-gnu/pkgconfig")
   elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
-    set(DOCA_LIB_DIR "${DOCA_PATH}/lib/aarch64-linux-gnu")
+    set(DOCA_PKGCONFIG_DIR "${DOCA_PATH}/lib/aarch64-linux-gnu/pkgconfig")
   else()
-    set(DOCA_LIB_DIR "${DOCA_PATH}/lib")
+    set(DOCA_PKGCONFIG_DIR "${DOCA_PATH}/lib/pkgconfig")
   endif()
+  set(ENV{PKG_CONFIG_PATH} "${DOCA_PKGCONFIG_DIR}:$ENV{PKG_CONFIG_PATH}")
 
-  find_path(DOCA_INCLUDE_DIR doca_verbs.h
-    PATHS ${DOCA_PATH}/include
-    NO_DEFAULT_PATH
-  )
-  find_path(DOCA_DEV_INCLUDE_DIR doca_dev.h
-    PATHS ${DOCA_PATH}/include
-    NO_DEFAULT_PATH
-  )
-  find_path(DOCA_GPUNETIO_INCLUDE_DIR doca_gpunetio.h
-    PATHS ${DOCA_PATH}/include
-    NO_DEFAULT_PATH
-  )
-  find_library(DOCA_VERBS_LIB doca_verbs
-    PATHS ${DOCA_LIB_DIR}
-    NO_DEFAULT_PATH
-  )
-  find_library(DOCA_GPUNETIO_LIB doca_gpunetio
-    PATHS ${DOCA_LIB_DIR}
-    NO_DEFAULT_PATH
-  )
-  find_library(DOCA_COMMON_LIB doca_common
-    PATHS ${DOCA_LIB_DIR}
-    NO_DEFAULT_PATH
-  )
-
-  if(DOCA_INCLUDE_DIR AND DOCA_DEV_INCLUDE_DIR AND DOCA_GPUNETIO_INCLUDE_DIR
-     AND DOCA_VERBS_LIB AND DOCA_COMMON_LIB AND DOCA_GPUNETIO_LIB)
-    message(STATUS "DOCA GPUNetIO support enabled for imx274_gpu_resident "
-                   "(found at ${DOCA_PATH})")
+  pkg_check_modules(DOCA doca-verbs doca-gpunetio doca-common)
+  if(DOCA_FOUND)
+    message(STATUS "DOCA GPUNetIO support enabled for imx274_gpu_resident")
     target_compile_definitions(imx274_gpu_resident PRIVATE HOLOHUB_DOCA_GPUNETIO)
     target_link_libraries(imx274_gpu_resident
       holoscan::ops::hsb_roce_receiver_doca_gpunetio
     )
   else()
-    message(FATAL_ERROR "DOCA SDK not found at ${DOCA_PATH} -- cannot build "
-                       "with DOCA GPUNetIO support")
+    message(FATAL_ERROR "DOCA SDK not found (checked ${DOCA_PKGCONFIG_DIR}) "
+                        "-- cannot build with DOCA GPUNetIO support")
   endif()
 else()
   message(STATUS "DOCA GPUNetIO support disabled for imx274_gpu_resident")

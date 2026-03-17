@@ -251,6 +251,7 @@ void DocaRoceReceiverOp::initialize() {
       struct doca_verbs_gid doca_rgid;
       memcpy(doca_rgid.raw, rgid.raw, 16);
 
+      // destination qp number is 0x2 for HSB 2.5 for now
       if (doca_qp_->connect(doca_rgid, gid_index, 0x2) != DOCA_SUCCESS)
         throw std::runtime_error("Failed to connect DOCA QP");
 
