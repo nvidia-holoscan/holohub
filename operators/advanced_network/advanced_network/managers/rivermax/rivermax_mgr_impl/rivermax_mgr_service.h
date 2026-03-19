@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +20,7 @@
 
 #include <memory>
 #include <cstdint>
+#include <sstream>
 
 #include <holoscan/logger/logger.hpp>
 
@@ -141,6 +142,21 @@ class RivermaxManagerRxService : public RivermaxManagerService {
    */
   virtual void print_stats(std::stringstream& ss) const {}
 
+  /**
+   * @brief Gets the burst manager for this service.
+   *
+   * @return Shared pointer to the burst manager.
+   */
+  std::shared_ptr<RxBurstsManager> get_burst_manager() const { return rx_burst_manager_; }
+
+  /**
+   * @brief Applies the parsed burst pool configuration to the burst manager.
+   *
+   * This method configures the burst manager with the burst pool adaptive dropping
+   * settings that were parsed from the YAML configuration.
+   */
+  void apply_burst_pool_configuration();
+
   bool initialize() override;
   void run() override;
   void shutdown() override;
@@ -174,6 +190,12 @@ class RivermaxManagerRxService : public RivermaxManagerService {
   bool send_packet_ext_info_ = false;                       ///< Flag for extended packet info
   int gpu_id_ = INVALID_GPU_ID;                             ///< GPU device ID
   size_t max_chunk_size_ = 0;  ///< Maximum chunk size for received data
+
+  // Burst pool adaptive dropping configuration (private)
+  bool burst_pool_adaptive_dropping_enabled_ = false;
+  uint32_t burst_pool_low_threshold_percent_ = 25;
+  uint32_t burst_pool_critical_threshold_percent_ = 10;
+  uint32_t burst_pool_recovery_threshold_percent_ = 50;
 };
 
 /**
@@ -507,7 +529,7 @@ class MediaSenderZeroCopyService : public MediaSenderBaseService {
 
  private:
   std::shared_ptr<BufferedMediaFrameProvider>
-      tx_media_frame_provider_;                   ///< Provider for buffered media frames
+      tx_media_frame_provider_;  ///< Provider for buffered media frames
   bool is_frame_in_process_ = false;
   mutable std::mutex mutex_;
 
