@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: 2024 Valley Tech Systems, Inc.
+SPDX-FileCopyrightText: 2024-2026 Voyager Technologies, Inc.
 SPDX-License-Identifier: Apache-2.0
 -->
 

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 Valley Tech Systems, Inc.
+ * SPDX-FileCopyrightText: 2025-2026 Voyager Technologies, Inc.
  * SPDX-License-Identifier: Apache-2.0
  */
 #include "vita49_psd_packetizer.hpp"

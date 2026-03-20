@@ -3,21 +3,21 @@
         "name": "V49PsdPacketizer",
         "authors": [
             {
-                "name": "John Moon <john.moon@vts-i.com>",
-                "affiliation": "Valley Tech Systems, Inc."
+                "name": "John Moon <john.moon@voyagertechnologies.com>",
+                "affiliation": "Voyager Technologies, Inc."
             },
             {
-                "name": "Eric Ferrara <eric.ferrara@vts-i.com>",
-                "affiliation": "Valley Tech Systems, Inc."
+                "name": "Eric Ferrara <eric.ferrara@voyagertechnologies.com>",
+                "affiliation": "Voyager Technologies, Inc."
             },
             {
-                "name": "Matthew Luckenbihl <matthew.luckenbihl@vts-i.com>",
-                "affiliation": "Valley Tech Systems, Inc."
+                "name": "Matthew Luckenbihl <matthew.luckenbihl@voyagertechnologies.com>",
+                "affiliation": "Voyager Technologies, Inc."
             }
         ],
-        "version": "1.0",
+        "version": "1.0.0",
         "changelog": {
-            "1.0": "Initial Release"
+            "1.0.0": "Initial Release"
         },
         "language": ["C++"],
         "holoscan_sdk": {

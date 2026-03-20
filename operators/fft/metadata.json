@@ -3,16 +3,16 @@
         "name": "FFT",
         "authors": [
             {
-                "name": "John Moon <john.moon@vts-i.com>",
-                "affiliation": "Valley Tech Systems, Inc."
+                "name": "John Moon <john.moon@voyagertechnologies.com>",
+                "affiliation": "Voyager Technologies, Inc."
             },
             {
-                "name": "Eric Ferrara <eric.ferrara@vts-i.com>",
-                "affiliation": "Valley Tech Systems, Inc."
+                "name": "Eric Ferrara <eric.ferrara@voyagertechnologies.com>",
+                "affiliation": "Voyager Technologies, Inc."
             },
             {
-                "name": "Matthew Luckenbihl <matthew.luckenbihl@vts-i.com>",
-                "affiliation": "Valley Tech Systems, Inc."
+                "name": "Matthew Luckenbihl <matthew.luckenbihl@voyagertechnologies.com>",
+                "affiliation": "Voyager Technologies, Inc."
             }
         ],
         "language": ["C++"],
