@@ -557,11 +557,18 @@ auto burst = create_tx_burst_params();
 set_header(burst, port_id, queue_id, batch_size, num_segments);
 if ((ret = get_tx_packet_burst(burst)) != Status::SUCCESS) {
   HOLOSCAN_LOG_ERROR("Error returned from get_tx_packet_burst: {}", static_cast<int>(ret));
+  free_tx_metadata(burst);
   return;
 }
 ```
 
-The code above creates a shared `BurstParams`, and uses `get_tx_packet_burst` to populate the burst buffers with valid packet buffers. On success, the buffers inside the burst structure will be allocated and are ready to be filled in. Each packet must be filled in by the user. In this example we loop through each packet and populate a buffer:
+The code above creates a shared `BurstParams`, and uses `get_tx_packet_burst`
+to populate the burst buffers with valid packet buffers. On success, the
+buffers inside the burst structure will be allocated and are ready to be filled
+in. On failure, `get_tx_packet_burst` cleans up any partial packet allocation
+internally, but the metadata remains caller-owned and should be released with
+`free_tx_metadata()` if it will not be retried. Each packet must be filled in by
+the user. In this example we loop through each packet and populate a buffer:
 
 ```cpp
 for (int num_pkt = 0; num_pkt < get_num_packets(burst); num_pkt++) {
