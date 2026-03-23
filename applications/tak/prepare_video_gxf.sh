@@ -129,9 +129,13 @@ FINAL_HEIGHT="${OUTPUT_HEIGHT}"
 PAD_X=0
 PAD_Y=0
 
-if [[ -n "${TARGET_WIDTH}" && -n "${TARGET_HEIGHT}" ]]; then
-  if ! [[ "${TARGET_WIDTH}" =~ ^[0-9]+$ && "${TARGET_HEIGHT}" =~ ^[0-9]+$ ]]; then
-    echo "TARGET_WIDTH/TARGET_HEIGHT must be integers when provided." >&2
+if [[ -n "${TARGET_WIDTH}" || -n "${TARGET_HEIGHT}" ]]; then
+  if [[ -z "${TARGET_WIDTH}" || -z "${TARGET_HEIGHT}" ]]; then
+    echo "Both TARGET_WIDTH and TARGET_HEIGHT must be set together." >&2
+    exit 1
+  fi
+  if ! [[ "${TARGET_WIDTH}" =~ ^[1-9][0-9]*$ && "${TARGET_HEIGHT}" =~ ^[1-9][0-9]*$ ]]; then
+    echo "TARGET_WIDTH/TARGET_HEIGHT must be positive integers." >&2
     exit 1
   fi
   if (( TARGET_WIDTH % 2 )); then TARGET_WIDTH=$((TARGET_WIDTH + 1)); fi
