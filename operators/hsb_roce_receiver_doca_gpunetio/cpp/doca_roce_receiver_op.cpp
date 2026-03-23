@@ -62,21 +62,31 @@ namespace hololink::operators {
 // ============================= lifecycle ===================================
 
 DocaRoceReceiverOp::~DocaRoceReceiverOp() {
-    if (chosen_frame_memory_) cudaFree(chosen_frame_memory_);
-    if (rx_state_ && doca_gpu_device_)
-        doca_gpu_mem_free(doca_gpu_device_, rx_state_);
+  if (rx_state_ && doca_gpu_device_) {
+    doca_gpu_mem_free(doca_gpu_device_, rx_state_);
+    rx_state_ = nullptr;
+  }
 
-    delete doca_cq_rq_;
-    delete doca_cq_sq_;
-    delete doca_qp_;
+  delete doca_qp_;
+  doca_qp_ = nullptr;
+  delete doca_cq_rq_;
+  doca_cq_rq_ = nullptr;
+  delete doca_cq_sq_;
+  doca_cq_sq_ = nullptr;
 
-    if (doca_gpu_device_) doca_gpu_destroy(doca_gpu_device_);
-    if (uar_) doca_uar_destroy(uar_);
-    if (doca_pd_) doca_verbs_pd_destroy(doca_pd_);
-    if (doca_verbs_ctx_) doca_verbs_context_destroy(doca_verbs_ctx_);
-    if (doca_device_) doca_dev_close(doca_device_);
-    if (cu_context_)
-      cuCtxDestroy(cu_context_);
+  if (doca_gpu_device_)
+    doca_gpu_destroy(doca_gpu_device_);
+  if (uar_)
+    doca_uar_destroy(uar_);
+  if (doca_pd_)
+    doca_verbs_pd_destroy(doca_pd_);
+  if (doca_verbs_ctx_)
+    doca_verbs_context_destroy(doca_verbs_ctx_);
+  if (doca_device_)
+    doca_dev_close(doca_device_);
+
+  if (cu_context_)
+    cuCtxDestroy(cu_context_);
 }
 
 void DocaRoceReceiverOp::setup(holoscan::OperatorSpec& spec) {
@@ -113,7 +123,7 @@ void DocaRoceReceiverOp::initialize() {
     struct doca_log_backend* sdk_backend;
 
     // GPU context - set device before any CUDA allocations
-    cudaFree(0);
+    HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaFree(0), "Failed during cudaFree(0)");
     HOLOSCAN_CUDA_CALL_THROW_ERROR(cudaSetDevice(gpu_id_.get()), "Failed to set CUDA device");
 
     // chosen_frame_memory on GPU
@@ -307,6 +317,10 @@ void DocaRoceReceiverOp::stop() {
     if (device_stop_.get()) device_stop_.get()();
     hololink_channel_.get()->unconfigure();
     holoscan::GPUResidentOperator::stop();
+    if (chosen_frame_memory_) {
+      HOLOSCAN_CUDA_CALL_WARN(cudaFree(chosen_frame_memory_));
+      chosen_frame_memory_ = nullptr;
+    }
     HOLOSCAN_LOG_INFO("DOCA RoCE receiver stopped");
 }
 

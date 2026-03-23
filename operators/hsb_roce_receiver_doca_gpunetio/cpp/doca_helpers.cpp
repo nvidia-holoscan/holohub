@@ -89,9 +89,12 @@ DocaCq::DocaCq(uint32_t cqe_num_, struct doca_gpu* gdev_, struct doca_dev* ndev_
       umem_cpu(umem_cpu_) {}
 
 DocaCq::~DocaCq() {
-    if (umem) doca_umem_destroy(umem);
-    if (umem_dev_ptr) doca_gpu_mem_free(gdev, umem_dev_ptr);
-    if (cq) doca_verbs_cq_destroy(cq);
+  if (cq)
+    doca_verbs_cq_destroy(cq);
+  if (umem)
+    doca_umem_destroy(umem);
+  if (umem_dev_ptr)
+    doca_gpu_mem_free(gdev, umem_dev_ptr);
 }
 
 doca_error_t DocaCq::create() {
@@ -187,14 +190,22 @@ DocaQp::DocaQp(uint32_t wqe_num_, struct doca_gpu* gdev_, struct doca_dev* ndev_
       wqe_num(wqe_num_), cq_rq(cq_rq_), cq_sq(cq_sq_), umem_cpu(umem_cpu_) {}
 
 DocaQp::~DocaQp() {
-    if (umem) doca_umem_destroy(umem);
-    if (umem_dbr) doca_umem_destroy(umem_dbr);
-    if (umem_dev_ptr) doca_gpu_mem_free(gdev, umem_dev_ptr);
-    if (umem_dbr_dev_ptr) doca_gpu_mem_free(gdev, umem_dbr_dev_ptr);
-    if (qp) doca_verbs_qp_destroy(qp);
-    if (gpu_rx_ring.addr_mr) ibv_dereg_mr(gpu_rx_ring.addr_mr);
-    if (gpu_rx_ring.addr) doca_gpu_mem_free(gdev, gpu_rx_ring.addr);
-    if (gpu_rx_ring.flag) doca_gpu_mem_free(gdev, gpu_rx_ring.flag);
+  if (qp)
+    doca_verbs_qp_destroy(qp);
+  if (umem)
+    doca_umem_destroy(umem);
+  if (umem_dbr)
+    doca_umem_destroy(umem_dbr);
+  if (umem_dev_ptr)
+    doca_gpu_mem_free(gdev, umem_dev_ptr);
+  if (umem_dbr_dev_ptr)
+    doca_gpu_mem_free(gdev, umem_dbr_dev_ptr);
+  if (gpu_rx_ring.addr_mr)
+    ibv_dereg_mr(gpu_rx_ring.addr_mr);
+  if (gpu_rx_ring.addr)
+    doca_gpu_mem_free(gdev, gpu_rx_ring.addr);
+  if (gpu_rx_ring.flag)
+    doca_gpu_mem_free(gdev, gpu_rx_ring.flag);
 }
 
 doca_error_t DocaQp::create(struct doca_verbs_context* verbs_ctx, size_t frame_size) {
