@@ -58,6 +58,14 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
+static inline CUresult create_cuda_context(CUcontext* ctx, unsigned int flags, CUdevice dev) {
+#if CUDA_VERSION >= 13000
+  return cuCtxCreate(ctx, nullptr, flags, dev);
+#else
+  return cuCtxCreate(ctx, flags, dev);
+#endif
+}
+
 // ============================================================================
 // Connector / DRM helpers
 // ============================================================================
@@ -523,7 +531,13 @@ int main(int argc, char** argv) {
   CUdevice cuDev;
   CUcontext cuCtx;
   cuDeviceGet(&cuDev, 0);
-  cuCtxCreate(&cuCtx, 0, cuDev);
+  err = create_cuda_context(&cuCtx, 0, cuDev);
+  if (err != CUDA_SUCCESS) {
+    const char* errStr = "unknown";
+    cuGetErrorString(err, &errStr);
+    printf("  [FAIL] cuCtxCreate: %s\n", errStr);
+    return 1;
+  }
 
   char devName[256];
   cuDeviceGetName(devName, sizeof(devName), cuDev);

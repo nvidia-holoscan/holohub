@@ -72,8 +72,10 @@ void DataReadyInputOp::stop() {
   if (chosen_frame_memory_) {
     cudaFree(chosen_frame_memory_);
     chosen_frame_memory_ = nullptr;
-    std::lock_guard<std::mutex> lock(shared_state_->mutex);
-    shared_state_->chosen_frame_memory = nullptr;
+    if (shared_state_) {
+      std::lock_guard<std::mutex> lock(shared_state_->mutex);
+      shared_state_->chosen_frame_memory = nullptr;
+    }
   }
 }
 

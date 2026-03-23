@@ -1,0 +1,43 @@
+{
+	"operator": {
+		"name": "DocaRoceReceiverOp",
+		"description": "GPU-resident Holoscan SDK Operator for receiving video frames over RoCE using DOCA GPUNetIO for GPU-side CQ polling, eliminating CPU from the critical path.",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": [
+			"C++"
+		],
+		"version": "0.1.0",
+		"changelog": {
+			"0.1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "4.0.0",
+			"tested_versions": [
+				"4.0.0"
+			]
+		},
+		"platforms": [
+			"aarch64"
+		],
+		"tags": [
+			"Networking and Distributed Computing",
+			"Holoscan Sensor Bridge",
+			"RoCE",
+			"RDMA",
+			"DOCA",
+			"GPUNetIO",
+			"GPU Direct",
+			"GPU-resident"
+		],
+		"ranking": 1,
+		"requirements": {
+			"holoscan_sensor_bridge": "Requires Holoscan Sensor Bridge library to be installed",
+			"doca_sdk": "Requires DOCA SDK 3.2.1+ with GPUNetIO support"
+		}
+	}
+}
