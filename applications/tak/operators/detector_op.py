@@ -79,6 +79,12 @@ class DetectorOp(Operator):
                 with open(self.letterbox_meta_path, "r", encoding="utf-8") as f:
                     self.letterbox_meta = json.load(f)
             except Exception:
+                logger.warning(
+                    "Failed to load letterbox metadata from %s, "
+                    "bbox correction disabled",
+                    self.letterbox_meta_path,
+                    exc_info=True,
+                )
                 self.letterbox_meta = None
         try:
             if not self.label_map:
