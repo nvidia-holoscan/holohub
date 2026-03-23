@@ -14,6 +14,17 @@
 
 set -e
 
+# Verify a sed patch applied by checking the replacement text exists in the file.
+# Usage: verify_patch <file> <grep_pattern> <description>
+verify_patch() {
+    if ! grep -q "$2" "$1"; then
+        echo "[OTS Setup] ERROR: Patch failed — $3" >&2
+        echo "[OTS Setup] File: $1" >&2
+        echo "[OTS Setup] Expected pattern: $2" >&2
+        exit 1
+    fi
+}
+
 MARKER_FILE=/opt/ots/.setup_complete
 if [ -f "$MARKER_FILE" ]; then
     echo "[OTS Setup] Already complete, skipping."
@@ -35,18 +46,20 @@ echo ""
 # Step 1: Install OTS and database adapter from PyPI
 # --------------------------------------------------------------------------
 echo "[OTS Setup] [1/6] Installing OpenTAKServer from PyPI (this is the slowest step)..."
-"$OTS_VENV/bin/pip" install --no-cache-dir opentakserver psycopg2-binary
+"$OTS_VENV/bin/pip" install --no-cache-dir opentakserver==1.7.9 psycopg2-binary
 echo "[OTS Setup] [1/6] Done"
 
 # --------------------------------------------------------------------------
 # Step 2: Patch psycopg2 compatibility
 # --------------------------------------------------------------------------
 echo "[OTS Setup] [2/6] Patching psycopg2 compatibility..."
-sed -i 's|postgresql+psycopg://|postgresql+psycopg2://|' \
-    "$OTS_VENV"/lib/python3.*/site-packages/opentakserver/defaultconfig.py
+OTS_DEFAULT_CFG=$(find "$OTS_VENV" -path '*/opentakserver/defaultconfig.py' | head -1)
+sed -i 's|postgresql+psycopg://|postgresql+psycopg2://|' "$OTS_DEFAULT_CFG"
+verify_patch "$OTS_DEFAULT_CFG" "psycopg2" "psycopg2 driver substitution in defaultconfig.py"
 
 SA_BASE=$(find "$OTS_VENV" -path '*/dialects/postgresql/base.py' | head -1)
 sed -i '/def _get_server_version_info/,/\.scalar()/{s/\.scalar()/\.scalar(); v = v.decode() if isinstance(v, bytes) else v/}' "$SA_BASE"
+verify_patch "$SA_BASE" "v.decode()" "SQLAlchemy bytes decode in base.py"
 find "$OTS_VENV" -name '__pycache__' -path '*/sqlalchemy/*' -exec rm -rf {} + 2>/dev/null || true
 find "$OTS_VENV" -name '__pycache__' -path '*/opentakserver/*' -exec rm -rf {} + 2>/dev/null || true
 echo "[OTS Setup] [2/6] Done"
@@ -57,6 +70,7 @@ echo "[OTS Setup] [2/6] Done"
 echo "[OTS Setup] [3/6] Patching Flask-SocketIO settings..."
 OTS_APP_PY=$(find "$OTS_VENV" -path '*/opentakserver/app.py' | head -1)
 sed -i 's|ping_timeout=1,|ping_timeout=30, cors_allowed_origins="*",|' "$OTS_APP_PY"
+verify_patch "$OTS_APP_PY" 'ping_timeout=30' "Flask-SocketIO ping timeout in app.py"
 find "$OTS_VENV" -name '__pycache__' -path '*/opentakserver/*' -exec rm -rf {} + 2>/dev/null || true
 echo "[OTS Setup] [3/6] Done"
 
@@ -66,11 +80,14 @@ echo "[OTS Setup] [3/6] Done"
 echo "[OTS Setup] [4/6] Patching CoT parser for marker support..."
 COT_PARSER=$(find "$OTS_VENV" -path '*/cot_parser/cot_parser.py' | head -1)
 sed -i 's|uid = body\["uid"\] or event.attrs\["uid"\]|uid = body.get("uid") or None|' "$COT_PARSER"
+verify_patch "$COT_PARSER" 'body.get("uid")' "nullable uid in cot_parser.py"
 sed -i 's|marker.uid = event.attrs\["uid"\]|marker.uid = event.attrs["uid"]; _r = event.find("remarks"); marker.callsign = _r.text if _r and _r.text else event.attrs.get("uid", "")|' "$COT_PARSER"
+verify_patch "$COT_PARSER" 'marker.callsign' "marker callsign in cot_parser.py"
 find "$OTS_VENV" -name '__pycache__' -path '*/cot_parser/*' -exec rm -rf {} + 2>/dev/null || true
 
 EUD_MODEL=$(find "$OTS_VENV" -path '*/models/EUD.py' | head -1)
 sed -i 's|"last_point": None,.*# Setting to.*|"last_point": self.points[-1].to_json() if self.points else None,|' "$EUD_MODEL"
+verify_patch "$EUD_MODEL" 'self.points\[-1\].to_json()' "last_point in EUD.py"
 find "$OTS_VENV" -name '__pycache__' -path '*/models/*' -exec rm -rf {} + 2>/dev/null || true
 echo "[OTS Setup] [4/6] Done"
 
