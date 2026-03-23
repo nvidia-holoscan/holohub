@@ -95,8 +95,8 @@ class TAKApp(Application):
         # Resolve model path from config against the data directory
         detector_kwargs = self.kwargs("detector")
         model_path = detector_kwargs.get("model_path", "yolov8s.pt")
-        bytetrack_config = detector_kwargs.get(
-            "bytetrack_config", "bytetrack.yaml")
+        bytetrack_config = detector_kwargs.pop(
+            "bytetrack_path", "bytetrack.yaml")
         bytetrack_path = str(Path(__file__).with_name(bytetrack_config))
         data_model = os.path.join(self.data, model_path)
         if os.path.exists(data_model):

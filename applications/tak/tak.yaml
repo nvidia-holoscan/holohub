@@ -35,7 +35,7 @@ detector:
   confidence: 0.25
   imgsz: 640
   model_path: "yolov8s.pt"
-  bytetrack_config: "bytetrack.yaml"
+  bytetrack_path: "bytetrack.yaml"
 
 tak_cot:
   tak_host: "localhost"
