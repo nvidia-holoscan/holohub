@@ -65,6 +65,10 @@ RUN pg_dropcluster 16 main \
     && pg_ctlcluster 16 main stop \
     && chmod -R 777 /var/run/postgresql /etc/postgresql /var/log/postgresql
 
+# Generate Erlang cookie at build time (required by RabbitMQ)
+RUN openssl rand -hex 16 > /var/lib/rabbitmq/.erlang.cookie \
+    && chmod 400 /var/lib/rabbitmq/.erlang.cookie
+
 # Enable RabbitMQ plugins required by OpenTAKServer
 RUN rabbitmq-plugins enable rabbitmq_mqtt rabbitmq_auth_backend_http
 

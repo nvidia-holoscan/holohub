@@ -65,6 +65,9 @@ tmp/
 .viminfo
 .lesshst
 
+# Secrets
+.erlang.cookie
+
 # Licenses
 rti_license.dat
 
