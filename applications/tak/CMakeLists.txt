@@ -30,7 +30,7 @@ add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/tak/traffic.mp4"
     COMMAND mkdir -p "${HOLOHUB_DATA_DIR}/tak"
     COMMAND curl -S -L -o "${HOLOHUB_DATA_DIR}/tak/video.mp4"
               "https://www.pexels.com/download/video/19326803/?fps=29.97&h=720&w=1280"
-    COMMAND ffmpeg -i "${HOLOHUB_DATA_DIR}/tak/video.mp4" -t 6.4
+    COMMAND ffmpeg -y -i "${HOLOHUB_DATA_DIR}/tak/video.mp4" -t 6.4
               -c:v libx264 "${HOLOHUB_DATA_DIR}/tak/traffic.mp4"
     COMMAND rm -rf "${HOLOHUB_DATA_DIR}/tak/video.mp4"
     VERBATIM
@@ -58,7 +58,8 @@ if(BUILD_TESTING)
   file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/tak_testing.yaml ${CONFIG_FILE})
 
   add_custom_target(tak_test ALL
-    DEPENDS "tak.py"
+    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/tak.py"
+            tak_data
   )
 
   add_test(NAME tak_python_test
@@ -71,7 +72,7 @@ if(BUILD_TESTING)
                "PYTHONPATH=${GXF_LIB_DIR}/../python/lib")
 
   set_tests_properties(tak_python_test
-                PROPERTIES PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking.;"
+                PROPERTIES PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit\\. Stop ticking\\."
                 FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
 
 endif()
