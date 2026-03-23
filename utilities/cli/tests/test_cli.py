@@ -455,7 +455,7 @@ class TestHoloHubCLI(unittest.TestCase):
         self.assertEqual(mock_run_command.call_count, 2)
         cmake_args_str = " ".join(mock_run_command.call_args_list[0][0][0])
         self.assertIn("-DHOLOHUB_BUILD_OPERATORS", cmake_args_str)
-        self.assertIn(f'"{operators}"', cmake_args_str)
+        self.assertIn(f"={operators}", cmake_args_str)
 
     def test_custom_script_name_entry_point(self):
         """Test that CLI behaves as if it's called with the custom script name"""
