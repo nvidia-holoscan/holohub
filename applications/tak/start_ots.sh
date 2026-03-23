@@ -10,7 +10,7 @@ set -e
 OTS_VENV=/opt/ots/venv
 export OTS_DATA_FOLDER=/opt/ots/data
 
-PG_PORT=5433
+PG_PORT=5432
 OTS_API_PORT=${OTS_API_PORT:-18081}
 OTS_COT_PORT=${OTS_COT_PORT:-18088}
 OTS_WEB_PORT=${OTS_WEB_PORT:-18080}
@@ -40,11 +40,20 @@ echo ""
     echo "[OTS] Starting PostgreSQL..."
     chmod 700 /var/lib/postgresql/16/main 2>/dev/null || true
     pg_ctlcluster 16 main start 2>/dev/null || true
+    pg_ready=false
     for i in $(seq 1 15); do
-        pg_isready -p "$PG_PORT" -q 2>/dev/null && break
+        if pg_isready -p "$PG_PORT" -q 2>/dev/null; then
+            pg_ready=true
+            break
+        fi
         sleep 1
     done
-    echo "[OTS] PostgreSQL ready (port $PG_PORT)"
+    if [ "$pg_ready" = true ]; then
+        echo "[OTS] PostgreSQL ready (port $PG_PORT)"
+    else
+        echo "[OTS] ERROR: PostgreSQL failed to start on port $PG_PORT" >&2
+        exit 1
+    fi
 ) &
 PG_PID=$!
 
@@ -63,11 +72,20 @@ PG_PID=$!
     epmd -daemon 2>/dev/null || true
     rabbitmq-server -detached 2>/dev/null || true
 
+    rmq_ready=false
     for i in $(seq 1 30); do
-        rabbitmqctl -n "$RABBITMQ_NODENAME" status >/dev/null 2>&1 && break
+        if rabbitmqctl -n "$RABBITMQ_NODENAME" status >/dev/null 2>&1; then
+            rmq_ready=true
+            break
+        fi
         sleep 1
     done
-    echo "[OTS] RabbitMQ ready"
+    if [ "$rmq_ready" = true ]; then
+        echo "[OTS] RabbitMQ ready"
+    else
+        echo "[OTS] ERROR: RabbitMQ failed to start" >&2
+        exit 1
+    fi
 ) &
 RMQ_PID=$!
 
@@ -118,13 +136,18 @@ echo "[OTS] Starting opentakserver API (port ${OTS_API_PORT})..."
 
 # Wait for API port instead of hardcoded sleep
 echo "[OTS] Waiting for API to accept connections..."
+api_ready=false
 for i in $(seq 1 15); do
     if python3 -c "import socket; s=socket.socket(); s.settimeout(0.5); s.connect(('127.0.0.1',$OTS_API_PORT)); s.close()" 2>/dev/null; then
+        api_ready=true
         echo "[OTS] API ready (port ${OTS_API_PORT})"
         break
     fi
     sleep 0.5
 done
+if [ "$api_ready" != true ]; then
+    echo "[OTS] WARNING: API not responding on port ${OTS_API_PORT}, continuing anyway" >&2
+fi
 
 echo "[OTS] Starting cot_parser..."
 "$OTS_VENV/bin/cot_parser" > /tmp/ots_cot_parser.log 2>&1 &
