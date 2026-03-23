@@ -17,8 +17,8 @@ track_low_thresh: 0.1
 new_track_thresh: 0.75
 
 # Number of frames to keep a lost track alive before deletion.
-# At 30 fps this gives ~1 second of occlusion tolerance.
-track_buffer: 900 
+# At 30 fps this gives ~3 seconds of occlusion tolerance.
+track_buffer: 90
 
 # IoU threshold for matching detections to existing tracks.
 match_thresh: 0.75
