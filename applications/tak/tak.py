@@ -43,15 +43,18 @@ from operators.tak_cot_op import TakCotOp
 class TAKApp(Application):
     """YOLOv8 detection with TAK CoT marker upload."""
 
-    def __init__(self, video_dir, data, source="replayer"):
+    def __init__(self, video_dir, data, source="replayer", tak_host_override=None):
         super().__init__()
         self.name = "TAK Detection App"
         self.source = source
+        self.tak_host_override = tak_host_override
 
         if data == "none":
-            data = os.path.join(
-                os.environ.get("HOLOHUB_DATA_PATH", "../data"), "tak"
+            default_data = os.environ.get(
+                "HOLOHUB_DATA_PATH",
+                str(Path(__file__).resolve().parent.parent.parent / "data"),
             )
+            data = os.path.join(default_data, "tak")
         self.data = data
 
         if video_dir == "none":
@@ -106,6 +109,10 @@ class TAKApp(Application):
             **detector_kwargs,
         )
 
+        tak_kwargs = dict(self.kwargs("tak_cot"))
+        if self.tak_host_override is not None:
+            tak_kwargs["tak_host"] = self.tak_host_override
+
         tak_cot = TakCotOp(
             self,
             name="tak_cot",
@@ -119,7 +126,7 @@ class TAKApp(Application):
                 "bicycle": "a-n-G",
             },
             detector_op=detector,
-            **self.kwargs("tak_cot"),
+            **tak_kwargs,
         )
 
         holoviz = HolovizOp(
@@ -193,12 +200,14 @@ def main():
     set_log_pattern("[%^%l%$] [%n] %v")
 
     # TAK server config from environment
-    tak_host_raw = os.getenv("TAK_HOST", "")
-    if tak_host_raw.startswith("http://") or tak_host_raw.startswith("https://"):
-        from urllib.parse import urlparse
-        tak_host = urlparse(tak_host_raw).hostname
-    else:
-        tak_host = tak_host_raw
+    tak_host_override = None
+    tak_host_raw = os.getenv("TAK_HOST")
+    if tak_host_raw is not None:
+        if tak_host_raw.startswith("http://") or tak_host_raw.startswith("https://"):
+            from urllib.parse import urlparse
+            tak_host_override = urlparse(tak_host_raw).hostname or ""
+        else:
+            tak_host_override = tak_host_raw
 
     # Start OpenTAKServer services and wait until ready before launching the app
     ots_script = "/opt/ots/start_ots.sh"
@@ -216,7 +225,7 @@ def main():
             )
         tak_logger.info("Starting OpenTAKServer services...")
         ots_log = open("/tmp/ots_start.log", "w")
-        subprocess.Popen(
+        ots_proc = subprocess.Popen(
             ["bash", "-u", ots_script],
             stdout=ots_log,
             stderr=subprocess.STDOUT,
@@ -224,22 +233,22 @@ def main():
         # Tail the log in a background thread so OTS progress is visible
         import threading
 
+        stop_tail = threading.Event()
+
         def _tail_ots_log():
             with open("/tmp/ots_start.log", "r") as f:
-                while True:
+                while not stop_tail.is_set():
                     line = f.readline()
                     if line:
                         tak_logger.info(line.rstrip())
-                    elif os.path.isfile("/tmp/ots_start.log"):
-                        time.sleep(0.2)
                     else:
-                        break
+                        stop_tail.wait(0.2)
 
         log_thread = threading.Thread(target=_tail_ots_log, daemon=True)
         log_thread.start()
 
         # Wait for the TCP CoT port to be accepting connections
-        cot_port = 18088
+        cot_port = int(os.getenv("OTS_COT_PORT", "18088"))
         tak_logger.info(
             "Waiting for OTS to be ready (TCP port %d)...", cot_port
         )
@@ -270,10 +279,15 @@ def main():
                 "Check /tmp/ots_start.log for details."
             )
 
+        stop_tail.set()
+        log_thread.join(timeout=1.0)
+        ots_log.close()
+
     app = TAKApp(
         video_dir=args.video_dir,
         data=args.data,
         source=args.source,
+        tak_host_override=tak_host_override,
     )
     app.config(args.config)
     app.run()
