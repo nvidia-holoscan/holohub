@@ -215,6 +215,10 @@ class TakCotOp(Operator):
 
         self.last_send_time = current_time
 
+        # Retry connection if start() failed (e.g. TAK server wasn't up yet)
+        if not self.connected and self.tak_host:
+            self._connect()
+
         # Send presence lazily — at startup RabbitMQ may not be ready yet,
         # so we defer until compute() is running.
         if not self._presence_sent and self.connected:
@@ -265,16 +269,12 @@ class TakCotOp(Operator):
 
                 if track_ids is not None and i < len(track_ids):
                     track_id = int(track_ids[i])
-                    detection_id = f"{
-                        cls_name}-{track_id}" if cls_name else f"Detection-{track_id}"
-                    detection_label = f"{cls_name} {
-                        track_id}" if cls_name else f"Detection {track_id}"
+                    detection_id = f"{cls_name}-{track_id}" if cls_name else f"Detection-{track_id}"
+                    detection_label = f"{cls_name} {track_id}" if cls_name else f"Detection {track_id}"
                 else:
                     slot_id = (self.detection_count % 100) + 1
-                    detection_id = f"{
-                        cls_name}-{slot_id}" if cls_name else f"Detection-{slot_id}"
-                    detection_label = f"{cls_name} {
-                        slot_id}" if cls_name else f"Detection {slot_id}"
+                    detection_id = f"{cls_name}-{slot_id}" if cls_name else f"Detection-{slot_id}"
+                    detection_label = f"{cls_name} {slot_id}" if cls_name else f"Detection {slot_id}"
 
                 lat = self.base_lat + lat_offset
                 lon = self.base_lon + lon_offset
