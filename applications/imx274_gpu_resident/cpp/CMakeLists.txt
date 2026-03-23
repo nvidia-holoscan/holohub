@@ -52,35 +52,12 @@ target_link_libraries(imx274_gpu_resident
   CUDA::cuda_driver
 )
 
-# Optional DOCA GPUNetIO support.
-# Enable explicitly with the 'doca' mode or:
-#   --configure-args='-DHOLOHUB_ENABLE_DOCA_GPUNETIO=ON'
-option(HOLOHUB_ENABLE_DOCA_GPUNETIO
-       "Enable DOCA GPUNetIO support for imx274_gpu_resident"
-       OFF)
-
-if(HOLOHUB_ENABLE_DOCA_GPUNETIO)
-  find_package(PkgConfig REQUIRED)
-
-  set(DOCA_PATH "/opt/mellanox/doca")
-  if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
-    message(FATAL_ERROR "DOCA GPUNetIO for imx274_gpu_resident is only supported "
-                        "on aarch64 (detected ${CMAKE_SYSTEM_PROCESSOR})")
-  endif()
-  set(DOCA_PKGCONFIG_DIR "${DOCA_PATH}/lib/aarch64-linux-gnu/pkgconfig")
-  set(ENV{PKG_CONFIG_PATH} "${DOCA_PKGCONFIG_DIR}:$ENV{PKG_CONFIG_PATH}")
-
-  pkg_check_modules(DOCA doca-verbs doca-gpunetio doca-common)
-  if(DOCA_FOUND)
-    message(STATUS "DOCA GPUNetIO support enabled for imx274_gpu_resident")
-    target_compile_definitions(imx274_gpu_resident PRIVATE HOLOHUB_DOCA_GPUNETIO)
-    target_link_libraries(imx274_gpu_resident
-      holoscan::ops::hsb_roce_receiver_doca_gpunetio
-    )
-  else()
-    message(FATAL_ERROR "DOCA SDK not found (checked ${DOCA_PKGCONFIG_DIR}) "
-                        "-- cannot build with DOCA GPUNetIO support")
-  endif()
+if(OP_hsb_roce_receiver_doca_gpunetio OR hsb_roce_receiver_doca_gpunetio IN_LIST HOLOHUB_BUILD_OPERATORS)
+  message(STATUS "DOCA GPUNetIO support enabled for imx274_gpu_resident")
+  target_compile_definitions(imx274_gpu_resident PRIVATE HOLOHUB_DOCA_GPUNETIO)
+  target_link_libraries(imx274_gpu_resident
+    holoscan::ops::hsb_roce_receiver_doca_gpunetio
+  )
 else()
   message(STATUS "DOCA GPUNetIO support disabled for imx274_gpu_resident")
 endif()

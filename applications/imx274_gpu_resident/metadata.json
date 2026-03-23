@@ -76,12 +76,12 @@
 			"doca": {
 				"description": "Build and run with DOCA SDK and GPUNetIO for GPU-side RoCE CQ polling",
 				"build": {
+					"depends": [
+						"hsb_roce_receiver_doca_gpunetio"
+					],
 					"docker_build_args": [
 						"--build-arg",
 						"INSTALL_DOCA=1"
-					],
-					"cmake_options": [
-						"-DHOLOHUB_ENABLE_DOCA_GPUNETIO=ON"
 					]
 				},
 				"run": {

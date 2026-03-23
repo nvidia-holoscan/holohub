@@ -72,10 +72,10 @@ is selected:
 ./holohub build imx274_gpu_resident doca
 ```
 
-Or enable explicitly with CMake:
+Or enable the operator explicitly:
 
 ```bash
-./holohub build imx274_gpu_resident --configure-args='-DHOLOHUB_ENABLE_DOCA_GPUNETIO=ON'
+./holohub build imx274_gpu_resident --build-with hsb_roce_receiver_doca_gpunetio
 ```
 
 ## Dependencies
