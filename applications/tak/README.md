@@ -24,6 +24,13 @@ Video Source ──> Format Converter ──> YOLOv8 + ByteTrack ──┬──
 4. **HolovizOp**: Renders the original video with detection overlays (bounding boxes and labels).
 5. **TakCotOp**: Converts detections to CoT XML messages and sends them over TCP to a TAK server.
 
+## Requirements
+
+- **GPU**: NVIDIA GPU with CUDA support
+- **Holoscan SDK**: 3.5.0+
+- **V4L2 camera** (optional): USB webcam or compatible device at `/dev/video0`
+- **TAK server** (local only): required when running outside Docker
+
 ## Model
 
 This application uses [YOLOv8s](https://docs.ultralytics.com/models/yolov8/) from Ultralytics for object detection, paired with [ByteTrack](https://github.com/ifzhang/ByteTrack) for multi-object tracking. The model weights are downloaded automatically when the application is built.
