@@ -63,10 +63,11 @@ RUN pg_dropcluster 16 main \
     && psql -U "$PG_SUPER" -d postgres -c "CREATE DATABASE ots OWNER ots;" \
     && psql -U "$PG_SUPER" -d ots -c "CREATE EXTENSION IF NOT EXISTS postgis;" \
     && pg_ctlcluster 16 main stop \
-    && chmod -R 777 /var/run/postgresql /etc/postgresql /var/log/postgresql
+    && chown -R 1000:1000 /var/run/postgresql /etc/postgresql /var/log/postgresql
 
 # Generate Erlang cookie at build time (required by RabbitMQ)
 RUN openssl rand -hex 16 > /var/lib/rabbitmq/.erlang.cookie \
+    && chown 1000:1000 /var/lib/rabbitmq/.erlang.cookie \
     && chmod 400 /var/lib/rabbitmq/.erlang.cookie
 
 # Enable RabbitMQ plugins required by OpenTAKServer
@@ -97,13 +98,13 @@ RUN python3 -m venv /opt/ots/venv \
 COPY applications/tak/ots_nginx.conf /etc/nginx/sites-available/ots
 RUN rm -f /etc/nginx/sites-enabled/default \
     && ln -sf /etc/nginx/sites-available/ots /etc/nginx/sites-enabled/ots \
-    && chmod -R 777 /var/www/html/opentakserver /var/log/nginx /var/lib/nginx /run
+    && chown -R 1000:1000 /var/www/html/opentakserver /var/log/nginx /var/lib/nginx /run
 
 # Copy startup and setup scripts; make everything accessible to non-root users
 COPY applications/tak/setup_ots.sh /opt/ots/setup_ots.sh
 COPY applications/tak/start_ots.sh /opt/ots/start_ots.sh
 RUN chmod +x /opt/ots/setup_ots.sh /opt/ots/start_ots.sh \
-    && chmod -R 777 /opt/ots /var/lib/rabbitmq /var/log/rabbitmq /etc/rabbitmq
+    && chown -R 1000:1000 /opt/ots /var/lib/rabbitmq /var/log/rabbitmq /etc/rabbitmq
 
 # --------------------------------------------------------------------------
 #
