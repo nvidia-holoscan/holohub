@@ -270,7 +270,7 @@ class TestCheckHoloscan(unittest.TestCase):
     """Test check_holoscan with various SDK locations"""
 
     @patch("utilities.cli.system_check.is_valid_sdk_installation", return_value=True)
-    @patch("utilities.cli.system_check._get_sdk_version", return_value="3.1.0")
+    @patch("utilities.cli.system_check.get_sdk_version", return_value="3.1.0")
     def test_check_holoscan_default_path(self, mock_ver, mock_valid):
         with patch.object(Path, "exists", return_value=True):
             result = check_holoscan()
@@ -279,7 +279,7 @@ class TestCheckHoloscan(unittest.TestCase):
 
     @patch.dict(os.environ, {"HOLOSCAN_SDK_ROOT": "/home/user/holoscan-sdk"})
     @patch("utilities.cli.system_check.is_valid_sdk_installation")
-    @patch("utilities.cli.system_check._get_sdk_version", return_value="3.2.0")
+    @patch("utilities.cli.system_check.get_sdk_version", return_value="3.2.0")
     def test_check_holoscan_sdk_root_direct(self, mock_ver, mock_valid):
         def valid_side_effect(p):
             return str(p) == "/home/user/holoscan-sdk"

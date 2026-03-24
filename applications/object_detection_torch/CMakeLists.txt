@@ -108,31 +108,46 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
   )
   add_dependencies(object_detection_torch object_detection_torch_data)
 
-  # Download the model
-  add_custom_target(download_model
-    COMMAND python3 "${CMAKE_CURRENT_SOURCE_DIR}/generate_resnet_model.py"  "${HOLOHUB_DATA_DIR}/object_detection_torch/frcnn_resnet50_t.pt"
-    DEPENDS object_detection_torch_data
-    BYPRODUCTS "${HOLOHUB_DATA_DIR}/object_detection_torch/frcnn_resnet50_t.pt"
+  # Generate the model (runs when output is missing or dependencies change)
+  set(MODEL_FILEPATH "${HOLOHUB_DATA_DIR}/object_detection_torch/frcnn_resnet50_t.pt")
+  add_custom_command(OUTPUT "${MODEL_FILEPATH}"
+    COMMAND python3 "${CMAKE_CURRENT_SOURCE_DIR}/generate_resnet_model.py" "${MODEL_FILEPATH}"
+    DEPENDS object_detection_torch_data "${CMAKE_CURRENT_SOURCE_DIR}/generate_resnet_model.py"
+    COMMENT "Generating FRCNN ResNet50 model"
   )
+  add_custom_target(download_model DEPENDS "${MODEL_FILEPATH}")
   add_dependencies(object_detection_torch download_model)
 endif()
 
-# Copy config file
-add_custom_target(object_detection_torch_yaml
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/object_detection_torch.yaml"
-                                                  "${CMAKE_CURRENT_BINARY_DIR}/object_detection_torch.yaml"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/postprocessing.yaml"
-                                                  "${HOLOHUB_DATA_DIR}/object_detection_torch/postprocessing.yaml"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/frcnn_resnet50_t.yaml"
-                                                  "${HOLOHUB_DATA_DIR}/object_detection_torch/frcnn_resnet50_t.yaml"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/labels.txt"
-                                                  "${HOLOHUB_DATA_DIR}/object_detection_torch/labels.txt"
-    DEPENDS
-      "object_detection_torch.yaml" "postprocessing.yaml" "frcnn_resnet50_t.yaml" "labels.txt"
-      object_detection_torch_data  # download after NGC data is downloaded to avoid directory overwrite
-    BYPRODUCTS "object_detection_torch.yaml" "postprocessing.yaml" "frcnn_resnet50_t.yaml" "labels.txt"
+# Copy application config file and PyTorch model config files
+add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/object_detection_torch.yaml"
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/object_detection_torch.yaml"
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${CMAKE_CURRENT_SOURCE_DIR}/object_detection_torch.yaml"
+    "${CMAKE_CURRENT_BINARY_DIR}/object_detection_torch.yaml"
+  COMMENT "Copying object_detection_torch.yaml"
 )
-add_dependencies(object_detection_torch object_detection_torch_yaml)
+set(MODEL_DATA_PATH "${HOLOHUB_DATA_DIR}/object_detection_torch")
+set(MODEL_DATA_FILES postprocessing.yaml frcnn_resnet50_t.yaml labels.txt)
+set(MODEL_DATA_OUTPUT_FILES "")
+foreach(model_config_file IN LISTS MODEL_DATA_FILES)
+  add_custom_command(OUTPUT "${MODEL_DATA_PATH}/${model_config_file}"
+    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${model_config_file}"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${MODEL_DATA_PATH}"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      "${CMAKE_CURRENT_SOURCE_DIR}/${model_config_file}"
+      "${MODEL_DATA_PATH}/${model_config_file}"
+    COMMENT "Copying ${model_config_file} to ${MODEL_DATA_PATH}"
+  )
+  list(APPEND MODEL_DATA_OUTPUT_FILES "${MODEL_DATA_PATH}/${model_config_file}")
+endforeach()
+add_custom_target(object_detection_torch_copy_configs
+  DEPENDS
+    "${CMAKE_CURRENT_BINARY_DIR}/object_detection_torch.yaml"
+    ${MODEL_DATA_OUTPUT_FILES}
+    $<TARGET_NAME_IF_EXISTS:object_detection_torch_data>
+)
+add_dependencies(object_detection_torch object_detection_torch_copy_configs)
 
 # Add testing
 if(BUILD_TESTING)

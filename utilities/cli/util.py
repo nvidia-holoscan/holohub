@@ -24,6 +24,7 @@ import shlex
 import shutil
 import subprocess
 import sys
+import time
 import traceback
 from datetime import datetime, timezone
 from pathlib import Path
@@ -156,7 +157,7 @@ def fatal(message: str) -> None:
 
 
 def warn(message: str) -> None:
-    print(f"{Color.yellow('WARNING:')} {message}")
+    print(f"{Color.yellow('WARNING:')} {message}", file=sys.stderr)
 
 
 def _get_holohub_root() -> Path:
@@ -338,6 +339,37 @@ def run_info_command(cmd: List[str], cwd: Optional[str] = None) -> Optional[str]
         return None
 
 
+def dir_size_mb(path: Path) -> float:
+    """Return the total size of a directory tree in megabytes."""
+    total = 0
+    for root, _dirs, files in os.walk(str(path)):
+        for f in files:
+            try:
+                total += os.path.getsize(os.path.join(root, f))
+            except OSError:
+                continue
+    return total / (1024 * 1024)
+
+
+def relative_time(mtime: float) -> str:
+    """Format an mtime as a human-readable relative time string."""
+    elapsed = time.time() - mtime
+    if elapsed < 60:
+        return "just now"
+    if elapsed < 3600:
+        return f"{int(elapsed / 60)}m ago"
+    if elapsed < 86400:
+        return f"{int(elapsed / 3600)}h ago"
+    return f"{int(elapsed / 86400)}d ago"
+
+
+def format_size(mb: float) -> str:
+    """Format a size in megabytes as a human-readable string."""
+    if mb >= 1024:
+        return f"{mb / 1024:.1f} GB"
+    return f"{mb:.0f} MB"
+
+
 def parse_semantic_version(version: str) -> Tuple[int, int, int]:
     """
     Parse semantic version string MAJOR.MINOR.PATCH into tuple of integers for comparison
@@ -506,6 +538,23 @@ def get_arch_gpu_str() -> str:
         gpu = get_host_gpu()
         return f"{arch}-{gpu}"
     return arch
+
+
+def get_sdk_version(sdk_path: Path) -> str:
+    """Extract Holoscan SDK version from a valid SDK installation path."""
+    try:
+        version_file = sdk_path / "VERSION"
+        if version_file.exists():
+            return version_file.read_text().strip()
+        cmake_config = sdk_path / "lib" / "cmake" / "holoscan" / "holoscan-config-version.cmake"
+        if cmake_config.exists():
+            content = cmake_config.read_text()
+            match = re.search(r'PACKAGE_VERSION\s+"([^"]+)"', content)
+            if match:
+                return match.group(1)
+    except (OSError, UnicodeDecodeError):
+        pass
+    return "unknown"
 
 
 def is_valid_sdk_installation(path: Union[str, Path]) -> bool:

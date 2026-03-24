@@ -230,8 +230,10 @@ class App : public holoscan::Application {
 #endif
           Arg("enable_render_buffer_output") =
               overlay_enabled || (record_type_ == Record::VISUALIZER),
-          Arg("allocator") = visualizer_allocator,
           Arg("cuda_stream_pool") = cuda_stream_pool);
+      if (visualizer_allocator) {
+        visualizer_operator->add_arg(Arg("allocator") = visualizer_allocator);
+      }
     }
 #ifdef VTK_RENDERER
     if (this->visualizer_name == "vtk") {

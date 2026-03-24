@@ -38,7 +38,19 @@ det_model = detection.fasterrcnn_resnet50_fpn(
     weights=FasterRCNN_ResNet50_FPN_Weights.DEFAULT,
     progress=True,
     weights_backbone=ResNet50_Weights.DEFAULT,
-).to(DEVICE)
+)
+
+# Suppress PyTorch 2.9 known UserWarning for GB10 / sm_120 (capability 12.x) only.
+# \\n    Found GPU0 NVIDIA GB10 which is of cuda capability 12.1.
+# \\n    Minimum and Maximum cuda capability supported by this version of PyTorch is
+# \\n    (8.0) - (12.0)\\n
+# https://github.com/pytorch/pytorch/issues/172629
+# https://forums.developer.nvidia.com/t/dgx-dashboard-playbook-pytorch-in-sample-code-not-supporting-cuda-12-1/350762
+with warnings.catch_warnings():
+    warnings.filterwarnings(
+        "ignore", category=UserWarning, module="torch.cuda", message=r"\n.*Found GPU0 NVIDIA GB10.*"
+    )
+    det_model = det_model.to(DEVICE)
 
 
 # Wraps the model to incorporate a permutation operation.

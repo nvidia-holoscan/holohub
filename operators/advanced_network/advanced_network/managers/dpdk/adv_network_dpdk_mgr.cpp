@@ -944,9 +944,10 @@ int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
         return -1;
       }
 
-      HOLOSCAN_LOG_INFO("Setting up TX burst pool {} with {} pointers at {}",
+      HOLOSCAN_LOG_INFO("Setting up TX burst pool {} with {} pointers, pool_size={} at {}",
                         name,
                         max_tx_batch,
+                        (1U << 7) - 1U,
                         (void*)tx_burst_buffers[key]);
     }
   }
@@ -2337,7 +2338,23 @@ void* DpdkMgr::get_packet_extra_info(BurstParams* burst, int idx) {
 
 Status DpdkMgr::get_tx_packet_burst(BurstParams* burst) {
   const uint32_t key = generate_queue_key(burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
-  const auto& q = tx_dpdk_q_map_[key];
+
+  const auto q_it = tx_dpdk_q_map_.find(key);
+  if (q_it == tx_dpdk_q_map_.end()) {
+    HOLOSCAN_LOG_ERROR("get_tx_packet_burst: queue map lookup failed for port {} queue {}",
+                       burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
+    return Status::INVALID_PARAMETER;
+  }
+  const auto& q = q_it->second;
+
+  if (burst->hdr.hdr.num_segs <= 0 ||
+      static_cast<size_t>(burst->hdr.hdr.num_segs) != q->pools.size()) {
+    HOLOSCAN_LOG_ERROR("get_tx_packet_burst: num_segs {} does not match pools size {} "
+                       "for port {} queue {}",
+                       burst->hdr.hdr.num_segs, q->pools.size(),
+                       burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
+    return Status::INVALID_PARAMETER;
+  }
 
   const auto burst_pool = tx_burst_buffers.find(key);
   if (burst_pool == tx_burst_buffers.end()) {
@@ -2347,15 +2364,43 @@ Status DpdkMgr::get_tx_packet_burst(BurstParams* burst) {
     return Status::NO_FREE_BURST_BUFFERS;
   }
 
+  // Rollback helper: free mbufs and burst containers for segments 0..count-1
+  auto rollback_segments = [&](int count) {
+    for (int prev = 0; prev < count; prev++) {
+      auto mbufs = reinterpret_cast<rte_mbuf**>(burst->pkts[prev]);
+      for (size_t p = 0; p < burst->hdr.hdr.num_pkts; p++) {
+        rte_pktmbuf_free(mbufs[p]);
+      }
+      rte_mempool_put(burst_pool->second, burst->pkts[prev]);
+      burst->pkts[prev] = nullptr;
+    }
+  };
+
   for (int seg = 0; seg < burst->hdr.hdr.num_segs; seg++) {
+    burst->pkts[seg] = nullptr;
+
     if (rte_mempool_get(burst_pool->second, reinterpret_cast<void**>(&burst->pkts[seg])) != 0) {
+      HOLOSCAN_LOG_DEBUG("get_tx_packet_burst: burst pool exhausted at seg={} "
+                         "(avail={} in_use={})",
+                         seg,
+                         rte_mempool_avail_count(burst_pool->second),
+                         rte_mempool_in_use_count(burst_pool->second));
+      rollback_segments(seg);
       return Status::NO_FREE_BURST_BUFFERS;
     }
 
     if (rte_pktmbuf_alloc_bulk(q->pools[seg],
                                reinterpret_cast<rte_mbuf**>(burst->pkts[seg]),
                                static_cast<int>(burst->hdr.hdr.num_pkts)) != 0) {
+      HOLOSCAN_LOG_DEBUG("get_tx_packet_burst: mbuf alloc failed at seg={} "
+                         "(mbuf_pool_avail={} needed={})",
+                         seg,
+                         rte_mempool_avail_count(q->pools[seg]),
+                         burst->hdr.hdr.num_pkts);
+      // Free current seg's burst container (no mbufs to free — alloc failed)
       rte_mempool_put(burst_pool->second, reinterpret_cast<void*>(burst->pkts[seg]));
+      burst->pkts[seg] = nullptr;
+      rollback_segments(seg);
       return Status::NO_FREE_PACKET_BUFFERS;
     }
   }
@@ -2415,6 +2460,12 @@ bool DpdkMgr::is_tx_burst_available(BurstParams* burst) {
   }
 
   const auto& q = item->second;
+
+  if (burst->hdr.hdr.num_segs <= 0 ||
+      static_cast<size_t>(burst->hdr.hdr.num_segs) != q->pools.size()) {
+    return false;
+  }
+
   for (int seg = 0; seg < burst->hdr.hdr.num_segs; seg++) {
     if (rte_mempool_avail_count(q->pools[seg]) < burst->hdr.hdr.num_pkts * 2) { return false; }
   }
@@ -2473,6 +2524,14 @@ void DpdkMgr::free_tx_burst(BurstParams* burst) {
   const uint32_t key = generate_queue_key(burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
   const auto burst_pool = tx_burst_buffers.find(key);
 
+  if (burst_pool == tx_burst_buffers.end()) {
+    HOLOSCAN_LOG_ERROR("free_tx_burst: burst pool not found for port {} queue {}",
+                       burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
+    burst->hdr.hdr.num_pkts = 0;
+    rte_mempool_put(tx_metadata, burst);
+    return;
+  }
+
   for (int seg = 0; seg < burst->hdr.hdr.num_segs; seg++) {
     rte_mempool_put(burst_pool->second, (void*)burst->pkts[seg]);
   }
@@ -2507,10 +2566,10 @@ void DpdkMgr::free_tx_metadata(BurstParams* burst) {
 
 Status DpdkMgr::get_tx_metadata_buffer(BurstParams** burst) {
   if (rte_mempool_get(tx_metadata, reinterpret_cast<void**>(burst)) != 0) {
-    HOLOSCAN_LOG_CRITICAL("Running out of TX meta buffers due to high rates. Either increase "\
-      "your number of metadata buffers (current: {}) with `tx_meta_buffers` (will "\
-      "increase memory usage) or increase your `batch_size` for port {} queue {} (will increase "\
-      "latency)", cfg_.tx_meta_buffers_, (*burst)->hdr.hdr.port_id, (*burst)->hdr.hdr.q_id);
+    HOLOSCAN_LOG_CRITICAL("Running out of TX meta buffers (pool size: {}, avail: {})",
+                          cfg_.tx_meta_buffers_ - 1U,
+                          rte_mempool_avail_count(tx_metadata));
+    *burst = nullptr;
     return Status::NO_FREE_BURST_BUFFERS;
   }
 
@@ -2530,7 +2589,6 @@ Status DpdkMgr::send_tx_burst(BurstParams* burst) {
 
   if (rte_ring_enqueue(ring->second, reinterpret_cast<void*>(burst)) != 0) {
     free_tx_burst(burst);
-    free_tx_metadata(burst);
     HOLOSCAN_LOG_CRITICAL("Failed to enqueue TX work");
     return Status::NO_SPACE_AVAILABLE;
   }
