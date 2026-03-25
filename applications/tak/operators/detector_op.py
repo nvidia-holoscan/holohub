@@ -24,9 +24,9 @@ import time
 from typing import List, Optional
 
 import cupy as cp
+import holoscan as hs
 import numpy as np
 import torch
-import holoscan as hs
 from holoscan.core import Operator, OperatorSpec
 from holoscan.gxf import Entity
 from holoscan.operators import HolovizOp
@@ -69,9 +69,7 @@ class DetectorOp(Operator):
 
     def start(self):
         if not os.path.exists(self.model_path):
-            raise FileNotFoundError(
-                f"YOLO model not found at {self.model_path}"
-            )
+            raise FileNotFoundError(f"YOLO model not found at {self.model_path}")
         self.model = YOLO(self.model_path)
         self.model.to(self.device)
         if self.letterbox_meta_path and os.path.exists(self.letterbox_meta_path):
@@ -80,8 +78,7 @@ class DetectorOp(Operator):
                     self.letterbox_meta = json.load(f)
             except Exception:
                 logger.warning(
-                    "Failed to load letterbox metadata from %s, "
-                    "bbox correction disabled",
+                    "Failed to load letterbox metadata from %s, " "bbox correction disabled",
                     self.letterbox_meta_path,
                     exc_info=True,
                 )
@@ -97,9 +94,7 @@ class DetectorOp(Operator):
             pass
         # Warmup on small tensor to avoid first-iteration latency.
         imgsz = self.imgsz or 640
-        dummy = torch.zeros(
-            (1, 3, imgsz, imgsz), device=self.device, dtype=torch.float32
-        )
+        dummy = torch.zeros((1, 3, imgsz, imgsz), device=self.device, dtype=torch.float32)
         _ = self.model.predict(dummy, device=self.device, verbose=False)
 
     def compute(self, op_input, op_output, context):
@@ -108,20 +103,14 @@ class DetectorOp(Operator):
 
         msg = op_input.receive("in")
 
-        tensor = (
-            msg.get("", None)
-            or msg.get("tensor", None)
-            or msg.get("source_video")
-        )
+        tensor = msg.get("", None) or msg.get("tensor", None) or msg.get("source_video")
         if tensor is None:
             raise RuntimeError("No tensor found on message for detector")
 
         frame = cp.asarray(tensor).get()  # HWC on host
         h, w, _ = frame.shape
 
-        frame_uint8 = np.ascontiguousarray(
-            np.clip(frame, 0, 255).astype(np.uint8, copy=False)
-        )
+        frame_uint8 = np.ascontiguousarray(np.clip(frame, 0, 255).astype(np.uint8, copy=False))
 
         frame_for_model = frame_uint8
         pad_x = pad_y = 0
@@ -176,8 +165,7 @@ class DetectorOp(Operator):
 
         if self.letterbox_meta and boxes_xyxy:
             boxes_xyxy = [
-                [x0 + pad_x, y0 + pad_y, x1 + pad_x, y1 + pad_y]
-                for x0, y0, x1, y1 in boxes_xyxy
+                [x0 + pad_x, y0 + pad_y, x1 + pad_x, y1 + pad_y] for x0, y0, x1, y1 in boxes_xyxy
             ]
 
         if boxes_xyxy:
@@ -216,9 +204,7 @@ class DetectorOp(Operator):
         boxes_arr[:, [1, 3]] /= float(norm_h)
         bboxes_norm = np.reshape(boxes_arr, (1, -1, 2))
 
-        bbox_label = np.asarray(
-            [(b[0], max(0.0, b[1] - 0.03)) for b in boxes_arr]
-        )
+        bbox_label = np.asarray([(b[0], max(0.0, b[1] - 0.03)) for b in boxes_arr])
         label_text = []
         for cls_id, conf in zip(labels, confs):
             name = self.label_map.get(cls_id, f"class_{cls_id}")
@@ -229,10 +215,7 @@ class DetectorOp(Operator):
         for i, (dx, dy) in enumerate(outline_dirs):
             key = f"bbox_label_outline_{i}"
             offset_coords = np.asarray(
-                [
-                    (x + dx * outline_offset, y + dy * outline_offset)
-                    for x, y in bbox_label
-                ],
+                [(x + dx * outline_offset, y + dy * outline_offset) for x, y in bbox_label],
                 dtype=np.float32,
             )
             entity.add(hs.as_tensor(offset_coords), key)
@@ -246,20 +229,15 @@ class DetectorOp(Operator):
         tak_entity.add(hs.as_tensor(bboxes_norm), "bbox")
         tak_entity.add(hs.as_tensor(bbox_label), "bbox_label")
         if track_ids is not None:
-            tak_entity.add(
-                hs.as_tensor(np.array(track_ids, dtype=np.int32)), "track_ids"
-            )
-        tak_entity.add(hs.as_tensor(
-            np.array(labels, dtype=np.int32)), "class_ids")
+            tak_entity.add(hs.as_tensor(np.array(track_ids, dtype=np.int32)), "track_ids")
+        tak_entity.add(hs.as_tensor(np.array(labels, dtype=np.int32)), "class_ids")
 
         spec_bbox = HolovizOp.InputSpec("bbox", HolovizOp.InputType.RECTANGLES)
         spec_bbox.color = [1.0, 0.2, 0.2, 1.0]
         spec_bbox.line_width = 3
 
         for i in range(len(outline_dirs)):
-            spec_outline = HolovizOp.InputSpec(
-                f"bbox_label_outline_{i}", "text"
-            )
+            spec_outline = HolovizOp.InputSpec(f"bbox_label_outline_{i}", "text")
             spec_outline.text = label_text or ["Detection"]
             spec_outline.color = [0.0, 0.0, 0.0, 1.0]
             specs.append(spec_outline)

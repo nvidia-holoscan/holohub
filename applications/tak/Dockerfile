@@ -17,10 +17,16 @@
 
 ARG BASE_IMAGE
 ARG GPU_TYPE
+ARG APP_USER=appuser
+ARG APP_UID=1000
+ARG APP_GID=1000
 
 FROM ${BASE_IMAGE} AS base
 
 ARG DEBIAN_FRONTEND=noninteractive
+ARG APP_USER
+ARG APP_UID
+ARG APP_GID
 
 # --------------------------------------------------------------------------
 #
@@ -52,22 +58,35 @@ RUN apt-get update \
        nginx \
     && rm -rf /var/lib/apt/lists/*
 
-# Re-create PostgreSQL cluster owned by uid 1000 so non-root can start it
+# Create the dedicated non-root runtime user before preparing service state.
+RUN set -eux; \
+    if ! getent group "${APP_GID}" >/dev/null; then \
+        groupadd --gid "${APP_GID}" "${APP_USER}"; \
+    fi; \
+    if ! getent passwd "${APP_USER}" >/dev/null; then \
+        if getent passwd "${APP_UID}" >/dev/null; then \
+            useradd --non-unique --uid "${APP_UID}" --gid "${APP_GID}" --create-home --shell /bin/bash "${APP_USER}"; \
+        else \
+            useradd --uid "${APP_UID}" --gid "${APP_GID}" --create-home --shell /bin/bash "${APP_USER}"; \
+        fi; \
+    fi
+
+# Re-create PostgreSQL cluster owned by the runtime user's uid/gid so it can start without root.
 RUN pg_dropcluster 16 main \
-    && pg_createcluster -u 1000 -g 1000 16 main \
+    && pg_createcluster -u "${APP_UID}" -g "${APP_GID}" 16 main \
     && sed -i 's/peer$/trust/' /etc/postgresql/16/main/pg_hba.conf \
     && pg_ctlcluster 16 main start \
     && sleep 2 \
-    && PG_SUPER=$(getent passwd 1000 | cut -d: -f1) \
-    && psql -U "$PG_SUPER" -d postgres -c "CREATE USER ots WITH PASSWORD 'ots';" \
-    && psql -U "$PG_SUPER" -d postgres -c "CREATE DATABASE ots OWNER ots;" \
-    && psql -U "$PG_SUPER" -d ots -c "CREATE EXTENSION IF NOT EXISTS postgis;" \
+    && PG_SUPER=$(getent passwd "${APP_UID}" | head -n1 | cut -d: -f1) \
+    && psql -U "${PG_SUPER}" -d postgres -c "CREATE USER ots WITH PASSWORD 'ots';" \
+    && psql -U "${PG_SUPER}" -d postgres -c "CREATE DATABASE ots OWNER ots;" \
+    && psql -U "${PG_SUPER}" -d ots -c "CREATE EXTENSION IF NOT EXISTS postgis;" \
     && pg_ctlcluster 16 main stop \
-    && chown -R 1000:1000 /var/run/postgresql /etc/postgresql /var/log/postgresql
+    && chown -R "${APP_UID}:${APP_GID}" /var/run/postgresql /etc/postgresql /var/log/postgresql
 
 # Generate Erlang cookie at build time (required by RabbitMQ)
 RUN openssl rand -hex 16 > /var/lib/rabbitmq/.erlang.cookie \
-    && chown 1000:1000 /var/lib/rabbitmq/.erlang.cookie \
+    && chown "${APP_UID}:${APP_GID}" /var/lib/rabbitmq/.erlang.cookie \
     && chmod 400 /var/lib/rabbitmq/.erlang.cookie
 
 # Enable RabbitMQ plugins required by OpenTAKServer
@@ -92,19 +111,21 @@ RUN rm -f /usr/sbin/rabbitmq-server /usr/sbin/rabbitmqctl \
 ENV OTS_DATA_FOLDER=/opt/ots/data
 RUN python3 -m venv /opt/ots/venv \
     && /opt/ots/venv/bin/pip install --no-cache-dir --upgrade pip setuptools wheel \
-    && mkdir -p /opt/ots/data /var/www/html/opentakserver
+    && mkdir -p /opt/ots/data /var/www/html/opentakserver /var/lib/nginx /var/log/nginx \
+    && touch /run/nginx.pid
 
 # Nginx config: serve static UI and reverse-proxy /api + /socket.io to OTS
 COPY applications/tak/ots_nginx.conf /etc/nginx/sites-available/ots
 RUN rm -f /etc/nginx/sites-enabled/default \
     && ln -sf /etc/nginx/sites-available/ots /etc/nginx/sites-enabled/ots \
-    && chown -R 1000:1000 /var/www/html/opentakserver /var/log/nginx /var/lib/nginx /run
+    && chown -R "${APP_UID}:${APP_GID}" /var/www/html/opentakserver /var/log/nginx /var/lib/nginx \
+    && chown "${APP_UID}:${APP_GID}" /run/nginx.pid
 
 # Copy startup and setup scripts; make everything accessible to non-root users
 COPY applications/tak/setup_ots.sh /opt/ots/setup_ots.sh
 COPY applications/tak/start_ots.sh /opt/ots/start_ots.sh
 RUN chmod +x /opt/ots/setup_ots.sh /opt/ots/start_ots.sh \
-    && chown -R 1000:1000 /opt/ots /var/lib/rabbitmq /var/log/rabbitmq /etc/rabbitmq
+    && chown -R "${APP_UID}:${APP_GID}" /opt/ots /var/lib/rabbitmq /var/log/rabbitmq /etc/rabbitmq
 
 # --------------------------------------------------------------------------
 #
@@ -119,3 +140,6 @@ RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
 
 # Enable autocomplete
 RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
+
+ENV HOME=/home/${APP_USER}
+USER ${APP_USER}
