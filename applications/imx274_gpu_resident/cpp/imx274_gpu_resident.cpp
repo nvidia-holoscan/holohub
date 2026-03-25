@@ -711,6 +711,7 @@ int main(int argc, char** argv) {
       // 100000 samples at max
       gr_fragment->gpu_resident().enable_perf_measurement(100000);
       gr_fragment->gpu_resident().data_not_ready_sleep_interval_us(100);
+      // gr_fragment->gpu_resident().timeout_ms(15000);
     }
 
     std::shared_ptr<hololink::Hololink> hololink = hololink_channel.hololink();
@@ -730,6 +731,11 @@ int main(int argc, char** argv) {
       gr_fragment->gpu_resident().print_perf_metrics(100, 100);
       gr_fragment->gpu_resident().save_perf_results_as_csv();
     }
+
+    // Release application resources while Hololink and the CUDA primary context
+    // are still valid. Receiver shutdown paths unconfigure the channel.
+    gr_fragment.reset();
+    application.reset();
 
     hololink->stop();
 

@@ -52,7 +52,9 @@ target_link_libraries(imx274_gpu_resident
   CUDA::cuda_driver
 )
 
-if(OP_hsb_roce_receiver_doca_gpunetio OR hsb_roce_receiver_doca_gpunetio IN_LIST HOLOHUB_BUILD_OPERATORS)
+if(OP_hsb_roce_receiver_doca_gpunetio OR
+   hsb_roce_receiver_doca_gpunetio IN_LIST HOLOHUB_BUILD_OPERATORS OR
+   "\"hsb_roce_receiver_doca_gpunetio\"" IN_LIST HOLOHUB_BUILD_OPERATORS)
   message(STATUS "DOCA GPUNetIO support enabled for imx274_gpu_resident")
   target_compile_definitions(imx274_gpu_resident PRIVATE HOLOHUB_DOCA_GPUNETIO)
   target_link_libraries(imx274_gpu_resident
