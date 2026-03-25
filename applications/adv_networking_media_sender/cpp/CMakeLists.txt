@@ -49,4 +49,3 @@ add_custom_target(adv_networking_media_sender_yaml
   DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_media_sender.yaml"
 )
 add_dependencies(${PROJECT_NAME} adv_networking_media_sender_yaml)
-
