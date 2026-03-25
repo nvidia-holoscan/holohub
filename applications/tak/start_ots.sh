@@ -10,7 +10,9 @@ set -e
 OTS_VENV=/opt/ots/venv
 export OTS_DATA_FOLDER=/opt/ots/data
 
-PG_PORT=5432
+PG_CONFIG=/etc/postgresql/16/main/postgresql.conf
+PG_PORT=$(awk '$1 == "port" {print $3; exit}' "$PG_CONFIG" 2>/dev/null)
+PG_PORT=${PG_PORT:-5432}
 OTS_API_PORT=${OTS_API_PORT:-18081}
 OTS_COT_PORT=${OTS_COT_PORT:-18088}
 OTS_WEB_PORT=${OTS_WEB_PORT:-18080}
@@ -32,6 +34,7 @@ if [ "$FIRST_RUN" = true ]; then
 fi
 echo "============================================================"
 echo ""
+echo "[OTS] PostgreSQL configured port: ${PG_PORT}"
 
 # --- Launch PostgreSQL, RabbitMQ, and first-run setup in parallel ----------
 
@@ -42,7 +45,7 @@ echo ""
     pg_ctlcluster 16 main start 2>/dev/null || true
     pg_ready=false
     for i in $(seq 1 15); do
-        if pg_isready -p "$PG_PORT" -q 2>/dev/null; then
+        if pg_isready -h 127.0.0.1 -p "$PG_PORT" -U ots -d ots -q 2>/dev/null; then
             pg_ready=true
             break
         fi
@@ -61,13 +64,16 @@ PG_PID=$!
 (
     echo "[OTS] Starting RabbitMQ..."
     export RABBITMQ_NODENAME=rabbit@localhost
-    export RABBITMQ_CONF_ENV_FILE=/dev/null
+    export RABBITMQ_HOME=/tmp/rabbitmq/home
+    export HOME="$RABBITMQ_HOME"
+    export RABBITMQ_CONF_ENV_FILE=/tmp/rabbitmq/rabbitmq-env.conf
     export RABBITMQ_MNESIA_BASE=/tmp/rabbitmq/mnesia
     export RABBITMQ_LOG_BASE=/tmp/rabbitmq/log
     export RABBITMQ_PID_FILE=/tmp/rabbitmq/rabbit.pid
     export ERL_EPMD_ADDRESS=127.0.0.1
-    export HOME=${HOME:-/tmp}
-    mkdir -p "$RABBITMQ_MNESIA_BASE" "$RABBITMQ_LOG_BASE"
+    mkdir -p "$RABBITMQ_HOME" "$RABBITMQ_MNESIA_BASE" "$RABBITMQ_LOG_BASE"
+    chmod 700 "$RABBITMQ_HOME"
+    : > "$RABBITMQ_CONF_ENV_FILE"
 
     epmd -daemon 2>/dev/null || true
     rabbitmq-server -detached 2>/dev/null || true
@@ -110,7 +116,8 @@ echo "[OTS] All services initialized"
 
 # Re-export RabbitMQ env (subshell exports don't propagate)
 export RABBITMQ_NODENAME=rabbit@localhost
-export HOME=${HOME:-/tmp}
+export RABBITMQ_HOME=/tmp/rabbitmq/home
+export HOME="$RABBITMQ_HOME"
 
 # --- Patch OTS config -------------------------------------------------
 OTS_DB_URI="postgresql+psycopg2://ots:ots@127.0.0.1:${PG_PORT}/ots"
