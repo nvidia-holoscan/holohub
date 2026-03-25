@@ -18,11 +18,16 @@
 // ============================================================================
 // IMX274 GPU-Resident Application
 //
-//   - hsb_roce_receiver_nmd   (RoceReceiverOp)
-//   - csi_to_bayer_gpu_resident (CsiToBayerGpuResidentOp)
-//   - image_processor_gpu_resident (ImageProcessorGpuResidentOp)
-//   - display_gpu_resident (DisplayGpuResidentOp)
-//   - BayerDemosaicGpuResidentOp (from Holoscan SDK)
+// Default mode (hsb_roce_receiver_nmd):
+//   - ReceiverFragment: RoceReceiverOp + NoopSinkOp
+//   - DataReadyGpuResidentFragment: DataReadyInputOp (data-ready handler)
+//   - Imx274GpuResidentFragment: FrameSource -> CsiToBayer -> ImageProcessor
+//                                 -> Demosaic -> Display
+//
+// DOCA GPUNetIO mode (--docagpunetio, requires DOCA SDK):
+//   - DocaDataReadyFragment: DocaRoceReceiverOp (data-ready handler running
+//     inside the CUDA Graph WHILE node, polling the DOCA CQ)
+//   - Imx274GpuResidentFragment: same imaging pipeline as default mode
 // ============================================================================
 
 #include <getopt.h>
@@ -61,6 +66,10 @@
 
 #include <fmt/format.h>
 #include <holoscan/logger/logger.hpp>
+
+#ifdef HOLOHUB_DOCA_GPUNETIO
+#include <hsb_roce_receiver_doca_gpunetio/doca_roce_receiver_op.hpp>
+#endif
 
 // Application-local operators
 #include "data_ready_input_op.hpp"
@@ -253,6 +262,51 @@ class Imx274GpuResidentFragment : public holoscan::Fragment {
   std::shared_ptr<holoscan::GPUResidentOperator> source_op_;
 };
 
+#ifdef HOLOHUB_DOCA_GPUNETIO
+class DocaDataReadyFragment : public holoscan::Fragment {
+ public:
+  void configure(size_t frame_size, const std::string& ibv_name, uint32_t ibv_port,
+                 hololink::DataChannel* hololink_channel,
+                 std::shared_ptr<hololink::sensors::NativeImx274Sensor> camera) {
+    frame_size_ = frame_size;
+    ibv_name_ = ibv_name;
+    ibv_port_ = ibv_port;
+    hololink_channel_ = hololink_channel;
+    camera_ = std::move(camera);
+  }
+
+  void compose() override {
+    auto op = make_operator<hololink::operators::DocaRoceReceiverOp>(
+        "doca_receiver",
+        holoscan::Arg("frame_size", frame_size_),
+        holoscan::Arg("ibv_name", ibv_name_),
+        holoscan::Arg("ibv_port", ibv_port_),
+        holoscan::Arg("pages", 2u),
+        holoscan::Arg("gpu_id", 0u),
+        holoscan::Arg("hololink_channel", hololink_channel_),
+        holoscan::Arg("device_start",
+                      std::function<void()>([this] { camera_->start(); })),
+        holoscan::Arg("device_stop",
+                      std::function<void()>([this] { camera_->stop(); })));
+
+    doca_receiver_ = op;
+    add_operator(op);
+  }
+
+  std::shared_ptr<hololink::operators::DocaRoceReceiverOp> doca_receiver() const {
+    return doca_receiver_;
+  }
+
+ private:
+  size_t frame_size_ = 0;
+  std::string ibv_name_;
+  uint32_t ibv_port_ = 1;
+  hololink::DataChannel* hololink_channel_ = nullptr;
+  std::shared_ptr<hololink::sensors::NativeImx274Sensor> camera_;
+  std::shared_ptr<hololink::operators::DocaRoceReceiverOp> doca_receiver_;
+};
+#endif  // HOLOHUB_DOCA_GPUNETIO
+
 // ============================================================================
 // Application
 // ============================================================================
@@ -275,6 +329,7 @@ struct AppConfig {
   int32_t display_width;
   int32_t display_height;
   std::shared_ptr<SharedFrameState> shared_state;
+  bool use_doca_gpunetio;
 };
 
 class Imx274GPUResidentApplication : public holoscan::Application {
@@ -282,6 +337,21 @@ class Imx274GPUResidentApplication : public holoscan::Application {
   explicit Imx274GPUResidentApplication(AppConfig config) : config_(std::move(config)) {}
 
   void compose() override {
+    if (config_.use_doca_gpunetio) {
+#ifdef HOLOHUB_DOCA_GPUNETIO
+      compose_doca();
+#else
+      throw std::runtime_error(
+          "--docagpunetio was requested but this binary was built without DOCA support. "
+          "Rebuild with DOCA SDK installed.");
+#endif
+    } else {
+      compose_default();
+    }
+  }
+
+ private:
+  void compose_default() {
     config_.camera->set_mode(config_.camera_mode);
 
     auto receiver_fragment_base = make_fragment<ReceiverFragment>("receiver_fragment");
@@ -319,7 +389,55 @@ class Imx274GPUResidentApplication : public holoscan::Application {
     add_fragment(gr_fragment_base);
   }
 
- private:
+#ifdef HOLOHUB_DOCA_GPUNETIO
+  void compose_doca() {
+    config_.camera->set_mode(config_.camera_mode);
+
+    auto gr_fragment_base = make_fragment<Imx274GpuResidentFragment>("gr_fragment");
+    auto gr_fragment = std::dynamic_pointer_cast<Imx274GpuResidentFragment>(gr_fragment_base);
+    gr_fragment->configure(config_.frame_size,
+                           config_.width,
+                           config_.height,
+                           config_.pixel_format,
+                           config_.bayer_format,
+                           config_.camera,
+                           config_.shared_state,
+                           config_.gsync,
+                           config_.front_buffer_rendering,
+                           config_.refresh_rate_hz,
+                           config_.display_width,
+                           config_.display_height);
+    gr_fragment->compose_graph();
+
+    auto dr_base = make_fragment<DocaDataReadyFragment>("data_ready_fragment");
+    auto dr = std::dynamic_pointer_cast<DocaDataReadyFragment>(dr_base);
+    dr->configure(config_.frame_size, config_.ibv_name, config_.ibv_port,
+                  config_.hololink_channel, config_.camera);
+    dr->compose_graph();
+
+    auto doca_node = dr_base->graph_shared()->find_node("doca_receiver");
+    if (!doca_node) {
+      throw std::runtime_error(
+          "Could not find doca_receiver in data ready handler fragment");
+    }
+    auto* doca_receiver_op =
+        dynamic_cast<hololink::operators::DocaRoceReceiverOp*>(doca_node.get());
+    if (!doca_receiver_op) {
+      throw std::runtime_error(
+          "Could not cast doca_receiver to DocaRoceReceiverOp");
+    }
+
+    auto source =
+        std::dynamic_pointer_cast<FrameSourceGPUResidentOp>(gr_fragment->source_op());
+    doca_receiver_op->set_on_chosen_frame_memory_ready(
+        [source](unsigned char** ptr) { source->set_chosen_frame_memory(ptr); });
+
+    gr_fragment->gpu_resident().register_data_ready_handler(std::move(dr_base));
+
+    add_fragment(gr_fragment_base);
+  }
+#endif  // HOLOHUB_DOCA_GPUNETIO
+
   void setup_data_ready_handler(const std::shared_ptr<Imx274GpuResidentFragment>& gr_fragment) {
     auto data_ready_fragment = make_fragment<DataReadyGpuResidentFragment>("data_ready_fragment");
     data_ready_fragment->compose_graph();
@@ -359,6 +477,7 @@ struct CommandLineOptions {
   int32_t display_height = 1440;
   std::string ibv_name;
   bool show_help = false;
+  bool use_doca_gpunetio = false;
 };
 
 enum class DisplayModeOverride { None, Gsync, Fbr };
@@ -386,14 +505,17 @@ holoscan::LogLevel parse_log_level(const std::string& argument) {
 void print_usage(const char* program_name) {
   std::cout << "Usage: " << program_name << " [options]" << std::endl
             << "Options:" << std::endl
-            << "  -h, --help     display this information" << std::endl
-            << "  --hololink     IP address of Hololink board (default `192.168.0.2`)" << std::endl
-            << "  --camera-mode  Camera mode (default `"
+            << "  -h, --help          display this information" << std::endl
+            << "  --hololink          IP address of Hololink board (default `192.168.0.2`)"
+            << std::endl
+            << "  --camera-mode       Camera mode (default `"
             << int(hololink::sensors::imx274_mode::IMX274_MODE_1920X1080_60FPS) << "`)" << std::endl
-            << "  --gsync        Enable VRR (disabled by default)" << std::endl
-            << "  --fbr          Enable front-buffer rendering (enabled by default)" << std::endl
-            << "  -r, --refresh  Display refresh rate in Hz (default `60`)" << std::endl
-            << "  -l, --resolution   Display resolution as WxH (default `2560x1440`)" << std::endl
+            << "  --gsync             Enable VRR (disabled by default)" << std::endl
+            << "  --fbr               Enable front-buffer rendering (enabled by default)"
+            << std::endl
+            << "  -r, --refresh       Display refresh rate in Hz (default `60`)" << std::endl
+            << "  -l, --resolution    Display resolution as WxH (default `2560x1440`)" << std::endl
+            << "  --docagpunetio      Use DOCA GPUNetIO for GPU-side RoCE CQ polling" << std::endl
             << std::endl;
 }
 
@@ -420,6 +542,7 @@ CommandLineOptions parse_command_line(int argc, char** argv) {
                                         {"refresh", required_argument, nullptr, 'r'},
                                         {"resolution", required_argument, nullptr, 'l'},
                                         {"log-level", required_argument, nullptr, 0},
+                                        {"docagpunetio", no_argument, nullptr, 0},
                                         {0, 0, nullptr, 0}};
 
   optind = 1;
@@ -464,6 +587,8 @@ CommandLineOptions parse_command_line(int argc, char** argv) {
         }
         display_mode_override = DisplayModeOverride::Fbr;
         options.gsync = false;
+      } else if (cur_option->name == std::string("docagpunetio")) {
+        options.use_doca_gpunetio = true;
       } else {
         throw std::runtime_error(fmt::format("Unhandled option \"{}\"", cur_option->name));
       }
@@ -520,7 +645,9 @@ int main(int argc, char** argv) {
 
     holoscan::set_log_level(options.log_level);
 
-    std::cout << "Initializing." << std::endl;
+    std::cout << "Initializing"
+              << (options.use_doca_gpunetio ? " (DOCA GPUNetIO)" : "")
+              << "." << std::endl;
 
     CudaCheck(cuInit(0));
     int cu_device_ordinal = 0;
@@ -569,6 +696,7 @@ int main(int argc, char** argv) {
     config.display_width = options.display_width;
     config.display_height = options.display_height;
     config.shared_state = shared_state;
+    config.use_doca_gpunetio = options.use_doca_gpunetio;
 
     auto application = holoscan::make_application<Imx274GPUResidentApplication>(config);
     application->config(options.configuration);
@@ -583,6 +711,7 @@ int main(int argc, char** argv) {
       // 100000 samples at max
       gr_fragment->gpu_resident().enable_perf_measurement(100000);
       gr_fragment->gpu_resident().data_not_ready_sleep_interval_us(100);
+      // gr_fragment->gpu_resident().timeout_ms(15000);
     }
 
     std::shared_ptr<hololink::Hololink> hololink = hololink_channel.hololink();
@@ -602,6 +731,11 @@ int main(int argc, char** argv) {
       gr_fragment->gpu_resident().print_perf_metrics(100, 100);
       gr_fragment->gpu_resident().save_perf_results_as_csv();
     }
+
+    // Release application resources while Hololink and the CUDA primary context
+    // are still valid. Receiver shutdown paths unconfigure the channel.
+    gr_fragment.reset();
+    application.reset();
 
     hololink->stop();
 

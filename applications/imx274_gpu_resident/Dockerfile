@@ -71,6 +71,26 @@ RUN chmod +x /tmp/scripts/holohub
 RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
 RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
 
+# -----------------------------------------------------------------------------
+# Optional: DOCA SDK 3.2.1 with GPUNetIO (when INSTALL_DOCA=1, e.g. doca mode)
+# -----------------------------------------------------------------------------
+ARG INSTALL_DOCA=0
+ARG TARGET_ARCH=arm64
+RUN if [ "${INSTALL_DOCA}" = "1" ]; then \
+        set -e && cd /opt && \
+        if [ "${TARGET_ARCH}" = "amd64" ] || [ "${TARGET_ARCH}" = "x86_64" ]; then DOCA_ARCH=amd64; elif [ "${TARGET_ARCH}" = "arm64" ] || [ "${TARGET_ARCH}" = "aarch64" ]; then DOCA_ARCH=arm64; else echo "Unknown architecture: ${TARGET_ARCH}"; exit 1; fi && \
+        UBUNTU_VERSION=$(grep "VERSION_ID" /etc/os-release | awk -F'=' '{print $2}' | sed 's/[."]//g') && \
+        wget -q -O doca-host.deb https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.1/host/doca-host_3.2.1-044000-25.10-ubuntu${UBUNTU_VERSION}_${DOCA_ARCH}.deb \
+        && apt-get install -o DPkg::Options::="--force-confnew" -y ./doca-host.deb \
+        && apt-get update \
+        && rm -f ./doca-host.deb \
+        && apt-get install -y --no-install-recommends ninja-build pkgconf mlnx-dpdk-dev libdoca-sdk-gpunetio-dev libdoca-sdk-verbs-dev mlnx-ofed-kernel-utils ibverbs-utils python3-pyelftools \
+        && rm -rf /var/lib/apt/lists/* \
+        && grep -q '(\*wqe)' /opt/mellanox/doca/include/doca_gpunetio_dev_verbs_qp.cuh \
+        && sed -i 's/(\*wqe)/(wqe)/' /opt/mellanox/doca/include/doca_gpunetio_dev_verbs_qp.cuh \
+        && ! grep -q '(\*wqe)' /opt/mellanox/doca/include/doca_gpunetio_dev_verbs_qp.cuh; \
+    else true; fi
+
 # Default working directory
 WORKDIR /workspace/holohub
 
