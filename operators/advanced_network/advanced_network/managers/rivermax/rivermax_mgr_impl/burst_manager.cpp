@@ -391,7 +391,8 @@ void RxBurstsManager::rx_burst_done(RivermaxBurst* burst) {
 
 RxBurstsManager::RxBurstsManager(bool send_packet_ext_info, int port_id, int queue_id,
                                  uint16_t burst_out_size, int gpu_id,
-                                 std::unordered_map<int, std::shared_ptr<AnoBurstsQueue>> rx_bursts_out_queue)
+                                 std::unordered_map<int,
+                                     std::shared_ptr<AnoBurstsQueue>> rx_bursts_out_queue)
     : send_packet_ext_info_(send_packet_ext_info),
       port_id_(port_id),
       queue_id_(queue_id),
@@ -590,4 +591,4 @@ bool RxBurstsManager::should_drop_burst_adaptive(uint32_t current_utilization) c
   }
 }
 
-};  // namespace holoscan::advanced_network
+}  // namespace holoscan::advanced_network

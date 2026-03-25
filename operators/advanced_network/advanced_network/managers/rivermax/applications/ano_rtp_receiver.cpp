@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,16 +19,15 @@
 
 namespace holoscan::advanced_network {
 
-void ANORTPReceiverSettings::init_default_values()
-{
+void ANORTPReceiverSettings::init_default_values() {
   AppSettings::init_default_values();
   app_memory_alloc = true;
   num_of_packets_in_chunk = DEFAULT_NUM_OF_PACKETS_IN_CHUNK;
   is_extended_sequence_number = false;
 }
 
-ReturnStatus ANORTPReceiverSettingsValidator::validate(const std::shared_ptr<ANORTPReceiverSettings>& settings) const
-{
+ReturnStatus ANORTPReceiverSettingsValidator::validate(
+    const std::shared_ptr<ANORTPReceiverSettings>& settings) const {
   if (settings->thread_settings.empty()) {
     std::cerr << "Must be at least one thread" << std::endl;
     return ReturnStatus::failure;
@@ -60,12 +59,12 @@ ReturnStatus ANORTPReceiverSettingsValidator::validate(const std::shared_ptr<ANO
   return ReturnStatus::success;
 }
 
-ANORTPReceiverApp::ANORTPReceiverApp(std::shared_ptr<ISettingsBuilder<ANORTPReceiverSettings>> settings_builder) :
+ANORTPReceiverApp::ANORTPReceiverApp(
+    std::shared_ptr<ISettingsBuilder<ANORTPReceiverSettings>> settings_builder) :
   RmaxReceiverBaseApp(),
   m_settings_builder(std::move(settings_builder)),
   m_threads_streams(),
-  m_devices_ips()
-{
+  m_devices_ips() {
   m_num_paths_per_stream = 1;  // RTP receiver supports only single path per stream
 }
 
@@ -102,8 +101,7 @@ ReturnStatus ANORTPReceiverApp::initialize_connection_parameters() {
   return ReturnStatus::success;
 }
 
-ReturnStatus ANORTPReceiverApp::initialize_app_settings()
-{
+ReturnStatus ANORTPReceiverApp::initialize_app_settings() {
   if (m_settings_builder == nullptr) {
     std::cerr << "Settings builder is not initialized" << std::endl;
     return ReturnStatus::failure;
@@ -121,20 +119,19 @@ ReturnStatus ANORTPReceiverApp::initialize_app_settings()
   return rc;
 }
 
-void ANORTPReceiverApp::run_receiver_threads()
-{
+void ANORTPReceiverApp::run_receiver_threads() {
     run_threads(m_receivers);
 }
 
-void ANORTPReceiverApp::configure_network_flows()
-{
+void ANORTPReceiverApp::configure_network_flows() {
   uint16_t source_port = 0;
   int thread_index = 0;
   for (const auto& thread : m_rtp_receiver_settings->thread_settings) {
     std::vector<ReceiveFlow> streams;
     int internal_stream_index = 0;
     for (const auto& stream : thread.stream_network_settings) {
-      ReceiveFlow flow(stream.stream_id, stream.source_ip, source_port, stream.destination_ip, stream.destination_port);
+      ReceiveFlow flow(stream.stream_id, stream.source_ip, source_port,
+                       stream.destination_ip, stream.destination_port);
       streams.push_back(flow);
       m_stream_id_map[stream.stream_id] = std::make_pair(thread_index, internal_stream_index);
       internal_stream_index++;
@@ -144,11 +141,11 @@ void ANORTPReceiverApp::configure_network_flows()
   }
 }
 
-void ANORTPReceiverApp::initialize_receive_io_nodes()
-{
+void ANORTPReceiverApp::initialize_receive_io_nodes() {
   m_rtp_receiver_settings->num_of_threads = m_rtp_receiver_settings->thread_settings.size();
   size_t streams_offset = 0;
-  for (int thread_index = 0; thread_index < m_rtp_receiver_settings->num_of_threads; ++thread_index) {
+  for (int thread_index = 0;
+       thread_index < m_rtp_receiver_settings->num_of_threads; ++thread_index) {
     m_receivers.push_back(std::unique_ptr<ReceiverIONodeBase>(new RTPReceiverIONode(
       *m_app_settings,
       m_rtp_receiver_settings->is_extended_sequence_number,
@@ -156,13 +153,13 @@ void ANORTPReceiverApp::initialize_receive_io_nodes()
       thread_index,
       m_rtp_receiver_settings->app_threads_cores[thread_index],
       *m_memory_utils)));
-    static_cast<RTPReceiverIONode*>(m_receivers[thread_index].get())->initialize_streams(streams_offset, m_threads_streams[thread_index]);
+    static_cast<RTPReceiverIONode*>(m_receivers[thread_index].get())->initialize_streams(
+        streams_offset, m_threads_streams[thread_index]);
     streams_offset += m_streams_per_thread[thread_index];
   }
 }
 
-void ANORTPReceiverApp::distribute_work_for_threads()
-{
+void ANORTPReceiverApp::distribute_work_for_threads() {
   m_streams_per_thread.reserve(m_rtp_receiver_settings->thread_settings.size());
   m_rtp_receiver_settings->num_of_total_streams = 0;
   int thread_index = 0;
@@ -173,7 +170,8 @@ void ANORTPReceiverApp::distribute_work_for_threads()
   }
 }
 
-ReturnStatus ANORTPReceiverApp::find_internal_stream_index(size_t external_stream_index, size_t& thread_index, size_t& internal_stream_index) {
+ReturnStatus ANORTPReceiverApp::find_internal_stream_index(
+    size_t external_stream_index, size_t& thread_index, size_t& internal_stream_index) {
   if (m_stream_id_map.find(external_stream_index) == m_stream_id_map.end()) {
     std::cerr << "Invalid stream index " << external_stream_index << std::endl;
     return ReturnStatus::failure;

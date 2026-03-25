@@ -4,7 +4,6 @@ The Advanced Networking Media Player is a high-performance application for recei
 
 This application serves as a reference implementation demonstrating how to integrate multiple media streams into a unified HoloHub processing pipeline. It showcases the advanced networking framework's ability to handle complex multi-stream scenarios that are common in professional media production, broadcasting, and real-time analytics applications.
 
-
 ## Overview
 
 This application showcases professional-grade media streaming over IP networks, utilizing NVIDIA's advanced networking technologies. It receives media streams using the SMPTE 2110 standard and can either display them in real-time or save them to disk for further processing.
@@ -153,7 +152,8 @@ The application implements a 4-layer architecture for high-performance media str
 - **Scalable Design**: Clean interfaces enable easy extension and testing
 
 #### Multi-Stream Processing Flow
-```
+
+```text
                       ---- stream ID 0 --- AdvNetworkMediaRxOp --- FramesWriterOp
                      |
 Receiving 2 streams -|
@@ -398,7 +398,7 @@ advanced_network_media_rx:
     output_format: tensor
     memory_location: device
 
-  - name: "stream_2"                    # [OPTIONAL] Second stream  
+  - name: "stream_2"                    # [OPTIONAL] Second stream
     interface_name: cc:00.1
     queue_id: 0
     stream_id: 1

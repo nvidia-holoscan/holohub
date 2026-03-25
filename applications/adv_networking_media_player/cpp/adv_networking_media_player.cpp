@@ -339,7 +339,8 @@ class App : public holoscan::Application {
 
     std::string interface_name = "";
 
-    auto multi_streams_adv_net_media_rx_yaml = config().yaml_nodes()[0]["advanced_network_media_rx"];
+    auto multi_streams_adv_net_media_rx_yaml =
+        config().yaml_nodes()[0]["advanced_network_media_rx"];
     std::unordered_map<std::string, std::shared_ptr<ops::AdvNetworkMediaRxOp>> adv_net_media_rx_map;
     for (const auto& stream : multi_streams_adv_net_media_rx_yaml) {
       std::string stream_name = stream["name"].as<std::string>();
@@ -356,8 +357,7 @@ class App : public holoscan::Application {
           Arg("hds", stream["hds"].as<bool>(true)),
           Arg("output_format", stream["output_format"].as<std::string>("video_buffer")),
           Arg("memory_location", stream["memory_location"].as<std::string>("device")),
-          make_condition<BooleanCondition>("is_alive", true)
-      );
+          make_condition<BooleanCondition>("is_alive", true));
       adv_net_media_rx_map[stream_name] = adv_net_media_rx;
     }
     if (adv_net_media_rx_map.empty()) {
@@ -388,8 +388,7 @@ class App : public holoscan::Application {
           auto frames_writer = make_operator<ops::FramesWriterOp>(
             "frames_writer_" + stream_name,
             Arg("file_path", stream["file_path"].as<std::string>("")),
-            Arg("num_of_frames_to_record", stream["num_of_frames_to_record"].as<uint32_t>(1000))
-          );
+            Arg("num_of_frames_to_record", stream["num_of_frames_to_record"].as<uint32_t>(1000)));
           // Connect the corresponding network rx operator to this frames writer
           if (adv_net_media_rx_map.find(stream_name) != adv_net_media_rx_map.end()) {
             add_flow(adv_net_media_rx_map[stream_name], frames_writer,
@@ -400,16 +399,17 @@ class App : public holoscan::Application {
           }
         }
       } else {
-        HOLOSCAN_LOG_ERROR("Number of frames_writer entries must match number of advanced_network_media_rx entries");
+        HOLOSCAN_LOG_ERROR("Number of frames_writer entries must match number of "
+                           "advanced_network_media_rx entries");
         exit(1);
       }
     } else {
-      HOLOSCAN_LOG_WARN("No output type (write_to_file/visualize) defined. Data will be received but not processed.");
+      HOLOSCAN_LOG_WARN("No output type (write_to_file/visualize) defined. "
+                        "Data will be received but not processed.");
       auto mock_receiver = make_operator<ops::MockReceiverOp>(
           "mock_receiver",
           Arg("interface_name", interface_name),
-          make_condition<BooleanCondition>("is_alive", true)
-      );
+          make_condition<BooleanCondition>("is_alive", true));
       add_operator(mock_receiver);
     }
   }

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,9 +38,8 @@ using namespace rivermax::dev_kit::core;
 /**
  * @brief: Configuration settings for Rivermax ANO Media Sender.
  */
-struct ANOMediaSenderSettings : AppSettings
-{
-public:
+struct ANOMediaSenderSettings : AppSettings {
+ public:
   static constexpr uint32_t DEFAULT_NUM_OF_PACKETS_IN_CHUNK_FHD = 16;
   static constexpr uint32_t DEFAULT_NUM_OF_PACKETS_IN_CHUNK_UHD = 32;
   void init_default_values() override;
@@ -51,9 +50,8 @@ public:
 /**
  * @brief: Validator for Rivermax ANO Media Sender settings.
  */
-class ANOMediaSenderSettingsValidator : public ISettingsValidator<ANOMediaSenderSettings>
-{
-public:
+class ANOMediaSenderSettingsValidator : public ISettingsValidator<ANOMediaSenderSettings> {
+ public:
      ReturnStatus validate(const std::shared_ptr<ANOMediaSenderSettings>& settings) const override;
 };
 
@@ -62,9 +60,8 @@ public:
  *
  * This is an example of usage application for Rivermax media TX API.
  */
-class ANOMediaSenderApp : public RmaxBaseApp
-{
-private:
+class ANOMediaSenderApp : public RmaxBaseApp {
+ private:
   /* Settings builder pointer */
   std::shared_ptr<ISettingsBuilder<ANOMediaSenderSettings>> m_settings_builder;
   /* Application settings pointer */
@@ -81,13 +78,15 @@ private:
   std::vector<TwoTupleFlow> m_flows;
   /* map external stream ID to internal thread ID and stream ID */
   std::unordered_map<size_t, std::pair<size_t, size_t>> m_stream_id_map;
-public:
+
+ public:
   /**
    * @brief: ANOMediaSenderApp class constructor.
    *
    * @param [in] settings_builder: Settings builder pointer.
    */
-  ANOMediaSenderApp(std::shared_ptr<ISettingsBuilder<ANOMediaSenderSettings>> settings_builder);
+  explicit ANOMediaSenderApp(
+      std::shared_ptr<ISettingsBuilder<ANOMediaSenderSettings>> settings_builder);
   virtual ~ANOMediaSenderApp() = default;
   ReturnStatus run() override;
   ReturnStatus initialize() override;
@@ -101,19 +100,21 @@ public:
    *
    * @return: Status of the operation.
    */
-  ReturnStatus set_frame_provider(size_t stream_index, std::shared_ptr<IFrameProvider> frame_provider,
-    MediaType media_type = MediaType::Video, bool contains_payload = true);
+  ReturnStatus set_frame_provider(size_t stream_index,
+      std::shared_ptr<IFrameProvider> frame_provider,
+      MediaType media_type = MediaType::Video, bool contains_payload = true);
 
   /**
    * @brief: Find internal thread and stream index for a given external stream index.
-   * 
+   *
    * @param [in] external_stream_index: The external stream index.
    * @param [out] thread_index: The internal thread index.
    * @param [out] internal_stream_index: The internal stream index.
    *
-   * @return: Status of the operation. 
+   * @return: Status of the operation.
    */
-  ReturnStatus find_internal_stream_index(size_t external_stream_index, size_t& thread_index, size_t& internal_stream_index) override;
+  ReturnStatus find_internal_stream_index(size_t external_stream_index,
+      size_t& thread_index, size_t& internal_stream_index) override;
 
   /**
    * @brief: Returns application settings.
@@ -127,7 +128,8 @@ public:
    * @return: Status of the operation.
    */
   ReturnStatus get_app_settings(const AppSettings*& settings) const override;
-private:
+
+ private:
   ReturnStatus initialize_app_settings() final;
   ReturnStatus post_load_settings() final;
   ReturnStatus initialize_memory_strategy() override;
@@ -172,6 +174,6 @@ private:
   static uint64_t get_time_ns(void* context = nullptr);
 };
 
-} // namespace holoscan::advanced_network
+}  // namespace holoscan::advanced_network
 
-#endif // RIVERMAX_ANO_APPLICATIONS_MEDIA_SENDER_H_
+#endif  // RIVERMAX_ANO_APPLICATIONS_MEDIA_SENDER_H_

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,9 +32,8 @@ using namespace rivermax::dev_kit::io_node;
 using namespace rivermax::dev_kit::services;
 using namespace rivermax::dev_kit::core;
 
-struct ANOIPOReceiverSettings : AppSettings
-{
-public:
+struct ANOIPOReceiverSettings : AppSettings {
+ public:
   static constexpr uint32_t DEFAULT_NUM_OF_PACKETS_IN_CHUNK = 262144;
   void init_default_values() override;
 
@@ -48,16 +47,14 @@ public:
 /**
 * @brief: Validator for Rivermax IPO Receiver settings.
 */
-class ANOIPOReceiverSettingsValidator : public ISettingsValidator<ANOIPOReceiverSettings>
-{
-public:
+class ANOIPOReceiverSettingsValidator : public ISettingsValidator<ANOIPOReceiverSettings> {
+ public:
     ReturnStatus validate(const std::shared_ptr<ANOIPOReceiverSettings>& settings) const override;
 };
 
 
-class ANOIPOReceiverApp : public RmaxReceiverBaseApp
-{
-private:
+class ANOIPOReceiverApp : public RmaxReceiverBaseApp {
+ private:
   /* Settings builder pointer */
   std::shared_ptr<ISettingsBuilder<ANOIPOReceiverSettings>> m_settings_builder;
   /* Application settings pointer */
@@ -68,13 +65,15 @@ private:
   std::vector<std::string> m_devices_ips;
   /* map external stream ID to internal thread ID and stream ID */
   std::unordered_map<size_t, std::pair<size_t, size_t>> m_stream_id_map;
-public:
+
+ public:
   /**
    * @brief: ANOIPOReceiverApp class constructor.
    *
    * @param [in] settings_builder: Settings builder pointer.
    */
-  ANOIPOReceiverApp(std::shared_ptr<ISettingsBuilder<ANOIPOReceiverSettings>> settings_builder);
+  explicit ANOIPOReceiverApp(
+      std::shared_ptr<ISettingsBuilder<ANOIPOReceiverSettings>> settings_builder);
   /**
    * @brief: ANOIPOReceiverApp class destructor.
    */
@@ -87,21 +86,23 @@ public:
    * @return: A vector of @ref IPORXStatistics.
    */
   std::vector<IPORXStatistics> get_streams_total_statistics() const {
-      return RmaxReceiverBaseApp::get_streams_total_statistics<IPORXStatistics, AppIPOReceiveStream>();
+    return RmaxReceiverBaseApp::get_streams_total_statistics<
+        IPORXStatistics, AppIPOReceiveStream>();
   }
 
   /**
    * @brief: Find internal thread and stream index for a given external stream index.
-   * 
+   *
    * @param [in] external_stream_index: The external stream index.
    * @param [out] thread_index: The internal thread index.
    * @param [out] internal_stream_index: The internal stream index.
    *
-   * @return: Status of the operation. 
+   * @return: Status of the operation.
    */
-  ReturnStatus find_internal_stream_index(size_t external_stream_index, size_t& thread_index, size_t& internal_stream_index) override;
+  ReturnStatus find_internal_stream_index(size_t external_stream_index,
+      size_t& thread_index, size_t& internal_stream_index) override;
 
-private:
+ private:
   ReturnStatus initialize_app_settings() final;
   ReturnStatus initialize_connection_parameters() final;
   void configure_network_flows() final;

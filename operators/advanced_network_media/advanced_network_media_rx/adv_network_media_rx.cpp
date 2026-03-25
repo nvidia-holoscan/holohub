@@ -291,7 +291,6 @@ class AdvNetworkMediaRxOpImpl : public IFrameProvider {
           &burst, port_id_, parent_.queue_id_.get(), parent_.stream_id_.get());
     } else {
       status = mgr->get_rx_burst(&burst, port_id_, parent_.queue_id_.get());
-
     }
     if (status != Status::SUCCESS) { return status; }
 

@@ -345,9 +345,10 @@ class RxBurstsManager {
    * @param rx_bursts_out_queue Shared pointer to the output queue for RX bursts.
    *                            If not provided a local queue will be used.
    */
-  RxBurstsManager(bool send_packet_ext_info, int port_id, int queue_id, uint16_t burst_out_size = 0,
-                  int gpu_id = INVALID_GPU_ID,
-                  std::unordered_map<int, std::shared_ptr<AnoBurstsQueue>> rx_bursts_out_queue = {});
+  RxBurstsManager(bool send_packet_ext_info, int port_id, int queue_id,
+                  uint16_t burst_out_size = 0, int gpu_id = INVALID_GPU_ID,
+                  std::unordered_map<int, std::shared_ptr<AnoBurstsQueue>>
+                      rx_bursts_out_queue = {});
 
   /**
    * @brief Destructor for the RxBurstsManager class.

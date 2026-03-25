@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,8 +19,7 @@
 
 namespace holoscan::advanced_network {
 
-void ANOIPOReceiverSettings::init_default_values()
-{
+void ANOIPOReceiverSettings::init_default_values() {
   AppSettings::init_default_values();
   app_memory_alloc = true;
   max_path_differential_us = 50000;
@@ -30,8 +29,8 @@ void ANOIPOReceiverSettings::init_default_values()
   max_packets_in_rx_chunk = 0;
 }
 
-ReturnStatus ANOIPOReceiverSettingsValidator::validate(const std::shared_ptr<ANOIPOReceiverSettings>& settings) const
-{
+ReturnStatus ANOIPOReceiverSettingsValidator::validate(
+    const std::shared_ptr<ANOIPOReceiverSettings>& settings) const {
   if (settings->thread_settings.empty()) {
     std::cerr << "Must be at least one thread" << std::endl;
     return ReturnStatus::failure;
@@ -47,15 +46,18 @@ ReturnStatus ANOIPOReceiverSettingsValidator::validate(const std::shared_ptr<ANO
         return ReturnStatus::failure;
       }
       if (stream.destination_ips.size() != stream.source_ips.size()) {
-        std::cerr << "Must be the same number of destination IPs as number of source IPs" << std::endl;
+        std::cerr << "Must be the same number of destination IPs as number of source IPs"
+                  << std::endl;
         return ReturnStatus::failure;
       }
       if (stream.local_ips.size() != stream.source_ips.size()) {
-        std::cerr << "Must be the same number of NIC addresses as number of source IPs" << std::endl;
+        std::cerr << "Must be the same number of NIC addresses as number of source IPs"
+                  << std::endl;
         return ReturnStatus::failure;
       }
       if (stream.destination_ports.size() != stream.source_ips.size()) {
-        std::cerr << "Must be the same number of destination ports as number of source IPs" << std::endl;
+        std::cerr << "Must be the same number of destination ports as number of source IPs"
+                  << std::endl;
         return ReturnStatus::failure;
       }
       for (size_t i = 0; i < stream.source_ips.size(); ++i) {
@@ -81,13 +83,12 @@ ReturnStatus ANOIPOReceiverSettingsValidator::validate(const std::shared_ptr<ANO
   return ReturnStatus::success;
 }
 
-ANOIPOReceiverApp::ANOIPOReceiverApp(std::shared_ptr<ISettingsBuilder<ANOIPOReceiverSettings>> settings_builder) :
+ANOIPOReceiverApp::ANOIPOReceiverApp(
+    std::shared_ptr<ISettingsBuilder<ANOIPOReceiverSettings>> settings_builder) :
   RmaxReceiverBaseApp(),
   m_settings_builder(std::move(settings_builder)),
   m_thread_streams_flows(),
-  m_devices_ips()
-{
-}
+  m_devices_ips() {}
 
 ReturnStatus ANOIPOReceiverApp::initialize_connection_parameters() {
   size_t num_of_paths = 0;
@@ -103,7 +104,8 @@ ReturnStatus ANOIPOReceiverApp::initialize_connection_parameters() {
         }
         rmx_status status = rmx_retrieve_device_iface_ipv4(&device_iface, &device_address);
         if (status != RMX_OK) {
-          std::cerr << "Failed to get device: " << stream.local_ips[i] << " with status: " << status << std::endl;
+          std::cerr << "Failed to get device: " << stream.local_ips[i]
+                    << " with status: " << status << std::endl;
           return ReturnStatus::failure;
         }
         m_devices_ips.push_back(stream.local_ips[i]);
@@ -114,8 +116,7 @@ ReturnStatus ANOIPOReceiverApp::initialize_connection_parameters() {
   return ReturnStatus::success;
 }
 
-ReturnStatus ANOIPOReceiverApp::initialize_app_settings()
-{
+ReturnStatus ANOIPOReceiverApp::initialize_app_settings() {
   if (m_settings_builder == nullptr) {
     std::cerr << "Settings builder is not initialized" << std::endl;
     return ReturnStatus::failure;
@@ -133,13 +134,11 @@ ReturnStatus ANOIPOReceiverApp::initialize_app_settings()
   return rc;
 }
 
-void ANOIPOReceiverApp::run_receiver_threads()
-{
+void ANOIPOReceiverApp::run_receiver_threads() {
   run_threads(m_receivers);
 }
 
-void ANOIPOReceiverApp::configure_network_flows()
-{
+void ANOIPOReceiverApp::configure_network_flows() {
   int thread_index = 0;
   uint16_t source_port = 0;
   for (const auto& thread : m_ipo_receiver_settings->thread_settings) {
@@ -149,7 +148,8 @@ void ANOIPOReceiverApp::configure_network_flows()
       size_t num_of_paths = stream.local_ips.size();
       std::vector<ReceiveFlow> paths;
       for (size_t i = 0; i < num_of_paths; ++i) {
-        paths.emplace_back(stream.stream_id, stream.source_ips[i], source_port, stream.destination_ips[i], stream.destination_ports[i]);
+        paths.emplace_back(stream.stream_id, stream.source_ips[i], source_port,
+                           stream.destination_ips[i], stream.destination_ports[i]);
       }
       streams.push_back(paths);
       m_stream_id_map[stream.stream_id] = std::make_pair(thread_index, internal_stream_index);
@@ -160,8 +160,7 @@ void ANOIPOReceiverApp::configure_network_flows()
   }
 }
 
-void ANOIPOReceiverApp::initialize_receive_io_nodes()
-{
+void ANOIPOReceiverApp::initialize_receive_io_nodes() {
   int number_of_threads = m_ipo_receiver_settings->thread_settings.size();
   size_t streams_offset = 0;
   for (int thread_index = 0; thread_index < number_of_threads; ++thread_index) {
@@ -174,13 +173,13 @@ void ANOIPOReceiverApp::initialize_receive_io_nodes()
       thread_index,
       m_ipo_receiver_settings->app_threads_cores[thread_index],
       *m_memory_utils)));
-    static_cast<IPOReceiverIONode*>(m_receivers[thread_index].get())->initialize_streams(streams_offset, m_thread_streams_flows[thread_index]);
+    static_cast<IPOReceiverIONode*>(m_receivers[thread_index].get())->initialize_streams(
+        streams_offset, m_thread_streams_flows[thread_index]);
     streams_offset += number_of_streams;
   }
 }
 
-void ANOIPOReceiverApp::distribute_work_for_threads()
-{
+void ANOIPOReceiverApp::distribute_work_for_threads() {
   m_streams_per_thread.reserve(m_ipo_receiver_settings->thread_settings.size());
   m_ipo_receiver_settings->num_of_total_streams = 0;
   int thread_index = 0;
@@ -191,7 +190,8 @@ void ANOIPOReceiverApp::distribute_work_for_threads()
   }
 }
 
-ReturnStatus ANOIPOReceiverApp::find_internal_stream_index(size_t external_stream_index, size_t& thread_index, size_t& internal_stream_index) {
+ReturnStatus ANOIPOReceiverApp::find_internal_stream_index(
+  size_t external_stream_index, size_t& thread_index, size_t& internal_stream_index) {
   if (m_stream_id_map.find(external_stream_index) == m_stream_id_map.end()) {
     std::cerr << "Invalid stream index " << external_stream_index << std::endl;
     return ReturnStatus::failure;

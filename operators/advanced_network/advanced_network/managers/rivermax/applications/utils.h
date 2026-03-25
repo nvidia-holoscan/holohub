@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,8 +25,7 @@
 
 namespace holoscan::advanced_network {
 
-struct StreamNetworkSettings
-{
+struct StreamNetworkSettings {
   std::string local_ip;
   std::vector<std::string> local_ips;
   std::string source_ip;
@@ -39,9 +38,8 @@ struct StreamNetworkSettings
   uint32_t stream_id;
 };
 
-struct ThreadSettings
-{
-  std::vector<StreamNetworkSettings> stream_network_settings; 
+struct ThreadSettings {
+  std::vector<StreamNetworkSettings> stream_network_settings;
   int thread_id;
 };
 

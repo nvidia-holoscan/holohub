@@ -25,7 +25,8 @@
 namespace holoscan::advanced_network {
 
 RivermaxManagerRxService::RivermaxManagerRxService(
-    uint32_t service_id, std::unordered_map<int, std::shared_ptr<AnoBurstsQueue>> rx_bursts_out_queue)
+    uint32_t service_id,
+    std::unordered_map<int, std::shared_ptr<AnoBurstsQueue>> rx_bursts_out_queue)
     : RivermaxManagerService(service_id), rx_bursts_out_queue_(std::move(rx_bursts_out_queue)) {
   port_id_ = RivermaxBurst::burst_port_id_from_burst_tag(service_id);
   queue_id_ = RivermaxBurst::burst_queue_id_from_burst_tag(service_id);
@@ -62,7 +63,8 @@ bool RivermaxManagerRxService::initialize() {
     auto rivermax_chunk_consumer = std::make_unique<RivermaxChunkConsumerAno>(rx_packet_processor_,
       max_chunk_size_, stream_id);
 
-    auto status = rx_service_->set_receive_data_consumer(stream_id, std::move(rivermax_chunk_consumer));
+    auto status = rx_service_->set_receive_data_consumer(
+        stream_id, std::move(rivermax_chunk_consumer));
     if (status != ReturnStatus::success) {
       HOLOSCAN_LOG_ERROR("Failed to set receive data consumer, status: {}", (int)status);
       return false;
@@ -497,7 +499,8 @@ bool MediaSenderService::post_init_setup() {
     for (auto& stream : thread.stream_network_settings) {
       status = tx_service_->set_frame_provider(stream.stream_id, tx_media_frame_provider_);
       if (status != ReturnStatus::success) {
-        HOLOSCAN_LOG_ERROR("Failed to set frame provider to TX service for stream {}", stream.stream_id);
+        HOLOSCAN_LOG_ERROR("Failed to set frame provider to TX service for stream {}",
+                           stream.stream_id);
         return false;
       }
     }

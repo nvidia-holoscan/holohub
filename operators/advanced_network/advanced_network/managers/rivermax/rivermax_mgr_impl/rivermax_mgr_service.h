@@ -105,7 +105,8 @@ class RivermaxManagerRxService : public RivermaxManagerService {
    * @param rx_bursts_out_queue Shared queue for outgoing received bursts.
    */
   RivermaxManagerRxService(uint32_t service_id,
-                           std::unordered_map<int, std::shared_ptr<AnoBurstsQueue>> rx_bursts_out_queue);
+                           std::unordered_map<int,
+                               std::shared_ptr<AnoBurstsQueue>> rx_bursts_out_queue);
 
   /**
    * @brief Virtual destructor for the RivermaxManagerRxService class.
@@ -178,7 +179,8 @@ class RivermaxManagerRxService : public RivermaxManagerService {
   std::unique_ptr<RmaxReceiverBaseApp> rx_service_;         ///< The receiver service instance
   std::shared_ptr<RxBurstsManager> rx_burst_manager_;       ///< Manager for received bursts
   std::shared_ptr<RxPacketProcessor> rx_packet_processor_;  ///< Processor for received packets
-  std::unordered_map<int, std::shared_ptr<AnoBurstsQueue>> rx_bursts_out_queue_;  ///< Output queue for received bursts
+  ///< Output queue for received bursts
+  std::unordered_map<int, std::shared_ptr<AnoBurstsQueue>> rx_bursts_out_queue_;
   bool send_packet_ext_info_ = false;                       ///< Flag for extended packet info
   int gpu_id_ = INVALID_GPU_ID;                             ///< GPU device ID
   size_t max_chunk_size_ = 0;  ///< Maximum chunk size for received data

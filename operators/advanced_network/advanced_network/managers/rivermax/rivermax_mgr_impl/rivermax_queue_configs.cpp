@@ -311,7 +311,7 @@ ReturnStatus RivermaxCommonRxQueueValidator::validate(
     return ReturnStatus::failure;
   }
 
-  if(settings->sleep_between_operations_us < 0) {
+  if (settings->sleep_between_operations_us < 0) {
     HOLOSCAN_LOG_ERROR("Sleep between operations must be non-negative");
     return ReturnStatus::failure;
   }
@@ -607,7 +607,8 @@ ReturnStatus RivermaxQueueToMediaSenderSettingsBuilder::convert_settings(
   target_settings->num_of_threads = target_settings->thread_settings.size();
   // Same local IP for all streams of the first thread
   // Next - This will be taken from the adv_network settings `address`
-  target_settings->local_ip = source_settings->thread_settings[0].stream_network_settings[0].local_ip;
+  target_settings->local_ip =
+      source_settings->thread_settings[0].stream_network_settings[0].local_ip;
 
   if (source_settings->gpu_direct) {
     target_settings->gpu_id = source_settings->gpu_device_id;

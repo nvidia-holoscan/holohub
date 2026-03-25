@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -79,7 +79,7 @@ if(NOT CONTENTS MATCHES "virtual ReturnStatus find_internal_stream_index\\(")
     string(REPLACE "ReturnStatus find_internal_stream_index(" "virtual ReturnStatus find_internal_stream_index(" NEW_CONTENTS "${CONTENTS}")
     file(WRITE "${rivermax-dev-kit_SOURCE_DIR}/source/apps/include/rdk/apps/rmax_base_app.h" "${NEW_CONTENTS}")
 endif()
-if (NOT CONTENTS MATCHES "virtual ReturnStatus get_app_settings\\(")
+if(NOT CONTENTS MATCHES "virtual ReturnStatus get_app_settings\\(")
     string(REPLACE "ReturnStatus get_app_settings(" "virtual ReturnStatus get_app_settings(" NEW_CONTENTS2 "${NEW_CONTENTS}")
     file(WRITE "${rivermax-dev-kit_SOURCE_DIR}/source/apps/include/rdk/apps/rmax_base_app.h" "${NEW_CONTENTS2}")
 endif()

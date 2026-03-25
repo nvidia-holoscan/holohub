@@ -149,7 +149,8 @@ class RivermaxMgr::RivermaxMgrImpl {
   static constexpr int MAX_NUM_OF_FRAMES_IN_BURST = 1;
 
   const NetworkConfig* cfg_ = nullptr;
-  std::unordered_map<uint32_t, std::unordered_map<int, std::shared_ptr<AnoBurstsQueue>>> rx_bursts_out_queues_map_;
+  std::unordered_map<uint32_t,
+      std::unordered_map<int, std::shared_ptr<AnoBurstsQueue>>> rx_bursts_out_queues_map_;
   std::vector<std::thread> rx_service_threads_;
   std::vector<std::thread> tx_service_threads_;
   std::unordered_map<uint32_t, std::shared_ptr<RivermaxManagerRxService>> rx_services_;
@@ -240,7 +241,8 @@ void RivermaxMgr::RivermaxMgrImpl::initialize() {
 
 // Extract configuration finding logic
 template<typename ConfigType>
-ConfigType* RivermaxMgr::RivermaxMgrImpl::find_rivermax_config(uint32_t service_id, QueueConfigType expected_type) {
+ConfigType* RivermaxMgr::RivermaxMgrImpl::find_rivermax_config(
+    uint32_t service_id, QueueConfigType expected_type) {
   // Temporary solution to extract the specific queue configuration from the NetworkConfig
   for (const auto& intf : cfg_->ifs_) {
     for (const auto& rx_queue : intf.rx_.queues_) {
@@ -286,9 +288,11 @@ template<typename ConfigType, typename BuilderType, typename ServiceType>
 bool RivermaxMgr::RivermaxMgrImpl::common_initialize_rx_service(
     uint32_t service_id, std::shared_ptr<ConfigBuilderHolder> config_holder,
     QueueConfigType expected_type, const std::string& service_name) {
-  auto typed_holder = std::dynamic_pointer_cast<TypedConfigBuilderHolder<BuilderType>>(config_holder);
+  auto typed_holder =
+      std::dynamic_pointer_cast<TypedConfigBuilderHolder<BuilderType>>(config_holder);
   if (!typed_holder) {
-    HOLOSCAN_LOG_ERROR("Failed to cast to TypedConfigBuilderHolder<{}>", typeid(BuilderType).name());
+    HOLOSCAN_LOG_ERROR("Failed to cast to TypedConfigBuilderHolder<{}>",
+                       typeid(BuilderType).name());
     return false;
   }
 
@@ -562,7 +566,8 @@ void RivermaxMgr::RivermaxMgrImpl::free_tx_burst(BurstParams* burst) {
   it->second->free_tx_burst(burst);
 }
 
-Status RivermaxMgr::RivermaxMgrImpl::get_rx_burst(BurstParams** burst, int port, int q, int stream) {
+Status RivermaxMgr::RivermaxMgrImpl::get_rx_burst(
+    BurstParams** burst, int port, int q, int stream) {
   uint32_t service_id = RivermaxBurst::burst_tag_from_port_and_queue_id(port, q);
   auto queue_it = rx_bursts_out_queues_map_.find(service_id);
 

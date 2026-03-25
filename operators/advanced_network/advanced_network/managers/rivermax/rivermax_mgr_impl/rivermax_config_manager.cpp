@@ -238,7 +238,8 @@ bool RxConfigManager::append_ipo_receiver_candidate_for_rx_queue(
     HOLOSCAN_LOG_ERROR("Failed to validate source settings");
     return false;
   }
-  auto rivermax_ipo_receiver_settings_validator = std::make_shared<ANOIPOReceiverSettingsValidator>();
+  auto rivermax_ipo_receiver_settings_validator =
+      std::make_shared<ANOIPOReceiverSettingsValidator>();
   auto settings_builder = std::make_shared<RivermaxQueueToIPOReceiverSettingsBuilder>(
       std::move(rivermax_rx_config_ptr), std::move(rivermax_ipo_receiver_settings_validator));
 
@@ -271,7 +272,8 @@ bool RxConfigManager::append_rtp_receiver_candidate_for_rx_queue(
     HOLOSCAN_LOG_ERROR("Failed to validate source settings");
     return false;
   }
-  auto rivermax_rtp_receiver_settings_validator = std::make_shared<ANORTPReceiverSettingsValidator>();
+  auto rivermax_rtp_receiver_settings_validator =
+      std::make_shared<ANORTPReceiverSettingsValidator>();
   auto settings_builder = std::make_shared<RivermaxQueueToRTPReceiverSettingsBuilder>(
       std::move(rivermax_rx_config_ptr), std::move(rivermax_rtp_receiver_settings_validator));
 
@@ -295,7 +297,7 @@ int RivermaxConfigContainer::parse_tx_queues(uint16_t port_id,
   tx_config_manager->set_configuration(cfg_);
 
   for (const auto& q : queues) {
-    if (!tx_config_manager->append_candidate_for_tx_queue(port_id, q)) { 
+    if (!tx_config_manager->append_candidate_for_tx_queue(port_id, q)) {
         HOLOSCAN_LOG_WARN("Failed to append TX queue configuration for queue - Exiting");
         return 0;
     }
@@ -396,12 +398,14 @@ bool TxConfigManager::append_media_sender_candidate_for_tx_queue(
     HOLOSCAN_LOG_ERROR("Failed to validate source settings");
     return false;
   }
-  if (!rivermax_tx_config.split_boundary && rivermax_tx_config.memory_pool_location == MemoryKind::DEVICE) {
+  if (!rivermax_tx_config.split_boundary &&
+      rivermax_tx_config.memory_pool_location == MemoryKind::DEVICE) {
     HOLOSCAN_LOG_ERROR("GPU memory pool is supported only in header-data split mode");
     return false;
   }
 
-  auto rivermax_media_sender_settings_validator = std::make_shared<ANOMediaSenderSettingsValidator>();
+  auto rivermax_media_sender_settings_validator =
+      std::make_shared<ANOMediaSenderSettingsValidator>();
   auto settings_builder = std::make_shared<RivermaxQueueToMediaSenderSettingsBuilder>(
       std::move(rivermax_tx_config_ptr), std::move(rivermax_media_sender_settings_validator));
 
@@ -650,7 +654,7 @@ bool RivermaxConfigParser::parse_ipo_receiver_settings(
     ThreadSettings thread_settings;
     for (const auto& q_item_stream : q_item_thread["network_settings"]) {
       StreamNetworkSettings stream_settings;
-      for (const auto& q_item_ip : q_item_stream["local_ip_addresses"]) { 
+      for (const auto& q_item_ip : q_item_stream["local_ip_addresses"]) {
         stream_settings.local_ips.emplace_back(q_item_ip.as<std::string>());
       }
       for (const auto& q_item_ip : q_item_stream["source_ip_addresses"]) {

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,16 +19,15 @@
 
 namespace holoscan::advanced_network {
 
-void ANOMediaSenderSettings::init_default_values()
-{
+void ANOMediaSenderSettings::init_default_values() {
   AppSettings::init_default_values();
   media.frames_fields_in_mem_block = 1;
   media.resolution = { FHD_WIDTH, FHD_HEIGHT };
   num_of_packets_in_chunk = ANOMediaSenderSettings::DEFAULT_NUM_OF_PACKETS_IN_CHUNK_FHD;
 }
 
-ReturnStatus ANOMediaSenderSettingsValidator::validate(const std::shared_ptr<ANOMediaSenderSettings>& settings) const
-{
+ReturnStatus ANOMediaSenderSettingsValidator::validate(
+    const std::shared_ptr<ANOMediaSenderSettings>& settings) const {
   if (settings->thread_settings.empty()) {
     std::cerr << "Must be at least one thread" << std::endl;
     return ReturnStatus::failure;
@@ -56,21 +55,22 @@ ReturnStatus ANOMediaSenderSettingsValidator::validate(const std::shared_ptr<ANO
   }
 
   if (settings->register_memory && !settings->app_memory_alloc) {
-    std::cerr << "Register memory option is supported only with application memory allocation" << std::endl;
+    std::cerr << "Register memory option is supported only with application memory allocation"
+              << std::endl;
     return ReturnStatus::failure;
   }
   return ReturnStatus::success;
 }
 
-ANOMediaSenderApp::ANOMediaSenderApp(std::shared_ptr<ISettingsBuilder<ANOMediaSenderSettings>> settings_builder) :
+ANOMediaSenderApp::ANOMediaSenderApp(
+    std::shared_ptr<ISettingsBuilder<ANOMediaSenderSettings>> settings_builder) :
   RmaxBaseApp(),
   m_settings_builder(std::move(settings_builder)),
   m_device_interface{}
 {
 }
 
-ReturnStatus ANOMediaSenderApp::post_load_settings()
-{
+ReturnStatus ANOMediaSenderApp::post_load_settings() {
   uint32_t default_packets_in_chunk;
 
   if (m_app_settings->media.resolution == Resolution(UHD_WIDTH, UHD_HEIGHT) ||
@@ -90,8 +90,7 @@ ReturnStatus ANOMediaSenderApp::post_load_settings()
   return rc;
 }
 
-ReturnStatus ANOMediaSenderApp::initialize_app_settings()
-{
+ReturnStatus ANOMediaSenderApp::initialize_app_settings() {
   if (m_settings_builder == nullptr) {
     std::cerr << "Settings builder is not initialized" << std::endl;
     return ReturnStatus::failure;
@@ -110,8 +109,7 @@ ReturnStatus ANOMediaSenderApp::initialize_app_settings()
   return rc;
 }
 
-ReturnStatus ANOMediaSenderApp::initialize()
-{
+ReturnStatus ANOMediaSenderApp::initialize() {
   ReturnStatus rc  = RmaxBaseApp::initialize();
 
   if (rc != ReturnStatus::obj_init_success) {
@@ -141,8 +139,7 @@ ReturnStatus ANOMediaSenderApp::initialize()
   return m_obj_init_status;
 }
 
-ReturnStatus ANOMediaSenderApp::initialize_connection_parameters()
-{
+ReturnStatus ANOMediaSenderApp::initialize_connection_parameters() {
   in_addr device_address;
   if (inet_pton(AF_INET, m_app_settings->local_ip.c_str(), &device_address) != 1) {
     std::cerr << "Failed to parse address of device " << m_app_settings->local_ip << std::endl;
@@ -150,15 +147,15 @@ ReturnStatus ANOMediaSenderApp::initialize_connection_parameters()
   }
   rmx_status status = rmx_retrieve_device_iface_ipv4(&m_device_interface, &device_address);
   if (status != RMX_OK) {
-    std::cerr << "Failed to get device: " << m_app_settings->local_ip << " with status: " << status << std::endl;
+    std::cerr << "Failed to get device: " << m_app_settings->local_ip
+              << " with status: " << status << std::endl;
     return ReturnStatus::failure;
   }
 
   return ReturnStatus::success;
 }
 
-ReturnStatus ANOMediaSenderApp::initialize_memory_strategy()
-{
+ReturnStatus ANOMediaSenderApp::initialize_memory_strategy() {
   std::vector<rmx_device_iface> device_interfaces = {m_device_interface};
   auto base_memory_strategy = std::make_unique<RmaxBaseMemoryStrategy>(
       *m_header_allocator, *m_payload_allocator,
@@ -177,8 +174,7 @@ ReturnStatus ANOMediaSenderApp::initialize_memory_strategy()
   return ReturnStatus::success;
 }
 
-ReturnStatus ANOMediaSenderApp::run()
-{
+ReturnStatus ANOMediaSenderApp::run() {
   if (m_obj_init_status != ReturnStatus::obj_init_success) {
     return m_obj_init_status;
   }
@@ -199,18 +195,16 @@ ReturnStatus ANOMediaSenderApp::run()
   return ReturnStatus::success;
 }
 
-ReturnStatus ANOMediaSenderApp::set_rivermax_clock()
-{
+ReturnStatus ANOMediaSenderApp::set_rivermax_clock() {
   ReturnStatus rc = set_rivermax_ptp_clock(&m_device_interface);
-  if(rc == ReturnStatus::success) {
+  if (rc == ReturnStatus::success) {
     uint64_t ptp_time = 0;
     rc = get_rivermax_ptp_time_ns(ptp_time);
   }
   return rc;
 }
 
-void ANOMediaSenderApp::distribute_work_for_threads()
-{
+void ANOMediaSenderApp::distribute_work_for_threads() {
   m_streams_per_thread.reserve(m_media_sender_settings->thread_settings.size());
   m_media_sender_settings->num_of_total_streams = 0;
   m_media_sender_settings->num_of_threads = m_media_sender_settings->thread_settings.size();
@@ -222,15 +216,15 @@ void ANOMediaSenderApp::distribute_work_for_threads()
   }
 }
 
-void ANOMediaSenderApp::configure_network_flows()
-{
+void ANOMediaSenderApp::configure_network_flows() {
   int thread_index = 0;
   uint16_t source_port = 0;
   for (const auto& thread : m_media_sender_settings->thread_settings) {
     int internal_stream_index = 0;
     std::vector<TwoTupleFlow> streams;
     for (const auto& stream : thread.stream_network_settings) {
-      streams.push_back(TwoTupleFlow(stream.stream_id, stream.destination_ip, stream.destination_port));
+      streams.push_back(
+          TwoTupleFlow(stream.stream_id, stream.destination_ip, stream.destination_port));
       m_stream_id_map[stream.stream_id] = std::make_pair(thread_index, internal_stream_index);
       internal_stream_index++;
     }
@@ -264,8 +258,7 @@ ReturnStatus ANOMediaSenderApp::initialize_sender_threads() {
             m_app_settings->local_ip,
             m_app_settings->source_port,
             m_app_settings->destination_ip,
-            m_app_settings->destination_port
-          );
+            m_app_settings->destination_port);
     m_senders.push_back(std::unique_ptr<MediaSenderIONode>(new MediaSenderIONode(
             network_address,
             m_app_settings,
@@ -281,17 +274,17 @@ ReturnStatus ANOMediaSenderApp::initialize_sender_threads() {
 }
 
 ReturnStatus ANOMediaSenderApp::get_app_settings(const AppSettings*& settings) const {
-    if (m_obj_init_status != ReturnStatus::obj_init_success || !m_media_sender_settings) {
-        std::cerr << "Error: Application settings are not initialized" << std::endl;
-        settings = nullptr;
-        return ReturnStatus::failure;
-    }
-    settings = m_media_sender_settings.get();
-    return ReturnStatus::success;
+  if (m_obj_init_status != ReturnStatus::obj_init_success || !m_media_sender_settings) {
+    std::cerr << "Error: Application settings are not initialized" << std::endl;
+    settings = nullptr;
+    return ReturnStatus::failure;
+  }
+  settings = m_media_sender_settings.get();
+  return ReturnStatus::success;
 }
 
-
-ReturnStatus ANOMediaSenderApp::find_internal_stream_index(size_t external_stream_index, size_t& thread_index, size_t& internal_stream_index) {
+ReturnStatus ANOMediaSenderApp::find_internal_stream_index(
+    size_t external_stream_index, size_t& thread_index, size_t& internal_stream_index) {
   if (m_stream_id_map.find(external_stream_index) == m_stream_id_map.end()) {
     std::cerr << "Invalid stream index " << external_stream_index << std::endl;
     return ReturnStatus::failure;
@@ -304,8 +297,7 @@ ReturnStatus ANOMediaSenderApp::find_internal_stream_index(size_t external_strea
 }
 
 ReturnStatus ANOMediaSenderApp::set_frame_provider(size_t stream_index,
-    std::shared_ptr<IFrameProvider> frame_provider, MediaType media_type, bool contains_payload)
-{
+    std::shared_ptr<IFrameProvider> frame_provider, MediaType media_type, bool contains_payload) {
   size_t sender_thread_index = 0;
   size_t sender_stream_index = 0;
 
@@ -326,8 +318,7 @@ ReturnStatus ANOMediaSenderApp::set_frame_provider(size_t stream_index,
   return rc;
 }
 
-uint64_t ANOMediaSenderApp::get_time_ns(void* context)
-{
+uint64_t ANOMediaSenderApp::get_time_ns(void* context) {
   NOT_IN_USE(context);
   uint64_t ptp_time = 0;
   ReturnStatus rc = get_rivermax_ptp_time_ns(ptp_time);
@@ -338,4 +329,4 @@ uint64_t ANOMediaSenderApp::get_time_ns(void* context)
   return ptp_time;
 }
 
-} // namespace holoscan::advanced_network
+}  // namespace holoscan::advanced_network
