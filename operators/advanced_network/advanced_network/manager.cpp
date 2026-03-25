@@ -30,7 +30,7 @@
 #include "adv_network_rdma_mgr.h"
 #endif
 
-#if ANO_MGR_DPDK || ANO_MGR_GPUNETIO || ANO_MGR_RDMA
+#if ANO_MGR_DPDK || ANO_MGR_GPUNETIO || ANO_MGR_RDMA || ANO_MGR_RIVERMAX
 #include <rte_common.h>
 #include <rte_malloc.h>
 #include <rte_mbuf.h>

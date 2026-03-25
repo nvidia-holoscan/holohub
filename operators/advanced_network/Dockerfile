@@ -210,9 +210,9 @@ ENV GDRCOPY_PATH_L=/opt/mellanox/gdrcopy/src
 # ==============================
 # Rivermax Target
 # This stage is only built when --target rivermax is specified. It installs and configures Rivermax SDK.
-# Note: Rivermax does not require DPDK - extends from base-deps directly.
+# Extends from dpdk since the shared ANO manager.cpp requires DPDK headers at compile time.
 # ==============================
-FROM base-deps AS rivermax
+FROM dpdk AS rivermax
 
 # Define Rivermax-specific build arguments and environment variables
 ARG RIVERMAX_VERSION=1.70.32

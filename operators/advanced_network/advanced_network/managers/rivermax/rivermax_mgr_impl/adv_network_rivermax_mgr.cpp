@@ -702,11 +702,11 @@ void* RivermaxMgr::get_packet_ptr(BurstParams* burst, int idx) {
   return pImpl->get_packet_ptr(burst, idx);
 }
 
-uint16_t RivermaxMgr::get_segment_packet_length(BurstParams* burst, int seg, int idx) {
+uint32_t RivermaxMgr::get_segment_packet_length(BurstParams* burst, int seg, int idx) {
   return pImpl->get_segment_packet_length(burst, seg, idx);
 }
 
-uint16_t RivermaxMgr::get_packet_length(BurstParams* burst, int idx) {
+uint32_t RivermaxMgr::get_packet_length(BurstParams* burst, int idx) {
   return pImpl->get_packet_length(burst, idx);
 }
 
