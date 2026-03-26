@@ -13,7 +13,7 @@ The pipeline supports two input modes:
 
 ### Pipeline
 
-```
+```text
 Video Source ──> Format Converter ──> YOLOv8 + ByteTrack ──┬──> Holoviz (local display)
                                                            └──> TAK CoT Operator ──> TAK Server
 ```
@@ -138,7 +138,7 @@ This handles pixel aspect ratio correction, optional letterboxing, and conversio
 ### `tak.yaml`
 
 | Section | Parameter | Description |
-|---|---|---|
+| --- | --- | --- |
 | `replayer` | `basename` | Base filename of the GXF video files |
 | `replayer` | `repeat` | Loop the video (`true`/`false`) |
 | `v4l2_source` | `device` | V4L2 device path (e.g., `/dev/video0`) |
@@ -153,7 +153,7 @@ This handles pixel aspect ratio correction, optional letterboxing, and conversio
 ### `bytetrack.yaml`
 
 | Parameter | Description |
-|---|---|
+| --- | --- |
 | `track_high_thresh` | High detection threshold for track initialization |
 | `track_low_thresh` | Low detection threshold for second association |
 | `new_track_thresh` | Threshold for creating new tracks |
@@ -163,7 +163,7 @@ This handles pixel aspect ratio correction, optional letterboxing, and conversio
 ### Environment Variables
 
 | Variable | Description |
-|---|---|
+| --- | --- |
 | `TAK_HOST` | Override TAK server host (empty string disables TAK) |
 | `HOLOSCAN_LOG_LEVEL` | Log verbosity: `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR` |
 | `HOLOHUB_DATA_PATH` | Override default data directory |
