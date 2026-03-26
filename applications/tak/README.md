@@ -131,6 +131,8 @@ applications/tak/prepare_video_gxf.sh <input_video.mp4> <output_directory>
 
 This handles pixel aspect ratio correction, optional letterboxing, and conversion to GXF entities. Set `TARGET_WIDTH` and `TARGET_HEIGHT` environment variables to enable letterboxing to a specific resolution.
 
+> **Note:** The helper script outputs files named `video_stream.gxf_*`, while `tak.yaml` defaults to `replayer.basename: "traffic"`. After conversion, either rename the output files to `traffic.gxf_index` / `traffic.gxf_entities`, or update `replayer.basename` in `tak.yaml` to `"video_stream"`. Alternatively, use the `--video_dir` flag to point to the output directory and update the basename accordingly.
+
 ## Configuration Reference
 
 ### `tak.yaml`

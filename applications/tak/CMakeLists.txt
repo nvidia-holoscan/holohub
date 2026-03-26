@@ -39,10 +39,9 @@ add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/tak/traffic.mp4"
 # Convert the video file to GXF entities for the replayer
 add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/tak/traffic.gxf_index"
                           "${HOLOHUB_DATA_DIR}/tak/traffic.gxf_entities"
-    COMMAND ffmpeg -i "${HOLOHUB_DATA_DIR}/tak/traffic.mp4" -pix_fmt rgb24 -f rawvideo pipe:1 |
-            python3 "${CMAKE_SOURCE_DIR}/utilities/convert_video_to_gxf_entities.py"
-            --directory "${HOLOHUB_DATA_DIR}/tak" --basename traffic --width 1280 --height 720 --framerate 30
+    COMMAND sh -c "ffmpeg -i \"${HOLOHUB_DATA_DIR}/tak/traffic.mp4\" -pix_fmt rgb24 -f rawvideo pipe:1 | python3 \"${CMAKE_SOURCE_DIR}/utilities/convert_video_to_gxf_entities.py\" --directory \"${HOLOHUB_DATA_DIR}/tak\" --basename traffic --width 1280 --height 720 --framerate 30"
     DEPENDS "${HOLOHUB_DATA_DIR}/tak/traffic.mp4"
+    VERBATIM
     )
 
 add_custom_target(tak_data ALL

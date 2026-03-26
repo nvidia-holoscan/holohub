@@ -206,7 +206,7 @@ def main():
     set_log_level(holoscan_log_map.get(log_level_str, LogLevel.INFO))
     set_log_pattern("[%^%l%$] [%n] %v")
 
-    # TAK server config from environment
+    # TAK server config: merge environment override with tak.yaml values
     tak_host_override = None
     tak_host_raw = os.getenv("TAK_HOST")
     if tak_host_raw is not None:
@@ -217,9 +217,22 @@ def main():
         else:
             tak_host_override = tak_host_raw
 
-    # Start OpenTAKServer services and wait until ready before launching the app
+    # Determine the effective TAK host from env override or tak.yaml config
+    effective_host = tak_host_override
+    if effective_host is None:
+        try:
+            import yaml
+
+            with open(args.config, "r") as _cf:
+                _cfg = yaml.safe_load(_cf) or {}
+            effective_host = (_cfg.get("tak_cot") or {}).get("tak_host", "localhost")
+        except Exception:
+            effective_host = "localhost"
+
+    # Start OpenTAKServer services only when the target is local
+    _local_hosts = {"localhost", "127.0.0.1", "::1", ""}
     ots_script = "/opt/ots/start_ots.sh"
-    if os.path.isfile(ots_script):
+    if os.path.isfile(ots_script) and effective_host in _local_hosts:
         import socket
         import subprocess
         import time

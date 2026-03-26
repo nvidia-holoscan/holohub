@@ -9,6 +9,8 @@ set -e
 
 OTS_VENV=/opt/ots/venv
 export OTS_DATA_FOLDER=/opt/ots/data
+OTS_PATCH_DIR=/opt/ots/patches
+OTS_PYTHONPATH="${OTS_PATCH_DIR}${PYTHONPATH:+:${PYTHONPATH}}"
 
 PG_CONFIG=/etc/postgresql/16/main/postgresql.conf
 PG_PORT=$(awk '$1 == "port" {print $3; exit}' "$PG_CONFIG" 2>/dev/null)
@@ -16,6 +18,7 @@ PG_PORT=${PG_PORT:-5432}
 OTS_API_PORT=${OTS_API_PORT:-18081}
 OTS_COT_PORT=${OTS_COT_PORT:-18088}
 OTS_WEB_PORT=${OTS_WEB_PORT:-18080}
+export OTS_SOCKETIO_CORS_ALLOWED_ORIGINS=${OTS_SOCKETIO_CORS_ALLOWED_ORIGINS:-http://localhost:${OTS_WEB_PORT},http://127.0.0.1:${OTS_WEB_PORT}}
 
 FIRST_RUN=false
 if [ ! -f /opt/ots/.setup_complete ]; then
@@ -128,7 +131,7 @@ if [ -f "$OTS_DATA_FOLDER/config.yml" ]; then
     sed -i "s|OTS_TCP_STREAMING_PORT:.*|OTS_TCP_STREAMING_PORT: ${OTS_COT_PORT}|" "$OTS_DATA_FOLDER/config.yml"
 else
     echo "[OTS] Generating initial config..."
-    timeout 5 "$OTS_VENV/bin/opentakserver" >/dev/null 2>&1 || true
+    PYTHONPATH="$OTS_PYTHONPATH" timeout 5 "$OTS_VENV/bin/opentakserver" >/dev/null 2>&1 || true
     sleep 1
     if [ -f "$OTS_DATA_FOLDER/config.yml" ]; then
         sed -i "s|SQLALCHEMY_DATABASE_URI:.*|SQLALCHEMY_DATABASE_URI: ${OTS_DB_URI}|" "$OTS_DATA_FOLDER/config.yml"
@@ -139,7 +142,7 @@ fi
 
 # --- Start OTS processes ----------------------------------------------
 echo "[OTS] Starting opentakserver API (port ${OTS_API_PORT})..."
-"$OTS_VENV/bin/opentakserver" > /tmp/ots_api.log 2>&1 &
+PYTHONPATH="$OTS_PYTHONPATH" "$OTS_VENV/bin/opentakserver" > /tmp/ots_api.log 2>&1 &
 
 # Wait for API port instead of hardcoded sleep
 echo "[OTS] Waiting for API to accept connections..."
@@ -157,10 +160,10 @@ if [ "$api_ready" != true ]; then
 fi
 
 echo "[OTS] Starting cot_parser..."
-"$OTS_VENV/bin/cot_parser" > /tmp/ots_cot_parser.log 2>&1 &
+PYTHONPATH="$OTS_PYTHONPATH" "$OTS_VENV/bin/cot_parser" > /tmp/ots_cot_parser.log 2>&1 &
 
 echo "[OTS] Starting eud_handler (TCP CoT on port ${OTS_COT_PORT})..."
-"$OTS_VENV/bin/eud_handler" > /tmp/ots_eud_handler.log 2>&1 &
+PYTHONPATH="$OTS_PYTHONPATH" "$OTS_VENV/bin/eud_handler" > /tmp/ots_eud_handler.log 2>&1 &
 
 # --- Nginx (Web UI) ---
 echo "[OTS] Starting nginx (Web UI on port ${OTS_WEB_PORT})..."
@@ -168,7 +171,11 @@ nginx 2>/dev/null || true
 
 echo ""
 echo "============================================================"
-echo "[OTS] OpenTAKServer ready"
+if [ "$api_ready" = true ]; then
+    echo "[OTS] OpenTAKServer ready"
+else
+    echo "[OTS] OpenTAKServer started (API may not be fully ready)"
+fi
 echo "[OTS]   Web UI:   http://localhost:${OTS_WEB_PORT}"
 echo "[OTS]   TCP CoT:  port ${OTS_COT_PORT}"
 echo "[OTS]   HTTP API: port ${OTS_API_PORT}"

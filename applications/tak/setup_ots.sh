@@ -33,6 +33,8 @@ fi
 
 OTS_VENV=/opt/ots/venv
 export OTS_DATA_FOLDER=/opt/ots/data
+OTS_PATCH_DIR=/opt/ots/patches
+OTS_PYTHONPATH="${OTS_PATCH_DIR}${PYTHONPATH:+:${PYTHONPATH}}"
 
 echo ""
 echo "[OTS Setup] =========================================="
@@ -46,21 +48,53 @@ echo ""
 # Step 1: Install OTS and database adapter from PyPI
 # --------------------------------------------------------------------------
 echo "[OTS Setup] [1/6] Installing OpenTAKServer from PyPI (this is the slowest step)..."
-"$OTS_VENV/bin/pip" install --no-cache-dir opentakserver==1.7.9 psycopg2-binary
+"$OTS_VENV/bin/pip" install --no-cache-dir opentakserver==1.7.9 sqlalchemy==2.0.44 psycopg2-binary
 echo "[OTS Setup] [1/6] Done"
 
 # --------------------------------------------------------------------------
-# Step 2: Patch psycopg2 compatibility
+# Step 2: Patch database compatibility
 # --------------------------------------------------------------------------
-echo "[OTS Setup] [2/6] Patching psycopg2 compatibility..."
+echo "[OTS Setup] [2/6] Patching database compatibility..."
 OTS_DEFAULT_CFG=$(find "$OTS_VENV" -path '*/opentakserver/defaultconfig.py' | head -1)
 sed -i 's|postgresql+psycopg://|postgresql+psycopg2://|' "$OTS_DEFAULT_CFG"
 verify_patch "$OTS_DEFAULT_CFG" "psycopg2" "psycopg2 driver substitution in defaultconfig.py"
 
-SA_BASE=$(find "$OTS_VENV" -path '*/dialects/postgresql/base.py' | head -1)
-sed -i '/def _get_server_version_info/,/\.scalar()/{s/\.scalar()/\.scalar(); v = v.decode() if isinstance(v, bytes) else v/}' "$SA_BASE"
-verify_patch "$SA_BASE" "v.decode()" "SQLAlchemy bytes decode in base.py"
-find "$OTS_VENV" -name '__pycache__' -path '*/sqlalchemy/*' -exec rm -rf {} + 2>/dev/null || true
+mkdir -p "$OTS_PATCH_DIR"
+SQLA_PATCH_FILE="$OTS_PATCH_DIR/sitecustomize.py"
+cat > "$SQLA_PATCH_FILE" <<'PY'
+"""Compatibility shim for OpenTAKServer with SQLAlchemy 2.0.44 and psycopg2."""
+
+import re
+
+import sqlalchemy
+from sqlalchemy.dialects.postgresql.base import PGDialect
+
+EXPECTED_SQLALCHEMY_VERSION = "2.0.44"
+if sqlalchemy.__version__ != EXPECTED_SQLALCHEMY_VERSION:
+    raise RuntimeError(
+        "Unexpected SQLAlchemy version for OpenTAKServer compatibility shim: "
+        f"{sqlalchemy.__version__} != {EXPECTED_SQLALCHEMY_VERSION}"
+    )
+
+
+def _ots_get_server_version_info(self, connection):
+    v = connection.exec_driver_sql("select pg_catalog.version()").scalar()
+    if isinstance(v, (bytes, bytearray)):
+        v = v.decode()
+    m = re.match(
+        r".*(?:PostgreSQL|EnterpriseDB) "
+        r"(\d+)\.?(\d+)?(?:\.(\d+))?(?:\.\d+)?(?:devel|beta)?",
+        v,
+    )
+    if not m:
+        raise AssertionError(f"Could not determine version from string '{v}'")
+    return tuple(int(x) for x in m.group(1, 2, 3) if x is not None)
+
+
+PGDialect._get_server_version_info = _ots_get_server_version_info
+PY
+verify_patch "$SQLA_PATCH_FILE" 'EXPECTED_SQLALCHEMY_VERSION = "2.0.44"' "SQLAlchemy compatibility shim version guard"
+verify_patch "$SQLA_PATCH_FILE" "v.decode()" "SQLAlchemy bytes decode compatibility shim"
 find "$OTS_VENV" -name '__pycache__' -path '*/opentakserver/*' -exec rm -rf {} + 2>/dev/null || true
 echo "[OTS Setup] [2/6] Done"
 
@@ -69,7 +103,8 @@ echo "[OTS Setup] [2/6] Done"
 # --------------------------------------------------------------------------
 echo "[OTS Setup] [3/6] Patching Flask-SocketIO settings..."
 OTS_APP_PY=$(find "$OTS_VENV" -path '*/opentakserver/app.py' | head -1)
-sed -i 's|ping_timeout=1,|ping_timeout=30, cors_allowed_origins="*",|' "$OTS_APP_PY"
+sed -i 's|ping_timeout=1,|ping_timeout=30, cors_allowed_origins=[origin.strip() for origin in __import__("os").getenv("OTS_SOCKETIO_CORS_ALLOWED_ORIGINS", "http://localhost:18080,http://127.0.0.1:18080").split(",") if origin.strip()],|' "$OTS_APP_PY"
+verify_patch "$OTS_APP_PY" 'OTS_SOCKETIO_CORS_ALLOWED_ORIGINS' "Flask-SocketIO CORS origins in app.py"
 verify_patch "$OTS_APP_PY" 'ping_timeout=30' "Flask-SocketIO ping timeout in app.py"
 find "$OTS_VENV" -name '__pycache__' -path '*/opentakserver/*' -exec rm -rf {} + 2>/dev/null || true
 echo "[OTS Setup] [3/6] Done"
@@ -97,17 +132,71 @@ echo "[OTS Setup] [4/6] Done"
 echo "[OTS Setup] [5/6] Creating certificate authority..."
 mkdir -p "$OTS_DATA_FOLDER"
 OTS_APP=$(find "$OTS_VENV" -path '*/opentakserver/app.py' | head -1)
-"$OTS_VENV/bin/flask" --app "$OTS_APP" ots create-ca
+PYTHONPATH="$OTS_PYTHONPATH" "$OTS_VENV/bin/flask" --app "$OTS_APP" ots create-ca
 echo "[OTS Setup] [5/6] Done"
 
 # --------------------------------------------------------------------------
 # Step 6: Download the Web UI
 # --------------------------------------------------------------------------
-echo "[OTS Setup] [6/6] Downloading OpenTAKServer Web UI from GitHub..."
-"$OTS_VENV/bin/pip" install --no-cache-dir lastversion
-mkdir -p /var/www/html/opentakserver
-cd /var/www/html/opentakserver
-"$OTS_VENV/bin/lastversion" --assets extract brian7704/OpenTAKServer-UI
+echo "[OTS Setup] [6/6] Downloading pinned OpenTAKServer Web UI release from GitHub..."
+OTS_UI_VERSION="${OTS_UI_VERSION:-v1.7.4}"
+OTS_UI_ASSET="${OTS_UI_ASSET:-OpenTAKServer-UI-${OTS_UI_VERSION}.zip}"
+OTS_UI_URL="${OTS_UI_URL:-https://github.com/brian7704/OpenTAKServer-UI/releases/download/${OTS_UI_VERSION}/${OTS_UI_ASSET}}"
+OTS_UI_ROOT=/var/www/html
+OTS_UI_TARGET="${OTS_UI_ROOT}/opentakserver"
+OTS_UI_TMP=$(mktemp -d)
+OTS_UI_ARCHIVE="${OTS_UI_TMP}/opentakserver-ui.zip"
+trap 'rm -rf "$OTS_UI_TMP"' EXIT
+
+mkdir -p "$OTS_UI_TARGET"
+echo "[OTS Setup] [6/6] UI release: ${OTS_UI_VERSION} (${OTS_UI_ASSET})"
+wget -q -O "$OTS_UI_ARCHIVE" "$OTS_UI_URL"
+if [ ! -s "$OTS_UI_ARCHIVE" ]; then
+    echo "[OTS Setup] ERROR: OpenTAKServer Web UI download failed: ${OTS_UI_URL}" >&2
+    exit 1
+fi
+
+export OTS_UI_TARGET OTS_UI_TMP OTS_UI_ARCHIVE
+"$OTS_VENV/bin/python" - <<'PY'
+import os
+import shutil
+import zipfile
+
+tmp_dir = os.environ["OTS_UI_TMP"]
+ui_target = os.environ["OTS_UI_TARGET"]
+archive_path = os.environ["OTS_UI_ARCHIVE"]
+extract_root = os.path.join(tmp_dir, "extract")
+
+with zipfile.ZipFile(archive_path) as archive:
+    archive.extractall(extract_root)
+
+source_root = os.path.join(extract_root, "opentakserver")
+if not os.path.isdir(source_root):
+    raise RuntimeError(f"Missing expected UI root in archive: {source_root}")
+
+for entry in os.listdir(ui_target):
+    path = os.path.join(ui_target, entry)
+    if os.path.isdir(path) and not os.path.islink(path):
+        shutil.rmtree(path)
+    else:
+        os.unlink(path)
+
+for entry in os.listdir(source_root):
+    src = os.path.join(source_root, entry)
+    dst = os.path.join(ui_target, entry)
+    if os.path.isdir(src) and not os.path.islink(src):
+        shutil.copytree(src, dst, symlinks=True)
+    else:
+        shutil.copy2(src, dst, follow_symlinks=False)
+PY
+
+if [ ! -f "${OTS_UI_TARGET}/index.html" ]; then
+    echo "[OTS Setup] ERROR: OpenTAKServer Web UI extraction failed: missing ${OTS_UI_TARGET}/index.html" >&2
+    exit 1
+fi
+
+rm -rf "$OTS_UI_TMP"
+trap - EXIT
 echo "[OTS Setup] [6/6] Done"
 
 # --------------------------------------------------------------------------
