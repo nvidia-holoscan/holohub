@@ -90,8 +90,20 @@ class DetectorOp(Operator):
                     self.label_map = {int(k): v for k, v in names.items()}
                 elif isinstance(names, list):
                     self.label_map = {i: n for i, n in enumerate(names)}
+                elif names is not None:
+                    logger.warning(
+                        "Unexpected model.names type %s (value: %r); "
+                        "falling back to class_N labels",
+                        type(names).__name__,
+                        names,
+                    )
         except Exception:
-            pass
+            logger.warning(
+                "Failed to derive label_map from model.names (value: %r); "
+                "falling back to class_N labels",
+                getattr(self.model, "names", None),
+                exc_info=True,
+            )
         # Warmup on small tensor to avoid first-iteration latency.
         imgsz = self.imgsz or 640
         dummy = torch.zeros((1, 3, imgsz, imgsz), device=self.device, dtype=torch.float32)
@@ -111,6 +123,10 @@ class DetectorOp(Operator):
         h, w, _ = frame.shape
 
         frame_uint8 = np.ascontiguousarray(np.clip(frame, 0, 255).astype(np.uint8, copy=False))
+
+        # Strip alpha channel (e.g. V4L2 RGBA) — model expects 3-channel input
+        if frame_uint8.ndim == 3 and frame_uint8.shape[2] == 4:
+            frame_uint8 = frame_uint8[..., :3]
 
         frame_for_model = frame_uint8
         pad_x = pad_y = 0

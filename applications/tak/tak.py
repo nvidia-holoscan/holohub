@@ -95,7 +95,13 @@ class TAKApp(Application):
         detector_kwargs = self.kwargs("detector")
         model_path = detector_kwargs.get("model_path", "yolov8s.pt")
         bytetrack_config = detector_kwargs.pop("bytetrack_path", "bytetrack.yaml")
-        bytetrack_path = str(Path(__file__).with_name(bytetrack_config))
+        bt_cfg_path = Path(bytetrack_config)
+        if bt_cfg_path.is_absolute():
+            bytetrack_path = str(bt_cfg_path)
+        else:
+            bytetrack_path = str(Path(__file__).resolve().parent / bytetrack_config)
+        if not os.path.isfile(bytetrack_path):
+            raise FileNotFoundError(f"ByteTrack config not found at {bytetrack_path}")
         data_model = os.path.join(self.data, model_path)
         if os.path.exists(data_model):
             detector_kwargs["model_path"] = data_model
@@ -217,20 +223,25 @@ def main():
         else:
             tak_host_override = tak_host_raw
 
-    # Determine the effective TAK host from env override or tak.yaml config
+    # Determine the effective TAK host and port from env override or tak.yaml
     effective_host = tak_host_override
-    if effective_host is None:
-        try:
-            import yaml
+    effective_port = None
+    try:
+        import yaml
 
-            with open(args.config, "r") as _cf:
-                _cfg = yaml.safe_load(_cf) or {}
-            effective_host = (_cfg.get("tak_cot") or {}).get("tak_host", "localhost")
-        except Exception:
+        with open(args.config, "r") as _cf:
+            _cfg = yaml.safe_load(_cf) or {}
+        tak_cot_cfg = _cfg.get("tak_cot") or {}
+        if effective_host is None:
+            effective_host = tak_cot_cfg.get("tak_host", "localhost")
+        effective_port = tak_cot_cfg.get("tak_port")
+    except Exception:
+        if effective_host is None:
             effective_host = "localhost"
 
-    # Start OpenTAKServer services only when the target is local
-    _local_hosts = {"localhost", "127.0.0.1", "::1", ""}
+    # Start OpenTAKServer services only when the target is local and not empty
+    # (empty host means TAK is disabled — TakCotOp skips connection)
+    _local_hosts = {"localhost", "127.0.0.1", "::1"}
     ots_script = "/opt/ots/start_ots.sh"
     if os.path.isfile(ots_script) and effective_host in _local_hosts:
         import socket
@@ -244,6 +255,10 @@ def main():
                 "First run: OpenTAKServer will be downloaded and installed. "
                 "This may take 1-2 minutes. Subsequent launches will be faster."
             )
+        # Export configured port so start_ots.sh and nginx use it
+        if effective_port is not None:
+            os.environ.setdefault("OTS_COT_PORT", str(effective_port))
+
         tak_logger.info("Starting OpenTAKServer services...")
         ots_log = open("/tmp/ots_start.log", "w")
         subprocess.Popen(

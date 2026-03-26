@@ -167,6 +167,8 @@ PYTHONPATH="$OTS_PYTHONPATH" "$OTS_VENV/bin/eud_handler" > /tmp/ots_eud_handler.
 
 # --- Nginx (Web UI) ---
 echo "[OTS] Starting nginx (Web UI on port ${OTS_WEB_PORT})..."
+sed -i "s/\${OTS_WEB_PORT}/${OTS_WEB_PORT}/g; s/\${OTS_API_PORT}/${OTS_API_PORT}/g" \
+    /etc/nginx/sites-available/ots
 nginx 2>/dev/null || true
 
 echo ""

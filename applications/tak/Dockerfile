@@ -119,7 +119,8 @@ COPY applications/tak/ots_nginx.conf /etc/nginx/sites-available/ots
 RUN rm -f /etc/nginx/sites-enabled/default \
     && ln -sf /etc/nginx/sites-available/ots /etc/nginx/sites-enabled/ots \
     && chown -R "${APP_UID}:${APP_GID}" /var/www/html/opentakserver /var/log/nginx /var/lib/nginx \
-    && chown "${APP_UID}:${APP_GID}" /run/nginx.pid
+    && chown "${APP_UID}:${APP_GID}" /run/nginx.pid \
+    && chown -R "${APP_UID}:${APP_GID}" /etc/nginx/sites-available /etc/nginx/sites-enabled
 
 # Copy startup and setup scripts; make everything accessible to non-root users
 COPY applications/tak/setup_ots.sh /opt/ots/setup_ots.sh
