@@ -1,0 +1,28 @@
+# ByteTrack multi-object tracker configuration
+# https://github.com/ifzhang/ByteTrack
+#
+# Tuned for real-time object detection on streaming video.
+
+tracker_type: bytetrack
+
+# High-confidence detection threshold for primary track association.
+track_high_thresh: 0.75
+
+# Low-confidence detection threshold for secondary (byte) association pass.
+# Detections between low and high thresholds get a second chance to match
+# existing tracks, which helps maintain continuity during partial occlusions.
+track_low_thresh: 0.1
+
+# Minimum confidence required to initialize a brand-new track.
+new_track_thresh: 0.75
+
+# Number of frames to keep a lost track alive before deletion.
+# At 30 fps this gives ~3 seconds of occlusion tolerance.
+track_buffer: 90
+
+# IoU threshold for matching detections to existing tracks.
+match_thresh: 0.75
+
+# Fuse detection confidence into the matching cost matrix.
+# Helps prefer higher-confidence detections when IoU scores are similar.
+fuse_score: true
