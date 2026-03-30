@@ -18972,10 +18972,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#openigtlinktxop" class="md-nav__link">
+  <a href="#openigtlinkrxop" class="md-nav__link">
     <span class="md-ellipsis">
       
-        OpenIGTLinkTxOp
+        OpenIGTLinkRxOp
       
     </span>
   </a>
@@ -18983,10 +18983,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#openigtlinkrxop" class="md-nav__link">
+  <a href="#openigtlinktxop" class="md-nav__link">
     <span class="md-ellipsis">
       
-        OpenIGTLinkRxOp
+        OpenIGTLinkTxOp
       
     </span>
   </a>
@@ -19132,64 +19132,9 @@
 </ul>
 <h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
 <h3 id="python">Python<a class="headerlink" href="#python" title="Permanent link">#</a></h3>
-<h4 id="openigtlinktxop"><code>OpenIGTLinkTxOp</code><a class="headerlink" href="#openigtlinktxop" title="Permanent link">#</a></h4>
-<p>Operator class to transmit data using the OpenIGTLink protocol.</p>
-<h5 id="constructor-parameters">Constructor Parameters<a class="headerlink" href="#constructor-parameters" title="Permanent link">#</a></h5>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Type</th>
-<th>Required</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>fragment</code></td>
-<td><code>holoscan.core.Fragment</code></td>
-<td>Required</td>
-<td>The fragment that the operator belongs to.</td>
-</tr>
-<tr>
-<td><code>device_name</code></td>
-<td><code>str</code></td>
-<td>Optional</td>
-<td>OpenIGTLink device name.</td>
-</tr>
-<tr>
-<td><code>input_names</code></td>
-<td><code>std::vector&lt;std::string&gt;, optional.</code></td>
-<td>Optional</td>
-<td>Names of input messages.</td>
-</tr>
-<tr>
-<td><code>host_name</code></td>
-<td><code>str, optional.</code></td>
-<td>Optional</td>
-<td>Host name.</td>
-</tr>
-<tr>
-<td><code>port</code></td>
-<td><code>integer</code></td>
-<td>Optional</td>
-<td>Port number of server.</td>
-</tr>
-<tr>
-<td><code>name</code></td>
-<td><code>str</code></td>
-<td>Optional</td>
-<td>The name of the operator.</td>
-</tr>
-</tbody>
-</table>
-<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
-<ul>
-<li><strong><code>setup</code></strong>: Define the operator specification.</li>
-</ul>
 <h4 id="openigtlinkrxop"><code>OpenIGTLinkRxOp</code><a class="headerlink" href="#openigtlinkrxop" title="Permanent link">#</a></h4>
 <p>Operator class to send data using the OpenIGTLink protocol.</p>
-<h5 id="constructor-parameters_1">Constructor Parameters<a class="headerlink" href="#constructor-parameters_1" title="Permanent link">#</a></h5>
+<h5 id="constructor-parameters">Constructor Parameters<a class="headerlink" href="#constructor-parameters" title="Permanent link">#</a></h5>
 <table>
 <thead>
 <tr>
@@ -19229,6 +19174,61 @@
 <td><code>bool</code></td>
 <td>Optional</td>
 <td>Flip width and height (necessary for receiving from 3D Slicer).</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code>str</code></td>
+<td>Optional</td>
+<td>The name of the operator.</td>
+</tr>
+</tbody>
+</table>
+<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<ul>
+<li><strong><code>setup</code></strong>: Define the operator specification.</li>
+</ul>
+<h4 id="openigtlinktxop"><code>OpenIGTLinkTxOp</code><a class="headerlink" href="#openigtlinktxop" title="Permanent link">#</a></h4>
+<p>Operator class to transmit data using the OpenIGTLink protocol.</p>
+<h5 id="constructor-parameters_1">Constructor Parameters<a class="headerlink" href="#constructor-parameters_1" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>fragment</code></td>
+<td><code>holoscan.core.Fragment</code></td>
+<td>Required</td>
+<td>The fragment that the operator belongs to.</td>
+</tr>
+<tr>
+<td><code>device_name</code></td>
+<td><code>str</code></td>
+<td>Optional</td>
+<td>OpenIGTLink device name.</td>
+</tr>
+<tr>
+<td><code>input_names</code></td>
+<td><code>std::vector&lt;std::string&gt;, optional.</code></td>
+<td>Optional</td>
+<td>Names of input messages.</td>
+</tr>
+<tr>
+<td><code>host_name</code></td>
+<td><code>str, optional.</code></td>
+<td>Optional</td>
+<td>Host name.</td>
+</tr>
+<tr>
+<td><code>port</code></td>
+<td><code>integer</code></td>
+<td>Optional</td>
+<td>Port number of server.</td>
 </tr>
 <tr>
 <td><code>name</code></td>
@@ -19282,7 +19282,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../nvidia_video_codec/" class="md-footer__link md-footer__link--prev" aria-label="Previous: NVIDIA Video Codec SDK: Video File Reader (latest)">
+          <a href="../nvidia_video_codec/" class="md-footer__link md-footer__link--prev" aria-label="Previous: NVIDIA Video Codec SDK: Encoder (latest)">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -19292,7 +19292,7 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                NVIDIA Video Codec SDK: Video File Reader (latest)
+                NVIDIA Video Codec SDK: Encoder (latest)
               </div>
             </div>
           </a>
