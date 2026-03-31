@@ -1,16 +1,17 @@
-# SPDX-FileCopyrightText: 2024 Valley Tech Systems, Inc.
+# SPDX-FileCopyrightText: 2024-2026 Voyager Technologies, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 cmake_minimum_required(VERSION 3.20)
 project(psd_pipeline CXX CUDA)
 
-find_package(holoscan 2.5.0 REQUIRED CONFIG
+find_package(holoscan 4.0.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
-find_package(matx CONFIG REQUIRED)
+find_package(CUDAToolkit REQUIRED)
 
 set(CMAKE_CUDA_ARCHITECTURES "70;80;90")
 enable_language(CUDA)
 
+set(ANO_MGR "dpdk" CACHE STRING "Set ANO_MGR to DPDK.")
 add_subdirectory(advanced_network_connectors)
 add_subdirectory(data_writer)
 
@@ -19,7 +20,6 @@ add_executable(psd_pipeline
 )
 
 target_link_libraries(psd_pipeline PRIVATE
-  matx::matx
   holoscan::core
   holoscan::advanced_network
   holoscan::ops::fft
@@ -27,10 +27,11 @@ target_link_libraries(psd_pipeline PRIVATE
   holoscan::ops::low_rate_psd
   holoscan::ops::vita49_psd_packetizer
   holoscan::ops::data_writer
+  holoscan::matx
+  CUDA::cufft
+  CUDA::cublas
+  CUDA::cusolver
   advanced_network_connectors
-)
-target_include_directories(psd_pipeline PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 add_custom_target(config_yaml
