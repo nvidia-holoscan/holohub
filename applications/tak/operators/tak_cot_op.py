@@ -190,7 +190,9 @@ class TakCotOp(Operator):
             return False
 
         try:
-            cot_message = self._generate_cot_xml(detection_id, label, lat, lon, cot_type=cot_type)
+            cot_message = self._generate_cot_xml(
+                detection_id, label, lat, lon, cot_type=cot_type
+            )
             self.socket.sendall(cot_message + b"\n")
             logger.info("Sent CoT marker: %s at (%.6f, %.6f)", label, lat, lon)
             return True
@@ -256,13 +258,21 @@ class TakCotOp(Operator):
 
                 if track_ids is not None and i < len(track_ids):
                     track_id = int(track_ids[i])
-                    detection_id = f"{cls_name}-{track_id}" if cls_name else f"Detection-{track_id}"
+                    detection_id = (
+                        f"{cls_name}-{track_id}"
+                        if cls_name
+                        else f"Detection-{track_id}"
+                    )
                     detection_label = (
-                        f"{cls_name} {track_id}" if cls_name else f"Detection {track_id}"
+                        f"{cls_name} {track_id}"
+                        if cls_name
+                        else f"Detection {track_id}"
                     )
                 else:
                     slot_id = (self.detection_count % 100) + 1
-                    detection_id = f"{cls_name}-{slot_id}" if cls_name else f"Detection-{slot_id}"
+                    detection_id = (
+                        f"{cls_name}-{slot_id}" if cls_name else f"Detection-{slot_id}"
+                    )
                     detection_label = (
                         f"{cls_name} {slot_id}" if cls_name else f"Detection {slot_id}"
                     )
@@ -281,7 +291,9 @@ class TakCotOp(Operator):
                 lon = self.base_lon + lon_offset
 
                 cot_type = self.marker_type_map.get(cls_name, "")
-                self._send_cot_marker(detection_id, lat, lon, detection_label, cot_type=cot_type)
+                self._send_cot_marker(
+                    detection_id, lat, lon, detection_label, cot_type=cot_type
+                )
         except Exception as e:
             logger.error("Error processing detections: %s", e, exc_info=True)
 
