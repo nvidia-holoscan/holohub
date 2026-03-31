@@ -7,17 +7,17 @@ ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v${BASE_SDK_VERSION}-${GPU
 
 FROM ${BASE_IMAGE} AS base
 
-RUN Cuda_Version=$(nvcc --version | sed -n 's/^.*release \([0-9]\+\.[0-9]\+\).*$/\1/p' | sed 's/\./-/g') && \
-    echo "Version:"$Cuda_Version && \
-    test -n "${Cuda_Version}" || (echo "Failed to parse CUDA version from nvcc output" >&2; exit 1) && \
+RUN CUDA_VERSION=$(nvcc --version | sed -n 's/^.*release \([0-9]\+\.[0-9]\+\).*$/\1/p' | sed 's/\./-/g') && \
+    echo "Version:"$CUDA_VERSION && \
+    test -n "${CUDA_VERSION}" || (echo "Failed to parse CUDA version from nvcc output" >&2; exit 1) && \
     apt-get update && \
     apt-get install -y \
         rustc \
         cargo \
         python3-numpy \
-        libcublas-dev-${Cuda_Version} \
-        libcusparse-dev-${Cuda_Version} \
-        libcurand-dev-${Cuda_Version} \
-        libcufft-dev-${Cuda_Version} \
-        libcusolver-dev-${Cuda_Version} && \
+        libcublas-dev-${CUDA_VERSION} \
+        libcusparse-dev-${CUDA_VERSION} \
+        libcurand-dev-${CUDA_VERSION} \
+        libcufft-dev-${CUDA_VERSION} \
+        libcusolver-dev-${CUDA_VERSION} && \
     apt-get clean
