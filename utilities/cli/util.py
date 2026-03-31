@@ -1655,6 +1655,7 @@ def setup_cuda_packages(cuda_major_version: str, dry_run: bool = False) -> None:
 
         for trt_package_name in [
             "libnvinfer-headers-dev",
+            "libnvinfer-safe-headers-dev",
             "libnvinfer-dev",
             "libnvinfer-headers-plugin-dev",
             "libnvinfer-plugin-dev",
