@@ -1773,6 +1773,10 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
 
   update_cur_idx();
 
+  for (const auto& pq : tparams->q_params) {
+    flush_port_queue_impl(pq.port, pq.queue);
+  }
+
   //
   //  run loop
   //
