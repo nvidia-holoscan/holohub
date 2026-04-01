@@ -1708,12 +1708,6 @@ void DpdkMgr::run() {
 ///  \brief
 ///
 ////////////////////////////////////////////////////////////////////////////////
-void DpdkMgr::flush_packets(int port) {
-  struct rte_mbuf* rx_mbuf;
-  HOLOSCAN_LOG_INFO("Flushing packet on port {}", port);
-  while (rte_eth_rx_burst(port, 0, &rx_mbuf, 1) != 0) { rte_pktmbuf_free(rx_mbuf); }
-}
-
 void DpdkMgr::flush_port_queue_impl(int port, int queue) {
   struct rte_mbuf* rx_mbuf;
   HOLOSCAN_LOG_INFO("Flushing packets on port {} queue {}", port, queue);
