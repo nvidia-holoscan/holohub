@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: 2024 Valley Tech Systems, Inc.
+SPDX-FileCopyrightText: 2024-2026 Voyager Technologies, Inc.
 
 SPDX-License-Identifier: Apache-2.0
 -->
@@ -13,6 +13,7 @@ executor.
 ## Description
 
 The high rate PSD operator...
+
 - takes in a tensor of complex float data,
 - performs a squared absolute value operation on the tensor: real(t)^2 + imag(t)^2,
 - divides by the number of input elements

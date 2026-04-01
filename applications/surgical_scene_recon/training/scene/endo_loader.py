@@ -23,11 +23,12 @@
 """
 EndoNeRF and SCARED dataset loaders for surgical scene reconstruction.
 MIT-licensed implementation derived from EndoGaussian project.
+
+Provenance: Kept in-tree (training/scene/) because upstream EndoGaussian does not
+publish an installable loader package; this code is adapted to our pipeline's
+EndoNeRF format and imports (scene.cameras, utils.graphics_utils). Not a bundled
+third-party library—derived implementation under the stated license.
 """
-
-import warnings
-
-warnings.filterwarnings("ignore")
 
 import glob  # noqa: E402
 import json  # noqa: E402
@@ -69,11 +70,11 @@ class CameraInfo(NamedTuple):
 
 
 class EndoNeRF_Dataset(object):
+    """EndoNeRF dataset. Use mode='binocular' for pipeline output (depth/ only; no monodepth/)."""
+
     def __init__(self, datadir, downsample=1.0, test_every=8, mode="binocular"):
-        self.img_wh = (
-            int(640 / downsample),
-            int(512 / downsample),
-        )
+        # img_wh will be set in load_meta() from poses_bounds.npy
+        self.img_wh = None
         self.root_dir = datadir
         self.downsample = downsample
         self.blender2opencv = np.eye(4)
@@ -100,9 +101,19 @@ class EndoNeRF_Dataset(object):
         poses = poses_arr[:, :-2].reshape([-1, 3, 5])  # (N_cams, 3, 5)
         # coordinate transformation OpenGL->Colmap, center poses
         H, W, focal = poses[0, :, -1]
+
+        # Set image dimensions from poses_bounds.npy (not hardcoded)
+        self.img_wh = (
+            int(W / self.downsample),
+            int(H / self.downsample),
+        )
+
         focal = focal / self.downsample
         self.focal = (focal, focal)
-        self.K = np.array([[focal, 0, W // 2], [0, focal, H // 2], [0, 0, 1]]).astype(np.float32)
+        W_ds, H_ds = self.img_wh  # Use downsampled dimensions for K
+        self.K = np.array([[focal, 0, W_ds // 2], [0, focal, H_ds // 2], [0, 0, 1]]).astype(
+            np.float32
+        )
         # poses = np.concatenate([poses[..., :1], -poses[..., 1:2], -poses[..., 2:3], poses[..., 3:4]], -1)
         poses = np.concatenate(
             [poses[..., :1], poses[..., 1:2], poses[..., 2:3], poses[..., 3:4]], -1
@@ -131,6 +142,12 @@ class EndoNeRF_Dataset(object):
             self.depth_paths = get_file_paths("depth")
         elif self.mode == "monocular":
             self.depth_paths = get_file_paths("monodepth")
+            if len(self.depth_paths) == 0:
+                raise ValueError(
+                    "Monocular depth mode expects a 'monodepth/' subdirectory, but none was "
+                    "found. This pipeline's format_conversion.py only writes 'depth/' "
+                    "(binocular layout). Use mode='binocular' for pipeline-generated datasets."
+                )
         else:
             raise ValueError(f"{self.mode} has not been implemented.")
         self.masks_paths = get_file_paths("masks")
@@ -517,7 +534,11 @@ class SCARED_Dataset(object):
                 color, depth, mask = self.rgbs[idx], self.depths[idx], self.masks[idx]
                 if self.mode == "binocular":
                     mask = np.logical_and(
-                        mask, (depth > self.depth_near_thresh), (depth < self.depth_far_thresh)
+                        mask,
+                        np.logical_and(
+                            depth > self.depth_near_thresh,
+                            depth < self.depth_far_thresh,
+                        ),
                     )
                 pts, colors, _ = self.get_pts_cam(depth, mask, color, disable_mask=False)
                 pts = self.get_pts_wld(pts, self.pose_mat[idx])

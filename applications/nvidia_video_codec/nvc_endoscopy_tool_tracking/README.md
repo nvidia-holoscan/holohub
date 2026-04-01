@@ -129,6 +129,7 @@ The application tracks seven different surgical tools in real-time:
 7. **Spec.Bag** - Specimen retrieval bag
 
 Each detected tool is marked with:
+
 - Cross overlay showing tool position
 - Text label identifying the tool type
 - Colored mask indicating tool region

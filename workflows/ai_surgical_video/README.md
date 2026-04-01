@@ -62,7 +62,7 @@ The HolovizOp displays the processed video with overlaid AI results, including:
 This workflow utilizes the following three AI models:
 
 | Model | Description | File |
-|-------|-------------|------|
+| --- | --- | --- |
 | [📦️ Out-of-body Detection Model](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_orsi_academy_sample_data) | Detects if endoscope is inside or outside the body | `anonymization_model.onnx` |
 | [📦️ SSD Detection for Endoscopy Surgical Tools](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/ssd_surgical_tool_detection_model) | Detects surgical tools with bounding boxes | `epoch24_nms.onnx` |
 | [📦️ MONAI Endoscopic Tool Segmentation](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/monai_endoscopic_tool_segmentation_model) | Provides pixel-level segmentation of tools | `model_endoscopic_tool_seg_sanitized_nhwc_in_nchw_out.onnx` |
@@ -70,7 +70,7 @@ This workflow utilizes the following three AI models:
 ### Sample Data
 
 - [📦️ Orsi partial nephrectomy procedures](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data) - Sample endoscopy video data for use with the `replayer` source
-  
+
 > **Note:** The directory specified by `--data` at runtime is assumed to contain three subdirectories, corresponding to the NGC resources specified in [Models](#models) and [Sample Data](#sample-data): `orsi`, `monai_tool_seg_model` and `ssd_model`. These resources will be automatically downloaded to the Holohub data directory when building the application.
 
 ## Quick Start Guide
@@ -167,7 +167,7 @@ python3 ai_surgical_video.py --source hsb --data <DATA_DIR> --config <CONFIG_FIL
 The application accepts the following command line arguments:
 
 | Argument | Description | Default |
-|----------|-------------|---------|
+| --- | --- | --- |
 | `-s, --source` | Source of video input: `replayer`, `aja`, or `hsb` | `replayer` |
 | `-c, --config` | Path to a custom configuration file | `config.yaml` in the application directory |
 | `-d, --data` | Path to the data directory containing model and video files | Uses the `HOLOHUB_DATA_PATH` environment variable |

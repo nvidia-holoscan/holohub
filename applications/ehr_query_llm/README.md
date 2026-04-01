@@ -5,7 +5,7 @@ This reference application demonstrates how Holoscan application developers can 
 **_Note_**:
 This application is NOT for clinical use.
 
-<img src="resources/EHR_LLM_Arch.png" alt="isolated" width="800"/>
+![EHR LLM architecture diagram](resources/EHR_LLM_Arch.png)
 
 As shown in the architecture diagram above, there are three main components in this application
 

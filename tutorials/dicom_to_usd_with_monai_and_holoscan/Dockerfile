@@ -35,7 +35,7 @@ RUN apt-get update && \
         p7zip-rar \
         python3-distutils \
         libjpeg-turbo8-dev
-        
+
 # Install Python MONAI Deploy requirements while using the `holoscan` package provided in the base container
 COPY ./tutorials/dicom_to_usd_with_monai_and_holoscan/requirements.txt ${WORKDIR}
 RUN pip install -q -r requirements.txt && \
@@ -80,7 +80,7 @@ fi
 ############################################################
 # Container environment
 ############################################################
-    
+
 # MONAI Deploy environment variables
 ENV HOLOSCAN_INPUT_PATH ${WORKDIR}/${DATA_NAME}/dcm
 ENV HOLOSCAN_MODEL_PATH ${WORKDIR}/${DATA_NAME}/model.ts

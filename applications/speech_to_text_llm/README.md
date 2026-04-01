@@ -10,15 +10,15 @@ The input (either audio or video file), specific Whisper model (tiny, small, med
 
 For our purposes we specify the directions as:
 
-```
-  context: 'Make summary of the transcript (and correct any transcription errors in CAPS).\n Create a Patient Summary with no medical jargon. \n 
+```yaml
+  context: 'Make summary of the transcript (and correct any transcription errors in CAPS).\n Create a Patient Summary with no medical jargon. \n
   Create a full radiological report write-up. \n Give likely ICD-10 Codes \n Suggested follow-up steps.'
 ```
 
 This results in the following output from the LLM:
 
-```
-LLM Response: 
+```text
+LLM Response:
  Summary of Transcript:
 The patient has full thickness wear on the dorsal half of the second metatarsal head with reactive bone marrow edema and capsulitis. There is also second web space bursitis and a third web space neuroma. The 51-year-old male has multiple gallbladder polyps, with the largest measuring 1.9 x 2 cm, 1.7 x 1.7 cm in the mid portion, and 1.6 x 1.6 cm distally. Other smaller polyps are also present.
 
@@ -67,10 +67,10 @@ You should refer to the [glossary](../../README.md#Glossary) for the terms defin
 
   ```bash
   export PYTHONPATH=$PYTHONPATH:<HOLOSCAN_INSTALL_DIR>/python/lib:<HOLOHUB_BUILD_DIR>/python/lib
-  cd applications/speech_to_text_llm 
+  cd applications/speech_to_text_llm
   python3 stt_to_nlp.py
   ```
-  
+
 ## Sample Audio File
 
 Please note the sample audio file included is licensed as CC-BY-4.0 International, copyright NVIDIA 2023.

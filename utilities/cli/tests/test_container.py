@@ -38,7 +38,7 @@ class TestHoloHubContainer(unittest.TestCase):
 
         # create a Dockerfile in the test directory
         self.dockerfile_path.write_text(
-            "FROM nvcr.io/nvidia/clara-holoscan/holoscan:3.11.0-cuda12-dgpu"
+            "FROM nvcr.io/nvidia/clara-holoscan/holoscan:4.0.0-cuda12-dgpu"
         )
 
         # create project metadata
@@ -189,6 +189,48 @@ class TestHoloHubContainer(unittest.TestCase):
         expected_pythonpath = "/docker/lib1:/docker/lib2:/opt/nvidia/holoscan/python/lib:/workspace/holohub/benchmarks/holoscan_flow_benchmarking"
         self.assertEqual(result, ["-e", f"PYTHONPATH={expected_pythonpath}"])
         self.container.dryrun = False
+
+    @patch("utilities.cli.container.find_hsdk_build_rel_dir", return_value="install-x86_64-dgpu")
+    @patch("utilities.cli.container.get_image_pythonpath")
+    @patch.dict(os.environ, {}, clear=True)
+    def test_get_pythonpath_options_local_sdk_root_string(
+        self, mock_get_image_pythonpath, mock_find_dir
+    ):
+        """Test PYTHONPATH with local_sdk_root passed as string (not Path)"""
+        mock_get_image_pythonpath.return_value = ""
+        result = self.container.get_pythonpath_options(
+            local_sdk_root="/home/user/holoscan-sdk", img="test_img"
+        )
+        expected_pythonpath = (
+            "/workspace/holoscan-sdk/install-x86_64-dgpu/python/lib"
+            ":/workspace/holohub/benchmarks/holoscan_flow_benchmarking"
+        )
+        self.assertEqual(result, ["-e", f"PYTHONPATH={expected_pythonpath}"])
+
+    @patch("utilities.cli.container.find_hsdk_build_rel_dir", return_value="install-x86_64-dgpu")
+    @patch("utilities.cli.container.get_image_pythonpath")
+    @patch.dict(os.environ, {}, clear=True)
+    def test_get_pythonpath_options_local_sdk_precedes_image_env(
+        self, mock_get_image_pythonpath, mock_find_dir
+    ):
+        """When local_sdk_root is set, local SDK paths must come before image paths"""
+        mock_get_image_pythonpath.return_value = (
+            "/opt/nvidia/holoscan/python/lib:/opt/nvidia/hololink/python"
+        )
+        result = self.container.get_pythonpath_options(
+            local_sdk_root=Path("/home/user/holoscan-sdk"), img="test_img"
+        )
+        pythonpath = result[1].split("=", 1)[1]
+        paths = pythonpath.split(":")
+        local_sdk_path = "/workspace/holoscan-sdk/install-x86_64-dgpu/python/lib"
+        image_path = "/opt/nvidia/holoscan/python/lib"
+        self.assertIn(local_sdk_path, paths)
+        self.assertIn(image_path, paths)
+        self.assertLess(
+            paths.index(local_sdk_path),
+            paths.index(image_path),
+            "Local SDK path must appear before image path in PYTHONPATH",
+        )
 
     @patch("utilities.cli.util.get_host_gpu")
     def test_get_cuda_tag_sdk(self, mock_get_host_gpu):

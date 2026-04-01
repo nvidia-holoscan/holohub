@@ -1,14 +1,14 @@
-### OpenIGTLink operator
+# OpenIGTLink operator
 
 The `openigtlink` operator provides a way to send and receive imaging data using the [OpenIGTLink](http://openigtlink.org/) library. The `openigtlink` operator contains separate operators for transmit and receive. Users may choose one or the other, or use both in applications requiring bidirectional traffic.
 
 The `openigtlink` operators use class names: `OpenIGTLinkTxOp` and `OpenIGTLinkRxOp`
 
-#### `nvidia::holoscan::openigtlink`
+## `nvidia::holoscan::openigtlink`
 
 Operator class to send and transmit data using the OpenIGTLink protocol.
 
-##### Receiver Configuration Parameters
+### Receiver Configuration Parameters
 
 - **`port`**: Port number of server
   - type: `integer`
@@ -17,7 +17,7 @@ Operator class to send and transmit data using the OpenIGTLink protocol.
 - **`flip_width_height`**: Flip width and height (necessary for receiving from 3D Slicer)
   - type: `bool`
 
-##### Transmitter Configuration Parameters
+### Transmitter Configuration Parameters
 
 - **`device_name`**: OpenIGTLink device name
   - type: `string`

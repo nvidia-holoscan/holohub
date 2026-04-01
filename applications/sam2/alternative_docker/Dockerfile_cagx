@@ -21,8 +21,8 @@ FROM nvcr.io/nvidia/pytorch:24.06-py3 AS pytorch
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
-    git \   
-    git-lfs \ 
+    git \
+    git-lfs \
     x11-apps \
     && rm -rf /var/lib/apt/lists/*
 

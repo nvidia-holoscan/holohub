@@ -48,8 +48,8 @@ RUN apt update \
         libxcb-randr0-dev \
         libxrandr-dev \
         libxxf86vm-dev \
-        mesa-common-dev \ 
-        libopenxr-loader1 \ 
+        mesa-common-dev \
+        libopenxr-loader1 \
         libopenxr-dev \
         libopenxr1-monado \
         clang-format \

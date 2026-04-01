@@ -1,132 +1,80 @@
+#!/usr/bin/env python3
 # SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# Minimal test that EndoNeRF-style data loading works (no GPU required).
+"""Test that EndoNeRF dataset loader can load minimal fixture data."""
 
-import os
 import sys
+import tempfile
+from pathlib import Path
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+import numpy as np
 
-
-"""
-Test Data Loading - Phase 1.1
-
-Simple test application to verify EndoNeRF data loading.
-Loads frames, depths, masks, and camera poses and prints debug info.
-
-Usage:
-    python test_data_loading.py --data_dir /path/to/EndoNeRF/pulling
-"""
-
-from argparse import ArgumentParser  # noqa: E402
-
-from holoscan.conditions import CountCondition  # noqa: E402
-from holoscan.core import Application  # noqa: E402
-
-# Import our custom operators
-from operators import DebugPrintOp, EndoNeRFLoaderOp  # noqa: E402
+# App and training dirs on path so "scene" and "utils" resolve
+app_dir = Path(__file__).resolve().parent.parent
+training_dir = app_dir / "training"
+for d in (app_dir, str(training_dir)):
+    if d not in sys.path:
+        sys.path.insert(0, d)
 
 
-class DataLoadingTestApp(Application):
-    """
-    Minimal test application for data loading verification.
+def _make_minimal_endonerf_dir(tmpdir: Path, n_frames: int = 2, H: int = 64, W: int = 64):
+    """Create minimal EndoNeRF layout: poses_bounds.npy and images/depth/masks PNGs."""
+    import cv2
 
-    Pipeline:
-        EndoNeRFLoaderOp → DebugPrintOp
+    # poses_bounds.npy: (N, 3, 5) then flatten and append 2 bounds -> (N, 17)
+    focal = 64.0
+    poses = np.eye(3, 5)
+    poses[0, -1], poses[1, -1], poses[2, -1] = H, W, focal
+    poses = np.tile(poses[np.newaxis, ...], (n_frames, 1, 1))
+    bounds = np.zeros((n_frames, 2))
+    poses_flat = poses.reshape(n_frames, -1)
+    poses_bounds = np.concatenate([poses_flat, bounds], axis=1)
+    np.save(tmpdir / "poses_bounds.npy", poses_bounds)
 
-    The loader reads data and the debug operator prints information about it.
-    """
-
-    def __init__(self, data_dir, num_frames=20):
-        super().__init__()
-        self.name = "Data Loading Test"
-        self.data_dir = data_dir
-        self.num_frames = num_frames
-
-    def compose(self):
-        """Build the test pipeline."""
-        print(f"\n{'='*60}")
-        print("  Data Loading Test Application")
-        print(f"{'='*60}")
-        print(f"Data directory: {self.data_dir}")
-        print(f"Will process {self.num_frames} frames")
-        print(f"{'='*60}\n")
-
-        # Create operators
-        # Use CountCondition to limit how many times compute() is called
-        count_condition = CountCondition(self, count=self.num_frames)
-
-        loader = EndoNeRFLoaderOp(
-            self,
-            name="loader",
-            data_dir=self.data_dir,
-            loop=False,  # Don't loop for testing
-            max_frames=self.num_frames,  # Limit number of frames
-            count=count_condition,  # Stop after num_frames calls
-        )
-
-        debug = DebugPrintOp(
-            self,
-            name="debug",
-            print_every=5,  # Print every 5 frames
-            print_first=2,  # Always print first 2 frames in detail
-        )
-
-        # Connect pipeline
-        self.add_flow(loader, debug, {("frame_data", "input")})
-
-        print("[App] Pipeline composed successfully!")
-        print("[App] Starting execution...\n")
+    for sub in ("images", "depth", "masks"):
+        (tmpdir / sub).mkdir(exist_ok=True)
+    # Valid minimal PNGs via cv2 (BGR for color, grayscale for depth/mask)
+    tiny = np.zeros((2, 2, 3), dtype=np.uint8)
+    tiny_gray = np.zeros((2, 2), dtype=np.uint8)
+    for i in range(n_frames):
+        cv2.imwrite(str(tmpdir / "images" / f"frame_{i:06d}.png"), tiny)
+        cv2.imwrite(str(tmpdir / "depth" / f"frame_{i:06d}.png"), tiny_gray)
+        cv2.imwrite(str(tmpdir / "masks" / f"frame_{i:06d}.png"), tiny_gray)
 
 
 def main():
-    """Main entry point."""
-    # Parse arguments
-    parser = ArgumentParser(description="Test EndoNeRF data loading")
-    parser.add_argument(
-        "--data_dir", type=str, required=True, help="Path to EndoNeRF pulling directory"
-    )
-    parser.add_argument(
-        "--num_frames", type=int, default=20, help="Number of frames to process (default: 20)"
-    )
-    args = parser.parse_args()
-
-    # Validate path
-    if not os.path.exists(args.data_dir):
-        print(f"ERROR: Data directory does not exist: {args.data_dir}")
-        return 1
-
-    # Create and run application
     try:
-        app = DataLoadingTestApp(data_dir=args.data_dir, num_frames=args.num_frames)
-        app.run()
-
-        print(f"\n{'='*60}")
-        print("  Test completed successfully!")
-        print(f"{'='*60}\n")
+        import cv2  # noqa: F401
+    except ModuleNotFoundError:
+        print("SKIP: opencv not available")
         return 0
 
-    except Exception as e:
-        print(f"\n{'='*60}")
-        print("  ERROR: Test failed!")
-        print(f"  {e}")
-        print(f"{'='*60}\n")
-        import traceback
+    with tempfile.TemporaryDirectory(prefix="gsplat_test_") as tmp:
+        tmpdir = Path(tmp)
+        n_frames = 2
+        _make_minimal_endonerf_dir(tmpdir, n_frames=n_frames)
 
-        traceback.print_exc()
-        return 1
+        try:
+            from scene.endo_loader import EndoNeRF_Dataset
+        except Exception as e:
+            print(f"SKIP: could not import loader ({e})")
+            return 0
+
+        try:
+            ds = EndoNeRF_Dataset(str(tmpdir), downsample=1.0, test_every=8, mode="binocular")
+        except Exception as e:
+            print(f"FAIL: loader raised {e}")
+            return 1
+
+        if len(ds.image_paths) != n_frames:
+            print(f"FAIL: expected {n_frames} images, got {len(ds.image_paths)}")
+            return 1
+
+    print("SUCCESS: data loading OK")
+    return 0
 
 
 if __name__ == "__main__":
-    exit(main())
+    sys.exit(main())

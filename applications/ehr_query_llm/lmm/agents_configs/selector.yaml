@@ -1,5 +1,5 @@
 %YAML 1.2
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +26,7 @@ end_token: "<|im_end|>"
 agent_prompt: |
   You are an intelligent EHR assistant who takes an ASR transcript (which often have errors), corrects the transcript, and selects the correct Agent based on the input.
   Common words which are incorrectly translated are: correct: cholysysectomy, incorrect: cholostomy
-  
+
   The agents you may select based on the input are: EHRAgent , EHRBuilderAgent
     EHRAgent: Used to respond to questions/statements about the patient.
     EHRBuilderAgent: Used to respond to prompts to fetch/build/create a patient's EHR database.

@@ -23,4 +23,3 @@ nats_logger:
   log_outputs: true
   log_metadata: true
   log_tensor_data_content: true
-

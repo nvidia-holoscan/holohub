@@ -1,6 +1,7 @@
 {
 	"application": {
-		"name": "Surgical Scene Reconstruction",
+		"name": "G-SHARP: Gaussian Splatting for Holographic Anatomical Reconstruction Pipeline",
+		"description": "Real-time surgical scene reconstruction using Gaussian Splatting: DA2 depth, MedSAM3 segmentation, VGGT poses, and GSplat training in a five-phase pipeline.",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -8,59 +9,104 @@
 			}
 		],
 		"language": "Python",
-		"version": "1.0",
+		"version": "0.2.0",
 		"changelog": {
-			"1.0": "Initial Release - Static and Dynamic Gaussian Splatting with Temporal Deformation"
+			"0.2.0": "Improvements to the pipeline: VGGT poses, DA2 depth, MedSAM3 masks, GSplat training, five-phase pipeline",
+			"0.1.0": "Initial Release - Static and Dynamic Gaussian Splatting with Temporal Deformation"
 		},
+		"dockerfile": "applications/surgical_scene_recon/Dockerfile",
 		"holoscan_sdk": {
-			"minimum_required_version": "3.7.0",
+			"minimum_required_version": "3.8.0",
 			"tested_versions": [
-				"3.7.0"
+				"3.8.0"
 			]
 		},
 		"platforms": [
 			"x86_64"
 		],
-		"tags": ["Healthcare AI", "Endoscopy", "3D Reconstruction", "Gaussian Splatting", "Neural Rendering", "Temporal Deformation"],
+		"tags": [
+			"Healthcare AI",
+			"3D Reconstruction",
+			"Gaussian Splatting",
+			"Depth Estimation",
+			"Segmentation",
+			"Pose Estimation",
+			"Surgical AI"
+		],
 		"ranking": 2,
+		"dependencies": {
+			"third_party": [
+			{
+				"name": "VGGT (Visual Geometry Grounded Transformer)",
+				"license": "Meta License (custom, see repo)",
+				"url": "https://github.com/facebookresearch/vggt",
+				"description": "Camera pose and metric depth estimation. Pip-installed at build time.",
+				"license_url": "https://github.com/facebookresearch/vggt"
+			},
+			{
+				"name": "Depth Anything V2",
+				"license": "Apache-2.0",
+				"url": "https://github.com/DepthAnything/Depth-Anything-V2",
+				"description": "Dense monocular depth estimation"
+			},
+			{
+				"name": "SAM3 (Segment Anything Model 3)",
+				"license": "SAM License (custom, see repo)",
+				"url": "https://github.com/facebookresearch/sam3",
+				"description": "Surgical tool segmentation. Pip-installed at build time.",
+				"license_url": "https://github.com/facebookresearch/sam3/blob/main/LICENSE"
+			},
+				{
+				"name": "EndoGaussian / GSplat Training",
+				"license": "MIT",
+				"url": "https://github.com/yifliu3/EndoGaussian",
+				"description": "Gaussian splatting training with temporal deformation network for endoscopic scenes"
+			}
+			]
+		},
 		"requirements": {
 			"data": [
 				{
-					"name": "EndoNeRF dataset",
-					"description": "This dataset contains the surgical videos and the corresponding ground truth poses and bounds.",
-					"url": "https://drive.google.com/drive/folders/1zTcX80c1yrbntY9c6-EK2W2UVESVEug8?usp=sharing",
-					"version": "20220629"
+					"name": "Surgical Video Frames",
+					"description": "Directory of PNG frames from a surgical video sequence."
+				}
+			],
+			"hardware": [
+				{
+					"name": "NVIDIA GPU",
+					"description": "NVIDIA GPU with CUDA 12+ and Vulkan support (e.g. RTX 6000 Ada).",
+					"required": true
 				}
 			]
 		},
-		"default_mode": "train",
+		"default_mode": "full",
 		"modes": {
-			"verify_train": {
-				"description": "Testing only (poor quality) to verify if the training works",
+			"full": {
+				"description": "Full pipeline: Phase 1–5 (DA2+MedSAM3 → VGGT → EndoNeRF → training → live viewer)",
 				"run": {
-					"command": "python3 <holohub_app_source>/train_standalone.py --data_dir <holohub_data_dir>/EndoNeRF/pulling --output_dir <holohub_app_bin>/output --training_iterations 20 --coarse_iterations 5 --num_frames 10",
-					"workdir": "holohub_app_source"
-				}
-			},
-			"verify_inference": {
-				"description": "Testing only to verify if the inference works",
-				"run": {
-					"command": "python <holohub_app_source>/run_surgical_recon.py --mode inference --data_dir <holohub_data_dir>/EndoNeRF/pulling --output_dir <holohub_app_bin>/output --checkpoint <holohub_app_bin>/output/trained_model/ckpts/fine_best_psnr.pt --num_frames 5",
-					"workdir": "holohub_app_source"
+					"command": "python3 <holohub_app_source>/run_gsharp.py --data-dir <holohub_data_dir>/surgical_scene_recon/frames --output-dir <holohub_app_bin>/output --da2-checkpoint <holohub_data_dir>/surgical_scene_recon/da2/depth_anything_v2_vits.pth --sam3-checkpoint <holohub_data_dir>/surgical_scene_recon/medsam3/checkpoint.pt",
+					"workdir": "holohub_app_bin"
 				}
 			},
 			"train": {
-				"description": "Good quality training: all 63 frames, 2000 iterations (~5 min) - smooth temporal deformation",
+				"description": "Full pipeline without live viewer (train only, then exit)",
 				"run": {
-					"command": "python3 <holohub_app_source>/train_standalone.py --data_dir <holohub_data_dir>/EndoNeRF/pulling --output_dir <holohub_app_bin>/output --training_iterations 2000 --coarse_iterations 200",
-					"workdir": "holohub_app_source"
+					"command": "python3 <holohub_app_source>/run_gsharp.py --data-dir <holohub_data_dir>/surgical_scene_recon/frames --output-dir <holohub_app_bin>/output --da2-checkpoint <holohub_data_dir>/surgical_scene_recon/da2/depth_anything_v2_vits.pth --sam3-checkpoint <holohub_data_dir>/surgical_scene_recon/medsam3/checkpoint.pt --skip-viewer",
+					"workdir": "holohub_app_bin"
 				}
 			},
 			"render": {
-				"description": "High-quality rendering with temporal deformation (requires pre-trained checkpoint)",
+				"description": "Render only: skip Phase 1–3 and training; run viewer on existing output",
 				"run": {
-					"command": "python3 <holohub_app_source>/dynamic_rendering_viz.py --data_dir <holohub_data_dir>/EndoNeRF/pulling --output_dir <holohub_app_bin>/output --checkpoint <holohub_app_bin>/output/trained_model/ckpts/fine_best_psnr.pt",
-					"workdir": "holohub_app_source"
+					"command": "python3 <holohub_app_source>/run_gsharp.py --data-dir <holohub_data_dir>/surgical_scene_recon/frames --output-dir <holohub_app_bin>/output --skip-phase1 --skip-phase2 --skip-phase3 --skip-training",
+					"workdir": "holohub_app_bin"
+				}
+			},
+			"verify_train": {
+				"description": "Quick verify: 20 training iters, 5 coarse, headless, no viewer",
+				"run": {
+					"command": "python3 <holohub_app_source>/run_gsharp.py --data-dir <holohub_data_dir>/surgical_scene_recon/frames --output-dir <holohub_app_bin>/output --da2-checkpoint <holohub_data_dir>/surgical_scene_recon/da2/depth_anything_v2_vits.pth --sam3-checkpoint <holohub_data_dir>/surgical_scene_recon/medsam3/checkpoint.pt --training-iterations 20 --coarse-iterations 5 --skip-viewer --headless",
+					"workdir": "holohub_app_bin"
 				}
 			}
 		}

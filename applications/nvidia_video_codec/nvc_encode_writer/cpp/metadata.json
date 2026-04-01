@@ -51,7 +51,7 @@
 		},
 		"run": {
 			"command": "./nvc_encode_writer_cpp --data <holohub_data_dir>/endoscopy",
-			"workdir": "holohub_app_bin"	
+			"workdir": "holohub_app_bin"
 		}
 	}
 }

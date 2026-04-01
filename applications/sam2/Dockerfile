@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,8 +21,8 @@ FROM nvcr.io/nvidia/pytorch:24.06-py3 AS pytorch
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
-    git \   
-    git-lfs \ 
+    git \
+    git-lfs \
     x11-apps \
     && rm -rf /var/lib/apt/lists/*
 

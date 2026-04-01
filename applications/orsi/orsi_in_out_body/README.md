@@ -1,7 +1,8 @@
 # In-Out Body Detection and Surgical Video Anonymization
 
-<center> <img src="./docs/anonymization.png" ></center>
-<center> Fig. 1: Example of anonymized result after inference </center><br>
+![Anonymization example](./docs/anonymization.png)
+
+Fig. 1: Example of anonymized result after inference
 
 ## Introduction
 
@@ -9,29 +10,32 @@ In robotic surgery, anonymization of video is necessary to ensure privacy and pr
 
 ## Pipeline
 
-<center> <img src="./docs/Holoscan_oob_pipeline.png" ></center>
-<center> Fig. 2: Schematic overview of Holoscan application </center><br>
+![Holoscan out-of-body pipeline](./docs/Holoscan_oob_pipeline.png)
 
-Towards realtime anonymization, a binary out-of-body classifier was trained and deployed using Holoscan platform. Figure 2 shows a schematic overview of the application. After capturing the frame, the alpha channel is dropped by the [Format Converter](/operators/orsi/orsi_format_converter/format_converter.cpp) operator. Additionally, the black padding borders added by the robotic system are removed, the tensor is resized to 512x512 pixels and the tensor type is converted from int [0, 255] to float [0, 1]. In the [Anonymization Preprocessor](/operators/orsi/orsi_segmentation_preprocessor/segmentation_preprocessor.cpp) operator the tensor pixel values of every collor channel are normalized using the corresponding means and standard deviations of the anonymization dataset. After model inference with the Multi-AI inference operator, the result frame is anonymized in the [Orsi Visualizer](/operators/orsi/orsi_visualizer/orsi_visualizer.cpp) operator according to the model output. The blurring is applied using a glsl program.
+Fig. 2: Schematic overview of Holoscan application
+
+Towards realtime anonymization, a binary out-of-body classifier was trained and deployed using Holoscan platform. Figure 2 shows a schematic overview of the application. After capturing the frame, the alpha channel is dropped by the [Format Converter](/operators/orsi/orsi_format_converter/format_converter.cpp) operator. Additionally, the black padding borders added by the robotic system are removed, the tensor is resized to 512x512 pixels and the tensor type is converted from int [0, 255] to float [0, 1]. In the [Anonymization Preprocessor](/operators/orsi/orsi_segmentation_preprocessor/segmentation_preprocessor.cpp) operator the tensor pixel values of every collor channel are normalized using the corresponding means and standard deviations of the anonymization dataset.
+
+After model inference with the Multi-AI inference operator, the result frame is anonymized in the [Orsi Visualizer](/operators/orsi/orsi_visualizer/orsi_visualizer.cpp) operator according to the model output. The blurring is applied using a glsl program.
 
 ## Controls
 
-| Action    | Control |
-| -------- | ------- |
+| Action | Control |
+| --- | --- |
 | Enable anonymization | B |
 
 ## Build and Launch app
 
-**C++**
+### C++
 
 ```bash
 ./holohub run orsi_in_out_body --language cpp
 ```
 
-**Python**
+### Python
 
 ```bash
 ./holohub run orsi_in_out_body --language python
 ```
 
-<center> <img src="./docs/orsi_logo.png" width="400"></center>
+![Orsi logo](./docs/orsi_logo.png)

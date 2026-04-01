@@ -1,5 +1,5 @@
 #!/bin/bash
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +40,7 @@ run_command() {
 
 print_platform_details() {
     echo "Platform details:"
-    
+
     cpu_details=$(lscpu)
     echo "\"cpu\": \"$(echo "$cpu_details" | grep "Model name" | cut -d':' -f2 | xargs)\","
 
@@ -114,7 +114,7 @@ run_benchmark() {
         echo "No application configuration filepath specified with '--app_config'"
         exit 1
     fi
-    
+
     if [[ "${headless}" = "true" ]]; then
         headless_str="headless"
     fi
@@ -252,7 +252,7 @@ benchmark_endoscopy_tool_tracking() {
             --headless
     done
 
-    # Long-running + Real time 
+    # Long-running + Real time
     for instances in $(seq 1 2); do
         run_benchmark \
             --app endoscopy_tool_tracking \
@@ -331,7 +331,7 @@ main() {
         benchmark_multiai_ultrasound
         popd;
     fi
-    
+
     for data_dir in ${data_dirs[@]}; do
         for pattern_suffix in "display_realtime" "display_offline" "headless_offline"; do
             plot_benchmark \

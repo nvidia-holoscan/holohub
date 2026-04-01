@@ -24,7 +24,7 @@
   <text x="600" y="40" class="title" text-anchor="middle">Holoscan to GStreamer Bridge Architecture</text>
 
   <!-- ==================== Pipeline 1: V4L2 Camera ==================== -->
-  
+
   <!-- Section Background -->
   <rect x="20" y="80" width="1160" height="280" class="section-bg" rx="8"/>
   <text x="40" y="110" class="subtitle">V4L2 Camera Pipeline</text>
@@ -84,7 +84,7 @@
   <text x="1095" y="290" class="small-label" text-anchor="middle">• Effects</text>
 
   <!-- ==================== Pipeline 2: Pattern Generator ==================== -->
-  
+
   <!-- Section Background -->
   <rect x="20" y="390" width="1160" height="280" class="section-bg" rx="8"/>
   <text x="40" y="420" class="subtitle">Pattern Generator Pipeline</text>
@@ -131,18 +131,18 @@
   <text x="1095" y="600" class="small-label" text-anchor="middle">• Effects</text>
 
   <!-- ==================== Legend ==================== -->
-  
+
   <rect x="50" y="710" width="1100" height="70" class="legend-box" rx="8"/>
   <text x="70" y="735" class="subtitle">Legend:</text>
-  
+
   <!-- Holoscan -->
   <rect x="170" y="720" width="100" height="30" class="holoscan-box" rx="4"/>
   <text x="220" y="741" class="small-label" text-anchor="middle">Holoscan</text>
-  
+
   <!-- GStreamer -->
   <rect x="290" y="720" width="100" height="30" class="gstreamer-box" rx="4"/>
   <text x="340" y="741" class="small-label" text-anchor="middle">GStreamer</text>
-  
+
   <!-- Output -->
   <rect x="410" y="720" width="80" height="30" class="output-box" rx="4"/>
   <text x="450" y="741" class="small-label" text-anchor="middle">Output</text>
@@ -151,4 +151,3 @@
   <text x="560" y="735" class="small-label" font-weight="bold">Key Feature:</text>
   <text x="560" y="755" class="small-label">Custom GStreamer pipeline with 1000+ plugins</text>
 </svg>
-

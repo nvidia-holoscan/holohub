@@ -138,11 +138,11 @@ openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -sha256 -days 3
 
 When you first navigate your browser to a page that uses these self-signed certificates, it will issue you a warning since they don't originate from a trusted authority. Ignore this and proceed to the web app:
 
-<img src="./imgs/ssl_warning.jpg" width="400">
+![SSL certificate warning in browser](imgs/ssl_warning.jpg)
 
 ehr_query_llm will use your default speaker and microphone. To change this go to your Ubuntu sound settings and choose the correct devices:
 
-<img src="./imgs/ubuntu_sound_setting.png" width="400">
+![Ubuntu sound settings](imgs/ubuntu_sound_setting.png)
 
 ### Step 2: Ensure Riva server is running
 
@@ -245,7 +245,7 @@ For the YAML file, the fields needed are:
 
 For a specific example, please refer to the EHR Agent YAML file below:
 
-```
+```yaml
 description: This tool is used to search the patient's EHR in order to answer questions about the patient, or general questions about the patient's medical history.
 user_prefix: "<|im_start|>user"
 bot_prefix: "<|im_start|>assistant"
@@ -271,7 +271,7 @@ ctx_length: 256
 
 grammar: |
   space ::= " "?
-  string ::= "\"" ([^"\\])* "\"" space 
+  string ::= "\"" ([^"\\])* "\"" space
   root ::= "{" space "\"name\"" space ":" space "\"EHRAgent\"" space "," space "\"response\"" space ":" space string "}" space
 
 publish:

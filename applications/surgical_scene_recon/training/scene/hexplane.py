@@ -23,6 +23,11 @@
 """
 HexPlane multi-resolution feature grid for 4D (space-time) representation.
 MIT-licensed implementation derived from 4DGaussians and K-Planes projects.
+
+Provenance: Kept in-tree (training/scene/) because upstream 4DGaussians/K-Planes
+do not publish an installable package for this component; it is adapted to our
+GSplat training stack. Not a bundled third-party library—derived implementation
+under the stated license.
 """
 
 import itertools

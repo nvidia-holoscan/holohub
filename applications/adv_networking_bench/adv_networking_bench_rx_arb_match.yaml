@@ -39,17 +39,17 @@ advanced_network:
       kind: "device"
       affinity: 0
       num_bufs: 51200
-      buf_size: 1064   
+      buf_size: 1064
     - name: "Data_RX_GPU2"
       kind: "device"
       affinity: 0
       num_bufs: 51200
-      buf_size: 1064   
+      buf_size: 1064
     - name: "Data_RX_GPU3"
       kind: "device"
       affinity: 0
       num_bufs: 51200
-      buf_size: 1064   
+      buf_size: 1064
 
     interfaces:
     - name: "rx_port"
@@ -68,19 +68,19 @@ advanced_network:
           cpu_core: 9
           batch_size: 10240
           memory_regions:
-            - "Data_RX_GPU1"            
+            - "Data_RX_GPU1"
         - name: "rq_q_2"
           id: 2
           cpu_core: 10
           batch_size: 10240
           memory_regions:
-            - "Data_RX_GPU2"            
+            - "Data_RX_GPU2"
         - name: "rq_q_3"
           id: 3
           cpu_core: 11
           batch_size: 10240
           memory_regions:
-            - "Data_RX_GPU3"            
+            - "Data_RX_GPU3"
         flex_items:
         - name: "flex_item_0"
           id: 0
@@ -113,7 +113,7 @@ advanced_network:
           match:
             flex_item_id: 0
             val: 0x02000000
-            mask: 0x03000000  
+            mask: 0x03000000
         - name: "flow_3"
           id: 3
           action:
@@ -122,7 +122,7 @@ advanced_network:
           match:
             flex_item_id: 0
             val: 0x03000000
-            mask: 0x03000000  
+            mask: 0x03000000
 
 bench_rx:
   interface_name: "rx_port" # Name of the RX port from the advanced_network config

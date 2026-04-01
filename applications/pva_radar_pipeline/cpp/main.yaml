@@ -1,0 +1,73 @@
+%YAML 1.2
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+
+holoviz_rgb:
+  window_title: "NCI image viewer"
+  width: 512
+  height: 512
+  tensors:
+    - name: "image"
+      type: "color"
+      opacity: 1.0
+      priority: 0
+
+holoviz_xyz:
+  window_title: "Point cloud viewer"
+  width: 512
+  height: 512
+  tensors:
+    - name: "xyz"
+      type: "points_3d"
+      opacity: 1.0
+      color: [1.0, 0.25, 0.75, 1.0]
+      point_size: 2
+      priority: 3
+    - name: "origin_x"
+      type: "lines_3d"
+      opacity: 1.0
+      color: [1.0, 0.0, 0.0, 1.0]
+      line_width: 3
+      priority: 0
+    - name: "origin_y"
+      type: "lines_3d"
+      opacity: 1.0
+      color: [0.0, 1.0, 0.0, 1.0]
+      line_width: 3
+      priority: 1
+    - name: "origin_z"
+      type: "lines_3d"
+      opacity: 1.0
+      color: [0.0, 0.0, 1.0, 1.0]
+      line_width: 3
+      priority: 2
+  camera_eye: [-0.1, -0.5, 0.25 ]
+  camera_look_at: [0.0, 0.5, 0.0]
+  camera_up: [0.0, 0.0, 1.0]
+
+radar_pipeline:
+  numTx: 4
+  numRx: 4
+  numSamples: 512
+  numChirps: 512
+  ddmRepeatFoldFactor: 8
+
+pva_radar_graphics:
+  doa_scale: 85.0
+
+radar_source:
+  directory: /workspace/pva-solutions/pipelines/assets/radar/
+  basename: "data_"

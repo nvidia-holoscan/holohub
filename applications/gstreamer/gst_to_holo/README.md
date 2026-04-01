@@ -4,7 +4,9 @@ A Holoscan application that receives video data from GStreamer pipelines and dis
 
 ![GStreamer to Holoscan Pipeline](docs/pipeline_diagram.png)
 
-*Fig. 1: Application architecture showing the integration of GStreamer pipelines with Holoscan's Holoviz display*
+## Fig. 1: Application architecture
+
+Application architecture showing the integration of GStreamer pipelines with Holoscan's Holoviz display.
 
 ## Description
 
@@ -17,9 +19,10 @@ This application showcases how to:
 - Handle multiple video formats (RGBA, I420, NV12) automatically
 - Process video with GStreamer's 1000+ plugins before display
 
-**Key Feature: Universal Video Input**
+### Key Feature: Universal Video Input
 
 The application provides a flexible bridge from GStreamer to Holoscan. You can construct **any GStreamer pipeline** as your video source - the examples provided are just demonstrations. This enables unlimited input possibilities:
+
 - Video file playback (MP4, MKV, AVI, WebM, etc.)
 - Live camera capture (V4L2, RTSP, IP cameras, etc.)
 - Network streaming (RTP, RTSP, HTTP, UDP, etc.)
@@ -31,6 +34,7 @@ The application provides a flexible bridge from GStreamer to Holoscan. You can c
 **Supported Video Formats:**
 
 The sink automatically detects and handles:
+
 - **RGBA** - Most common RGB format
 - **I420** - YUV 4:2:0 planar (3-plane)
 - **NV12** - YUV 4:2:0 semi-planar (2-plane)
@@ -135,6 +139,7 @@ gst-to-holo [OPTIONS]
 #### File Playback Examples
 
 **Important Note**: When running through `holohub run` (in a container), use absolute paths:
+
 - Inside container: `/workspace/holohub/video.mp4`
 - On your host: `<workspace_path>/video.mp4` (wherever your holohub workspace is located)
 
@@ -189,11 +194,13 @@ gst-to-holo [OPTIONS]
 **Important:** For UDP streaming, start the receiver FIRST, then the sender. UDP is connectionless - packets sent before the receiver is ready are lost.
 
 Terminal 1 - Start receiver (gst_to_holo):
+
 ```bash
 ./holohub run gst_to_holo --run-args="--pipeline 'udpsrc port=5000 caps=\"application/x-rtp,encoding-name=H264\" ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert name=sink'"
 ```
 
 Terminal 2 - Then start sender:
+
 ```bash
 gst-launch-1.0 videotestsrc ! videoconvert ! x264enc ! rtph264pay ! udpsink host=127.0.0.1 port=5000
 ```
@@ -235,17 +242,20 @@ GStreamer Pipeline → GstSinkOp → Holoviz → Display
 ```
 
 **GStreamer Pipeline (user-defined):**
+
 - Can be any GStreamer source or processing pipeline
 - Must name the final element as 'sink' for proper linking
 - Automatically negotiates format with the Holoscan sink
 
 **GstSinkOp:**
+
 - Receives video frames from GStreamer via GstSinkResource
 - Converts GStreamer buffers to Holoscan tensors
 - Handles both CPU and GPU memory paths
 - Supports multiple video formats (RGBA, I420, NV12)
 
 **Holoviz:**
+
 - Displays the video frames in a window
 - Provides high-performance rendering
 - Automatically handles format-specific display requirements
@@ -316,11 +326,13 @@ Format conversion is handled by GStreamer (`videoconvert` or `cudaconvert`), so 
 ### File Paths in Containers
 
 When running through `holohub run` (in a container):
+
 - Inside container: `/workspace/holohub/` maps to your workspace root
 - On your host: `<workspace_path>/` (wherever your holohub workspace is located)
 - Always use `/workspace/holohub/` prefix in your pipeline commands
 
 Example:
+
 ```bash
 --pipeline "filesrc location=/workspace/holohub/video.mp4 ! ..."
 ```
@@ -328,21 +340,27 @@ Example:
 ## Troubleshooting
 
 **Issue**: "Could not find element named 'sink' in pipeline"
+
 - **Solution**: Make sure your pipeline ends with `name=sink`, for example: `videoconvert name=sink`
 
 **Issue**: "Failed to link sink to appsink"
+
 - **Solution**: Ensure the final element's output format is compatible (use `videoconvert` or `cudaconvert`)
 
 **Issue**: Video plays but display is corrupted
+
 - **Solution**: Try using CPU path (default caps) instead of GPU path, or vice versa
 
 **Issue**: "Resource not found" error with file path
+
 - **Solution**: Check your file path - use `/workspace/holohub/` prefix when running in container
 
 **Issue**: No video from camera
+
 - **Solution**: Check available cameras with `v4l2-ctl --list-devices` and use correct `/dev/videoX` device
 
 **Issue**: Network stream not working
+
 - **Solution**: Make sure receiver is started BEFORE sender for UDP/RTP streams
 
 ## See Also

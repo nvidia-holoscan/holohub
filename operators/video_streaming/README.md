@@ -17,7 +17,7 @@ video_streaming/
 ├── video_streaming_server/               # Complete streaming server operator
 │   ├── video_streaming_server_*.cpp      # Server implementations
 │   ├── frame_debug_utils.cpp             # Debug utilities
-│   └── holoscan_server_cloud_streaming/  # Server streaming binary once NGC download is complete 
+│   └── holoscan_server_cloud_streaming/  # Server streaming binary once NGC download is complete
 ├── CMakeLists.txt                        # Unified build configuration
 ├── metadata.json                         # Combined metadata
 └── README.md                             # This file
@@ -70,7 +70,7 @@ add_holohub_application(my_streaming_app DEPENDS OPERATORS video_streaming)
 #include "video_streaming_client.hpp"
 #include "frame_saver.hpp"
 
-// Server functionality  
+// Server functionality
 #include "video_streaming_server_resource.hpp"
 #include "video_streaming_server_upstream_op.hpp"
 #include "video_streaming_server_downstream_op.hpp"
@@ -170,7 +170,6 @@ Run all unit tests from the holohub root directory:
 ### Integration Tests
 
 Please refer to the [Integration Tests](../../applications/video_streaming/TESTING.md) for end-to-end integration tests validate the complete streaming pipeline with actual server/client communication and frame transmission.
-
 
 ## Related Applications
 

@@ -1,5 +1,5 @@
 %YAML 1.2
-# SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,8 +15,8 @@
 # limitations under the License.
 ---
 extensions:
-  
-source: "replayer" # Valid values "replayer"  
+
+source: "replayer" # Valid values "replayer"
 
 replayer:  # VideoStreamReplayer
   basename: "multi_ai"
@@ -37,14 +37,14 @@ format_converter:  # FormatConverter
     out_tensor_name: source_video
     out_dtype: "float32"
     src_roi_rect: [ 328, 36, 1264, 1008 ]
-    output_img_size : [512, 512] 
+    output_img_size : [512, 512]
 
 format_converter_anonymization:  # FormatConverter
     # in_tensor_name: source_video
     out_tensor_name: source_video
     out_dtype: "float32"
     src_roi_rect: [ 328, 36, 1264, 1008 ]
-    output_img_size : [224, 224] 
+    output_img_size : [224, 224]
 
 segmentation_preprocessor: # Preprocessor
    in_tensor_name: source_video

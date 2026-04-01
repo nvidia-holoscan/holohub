@@ -837,4 +837,3 @@ TEST_F(StreamingServerIntegrationTest, ResourceWithBothOps) {
 }
 
 }  // namespace holoscan::ops
-

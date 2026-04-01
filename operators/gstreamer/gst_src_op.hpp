@@ -38,7 +38,7 @@ class GstSrcOp : public Operator {
 
   /**
    * @brief Setup the operator specification
-   * 
+   *
    * Defines the operator's inputs and parameters:
    * - input: GXF Entity containing video frame tensor(s)
    * - gst_src_resource: GstSrcResource for pipeline communication
@@ -47,12 +47,12 @@ class GstSrcOp : public Operator {
 
   /**
    * @brief Compute function that processes Holoscan entities
-   * 
+   *
    * This function:
    * 1. Receives an entity from the input port
    * 2. Converts the entity to a GStreamer buffer
    * 3. Pushes the buffer into the GStreamer pipeline
-   * 
+   *
    * @param input Input context for receiving entities
    * @param output Output context (unused - this is a sink operator)
    * @param context Execution context for GXF operations
@@ -61,7 +61,7 @@ class GstSrcOp : public Operator {
 
   /**
    * @brief Stop function called when operator execution ends
-   * 
+   *
    * Sends EOS (End-Of-Stream) to the GStreamer pipeline to signal completion
    * and allow proper finalization of output files.
    */

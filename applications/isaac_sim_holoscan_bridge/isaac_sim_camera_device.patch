@@ -10,7 +10,7 @@ index 741f0c84d..df850c907 100644
  # and proprietary rights in and to this software, related documentation
 @@ -11,11 +11,16 @@ import math
  from typing import Callable, List, Optional, Sequence, Tuple
- 
+
  import carb
 +import isaacsim.core.utils.numpy as np_utils
 +import isaacsim.core.utils.torch as torch_utils
@@ -64,7 +64,7 @@ index 741f0c84d..df850c907 100644
          self._current_frame["rendering_frame"] = 0
          self._core_nodes_interface = _isaacsim_core_nodes.acquire_interface()
 @@ -288,7 +302,7 @@ class Camera(BaseSensor):
- 
+
      def __del__(self):
          """detach annotators on destroy and destroy the internal render product if it exists"""
 -        for annotator in self.supported_annotators:
@@ -186,7 +186,7 @@ index 741f0c84d..df850c907 100644
 @@ -1002,21 +1026,30 @@ class Camera(BaseSensor):
              self._custom_annotators["pointcloud"] = None
          self._current_frame.pop("pointcloud", None)
- 
+
 -    def get_rgba(self) -> np.ndarray:
 +    def get_rgba(self, device: str = None) -> np.ndarray | wp.types.array:
          """
@@ -200,7 +200,7 @@ index 741f0c84d..df850c907 100644
          """
 -        return self._rgb_annotator.get_data()
 +        return self._rgb_annotator.get_data(device=device)
- 
+
 -    def get_rgb(self) -> np.ndarray:
 +    def get_rgb(self, device: str = None) -> np.ndarray | wp.types.array:
          """
@@ -212,17 +212,17 @@ index 741f0c84d..df850c907 100644
              rgb (np.ndarray): (N x 3) RGB color data for each point.
 +            wp.types.array: (N x 3) RGB color data for each point.
          """
- 
+
 -        data = self._rgb_annotator.get_data()
 -        return data[..., :3]
 +        return self._rgb_annotator.get_data(device=device)[:, :, :3]
- 
+
      def get_depth(self) -> np.ndarray:
          """
 @@ -1039,33 +1072,121 @@ class Camera(BaseSensor):
              return None
          return depth
- 
+
 -    def get_pointcloud(self) -> np.ndarray:
 -        """
 +    def get_pointcloud(self, device: str = None, world_frame: bool = True) -> np.ndarray | wp.array:
@@ -271,7 +271,7 @@ index 741f0c84d..df850c907 100644
 +                if is_warp_array:
 +                    pointcloud_data = wp.to_torch(pointcloud_data)
 +                    pointcloud_data = pointcloud_data.to(device)  # Ensure tensor is on correct device
- 
+
 -        depth = self.get_depth()
 +                # Convert points to homogeneous coordinates by adding a column of ones
 +                homogeneous_points = backend_utils.pad(pointcloud_data, ((0, 0), (0, 1)), value=1.0)
@@ -305,13 +305,13 @@ index 741f0c84d..df850c907 100644
 +                f"[get_pointcloud][{self.prim_path}] WARNING: 'distance_to_image_plane' annotator not available to get depth data, Returning None"
 +            )
              return None
- 
+
 -        # First, generate a grid of the mesh.
 -        im_height, im_width = depth.shape[0], depth.shape[1]
 +        # Determine backend based on device and depth type
 +        is_warp_array = isinstance(depth, wp.types.array)
 +        backend_utils = torch_utils if is_warp_array else np_utils
- 
+
 -        ww = np.linspace(0, im_width - 1, im_width)
 -        hh = np.linspace(0, im_height - 1, im_height)
 -        xmap, ymap = np.meshgrid(ww, hh)
@@ -322,7 +322,7 @@ index 741f0c84d..df850c907 100644
 +
 +        # Create pixel coordinate grid centered around the image center
 +        im_height, im_width = depth.shape[0], depth.shape[1]
- 
+
 -        points_2d = np.column_stack((xmap.ravel(), ymap.ravel()))
 +        if backend_utils == torch_utils:
 +            # Create coordinate grid using torch
@@ -346,15 +346,15 @@ index 741f0c84d..df850c907 100644
 +            points_3d = self.get_camera_points_from_image_coords(
 +                points_2d, depth.flatten(), device=device, backend_utils_cls=backend_utils
 +            )
- 
+
 -        # Directly use this function from the camera class to do this.
 -        pointcloud = self.get_world_points_from_image_coords(points_2d, depth.flatten())
 +        # Convert back to warp array if input was warp array
 +        if is_warp_array and not isinstance(points_3d, wp.types.array):
 +            points_3d = wp.from_torch(points_3d)
- 
+
 -        return pointcloud
 +        return points_3d
- 
+
      def get_focal_length(self) -> float:
          """

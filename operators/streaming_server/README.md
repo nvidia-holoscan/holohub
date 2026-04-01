@@ -5,6 +5,7 @@ The `streaming_server` operator provides a streaming server implementation that 
 ## `holoscan::ops::StreamingServerOp`
 
 This operator class implements a streaming server that can:
+
 - Accept incoming client connections
 - Receive video frames from clients
 - Send video frames to clients
@@ -67,17 +68,17 @@ auto streaming_server = make_operator<ops::StreamingServerOp>(
 
 //add the streaming_server to the app
 add_operator(streaming_server);
-``` 
+```
 
 ## Building the operator
 
 In order to build the server operator, you must first download the server binaries form NGC and add to the `lib` directory in the `streaming_server` operator folder
 
 Download the Holoscan Server Cloud Streaming library from NGC:
-https://catalog.ngc.nvidia.com/orgs/nvidia/resources/holoscan_server_cloud_streaming
+<https://catalog.ngc.nvidia.com/orgs/nvidia/resources/holoscan_server_cloud_streaming>
 
 ```bash
-cd <your_holohub_path>/operators/streaming_server 
+cd <your_holohub_path>/operators/streaming_server
 ngc registry resource download-version "nvidia/holoscan_server_cloud_streaming:0.1"
 unzip -o holoscan_server_cloud_streaming_v0.1/holoscan_server_cloud_streaming.zip
 
@@ -101,7 +102,7 @@ You can push the container and create/update/deploy the streaming function from 
 #### Push Container
 
 Note: You first must docker login to the NGC Container Registry before you can push containers to it:
-https://docs.nvidia.com/ngc/gpu-cloud/ngc-private-registry-user-guide/index.html#accessing-ngc-registry
+<https://docs.nvidia.com/ngc/gpu-cloud/ngc-private-registry-user-guide/index.html#accessing-ngc-registry>
 Tag the container and push it to the container registry:
 
 ```bash
@@ -137,6 +138,7 @@ export HTTP_SERVER_PORT=8011
 #### Create the Cloud Streaming Function
 
 Create the streaming function by running the provided script after setting all the required variables:
+
 ```bash
 ./nvcf/create_streaming_function.sh
 ```
@@ -150,13 +152,14 @@ export STREAMING_FUNCTION_ID={my-simple-streamer-function-id}
 #### Update Function
 
 Update an existing streaming function by running the provided script after setting all the required variables:
+
 ```bash
 ./nvcf/update_streaming_function.sh
 ```
 
 #### Deploy Function
 
-Deploy the streaming function from the web portal: https://nvcf.ngc.nvidia.com/functions
+Deploy the streaming function from the web portal: <https://nvcf.ngc.nvidia.com/functions>
 
 #### Pre-deployment Port Check
 
@@ -169,7 +172,7 @@ cd /path/to/holohub
 # Check streaming server port (from STREAMING_SERVER_PORT variable, default: 49100)
 ./check_port.sh ${STREAMING_SERVER_PORT:-49100}
 
-# Check HTTP server port (from HTTP_SERVER_PORT variable, default: 8011)  
+# Check HTTP server port (from HTTP_SERVER_PORT variable, default: 8011)
 ./check_port.sh ${HTTP_SERVER_PORT:-8011}
 
 # Check NVCF server port (typically 443 for grpc.nvcf.nvidia.com)
@@ -180,18 +183,21 @@ cd /path/to/holohub
 ```
 
 **Key ports to verify:**
+
 - **Streaming Server Port** (`49100` by default): Main streaming communication port
-- **HTTP Server Port** (`8011` by default): HTTP endpoint for function management  
+- **HTTP Server Port** (`8011` by default): HTTP endpoint for function management
 - **HAProxy Ports**: Any custom HAProxy configuration ports
 - **NVCF gRPC Port** (`443`): Communication with NVIDIA Cloud Functions
 
 The port checking script will help identify:
+
 - 🚫 **Port conflicts**: If ports are already in use by other processes
-- ✅ **Available ports**: Confirmation that ports can be bound successfully  
+- ✅ **Available ports**: Confirmation that ports can be bound successfully
 - 🔧 **Process identification**: What applications are using specific ports
 - 📋 **Port recommendations**: Guidance on port selection
 
 **If ports are in use**, either:
+
 1. **Stop conflicting processes**: `kill [PID]` (use caution)
 2. **Use different ports**: Update environment variables
 3. **Configure around conflicts**: Modify YAML configurations
@@ -215,7 +221,6 @@ Note: If the test haproxy is still running, and you wish to test the executable 
 ## Supported Platforms
 
 - Linux x86_64
-- NVCF Cloud instances 
+- NVCF Cloud instances
 
 For more information on NVCF Cloud functions, please refer to [NVIDIA Cloud Functions documentation](https://docs.nvidia.com/cloud-functions/user-guide/latest/cloud-function/function-creation.html#function-creation).
-

@@ -1,14 +1,14 @@
-### Video Encoder
+# Video Encoder
 
 The `video_encoder` encodes YUV video frames to h264 bit stream.
 
-#### `holoscan::ops::VideoEncoderOp`
+## `holoscan::ops::VideoEncoderOp`
 
 Operator class to encode YUV video frames to h264 bit stream.
 
 This implementation is based on `nvidia::gxf::VideoEncoder`.
 
-##### Parameters
+### Parameters
 
 - **`input_frame`**: Receiver to get the input frame
   - type: `holoscan::IOSpec*`

@@ -13,7 +13,7 @@ index 5366c8ab7..4f32f0213 100644
 @@ -123,29 +122,6 @@ RUN ARCH=$(uname -m) && if [ "$ARCH" = "aarch64" ]; then ARCH="${ARCH}-${GPU_TYP
  RUN mkdir -p ${TORCHVISION_VERSION}
  RUN tar -xf torchvision.tgz -C ${TORCHVISION_VERSION} --strip-components 1
- 
+
 -############################################################
 -# Vulkan SDK
 -#
@@ -43,7 +43,7 @@ index 5366c8ab7..4f32f0213 100644
 @@ -275,18 +251,6 @@ ENV TORCHVISION=/opt/torchvision/${TORCHVISION_VERSION}
  COPY --from=torchvision-downloader ${TORCHVISION} ${TORCHVISION}
  ENV CMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH}:${TORCHVISION}"
- 
+
 -# Copy Vulkan SDK
 -ARG VULKAN_SDK_VERSION
 -ENV VULKAN_SDK=/opt/vulkansdk/${VULKAN_SDK_VERSION}
@@ -96,20 +96,20 @@ index a2eaec0c1..6d40e5a5b 100644
 +  }
    return surface;
  }
- 
+
 diff --git a/modules/holoviz/src/vulkan/vulkan_app.cpp b/modules/holoviz/src/vulkan/vulkan_app.cpp
 index b398cf97c..d91db9da9 100644
 --- a/modules/holoviz/src/vulkan/vulkan_app.cpp
 +++ b/modules/holoviz/src/vulkan/vulkan_app.cpp
 @@ -1333,7 +1333,7 @@ void Vulkan::Impl::cleanup_transfer_jobs() {
- 
+
          it->fence_triggered_ = true;
        } else if (result != vk::Result::eNotReady) {
 -        vk::resultCheck(result, "Failed to get upload fence status");
 +        vk::throwResultException(result, "Failed to get upload fence status");
        }
      }
- 
+
 @@ -1351,7 +1351,7 @@ void Vulkan::Impl::cleanup_transfer_jobs() {
            it = next;
            continue;
@@ -127,16 +127,16 @@ index b398cf97c..d91db9da9 100644
 +    vk::throwResultException(result, "Failed to wait for frame fences");
      exit(-1);
    }
- 
+
 @@ -1414,7 +1414,9 @@ void Vulkan::Impl::submit_frame() {
- 
+
    const vk::Result result =
        vk::Result(nvvk_.batch_submission_.execute(wait_fences_[image_index].get(), 0b0000'0001));
 -  vk::resultCheck(result, "Failed to execute bach submission");
 +  if (result != vk::Result::eSuccess) {
 +    vk::throwResultException(result, "Failed to execute bach submission");
 +  }
- 
+
    // Presenting frame
    fb_sequence_.present(queue_gct_);
 @@ -2514,7 +2516,7 @@ void Vulkan::Impl::read_framebuffer(ImageFormat fmt, uint32_t width, uint32_t he
@@ -147,7 +147,7 @@ index b398cf97c..d91db9da9 100644
 +      vk::throwResultException(result, "Failed to wait for frame fences");
        exit(-1);
      }
- 
+
 @@ -2569,7 +2571,9 @@ void Vulkan::Impl::read_framebuffer(ImageFormat fmt, uint32_t width, uint32_t he
    // submit the command buffer
    const vk::Result result =
@@ -156,6 +156,6 @@ index b398cf97c..d91db9da9 100644
 +  if (result != vk::Result::eSuccess) {
 +    vk::throwResultException(result, "Failed to execute bach submission");
 +  }
- 
+
    // copy the buffer to CUDA memory
    {

@@ -26,7 +26,7 @@ function rest_get(url, quiet=false) {
   }).then(function(json) {
     if( !quiet ) {
 			console.log(`GET response from ${url}`);
-			console.log(json); 
+			console.log(json);
 		}
     return json;
   });
@@ -44,7 +44,7 @@ function rest_put(url, data, response_handler=null, quiet=false) {
 		}
 		if( response_handler != undefined )
 			response_handler(response);
-  });  
+  });
 }
 
 function rest_post(url, data, response_handler=null, quiet=false) {
@@ -62,5 +62,5 @@ function rest_post(url, data, response_handler=null, quiet=false) {
 		if( response_handler != undefined )
 			response_handler(json);
     return json;
-  });  
+  });
 }

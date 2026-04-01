@@ -56,7 +56,7 @@ tensor_to_file = TensorToFileOp(
 ## Parameters
 
 | Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
+| --- | --- | --- | --- |
 | `tensor_name` | string | "" | Name of the tensor to write to the file |
 | `output_file` | string | "" | Output file path for the data |
 | `allocator` | Allocator | - | Allocator for output buffers |
@@ -81,7 +81,7 @@ Any binary streaming file format is allowed. The operator does not check for val
 Historically the operator has been used for writing video data with various file extensions:
 
 - `.h264`, `.264` - H.264 elementary stream
-- `.h265`, `.265`, `.hevc` - H.265/HEVC elementary stream  
+- `.h265`, `.265`, `.hevc` - H.265/HEVC elementary stream
 - `.mp4` - MP4 container format
 
 ## Configuration Examples

@@ -13,9 +13,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  * Credit for this code: https://github.com/dusty-nv/jetson-containers/blob/master/packages/llm/llamaspeak/static/audio.js
- * 
+ *
  * flask webserver
  * handles audio input/output device streaming
  * websocket.js should be included also
@@ -35,25 +35,25 @@ function checkMediaDevices() {
 function enumerateAudioDevices() {
     var selectInput = document.getElementById('audio-input-select');
     var selectOutput = document.getElementById('audio-output-select');
-    
+
     if (!checkMediaDevices()) {
         selectInput.add(new Option('use HTTPS to enable browser audio'));
         selectOutput.add(new Option('use HTTPS to enable browser audio'));
         return;
     }
-    
+
     navigator.mediaDevices.getUserMedia({audio: true, video: false}).then((stream) => { // get permission from user
         navigator.mediaDevices.enumerateDevices().then((devices) => {
             stream.getTracks().forEach(track => track.stop()); // close the device opened to get permissions
             devices.forEach((device) => {
                 console.log(`Browser media device:  ${device.kind}  label=${device.label}  id=${device.deviceId}`);
-                
+
                 if (device.kind == 'audioinput')
                     selectInput.add(new Option(device.label, device.deviceId));
                 else if (device.kind == 'audiooutput')
                     selectOutput.add(new Option(device.label, device.deviceId));
             });
-            
+
             if (selectInput.options.length == 0)
                 selectInput.add(new Option('browser has no audio inputs available'));
 
@@ -88,17 +88,17 @@ function openAudioDevices(inputDeviceId, outputDeviceId) {
     console.log('Starting openAudioDevices');
     if (inputDeviceId == undefined || inputDeviceId == "Default")
         inputDeviceId = null;
-    
+
     if (outputDeviceId == undefined || outputDeviceId == "Default")
         outputDeviceId = null;
-    
+
     console.log(`Using input device: ${inputDeviceId}, output device: ${outputDeviceId}`);
 
     const constraints = {
         audio: inputDeviceId ? {deviceId: {exact: inputDeviceId}} : true,
         video: false
     };
-    
+
     navigator.mediaDevices.getUserMedia(constraints)
     .then((stream) => {
         console.log('Opened audio input device', inputDeviceId);
@@ -106,12 +106,12 @@ function openAudioDevices(inputDeviceId, outputDeviceId) {
         audioInputDevice = stream;
         audioInputTrack = stream.getAudioTracks()[0];
         audioSettings = audioInputTrack.getSettings();
-        
+
         audioInputTrack.enabled = true;  // mic on by default
-        
+
         console.log('Audio input track:', audioInputTrack);
         console.log('Audio settings:', audioSettings);
-        
+
         // Ensure AudioContext is created here
         if (!window.audioContext) {
             try {
@@ -122,7 +122,7 @@ function openAudioDevices(inputDeviceId, outputDeviceId) {
                 return;
             }
         }
-        
+
         audioInputStream = window.audioContext.createMediaStreamSource(audioInputDevice);
         console.log('Created media stream source');
 
@@ -136,7 +136,7 @@ function openAudioDevices(inputDeviceId, outputDeviceId) {
                 console.log('Audio processing chain set up');
 
                 audioInputCapture.port.onmessage = onAudioInputCapture;
-                
+
                 // Add visualization
                 visualizeAudio(window.audioContext, audioInputStream);
             }).catch(error => {
@@ -171,7 +171,7 @@ function onAudioOutput(samples) {
     }
 }
 
-function muteAudioInput() {  
+function muteAudioInput() {
     var button = document.getElementById('audio-input-mute');
     const muted = button.classList.contains('bi-mic-fill');
     console.log(`muteAudioInput(${muted})`);
@@ -183,7 +183,7 @@ function muteAudioInput() {
         audioInputTrack.enabled = !muted;
 }
 
-function muteAudioOutput() {  
+function muteAudioOutput() {
     var button = document.getElementById('audio-output-mute');
     const muted = button.classList.contains('bi-volume-up-fill');
     console.log(`muteAudioOutput(${muted})`);

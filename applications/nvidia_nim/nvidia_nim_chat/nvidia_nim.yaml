@@ -1,5 +1,5 @@
 %YAML 1.2
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +34,7 @@ extensions:
 # The following configuration is for the NVIDIA hosted NIMs running on build.nvidia.com.
 nim:
   base_url: https://integrate.api.nvidia.com/v1
-  api_key: 
+  api_key:
 
 models:
   llama3-70b-instruct:
@@ -97,5 +97,3 @@ models:
     top_p: 0.9
     max_tokens: 1024
     stream: True
-
-

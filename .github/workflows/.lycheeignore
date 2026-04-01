@@ -3,7 +3,7 @@ http://localhost.*
 http://127.0.0.1.*
 http://0.0.0.0.*
 
-# Google Drive files (fail with 401 errors
+# Google Drive files (fail with 401 errors)
 https://drive.google.com/file/d/.*
 
 # Certificate issues
@@ -20,3 +20,7 @@ file://.*/static/bootstrap.css
 file://.*/static/chat.css
 file://.*/static/favicon.ico
 file://.*/static/nvidia-logo.png
+
+# HTTP/2 protocol errors (server compatibility issues)
+https://www.analog.com/.*
+https://www.logitech.com/.*

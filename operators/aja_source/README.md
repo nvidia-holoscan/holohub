@@ -13,7 +13,7 @@ The AJA Source operator provides functionality to capture high-quality video str
 The following parameters can be configured for this operator:
 
 | Parameter | Type | Description | Default |
-|-----------|------|-------------|---------|
+| --- | --- | --- | --- |
 | `device` | string | Device specifier (e.g., "0" for device 0) | "0" |
 | `channel` | NTV2Channel | Camera channel to use for input | NTV2_CHANNEL1 |
 | `width` | uint32_t | Width of the video stream | 1920 |
@@ -43,4 +43,3 @@ The operator supports various video formats based on resolution, frame rate, and
 
 - **video_buffer_output**: Video buffer containing the captured frame
 - **overlay_buffer_output** (optional): Empty video buffer for overlay when `enable_overlay` is true
-

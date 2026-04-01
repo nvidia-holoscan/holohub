@@ -61,7 +61,6 @@ Which backend is best for your use case will depend on multiple factors, such as
         - Supported by all MOFED drivers (requires rebuilding nvidia-dkms drivers afterwards).
     - [`DMA Buf`](https://docs.kernel.org/driver-api/dma-buf.html), supported on Linux kernels 5.12+ with NVIDIA open-source drivers 515+ and CUDA toolkit 11.7+.
 
-
 ## 1. Installing Holoscan Networking
 
 We'll start with installing the `holoscan-networking` package, as it provides some utilities to help tune the system, and requires some dependencies which will help us with the system setup.
@@ -176,7 +175,6 @@ sudo reboot
     ```
 
 Running `ibstat` or `ibv_devinfo` will confirm your NIC interfaces are recognized by your drivers.
-
 
 ### 2.2 Switch your NIC Link Layers to Ethernet
 
@@ -620,7 +618,6 @@ lspci -tv
 
     Most x86_64 systems are not designed for this topology as they lack a discrete PCIe switch. In that case, the best connection they can achieve is `NODE`.
 
-
 ### 3.2 Check the NIC's PCIe configuration
 
 !!! quote "[Understanding PCIe Configuration for Maximum Performance - May 27, 2022](https://enterprise-support.nvidia.com/s/article/understanding-pcie-configuration-for-maximum-performance)"
@@ -629,7 +626,7 @@ lspci -tv
 
 The instructions below are meant to understand if your system is able to extract the maximum capabilities of your NIC, but they're not configurable. The two values that we are looking at here are the Max Payload Size (MPS - the maximum size of a PCIe packet) and the Speed (or PCIe generation).
 
-##### Max Payload Size (MPS)
+#### Max Payload Size (MPS)
 
 === "tune_system.py"
 
@@ -692,7 +689,6 @@ The instructions below are meant to understand if your system is able to extract
 
         While your NIC might be capable of more, 256 bytes is generally the largest supported by any switch/CPU at this time.
 
-
 ##### PCIe Speed/Generation
 
 Identify the PCIe address of your NVIDIA NIC:
@@ -748,7 +744,6 @@ Unlike the PCIe properties queried in the previous section, the MRRS is configur
         cd holohub
         sudo ./operators/advanced_network/python/tune_system.py --check mrrs
         ```
-
 
 === "manual"
 
@@ -844,7 +839,6 @@ While it is naturally beneficial for CPU packets, it is also needed when routing
         Mount Point          Options
         /dev/hugepages       rw,relatime,pagesize=2M
         ```
-
 
 === "vanilla"
 
@@ -955,7 +949,6 @@ The example below allocates 3 huge pages of 1GB each.
 
         If you work with containers, remember to mount this directory in your container as well with `-v /mnt/huge:/mnt/huge`.
 
-
 Rerunning the initial commands should now list 3 hugepages of 1GB each. 1GB will be the default huge page size if updated in the kernel bootline only.
 
 ### 3.5 Isolate CPU cores
@@ -1056,7 +1049,6 @@ When a core goes idle/to sleep, coming back online to poll the NIC can cause lat
 
 Check the current governor for each of your cores:
 
-
 === "tune_system.py"
 
     === "Debian installation"
@@ -1156,7 +1148,7 @@ Similarly to the above, we want to maximize the GPU's clock speed and prevent it
 
 Run the following command to check your current clocks and whether they're locked (persistence mode):
 
-```
+```text
 nvidia-smi -q | grep -i "Persistence Mode"
 nvidia-smi -q -d CLOCK
 ```
@@ -1188,7 +1180,6 @@ nvidia-smi -q -d CLOCK
             Video                             : 1950 MHz
         ...
     ```
-
 
 To lock the GPU's clocks to their max values:
 
@@ -1241,7 +1232,6 @@ You can confirm that the clocks are set to the max values by running `nvidia-smi
 !!! note
 
     Some max clocks might not be achievable in certain configurations, or due to boost clocks (SM) or rounding errors (Memory),  despite the lock commands indicating it worked. For example - on IGX - the max non-boot SM clock will be 1920 MHz, and the max memory clock will show 8000 MHz, which are satisfying compared to the initial mode.
-
 
 ### 3.8 Maximize GPU BAR1 size
 
@@ -1296,7 +1286,7 @@ The GPU BAR1 memory is the primary resource consumed by `GPUDirect`. It allows o
 
     **If you attempt to go forward with the instructions below without meeting the above requirements, you might render your GPU unusable.**
 
-##### BIOS Resizable BAR support
+#### BIOS Resizable BAR support
 
 First, check if your system and BIOS support resizable BAR. Refer to your system's manufacturer documentation to access the BIOS. The Resizable BAR option is often categorized under `Advanced > PCIe` settings. Enable this feature if found.
 
@@ -1304,7 +1294,7 @@ First, check if your system and BIOS support resizable BAR. Refer to your system
 
     The IGX Developer kit with IGX OS 1.1+ supports resizable BAR by default.
 
-##### GPU Resizable BAR support
+#### GPU Resizable BAR support
 
 Next, you can check if your GPU has physical resizable BAR by running the following command:
 
@@ -1400,14 +1390,13 @@ Press `y` to confirm you'd like to continue, then `y` again to apply to all the 
 
 Reboot your system, and check the BAR1 size again to confirm the change.
 
-```
+```bash
 sudo reboot
 ```
 
 ### 3.9 Enable Jumbo Frames
 
 Jumbo frames are Ethernet frames that carry a payload larger than the standard 1500 bytes MTU (Maximum Transmission Unit). They can significantly improve network performance when transferring large amounts of data by reducing the overhead of packet headers and the number of packets that need to be processed.
-
 
 **We recommend an MTU of 9000 bytes on all interfaces involved in the data path.** You can check the current MTU of your interfaces:
 
@@ -1493,7 +1482,7 @@ Make sure to install [`holoscan-networking`](#1-installing-holoscan-networking) 
 
 ### 4.1 Update the loopback configuration
 
-##### Find the application files
+#### Find the application files
 
 Identify the location of the `adv_networking_bench` executable, and of the configuration file named `adv_networking_bench_default_tx_rx.yaml`, for your installation:
 
@@ -1615,7 +1604,7 @@ interfaces:
 
 To run the benchmarking application to run a loopback on your system, you'll need to modify the `bench_tx` section which configures the application itself, to create the packet headers and direct the packets to the NIC. Make sure to remove the template brackets `< >`.
 
--  `eth_dst_addr` with the MAC address (and not the PCIe address) of the NIC interface you want to use for Rx. You can get the MAC address of your `if_name` interface with `#!bash cat /sys/class/net/$if_name/address`:
+- `eth_dst_addr` with the MAC address (and not the PCIe address) of the NIC interface you want to use for Rx. You can get the MAC address of your `if_name` interface with `#!bash cat /sys/class/net/$if_name/address`:
 
 ```yaml hl_lines="4"
 bench_tx:
@@ -1669,7 +1658,6 @@ After having modified the configuration file, ensure you have connected an SFP c
           --docker-opts "-u 0 --privileged" \
           -- bash -c "./install/examples/adv_networking_bench/adv_networking_bench adv_networking_bench_default_tx_rx.yaml"
         ```
-
 
 The application will run indefinitely. You can stop it gracefully with `Ctrl-C`. You can also uncomment and set the `max_duration_ms` field in the `scheduler` section of the configuration file to limit the duration of the run automatically.
 
@@ -1983,7 +1971,6 @@ sudo mlnx_perf -i $if_name
         ```
 
         You might need to kill some of the listed processes to free up GPU VRAM.
-
 
 ## 5. Building your own application
 

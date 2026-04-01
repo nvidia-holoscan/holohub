@@ -7,6 +7,7 @@ The IIO Controller provides a comprehensive set of operators for interfacing wit
 ## Description
 
 The IIO Controller operators abstract the complexities of the Linux IIO framework, providing high-performance, low-latency access to:
+
 - **Software Defined Radios (SDRs)** like ADALM-Pluto for RF signal processing
 - **Data Acquisition Systems** for high-speed analog/digital conversion
 - **Sensors** including accelerometers, gyroscopes, magnetometers, and environmental sensors
@@ -15,6 +16,7 @@ The IIO Controller operators abstract the complexities of the Linux IIO framewor
 ### What is IIO?
 
 The Industrial I/O (IIO) subsystem is a Linux kernel framework that provides:
+
 - Unified API for diverse hardware devices
 - High-performance data streaming
 - Real-time configuration of device parameters
@@ -23,6 +25,7 @@ The Industrial I/O (IIO) subsystem is a Linux kernel framework that provides:
 ## Requirements
 
 ### Software
+
 - libiio (version 0.X)
 - Holoscan SDK
 
@@ -31,38 +34,48 @@ The Industrial I/O (IIO) subsystem is a Linux kernel framework that provides:
 This package provides 5 specialized operators:
 
 ### 1. `IIOAttributeRead` - Device Parameter Reading
+
 Reads configuration parameters and real-time status from IIO devices. Use for:
+
 - Monitoring device temperature, gain, frequency settings
 - Reading calibration status
 - Checking signal strength indicators
 
 ### 2. `IIOAttributeWrite` - Device Parameter Control
+
 Writes configuration parameters to IIO devices. Use for:
+
 - Setting RF frequency, gain, bandwidth
 - Configuring sampling rates
 - Enabling/disabling device features
 
 ### 3. `IIOBufferRead` - High-Speed Data Acquisition
+
 Streams data from IIO device buffers with DMA support. Use for:
+
 - Capturing buffer samples from SDRs
 - Reading multi-channel ADC data
 - Acquiring sensor data streams
 
 ### 4. `IIOBufferWrite` - High-Speed Data Transmission
+
 Streams data to IIO device buffers for output. Use for:
+
 - Transmitting buffer samples through SDRs
 - Generating analog waveforms via DACs
 - Outputting test patterns
 
 ### 5. `IIOConfigurator` - Automated Device Setup
+
 Applies complex configurations from YAML files. Use for:
+
 - Initializing devices with multiple parameters
 - Switching between operational modes
 - Applying calibration profiles
 
 ### IIOAttributeRead Operator
 
-#### Configuration Parameters
+#### Configuration Parameters (IIOAttributeRead)
 
 - **`ctx`**: (Mandatory) The IIO context URI:
   - `"ip:192.168.2.1"` - Network connection (e.g., ADALM-Pluto default)
@@ -74,7 +87,7 @@ Applies complex configurations from YAML files. Use for:
 - **`channel_is_output`**: (Optional) True for TX channels, false for RX channels
 - **`attr_name`**: (Mandatory) Attribute to read (e.g., `"frequency"`, `"sampling_frequency"`, `"gain"`).
 
-#### Ports
+#### Ports (IIOAttributeRead)
 
 - To receive the data read from the `IIOAttributeRead` operator, use the
   output port named `value` of type `std::string`.
@@ -98,7 +111,7 @@ add_flow(freq_reader, display_op, {{"value", "frequency"}});
 
 ### IIOAttributeWrite Operator
 
-#### Configuration Parameters
+#### Configuration Parameters (IIOAttributeWrite)
 
 - **`ctx`**: (Mandatory) The URI of the IIO context to connect to the device.
 - **`dev`**: (Optional) The name of the IIO device to write to. If not
@@ -111,12 +124,12 @@ add_flow(freq_reader, display_op, {{"value", "frequency"}});
     parameter must also be set.
 - **`attr_name`**: (Mandatory) The name of the attribute to write to.
 
-#### Ports
+#### Ports (IIOAttributeWrite)
 
 - To send the data to be written to the `IIOAttributeWrite` operator, use the
   input port named `value` of type `std::string`.
 
-#### Operator Example
+#### Operator Example (IIOAttributeWrite)
 
 ```cpp
 auto iio_write_op = make_operator<ops::IIOAttributeWrite>(
@@ -133,7 +146,7 @@ add_flow(basic_emitter_op, iio_write_op, {{"value", "value"}});
 
 ### IIOBufferRead Operator
 
-#### Configuration Parameters
+#### Configuration Parameters (IIOBufferRead)
 
 - **`ctx`**: (Mandatory) IIO context URI (e.g., `"ip:192.168.2.1"` for ADALM-Pluto)
 - **`dev`**: (Mandatory) Device name:
@@ -150,7 +163,7 @@ add_flow(basic_emitter_op, iio_write_op, {{"value", "value"}});
   - `[true, true]` - Input channels for RX
   - Must match the order of `enabled_channel_names`
 
-#### Ports
+#### Ports (IIOBufferRead)
 
 - To receive the data read from the `IIOBufferRead` operator, use the output
   port named `buffer` of type `iio_buffer_info_t` as a shared pointer. This
@@ -182,7 +195,7 @@ add_flow(sdr_receiver, fft_processor, {{"buffer", "iq_data"}});
 
 ### IIOBufferWrite Operator
 
-#### Configuration Parameters
+#### Configuration Parameters (IIOBufferWrite)
 
 - **`ctx`**: (Mandatory) IIO context URI
 - **`dev`**: (Mandatory) Device name:
@@ -195,7 +208,7 @@ add_flow(sdr_receiver, fft_processor, {{"buffer", "iq_data"}});
 - **`enabled_channel_output`**: (Mandatory) Channel direction:
   - `[true, true]` - Output channels for TX
 
-#### Ports
+#### Ports (IIOBufferWrite)
 
 - To send the data to be written to the `IIOBufferWrite` operator, use the
   input port named `buffer` of type `iio_buffer_info_t` as a shared pointer.
@@ -226,7 +239,7 @@ add_flow(data_generator, sdr_transmitter, {{"output_buffer", "buffer"}});
 
 ### IIOConfigurator Operator
 
-#### Configuration Parameters
+#### Configuration Parameters (IIOConfigurator)
 
 - **`cfg`**: (Mandatory) Path to YAML configuration file
 
@@ -261,7 +274,7 @@ cfg:
             - length_align_bytes: 8
 ```
 
-#### Operator Example
+#### Operator Example (IIOConfigurator)
 
 ```cpp
 // Initialize ADALM-Pluto with complex configuration
@@ -277,6 +290,7 @@ add_flow(start_op(), pluto_config);
 ## Data Format and Buffer Structure
 
 ### Important Notes on Data Handling
+
 The IIO operators provide **direct access to raw device buffers** without any automatic data conversion or interpretation:
 
 1. **No Automatic Data Conversion**: The operators do not automatically interpret channels data (needs conversion in application)
@@ -285,8 +299,10 @@ The IIO operators provide **direct access to raw device buffers** without any au
 4. **Channel Independence**: Each channel (voltage0, voltage1, etc.) is an independent data stream
 
 ### Buffer Memory Layout
+
 When multiple channels are enabled, samples are interleaved in the buffer:
-```
+
+```text
 Single channel: [Ch0_S0, Ch0_S1, Ch0_S2, ...]
 Dual channel:   [Ch0_S0, Ch1_S0, Ch0_S1, Ch1_S1, ...]
 ```

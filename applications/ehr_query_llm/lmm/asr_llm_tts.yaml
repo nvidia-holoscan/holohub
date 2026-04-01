@@ -1,8 +1,5 @@
-# See the License for the specific language governing permissions and
-# limitations under the License.
----
 %YAML 1.2
-# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +23,6 @@ RivaTTSOp:
 RivaASROp:
   boosted_lm_score: 100
   boosted_lm_words:
-    - appendectomy 
+    - appendectomy
     - laparoscopic
     - cholecystectomy

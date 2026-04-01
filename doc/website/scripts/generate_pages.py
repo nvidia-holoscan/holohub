@@ -27,6 +27,13 @@ from pathlib import Path
 
 import mkdocs_gen_files
 
+# Ensure the scripts directory is importable regardless of execution order
+_scripts_dir = str(Path(__file__).resolve().parent)
+if _scripts_dir not in sys.path:
+    sys.path.insert(0, _scripts_dir)
+
+from generate_api_docs import get_api_reference_for_operator  # noqa: E402
+
 # log stuff
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -766,11 +773,7 @@ def create_page(
     run_locally_html = ""
     alt_language_link = ""
     all_languages = ""
-    if (
-        not archive_version
-        and len(relative_dir.parts) > 0
-        and relative_dir.parts[0] in ["applications", "workflows"]
-    ):
+    if not archive_version and relative_dir.parts[0] in ["applications", "workflows"]:
         app_path = str(relative_dir)
         app_name = metadata.get("name", "Application")
         run_locally_html = create_run_locally_button_and_modal(
@@ -798,6 +801,13 @@ def create_page(
 
     # Append the text to the output
     output_text += readme_text
+
+    # Append API Reference section for operator pages (non-archived only)
+    if not archive_version and len(relative_dir.parts) > 0 and relative_dir.parts[0] == "operators":
+        op_dir = str(relative_dir)
+        api_ref = get_api_reference_for_operator(op_dir, git_repo_path)
+        if api_ref:
+            output_text += "\n\n" + api_ref
 
     # Append the version selector script at the end
     if version_script_html:

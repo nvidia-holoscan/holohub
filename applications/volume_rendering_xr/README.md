@@ -23,7 +23,7 @@ The application supports x86_64 or IGX dGPU platforms. IGX iGPU, AGX, and RHEL p
 The following packages and applications are required to run remote rendering with a Magic Leap 2 device:
 
 | Requirement | Platform | Version | Source |
-|--|------|---------|--|
+| --- | --- | --- | --- |
 | Magic Leap Hub | Windows or macOS PC | latest | [Magic Leap Website](https://ml2-developer.magicleap.com/downloads) |
 | Headset Firmware | Magic Leap 2 | v1.6.0 | Magic Leap Hub |
 | Headset Remote Rendering Viewer (.apk) | Magic Leap 2 | 1.11.64 | Magic Leap Download Link |
@@ -31,35 +31,42 @@ The following packages and applications are required to run remote rendering wit
 | Magic Leap 2 Pro License | | | Magic Leap |
 
 Refer to the Magic Leap 2 documentation for more information:
+
 - [Updating your device with Magic Leap Hub](https://www.magicleap.care/hc/en-us/articles/5341445649805-Updating-Your-Device);
 - [Installing `.apk` packages with Magic Leap Hub](https://developer-docs.magicleap.cloud/docs/guides/developer-tools/ml-hub/ml-hub-package-manager/)
 
 ## Quick Start
+
 ### Running with Apple Vision Pro
+
 To stream this XR application to devices like Apple Vision Pro, refer to the [CloudXR Runtime tutorial](../../tutorials/cloudxr_runtime_for_xr_applications/) for setup instructions. Change `<app_name>` in the instructions to `volume_rendering_xr`.
+
 ### Running with Magic Leap or Simulator
+
 The default configuration runs without Magic Leap setup. To explicitly enable Magic Leap devices, use:
+
 ```shell
 ./holohub run volume_rendering_xr --run-args="--magic-leap"
 ```
 
-
 A QR code will be visible in the console log. Refer to Magic Leap 2 [Remote Rendering Setup documentation](https://developer-docs.magicleap.cloud/docs/guides/remote-rendering/remote-rendering/#:~:text=Put%20on%20the%20Magic%20Leap,headset%20by%20looking%20at%20it.&text=The%20QR%20code%20launches%20a,Click%20Continue.) to pair the host and device in preparation for remote viewing. Refer to the [Remote Viewer](#starting-the-magic-leap-2-remote-viewer) section to regenerate the QR code as needed, or to use the local debugger GUI in place of a physical device.
 
 The application supports the following hand or controller interactions by default:
+
 - **Translate**: Reach and grab inside the volume with your hand or with the controller trigger to move the volume.
 - **Scale**: Grab any face of the bounding box and move your hand or controller to scale the volume.
 - **Rotate**: Grab any edge of the bounding box and move your hand or controller to rotate the volume.
 - **Crop**: Grab any vertex of the bounding box and move your hand or controller to translate the cropping planes.
 
 ### Testing Utility
-We provide a simple test application in `utils/xr_hello_holoscan` for validating basic XR functionality. This utility uses the same XR operators and configuration as the main application but with minimal rendering setup. See [utils/xr_hello_holoscan/README.md](utils/xr_hello_holoscan/README.md) for details on running the test utility.
 
+We provide a simple test application in `utils/xr_hello_holoscan` for validating basic XR functionality. This utility uses the same XR operators and configuration as the main application but with minimal rendering setup. See [utils/xr_hello_holoscan/README.md](utils/xr_hello_holoscan/README.md) for details on running the test utility.
 
 ## Advanced Setup
 
 You can use the `--dryrun` option to see the individual commands run by the quick start option above:
-```
+
+```bash
 ./holohub run volume_rendering_xr --dryrun
 ```
 
@@ -68,6 +75,7 @@ Alternatively, follow the steps below to set up the interactive container sessio
 ### Build the Container
 
 Run the following commands to build and enter the interactive container environment:
+
 ```bash
 ./holohub run-container volume_rendering_xr # Build and launch the container
 ```
@@ -75,6 +83,7 @@ Run the following commands to build and enter the interactive container environm
 ### Build the Application
 
 Inside the container environment, build the application:
+
 ```bash
 ./holohub build volume_rendering_xr # Build the application
 ```
@@ -82,6 +91,7 @@ Inside the container environment, build the application:
 ### Run the Application
 
 Inside the container environment, start the application:
+
 ```bash
 export ML_START_OPTIONS=<""/"debug"> # Defaults to "debug" to run XR device simulator GUI
 ./holohub run volume_rendering_xr --run-args="--magic-leap"
@@ -92,6 +102,7 @@ export ML_START_OPTIONS=<""/"debug"> # Defaults to "debug" to run XR device simu
 `volume_rendering_xr` can be packaged in a self-contained release container with datasets and binaries.
 
 To build the release container:
+
 ```bash
 # Generate HoloHub `volume_rendering_xr` installation in the "holohub/install" folder
 ./holohub build volume_rendering_xr --configure-args="-DCMAKE_INSTALL_PREFIX:PATH=/workspace/holohub/install"
@@ -102,17 +113,20 @@ To build the release container:
 ```
 
 To run the release container, first create the container startup script:
+
 ```bash
 docker run --rm holohub:volume_rendering_xr_rel > ./render-volume-xr
 chmod +x ./render-volume-xr
 ```
 
 Then execute the script to start the Windrunner service and the app:
+
 ```bash
 ./render-volume-xr
 ```
 
 For more options, e.g. list available datasets or to select a different dataset, type
+
 ```bash
 ./render-volume-xr --help
 ```
@@ -128,7 +142,8 @@ This application loads static volume files from the local disk. See HoloHub [`Vo
 ### Launch Options
 
 Use the `--extra-args` to see all options, including how to specify a different dataset or configuration file to use.
-```bash
+
+```text
 ./holohub run volume_rendering_xr --run-args="--help"
 ...
 Holoscan OpenXR volume renderer.Usage: /workspace/holohub/build/applications/volume_rendering_xr/volume_rendering_xr [options]
@@ -140,6 +155,7 @@ Options:
 ```
 
 To use a new dataset with the application, mount its volume location from the host machine when launching the container and pass all required arguments explicitly to the executable:
+
 ```bash
 ./holohub run-container --docker-opts="-u root" --img holohub:openxr-dev --add-volume /host/path/to/data-dir
 ./build/applications/volume_rendering_xr/volume_rendering_xr \
@@ -150,40 +166,45 @@ To use a new dataset with the application, mount its volume location from the ho
 
 ### Starting the Magic Leap OpenXR runtime
 
-OpenXR runtimes are implementations of the OpenXR API that allow the Holoscan XR operators to create XR sessions and render content. The Magic Leap OpenXR runtime including a CLI are by default installed in the dev container. __From a terminal inside the dev container__ you can execute the following scripts:
+OpenXR runtimes are implementations of the OpenXR API that allow the Holoscan XR operators to create XR sessions and render content. The Magic Leap OpenXR runtime including a CLI are by default installed in the dev container. **From a terminal inside the dev container** you can execute the following scripts:
 
-```
+```bash
 ml_start.sh
 ```
+
 starts the OpenXR runtime service. After executing this command, the remote viewer on the Magic Leap device should connect to this runtime service. If not, then you still have to pair the device with the host computer running the Holoscan application.
 
 For rapid iteration without a Magic Leap device, pass the argument `debug` to `ml_start.sh` i.e.
-```
+
+```bash
 ml_start.sh debug
 ```
+
 This will enable a debug view on your computer showing what the headset would see. You may click into this window and navigate with the keyboard and mouse to manipulate the virtual head position.
 
 If you connect an ML2 while the debug view is active, you can continue to view the content on the debug view but can no longer adjust the virtual position, as the real position is used instead.
 
-```
+```bash
 ml_pair.sh
 ```
-displays a QR code used to pair the device with the host. Start the QR code reader App on the device and scan the QR code displayed in the terminal. Note that the OpenXR runtime has to have been started using the __ml_start__ command in order for the paring script to execute correctly.
 
-```
+displays a QR code used to pair the device with the host. Start the QR code reader App on the device and scan the QR code displayed in the terminal. Note that the OpenXR runtime has to have been started using the **ml_start** command in order for the paring script to execute correctly.
+
+```bash
 ml_stop.sh
 ```
+
 stops the OpenXR runtime service.
 
 ### Starting the Magic Leap 2 Remote Viewer
 
 When using a Magic Leap 2 device for the first time or after a software upgrade, the device must be provided with the IP address of the host running the OpenXR runtime. From a terminal inside the dev container run the
 
-```
+```bash
 ml_pair.sh
 ```
 
-command, which will bring up a QR code that has to be scanned using the __QR Code App__ on the Magic Leap 2 device. Once paired with the host, the device  will automatically start the remote viewer which will then prompt you to start an OpenXR application on the host. Any time thereafter, start the remote viewer via the App menu.
+command, which will bring up a QR code that has to be scanned using the **QR Code App** on the Magic Leap 2 device. Once paired with the host, the device  will automatically start the remote viewer which will then prompt you to start an OpenXR application on the host. Any time thereafter, start the remote viewer via the App menu.
 
 ### Developing with a Different OpenXR Backend
 
@@ -227,16 +248,19 @@ the debug GUI appear in your application, or if the application appears to stall
 code appears, try any of the following:
 
 1. Manually set the `ML_START_OPTIONS` environment variable so that `holohub run` initializes with the debug view:
+
 ```sh
 export ML_START_OPTIONS="debug"
 ```
 
-2. Follow [Advanced Setup Instructions](#advanced-setup) and add the `-u root` option to launch the container with root permissions.
+1. Follow [Advanced Setup Instructions](#advanced-setup) and add the `-u root` option to launch the container with root permissions.
+
 ```sh
 ./holohub run --img holohub:volume_rendering_xr --docker-opts"-u root"
 ```
 
-3. Clear the build cache and any home cache folders in the HoloHub workspace.
+1. Clear the build cache and any home cache folders in the HoloHub workspace.
+
 ```sh
 ./holohub clear-cache
 rm -rf .cache/ .cmake/ .config/ .local/

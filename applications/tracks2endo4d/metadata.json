@@ -1,0 +1,67 @@
+{
+	"application": {
+		"name": "Tracks2Endo4D",
+		"description": "Tracks2Endo4D: Real-time 3D point tracking and camera parameter estimation from video.",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0.0",
+		"changelog": {
+			"1.0.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "3.8.0",
+			"tested_versions": [
+				"3.8.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": ["Healthcare AI", "Tracking", "Colonoscopy"],
+		"ranking": 2,
+		"requirements": {
+			"data": [
+				{
+					"name": "Holoscan Tracking Sample Data",
+					"description": "This dataset contains a sample video for tracking.",
+					"url": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_tracking_sample_data",
+					"version": "1.2"
+				}
+
+			],
+			"libraries": [
+				{
+					"name": "cupy",
+					"version": "13.3.0"
+				}
+			]
+		},
+		"default_mode": "replayer",
+		"modes": {
+			"replayer": {
+				"description": "Use a pre-recorded video as input",
+				"run": {
+					"command": "python3 <holohub_app_source>/tracks2endo4d_app.py --source replayer --data <holohub_data_dir>/tracks2endo4d --model <holohub_data_dir>/tracks2endo4d",
+					"workdir": "holohub_bin"
+				}
+			},
+			"aja": {
+				"description": "Use an AJA device for video input",
+				"build": {
+					"depends": ["aja_source"],
+					"docker_build_args": ["--target", "holohub-aja"]
+				},
+				"run": {
+					"command": "python3 <holohub_app_source>/tracks2endo4d_app.py --source aja --model <holohub_data_dir>/tracks2endo4d",
+					"workdir": "holohub_bin"
+				}
+			}
+		}
+	}
+}

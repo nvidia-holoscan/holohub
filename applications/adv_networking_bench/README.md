@@ -11,8 +11,8 @@ the application is able to keep up with the bare minimum amount of work to do. T
 transmitter and receiver that are designed to run on different systems, and may be configured independently.
 
 The performance of this application depends heavily on a properly-configured system and choosing the best
-tuning parameters that are acceptable for the workload. To configure the system please see the documentation
-[here](/tutorials/high_performance_networking/README.md). With the system tuned, the application performance
+tuning parameters that are acceptable for the workload. To configure the system please see the
+[High Performance Networking documentation](/tutorials/high_performance_networking/README.md). With the system tuned, the application performance
 will be dictated by batching size and whether GPUDirect is enabled.
 
 At this time both the transmitter and receiver are written to handle an Ethernet+IP+UDP packet with a
@@ -29,6 +29,7 @@ to throttle the sender somewhat by making the batches very small.
 ## Receiver
 
 The receiver receives the UDP packets in either CPU-only mode, header-data split mode, or GPU-only mode.
+
 - CPU-only mode will receive the packets in CPU memory, copy the payload contents to a host-pinned staging buffer,
   and free the buffers.
 - Header-data split mode: the user may configure separate memory regions for the header and data. The header is
@@ -67,19 +68,19 @@ This application requires all configuration and requirements from the [Advanced 
 
 ### Build Instructions
 
-#### DPDK
+#### DPDK (build)
 
 ```bash
 ./holohub build adv_networking_bench --language=cpp
 ```
 
-#### GPUNetIO
+#### GPUNetIO (build)
 
 ```bash
 ./holohub build adv_networking_bench --language=cpp --build-args="--target gpunetio" --configure-args="-D ANO_MGR:STRING=gpunetio"
 ```
 
-#### Rivermax
+#### Rivermax (build)
 
 ```bash
 ./holohub build adv_networking_bench --language=cpp --build-args="--target rivermax" --configure-args="-D ANO_MGR:STRING=rivermax"
@@ -87,7 +88,7 @@ This application requires all configuration and requirements from the [Advanced 
 
 ### Run Instructions
 
-#### DPDK
+#### DPDK (run)
 
 First, edit the `adv_networking_bench_default_tx_rx.yaml` file to set the `eth_dst_addr` and `address` fields (fields with the `<>` placeholders) based on your system interfaces.
 
@@ -114,7 +115,7 @@ To run with a different configuration file than the default `adv_networking_benc
 ./build/adv_networking_bench/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_default_rx_multi_q.yaml
 ```
 
-#### GPUNetIO
+#### GPUNetIO (run)
 
 ```bash
 # Ensure the gdrdrv kernel module is loaded on the system
@@ -137,7 +138,7 @@ lsmod | grep gdrdrv
 ./build/adv_networking_bench/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_gpunetio_tx_rx.yaml
 ```
 
-#### Rivermax
+#### Rivermax (run)
 
 ```bash
 # Start the container with the right target and the license file

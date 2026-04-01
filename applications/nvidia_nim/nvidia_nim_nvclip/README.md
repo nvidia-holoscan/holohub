@@ -19,7 +19,7 @@ Use the `nvidia_nim.yaml` configuration file to configure the sample application
 
 By default, the application is configured to use NVIDIA-hosted NV-CLIP NIM.
 
-```
+```yaml
 nim:
  base_url: https://integrate.api.nvidia.com/v1
  api_key:

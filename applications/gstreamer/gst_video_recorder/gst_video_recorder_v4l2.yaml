@@ -56,4 +56,3 @@ encoder:
 # - Width, height, format, and storage type are auto-detected from camera frames
 # - Use --help to see all command-line options
 # - Command-line options override YAML settings
-

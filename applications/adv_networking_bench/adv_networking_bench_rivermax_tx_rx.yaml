@@ -131,4 +131,3 @@ bench_tx:
   bit_depth: 10
   file_path: "./build/adv_networking_bench/applications/adv_networking_bench/cpp/input_file.ycbcr"
   payload_memory: "device"
-

@@ -74,4 +74,3 @@ echo "Function Created Successfully"
 echo "Function ID: "$function_id
 echo "Function Version ID: "$function_version_id
 echo "============================="
-

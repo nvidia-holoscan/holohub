@@ -4,9 +4,7 @@ When developing Holoscan applications, incorporating a graphical user interface 
 
 This tutorial demonstrates how GUI controls were integrated into the [Florence-2](https://github.com/nvidia-holoscan/holohub/tree/main/applications/florence-2-vision) Python application using [PySide6](https://doc.qt.io/qtforpython-6/). This addition enables users to dynamically change the vision task performed by the application.
 
-<p align="center">
-  <img src="./demo.gif" alt="Holoscan VILA Live">
-</p>
+![Holoscan VILA Live](./demo.gif)
 
 ## Table of Contents
 
@@ -18,33 +16,31 @@ This tutorial demonstrates how GUI controls were integrated into the [Florence-2
 3. [Starting the Holoscan Application Thread](#starting-the-holoscan-application-thread)
 4. [Adding a GUI to Your Own Application](#adding-a-gui-to-your-own-application)
 
-
 ## Overview
 
-The Florence-2 application includes the typical components of a Holohub application, with the addition of a GUI component. 
+The Florence-2 application includes the typical components of a Holohub application, with the addition of a GUI component.
 The main components are:
 
-- <b>Dockerfile</b>: For installing additional dependencies.
-- <b>Application Code</b>: Defines the Holoscan application and its operators.
-- <b>GUI Code</b>: Utilizes PySide6 to add UI controls.
-
+- **Dockerfile**: For installing additional dependencies.
+- **Application Code**: Defines the Holoscan application and its operators.
+- **GUI Code**: Utilizes PySide6 to add UI controls.
 
 ### Dockerfile
 
-The Dockerfile is used in Holohub when the application requires additional dependencies. For GUI functionality, this application's 
+The Dockerfile is used in Holohub when the application requires additional dependencies. For GUI functionality, this application's
 [Dockerfile](https://github.com/nvidia-holoscan/holohub/blob/main/applications/florence-2-vision/Dockerfile) installs:
 
-* `qt6-base-dev` for Qt6 framework
-* `PySide6` for Python bindings for Qt6 (as specified in [requirements.txt](https://github.com/nvidia-holoscan/holohub/blob/main/applications/florence-2-vision/requirements.txt))
+- `qt6-base-dev` for Qt6 framework
+- `PySide6` for Python bindings for Qt6 (as specified in [requirements.txt](https://github.com/nvidia-holoscan/holohub/blob/main/applications/florence-2-vision/requirements.txt))
 
 ### Application Code
 
 The Florence-2 application code is organized across several files:
 
-* `florence2_app.py`: Main application code.
-* `florence2_op.py`: Florence-2 model inference code.
-* `florence2_postprocessor_op.py`: Post-processing code to send overlays (e.g., bounding boxes, labels, segmentation masks) to Holoviz.
-* `config.yaml`: Default application parameters.
+- `florence2_app.py`: Main application code.
+- `florence2_op.py`: Florence-2 model inference code.
+- `florence2_postprocessor_op.py`: Post-processing code to send overlays (e.g., bounding boxes, labels, segmentation masks) to Holoviz.
+- `config.yaml`: Default application parameters.
 
 The Florence-2 application can be run independently of the GUI code. E.g., the application can be run with `python application/florence-2-vision/florence2_app.py` inside the Florence-2 Docker container. This will run the application without the GUI controls.  The only code needed for GUI integration in the application code is the `set_parameters()` method in the `FlorenceApp` class. This method updates two fields in the Florence-2 operator:
 
@@ -78,7 +74,7 @@ Details of these methods are explored in the following sections.
 
 ## Creating the GUI Widgets and Layout
 
-The `setupUi()` method creates the GUI with a few simple widgets using PySide6 APIs. 
+The `setupUi()` method creates the GUI with a few simple widgets using PySide6 APIs.
 For those unfamiliar with PySide6, this [tutorial](https://www.pythonguis.com/pyside6-tutorial/) provides an introduction.
 
 ```python
@@ -126,13 +122,13 @@ For those unfamiliar with PySide6, this [tutorial](https://www.pythonguis.com/py
 
 This code creates the following widgets:
 
-* <b>Drop-down Menu</b>: Lists the vision tasks supported by Florence-2.
-* <b>Text input Widget</b>: Allows text input for tasks such as Open Vocabulary Detection.
-* <b>Submit Button</b>: Triggers the `on_submit()` method when clicked.
+- **Drop-down Menu**: Lists the vision tasks supported by Florence-2.
+- **Text input Widget**: Allows text input for tasks such as Open Vocabulary Detection.
+- **Submit Button**: Triggers the `on_submit()` method when clicked.
 
-When the application is running, the user selects a vision task, enters text (if 
+When the application is running, the user selects a vision task, enters text (if
 needed), and clicks "Submit" to change the task performed by the model.
-The `on_submit()` method is then invoked, calling the `set_parameters()` method 
+The `on_submit()` method is then invoked, calling the `set_parameters()` method
 in the `FlorenceApp` class to update the operator's parameters.
 
 ```python
@@ -149,7 +145,7 @@ in the `FlorenceApp` class to update the operator's parameters.
 
 ## Starting the Holoscan Application Thread
 
-The `runHoloscanApp()` method starts the Florence-2 application by creating an instance of `FlorenceWorker` 
+The `runHoloscanApp()` method starts the Florence-2 application by creating an instance of `FlorenceWorker`
 and running it in a thread.
 
 ```python
@@ -183,8 +179,8 @@ class FlorenceWorker(QObject):
         app.run()
 ```
 
-This covers the essential steps for creating a GUI to control your Python Holoscan applications. 
-To try out the application, follow the instructions provided [here](https://github.com/nvidia-holoscan/holohub/tree/main/applications/florence-2-vision#-build-and-run-instructions).
+This covers the essential steps for creating a GUI to control your Python Holoscan applications.
+To try out the application, follow the [Florence-2 build and run instructions](https://github.com/nvidia-holoscan/holohub/tree/main/applications/florence-2-vision#-build-and-run-instructions).
 
 ## Adding a GUI to Your Own Application
 
@@ -195,4 +191,3 @@ To integrate a GUI into your Python application using PySide6, follow these step
 Update the import statement `from florence2_app import FlorenceApp` as necessary.
 3. Customize the `setupUi()` method to include the controls relevant to your application.
 4. Update `set_parameters()` methoed to reflect the parameters your application needs to update.
-

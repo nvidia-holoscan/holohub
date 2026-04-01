@@ -61,10 +61,10 @@ Before getting started:
    ```bash
    git clone https://github.com/YOUR_USERNAME/YOUR_FORK.git holohub
    cd holohub
-   
+
    # Add upstream remote for staying in sync
    git remote add upstream https://github.com/nvidia-holoscan/holohub.git
-   
+
    # Create a feature branch
    git checkout -b feature/your-feature-name
    ```
@@ -81,10 +81,10 @@ Before getting started:
    ```bash
    # Stage your changes
    git add .
-   
+
    # Commit with sign-off (required)
    git commit -s -m "Add your descriptive commit message"
-   
+
    # Push to your fork
    git push origin feature/your-feature-name
    ```
@@ -103,7 +103,6 @@ Before getting started:
    - Once approved, your contribution will be merged
 
 Thanks in advance for your patience as we review your contributions. We do appreciate them!
-
 
 ## Types of Contributions
 
@@ -126,7 +125,6 @@ What are you contributing?
 ```
 
 > **Important**: Workflows are _end-to-end_ reference applications demonstrating complete "sensor-to-insight" pipelines. They integrate multiple components to solve entire use cases, while applications may focus on specific functionality.
-
 
 ## Preparing Your Submission
 
@@ -172,11 +170,11 @@ Every application and operator should have an associated `metadata.json` file de
 
 Schemas are available for different contribution types:
 
-- [Workflows](./workflows/metadata.schema.json)
-- [Applications](./applications/metadata.schema.json)
-- [GXF Extensions](./gxf_extensions/metadata.schema.json)
-- [Operators](./operators/metadata.schema.json)
-- [Tutorials](./tutorials/metadata.schema.json)
+- [Workflows](./utilities/metadata/workflow.schema.json)
+- [Applications](./utilities/metadata/application.schema.json)
+- [GXF Extensions](./utilities/metadata/gxf_extension.schema.json)
+- [Operators](./utilities/metadata/operator.schema.json)
+- [Tutorials](./utilities/metadata/tutorial.schema.json)
 
 #### Example metadata.json Structure
 
@@ -246,13 +244,13 @@ In the `metadata.json` file, the `workdir` is where the run command is executed 
 Please provide a self-assessment of your HoloHub contribution according to these levels:
 
 | Level | Description | Requirements |
-|-------|-------------|--------------|
-| **0** | Production-ready, SDK-level quality | • Widespread community dependence<br>• Above 90% code coverage<br>• Nightly testing monitored<br>• All Level 1 requirements |
-| **1** | Very high-quality code | • Meets all Holoscan SDK coding standards<br>• Builds on all platforms within 1 month of releases<br>• 75% code coverage<br>• Continuous integration testing<br>• All Level 2 requirements |
-| **2** | Quality code | • Compiles on community platforms<br>• May have specific external dependencies<br>• Tests pass on supported platforms<br>• All Level 3 requirements |
-| **3** | Features under development | • Builds on specific platforms/configurations<br>• Some tests passing on supported platforms<br>• All Level 4 requirements |
-| **4** | Code of unknown quality | • Builds on specific platforms/configurations<br>• Minimal test coverage |
-| **5** | Deprecated | • Known to be of limited utility<br>• May have known bugs |
+| --- | --- | --- |
+| **0** | Production-ready, SDK-level quality | • Widespread community dependence. • Above 90% code coverage. • Nightly testing monitored. • All Level 1 requirements |
+| **1** | Very high-quality code | • Meets all Holoscan SDK coding standards. • Builds on all platforms within 1 month of releases. • 75% code coverage. • Continuous integration testing. • All Level 2 requirements |
+| **2** | Quality code | • Compiles on community platforms. • May have specific external dependencies. • Tests pass on supported platforms. • All Level 3 requirements |
+| **3** | Features under development | • Builds on specific platforms/configurations. • Some tests passing on supported platforms. • All Level 4 requirements |
+| **4** | Code of unknown quality | • Builds on specific platforms/configurations. • Minimal test coverage |
+| **5** | Deprecated | • Known to be of limited utility. • May have known bugs |
 
 ### README File
 
@@ -335,7 +333,7 @@ holohub/pkg/your_package_name/
 For an operator named "Adaptive Thresholding":
 
 | Component | Convention | Example |
-|-----------|------------|---------|
+| --- | --- | --- |
 | Class Name | TitleCase + "Op" suffix | `AdaptiveThresholdingOp` |
 | metadata.json "name" | Same as class name | `AdaptiveThresholdingOp` |
 | Directory | snake_case | `adaptive_thresholding` |
@@ -658,8 +656,8 @@ For examples, see existing test files like:
 - **Code Coverage**: Tools for inspecting test coverage
 
 > **Note**: HoloHub doesn't provide a single debugging container due to the variety of methods across applications. Open an issue if you need additional debugging tools.
-
 > **Note**: Refer to [Holoscan SDK debugging documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_debugging.html) and [HoloHub debugging tutorials](https://github.com/nvidia-holoscan/holohub/tree/main/tutorials/debugging)
+
 ### Performance
 
 Low latency is crucial for many HoloHub applications. Use these resources for performance analysis:

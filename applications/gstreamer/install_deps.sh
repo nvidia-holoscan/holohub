@@ -15,7 +15,7 @@
 # limitations under the License.
 
 # install_deps.sh - Install dependencies for GStreamer applications
-# 
+#
 # This script installs all required dependencies for building GStreamer-based
 # applications locally (with --local flag) instead of using the containerized build.
 #

@@ -111,16 +111,19 @@ Based on shader reflection analysis, the operator automatically creates:
 Port names in Holoscan attributes follow a specific format to identify and bind resources to shader variables. The name string can take several forms:
 
 #### 1. Simple Resource Name
+
 - **Format**: `"resource_name"`
 - **Example**: `"input_buffer"`, `"output_tensor"`
 - **Usage**: Used when referencing a single resource directly
 
 #### 2. Tensor Map Reference
+
 - **Format**: `"tensor_map_name:tensor_name"`
 - **Example**: `"model:weights"`, `"data:input_image"`
 - **Usage**: Used when the resource is part of a named tensor map, where the part before the colon identifies the tensor map and the part after identifies the specific tensor within that map
 
 #### 3. Resource with Swizzle (for allocation or invocations size attributes)
+
 - **Format**: `"resource_name.swizzle_string"` or `"tensor_map_name:tensor_name.swizzle_string"`
 - **Example**: `"input_tensor.cx"`, `"output_buffer.xy"`, `"data:input_image.xy"`
 - **Usage**: The swizzle string selects specific dimensions of the resource for size matching
@@ -130,6 +133,7 @@ Port names in Holoscan attributes follow a specific format to identify and bind 
   - `"0"` - `"9"`: Static values
 
 #### Examples
+
 ```slang
 [holoscan::input("input_data")]           // Binds to a resource named "input_data"
 [holoscan::output("model:output")]        // Binds to the "output" tensor in the "model" tensor map
@@ -141,11 +145,13 @@ Port names in Holoscan attributes follow a specific format to identify and bind 
 ### Supported Data Types
 
 #### Scalar Parameters
+
 - `bool`, `int8`, `uint8`, `int16`, `uint16`
 - `int32`, `uint32`, `int64`, `uint64`
 - `float32`, `float64`
 
 #### Buffer Types
+
 - `StructuredBuffer<T>`: Input buffers
 - `RWStructuredBuffer<T>`: Output buffers
 
@@ -229,7 +235,6 @@ The SlangShaderOp consists of several key components:
 - **`CommandAlloc`**: Handles resource allocation
 - **`CommandLaunch`**: Executes CUDA kernels
 - **`CommandZeros`**: Initializes a buffer with zeros
-
 
 ## Error Handling
 

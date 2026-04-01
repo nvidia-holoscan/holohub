@@ -7,7 +7,7 @@ This application demonstrates displaying HDR images using the Holoviz operator. 
 
 Note that the screenshot above does not show the real HDR image on the display since it's not possible to take screenshots of HDR images.
 
-The Holoviz operator parameter `display_color_space` is used to set the color space. This allows HDR output on Linux distributions and displays supporting that feature. See https://docs.nvidia.com/holoscan/sdk-user-guide/visualization.html#hdr for more information.
+The Holoviz operator parameter `display_color_space` is used to set the color space. This allows HDR output on Linux distributions and displays supporting that feature. See <https://docs.nvidia.com/holoscan/sdk-user-guide/visualization.html#hdr> for more information.
 
 ```cpp
     auto holoviz = make_operator<ops::HolovizOp>(

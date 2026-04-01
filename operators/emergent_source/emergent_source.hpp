@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,4 +53,3 @@ class EmergentSourceOp : public holoscan::ops::GXFOperator {
 }  // namespace holoscan::ops
 
 #endif /* HOLOSCAN_OPERATORS_EMERGENT_SOURCE_HPP */
-

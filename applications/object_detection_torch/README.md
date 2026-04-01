@@ -12,15 +12,15 @@ This application need `Libtorch` for inferencing. Ensure that the Holoscan SDK i
 To run this application, you will need the following:
 
 - Model name: frcnn_resnet50_t.pt
-    - The model should be converted to torchscript format.  The original pytorch model can be downloaded from [pytorch model](https://pytorch.org/vision/main/models/generated/torchvision.models.detection.fasterrcnn_resnet50_fpn.html). `frcnn_resnet50_t.pt` is used
+  - The model should be converted to torchscript format.  The original pytorch model can be downloaded from [pytorch model](https://pytorch.org/vision/main/models/generated/torchvision.models.detection.fasterrcnn_resnet50_fpn.html). `frcnn_resnet50_t.pt` is used
 - Model configuration file: frcnn_resnet50_t.yaml
-    - Model config documents input and output nodes, their dimensions and respective datatype.
+  - Model config documents input and output nodes, their dimensions and respective datatype.
 - Labels file: labels.txt
-    - Labels for identified objects.
+  - Labels for identified objects.
 - Postprocessor configuration file: postprocessing.yaml
-    - This configuration stores the number and type of objects to be identified. By default, the application detects and generates bounding boxes for `car` (max 50), `person` (max 50), `motorcycle` (max 10) in the input frame. All remaining identified objects are tagged with label `object` (max 50).
-    - Additionally, color of the bounding box for each identified object can be set.
-    - Threshold of scores can be set in the `params`. Default value is 0.75.
+  - This configuration stores the number and type of objects to be identified. By default, the application detects and generates bounding boxes for `car` (max 50), `person` (max 50), `motorcycle` (max 10) in the input frame. All remaining identified objects are tagged with label `object` (max 50).
+  - Additionally, color of the bounding box for each identified object can be set.
+  - Threshold of scores can be set in the `params`. Default value is 0.75.
 
 Sample dataset can be any video file freely available for testing on the web. E.g. [Traffic video](https://www.pexels.com/video/cars-on-highway-854671/)
 
@@ -35,6 +35,7 @@ If resolution is updated in entity generation, it must be updated in the followi
 <data_dir>/object_detection_torch/postprocessing.yaml
 
 ## Quick start
+
 If you want to quickly run this application, you can use the `./holohub run` command.
 
 ```sh
@@ -92,6 +93,7 @@ Refer to the [Packaging Holoscan Applications](https://docs.nvidia.com/holoscan/
 Please refer to the docker file for information about the torchvision version on different platforms.
 
 The application container will fail to build on other platforms with the error:
+
 ```bash
 ERROR: No matching distribution found
 ```

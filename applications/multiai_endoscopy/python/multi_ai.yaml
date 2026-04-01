@@ -1,5 +1,5 @@
 %YAML 1.2
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,11 +54,11 @@ segmentation_preprocessor:
 
 multi_ai_inference:
   backend: "trt"
-  pre_processor_map: 
+  pre_processor_map:
     "ssd": ["ssd_preprocessed"]
     "tool_seg": ["seg_preprocessed"]
-  inference_map: 
-    "ssd": ["inference_output_num_detections", "inference_output_detection_boxes", 
+  inference_map:
+    "ssd": ["inference_output_num_detections", "inference_output_detection_boxes",
                      "inference_output_detection_scores", "inference_output_detection_classes",]
     "tool_seg": ["tool_seg_inferred"]
   parallel_inference: true # optional param, default to true
@@ -69,12 +69,12 @@ multi_ai_inference:
   transmit_on_cuda: true # optional param, default to true
   is_engine_path: false # optional param, default to false
 
-segmentation_postprocessor:  
+segmentation_postprocessor:
   in_tensor_name: tool_seg_inferred
   network_output_type: softmax
   data_format: nchw
 
-detection_postprocessor:  
+detection_postprocessor:
   label_text_size: 0.04
   scores_threshold: 0.5
 

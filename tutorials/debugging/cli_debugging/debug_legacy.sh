@@ -1,5 +1,5 @@
 #!/usr/bin/bash
-# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,7 +47,7 @@ ${HOLOHUB_ROOT}/holohub build-container \
     --img holohub:debugging \
     --docker-file ${SCRIPT_DIR}/Dockerfile \
     --base-img ${holoscan_image}
-    
+
 # Build the Endoscopy Tool Tracking application with debugging symbols
 ${HOLOHUB_ROOT}/holohub run \
     --docker-opts="-v ${INSTALL_DIR}:/opt/nvidia/holoscan" \

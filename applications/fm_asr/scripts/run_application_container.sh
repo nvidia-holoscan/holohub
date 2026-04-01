@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,4 +14,3 @@
 # limitations under the License.
 export WORKSPACE_DIR=$(pwd)
 docker run -it --net=host --gpus device=0 -v $WORKSPACE_DIR:/workspace --device=/dev/bus/usb --device=/dev/snd holoscan_app:latest /bin/bash
-

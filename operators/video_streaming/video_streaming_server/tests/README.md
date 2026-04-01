@@ -81,6 +81,7 @@ The unit tests verify the correct behavior of the video streaming server operato
 > **Important:** These tests require **CUDA 12**. If you're using CUDA 13, you must specify `--cuda 12` when building and running tests.
 
 **For CUDA 13 systems:**
+
 ```bash
 # Building
 ./holohub build video_streaming --cuda 12
@@ -169,7 +170,7 @@ TEST_F(StreamingServerResourceTest, TestName) {
 
   // 2. Verify creation
   ASSERT_NE(resource_, nullptr);
-  
+
   // 3. Verify properties
   EXPECT_EQ(resource_->name(), "test_resource");
 }
@@ -181,7 +182,7 @@ TEST_F(StreamingServerResourceTest, TestName) {
 TEST_F(StreamingServerUpstreamOpTest, TestName) {
   // 1. Create shared resource
   auto resource = fragment_->make_resource<StreamingServerResource>(...);
-  
+
   // 2. Create operator with resource
   upstream_op_ = fragment_->make_operator<StreamingServerUpstreamOp>(
       "test_op",
@@ -216,4 +217,3 @@ TEST_F(StreamingServerUpstreamOpTest, TestName) {
 - **[Video Streaming Client Tests](../../video_streaming_client/tests/README.md)** - Client operator tests
 - **[Integration Tests](../../../../applications/video_streaming/TESTING.md)** - End-to-end testing
 - **[Main README](../../../../applications/video_streaming/README.md)** - Application overview
-

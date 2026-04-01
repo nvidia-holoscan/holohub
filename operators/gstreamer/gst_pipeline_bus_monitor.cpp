@@ -162,4 +162,3 @@ void PipelineBusMonitor::monitor_loop() {
 }
 
 }  // namespace holoscan::gst
-

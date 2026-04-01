@@ -5,7 +5,7 @@
 ROS2 (Robot Operating System 2) is a set of software libraries and tools for building robot applications. Despite its name, ROS2 is not an operating system but rather a middleware framework that provides:
 
 - **Communication infrastructure**: Publisher/subscriber messaging, services, and actions
-- **Hardware abstraction**: Standardized interfaces for sensors, actuators, and other devices  
+- **Hardware abstraction**: Standardized interfaces for sensors, actuators, and other devices
 - **Package management**: Modular architecture with reusable components
 - **Development tools**: Visualization, debugging, and simulation capabilities
 - **Cross-platform support**: Linux, Windows, and macOS compatibility
@@ -17,12 +17,14 @@ ROS2 has become the de facto standard in robotics, with a vast ecosystem of pack
 ### Complementary Strengths
 
 **Holoscan** excels at:
+
 - High-performance, low-latency streaming data processing
 - GPU-accelerated computer vision and AI inference
 - Real-time media processing (video, imaging, sensor data)
 - Optimized memory management and zero-copy operations
 
 **ROS2** excels at:
+
 - Robot system integration and coordination
 - Standardized interfaces and message formats
 - Rich ecosystem of robotics packages
@@ -61,7 +63,9 @@ ROS2 has become the de facto standard in robotics, with a vast ecosystem of pack
 This directory contains example applications demonstrating Holoscan-ROS2 integration:
 
 ### [Publisher/Subscriber Examples](pubsub/)
+
 Basic examples showing fundamental communication patterns between Holoscan and ROS2:
+
 - Simple string message exchange
 - Both C++ and Python implementations
 - Bidirectional communication (Holoscan ↔ ROS2)
@@ -69,7 +73,9 @@ Basic examples showing fundamental communication patterns between Holoscan and R
 **Best for**: Learning the basics, understanding message flow, prototyping simple integrations
 
 ### [VB1940 Camera Examples](vb1940/)
+
 Advanced examples using real camera hardware:
+
 - High-resolution camera data processing
 - GPU-accelerated image processing pipeline
 - Real-time visualization and ROS2 topic publishing

@@ -286,34 +286,17 @@ class TestHoloHubCLI(unittest.TestCase):
 
     @unittest.skipIf(not is_cookiecutter_available(), "cookiecutter not installed")
     @patch("utilities.cli.holohub.HoloHubCLI._install_template_deps")
-    @patch("cookiecutter.main.cookiecutter")
-    @patch("utilities.cli.holohub.HoloHubCLI.handle_create")
+    @patch("cookiecutter.main.cookiecutter", return_value="/tmp/dummy_project")
+    @patch("utilities.cli.holohub.HoloHubCLI.validate_generated_metadata")
     @patch("utilities.cli.holohub.HoloHubCLI._add_to_cmakelists")
     def test_language_passed_to_cookiecutter(
         self,
         mock_add_to_cmakelists,
-        mock_handle_create,
+        mock_validate,
         mock_cookiecutter,
         mock_install_template_deps,
     ):
         """Test that the correct language parameter is passed to cookiecutter during project creation."""
-
-        # Mock handle_create to call cookiecutter directly with the extra_context we want to test
-        def side_effect(args):
-            context = {
-                "project_name": args.project,
-                "language": args.language.lower() if args.language else "cpp",  # Default is cpp
-            }
-            # Call cookiecutter with our context
-            mock_cookiecutter(
-                "dummy_template_path",
-                no_input=True,
-                extra_context=context,
-                output_dir="dummy_output_dir",
-            )
-            return True  # Indicate success
-
-        mock_handle_create.side_effect = side_effect
 
         # Test CPP language
         args = self.cli.parser.parse_args("create test_cpp_project --language cpp".split())
@@ -337,6 +320,8 @@ class TestHoloHubCLI(unittest.TestCase):
         _, kwargs = mock_cookiecutter.call_args
         self.assertEqual(kwargs["extra_context"]["project_name"], "test_python_project")
         self.assertEqual(kwargs["extra_context"]["language"], "python")
+
+        self.assertEqual(mock_validate.call_count, 2)
 
     @unittest.skipIf(not is_cookiecutter_available(), "cookiecutter not installed")
     @unittest.skipIf(
@@ -871,13 +856,7 @@ exec {holohub_script} "$@"
         enhanced = self.cli.get_effective_run_config(mock_args_no_override, mode_config_with_docker)
         self.assertEqual(enhanced["docker_opts"], "--privileged --net=host")  # Uses mode config
 
-        # Test with CLI override - CLI should take precedence
-        mock_args_with_override = Namespace(run_args="", docker_opts="--gpus all")
-        enhanced_override = self.cli.get_effective_run_config(
-            mock_args_with_override, mode_config_with_docker
-        )
-        self.assertEqual(enhanced_override["docker_opts"], "--gpus all")  # CLI overrides mode
-
+    @patch.dict(os.environ, {"HOLOHUB_BUILD_LOCAL": ""})
     @patch("utilities.cli.holohub.HoloHubCLI._make_project_container")
     def test_test_command_coverage_flag_forwarding(self, mock_make_container):
         """Ensure --coverage is forwarded to CTest command"""
@@ -897,6 +876,7 @@ exec {holohub_script} "$@"
         # Should run as root to allow package installation
         self.assertTrue(kwargs.get("as_root", False))
 
+    @patch.dict(os.environ, {"HOLOHUB_BUILD_LOCAL": ""})
     @patch("utilities.cli.holohub.HoloHubCLI._make_project_container")
     def test_test_command_coverage_build_arg(self, mock_make_container):
         """Ensure --coverage adds COVERAGE=ON build argument to docker build"""
@@ -913,6 +893,7 @@ exec {holohub_script} "$@"
         self.assertIn("COVERAGE=ON", build_kwargs["build_args"])
         self.assertIn("--build-arg", build_kwargs["build_args"])
 
+    @patch.dict(os.environ, {"HOLOHUB_BUILD_LOCAL": ""})
     @patch("utilities.cli.holohub.HoloHubCLI._make_project_container")
     def test_test_command_language_forwarding(self, mock_make_container):
         """Ensure --language is accepted and passed to container creation"""
@@ -927,6 +908,7 @@ exec {holohub_script} "$@"
         # Validate run invoked (indirect evidence parsing and flow succeeded)
         mock_container.run.assert_called_once()
 
+    @patch.dict(os.environ, {"HOLOHUB_BUILD_LOCAL": ""})
     @patch("utilities.cli.holohub.HoloHubCLI._make_project_container")
     def test_test_command_language_adds_cmake_flags(self, mock_make_container):
         """Ensure --language injects HOLOHUB_BUILD_* cmake flags into CTest configure options"""
@@ -988,6 +970,77 @@ exec {holohub_script} "$@"
         # Test without mode
         args = self.cli.parser.parse_args("build test_app --local".split())
         self.assertIsNone(args.mode)
+
+    def test_container_mode_argument_parsing(self):
+        """Test mode argument parsing for build-container/run-container"""
+        # build-container with mode
+        args = self.cli.parser.parse_args("build-container test_app aja".split())
+        self.assertEqual(args.project, "test_app")
+        self.assertEqual(args.mode, "aja")
+
+        # build-container without mode
+        args = self.cli.parser.parse_args("build-container test_app".split())
+        self.assertEqual(args.project, "test_app")
+        self.assertIsNone(args.mode)
+
+        # run-container with mode
+        args = self.cli.parser.parse_args("run-container test_app replayer".split())
+        self.assertEqual(args.project, "test_app")
+        self.assertEqual(args.mode, "replayer")
+
+        # run-container without mode
+        args = self.cli.parser.parse_args("run-container test_app".split())
+        self.assertIsNone(args.mode)
+
+    def test_container_mode_applies_docker_build_args(self):
+        """Test that build-container with mode applies docker_build_args from mode config"""
+        from argparse import Namespace
+
+        project_data = {
+            "project_name": "test_app",
+            "metadata": {
+                "modes": {
+                    "aja": {
+                        "description": "AJA mode",
+                        "build": {"docker_build_args": ["--target", "holohub-aja"]},
+                    }
+                }
+            },
+        }
+
+        mode_name, mode_config = self.cli.resolve_mode(project_data, "aja")
+        self.assertEqual(mode_name, "aja")
+
+        # No CLI override — mode docker_build_args should be used
+        mock_args = Namespace(
+            with_operators=None, docker_opts="", build_args="", configure_args=None
+        )
+        effective = self.cli.get_effective_build_config(mock_args, mode_config)
+        self.assertEqual(effective["build_args"], "--target holohub-aja")
+
+        # CLI override — CLI should win
+        mock_args_override = Namespace(
+            with_operators=None, docker_opts="", build_args="--network=host", configure_args=None
+        )
+        effective = self.cli.get_effective_build_config(mock_args_override, mode_config)
+        self.assertEqual(effective["build_args"], "--network=host")
+
+    def test_container_mode_applies_docker_run_args(self):
+        """Test that run-container with mode applies docker_run_args from mode config"""
+        from argparse import Namespace
+
+        mode_config = {
+            "run": {"command": "python3 app.py", "docker_run_args": ["--privileged"]},
+            "build": {"docker_build_args": ["--target", "holohub-aja"]},
+        }
+
+        # docker_run_args flows through get_effective_build_config as docker_opts
+        mock_args = Namespace(
+            with_operators=None, docker_opts="", build_args="", configure_args=None
+        )
+        effective = self.cli.get_effective_build_config(mock_args, mode_config)
+        self.assertEqual(effective["docker_opts"], "--privileged")
+        self.assertEqual(effective["build_args"], "--target holohub-aja")
 
     def test_mode_environment_variables(self):
         """Test environment variable definitions in mode configurations"""

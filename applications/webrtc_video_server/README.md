@@ -1,6 +1,6 @@
 # WebRTC Video Server
 
-![](screenshot.png)<br>
+![WebRTC Video Server](screenshot.png)
 
 This app reads video frames from a file and sends it to a browser using WebRTC.
 
@@ -44,7 +44,7 @@ Press the `Start` button. Video frames are displayed. To stop, press the `Stop` 
 
 ### Command Line Arguments
 
-```
+```text
 usage: webrtc_server.py [-h] [--cert-file CERT_FILE] [--key-file KEY_FILE] [--host HOST] [--port PORT] [--verbose] [--ice-server ICE_SERVER]
 
 optional arguments:
@@ -65,9 +65,11 @@ A TURN server may be needed if you're running in a containerized environment wit
 
 Run the TURN server in the same machine that you're running the app on.
 
-**Note: It is strongly recommended to run the TURN server with docker network=host for best performance**
+### Note
 
-```
+It is strongly recommended to run the TURN server with docker network=host for best performance.
+
+```bash
 # This is the external IP address of the machine running the TURN server
 export TURN_SERVER_EXTERNAL_IP="<ip>"
 
@@ -85,7 +87,7 @@ docker run -d --rm --network=host instrumentisto/coturn \
 
 Then you can pass in the TURN server config into the app
 
-```
+```bash
 python webrtc_server.py --ice-server "turn:<ip>:3478[admin:admin]"
 ```
 

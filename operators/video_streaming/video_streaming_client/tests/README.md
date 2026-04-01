@@ -45,6 +45,7 @@ The unit tests verify the correct behavior of the VideoStreamingClientOp operato
 > **Important:** These tests require **CUDA 12**. If you're using CUDA 13, you must specify `--cuda 12` when building and running tests.
 
 **For CUDA 13 systems:**
+
 ```bash
 # Building
 ./holohub build video_streaming --cuda 12
@@ -123,7 +124,7 @@ TEST_F(VideoStreamingClientOpTest, TestName) {
 
   // 2. Verify creation
   ASSERT_NE(video_streaming_client_op_, nullptr);
-  
+
   // 3. Verify properties
   EXPECT_EQ(video_streaming_client_op_->name(), "operator_name");
   ...
@@ -136,10 +137,8 @@ TEST_F(VideoStreamingClientOpTest, TestName) {
 
 ⚠️ **Integration Tests**: For end-to-end testing with actual streaming, see the integration tests in `applications/video_streaming/TESTING.md`.
 
-
 ## See Also
 
 - **[Video Streaming Client Operator README](../README.md)** - Operator documentation
 - **[Integration Tests](../../../../applications/video_streaming/TESTING.md)** - End-to-end testing
 - **[Main README](../../../../applications/video_streaming/README.md)** - Application overview
-

@@ -1,13 +1,13 @@
-### QCAP
+# QCAP
 
 The `qcap_source` extension supports YUAN High-Tech capture cards as
 the video source.
 
-#### `nvidia::holoscan::QCAPSource`
+## `nvidia::holoscan::QCAPSource`
 
 QCAP Source codelet
 
-##### Parameters
+### Parameters
 
 - **`channel`**: Channel to use (default: `0`)
   - type: `uint32_t`

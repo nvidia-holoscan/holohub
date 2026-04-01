@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,18 +51,18 @@
 
 /**
  * @brief Advanced Holoscan operator that publishes VB1940 Eagle camera images to ROS2.
- * 
+ *
  * This operator demonstrates production-ready integration between Holoscan and ROS2 for
  * high-performance camera applications. It receives processed camera data from a VB1940 Eagle
  * camera processing pipeline, performs GPU-accelerated color space conversion (16-bit to 8-bit RGB),
  * and publishes the results as ROS2 sensor_msgs::Image messages.
- * 
+ *
  * Key features:
  * - CUDA-accelerated 16-bit to 8-bit per-channel conversion
  * - Efficient memory management with device/host transfers
  * - Real-time camera data processing and ROS2 publishing
  * - Support for various VB1940 camera modes and configurations
- * 
+ *
  * The operator is designed for low-latency, high-throughput camera applications in robotics,
  * medical imaging, and industrial automation scenarios.
  */

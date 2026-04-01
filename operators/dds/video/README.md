@@ -6,7 +6,7 @@ to a DDS databus, enabling communication with other applications via the
 
 This operator requires an installation of [RTI Connext](https://content.rti.com/l/983311/2025-07-08/q5x1n8) to provide access to the DDS domain, as specified by the [OMG Data-Distribution Service](https://www.omg.org/omg-dds-portal/).
 
-You can obtain a license/activation key for RTI Connext directly from RTI by downloading it [here](https://content.rti.com/l/983311/2025-07-25/q6729c). For additional information on RTI Connext and how it integrates with NVIDIA products, please refer to the [RTI-NVIDIA integration page](https://www.rti.com/products/third-party-integrations/nvidia).
+You can obtain a license/activation key for RTI Connext directly from RTI by [downloading from the RTI Connext page](https://content.rti.com/l/983311/2025-07-25/q6729c). For additional information on RTI Connext and how it integrates with NVIDIA products, please refer to the [RTI-NVIDIA integration page](https://www.rti.com/products/third-party-integrations/nvidia).
 
 If you have questions, please email [evaluations@rti.com](mailto:evaluations@rti.com).
 
@@ -17,7 +17,7 @@ as input and publishes each buffer to DDS as a [VideoFrame](VideoFrame.idl).
 
 This operator also inherits the parameters from [DDSOperatorBase](../base/README.md).
 
-### Parameters
+### Parameters (Publisher)
 
 - **`writer_qos`**: The name of the QoS profile to use for the DDS DataWriter
   - type: `std::string`
@@ -37,7 +37,7 @@ Operator class for the DDS video subscriber. This operator reads from the
 
 This operator also inherits the parameters from [DDSOperatorBase](../base/README.md).
 
-### Parameters
+### Parameters (Subscriber)
 
 - **`reader_qos`**: The name of the QoS profile to use for the DDS DataReader
   - type: `std::string`

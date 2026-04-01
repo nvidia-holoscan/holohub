@@ -20,12 +20,12 @@ function autoInitializeFilters() {
     if (!sidebarNav) {
         return; // Not a filterable page
     }
-    
+
     var pageType = sidebarNav.getAttribute('data-page-type');
     if (!pageType) {
         return;
     }
-    
+
     // Map page types to their titles
     var pageTitles = {
         'applications': 'All Applications',
@@ -34,9 +34,9 @@ function autoInitializeFilters() {
         'tutorials': 'All Tutorials',
         'workflows': 'All Workflows'
     };
-    
+
     var allTitle = pageTitles[pageType] || 'All';
-    
+
     // Create and setup the filter function
     var pageFilterFn = createFilterFunction({
         normalizeSpaces: true,
@@ -45,7 +45,7 @@ function autoInitializeFilters() {
         navSelector: '.sidebar-nav a',
         tagMatchStrategy: 'text'
     });
-    
+
     setupFilterHandlers(pageFilterFn, '.sidebar-nav a');
 }
 
@@ -82,15 +82,15 @@ function createFilterFunction(options) {
     var allTitle = options.allTitle || 'All';
     var navSelector = options.navSelector || 'nav a';
     var tagMatchStrategy = options.tagMatchStrategy || 'href'; // 'href' or 'text'
-    
+
     return function filterByTag(tag) {
         var cards = document.querySelectorAll('.feature-box');
         var activeCategory = tag.toLowerCase();
-        
+
         if (normalizeSpaces) {
             activeCategory = activeCategory.replace(/ /g, '-');
         }
-        
+
         // Update the category title if enabled
         if (updateTitle) {
             var categoryTitle = document.getElementById('category-title');
@@ -114,7 +114,7 @@ function createFilterFunction(options) {
                 }
             }
         }
-        
+
         // If "all" is selected, show all cards
         if (activeCategory === 'all') {
             cards.forEach(function(card) {
@@ -127,7 +127,7 @@ function createFilterFunction(options) {
                 // Get all tags in the card
                 var cardTags = card.querySelectorAll('.md-tag');
                 var hasTag = false;
-                
+
                 // Check if any of the card's tags match the selected category
                 cardTags.forEach(function(tagElement) {
                     if (tagMatchStrategy === 'href') {
@@ -140,17 +140,17 @@ function createFilterFunction(options) {
                         // Match by text content (applications style)
                         var tagText = tagElement.textContent || tagElement.innerText;
                         var tagTextNormalized = tagText.toLowerCase().trim();
-                        
+
                         if (normalizeSpaces) {
                             tagTextNormalized = tagTextNormalized.replace(/ /g, '-');
                         }
-                        
+
                         if (tagTextNormalized === activeCategory) {
                             hasTag = true;
                         }
                     }
                 });
-                
+
                 // Show or hide the card based on whether it has the tag
                 if (hasTag) {
                     card.style.display = '';
@@ -160,29 +160,29 @@ function createFilterFunction(options) {
                 }
             });
         }
-        
+
         // Update active state on navigation links
         var navLinks = document.querySelectorAll(navSelector);
         navLinks.forEach(function(link) {
             var isActive = false;
-            
+
             // Check if this link matches the active category
             if (tagMatchStrategy === 'text') {
                 // For applications: extract tag from onclick attribute
                 var linkOnclick = link.getAttribute('onclick');
                 var match = linkOnclick && linkOnclick.match(/filterByTag\('([^']+)'\)/);
                 var linkTag = match ? match[1].toLowerCase() : '';
-                
+
                 if (normalizeSpaces) {
                     linkTag = linkTag.replace(/ /g, '-');
                 }
-                
+
                 isActive = linkTag === activeCategory || (activeCategory === 'all' && link.getAttribute('href') === '#all');
             } else {
                 // For benchmarks: match by href
                 isActive = link.getAttribute('href') === '#' + activeCategory;
             }
-            
+
             if (isActive) {
                 link.style.backgroundColor = '#76b900';
                 link.style.color = 'white';
@@ -199,12 +199,12 @@ function createFilterFunction(options) {
 // Show all cards
 function showAllCards(navSelector) {
     navSelector = navSelector || 'nav a';
-    
+
     var cards = document.querySelectorAll('.feature-box');
     cards.forEach(function(card) {
         card.style.display = '';
     });
-    
+
     // Remove active state from all navigation links
     var navLinks = document.querySelectorAll(navSelector);
     navLinks.forEach(function(link) {
@@ -219,7 +219,7 @@ function applyCurrentHashFilter() {
     if (!currentFilterFn || !currentNavSelector) {
         return;
     }
-    
+
     var hash = window.location.hash.substring(1);
     if (hash) {
         currentFilterFn(hash);
@@ -232,14 +232,14 @@ function applyCurrentHashFilter() {
 function setupFilterHandlers(filterFn, navSelector) {
     currentFilterFn = filterFn;
     currentNavSelector = navSelector;
-    
+
     // Only set up global event listeners once
     if (!globalHandlersInitialized) {
         window.addEventListener('hashchange', applyCurrentHashFilter);
         window.addEventListener('load', applyCurrentHashFilter);
         globalHandlersInitialized = true;
     }
-    
+
     // Apply filter immediately if DOM is ready
     if (document.readyState !== 'loading') {
         applyCurrentHashFilter();

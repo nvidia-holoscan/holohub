@@ -82,6 +82,7 @@ This command:
 - Automatically restores source files after build
 
 For example:
+
 ```bash
 ./holohub build endoscopy_tool_tracking --benchmark --language cpp
 ```

@@ -23,4 +23,4 @@ Please check [fhir_client.py](../../../applications/ehr_query_llm/fhir/fhir_clie
 ## Parameters
 
 - `topic` (str): Topic name for message filtering
-- `queue_endpoint` (str): ZeroMQ endpoint URL (e.g., "tcp://*:5556") 
+- `queue_endpoint` (str): ZeroMQ endpoint URL (e.g., "tcp://*:5556")

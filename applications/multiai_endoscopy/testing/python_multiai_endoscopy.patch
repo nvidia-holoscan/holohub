@@ -7,21 +7,21 @@
 +    VideoStreamRecorderOp,
  )
  from holoscan.resources import UnboundedAllocator
- 
+
 @@ -250,7 +251,8 @@
              )
- 
+
          holoviz = HolovizOp(
 -            self, allocator=pool, name="holoviz", tensors=holoviz_tensors, **self.kwargs("holoviz")
 +            self, allocator=pool, name="holoviz", tensors=holoviz_tensors, **self.kwargs("holoviz"),
 +            enable_render_buffer_output=True
          )
- 
+
          # connect the input each pre-processor
 @@ -275,6 +277,23 @@
          self.add_flow(detection_postprocessor, holoviz, {("out", "receivers")})
          self.add_flow(segmentation_postprocessor, holoviz, {("", "receivers")})
- 
+
 +        recorder_format_converter = FormatConverterOp(
 +            self,
 +            name="recorder_format_converter",
@@ -39,6 +39,6 @@
 +        self.add_flow(holoviz, recorder_format_converter, {("render_buffer_output", "source_video")})
 +        self.add_flow(recorder_format_converter, recorder)
 +
- 
+
  def main():
      parser = ArgumentParser(description="Multi-AI Detection Segmentation application.")

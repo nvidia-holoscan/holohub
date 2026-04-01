@@ -16,6 +16,7 @@ The application provides a blueprint for how to set up a mixed reality scene for
 HoloHub components.
 
 The mixed reality demonstration scene includes:
+
 - Static components such as scene axes and cube primitives;
 - A primitive overlay on the tracked controller input;
 - A static UI showcasing sensor inputs and tracking.
@@ -24,8 +25,7 @@ The mixed reality demonstration scene includes:
 
 Refer to the [`volume_rendering_xr` README](/applications/volume_rendering_xr/README.md#prerequisites) for details on hardware, firmware, and software prerequisites.
 
-This utility is part of the `volume_rendering_xr` application suite. 
-
+This utility is part of the `volume_rendering_xr` application suite.
 
 ### Running the Test Utility
 

@@ -1,6 +1,6 @@
 # TAO PeopleNet Detection Model on V4L2 Video Stream
 
-<center> <img src="./docs/meeting.gif" ></center>
+![TAO PeopleNet meeting demo](./docs/meeting.gif)
 
 Use the TAO PeopleNet available on [NGC](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/tao/models/peoplenet) to detect faces and people in a V4L2 supported video stream. HoloViz is used to draw bounding boxes around the detections.
 
@@ -24,13 +24,13 @@ This app supports two different input options.  If you have a v4l2 compatible de
 
 To see the list of v4l2 devices connected to your machine, install `v4l-utils` if it's not already installed:
 
-```
+```bash
 sudo apt-get install v4l-utils
 ```
 
 Then run:
 
-```
+```bash
 v4l2-ctl --list-devices
 ```
 
@@ -40,6 +40,7 @@ v4l2-ctl --list-devices
 
 This application supports v4l2 compatible devices as input.  To run this application with your v4l2 compatible device,
 please plug in your input device and run:
+
 ```sh
 ./holohub run tao_peoplenet
 ```
@@ -47,6 +48,7 @@ please plug in your input device and run:
 By default, this application expects the input device to be mounted at `/dev/video0`.  If this is not the case, please update
 `applications/tao_peoplenet/tao_peoplenet.yaml` and set it to use the corresponding input device before
 running the application.  You can also override the default input device on the command line by running:
+
 ```sh
 ./holohub run tao_peoplenet --run-args="--video_device /dev/video0"
 ```

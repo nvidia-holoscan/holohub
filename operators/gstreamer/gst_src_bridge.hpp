@@ -118,11 +118,11 @@ class GstSrcBridge {
 
   /**
    * @brief Get the current negotiated caps from the source pad
-   * 
+   *
    * Returns the actual caps negotiated during pipeline setup, not the allowed caps
    * set as a property. These are the fixed, fully-specified caps describing the
    * actual data format flowing through the pipeline.
-   * 
+   *
    * @return Negotiated caps with automatic reference counting, empty if not negotiated
    */
   gst::Caps get_current_caps() const;

@@ -84,7 +84,7 @@ ENV CMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH}:${VTK_INSTALL}"
 # GLFW  & GLEW
 #
 
-RUN apt install -y libglfw3-dev libglew-dev 
+RUN apt install -y libglfw3-dev libglew-dev
 
 
 WORKDIR /workspace/holohub

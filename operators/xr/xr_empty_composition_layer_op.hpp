@@ -40,4 +40,3 @@ class XrEmptyCompositionLayerOp : public Operator {
 }  // namespace holoscan::ops
 
 #endif  // XR_EMPTY_COMPOSITION_LAYER_OP_HPP
-

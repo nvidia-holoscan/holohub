@@ -50,7 +50,7 @@ async function updateAudioDevices() {
         const devices = await navigator.mediaDevices.enumerateDevices();
         const audioDevices = devices.filter(device => device.kind === 'audiooutput');
         console.log('Available audio output devices:', audioDevices);
-        
+
         if (window.audioContext && window.audioContext.state === 'suspended') {
             await window.audioContext.resume();
         }
@@ -82,19 +82,19 @@ function checkAudioSupport() {
 function sendWebsocket(payload, type = 0) {
 
     if (websocket.readyState === WebSocket.OPEN) {
-    const timestamp = Date.now();	
+    const timestamp = Date.now();
     console.log('Sending websocket message', type, payload);
     let header = new DataView(new ArrayBuffer(32));
-    
+
     header.setBigUint64(0, BigInt(msg_count_tx));
     header.setBigUint64(8, BigInt(timestamp));
     header.setUint16(16, 42);
     header.setUint16(18, type);
-    
+
     msg_count_tx++;
-    
+
     let payloadSize;
-    
+
     if (payload instanceof ArrayBuffer || ArrayBuffer.isView(payload)) {
         payloadSize = payload.byteLength;
     } else if (payload instanceof Blob) {
@@ -103,7 +103,7 @@ function sendWebsocket(payload, type = 0) {
         payload = new TextEncoder().encode(JSON.stringify(payload));
         payloadSize = payload.byteLength;
     }
-    
+
     header.setUint32(20, payloadSize);
 
     websocket.send(new Blob([header, payload]));}
@@ -115,7 +115,7 @@ function sendWebsocket(payload, type = 0) {
 
 function onWebsocket(event) {
     const msg = event.data;
-    
+
     if (msg.size <= 32) {
         console.log(`Received invalid websocket msg (size=${msg.size})`);
         return;
@@ -174,12 +174,12 @@ function playAudio(audioData) {
         console.warn('AudioContext not initialized. Initializing now.');
         initAudioContext();
     }
-    
+
     if (!window.audioContext) {
         console.error('AudioContext not available');
         return;
     }
-    
+
     window.audioContext.decodeAudioData(audioData, (buffer) => {
         const source = window.audioContext.createBufferSource();
         source.buffer = buffer;
@@ -206,7 +206,7 @@ function updateChatHistory(chat_history) {
                 let images = lastAddedMessage.find('img');
                 if (images.length > 0) {
                     images.on('load', function() {
-                        if (isScrolledToBottom) 
+                        if (isScrolledToBottom)
                             chc.scrollTop = chc.scrollHeight - chc.clientHeight;
                     });
                 }

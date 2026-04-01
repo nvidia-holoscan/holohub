@@ -6,11 +6,12 @@ A Holoscan application demonstrating the integration of Slang shading language f
 
 This application showcases how to use the Slang shading language operator (`SlangShaderOp`) within Holoscan applications for GPU-accelerated image processing. The example implements a pipeline that generates a test image with smooth color transitions, applies gamma correction using a Slang compute shader, and displays the result with proper sRGB color space handling.
 
-![](slang_gamma_correction.png)
+![Slang gamma correction example output](slang_gamma_correction.png)
 
 ### What is Gamma Correction?
 
 Gamma correction is a non-linear operation used to encode and decode luminance or tristimulus values in video or still image systems. It's essential for:
+
 - Correcting the non-linear response of display devices
 - Ensuring proper color reproduction across different devices
 - Converting between linear and sRGB color spaces
@@ -73,6 +74,7 @@ flowchart LR
 You can adjust the gamma correction parameter:
 
 #### C++
+
 ```cpp
 auto gamma_correction = make_operator<ops::GammaCorrectionOp>(
     "GammaCorrection",
@@ -82,6 +84,7 @@ auto gamma_correction = make_operator<ops::GammaCorrectionOp>(
 ```
 
 #### Python
+
 ```python
 gamma_correction = GammaCorrectionOp(
     self,
@@ -105,4 +108,3 @@ This project is licensed under the Apache License 2.0. See the LICENSE file for 
 ## Contributing
 
 Contributions are welcome! Please refer to the HoloHub contribution guidelines for more information.
-

@@ -1,5 +1,5 @@
 #!/bin/bash
-# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES.
 # All rights reserved. SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@ parse_arguments() {
     SKIP_MAGIC_LEAP=true
     USE_HELLO_HOLOSCAN=false
     COMMAND_ARGS=()
-    
+
     for arg in "$@"; do
         case "$arg" in
             --magic-leap)
@@ -44,7 +44,7 @@ start_magic_leap() {
         echo "Starting ML with default debug options"
         ml_start.sh debug
     fi
-    
+
     echo "Pairing ML..."
     ml_pair.sh
 }
@@ -61,11 +61,11 @@ run_application() {
 
 main() {
     parse_arguments "$@"
-    
+
     if [ "$SKIP_MAGIC_LEAP" = false ]; then
         start_magic_leap
     fi
-    
+
     run_application
 }
 

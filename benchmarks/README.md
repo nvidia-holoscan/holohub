@@ -6,6 +6,7 @@ the performance of pipelines built with Holoscan SDK.
 ## Contents
 
 Any of the following may be covered under a benchmark project:
+
 - Holoscan SDK performance;
 - HoloHub application performance;
 - Tools for benchmarking non-Holohub Holoscan SDK applications.

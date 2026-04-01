@@ -69,11 +69,13 @@ auto gamma_op = make_operator<holoscan::ops::GammaCorrectionOp>("gamma_correctio
 ### Supported Data Types
 
 #### Integer Types
+
 - `int8_t`, `uint8_t`, `int16_t`, `uint16_t`, `int32_t`, `uint32_t`: Automatically normalized to [0,1] range before processing
 - Gamma correction applied in normalized space
 - Results scaled back to original range
 
 #### Floating Point Types
+
 - `float`, `double`: Processed directly without normalization
 - Assumes input values are already in [0,1] range
 
@@ -120,4 +122,3 @@ The GammaCorrectionOp is part of the HoloHub project. Contributions are welcome 
 ## License
 
 This operator is licensed under the Apache License 2.0, same as the HoloHub project.
-

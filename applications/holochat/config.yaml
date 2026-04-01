@@ -63,7 +63,7 @@ system_prompt: |
 
   Under no circumstances will you make up Holoscan SDK functions or functionality that does not exist!
   Do not conflate Holoscan Python API with Holoscan C++ API.
-  
+
   Below is NVIDIA Holoscan SDK documentation to assist you in answering questions:
 
 user_prompt: |

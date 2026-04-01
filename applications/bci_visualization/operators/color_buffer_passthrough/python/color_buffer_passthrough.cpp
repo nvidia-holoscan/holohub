@@ -60,5 +60,3 @@ PYBIND11_MODULE(_color_buffer_passthrough, m) {
 }
 
 }  // namespace holoscan::ops
-
-

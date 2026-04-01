@@ -24,14 +24,13 @@ Holoviz output.
 ## Prerequisites
 
 - This application requires an installation of [RTI Connext Express](https://content.rti.com/l/983311/2025-07-08/q5x1n8) to provide access to the DDS domain.
-To obtain a license/activation key, please [click here](https://content.rti.com/l/983311/2025-07-25/q6729c). Please see the [usage rules](https://www.rti.com/products/connext-express) for Connext Express.
+To obtain a license/activation key, please [request an RTI Connext Express license or activation key](https://content.rti.com/l/983311/2025-07-25/q6729c). Please see the [usage rules](https://www.rti.com/products/connext-express) for Connext Express.
 - V4L2 capable device
 
-> [!NOTE]  
+> [!NOTE]
 > Instructions below are based on the `.run' installer from RTI Connext. Refer to the
 > [Linux installation](https://community.rti.com/static/documentation/developers/get-started/full-install.html)
 > for details.
-
 
 ## Quick Start
 
@@ -42,7 +41,6 @@ To obtain a license/activation key, please [click here](https://content.rti.com/
 # Start the subscriber
 ./holohub run dds_video --docker-opts="-v $HOME/rti_connext_dds-7.3.0:/opt/rti.com/rti_connext_dds-7.3.0/" --run-args="-s"
 ```
-
 
 ## Building the Application
 
@@ -73,11 +71,9 @@ done using the RTI `setenv` script) and use the following:
 ./holohub run-container dds_video --docker-opts="-v $HOME/rti_connext_dds-7.3.0:/opt/rti.com/rti_connext_dds-7.3.0/"
 # 3. Build the application
 ./holohub build dds_video
-# Continue to the next section to run the application with the publisher. 
+# Continue to the next section to run the application with the publisher.
 # Open a new terminal to repeat step #2 and launch a new container for the subscriber.
 ```
-
-
 
 ## Running the Application
 
@@ -87,13 +83,13 @@ writing to and reading the video stream from DDS, respectively.
 To run the publisher process, use the `-p` option:
 
 ```sh
-$ ./holohub run --no-local-build dds_video --run-args="-p"
+./holohub run --no-local-build dds_video --run-args="-p"
 ```
 
 To run the subscriber process, use the `-s` option:
 
 ```sh
-$ ./holohub run --no-local-build dds_video --run-args="-s"
+./holohub run --no-local-build dds_video --run-args="-s"
 ```
 
 If running the application generates an error about `RTI Connext DDS No Source
@@ -111,7 +107,7 @@ receive socket buffer sizes. This can be done by running the `set_socket_buffer_
 script within this directory:
 
 ```sh
-$ ./set_socket_buffer_sizes.sh
+./set_socket_buffer_sizes.sh
 ```
 
 For more details, see the [RTI Connext Guide to Improve DDS Network Performance on Linux Systems](https://community.rti.com/howto/improve-rti-connext-dds-network-performance-linux-systems)

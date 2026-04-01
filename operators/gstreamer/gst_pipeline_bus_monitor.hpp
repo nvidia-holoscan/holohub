@@ -177,4 +177,3 @@ class PipelineBusMonitor {
 }  // namespace holoscan::gst
 
 #endif  // HOLOSCAN__GSTREAMER__GST_PIPELINE_BUS_MONITOR_HPP
-

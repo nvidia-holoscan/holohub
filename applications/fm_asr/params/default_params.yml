@@ -14,9 +14,9 @@
 # limitations under the License.
 
 run_time: 20
-RtlSdrGeneratorOp:        
+RtlSdrGeneratorOp:
     tune_frequency: 90100000
-    sample_rate: 2560000    
+    sample_rate: 2560000
     gain: 40
 PlayAudioOp:
     play_audio: True
@@ -31,9 +31,7 @@ RivaAsrOp:
     language_code: 'en-US' # Language code of the model to be used
     sample_rate: 16000 # Sample rate expected by the Riva ASR model
     output_file: ['transcripts', 'transcript.txt'] # File to store transcript; if not provided, transcript will be printed to terminal
-    interim_transcriptions: True # Flag to include interim transcriptions in the output file    
+    interim_transcriptions: True # Flag to include interim transcriptions in the output file
     recognize_interval: 5 # Specifies the amount of data RIVA processes, in time (s)
 TranscriptSinkOp:
     output_file: "./transcripts/transcript.txt"
-    
-

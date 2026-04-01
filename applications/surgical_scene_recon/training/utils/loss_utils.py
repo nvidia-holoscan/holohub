@@ -131,6 +131,11 @@ def l1_loss(
             # Extract only masked regions
             loss = loss[mask != 0]
 
+    if mask is not None and loss.numel() == 0:
+        raise ValueError(
+            "l1_loss: mask is all zeros — no valid pixels to compute loss on. "
+            "Check that your mask preparation step is producing non-trivial masks."
+        )
     return loss.mean()
 
 
@@ -159,6 +164,10 @@ def gaussian(window_size: int, sigma: float) -> torch.Tensor:
     Returns:
         Normalized 1D Gaussian kernel
     """
+    if window_size <= 0:
+        raise ValueError("gaussian() requires window_size > 0")
+    if sigma <= 0:
+        raise ValueError("gaussian() requires sigma > 0")
     gauss = torch.Tensor(
         [exp(-((x - window_size // 2) ** 2) / float(2 * sigma**2)) for x in range(window_size)]
     )
@@ -176,6 +185,10 @@ def create_window(window_size: int, channel: int) -> torch.Tensor:
     Returns:
         2D Gaussian window of shape [channel, 1, window_size, window_size]
     """
+    if window_size <= 0:
+        raise ValueError("create_window() requires window_size > 0")
+    if channel <= 0:
+        raise ValueError("create_window() requires channel > 0")
     # Create 1D Gaussian window
     _1D_window = gaussian(window_size, 1.5).unsqueeze(1)
 

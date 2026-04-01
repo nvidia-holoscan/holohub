@@ -1,5 +1,5 @@
 %YAML 1.2
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,13 +52,13 @@ segmentation_preprocessor:  # FormatConverter
 
 inference:  # InferenceOp
   backend: "trt"
-  pre_processor_map: 
+  pre_processor_map:
     "ssd": ["source_video_pre"]
     "tool_seg": ["endo_preprocessed"]
-  inference_map: 
-    "ssd": ["inference_output_num_detections", 
-            "inference_output_detection_boxes", 
-            "inference_output_detection_scores", 
+  inference_map:
+    "ssd": ["inference_output_num_detections",
+            "inference_output_detection_boxes",
+            "inference_output_detection_scores",
             "inference_output_detection_classes",]
     "tool_seg": ["tool_seg_inferred"]
   enable_fp16: true
@@ -70,12 +70,12 @@ segmentation_postprocessor:  # SegmentationPostprocessorOp
 
 detection_postprocessor:  # DetectionPostprocessorOp
   scores_threshold: 0.5
-  label_names: ["Grasper", 
-                "Bipolar", 
-                "Hook", 
-                "Scissors", 
-                "Clipper", 
-                "Irrigator", 
+  label_names: ["Grasper",
+                "Bipolar",
+                "Hook",
+                "Scissors",
+                "Clipper",
+                "Irrigator",
                 "Spec.Bag"]
 
 holoviz:  # Holoviz
@@ -87,7 +87,7 @@ holoviz:  # Holoviz
     [0.99, 0.75, 0.44, 0.7],
     [1.0, 0.5, 0.0, 0.7],
     [0.0, 0.0, 0.0, 0.1]
-    ]  
+    ]
   tensors:
     - name: ""
       type: color
@@ -102,7 +102,7 @@ holoviz:  # Holoviz
       type: text
       text: ["Grasper"]
       opacity: 0.7
-      color: [1.0, 0.0, 1.0, 1.0]      
+      color: [1.0, 0.0, 1.0, 1.0]
     - name: Bipolar_rectangle
       type: rectangles
       opacity: 0.7
@@ -122,7 +122,7 @@ holoviz:  # Holoviz
       type: text
       text: ["Hook"]
       opacity: 0.7
-      color: [1.0, 1.0, 1.0, 1.0]            
+      color: [1.0, 1.0, 1.0, 1.0]
     - name: Scissors_rectangle
       type: rectangles
       opacity: 0.7
@@ -132,7 +132,7 @@ holoviz:  # Holoviz
       type: text
       text: ["Scissors"]
       opacity: 0.7
-      color: [0.0, 1.0, 1.0, 1.0]            
+      color: [0.0, 1.0, 1.0, 1.0]
     - name: Clipper_rectangle
       type: rectangles
       opacity: 0.7
@@ -142,7 +142,7 @@ holoviz:  # Holoviz
       type: text
       text: ["Clipper"]
       opacity: 0.7
-      color: [1.0, 0.5, 0.0, 1.0]          
+      color: [1.0, 0.5, 0.0, 1.0]
     - name: Irrigator_rectangle
       type: rectangles
       opacity: 0.7
@@ -152,7 +152,7 @@ holoviz:  # Holoviz
       type: text
       text: ["Irrigator"]
       opacity: 0.7
-      color: [0.5, 0.5, 0.5, 1.0]            
+      color: [0.5, 0.5, 0.5, 1.0]
     - name: Spec.Bag_rectangle
       type: rectangles
       opacity: 0.7

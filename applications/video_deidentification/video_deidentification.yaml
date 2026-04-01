@@ -1,5 +1,5 @@
 %YAML 1.2
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -55,7 +55,7 @@ faceblur:
   target: "faces"       # specifies which tensor has the bboxes to blur
   sigma: 20.0           # controls the amount of blur, setting this to 0 = no blur
   time_thresh: 10       # specifies the # of frames to keep a region blurred
-  overlap_thresh: 0.7   # 
+  overlap_thresh: 0.7   #
 
 # Text detection operators
 textdet:
@@ -65,7 +65,7 @@ textblur:
   target: "boxes"
   sigma: 20.0           # controls the amount of blur, setting this to 0 = no blur
   time_thresh: 10       # specifies the # of frames to keep a region blurred
-  overlap_thresh: 0.7   # 
+  overlap_thresh: 0.7   #
 
 imageclip:
   pixels: 30            # num of pixels to clip from image border

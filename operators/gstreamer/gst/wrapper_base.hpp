@@ -23,14 +23,14 @@ namespace gst {
 
 /**
  * @brief Marker base class for all GStreamer wrapper types
- * 
+ *
  * This empty base class serves as a type marker to identify our GStreamer C++ wrappers.
  * It enables automatic unwrapping of wrapper objects when passed to set_properties().
  * Empty base optimization ensures zero runtime overhead.
- * 
+ *
  * All wrapper classes (ObjectBase, MiniObjectBase, and their derivatives) inherit from
  * this base class, allowing generic code to detect and automatically unwrap them.
- * 
+ *
  * @warning This is NOT a polymorphic base class - it has no virtual destructor.
  *          Do not delete derived objects through GstWrapperBase pointers.
  *          This class exists solely as a compile-time type marker for template metaprogramming.

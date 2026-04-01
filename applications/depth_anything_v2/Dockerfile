@@ -89,7 +89,7 @@ WORKDIR /app/Depth-Anything-V2
 COPY --from=builder /app/Depth-Anything-V2/*.onnx /models/.
 
 #
-# Holohub dev setup 
+# Holohub dev setup
 #
 RUN mkdir -p /tmp/scripts
 COPY holohub /tmp/scripts/

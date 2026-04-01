@@ -269,6 +269,39 @@ void DpdkMgr::create_dummy_rx_q() {
   }
 }
 
+// Newer versions of DPDK (25.11+) need a dummy TX queue even when not transmitting,
+// or the interface will fail to start.
+void DpdkMgr::create_dummy_tx_q() {
+  for (auto& intf : cfg_.ifs_) {
+    auto& tx = intf.tx_;
+
+    if (tx.queues_.size() == 0) {
+      HOLOSCAN_LOG_INFO("Port {} has no TX queues. Creating dummy queue.", intf.port_id_);
+      const std::string mr_name = "MR_Unused_TX_P" + std::to_string(intf.port_id_);
+      TxQueueConfig tmp_q;
+      tmp_q.common_.name_ = "UNUSED_TX_P" + std::to_string(intf.port_id_) + "_Q0";
+      tmp_q.common_.id_ = 0;
+      tmp_q.common_.batch_size_ = 1;
+      tmp_q.common_.split_boundary_ = 0;
+      tmp_q.common_.cpu_core_ = "0";
+      tmp_q.common_.mrs_.push_back(mr_name);
+      tmp_q.common_.extra_queue_config_ = nullptr;
+      tx.queues_.push_back(tmp_q);
+
+      // Create unused MR
+      MemoryRegionConfig tmp_mr;
+      tmp_mr.name_ = mr_name;
+      tmp_mr.kind_ = MemoryKind::HUGE;
+      tmp_mr.affinity_ = 0;
+      tmp_mr.access_ = 0;
+      tmp_mr.buf_size_ = 64;
+      tmp_mr.num_bufs_ = 32768;
+      tmp_mr.owned_ = true;
+      cfg_.mrs_[mr_name] = tmp_mr;
+    }
+  }
+}
+
 void DpdkMgr::initialize() {
   int ret;
 
@@ -383,6 +416,7 @@ void DpdkMgr::initialize() {
   this->init_rx_core_q_map();
 
   create_dummy_rx_q();
+  create_dummy_tx_q();
 
   // Adjust the sizes to accommodate any padding/alignment restrictions by this library
   adjust_memory_regions();
@@ -428,6 +462,8 @@ void DpdkMgr::initialize() {
 
     // Queue setup
     size_t max_pkt_size = 0;
+    bool single_seg_rx_needs_scatter = false;
+    size_t min_single_seg_rx_buf_size = std::numeric_limits<size_t>::max();
     const auto& rx = intf.rx_;
 
     for (auto& q : rx.queues_) {
@@ -475,6 +511,12 @@ void DpdkMgr::initialize() {
       }
 
       max_pkt_size = std::max(max_pkt_size, q_packet_size);
+      if (q.common_.mrs_.size() == 1) {
+        min_single_seg_rx_buf_size = std::min(min_single_seg_rx_buf_size, q_packet_size);
+        if (q_packet_size < static_cast<size_t>(RTE_ETHER_MIN_MTU + MAX_ETH_HDR_SIZE)) {
+          single_seg_rx_needs_scatter = true;
+        }
+      }
       HOLOSCAN_LOG_INFO("Max packet size needed for RX: {}", max_pkt_size);
 
       // Multiple segments
@@ -560,12 +602,45 @@ void DpdkMgr::initialize() {
 
     local_port_conf[intf.port_id_].txmode.offloads = 0;
 
-    // Subtract eth headers since driver adds that on
+    // Subtract eth headers since driver adds them on, then clamp to a valid MTU range.
     max_pkt_size = std::max(max_pkt_size, 64UL);
-    local_port_conf[intf.port_id_].rxmode.mtu = std::min(max_pkt_size, (size_t)JUMBOFRAME_SIZE) -
-      RTE_ETHER_CRC_LEN - RTE_ETHER_HDR_LEN;
+    const size_t requested_frame_size = std::min(max_pkt_size,
+                                         static_cast<size_t>(JUMBOFRAME_SIZE));
+    const size_t requested_mtu =
+      (requested_frame_size > (RTE_ETHER_CRC_LEN + RTE_ETHER_HDR_LEN))
+          ? (requested_frame_size - RTE_ETHER_CRC_LEN - RTE_ETHER_HDR_LEN)
+                                     : 0;
+    local_port_conf[intf.port_id_].rxmode.mtu =
+        std::max(requested_mtu, static_cast<size_t>(RTE_ETHER_MIN_MTU));
     local_port_conf[intf.port_id_].rxmode.max_lro_pkt_size =
         local_port_conf[intf.port_id_].rxmode.mtu;
+
+    // The mlx5 driver requires a minimum MTU of 68B, which is different from the Linux
+    // MTU setting. 68B MTU is what we use for packet sizes <= 68B. However, the driver
+    // uses this value to compute how big the buffer size needs to be. This calculation
+    // has an issue with the way we set our buffer size because it thinks a 64B buffer
+    // won't have enough room with a 68B MTU. We need to turn on scatter mode in the driver
+    // to help with this even though we're not scattering the packets.
+    if (single_seg_rx_needs_scatter) {
+      if ((dev_info.rx_offload_capa & RTE_ETH_RX_OFFLOAD_SCATTER) == 0) {
+        HOLOSCAN_LOG_CRITICAL(
+            "Port {} requires RX scatter (smallest single-segment RX buffer={} bytes), "
+            "but NIC does not support RTE_ETH_RX_OFFLOAD_SCATTER. "
+            "Increase RX MR buf_size to at least {} bytes.",
+            intf.port_id_,
+            min_single_seg_rx_buf_size,
+            static_cast<size_t>(RTE_ETHER_MIN_MTU + MAX_ETH_HDR_SIZE));
+        return;
+      }
+
+      local_port_conf[intf.port_id_].rxmode.offloads |= RTE_ETH_RX_OFFLOAD_SCATTER;
+      HOLOSCAN_LOG_INFO(
+          "Enabling RX scatter offload on port {} because smallest single-segment RX buffer "
+          "({} bytes) is below minimum frame size ({} bytes).",
+          intf.port_id_,
+          min_single_seg_rx_buf_size,
+          static_cast<size_t>(RTE_ETHER_MIN_MTU + MAX_ETH_HDR_SIZE));
+    }
 
     HOLOSCAN_LOG_INFO("Setting port config for port {} mtu:{}",
                       intf.port_id_,
@@ -869,9 +944,10 @@ int DpdkMgr::setup_pools_and_rings(int max_rx_batch, int max_tx_batch) {
         return -1;
       }
 
-      HOLOSCAN_LOG_INFO("Setting up TX burst pool {} with {} pointers at {}",
+      HOLOSCAN_LOG_INFO("Setting up TX burst pool {} with {} pointers, pool_size={} at {}",
                         name,
                         max_tx_batch,
+                        (1U << 7) - 1U,
                         (void*)tx_burst_buffers[key]);
     }
   }
@@ -1602,6 +1678,11 @@ void DpdkMgr::run() {
     if (intf.tx_.queues_.size() > 0) {
       const auto& tx = intf.tx_;
       for (auto& q : tx.queues_) {
+        // Dummy queue made to appease HWS. Don't launch worker
+        if (q.common_.name_.find("UNUSED") == 0) {
+          continue;
+        }
+
         uint32_t key = generate_queue_key(intf.port_id_, q.common_.id_);
         auto params = new TxWorkerParams;
         //  params->hds    = q.common_.hds_ > 0;
@@ -2257,7 +2338,23 @@ void* DpdkMgr::get_packet_extra_info(BurstParams* burst, int idx) {
 
 Status DpdkMgr::get_tx_packet_burst(BurstParams* burst) {
   const uint32_t key = generate_queue_key(burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
-  const auto& q = tx_dpdk_q_map_[key];
+
+  const auto q_it = tx_dpdk_q_map_.find(key);
+  if (q_it == tx_dpdk_q_map_.end()) {
+    HOLOSCAN_LOG_ERROR("get_tx_packet_burst: queue map lookup failed for port {} queue {}",
+                       burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
+    return Status::INVALID_PARAMETER;
+  }
+  const auto& q = q_it->second;
+
+  if (burst->hdr.hdr.num_segs <= 0 ||
+      static_cast<size_t>(burst->hdr.hdr.num_segs) != q->pools.size()) {
+    HOLOSCAN_LOG_ERROR("get_tx_packet_burst: num_segs {} does not match pools size {} "
+                       "for port {} queue {}",
+                       burst->hdr.hdr.num_segs, q->pools.size(),
+                       burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
+    return Status::INVALID_PARAMETER;
+  }
 
   const auto burst_pool = tx_burst_buffers.find(key);
   if (burst_pool == tx_burst_buffers.end()) {
@@ -2267,15 +2364,43 @@ Status DpdkMgr::get_tx_packet_burst(BurstParams* burst) {
     return Status::NO_FREE_BURST_BUFFERS;
   }
 
+  // Rollback helper: free mbufs and burst containers for segments 0..count-1
+  auto rollback_segments = [&](int count) {
+    for (int prev = 0; prev < count; prev++) {
+      auto mbufs = reinterpret_cast<rte_mbuf**>(burst->pkts[prev]);
+      for (size_t p = 0; p < burst->hdr.hdr.num_pkts; p++) {
+        rte_pktmbuf_free(mbufs[p]);
+      }
+      rte_mempool_put(burst_pool->second, burst->pkts[prev]);
+      burst->pkts[prev] = nullptr;
+    }
+  };
+
   for (int seg = 0; seg < burst->hdr.hdr.num_segs; seg++) {
+    burst->pkts[seg] = nullptr;
+
     if (rte_mempool_get(burst_pool->second, reinterpret_cast<void**>(&burst->pkts[seg])) != 0) {
+      HOLOSCAN_LOG_DEBUG("get_tx_packet_burst: burst pool exhausted at seg={} "
+                         "(avail={} in_use={})",
+                         seg,
+                         rte_mempool_avail_count(burst_pool->second),
+                         rte_mempool_in_use_count(burst_pool->second));
+      rollback_segments(seg);
       return Status::NO_FREE_BURST_BUFFERS;
     }
 
     if (rte_pktmbuf_alloc_bulk(q->pools[seg],
                                reinterpret_cast<rte_mbuf**>(burst->pkts[seg]),
                                static_cast<int>(burst->hdr.hdr.num_pkts)) != 0) {
+      HOLOSCAN_LOG_DEBUG("get_tx_packet_burst: mbuf alloc failed at seg={} "
+                         "(mbuf_pool_avail={} needed={})",
+                         seg,
+                         rte_mempool_avail_count(q->pools[seg]),
+                         burst->hdr.hdr.num_pkts);
+      // Free current seg's burst container (no mbufs to free — alloc failed)
       rte_mempool_put(burst_pool->second, reinterpret_cast<void*>(burst->pkts[seg]));
+      burst->pkts[seg] = nullptr;
+      rollback_segments(seg);
       return Status::NO_FREE_PACKET_BUFFERS;
     }
   }
@@ -2335,6 +2460,12 @@ bool DpdkMgr::is_tx_burst_available(BurstParams* burst) {
   }
 
   const auto& q = item->second;
+
+  if (burst->hdr.hdr.num_segs <= 0 ||
+      static_cast<size_t>(burst->hdr.hdr.num_segs) != q->pools.size()) {
+    return false;
+  }
+
   for (int seg = 0; seg < burst->hdr.hdr.num_segs; seg++) {
     if (rte_mempool_avail_count(q->pools[seg]) < burst->hdr.hdr.num_pkts * 2) { return false; }
   }
@@ -2393,6 +2524,14 @@ void DpdkMgr::free_tx_burst(BurstParams* burst) {
   const uint32_t key = generate_queue_key(burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
   const auto burst_pool = tx_burst_buffers.find(key);
 
+  if (burst_pool == tx_burst_buffers.end()) {
+    HOLOSCAN_LOG_ERROR("free_tx_burst: burst pool not found for port {} queue {}",
+                       burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
+    burst->hdr.hdr.num_pkts = 0;
+    rte_mempool_put(tx_metadata, burst);
+    return;
+  }
+
   for (int seg = 0; seg < burst->hdr.hdr.num_segs; seg++) {
     rte_mempool_put(burst_pool->second, (void*)burst->pkts[seg]);
   }
@@ -2427,10 +2566,10 @@ void DpdkMgr::free_tx_metadata(BurstParams* burst) {
 
 Status DpdkMgr::get_tx_metadata_buffer(BurstParams** burst) {
   if (rte_mempool_get(tx_metadata, reinterpret_cast<void**>(burst)) != 0) {
-    HOLOSCAN_LOG_CRITICAL("Running out of TX meta buffers due to high rates. Either increase "\
-      "your number of metadata buffers (current: {}) with `tx_meta_buffers` (will "\
-      "increase memory usage) or increase your `batch_size` for port {} queue {} (will increase "\
-      "latency)", cfg_.tx_meta_buffers_, (*burst)->hdr.hdr.port_id, (*burst)->hdr.hdr.q_id);
+    HOLOSCAN_LOG_CRITICAL("Running out of TX meta buffers (pool size: {}, avail: {})",
+                          cfg_.tx_meta_buffers_ - 1U,
+                          rte_mempool_avail_count(tx_metadata));
+    *burst = nullptr;
     return Status::NO_FREE_BURST_BUFFERS;
   }
 
@@ -2450,7 +2589,6 @@ Status DpdkMgr::send_tx_burst(BurstParams* burst) {
 
   if (rte_ring_enqueue(ring->second, reinterpret_cast<void*>(burst)) != 0) {
     free_tx_burst(burst);
-    free_tx_metadata(burst);
     HOLOSCAN_LOG_CRITICAL("Failed to enqueue TX work");
     return Status::NO_SPACE_AVAILABLE;
   }

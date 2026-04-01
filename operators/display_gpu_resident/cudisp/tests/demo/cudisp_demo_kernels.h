@@ -1,0 +1,15 @@
+/*
+ * SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#ifndef CUDISP_DEMO_KERNELS_H
+#define CUDISP_DEMO_KERNELS_H
+
+#include <cstdint>
+#include <cuda_runtime.h>
+
+void launch_render_bars(uint32_t* buf, uint32_t stride_px, uint32_t w, uint32_t h,
+                        uint32_t frame, cudaStream_t stream);
+
+#endif

@@ -8,8 +8,8 @@
  )
 -from holoscan.resources import BlockMemoryPool, CudaStreamPool, MemoryStorageType
 +from holoscan.resources import BlockMemoryPool, CudaStreamPool, MemoryStorageType, UnboundedAllocator
- 
- 
+
+
  class ColonoscopyApp(Application):
 @@ -161,6 +162,7 @@
              name="segmentation_visualizer",
@@ -17,12 +17,12 @@
              **self.kwargs("segmentation_visualizer"),
 +            enable_render_buffer_output=True
          )
- 
+
          if is_aja:
 @@ -178,6 +180,25 @@
              {("", "receivers")},
          )
- 
+
 +        recorder_format_converter = FormatConverterOp(
 +            self,
 +            name="recorder_format_converter",
@@ -42,6 +42,6 @@
 +        self.add_flow(segmentation_visualizer, recorder_format_converter, {("render_buffer_output", "source_video")})
 +        self.add_flow(recorder_format_converter, recorder)
 +
- 
+
  def main():
      # Parse args

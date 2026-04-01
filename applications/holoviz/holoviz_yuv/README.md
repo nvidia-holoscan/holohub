@@ -1,6 +1,6 @@
 # Holoviz YUV
 
-![](holoviz_yuv.png)
+![Holoviz YUV](holoviz_yuv.png)
 This application demonstrates the capability of the Holoviz operator to display images in YUV (aka YCbCr) format.
 
 Holoviz supports multiple YUV formats including 420 and 422, 8 and 16 bit, single plane and multi plane. It supports BT.601, BT.709 and BT.2020 color conversions, narrow and full range and cosited even and midpoint chroma downsample positions.

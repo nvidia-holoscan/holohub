@@ -21,7 +21,6 @@ If you want to manually convert the video data, please refer to the instructions
 
 ## Run Instructions
 
-
 ```sh
 # Build the Holohub container for the Distributed Endoscopy Tool Tracking application
 ./holohub build-container ucx_endoscopy_tool_tracking --img holohub:ucx_endoscopy_tool_tracking

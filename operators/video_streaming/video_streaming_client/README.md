@@ -142,7 +142,7 @@ Edit `../../../applications/video_streaming/video_streaming_client/cpp/video_str
 v4l2_source:
   device: "/dev/video0"        # Camera device path
   width: 1280                  # Camera resolution width
-  height: 720                  # Camera resolution height  
+  height: 720                  # Camera resolution height
   frame_rate: 30               # Camera frame rate
   pixel_format: "MJPG"         # Pixel format (MJPG recommended for higher resolutions)
   # Optional camera settings:
@@ -232,7 +232,7 @@ add_flow(frame_saver, source, {{"input_frames", "output_frames"}});
 #### Parameters
 
 | Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
+| --- | --- | --- | --- |
 | `output_dir` | string | "output_frames" | Directory where frames will be saved |
 | `base_filename` | string | "frame_" | Base name for saved frame files |
 | `save_as_raw` | bool | false | Whether to save as raw binary (.raw) or BGR format (.bgr) |
@@ -253,7 +253,7 @@ The FrameSaver includes built-in debugging features:
 
 #### Example Output
 
-```
+```text
 Frame 0 data analysis: size=1843200, all_zeros=false, non_zero_count=95
 Saved frame 0 to debug_frames/frame_000001.bgr
 ```
@@ -271,7 +271,7 @@ add_library(frame_saver
 )
 ```
 
-2. **Link against required libraries**:
+1. **Link against required libraries**:
 
 ```cmake
 target_link_libraries(frame_saver

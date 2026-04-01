@@ -1,6 +1,6 @@
 # Volume Renderer
 
-The `volume_renderer` operator renders a volume using ClaraViz (https://github.com/NVIDIA/clara-viz).
+The `volume_renderer` operator renders a volume using ClaraViz (<https://github.com/NVIDIA/clara-viz>).
 
 ## `holoscan::ops::VolumeRenderer`
 
@@ -68,6 +68,7 @@ All inputs are optional.
 ## Configuration
 
 The renderer accepts a [ClaraViz](https://github.com/NVIDIA/clara-viz) JSON configuration file at startup to control rendering settings, including
+
 - camera parameters;
 - transfer functions;
 - lighting;
@@ -91,10 +92,11 @@ Configuration files are typically specific to a given dataset or modality, and a
 It may be necessary to create a new configuration file when working with a new dataset in order to produce a meaningful rendering.
 
 There are two options to create a configuration file for a new dataset:
+
 - Copy from an existing configuration file as a reference and modify parameters manually. An example configuration file is available in the [`volume_rendering_xr` application config folder](../../applications/volume_rendering_xr/configs/).
 - Use `VolumeRendererOp` to deduce settings for the input dataset. Follow these steps:
   1. Use the HoloHub [`volume_rendering` app](../../applications/volume_rendering/) or a similar application that will load an input dataset and pass it to `VolumeRendererOp`.
   2. Configure application settings via a Holoscan SDK YAML file or command line settings to run with the following values:
-    - Set the `VolumeRendererOp` `config_file` parameter to an empty string to indicate no default config file is present;
-    - Set the `VolumeRendererOp` `write_config_file` parameter to the desired output JSON configuration filepath.
-  3. Run the application with the desired input volume. The operator will deduce settings and write out the JSON file to reuse on subsequent runs via the `config_file` parameter.
+  - Set the `VolumeRendererOp` `config_file` parameter to an empty string to indicate no default config file is present;
+  - Set the `VolumeRendererOp` `write_config_file` parameter to the desired output JSON configuration filepath.
+  1. Run the application with the desired input volume. The operator will deduce settings and write out the JSON file to reuse on subsequent runs via the `config_file` parameter.

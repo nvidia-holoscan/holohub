@@ -15,6 +15,7 @@ The [Digital Imaging and Communications in Medicine (DICOM) standard](https://ww
 [Universal Scene Description (OpenUSD)](https://openusd.org/release/index.html) is an extensible ecosystem of file formats, compositors, renderers, and other plugins for comprehensive 3D scene description.
 
 OpenUSD serves as the backbone of the [NVIDIA Omniverse](https://www.nvidia.com/en-us/omniverse/) cloud computing platform. Omniverse includes a variety of applications such as [USD Composer](https://docs.omniverse.nvidia.com/composer/latest/index.html) for viewing and manipulating OpenUSD scenes, with features such as:
+
 - State-of-the-art cloud rendering
 - Live collaborative scene editing
 - Multi-user mixed reality
@@ -39,6 +40,7 @@ Please review the [HoloHub README](../../README.md) to get started with HoloHub 
 ### Hardware
 
 This tutorial may run on an `amd64` or `arm64` workstation.
+
 - For `amd64` we rely on `usd-core` Python wheels from PyPI for OpenUSD support.
 - For `arm64` we rely on NVIDIA Omniverse Python libraries for OpenUSD support.
 

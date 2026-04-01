@@ -1,14 +1,14 @@
-### Emergent
+# Emergent
 
 The `emergent_source` extension supports an Emergent Vision Technologies camera as
 the video source. The datastream from this camera is transferred through Mellanox
 ConnectX SmartNIC using Rivermax SDK.
 
-#### `nvidia::holoscan::EmergentSource`
+## `nvidia::holoscan::EmergentSource`
 
 Emergent Source codelet
 
-##### Parameters
+### Parameters
 
 - **`signal`**: Output signal
   - type: `gxf::Handle<gxf::Transmitter>`
