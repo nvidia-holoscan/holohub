@@ -30,7 +30,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional, Tuple, Union
 
-DEFAULT_BASE_SDK_VERSION = "4.0.0"
+DEFAULT_BASE_SDK_VERSION = "4.1.0"
 
 DEFAULT_GIT_REF = "latest"
 
