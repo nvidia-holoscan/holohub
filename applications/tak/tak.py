@@ -266,6 +266,7 @@ def main():
             stdout=ots_log,
             stderr=subprocess.STDOUT,
         )
+        ots_log.close()
         # Tail the log in a background thread so OTS progress is visible
         import threading
 
