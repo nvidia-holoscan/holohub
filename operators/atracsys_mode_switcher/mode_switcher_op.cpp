@@ -23,8 +23,8 @@
 #include <array>
 #include <cctype>
 #include <cmath>
-#include <cstdio>
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
 #include <fstream>
 #include <stdexcept>
@@ -76,9 +76,7 @@ inline std::string trim_copy(const std::string& value) {
   }
 
   size_t last = value.size();
-  while (last > first && std::isspace(static_cast<unsigned char>(value[last - 1]))) {
-    --last;
-  }
+  while (last > first && std::isspace(static_cast<unsigned char>(value[last - 1]))) { --last; }
 
   return value.substr(first, last - first);
 }
@@ -86,12 +84,16 @@ inline std::string trim_copy(const std::string& value) {
 inline std::optional<size_t> parse_fiducial_index(const std::string& section_name) {
   constexpr const char* kPrefix = "fiducial";
   constexpr size_t kPrefixLength = 8;
-  if (section_name.rfind(kPrefix, 0) != 0 || section_name.size() <= kPrefixLength) { return std::nullopt; }
+  if (section_name.rfind(kPrefix, 0) != 0 || section_name.size() <= kPrefixLength) {
+    return std::nullopt;
+  }
 
   size_t index = 0;
   for (size_t i = kPrefixLength; i < section_name.size(); ++i) {
     const char ch = section_name[i];
-    if (ch < '0' || ch > '9') { return std::nullopt; }
+    if (ch < '0' || ch > '9') {
+      return std::nullopt;
+    }
     index = index * 10 + static_cast<size_t>(ch - '0');
   }
   return index;
@@ -99,7 +101,9 @@ inline std::optional<size_t> parse_fiducial_index(const std::string& section_nam
 
 inline bool pose_has_content(const float* pose) {
   for (size_t i = 0; i < 16; ++i) {
-    if (std::fabs(pose[i]) > 1.0e-6F) { return true; }
+    if (std::fabs(pose[i]) > 1.0e-6F) {
+      return true;
+    }
   }
   return false;
 }
@@ -110,7 +114,8 @@ struct PoseTransform {
   bool source_was_meters{false};
 };
 
-inline std::vector<std::array<float, 3>> load_marker_geometry_points(const std::string& geometry_path) {
+inline std::vector<std::array<float, 3>> load_marker_geometry_points(
+    const std::string& geometry_path) {
   std::ifstream input(geometry_path);
   if (!input.is_open()) {
     throw std::runtime_error("Failed to open geometry file '" + geometry_path + "'");
@@ -129,22 +134,27 @@ inline std::vector<std::array<float, 3>> load_marker_geometry_points(const std::
   size_t line_number = 0;
 
   auto flush_section = [&]() {
-    if (!current_section.index.has_value()) { return; }
-    if (!current_section.x.has_value() || !current_section.y.has_value() || !current_section.z.has_value()) {
+    if (!current_section.index.has_value()) {
+      return;
+    }
+    if (!current_section.x.has_value() || !current_section.y.has_value() ||
+        !current_section.z.has_value()) {
       throw std::runtime_error("Incomplete fiducial section [" + current_section_name + "] in '" +
                                geometry_path + "'");
     }
-    indexed_points.emplace_back(current_section.index.value(),
-                                std::array<float, 3>{current_section.x.value(),
-                                                     current_section.y.value(),
-                                                     current_section.z.value()});
+    indexed_points.emplace_back(
+        current_section.index.value(),
+        std::array<float, 3>{
+            current_section.x.value(), current_section.y.value(), current_section.z.value()});
   };
 
   std::string line;
   while (std::getline(input, line)) {
     ++line_number;
     const std::string trimmed = trim_copy(line);
-    if (trimmed.empty() || trimmed[0] == ';' || trimmed[0] == '#') { continue; }
+    if (trimmed.empty() || trimmed[0] == ';' || trimmed[0] == '#') {
+      continue;
+    }
 
     if (trimmed.front() == '[' && trimmed.back() == ']') {
       flush_section();
@@ -154,7 +164,9 @@ inline std::vector<std::array<float, 3>> load_marker_geometry_points(const std::
       continue;
     }
 
-    if (!current_section.index.has_value()) { continue; }
+    if (!current_section.index.has_value()) {
+      continue;
+    }
 
     const size_t separator = trimmed.find('=');
     if (separator == std::string::npos) {
@@ -192,9 +204,7 @@ inline std::vector<std::array<float, 3>> load_marker_geometry_points(const std::
 
   std::vector<std::array<float, 3>> local_points;
   local_points.reserve(indexed_points.size());
-  for (const auto& entry : indexed_points) {
-    local_points.push_back(entry.second);
-  }
+  for (const auto& entry : indexed_points) { local_points.push_back(entry.second); }
   return local_points;
 }
 
@@ -235,27 +245,25 @@ inline PoseTransform decode_pose_transform(const float* pose) {
   return transform;
 }
 
-inline std::array<float, 3> transform_local_geometry_point(const PoseTransform& pose_transform,
-                                                           const std::array<float, 3>& local_point) {
-  return {
-      pose_transform.row_major_mm[0] * local_point[0] +
-          pose_transform.row_major_mm[1] * local_point[1] +
-          pose_transform.row_major_mm[2] * local_point[2] + pose_transform.row_major_mm[3],
-      pose_transform.row_major_mm[4] * local_point[0] +
-          pose_transform.row_major_mm[5] * local_point[1] +
-          pose_transform.row_major_mm[6] * local_point[2] + pose_transform.row_major_mm[7],
-      pose_transform.row_major_mm[8] * local_point[0] +
-          pose_transform.row_major_mm[9] * local_point[1] +
-          pose_transform.row_major_mm[10] * local_point[2] + pose_transform.row_major_mm[11]};
+inline std::array<float, 3> transform_local_geometry_point(
+    const PoseTransform& pose_transform, const std::array<float, 3>& local_point) {
+  return {pose_transform.row_major_mm[0] * local_point[0] +
+              pose_transform.row_major_mm[1] * local_point[1] +
+              pose_transform.row_major_mm[2] * local_point[2] + pose_transform.row_major_mm[3],
+          pose_transform.row_major_mm[4] * local_point[0] +
+              pose_transform.row_major_mm[5] * local_point[1] +
+              pose_transform.row_major_mm[6] * local_point[2] + pose_transform.row_major_mm[7],
+          pose_transform.row_major_mm[8] * local_point[0] +
+              pose_transform.row_major_mm[9] * local_point[1] +
+              pose_transform.row_major_mm[10] * local_point[2] + pose_transform.row_major_mm[11]};
 }
 
 inline std::optional<std::array<float, 2>> project_marker_to_overlay(
-    const std::array<float, 3>& point_mm,
-    const CameraCalibration& calibration) {
+    const std::array<float, 3>& point_mm, const CameraCalibration& calibration) {
   constexpr float kMinDepthMm = 1.0e-3F;
   const float z = point_mm[2];
-  if (!std::isfinite(point_mm[0]) || !std::isfinite(point_mm[1]) || !std::isfinite(z) || z <= kMinDepthMm ||
-      calibration.image_width == 0 || calibration.image_height == 0) {
+  if (!std::isfinite(point_mm[0]) || !std::isfinite(point_mm[1]) || !std::isfinite(z) ||
+      z <= kMinDepthMm || calibration.image_width == 0 || calibration.image_height == 0) {
     return std::nullopt;
   }
 
@@ -264,9 +272,8 @@ inline std::optional<std::array<float, 2>> project_marker_to_overlay(
   const float r2 = x * x + y * y;
   const float r4 = r2 * r2;
   const float r6 = r4 * r2;
-  const float radial =
-      1.0F + calibration.distortion[0] * r2 + calibration.distortion[1] * r4 +
-      calibration.distortion[4] * r6;
+  const float radial = 1.0F + calibration.distortion[0] * r2 + calibration.distortion[1] * r4 +
+                       calibration.distortion[4] * r6;
   const float x_tangential =
       2.0F * calibration.distortion[2] * x * y + calibration.distortion[3] * (r2 + 2.0F * x * x);
   const float y_tangential =
@@ -276,7 +283,9 @@ inline std::optional<std::array<float, 2>> project_marker_to_overlay(
 
   const float u = calibration.fx * x_distorted + calibration.skew * y_distorted + calibration.cx;
   const float v = calibration.fy * y_distorted + calibration.cy;
-  if (!std::isfinite(u) || !std::isfinite(v)) { return std::nullopt; }
+  if (!std::isfinite(u) || !std::isfinite(v)) {
+    return std::nullopt;
+  }
 
   return std::array<float, 2>{u / static_cast<float>(calibration.image_width),
                               v / static_cast<float>(calibration.image_height)};
@@ -310,37 +319,33 @@ template <typename T>
 void add_device_tensor_to_entity(nvidia::gxf::Entity& entity,
                                  const holoscan::ExecutionContext& context,
                                  const std::shared_ptr<holoscan::Allocator>& allocator,
-                                 const char* tensor_name,
-                                 const nvidia::gxf::Shape& shape,
-                                 const T* data,
-                                 size_t element_count,
-                                 const char* tensor_error,
+                                 const char* tensor_name, const nvidia::gxf::Shape& shape,
+                                 const T* data, size_t element_count, const char* tensor_error,
                                  const char* copy_error) {
   auto tensor = entity.add<nvidia::gxf::Tensor>(tensor_name);
-  if (!tensor) { throw std::runtime_error(tensor_error); }
+  if (!tensor) {
+    throw std::runtime_error(tensor_error);
+  }
 
   auto alloc =
       nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(context.context(), allocator->gxf_cid());
   tensor.value()->reshape<T>(shape, nvidia::gxf::MemoryStorageType::kDevice, alloc.value());
-  check_cuda(cudaMemcpy(tensor.value()->pointer(),
-                        data,
-                        element_count * sizeof(T),
-                        cudaMemcpyHostToDevice),
-             copy_error);
+  check_cuda(
+      cudaMemcpy(
+          tensor.value()->pointer(), data, element_count * sizeof(T), cudaMemcpyHostToDevice),
+      copy_error);
 }
 
 template <typename T>
-holoscan::gxf::Entity create_device_tensor_entity(const holoscan::ExecutionContext& context,
-                                                  const std::shared_ptr<holoscan::Allocator>& allocator,
-                                                  const char* tensor_name,
-                                                  const nvidia::gxf::Shape& shape,
-                                                  const T* data,
-                                                  size_t element_count,
-                                                  const char* entity_error,
-                                                  const char* tensor_error,
-                                                  const char* copy_error) {
+holoscan::gxf::Entity create_device_tensor_entity(
+    const holoscan::ExecutionContext& context,
+    const std::shared_ptr<holoscan::Allocator>& allocator, const char* tensor_name,
+    const nvidia::gxf::Shape& shape, const T* data, size_t element_count, const char* entity_error,
+    const char* tensor_error, const char* copy_error) {
   auto msg = nvidia::gxf::Entity::New(context.context());
-  if (!msg) { throw std::runtime_error(entity_error); }
+  if (!msg) {
+    throw std::runtime_error(entity_error);
+  }
 
   add_device_tensor_to_entity<T>(msg.value(),
                                  context,
@@ -360,27 +365,31 @@ inline holoscan::gxf::Entity create_overlay_entity(
     const std::shared_ptr<holoscan::Allocator>& allocator,
     const std::vector<float>& overlay_coords) {
   auto msg = nvidia::gxf::Entity::New(context.context());
-  if (!msg) { throw std::runtime_error("Failed to allocate marker overlay message"); }
+  if (!msg) {
+    throw std::runtime_error("Failed to allocate marker overlay message");
+  }
 
-  add_device_tensor_to_entity<float>(msg.value(),
-                                     context,
-                                     allocator,
-                                     kOverlayName,
-                                     nvidia::gxf::Shape{static_cast<int32_t>(overlay_coords.size() / 4), 4},
-                                     overlay_coords.data(),
-                                     overlay_coords.size(),
-                                     "Failed to add marker overlay tensor",
-                                     "Failed to upload marker overlay coordinates");
+  add_device_tensor_to_entity<float>(
+      msg.value(),
+      context,
+      allocator,
+      kOverlayName,
+      nvidia::gxf::Shape{static_cast<int32_t>(overlay_coords.size() / 4), 4},
+      overlay_coords.data(),
+      overlay_coords.size(),
+      "Failed to add marker overlay tensor",
+      "Failed to upload marker overlay coordinates");
   return holoscan::gxf::Entity(std::move(msg.value()));
 }
 
 inline holoscan::gxf::Entity create_marker_points_entity(
     const holoscan::ExecutionContext& context,
-    const std::shared_ptr<holoscan::Allocator>& allocator,
-    const float* points,
+    const std::shared_ptr<holoscan::Allocator>& allocator, const float* points,
     size_t point_count) {
   auto msg = nvidia::gxf::Entity::New(context.context());
-  if (!msg) { throw std::runtime_error("Failed to allocate marker points message"); }
+  if (!msg) {
+    throw std::runtime_error("Failed to allocate marker points message");
+  }
 
   const nvidia::gxf::Shape shape{static_cast<int32_t>(point_count / 3), 3};
   add_device_tensor_to_entity<float>(msg.value(),
@@ -395,16 +404,16 @@ inline holoscan::gxf::Entity create_marker_points_entity(
   return holoscan::gxf::Entity(std::move(msg.value()));
 }
 
-void upload_to_tensor(const holoscan::gxf::Entity& entity,
-                      const char* tensor_name,
-                      const void* data,
-                      size_t bytes,
-                      const char* tensor_error,
+void upload_to_tensor(const holoscan::gxf::Entity& entity, const char* tensor_name,
+                      const void* data, size_t bytes, const char* tensor_error,
                       const char* copy_error) {
   auto gxf_entity = nvidia::gxf::Entity(entity);
   auto tensor = gxf_entity.get<nvidia::gxf::Tensor>(tensor_name);
-  if (!tensor) { throw std::runtime_error(tensor_error); }
-  check_cuda(cudaMemcpy(tensor.value()->pointer(), data, bytes, cudaMemcpyHostToDevice), copy_error);
+  if (!tensor) {
+    throw std::runtime_error(tensor_error);
+  }
+  check_cuda(cudaMemcpy(tensor.value()->pointer(), data, bytes, cudaMemcpyHostToDevice),
+             copy_error);
 }
 
 }  // namespace
@@ -412,7 +421,8 @@ void upload_to_tensor(const holoscan::gxf::Entity& entity,
 void AtracsysModeSwitcherOp::setup(holoscan::OperatorSpec& spec) {
   spec.input<holoscan::gxf::Entity>("in_visible_base").condition(holoscan::ConditionType::kNone);
   spec.input<holoscan::gxf::Entity>("in_ir_base").condition(holoscan::ConditionType::kNone);
-  spec.input<holoscan::gxf::Entity>("in_structured_points").condition(holoscan::ConditionType::kNone);
+  spec.input<holoscan::gxf::Entity>("in_structured_points")
+      .condition(holoscan::ConditionType::kNone);
   spec.input<holoscan::gxf::Entity>("in_marker_poses").condition(holoscan::ConditionType::kNone);
 
   spec.output<holoscan::gxf::Entity>("out_base");
@@ -450,7 +460,9 @@ void AtracsysModeSwitcherOp::setCameraCalibration(
 
 void AtracsysModeSwitcherOp::start() {
   mode_ = requested_mode();
-  if (mode_ != ReplayMode::kTracking) { last_base_mode_ = mode_; }
+  if (mode_ != ReplayMode::kTracking) {
+    last_base_mode_ = mode_;
+  }
   last_hw_mode_ = requested_hw_mode();
   hw_command_pending_ = true;
 
@@ -493,13 +505,10 @@ void AtracsysModeSwitcherOp::start() {
   specs_.back().text_.push_back(mode_label_text(mode_, last_base_mode_));
   specs_.push_back(make_spec(kFiducialTextCoordsName, 0.95f, 0.95f, 0.95f, 1.0f));
   specs_.back().text_.resize(kMaxFiducials);
-  for (auto& text : specs_.back().text_) {
-    text.reserve(32);
-  }
+  for (auto& text : specs_.back().text_) { text.reserve(32); }
 
-  HOLOSCAN_LOG_INFO("Loaded {} local fiducials from {}",
-                    marker_local_geometry_mm_.size(),
-                    geometry_path_.get());
+  HOLOSCAN_LOG_INFO(
+      "Loaded {} local fiducials from {}", marker_local_geometry_mm_.size(), geometry_path_.get());
   HOLOSCAN_LOG_INFO("Mode switcher started in mode {}", static_cast<int>(mode_));
   keyboard_.start(enable_keyboard_.get());
 }
@@ -529,18 +538,18 @@ void AtracsysModeSwitcherOp::stop() {
 }
 
 void AtracsysModeSwitcherOp::ensure_static_entities(const holoscan::ExecutionContext& context) {
-  if (hidden_overlay_entities_[0] && hidden_marker_points_entities_[0] && placeholder_points_entities_[0] &&
-      blank_base_entities_[0] && mode_text_entities_[0] && fiducial_text_coord_entities_[0]) {
+  if (hidden_overlay_entities_[0] && hidden_marker_points_entities_[0] &&
+      placeholder_points_entities_[0] && blank_base_entities_[0] && mode_text_entities_[0] &&
+      fiducial_text_coord_entities_[0]) {
     return;
   }
 
-  static const std::array<float, 4> kHiddenOverlayCoords{-1.0F, -1.0F, kOverlayOvalSizeX, kOverlayOvalSizeY};
+  static const std::array<float, 4> kHiddenOverlayCoords{
+      -1.0F, -1.0F, kOverlayOvalSizeX, kOverlayOvalSizeY};
   static const std::array<float, 3> kPlaceholderPoint{1.0e9F, 1.0e9F, 1.0e9F};
   static const std::array<uint8_t, 4> kBlankBasePixels{0, 0, 0, 0};
   std::array<std::array<float, 3>, kMaxFiducials> hidden_fiducial_coords{};
-  for (auto& coord : hidden_fiducial_coords) {
-    coord = {kHiddenX, kHiddenY, 0.04F};
-  }
+  for (auto& coord : hidden_fiducial_coords) { coord = {kHiddenX, kHiddenY, 0.04F}; }
 
   for (auto& entity : hidden_overlay_entities_) {
     entity = create_device_tensor_entity<float>(context,
@@ -579,10 +588,8 @@ void AtracsysModeSwitcherOp::ensure_static_entities(const holoscan::ExecutionCon
   }
 
   for (auto& entity : hidden_marker_points_entities_) {
-    entity = create_marker_points_entity(context,
-                                         display_allocator_.get(),
-                                         kPlaceholderPoint.data(),
-                                         kPlaceholderPoint.size());
+    entity = create_marker_points_entity(
+        context, display_allocator_.get(), kPlaceholderPoint.data(), kPlaceholderPoint.size());
   }
   const std::array<float, 3> mode_text_coords{kModeTextX, kModeTextY, kModeTextSize};
   for (auto& entity : mode_text_entities_) {
@@ -649,7 +656,9 @@ atracsys::HardwareMode AtracsysModeSwitcherOp::requested_hw_mode() const {
 
 void AtracsysModeSwitcherOp::handle_keyboard_request() {
   const auto key = keyboard_.poll_key();
-  if (!key.has_value()) { return; }
+  if (!key.has_value()) {
+    return;
+  }
 
   ReplayMode next = mode_;
   switch (key.value()) {
@@ -671,7 +680,9 @@ void AtracsysModeSwitcherOp::handle_keyboard_request() {
 
   if (next != mode_) {
     if (next == ReplayMode::kTracking) {
-      if (mode_ != ReplayMode::kTracking) { last_base_mode_ = mode_; }
+      if (mode_ != ReplayMode::kTracking) {
+        last_base_mode_ = mode_;
+      }
     } else {
       last_base_mode_ = next;
     }
@@ -690,7 +701,8 @@ void AtracsysModeSwitcherOp::handle_keyboard_request() {
 void AtracsysModeSwitcherOp::emit_placeholder_points(const holoscan::ExecutionContext& context,
                                                      holoscan::OutputContext& op_output) {
   ensure_static_entities(context);
-  emit_cached_entity(placeholder_points_entities_[static_entity_index_].value(), op_output, "out_points");
+  emit_cached_entity(
+      placeholder_points_entities_[static_entity_index_].value(), op_output, "out_points");
 }
 
 void AtracsysModeSwitcherOp::emit_blank_base(const holoscan::ExecutionContext& context,
@@ -699,7 +711,8 @@ void AtracsysModeSwitcherOp::emit_blank_base(const holoscan::ExecutionContext& c
   emit_cached_entity(blank_base_entities_[static_entity_index_].value(), op_output, "out_base");
 }
 
-void AtracsysModeSwitcherOp::compute(holoscan::InputContext& op_input, holoscan::OutputContext& op_output,
+void AtracsysModeSwitcherOp::compute(holoscan::InputContext& op_input,
+                                     holoscan::OutputContext& op_output,
                                      holoscan::ExecutionContext& context) {
   ensure_static_entities(context);
   handle_keyboard_request();
@@ -763,7 +776,9 @@ void AtracsysModeSwitcherOp::compute(holoscan::InputContext& op_input, holoscan:
       }
       break;
   }
-  if (!emitted_base) { emit_blank_base(context, op_output); }
+  if (!emitted_base) {
+    emit_blank_base(context, op_output);
+  }
 
   const bool had_cached_structured = cached_structured_points_.has_value();
   if (structured_points && !structured_points.value().is_null()) {
@@ -828,7 +843,9 @@ void AtracsysModeSwitcherOp::compute(holoscan::InputContext& op_input, holoscan:
 
       for (uint32_t i = 0; i < num_markers; ++i) {
         const float* pose = marker_poses_host_.data() + i * 16;
-        if (!pose_has_content(pose)) { continue; }
+        if (!pose_has_content(pose)) {
+          continue;
+        }
 
         const auto pose_transform = decode_pose_transform(pose);
         for (const auto& local_point : marker_local_geometry_mm_) {
@@ -858,26 +875,33 @@ void AtracsysModeSwitcherOp::compute(holoscan::InputContext& op_input, holoscan:
   bool emitted_overlay = false;
   if (live_projected_overlay_active && !transformed_marker_points_scratch_.empty()) {
     overlay_coords.reserve(transformed_marker_points_scratch_.size() * 4);
-    overlay_label_points.reserve(std::min(transformed_marker_points_scratch_.size(), kMaxFiducials));
+    overlay_label_points.reserve(
+        std::min(transformed_marker_points_scratch_.size(), kMaxFiducials));
     for (const auto& transformed_point : transformed_marker_points_scratch_) {
       const auto overlay_point = project_marker_to_overlay(transformed_point, *camera_calibration_);
-      if (!overlay_point.has_value()) { continue; }
+      if (!overlay_point.has_value()) {
+        continue;
+      }
 
       overlay_coords.push_back(overlay_point.value()[0]);
       overlay_coords.push_back(overlay_point.value()[1]);
       overlay_coords.push_back(kOverlayOvalSizeX);
       overlay_coords.push_back(kOverlayOvalSizeY);
-      if (overlay_label_points.size() < kMaxFiducials) { overlay_label_points.push_back(transformed_point); }
+      if (overlay_label_points.size() < kMaxFiducials) {
+        overlay_label_points.push_back(transformed_point);
+      }
     }
 
     if (!overlay_coords.empty()) {
-      auto projected_overlay = create_overlay_entity(context, display_allocator_.get(), overlay_coords);
+      auto projected_overlay =
+          create_overlay_entity(context, display_allocator_.get(), overlay_coords);
       op_output.emit(projected_overlay, "out_overlay");
       emitted_overlay = true;
     }
   }
   if (!emitted_overlay) {
-    emit_cached_entity(hidden_overlay_entities_[static_entity_index_].value(), op_output, "out_overlay");
+    emit_cached_entity(
+        hidden_overlay_entities_[static_entity_index_].value(), op_output, "out_overlay");
   }
 
   bool emitted_marker_points = false;
@@ -890,11 +914,14 @@ void AtracsysModeSwitcherOp::compute(holoscan::InputContext& op_input, holoscan:
     emitted_marker_points = true;
   }
   if (!emitted_marker_points) {
-    emit_cached_entity(hidden_marker_points_entities_[static_entity_index_].value(), op_output, "out_marker_points");
+    emit_cached_entity(hidden_marker_points_entities_[static_entity_index_].value(),
+                       op_output,
+                       "out_marker_points");
   }
 
   specs_[kModeTextSpecIndex].text_[0] = mode_label_text(mode_, last_base_mode_);
-  emit_cached_entity(mode_text_entities_[static_entity_index_].value(), op_output, kModeTextPortName);
+  emit_cached_entity(
+      mode_text_entities_[static_entity_index_].value(), op_output, kModeTextPortName);
 
   for (size_t i = 0; i < kMaxFiducials; ++i) {
     fiducial_text_coords_[i] = {kHiddenX, kHiddenY, 0.04F};
@@ -905,7 +932,9 @@ void AtracsysModeSwitcherOp::compute(holoscan::InputContext& op_input, holoscan:
     for (size_t i = 0; i < overlay_coords.size() / 4 && i < kMaxFiducials; ++i) {
       const float x = overlay_coords[i * 4 + 0];
       const float y = overlay_coords[i * 4 + 1];
-      if (x < 0.0F || x > 1.0F || y < 0.0F || y > 1.0F) { continue; }
+      if (x < 0.0F || x > 1.0F || y < 0.0F || y > 1.0F) {
+        continue;
+      }
 
       fiducial_text_coords_[i] = {x, y - 0.03F, 0.028F};
       char buffer[48];

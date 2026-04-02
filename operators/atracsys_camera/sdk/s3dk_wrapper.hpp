@@ -29,7 +29,8 @@ namespace {
 
 inline std::map<std::string, uint32_t> enumerate_sdk_options(ftkLibrary lib, uint64_t sn) {
   std::map<std::string, uint32_t> options;
-  if (ftkEnumerateOptions(lib, sn, optionEnumerator, &options) != ftkError::FTK_OK || options.empty()) {
+  if (ftkEnumerateOptions(lib, sn, optionEnumerator, &options) != ftkError::FTK_OK ||
+      options.empty()) {
     throw std::runtime_error("Cannot retrieve Atracsys SDK options.");
   }
   return options;
@@ -38,7 +39,9 @@ inline std::map<std::string, uint32_t> enumerate_sdk_options(ftkLibrary lib, uin
 inline std::string device_type_string(ftkLibrary lib, uint64_t sn,
                                       const std::map<std::string, uint32_t>& options) {
   auto it = options.find("sTk device type");
-  if (it == options.end()) { throw std::runtime_error("Missing sTk device type option."); }
+  if (it == options.end()) {
+    throw std::runtime_error("Missing sTk device type option.");
+  }
 
   ftkBuffer buffer{};
   if (ftkGetData(lib, sn, it->second, &buffer) != ftkError::FTK_OK) {
@@ -48,11 +51,12 @@ inline std::string device_type_string(ftkLibrary lib, uint64_t sn,
 }
 
 inline void set_device_option(ftkLibrary lib, uint64_t sn,
-                              const std::map<std::string, uint32_t>& options,
-                              const char* name, int32_t value, bool required = true) {
+                              const std::map<std::string, uint32_t>& options, const char* name,
+                              int32_t value, bool required = true) {
   auto it = options.find(name);
   if (it == options.end()) {
-    if (required) throw std::runtime_error(std::string("Missing Atracsys option: ") + name);
+    if (required)
+      throw std::runtime_error(std::string("Missing Atracsys option: ") + name);
     return;
   }
 
@@ -76,7 +80,8 @@ class RealS3DKWrapper : public IS3DKInterface {
  public:
   StereoParameters* createStereoParameters() override { return create_stereo_parameters(); }
 
-  bool initializeDeviceHelper(uint64_t* device_sn, ftkLibrary lib, ImageType3D* image_type) override {
+  bool initializeDeviceHelper(uint64_t* device_sn, ftkLibrary lib,
+                              ImageType3D* image_type) override {
     auto options = enumerate_sdk_options(lib, *device_sn);
     const std::string device_type = device_type_string(lib, *device_sn, options);
     bool valid = false;

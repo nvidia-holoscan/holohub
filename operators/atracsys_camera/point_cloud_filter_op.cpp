@@ -46,13 +46,20 @@ void PointCloudFilterOp::setup(holoscan::OperatorSpec& spec) {
   spec.input<std::shared_ptr<std::vector<float>>>("in_q_matrix");
   spec.output<holoscan::gxf::Entity>("out_structured_points");
 
-  spec.param(structured_allocator_, "structured_allocator", "StructuredAllocator", "Structured light output allocator");
-  spec.param(cuda_stream_pool_, "cuda_stream_pool", "CudaStreamPool", "CUDA stream pool used for async GPU operations");
+  spec.param(structured_allocator_,
+             "structured_allocator",
+             "StructuredAllocator",
+             "Structured light output allocator");
+  spec.param(cuda_stream_pool_,
+             "cuda_stream_pool",
+             "CudaStreamPool",
+             "CUDA stream pool used for async GPU operations");
 }
 
 void PointCloudFilterOp::start() {
   size_t max_points = 1280 * 960;
-  check_cuda(cudaMalloc((void**)&device_points_buffer_, max_points * 3 * sizeof(float)), "alloc device_points_buffer_");
+  check_cuda(cudaMalloc((void**)&device_points_buffer_, max_points * 3 * sizeof(float)),
+             "alloc device_points_buffer_");
 
   for (auto& entity : structured_output_entities_) { entity.reset(); }
   structured_output_entity_index_ = 0;
@@ -61,7 +68,8 @@ void PointCloudFilterOp::start() {
 }
 
 void PointCloudFilterOp::stop() {
-  if (device_points_buffer_) cudaFree(device_points_buffer_);
+  if (device_points_buffer_)
+    cudaFree(device_points_buffer_);
   device_points_buffer_ = nullptr;
 
   holoscan::Operator::stop();
@@ -75,10 +83,13 @@ void PointCloudFilterOp::ensure_structured_output_entities(
     structured_output_entity_index_ = 0;
   }
 
-  if (structured_output_entities_[structured_output_entity_index_]) { return; }
+  if (structured_output_entities_[structured_output_entity_index_]) {
+    return;
+  }
 
   const nvidia::gxf::Shape shape{static_cast<int32_t>(point_count), 3};
-  auto alloc = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(context.context(), structured_allocator_.get()->gxf_cid());
+  auto alloc = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(
+      context.context(), structured_allocator_.get()->gxf_cid());
   auto msg = nvidia::gxf::Entity::New(context.context());
   auto tensor = msg.value().add<nvidia::gxf::Tensor>(kStructuredTensorName);
   tensor.value()->reshape<float>(shape, nvidia::gxf::MemoryStorageType::kDevice, alloc.value());
@@ -113,15 +124,29 @@ void PointCloudFilterOp::compute(holoscan::InputContext& op_input,
 
   cudaStream_t cuda_stream = cudaStreamDefault;
   auto maybe_stream = context.allocate_cuda_stream("point_cloud_filter_stream");
-  if (maybe_stream) cuda_stream = maybe_stream.value();
-  else op_input.receive_cuda_stream("in_disparity", true, cuda_stream);
+  if (maybe_stream)
+    cuda_stream = maybe_stream.value();
+  else
+    op_input.receive_cuda_stream("in_disparity", true, cuda_stream);
 
-  launch_point_cloud_filter(d_disp_map, width, height, step, h_Q, 0.0f, 5000.0f, 5000.0f, 5000.0f, device_points_buffer_, cuda_stream);
+  launch_point_cloud_filter(d_disp_map,
+                            width,
+                            height,
+                            step,
+                            h_Q,
+                            0.0f,
+                            5000.0f,
+                            5000.0f,
+                            5000.0f,
+                            device_points_buffer_,
+                            cuda_stream);
 
   int total_points = width * height;
   if (!first_cloud_logged_) {
     first_cloud_logged_ = true;
-    HOLOSCAN_LOG_INFO("PointCloudFilterOp: first structured cloud dispatched asynchronously with {} max points", total_points);
+    HOLOSCAN_LOG_INFO(
+        "PointCloudFilterOp: first structured cloud dispatched asynchronously with {} max points",
+        total_points);
   }
 
   ensure_structured_output_entities(context, total_points);
@@ -140,7 +165,8 @@ void PointCloudFilterOp::compute(holoscan::InputContext& op_input,
   holoscan::gxf::Entity out(out_entity_opt);
   op_output.emit(out, "out_structured_points");
   structured_output_entities_[structured_output_entity_index_].reset();
-  structured_output_entity_index_ = (structured_output_entity_index_ + 1) % structured_output_entities_.size();
+  structured_output_entity_index_ =
+      (structured_output_entity_index_ + 1) % structured_output_entities_.size();
 }
 
 }  // namespace atracsys::ops

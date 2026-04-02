@@ -86,9 +86,15 @@ bool is_structured_format(ftkPixelFormat format) {
 }
 
 const char* frame_format_name(ftkPixelFormat format) {
-  if (is_visible_format(format)) { return "visible"; }
-  if (is_ir_format(format)) { return "infrared"; }
-  if (is_structured_format(format)) { return "structured"; }
+  if (is_visible_format(format)) {
+    return "visible";
+  }
+  if (is_ir_format(format)) {
+    return "infrared";
+  }
+  if (is_structured_format(format)) {
+    return "structured";
+  }
   return "unknown";
 }
 
@@ -101,7 +107,8 @@ int validated_scale_factor(int requested_scale) {
       return requested_scale;
     default:
       HOLOSCAN_LOG_WARN(
-          "AtracsysMasterSourceOp: unsupported structured-light scale {} requested, defaulting to 1",
+          "AtracsysMasterSourceOp: unsupported structured-light scale {} requested, "
+          "defaulting to 1",
           requested_scale);
       return 1;
   }
@@ -119,18 +126,59 @@ void AtracsysMasterSourceOp::setup(holoscan::OperatorSpec& spec) {
   spec.output<holoscan::gxf::Entity>("out_disparity");
   spec.output<std::shared_ptr<std::vector<float>>>("out_q_matrix");
 
-  spec.param(image_allocator_, "image_allocator", "ImageAllocator", "Visible and infrared frame output allocator");
-  spec.param(cuda_stream_pool_, "cuda_stream_pool", "CudaStreamPool", "CUDA stream pool used for async frame uploads");
-  spec.param(structured_allocator_, "structured_allocator", "StructuredAllocator", "Structured light output allocator");
-  spec.param(geometry_path_, "geometry_path", "GeometryPath", "Path to the rigid-body geometry .ini file", std::string("geometry10.ini"));
-  spec.param(vis_integration_time_us_, "vis_integration_time_us", "VisIntegrationTimeUs", "Integration time in microseconds for visible frames", 16000);
-  spec.param(sl_integration_time_us_, "sl_integration_time_us", "StructuredIntegrationTimeUs", "Integration time in microseconds for structured light frames", 16000);
+  spec.param(image_allocator_,
+             "image_allocator",
+             "ImageAllocator",
+             "Visible and infrared frame output allocator");
+  spec.param(cuda_stream_pool_,
+             "cuda_stream_pool",
+             "CudaStreamPool",
+             "CUDA stream pool used for async frame uploads");
+  spec.param(structured_allocator_,
+             "structured_allocator",
+             "StructuredAllocator",
+             "Structured light output allocator");
+  spec.param(geometry_path_,
+             "geometry_path",
+             "GeometryPath",
+             "Path to the rigid-body geometry .ini file",
+             std::string("geometry10.ini"));
+  spec.param(vis_integration_time_us_,
+             "vis_integration_time_us",
+             "VisIntegrationTimeUs",
+             "Integration time in microseconds for visible frames",
+             16000);
+  spec.param(sl_integration_time_us_,
+             "sl_integration_time_us",
+             "StructuredIntegrationTimeUs",
+             "Integration time in microseconds for structured light frames",
+             16000);
   spec.param(scale_factor_, "scale", "Scale", "Scale factor (1, 2, 4, 8)", 1);
-  spec.param(scheduler_mode_, "scheduler_mode", "SchedulerMode", "mixed (concurrent VSI) or exclusive (single mode)", std::string("mixed"));
-  spec.param(initial_hw_mode_, "initial_hw_mode", "InitialHardwareMode", "Initial hardware mode visible|ir|structured", std::string("visible"));
-  spec.param(enable_visible_, "enable_visible", "EnableVisible", "Whether visible frames are enabled in the live-camera schedule", true);
-  spec.param(enable_ir_, "enable_ir", "EnableIr", "Whether infrared frames are enabled in the live-camera schedule", true);
-  spec.param(enable_structured_, "enable_structured", "EnableStructured", "Whether structured-light frames are enabled in the live-camera schedule", true);
+  spec.param(scheduler_mode_,
+             "scheduler_mode",
+             "SchedulerMode",
+             "mixed (concurrent VSI) or exclusive (single mode)",
+             std::string("mixed"));
+  spec.param(initial_hw_mode_,
+             "initial_hw_mode",
+             "InitialHardwareMode",
+             "Initial hardware mode visible|ir|structured",
+             std::string("visible"));
+  spec.param(enable_visible_,
+             "enable_visible",
+             "EnableVisible",
+             "Whether visible frames are enabled in the live-camera schedule",
+             true);
+  spec.param(enable_ir_,
+             "enable_ir",
+             "EnableIr",
+             "Whether infrared frames are enabled in the live-camera schedule",
+             true);
+  spec.param(enable_structured_,
+             "enable_structured",
+             "EnableStructured",
+             "Whether structured-light frames are enabled in the live-camera schedule",
+             true);
 }
 
 void AtracsysMasterSourceOp::start() {
@@ -181,7 +229,9 @@ void AtracsysMasterSourceOp::start() {
     }
   }
   if (!async_cond_) {
-    throw std::runtime_error("AtracsysMasterSourceOp: AsyncCondition not found. The app must provide an AsynchronousCondition.");
+    throw std::runtime_error(
+        "AtracsysMasterSourceOp: AsyncCondition not found. The app must provide an "
+        "AsynchronousCondition.");
   }
 
   is_running_ = true;
@@ -224,7 +274,8 @@ void AtracsysMasterSourceOp::capture_loop() {
       ++frame_timeout_count_;
       if (frame_timeout_count_ == 1 || (frame_timeout_count_ % 100) == 0) {
         HOLOSCAN_LOG_WARN(
-            "AtracsysMasterSourceOp: waiting for frames from camera (timeouts={}, timeout_ms={}, status={})",
+            "AtracsysMasterSourceOp: waiting for frames from camera (timeouts={}, timeout_ms={}, "
+            "status={})",
             frame_timeout_count_,
             frame_timeout_ms_,
             static_cast<int>(frame_status));
@@ -242,7 +293,8 @@ void AtracsysMasterSourceOp::compute(holoscan::InputContext& op_input,
   }
 
   if (!frame_ || !frame_->imageHeader) {
-    if (async_cond_) async_cond_->event_state(holoscan::AsynchronousEventState::EVENT_WAITING);
+    if (async_cond_)
+      async_cond_->event_state(holoscan::AsynchronousEventState::EVENT_WAITING);
     return;
   }
 
@@ -300,7 +352,8 @@ void AtracsysMasterSourceOp::load_geometries() {
   if (ref_status == 0 || ref_status == 1) {
     sdk_.setRigidBody(dev.lib(), dev.serial(), &geometry_);
   } else {
-    HOLOSCAN_LOG_WARN("AtracsysMasterSourceOp: failed to load geometry from {}", geometry_path_.get());
+    HOLOSCAN_LOG_WARN("AtracsysMasterSourceOp: failed to load geometry from {}",
+                      geometry_path_.get());
   }
 }
 
@@ -308,20 +361,29 @@ void AtracsysMasterSourceOp::configure_camera() {
   auto& dev = AtracsysDevice::instance();
   const auto& opts = dev.options();
 
-  if (sdk_.setInt32(dev.lib(), dev.serial(), opts.at("Enable embedded processing"), 1) != ftkError::FTK_OK) {
+  if (sdk_.setInt32(dev.lib(), dev.serial(), opts.at("Enable embedded processing"), 1) !=
+      ftkError::FTK_OK) {
     throw std::runtime_error("AtracsysMasterSourceOp: failed to enable embedded processing");
   }
-  if (sdk_.setInt32(dev.lib(), dev.serial(), opts.at("Enable images sending"), 1) != ftkError::FTK_OK) {
+  if (sdk_.setInt32(dev.lib(), dev.serial(), opts.at("Enable images sending"), 1) !=
+      ftkError::FTK_OK) {
     throw std::runtime_error("AtracsysMasterSourceOp: failed to enable image sending");
   }
-  if (sdk_.setInt32(dev.lib(), dev.serial(), opts.at("Image Integration Time for VIS frames"), vis_integration_time_us_.get()) != ftkError::FTK_OK) {
+  if (sdk_.setInt32(dev.lib(),
+                    dev.serial(),
+                    opts.at("Image Integration Time for VIS frames"),
+                    vis_integration_time_us_.get()) != ftkError::FTK_OK) {
     throw std::runtime_error("AtracsysMasterSourceOp: failed to set VIS integration time");
   }
-  if (sdk_.setInt32(dev.lib(), dev.serial(), opts.at("Image Integration Time for SL frames"), sl_integration_time_us_.get()) != ftkError::FTK_OK) {
+  if (sdk_.setInt32(dev.lib(),
+                    dev.serial(),
+                    opts.at("Image Integration Time for SL frames"),
+                    sl_integration_time_us_.get()) != ftkError::FTK_OK) {
     HOLOSCAN_LOG_WARN("AtracsysMasterSourceOp: failed to set SL integration time");
   }
   if (opts.count("Enable dot projectors") &&
-      sdk_.setInt32(dev.lib(), dev.serial(), opts.at("Enable dot projectors"), 2) != ftkError::FTK_OK) {
+      sdk_.setInt32(dev.lib(), dev.serial(), opts.at("Enable dot projectors"), 2) !=
+          ftkError::FTK_OK) {
     HOLOSCAN_LOG_WARN("AtracsysMasterSourceOp: failed to enable dot projectors");
   }
 
@@ -333,7 +395,9 @@ void AtracsysMasterSourceOp::configure_camera() {
 }
 
 void AtracsysMasterSourceOp::configure_frame() {
-  if (sdk_.setFrameOptions(true, 20u, kMaxRawFiducials, kMaxRawFiducials, kMaxTriangulatedFiducials, 10u, frame_) != ftkError::FTK_OK) {
+  if (sdk_.setFrameOptions(
+          true, 20u, kMaxRawFiducials, kMaxRawFiducials, kMaxTriangulatedFiducials, 10u, frame_) !=
+      ftkError::FTK_OK) {
     throw std::runtime_error("AtracsysMasterSourceOp: ftkSetFrameOptions failed");
   }
 }
@@ -353,10 +417,13 @@ void AtracsysMasterSourceOp::ensure_visible_output_entities(
     visible_output_height_ = height;
     visible_output_entity_index_ = 0;
   }
-  if (visible_output_entities_[visible_output_entity_index_]) { return; }
+  if (visible_output_entities_[visible_output_entity_index_]) {
+    return;
+  }
 
   const nvidia::gxf::Shape shape{static_cast<int32_t>(height), static_cast<int32_t>(width), 1};
-  auto alloc = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(context.context(), image_allocator_.get()->gxf_cid());
+  auto alloc = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(
+      context.context(), image_allocator_.get()->gxf_cid());
   auto msg = nvidia::gxf::Entity::New(context.context());
   auto tensor = msg.value().add<nvidia::gxf::Tensor>(kBaseTensorName);
   tensor.value()->reshape<uint8_t>(shape, nvidia::gxf::MemoryStorageType::kDevice, alloc.value());
@@ -364,18 +431,20 @@ void AtracsysMasterSourceOp::ensure_visible_output_entities(
 }
 
 void AtracsysMasterSourceOp::ensure_ir_output_entities(const holoscan::ExecutionContext& context,
-                                                       uint32_t width,
-                                                       uint32_t height) {
+                                                       uint32_t width, uint32_t height) {
   if (ir_output_width_ != width || ir_output_height_ != height) {
     for (auto& entity : ir_output_entities_) { entity.reset(); }
     ir_output_width_ = width;
     ir_output_height_ = height;
     ir_output_entity_index_ = 0;
   }
-  if (ir_output_entities_[ir_output_entity_index_]) { return; }
+  if (ir_output_entities_[ir_output_entity_index_]) {
+    return;
+  }
 
   const nvidia::gxf::Shape shape{static_cast<int32_t>(height), static_cast<int32_t>(width), 1};
-  auto alloc = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(context.context(), image_allocator_.get()->gxf_cid());
+  auto alloc = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(
+      context.context(), image_allocator_.get()->gxf_cid());
   auto msg = nvidia::gxf::Entity::New(context.context());
   auto tensor = msg.value().add<nvidia::gxf::Tensor>(kBaseTensorName);
   tensor.value()->reshape<uint8_t>(shape, nvidia::gxf::MemoryStorageType::kDevice, alloc.value());
@@ -384,10 +453,13 @@ void AtracsysMasterSourceOp::ensure_ir_output_entities(const holoscan::Execution
 
 void AtracsysMasterSourceOp::ensure_marker_poses_output_entities(
     const holoscan::ExecutionContext& context) {
-  if (marker_poses_output_entities_[marker_poses_output_entity_index_]) { return; }
+  if (marker_poses_output_entities_[marker_poses_output_entity_index_]) {
+    return;
+  }
 
   const nvidia::gxf::Shape shape{static_cast<int32_t>(kMaxMarkers), 16};
-  auto alloc = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(context.context(), structured_allocator_.get()->gxf_cid());
+  auto alloc = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(
+      context.context(), structured_allocator_.get()->gxf_cid());
   auto msg = nvidia::gxf::Entity::New(context.context());
   auto tensor = msg.value().add<nvidia::gxf::Tensor>(kMarkerPosesTensorName);
   tensor.value()->reshape<float>(shape, nvidia::gxf::MemoryStorageType::kDevice, alloc.value());
@@ -402,10 +474,13 @@ void AtracsysMasterSourceOp::ensure_disparity_output_entities(
     disparity_output_height_ = height;
     disparity_output_entity_index_ = 0;
   }
-  if (disparity_output_entities_[disparity_output_entity_index_]) { return; }
+  if (disparity_output_entities_[disparity_output_entity_index_]) {
+    return;
+  }
 
   const nvidia::gxf::Shape shape{static_cast<int32_t>(height), static_cast<int32_t>(width), 1};
-  auto alloc = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(context.context(), structured_allocator_.get()->gxf_cid());
+  auto alloc = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(
+      context.context(), structured_allocator_.get()->gxf_cid());
   auto msg = nvidia::gxf::Entity::New(context.context());
   auto tensor = msg.value().add<nvidia::gxf::Tensor>("disparity_map");
   tensor.value()->reshape<int16_t>(shape, nvidia::gxf::MemoryStorageType::kDevice, alloc.value());
@@ -413,7 +488,9 @@ void AtracsysMasterSourceOp::ensure_disparity_output_entities(
 }
 
 void AtracsysMasterSourceOp::configure_structured_frame_state() const {
-  if (!gpu_frame_ || !frame_ || !frame_->imageHeader) { return; }
+  if (!gpu_frame_ || !frame_ || !frame_->imageHeader) {
+    return;
+  }
 
   const int width = static_cast<int>(frame_->imageHeader->width);
   const int height = static_cast<int>(frame_->imageHeader->height);
@@ -446,7 +523,8 @@ void AtracsysMasterSourceOp::emit_visible_frame(holoscan::OutputContext& op_outp
   holoscan::gxf::Entity out(entity);
   op_output.emit(out, "out_visible_base");
   visible_output_entities_[visible_output_entity_index_].reset();
-  visible_output_entity_index_ = (visible_output_entity_index_ + 1) % visible_output_entities_.size();
+  visible_output_entity_index_ =
+      (visible_output_entity_index_ + 1) % visible_output_entities_.size();
 }
 
 void AtracsysMasterSourceOp::emit_ir_frame(holoscan::OutputContext& op_output,
@@ -574,7 +652,8 @@ void AtracsysMasterSourceOp::emit_structured_points(holoscan::OutputContext& op_
   holoscan::gxf::Entity out(entity);
   op_output.emit(out, "out_disparity");
   disparity_output_entities_[disparity_output_entity_index_].reset();
-  disparity_output_entity_index_ = (disparity_output_entity_index_ + 1) % disparity_output_entities_.size();
+  disparity_output_entity_index_ =
+      (disparity_output_entity_index_ + 1) % disparity_output_entities_.size();
 
   auto q_msg = std::make_shared<std::vector<float>>();
   q_msg->assign(reinterpret_cast<const float*>(Q_mat.data),
@@ -605,7 +684,8 @@ void AtracsysMasterSourceOp::set_scheduler_pattern(const std::string& pattern) {
   std::memcpy(buf.data, pattern.c_str(), pattern.size());
   buf.size = static_cast<uint32_t>(pattern.size());
 
-  if (sdk_.setData(dev.lib(), dev.serial(), opts.at("Image Scheduler Pattern"), &buf) != ftkError::FTK_OK) {
+  if (sdk_.setData(dev.lib(), dev.serial(), opts.at("Image Scheduler Pattern"), &buf) !=
+      ftkError::FTK_OK) {
     throw std::runtime_error("AtracsysMasterSourceOp: failed to set scheduler pattern");
   }
 
@@ -618,28 +698,32 @@ void AtracsysMasterSourceOp::set_exclusive_pattern(atracsys::HardwareMode mode) 
 
 std::string AtracsysMasterSourceOp::configured_mixed_pattern() const {
   std::string base_pattern;
-  if (enable_visible_.get()) { base_pattern.push_back('V'); }
-  if (enable_ir_.get()) { base_pattern.push_back('I'); }
-  if (enable_structured_.get()) { base_pattern.push_back('S'); }
+  if (enable_visible_.get()) {
+    base_pattern.push_back('V');
+  }
+  if (enable_ir_.get()) {
+    base_pattern.push_back('I');
+  }
+  if (enable_structured_.get()) {
+    base_pattern.push_back('S');
+  }
 
   if (base_pattern.empty()) {
     HOLOSCAN_LOG_WARN(
-        "AtracsysMasterSourceOp: all live frame types are disabled; defaulting mixed schedule to visible");
+        "AtracsysMasterSourceOp: all live frame types are disabled; defaulting mixed "
+        "schedule to visible");
     base_pattern = "V";
   }
 
   std::string repeated_pattern;
   repeated_pattern.reserve(54);
-  while (repeated_pattern.size() < 54) {
-    repeated_pattern += base_pattern;
-  }
+  while (repeated_pattern.size() < 54) { repeated_pattern += base_pattern; }
   repeated_pattern.resize(54);
   return repeated_pattern;
 }
 
 bool AtracsysMasterSourceOp::upload_frame_to_base_tensor(
-    const nvidia::gxf::Handle<nvidia::gxf::Tensor>& tensor,
-    const char* frame_kind,
+    const nvidia::gxf::Handle<nvidia::gxf::Tensor>& tensor, const char* frame_kind,
     cudaStream_t cuda_stream) {
   if (!frame_->imageHeader || !frame_->imageLeftPixels) {
     return false;
@@ -665,14 +749,17 @@ bool AtracsysMasterSourceOp::upload_frame_to_base_tensor(
   if (h.format == ftkPixelFormat::GRAY16 || h.format == ftkPixelFormat::GRAY16_VIS ||
       h.format == ftkPixelFormat::GRAY16_SL) {
     HOLOSCAN_LOG_ERROR(
-        "AtracsysMasterSourceOp: received unexpected 16-bit {} frame ({}x{}); this path expects 8-bit output",
+        "AtracsysMasterSourceOp: received unexpected 16-bit {} frame ({}x{}); this path expects "
+        "8-bit output",
         frame_kind,
         h.width,
         h.height);
     return false;
   }
 
-  HOLOSCAN_LOG_WARN("AtracsysMasterSourceOp: unsupported {} frame format {}", frame_kind, static_cast<int>(h.format));
+  HOLOSCAN_LOG_WARN("AtracsysMasterSourceOp: unsupported {} frame format {}",
+                    frame_kind,
+                    static_cast<int>(h.format));
   return false;
 }
 
@@ -681,7 +768,8 @@ AtracsysMasterSourceOp::SchedulerMode AtracsysMasterSourceOp::configured_schedul
     return SchedulerMode::kExclusive;
   }
   if (scheduler_mode_.get() != "mixed") {
-    HOLOSCAN_LOG_WARN("AtracsysMasterSourceOp: unknown scheduler_mode '{}', defaulting to mixed", scheduler_mode_.get());
+    HOLOSCAN_LOG_WARN("AtracsysMasterSourceOp: unknown scheduler_mode '{}', defaulting to mixed",
+                      scheduler_mode_.get());
   }
   return SchedulerMode::kMixed;
 }
@@ -694,9 +782,8 @@ atracsys::HardwareMode AtracsysMasterSourceOp::configured_initial_hw_mode() cons
     return atracsys::HardwareMode::kStructured;
   }
   if (initial_hw_mode_.get() != "visible") {
-    HOLOSCAN_LOG_WARN(
-        "AtracsysMasterSourceOp: unknown initial_hw_mode '{}', defaulting to visible",
-        initial_hw_mode_.get());
+    HOLOSCAN_LOG_WARN("AtracsysMasterSourceOp: unknown initial_hw_mode '{}', defaulting to visible",
+                      initial_hw_mode_.get());
   }
   return atracsys::HardwareMode::kVisible;
 }

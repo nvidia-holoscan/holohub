@@ -22,11 +22,11 @@
 #include <stdexcept>
 #include <string>
 
+#include <yaml-cpp/yaml.h>
 #include <holoscan/holoscan.hpp>
 #include <holoscan/operators/bayer_demosaic/bayer_demosaic.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 #include <holoscan/operators/video_stream_replayer/video_stream_replayer.hpp>
-#include <yaml-cpp/yaml.h>
 
 #include "camera_calibration.hpp"
 #include "mode_switcher_op.hpp"
@@ -45,21 +45,22 @@ struct CommandLineOptions {
 };
 
 void print_usage() {
-  std::cout << "Usage: atracsys_visualizer [--config <yaml>] [--data <dir>] [--source replayer|live_camera]\n";
+  std::cout << "Usage: atracsys_visualizer [--config <yaml>] [--data <dir>] "
+               "[--source replayer|live_camera]\n";
 }
 
 bool parse_arguments(int argc, char** argv, CommandLineOptions& options) {
-  static option long_options[] = {
-      {"config", required_argument, nullptr, 'c'},
-      {"data", required_argument, nullptr, 'd'},
-      {"source", required_argument, nullptr, 's'},
-      {"help", no_argument, nullptr, 'h'},
-      {nullptr, 0, nullptr, 0}};
+  static option long_options[] = {{"config", required_argument, nullptr, 'c'},
+                                  {"data", required_argument, nullptr, 'd'},
+                                  {"source", required_argument, nullptr, 's'},
+                                  {"help", no_argument, nullptr, 'h'},
+                                  {nullptr, 0, nullptr, 0}};
 
   while (true) {
     int option_index = 0;
     const int c = getopt_long(argc, argv, "c:d:s:h", long_options, &option_index);
-    if (c == -1) break;
+    if (c == -1)
+      break;
 
     switch (c) {
       case 'c':
@@ -87,7 +88,8 @@ bool parse_arguments(int argc, char** argv, CommandLineOptions& options) {
   return true;
 }
 
-std::shared_ptr<atracsys::ops::CameraCalibration> make_camera_calibration(const std::string& config_path) {
+std::shared_ptr<atracsys::ops::CameraCalibration> make_camera_calibration(
+    const std::string& config_path) {
   YAML::Node config = YAML::LoadFile(config_path);
   auto calibration = std::make_shared<atracsys::ops::CameraCalibration>();
   calibration->fx = static_cast<float>(config["camera_calibration_fx"].as<double>());
@@ -124,17 +126,23 @@ class AtracsysVisualizerApp : public holoscan::Application {
     using namespace holoscan;
 
     HOLOSCAN_LOG_INFO("AtracsysVisualizerApp: creating image allocator");
-    auto image_allocator = make_resource<BlockMemoryPool>("image_allocator", from_config("image_allocator"));
+    auto image_allocator =
+        make_resource<BlockMemoryPool>("image_allocator", from_config("image_allocator"));
     HOLOSCAN_LOG_INFO("AtracsysVisualizerApp: creating visible RGB allocator");
-    auto visible_rgb_allocator = make_resource<BlockMemoryPool>("visible_rgb_allocator", from_config("visible_rgb_allocator"));
+    auto visible_rgb_allocator = make_resource<BlockMemoryPool>(
+        "visible_rgb_allocator", from_config("visible_rgb_allocator"));
     HOLOSCAN_LOG_INFO("AtracsysVisualizerApp: creating display allocator");
-    auto display_allocator = make_resource<BlockMemoryPool>("display_allocator", from_config("display_allocator"));
+    auto display_allocator =
+        make_resource<BlockMemoryPool>("display_allocator", from_config("display_allocator"));
     HOLOSCAN_LOG_INFO("AtracsysVisualizerApp: creating structured points allocator");
-    auto structured_points_allocator = make_resource<RMMAllocator>("structured_points_allocator", from_config("structured_points_allocator"));
+    auto structured_points_allocator = make_resource<RMMAllocator>(
+        "structured_points_allocator", from_config("structured_points_allocator"));
     HOLOSCAN_LOG_INFO("AtracsysVisualizerApp: creating replayer allocator");
-    auto replayer_allocator = make_resource<RMMAllocator>("replayer_allocator", from_config("replayer_allocator"));
+    auto replayer_allocator =
+        make_resource<RMMAllocator>("replayer_allocator", from_config("replayer_allocator"));
     HOLOSCAN_LOG_INFO("AtracsysVisualizerApp: creating CUDA stream pool");
-    auto cuda_stream_pool = make_resource<CudaStreamPool>("cuda_stream", from_config("cuda_stream_pool"));
+    auto cuda_stream_pool =
+        make_resource<CudaStreamPool>("cuda_stream", from_config("cuda_stream_pool"));
 
     HOLOSCAN_LOG_INFO("AtracsysVisualizerApp: loading geometry path");
     const std::string geometry_path = from_config("geometry_path").as<std::string>();
@@ -142,13 +150,13 @@ class AtracsysVisualizerApp : public holoscan::Application {
     auto camera_calibration = make_camera_calibration(config_path_);
 
     HOLOSCAN_LOG_INFO("AtracsysVisualizerApp: creating holoviz and bayer demosaic operators");
-    auto holoviz = make_operator<ops::HolovizOp>("holoviz", from_config("holoviz"),
-                                                 Arg("cuda_stream_pool") = cuda_stream_pool);
-    auto visible_bayer_demosaic = make_operator<ops::BayerDemosaicOp>(
-        "visible_bayer_demosaic",
-        from_config("visible_bayer_demosaic"),
-        Arg("pool") = visible_rgb_allocator,
-        Arg("cuda_stream_pool") = cuda_stream_pool);
+    auto holoviz = make_operator<ops::HolovizOp>(
+        "holoviz", from_config("holoviz"), Arg("cuda_stream_pool") = cuda_stream_pool);
+    auto visible_bayer_demosaic =
+        make_operator<ops::BayerDemosaicOp>("visible_bayer_demosaic",
+                                            from_config("visible_bayer_demosaic"),
+                                            Arg("pool") = visible_rgb_allocator,
+                                            Arg("cuda_stream_pool") = cuda_stream_pool);
 
     HOLOSCAN_LOG_INFO("AtracsysVisualizerApp: creating mode switcher operator");
     auto mode_switcher = make_operator<atracsys::ops::AtracsysModeSwitcherOp>(
@@ -180,35 +188,39 @@ class AtracsysVisualizerApp : public holoscan::Application {
       add_flow(visible_bayer_demosaic, mode_switcher, {{"transmitter", "in_visible_base"}});
       add_flow(camera_master, mode_switcher, {{"out_ir_base", "in_ir_base"}});
       add_flow(camera_master, mode_switcher, {{"out_marker_poses", "in_marker_poses"}});
-      add_flow(camera_master, point_cloud_filter, {{"out_disparity", "in_disparity"},
-                                                   {"out_q_matrix", "in_q_matrix"}});
-      add_flow(point_cloud_filter, mode_switcher, {{"out_structured_points", "in_structured_points"}});
+      add_flow(camera_master,
+               point_cloud_filter,
+               {{"out_disparity", "in_disparity"}, {"out_q_matrix", "in_q_matrix"}});
+      add_flow(
+          point_cloud_filter, mode_switcher, {{"out_structured_points", "in_structured_points"}});
       add_flow(mode_switcher, camera_master, {{"out_hw_cmd", "in_hw_cmd"}});
 #else
-      throw std::runtime_error("atracsys_visualizer was not built with the optional atracsys_camera operator");
+      throw std::runtime_error(
+          "atracsys_visualizer was not built with the optional "
+          "atracsys_camera operator");
 #endif
     } else {
       HOLOSCAN_LOG_INFO("AtracsysVisualizerApp: creating replay operators");
-      auto replayer_visible = make_operator<ops::VideoStreamReplayerOp>(
-          "replayer_visible_base",
-          from_config("replayer_visible_base"),
-          Arg("allocator") = replayer_allocator,
-          Arg("directory") = data_path_);
-      auto replayer_ir = make_operator<ops::VideoStreamReplayerOp>(
-          "replayer_ir_base",
-          from_config("replayer_ir_base"),
-          Arg("allocator") = replayer_allocator,
-          Arg("directory") = data_path_);
-      auto replayer_structured_points = make_operator<ops::VideoStreamReplayerOp>(
-          "replayer_structured_points",
-          from_config("replayer_structured_points"),
-          Arg("allocator") = replayer_allocator,
-          Arg("directory") = data_path_);
-      auto replayer_marker_poses = make_operator<ops::VideoStreamReplayerOp>(
-          "replayer_marker_poses",
-          from_config("replayer_marker_poses"),
-          Arg("allocator") = replayer_allocator,
-          Arg("directory") = data_path_);
+      auto replayer_visible =
+          make_operator<ops::VideoStreamReplayerOp>("replayer_visible_base",
+                                                    from_config("replayer_visible_base"),
+                                                    Arg("allocator") = replayer_allocator,
+                                                    Arg("directory") = data_path_);
+      auto replayer_ir =
+          make_operator<ops::VideoStreamReplayerOp>("replayer_ir_base",
+                                                    from_config("replayer_ir_base"),
+                                                    Arg("allocator") = replayer_allocator,
+                                                    Arg("directory") = data_path_);
+      auto replayer_structured_points =
+          make_operator<ops::VideoStreamReplayerOp>("replayer_structured_points",
+                                                    from_config("replayer_structured_points"),
+                                                    Arg("allocator") = replayer_allocator,
+                                                    Arg("directory") = data_path_);
+      auto replayer_marker_poses =
+          make_operator<ops::VideoStreamReplayerOp>("replayer_marker_poses",
+                                                    from_config("replayer_marker_poses"),
+                                                    Arg("allocator") = replayer_allocator,
+                                                    Arg("directory") = data_path_);
 
       add_flow(replayer_visible, visible_bayer_demosaic, {{"output", "receiver"}});
       add_flow(visible_bayer_demosaic, mode_switcher, {{"transmitter", "in_visible_base"}});
@@ -235,7 +247,9 @@ class AtracsysVisualizerApp : public holoscan::Application {
 
 int main(int argc, char** argv) {
   CommandLineOptions options;
-  if (!parse_arguments(argc, argv, options)) { return 0; }
+  if (!parse_arguments(argc, argv, options)) {
+    return 0;
+  }
 
   if (options.config_path.empty()) {
     options.config_path = (options.source == "live_camera") ? "atracsys_visualizer_live.yaml"

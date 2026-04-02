@@ -42,7 +42,8 @@ class PointCloudFilterOp : public holoscan::Operator {
                holoscan::ExecutionContext& context) override;
 
  private:
-  void ensure_structured_output_entities(const holoscan::ExecutionContext& context, size_t point_count);
+  void ensure_structured_output_entities(const holoscan::ExecutionContext& context,
+                                         size_t point_count);
 
   holoscan::Parameter<std::shared_ptr<holoscan::Allocator>> structured_allocator_;
   holoscan::Parameter<std::shared_ptr<holoscan::CudaStreamPool>> cuda_stream_pool_;

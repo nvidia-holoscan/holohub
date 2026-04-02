@@ -62,12 +62,13 @@ class AtracsysMasterSourceOp : public holoscan::Operator {
   void configure_camera();
   void configure_frame();
   void destroy_frame();
-  void ensure_visible_output_entities(const holoscan::ExecutionContext& context,
-                                      uint32_t width,
+  void ensure_visible_output_entities(const holoscan::ExecutionContext& context, uint32_t width,
                                       uint32_t height);
-  void ensure_ir_output_entities(const holoscan::ExecutionContext& context, uint32_t width, uint32_t height);
+  void ensure_ir_output_entities(const holoscan::ExecutionContext& context, uint32_t width,
+                                 uint32_t height);
   void ensure_marker_poses_output_entities(const holoscan::ExecutionContext& context);
-  void ensure_disparity_output_entities(const holoscan::ExecutionContext& context, uint32_t width, uint32_t height);
+  void ensure_disparity_output_entities(const holoscan::ExecutionContext& context, uint32_t width,
+                                        uint32_t height);
   void configure_structured_frame_state() const;
   void emit_visible_frame(holoscan::OutputContext& op_output, holoscan::ExecutionContext& context,
                           cudaStream_t cuda_stream);
@@ -75,15 +76,14 @@ class AtracsysMasterSourceOp : public holoscan::Operator {
                      cudaStream_t cuda_stream);
   void emit_marker_poses(holoscan::OutputContext& op_output, holoscan::ExecutionContext& context,
                          cudaStream_t cuda_stream);
-  void emit_structured_points(holoscan::OutputContext& op_output, holoscan::ExecutionContext& context,
-                              cudaStream_t cuda_stream);
+  void emit_structured_points(holoscan::OutputContext& op_output,
+                              holoscan::ExecutionContext& context, cudaStream_t cuda_stream);
   void apply_pending_command(const std::shared_ptr<atracsys::HardwareModeCommand>& cmd);
   void set_scheduler_pattern(const std::string& pattern);
   void set_exclusive_pattern(atracsys::HardwareMode mode);
   std::string configured_mixed_pattern() const;
   bool upload_frame_to_base_tensor(const nvidia::gxf::Handle<nvidia::gxf::Tensor>& tensor,
-                                   const char* frame_kind,
-                                   cudaStream_t cuda_stream);
+                                   const char* frame_kind, cudaStream_t cuda_stream);
   SchedulerMode configured_scheduler_mode() const;
   atracsys::HardwareMode configured_initial_hw_mode() const;
 
