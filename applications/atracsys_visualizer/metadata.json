@@ -1,0 +1,114 @@
+{
+  "application": {
+    "name": "Atracsys Visualizer",
+    "description": "Replay-first visualization application for Atracsys visible, infrared, structured-light, and tracking data with an optional live camera mode.",
+    "authors": [
+      {
+        "name": "Artrit Telaku",
+        "affiliation": "Community"
+      }
+    ],
+    "language": "C++",
+    "version": "0.1.0",
+    "changelog": {
+      "0.1.0": "Initial HoloHub application for Atracsys replay and optional live visualization."
+    },
+    "dockerfile": "applications/atracsys_visualizer/Dockerfile",
+    "holoscan_sdk": {
+      "minimum_required_version": "4.0.0",
+      "tested_versions": [
+        "4.0.0"
+      ]
+    },
+    "platforms": [
+      "x86_64",
+      "aarch64"
+    ],
+    "tags": [
+      "Camera",
+      "Visualization",
+      "Tracking",
+      "Structured Light",
+      "Holoviz"
+    ],
+    "ranking": 3,
+    "requirements": {
+      "replay_sample": {
+        "type": "data",
+        "name": "Atracsys replay sample",
+        "description": "Tiny replay dataset used for the replay mode. This implementation can trim a local recording set for development and is intended to reference a hosted sample for the upstream PR."
+      },
+      "atracsys_hardware": {
+        "type": "hardware",
+        "name": "Atracsys hardware",
+        "description": "Required only for live_camera mode."
+      },
+      "atracsys_sdk": {
+        "type": "software",
+        "name": "Atracsys SDK and S3DK",
+        "description": "Required only for live_camera mode. The public Dockerfile provides CUDA-enabled OpenCV, but the proprietary Atracsys SDK and S3DK must still be installed locally or added in a private derivative image."
+      }
+    },
+    "default_mode": "replayer",
+    "modes": {
+      "replayer": {
+        "description": "Run the replay-first Atracsys visualizer mode",
+        "requirements": [
+          "replay_sample"
+        ],
+        "build": {
+          "cmake_options": [
+            "-DHOLOHUB_BUILD_CPP=ON",
+            "-DATRACSYS_VISUALIZER_ENABLE_LIVE_CAMERA=OFF",
+            "-DOP_atracsys_camera=OFF"
+          ]
+        },
+        "run": {
+          "command": "<holohub_app_bin>/cpp/atracsys_visualizer --source replayer --config <holohub_app_bin>/cpp/atracsys_visualizer_replayer.yaml --data <holohub_data_dir>/atracsys_visualizer",
+          "workdir": "holohub_bin"
+        }
+      },
+      "live_camera": {
+        "description": "Run the optional live Atracsys camera mode",
+        "requirements": [
+          "atracsys_hardware",
+          "atracsys_sdk"
+        ],
+        "build": {
+          "depends": [
+            "atracsys_camera"
+          ],
+          "cmake_options": [
+            "-DHOLOHUB_BUILD_CPP=ON",
+            "-DATRACSYS_VISUALIZER_ENABLE_LIVE_CAMERA=ON"
+          ],
+          "env": {
+            "Atracsys_DIR": "/opt/atracsys-4.9.0/cmake/Atracsys",
+            "S3DK_ROOT": "/opt/s3dk",
+            "OpenCV_DIR": "/usr/local/lib/cmake/opencv4"
+          }
+        },
+        "run": {
+          "command": "<holohub_app_bin>/cpp/atracsys_visualizer --source live_camera --config <holohub_app_bin>/cpp/atracsys_visualizer_live.yaml",
+          "workdir": "holohub_bin",
+          "docker_run_args": [
+            "--device=/dev/bus/usb",
+            "--mount type=bind,src=/run/udev,dst=/run/udev,readonly",
+            "--mount type=bind,src=/sys/bus/usb,dst=/sys/bus/usb,readonly",
+            "--mount type=bind,src=/opt/atracsys-4.9.0,dst=/opt/atracsys-4.9.0,readonly",
+            "--mount type=bind,src=/opt/s3dk,dst=/opt/s3dk,readonly",
+            "--env=Atracsys_DIR=/opt/atracsys-4.9.0/cmake/Atracsys",
+            "--env=S3DK_ROOT=/opt/s3dk",
+            "--env=OpenCV_DIR=/usr/local/lib/cmake/opencv4",
+            "--env=LD_LIBRARY_PATH=/usr/local/lib:/opt/atracsys-4.9.0/lib:/opt/s3dk/lib:/opt/nvidia/holoscan/lib"
+          ]
+        },
+        "env": {
+          "Atracsys_DIR": "/opt/atracsys-4.9.0/cmake/Atracsys",
+          "S3DK_ROOT": "/opt/s3dk",
+          "OpenCV_DIR": "/usr/local/lib/cmake/opencv4"
+        }
+      }
+    }
+  }
+}

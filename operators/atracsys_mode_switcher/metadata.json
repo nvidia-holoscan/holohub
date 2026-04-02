@@ -1,0 +1,38 @@
+{
+  "operator": {
+    "name": "AtracsysModeSwitcherOp",
+    "description": "Replay and visualization operator that switches between visible, infrared, structured-light, and tracking modes while projecting tracked fiducials into Holoviz overlays.",
+    "authors": [
+      {
+        "name": "Artrit Telaku",
+        "affiliation": "Community"
+      }
+    ],
+    "language": [
+      "C++"
+    ],
+    "version": "0.1.0",
+    "changelog": {
+      "0.1.0": "Initial HoloHub operator extracted from the Atracsys visualizer application."
+    },
+    "holoscan_sdk": {
+      "minimum_required_version": "4.0.0",
+      "tested_versions": [
+        "4.0.0"
+      ]
+    },
+    "platforms": [
+      "x86_64",
+      "aarch64"
+    ],
+    "tags": [
+      "Camera",
+      "Visualization",
+      "Holoviz",
+      "Tracking",
+      "Structured Light"
+    ],
+    "ranking": 3,
+    "requirements": {}
+  }
+}
