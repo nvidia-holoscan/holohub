@@ -261,7 +261,7 @@ def main():
 
         tak_logger.info("Starting OpenTAKServer services...")
         ots_log = open("/tmp/ots_start.log", "w")
-        subprocess.Popen(
+        ots_proc = subprocess.Popen(
             ["bash", "-u", ots_script],
             stdout=ots_log,
             stderr=subprocess.STDOUT,
@@ -289,6 +289,13 @@ def main():
         tak_logger.info("Waiting for OTS to be ready (TCP port %d)...", cot_port)
         start_wait = time.time()
         for attempt in range(60):
+            if ots_proc.poll() is not None:
+                tak_logger.error(
+                    "start_ots.sh exited with code %d before OTS became ready. "
+                    "Check /tmp/ots_start.log for details.",
+                    ots_proc.returncode,
+                )
+                break
             try:
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 s.settimeout(1.0)
