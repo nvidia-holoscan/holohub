@@ -17,5 +17,5 @@ It receives GXF Tensor as input and outputs GXF VideoBuffer created from it.
 - type: `holoscan::IOSpec*`
 - **`in_tensor_name`**: Name of the input tensor
   - type: `std::string`
-- **`video_format`**: The video format, supported values: "yuv420", "rgb"
+- **`video_format`**: The video format, supported values: "yuv420", "rgb", "rgba", "bgra"
   - type: `std::string`
