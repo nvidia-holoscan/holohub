@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights
  * reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,6 +30,7 @@
 
 #include "holoscan/core/execution_context.hpp"
 #include "holoscan/core/gxf/entity.hpp"
+#include "holoscan/core/io_context.hpp"
 #include "holoscan/core/operator_spec.hpp"
 
 #include "tensor_to_video_buffer.hpp"
@@ -39,6 +40,10 @@ namespace holoscan::ops {
 static nvidia::gxf::VideoFormat toVideoFormat(const std::string& str) {
   if (str == "rgb") {
     return nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_RGB;
+  } else if (str == "rgba") {
+    return nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_RGBA;
+  } else if (str == "bgra") {
+    return nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_BGRA;
   } else if (str == "yuv420") {
     return nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_YUV420;
   } else {
@@ -61,14 +66,23 @@ void TensorToVideoBufferOp::setup(OperatorSpec& spec) {
 }
 
 void TensorToVideoBufferOp::start() {
-  video_format_type_ = toVideoFormat(video_format_);
+  const auto format = video_format_.get();
+  video_format_type_ = toVideoFormat(format);
+  if (video_format_type_ == nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_CUSTOM) {
+    throw std::runtime_error(
+        fmt::format("Unsupported video_format '{}'. Expected one of: rgb, rgba, bgra, yuv420",
+                    format));
+  }
 }
 
 void TensorToVideoBufferOp::compute(InputContext& op_input, OutputContext& op_output,
-                                    ExecutionContext& context) {
-  // Process input message
-  // The type of `in_message` is 'holoscan::gxf::Entity'.
+                                    ExecutionContext& /*context*/) {
   auto in_message = op_input.receive<gxf::Entity>("in_tensor").value();
+
+  // Intentionally receive the input CUDA stream.
+  // The returned value is not used directly; this call makes the framework track
+  // the stream dependency for the zero-copy entity emitted downstream.
+  [[maybe_unused]] auto input_cuda_stream = op_input.receive_cuda_stream("in_tensor");
 
   const std::string in_tensor_name = in_tensor_name_.get();
 
@@ -89,7 +103,11 @@ void TensorToVideoBufferOp::compute(InputContext& op_input, OutputContext& op_ou
     auto in_tensor = gxf::GXFTensor::from_tensor(maybe_tensor);
   #endif
 
-  nvidia::gxf::Shape out_shape{0, 0, 0};
+  if (in_tensor->shape().rank() < 3) {
+    throw std::runtime_error(
+        fmt::format("Tensor '{}' rank must be >= 3 for HxWxC access", in_tensor_name));
+  }
+
   void* in_tensor_data = nullptr;
   nvidia::gxf::PrimitiveType in_primitive_type = nvidia::gxf::PrimitiveType::kCustom;
   nvidia::gxf::MemoryStorageType in_memory_storage_type = nvidia::gxf::MemoryStorageType::kHost;
@@ -110,21 +128,22 @@ void TensorToVideoBufferOp::compute(InputContext& op_input, OutputContext& op_ou
         fmt::format("Tensor '{}' or VideoBuffer is not allocated on device", in_tensor_name));
   }
 
-  // Process image only if the input image is 3 channel image
-  if (in_primitive_type != nvidia::gxf::PrimitiveType::kUnsigned8 || in_channels != 3) {
-    throw std::runtime_error("Only supports 3 channel input tensor");
+  if (in_primitive_type != nvidia::gxf::PrimitiveType::kUnsigned8) {
+    throw std::runtime_error("Only supports uint8 input tensor");
   }
 
-  // Create and pass the GXF video buffer downstream.
-  auto out_message = nvidia::gxf::Entity::New(context.context());
-  if (!out_message) { throw std::runtime_error("Failed to allocate message; terminating."); }
-
-  auto buffer = out_message.value().add<nvidia::gxf::VideoBuffer>();
+  // Zero-copy: attach a VideoBuffer to the SAME incoming entity so the wrapped
+  // tensor memory remains owned/alive for downstream consumers.
+  auto& gxf_in_message = static_cast<nvidia::gxf::Entity&>(in_message);
+  auto buffer = gxf_in_message.add<nvidia::gxf::VideoBuffer>();
   if (!buffer) { throw std::runtime_error("Failed to allocate video buffer; terminating."); }
 
   auto in_tensor_ptr = static_cast<uint8_t*>(in_tensor_data);
   switch (video_format_type_) {
     case nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_YUV420: {
+      if (in_channels != 3) {
+        throw std::runtime_error("YUV420 path expects a 3-channel input tensor view");
+      }
       nvidia::gxf::VideoTypeTraits<nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_YUV420> video_type;
       nvidia::gxf::VideoFormatSize<nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_YUV420> color_format;
       auto color_planes = color_format.getDefaultColorPlanes(width_, height_);
@@ -140,8 +159,47 @@ void TensorToVideoBufferOp::compute(InputContext& op_input, OutputContext& op_ou
       break;
     }
     case nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_RGB: {
+      if (in_channels != 3) {
+        throw std::runtime_error("RGB video format requires 3-channel input tensor");
+      }
       nvidia::gxf::VideoTypeTraits<nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_RGB> video_type;
       nvidia::gxf::VideoFormatSize<nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_RGB> color_format;
+      auto color_planes = color_format.getDefaultColorPlanes(width_, height_);
+      nvidia::gxf::VideoBufferInfo info{
+          width_,
+          height_,
+          video_type.value,
+          color_planes,
+          nvidia::gxf::SurfaceLayout::GXF_SURFACE_LAYOUT_PITCH_LINEAR};
+      auto storage_type = nvidia::gxf::MemoryStorageType::kDevice;
+      auto size = width_ * height_ * in_channels;
+      buffer.value()->wrapMemory(info, size, storage_type, in_tensor_ptr, nullptr);
+      break;
+    }
+    case nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_RGBA: {
+      if (in_channels != 4) {
+        throw std::runtime_error("RGBA video format requires 4-channel input tensor");
+      }
+      nvidia::gxf::VideoTypeTraits<nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_RGBA> video_type;
+      nvidia::gxf::VideoFormatSize<nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_RGBA> color_format;
+      auto color_planes = color_format.getDefaultColorPlanes(width_, height_);
+      nvidia::gxf::VideoBufferInfo info{
+          width_,
+          height_,
+          video_type.value,
+          color_planes,
+          nvidia::gxf::SurfaceLayout::GXF_SURFACE_LAYOUT_PITCH_LINEAR};
+      auto storage_type = nvidia::gxf::MemoryStorageType::kDevice;
+      auto size = width_ * height_ * in_channels;
+      buffer.value()->wrapMemory(info, size, storage_type, in_tensor_ptr, nullptr);
+      break;
+    }
+    case nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_BGRA: {
+      if (in_channels != 4) {
+        throw std::runtime_error("BGRA video format requires 4-channel input tensor");
+      }
+      nvidia::gxf::VideoTypeTraits<nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_BGRA> video_type;
+      nvidia::gxf::VideoFormatSize<nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_BGRA> color_format;
       auto color_planes = color_format.getDefaultColorPlanes(width_, height_);
       nvidia::gxf::VideoBufferInfo info{
           width_,
@@ -159,9 +217,9 @@ void TensorToVideoBufferOp::compute(InputContext& op_input, OutputContext& op_ou
       break;
   }
 
-  // Transmit the gxf video buffer to target
-  auto result = gxf::Entity(std::move(out_message.value()));
-  op_output.emit(result);
+  // Re-emit the same entity for zero-copy. The input CUDA stream is received
+  // above so the framework can track the intended stream dependency/order.
+  op_output.emit(in_message, "out_video_buffer");
 }
 
 }  // namespace holoscan::ops
