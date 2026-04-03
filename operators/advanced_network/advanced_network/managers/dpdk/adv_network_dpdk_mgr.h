@@ -139,7 +139,7 @@ class DpdkMgr : public Manager {
   static int tx_core_worker(void* arg);
   static int rx_lb_worker(void* arg);
   static int tx_lb_worker(void* arg);
-  static void flush_packets(int port);
+  static void flush_port_queue_impl(int port, int queue);
   void setup_accurate_send_scheduling_mask();
   int setup_pools_and_rings(int max_rx_batch, int max_tx_batch);
   struct rte_flow* add_flow(int port, const FlowConfig& cfg);

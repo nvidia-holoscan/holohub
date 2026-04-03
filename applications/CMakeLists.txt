@@ -84,7 +84,8 @@ add_holohub_application(imx274_gpu_resident DEPENDS
                         OPERATORS hsb_roce_receiver_nmd
                                   csi_to_bayer_gpu_resident
                                   image_processor_gpu_resident
-                                  display_gpu_resident)
+                                  display_gpu_resident
+                        OPTIONAL hsb_roce_receiver_doca_gpunetio)
 
 add_holohub_application(hyperspectral_segmentation)
 

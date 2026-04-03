@@ -30,7 +30,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional, Tuple, Union
 
-DEFAULT_BASE_SDK_VERSION = "4.0.0"
+DEFAULT_BASE_SDK_VERSION = "4.1.0"
 
 DEFAULT_GIT_REF = "latest"
 
@@ -1655,6 +1655,7 @@ def setup_cuda_packages(cuda_major_version: str, dry_run: bool = False) -> None:
 
         for trt_package_name in [
             "libnvinfer-headers-dev",
+            "libnvinfer-safe-headers-dev",
             "libnvinfer-dev",
             "libnvinfer-headers-plugin-dev",
             "libnvinfer-plugin-dev",
