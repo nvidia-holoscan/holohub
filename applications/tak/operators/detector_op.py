@@ -198,7 +198,7 @@ class DetectorOp(Operator):
                 )
                 if len(sample) >= 5:
                     break
-            logger.info(
+            logger.debug(
                 "YOLO detections: %d track ids: %s data: %s",
                 len(boxes_xyxy),
                 track_ids,
