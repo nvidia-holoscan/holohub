@@ -48,7 +48,7 @@ echo ""
 # Step 1: Install OTS and database adapter from PyPI
 # --------------------------------------------------------------------------
 echo "[OTS Setup] [1/6] Installing OpenTAKServer from PyPI (this is the slowest step)..."
-"$OTS_VENV/bin/pip" install --no-cache-dir opentakserver==1.7.9 sqlalchemy==2.0.44 psycopg2-binary
+"$OTS_VENV/bin/pip" install --no-cache-dir opentakserver==1.7.9 sqlalchemy==2.0.44 psycopg2-binary==2.9.11
 echo "[OTS Setup] [1/6] Done"
 
 # --------------------------------------------------------------------------
