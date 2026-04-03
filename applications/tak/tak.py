@@ -312,7 +312,6 @@ def main():
 
         stop_tail.set()
         log_thread.join(timeout=1.0)
-        ots_log.close()
 
     app = TAKApp(
         video_dir=args.video_dir,
