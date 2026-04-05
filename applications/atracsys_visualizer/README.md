@@ -68,7 +68,9 @@ add_flow(camera_master, recorder, {{"visible_base", ""}});
 
 Replay mode (Default):
 ```bash
-./holohub run atracsys_visualizer replayer
+# Important: On setups defaulting to CUDA 13+, you must explicitly specify --cuda 12 
+# to avoid OpenCV compilation errors.
+./holohub run atracsys_visualizer replayer --cuda 12
 ```
 
 If you want to prebuild the application container and control the CUDA architecture used for the
