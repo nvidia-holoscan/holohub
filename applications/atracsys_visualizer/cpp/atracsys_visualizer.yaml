@@ -39,6 +39,15 @@ replayer_allocator:
 cuda_stream_pool:
   reserved_size: 1
 
+real_camera:
+  enable_visible: true
+  enable_ir: true
+  enable_structured: true
+  vis_integration_time_us: 16000
+  sl_integration_time_us: 16000
+  scheduler_mode: exclusive
+  initial_hw_mode: visible
+
 replayer_visible_base:
   basename: "visible_base"
   frame_rate: 0

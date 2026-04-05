@@ -33,40 +33,7 @@ else()
       "Optional operators requested for the active HoloHub app build" FORCE)
 endif()
 
-if(HOLOHUB_DOWNLOAD_DATASETS)
-  find_package(Python3 COMPONENTS Interpreter REQUIRED)
 
-  set(ATRACSYS_VISUALIZER_DATA_DIR "${HOLOHUB_DATA_DIR}/atracsys_visualizer")
-  set(ATRACSYS_VISUALIZER_DATA_OUTPUTS
-      "${ATRACSYS_VISUALIZER_DATA_DIR}/visible_base.gxf_index"
-      "${ATRACSYS_VISUALIZER_DATA_DIR}/visible_base.gxf_entities"
-      "${ATRACSYS_VISUALIZER_DATA_DIR}/ir_base.gxf_index"
-      "${ATRACSYS_VISUALIZER_DATA_DIR}/ir_base.gxf_entities"
-      "${ATRACSYS_VISUALIZER_DATA_DIR}/structured_points.gxf_index"
-      "${ATRACSYS_VISUALIZER_DATA_DIR}/structured_points.gxf_entities"
-      "${ATRACSYS_VISUALIZER_DATA_DIR}/marker_poses.gxf_index"
-      "${ATRACSYS_VISUALIZER_DATA_DIR}/marker_poses.gxf_entities")
-
-  set(ATRACSYS_VISUALIZER_GENERATOR_ARGS
-      --output-dir "${ATRACSYS_VISUALIZER_DATA_DIR}"
-      --frames 6)
-  if(ATRACSYS_VISUALIZER_SOURCE_RECORDINGS_DIR)
-    list(APPEND ATRACSYS_VISUALIZER_GENERATOR_ARGS
-         --source-recordings-dir "${ATRACSYS_VISUALIZER_SOURCE_RECORDINGS_DIR}")
-  endif()
-
-  add_custom_command(
-    OUTPUT ${ATRACSYS_VISUALIZER_DATA_OUTPUTS}
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${ATRACSYS_VISUALIZER_DATA_DIR}"
-    COMMAND ${Python3_EXECUTABLE}
-            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/generate_sample_replay.py"
-            ${ATRACSYS_VISUALIZER_GENERATOR_ARGS}
-    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/cpp/generate_sample_replay.py"
-    COMMENT "Preparing Atracsys visualizer sample replay dataset"
-  )
-
-  add_custom_target(atracsys_visualizer_data ALL DEPENDS ${ATRACSYS_VISUALIZER_DATA_OUTPUTS})
-endif()
 
 if(HOLOHUB_BUILD_CPP)
   add_subdirectory(cpp)

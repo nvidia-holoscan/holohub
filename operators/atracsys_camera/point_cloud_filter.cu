@@ -21,7 +21,7 @@
 
 #include <cmath>
 
-namespace atracsys::ops {
+namespace holoscan::ops {
 
 __global__ void point_cloud_filter_kernel(const int16_t* __restrict__ d_disp,
                                           int width,
@@ -94,4 +94,4 @@ void launch_point_cloud_filter(const int16_t* d_disp,
       d_out_points);
 }
 
-}  // namespace atracsys::ops
+}  // namespace holoscan::ops

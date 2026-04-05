@@ -30,7 +30,7 @@
 #include "holoscan/operators/holoviz/holoviz.hpp"
 #include "mode_switcher_keyboard.hpp"
 
-namespace atracsys::ops {
+namespace holoscan::ops {
 
 enum class ReplayMode {
   kVisible = 1,
@@ -99,4 +99,4 @@ class AtracsysModeSwitcherOp : public holoscan::Operator {
   ModeSwitcherKeyboard keyboard_;
 };
 
-}  // namespace atracsys::ops
+}  // namespace holoscan::ops

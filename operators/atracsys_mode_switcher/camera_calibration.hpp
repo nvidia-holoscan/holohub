@@ -19,7 +19,7 @@
 
 #include <array>
 
-namespace atracsys::ops {
+namespace holoscan::ops {
 
 struct CameraCalibration {
   float fx{0.0F};
@@ -34,4 +34,4 @@ struct CameraCalibration {
   [[nodiscard]] bool valid() const { return image_width > 0 && image_height > 0; }
 };
 
-}  // namespace atracsys::ops
+}  // namespace holoscan::ops

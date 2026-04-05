@@ -29,7 +29,7 @@ typedef struct CUstream_st* cudaStream_t;
 
 #include "holoscan/holoscan.hpp"
 
-namespace atracsys::ops {
+namespace holoscan::ops {
 
 class PointCloudFilterOp : public holoscan::Operator {
  public:
@@ -57,4 +57,4 @@ class PointCloudFilterOp : public holoscan::Operator {
   bool first_cloud_logged_{false};
 };
 
-}  // namespace atracsys::ops
+}  // namespace holoscan::ops

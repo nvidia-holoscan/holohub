@@ -38,7 +38,7 @@ typedef struct CUstream_st* cudaStream_t;
 #include "sdk/s3dk_interface.hpp"
 #include "sdk/sdk_wrapper.hpp"
 
-namespace atracsys::ops {
+namespace holoscan::ops {
 
 class AtracsysMasterSourceOp : public holoscan::Operator {
  public:
@@ -147,4 +147,4 @@ class AtracsysMasterSourceOp : public holoscan::Operator {
   std::thread capture_thread_;
 };
 
-}  // namespace atracsys::ops
+}  // namespace holoscan::ops

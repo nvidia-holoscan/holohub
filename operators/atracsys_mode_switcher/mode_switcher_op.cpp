@@ -35,7 +35,7 @@
 #include "gxf/std/tensor.hpp"
 #include "holoscan/logger/logger.hpp"
 
-namespace atracsys::ops {
+namespace holoscan::ops {
 
 namespace {
 
@@ -959,4 +959,4 @@ void AtracsysModeSwitcherOp::compute(holoscan::InputContext& op_input,
   op_output.emit(specs_, "out_specs");
 }
 
-}  // namespace atracsys::ops
+}  // namespace holoscan::ops

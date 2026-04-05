@@ -38,22 +38,15 @@ if(ATRACSYS_VISUALIZER_ENABLE_LIVE_CAMERA)
   target_compile_definitions(atracsys_visualizer PRIVATE ATRACSYS_HAVE_LIVE_CAMERA=1)
 endif()
 
-if(HOLOHUB_DOWNLOAD_DATASETS)
-  add_dependencies(atracsys_visualizer atracsys_visualizer_data)
-endif()
-
 add_custom_target(atracsys_visualizer_deps
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/atracsys_visualizer_replayer.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/atracsys_visualizer_live.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/atracsys_visualizer.yaml" ${CMAKE_CURRENT_BINARY_DIR}
   COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/atracsys_visualizer_test.yaml" ${CMAKE_CURRENT_BINARY_DIR}
   COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/geometry10.ini" ${CMAKE_CURRENT_BINARY_DIR}
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/atracsys_visualizer_replayer.yaml" ${CMAKE_BINARY_DIR}
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/atracsys_visualizer_live.yaml" ${CMAKE_BINARY_DIR}
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/atracsys_visualizer.yaml" ${CMAKE_BINARY_DIR}
   COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/atracsys_visualizer_test.yaml" ${CMAKE_BINARY_DIR}
   COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/geometry10.ini" ${CMAKE_BINARY_DIR}
   DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/atracsys_visualizer_replayer.yaml"
-    "${CMAKE_CURRENT_SOURCE_DIR}/atracsys_visualizer_live.yaml"
+    "${CMAKE_CURRENT_SOURCE_DIR}/atracsys_visualizer.yaml"
     "${CMAKE_CURRENT_SOURCE_DIR}/atracsys_visualizer_test.yaml"
     "${CMAKE_CURRENT_SOURCE_DIR}/geometry10.ini"
 )
@@ -78,8 +71,7 @@ install(
 
 install(
   FILES
-    atracsys_visualizer_replayer.yaml
-    atracsys_visualizer_live.yaml
+    atracsys_visualizer.yaml
     atracsys_visualizer_test.yaml
     geometry10.ini
   DESTINATION bin/atracsys_visualizer/cpp

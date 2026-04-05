@@ -3,9 +3,26 @@
 This package contains the optional live-camera path for the Atracsys visualizer.
 It is not required for the default replay build.
 
+## Architecture
+
+```mermaid
+graph LR
+    HW[Physical Camera] --> Master(AtracsysMasterSourceOp)
+    Master -- Disparity --> Filter[PointCloudFilterOp]
+    Filter -- 3D Points --> Out((Output))
+    Master -- Tracking/Video --> Out
+```
+
 The package provides:
 - `AtracsysMasterSourceOp` for visible, infrared, marker-pose, and disparity output
-- `PointCloudFilterOp` for converting disparity plus Q-matrix data into structured-light points
+- `PointCloudFilterOp` for converting disparity plus Q-matrix data into structured-light points asynchronously via the GPU.
+
+## Proprietary SDK Dependency
+
+The live camera operator relies on vendor SDKs which are **not included**. To compile and use this operator, you must:
+1. Contact Atracsys to obtain the latest SDK and the S3DK.
+2. Install the Atracsys SDK so that its CMake package is discoverable (e.g., at `/opt/atracsys-4.9.0`).
+3. Install the S3DK such that it is discoverable through `S3DK_ROOT` (e.g., at `/opt/s3dk`).
 
 Build requirements:
 - Atracsys SDK with CMake package discovery

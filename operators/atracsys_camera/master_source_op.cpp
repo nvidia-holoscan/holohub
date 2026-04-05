@@ -32,7 +32,7 @@
 #include "point_cloud_filter.cuh"
 #include "sdk/s3dk_wrapper.hpp"
 
-namespace atracsys::ops {
+namespace holoscan::ops {
 
 namespace {
 
@@ -788,4 +788,4 @@ atracsys::HardwareMode AtracsysMasterSourceOp::configured_initial_hw_mode() cons
   return atracsys::HardwareMode::kVisible;
 }
 
-}  // namespace atracsys::ops
+}  // namespace holoscan::ops

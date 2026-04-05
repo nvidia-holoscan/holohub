@@ -20,7 +20,7 @@
 #include <optional>
 #include <termios.h>
 
-namespace atracsys::ops {
+namespace holoscan::ops {
 
 class ModeSwitcherKeyboard {
  public:
@@ -35,4 +35,4 @@ class ModeSwitcherKeyboard {
   int orig_stdin_flags_{-1};
 };
 
-}  // namespace atracsys::ops
+}  // namespace holoscan::ops

@@ -4,63 +4,89 @@
 structured-light, and tracking data. The default mode uses recorded streams so the visualization
 stack can be built and exercised without proprietary live-camera dependencies.
 
+## Architecture
+
+```mermaid
+graph TD
+    classDef hardware fill:#e8f4f8,stroke:#3b82f6,stroke-width:2px;
+    classDef software fill:#f3f4f6,stroke:#6b7280,stroke-width:1px;
+
+    Hardware[Atracsys Hardware]:::hardware --> |USB| MasterSource[AtracsysMasterSourceOp]:::hardware
+    MasterSource --> |Visible Tensor| Bayer[BayerDemosaicOp]:::software
+    MasterSource --> |IR Tensor| ModeSwitcher[AtracsysModeSwitcherOp]:::software
+    MasterSource --> |Marker Poses| ModeSwitcher
+    MasterSource --> |Disparity Tensor| PointCloud[PointCloudFilterOp]:::hardware
+    PointCloud --> |Structured Points Tensor| ModeSwitcher
+    Bayer --> |RGB Tensor| ModeSwitcher
+    
+    ModeSwitcher --> |Filtered Active Mode Data| Holoviz[HolovizOp]:::software
+```
+
 The application is split into:
 - a required reusable `AtracsysModeSwitcherOp` operator
 - an optional `atracsys_camera` operator package for live hardware input
-- a single C++ application entrypoint with `replayer` and `live_camera` modes
+- a single C++ application entrypoint with configuration via `atracsys_visualizer.yaml`
 
-## Modes
+## 📸 Visual Showcase
+*(User Note: Insert your awesome GIFs/screenshots of the visualizer working here before merging the PR! To render properly, use `![Demo](link_to_gif)`)*
 
-Replay mode:
-- replays `visible_base`, `ir_base`, `structured_points`, and `marker_poses`
-- demosaics the visible stream
-- projects marker geometry overlays
-- renders structured-light points and tracking overlays in Holoviz
+## SDK and Data Acquisition
 
-Live mode:
-- enables the optional Atracsys camera source
-- produces visible, infrared, marker-pose, and disparity data from hardware
-- converts disparity to structured points before visualization
+### Getting the Atracsys SDKs
+The Atracsys SDK and S3DK are proprietary hardware drivers and are **not** bundled in this repository. 
+To run the `live_camera` mode, you must first obtain the SDKs directly from the vendor:
+1. Contact Atracsys support for licensing and downloading the `atracsys-4.9.0` and `s3dk` toolchains.
+2. Install them on your local machine.
 
-## Container and dependency model
+Recommended live SDK layout for HoloHub:
+- Atracsys SDK config under `/opt/atracsys-4.9.0/cmake/Atracsys`
+- S3DK root under `/opt/s3dk`
 
-This application includes a custom [Dockerfile](./Dockerfile)
-because the live Atracsys path depends on a CUDA-enabled OpenCV build. The public container:
-- builds OpenCV 4.10 with CUDA, CUBLAS, and TBB
-- exports `OpenCV_DIR=/usr/local/lib/cmake/opencv4`
-- keeps replay mode usable without any vendor SDK payloads in the repository
+### Getting the Replay Dataset (1GB High-Fidelity)
+If you wish to test `replayer` mode using real hardware recordings instead of mocked test data, the complete 1GB 
+GXF dataset can be requested:
+1. Contact [Company Name] at [Contact Email/Link] to request the dataset zip file.
+2. Extract the contents into `data/atracsys_visualizer/`.
 
-The Atracsys SDK and S3DK remain external dependencies:
-- they are not bundled in this repository
-- they are not installed by the public Dockerfile
-- they must be installed on the host for `--local` builds or added in a private derivative image for containerized live builds
+## ⏺️ Recording Your Own Data
 
-Recommended live SDK layout:
-- Atracsys SDK config under `/opt/atracsys-4.9.0/cmake/Atracsys` or pointed to with `Atracsys_DIR`
-- S3DK root under `/opt/s3dk` or pointed to with `S3DK_ROOT`
+If you have the physical hardware and wish to generate your own Replay GXF datasets, you can attach the built-in [VideoStreamRecorderOp](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_operators_extensions.html#videostreamrecorderop) to the `live_camera` mode!
+
+```yaml
+# Example YAML addition to record the Visible stream
+recorder_visible:
+  directory: "/tmp/my_recording"
+  basename: "visible_base"
+```
+In `atracsys_visualizer.cpp`, instantiate the recorder and connect it to the `AtracsysMasterSourceOp`'s `visible_base` port:
+```cpp
+auto recorder = make_operator<holoscan::ops::VideoStreamRecorderOp>("recorder", from_config("recorder_visible"));
+add_flow(camera_master, recorder, {{"visible_base", ""}});
+```
 
 ## Build and run
 
-Replay mode:
+Replay mode (Default):
 ```bash
 ./holohub run atracsys_visualizer replayer
 ```
 
 If you want to prebuild the application container and control the CUDA architecture used for the
-OpenCV build, pin the CUDA base explicitly. This matters on machines where HoloHub cannot detect
-the NVIDIA driver and falls back to CUDA 13 automatically.
+OpenCV build, you can explicitly map your GPU's Compute Capability. This is crucial if HoloHub cannot perfectly auto-detect your exact NVIDIA driver.
+
+Below is an example for Turing architecture (e.g., RTX 2080 uses `7.5`). You should pick the `CUDA_ARCH_BIN` that matches your local GPU:
+- **Turing:** `7.5`
+- **Ampere:** `8.6`
+- **Ada Lovelace:** `8.9`
+- **Jetson Orin:** `8.7`
+
 ```bash
 ./holohub build-container atracsys_visualizer \
   --cuda 12 \
   --build-args="--build-arg CUDA_ARCH_BIN=7.5"
 ```
 
-Live mode follows the usual HoloHub pattern: recurring container settings live in
-[metadata.json](/home/artrit/projects/holohub-fork/applications/atracsys_visualizer/metadata.json),
-while the public [Dockerfile](./Dockerfile) handles the CUDA-enabled OpenCV build.
-If the SDKs are installed at `/opt/atracsys-4.9.0` and `/opt/s3dk`, and the app container has
-already been built with the correct CUDA base, the day-to-day live commands stay short:
-
+Live mode (Requires Hardware & Proprietary SDKs):
 ```bash
 ./holohub build atracsys_visualizer live_camera
 ./holohub run atracsys_visualizer live_camera
@@ -75,21 +101,9 @@ If you prefer a local host/toolchain build instead of the container flow:
   --configure-args="-DS3DK_ROOT=/opt/s3dk"
 ```
 
-The long override-heavy CLI form is still useful for debugging, but it is not the intended steady-state
-workflow. In HoloHub, the normal practice is:
-- put public, reproducible dependencies in the project Dockerfile
-- put recurring mode-specific mounts and environment in `metadata.json`
-- use CLI overrides only for one-off troubleshooting
-
 ## Controls
 
-- `1`: visible mode
-- `2`: infrared mode
-- `3`: structured-light mode
-- `4`: tracking mode
-
-## Notes
-
-- The application includes a tiny replay-data generator for development and testing.
-- For the intended upstream PR, the replay sample should be replaced by a hosted public dataset reference.
-- Live mode requires Atracsys hardware, the Atracsys SDK, S3DK, CUDA-enabled OpenCV, and any required USB/container permissions.
+- `1`: Visible mode
+- `2`: Infrared mode
+- `3`: Structured-light mode
+- `4`: Tracking mode

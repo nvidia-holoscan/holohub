@@ -20,7 +20,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace atracsys::ops {
+namespace holoscan::ops {
 
 void launch_point_cloud_filter(const int16_t* d_disp,
                                int width,
@@ -34,4 +34,4 @@ void launch_point_cloud_filter(const int16_t* d_disp,
                                float* d_out_points,
                                void* stream);
 
-}  // namespace atracsys::ops
+}  // namespace holoscan::ops

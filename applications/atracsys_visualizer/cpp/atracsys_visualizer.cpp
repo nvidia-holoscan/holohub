@@ -88,10 +88,10 @@ bool parse_arguments(int argc, char** argv, CommandLineOptions& options) {
   return true;
 }
 
-std::shared_ptr<atracsys::ops::CameraCalibration> make_camera_calibration(
+std::shared_ptr<holoscan::ops::CameraCalibration> make_camera_calibration(
     const std::string& config_path) {
   YAML::Node config = YAML::LoadFile(config_path);
-  auto calibration = std::make_shared<atracsys::ops::CameraCalibration>();
+  auto calibration = std::make_shared<holoscan::ops::CameraCalibration>();
   calibration->fx = static_cast<float>(config["camera_calibration_fx"].as<double>());
   calibration->fy = static_cast<float>(config["camera_calibration_fy"].as<double>());
   calibration->cx = static_cast<float>(config["camera_calibration_cx"].as<double>());
@@ -159,7 +159,7 @@ class AtracsysVisualizerApp : public holoscan::Application {
                                             Arg("cuda_stream_pool") = cuda_stream_pool);
 
     HOLOSCAN_LOG_INFO("AtracsysVisualizerApp: creating mode switcher operator");
-    auto mode_switcher = make_operator<atracsys::ops::AtracsysModeSwitcherOp>(
+    auto mode_switcher = make_operator<holoscan::ops::AtracsysModeSwitcherOp>(
         "mode_switcher",
         from_config("mode_switcher"),
         Arg("display_allocator") = display_allocator,
@@ -170,7 +170,7 @@ class AtracsysVisualizerApp : public holoscan::Application {
 #ifdef ATRACSYS_HAVE_LIVE_CAMERA
       HOLOSCAN_LOG_INFO("AtracsysVisualizerApp: creating live camera operators");
       auto async_condition = make_condition<AsynchronousCondition>("real_camera_async");
-      auto camera_master = make_operator<atracsys::ops::AtracsysMasterSourceOp>(
+      auto camera_master = make_operator<holoscan::ops::AtracsysMasterSourceOp>(
           "atracsys_master",
           async_condition,
           from_config("real_camera"),
@@ -179,7 +179,7 @@ class AtracsysVisualizerApp : public holoscan::Application {
           Arg("structured_allocator") = structured_points_allocator,
           Arg("geometry_path") = geometry_path);
 
-      auto point_cloud_filter = make_operator<atracsys::ops::PointCloudFilterOp>(
+      auto point_cloud_filter = make_operator<holoscan::ops::PointCloudFilterOp>(
           "point_cloud_filter",
           Arg("structured_allocator") = structured_points_allocator,
           Arg("cuda_stream_pool") = cuda_stream_pool);
@@ -252,8 +252,7 @@ int main(int argc, char** argv) {
   }
 
   if (options.config_path.empty()) {
-    options.config_path = (options.source == "live_camera") ? "atracsys_visualizer_live.yaml"
-                                                            : "atracsys_visualizer_replayer.yaml";
+    options.config_path = "atracsys_visualizer.yaml";
   }
 
   if (options.data_path.empty()) {

@@ -27,7 +27,7 @@
 #include "holoscan/logger/logger.hpp"
 #include "point_cloud_filter.cuh"
 
-namespace atracsys::ops {
+namespace holoscan::ops {
 
 namespace {
 
@@ -169,4 +169,4 @@ void PointCloudFilterOp::compute(holoscan::InputContext& op_input,
       (structured_output_entity_index_ + 1) % structured_output_entities_.size();
 }
 
-}  // namespace atracsys::ops
+}  // namespace holoscan::ops

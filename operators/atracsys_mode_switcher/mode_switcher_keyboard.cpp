@@ -23,7 +23,7 @@
 
 #include "holoscan/logger/logger.hpp"
 
-namespace atracsys::ops {
+namespace holoscan::ops {
 
 void ModeSwitcherKeyboard::start(bool enabled) {
   stop();
@@ -105,4 +105,4 @@ std::optional<char> ModeSwitcherKeyboard::poll_key() {
   return static_cast<char>(last_char);
 }
 
-}  // namespace atracsys::ops
+}  // namespace holoscan::ops
