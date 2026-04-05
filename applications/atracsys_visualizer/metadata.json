@@ -64,7 +64,7 @@
           ]
         },
         "run": {
-          "command": "<holohub_app_bin>/cpp/atracsys_visualizer --source replayer --config <holohub_app_bin>/cpp/atracsys_visualizer_replayer.yaml --data <holohub_data_dir>/atracsys_visualizer",
+          "command": "<holohub_app_bin>/cpp/atracsys_visualizer --source replayer --config <holohub_app_bin>/cpp/atracsys_visualizer.yaml --data <holohub_data_dir>/atracsys_visualizer",
           "workdir": "holohub_bin"
         }
       },
@@ -89,7 +89,7 @@
           }
         },
         "run": {
-          "command": "<holohub_app_bin>/cpp/atracsys_visualizer --source live_camera --config <holohub_app_bin>/cpp/atracsys_visualizer_live.yaml",
+          "command": "<holohub_app_bin>/cpp/atracsys_visualizer --source live_camera --config <holohub_app_bin>/cpp/atracsys_visualizer.yaml",
           "workdir": "holohub_bin",
           "docker_run_args": [
             "--device=/dev/bus/usb",
