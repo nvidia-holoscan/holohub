@@ -1708,16 +1708,14 @@ void DpdkMgr::run() {
 ///  \brief
 ///
 ////////////////////////////////////////////////////////////////////////////////
-void DpdkMgr::flush_packets(int port) {
-  struct rte_mbuf* rx_mbuf;
-  HOLOSCAN_LOG_INFO("Flushing packet on port {}", port);
-  while (rte_eth_rx_burst(port, 0, &rx_mbuf, 1) != 0) { rte_pktmbuf_free(rx_mbuf); }
-}
-
-void DpdkMgr::flush_port_queue(int port, int queue) {
+void DpdkMgr::flush_port_queue_impl(int port, int queue) {
   struct rte_mbuf* rx_mbuf;
   HOLOSCAN_LOG_INFO("Flushing packets on port {} queue {}", port, queue);
   while (rte_eth_rx_burst(port, queue, &rx_mbuf, 1) != 0) { rte_pktmbuf_free(rx_mbuf); }
+}
+
+void DpdkMgr::flush_port_queue(int port, int queue) {
+  flush_port_queue_impl(port, queue);
 }
 
 /*
@@ -1768,6 +1766,10 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
   };
 
   update_cur_idx();
+
+  for (const auto& pq : tparams->q_params) {
+    flush_port_queue_impl(pq.port, pq.queue);
+  }
 
   //
   //  run loop
@@ -1945,7 +1947,7 @@ int DpdkMgr::rx_core_worker(void* arg) {
   uint64_t last_cycles = rte_get_tsc_cycles();
   uint64_t total_pkts = 0;
 
-  flush_packets(tparams->port);
+  flush_port_queue_impl(tparams->port, tparams->queue);
   struct rte_mbuf* mbuf_arr[DEFAULT_NUM_RX_BURST];
 
   HOLOSCAN_LOG_INFO("Starting RX Core {}, port {}, queue {}, socket {}",

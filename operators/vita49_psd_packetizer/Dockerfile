@@ -1,8 +1,9 @@
-# SPDX-FileCopyrightText: 2025 Valley Tech Systems, Inc.
+# SPDX-FileCopyrightText: 2025-2026 Voyager Technologies, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
-ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v2.9.0-${GPU_TYPE}
-
+ARG GPU_TYPE
+ARG BASE_SDK_VERSION
+ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v${BASE_SDK_VERSION}-${GPU_TYPE}
 FROM ${BASE_IMAGE} AS base
 
 RUN apt-get update && \

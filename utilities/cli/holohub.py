@@ -1153,13 +1153,23 @@ class HoloHubCLI:
         # Print sccache stats
         if enable_sccache:
             stats_file = build_dir / "sccache-stats.txt"
-            with open(stats_file, "w") as f:
+            with open(stats_file, "w", encoding="utf-8") as f:
                 holohub_cli_util.run_command(
                     ["sccache", "--show-stats"],
                     dry_run=dryrun,
                     env=build_env,
                     stdout=f if not dryrun else None,
                 )
+            try:
+                stats_file_rel = stats_file.relative_to(self.HOLOHUB_ROOT)
+            except ValueError:
+                stats_file_rel = stats_file
+            if dryrun:
+                holohub_cli_util.info(
+                    f"Sccache stats (dry-run) would be written to {stats_file_rel}"
+                )
+            else:
+                holohub_cli_util.info(f"Sccache stats written to {stats_file_rel}")
 
         # If this is a package, run cpack
         if project_type == "package":
