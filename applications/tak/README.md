@@ -64,7 +64,8 @@ The default OTS admin credentials are:
 - **Username:** `administrator`
 - **Password:** `password`
 
-> **Note:** OpenTAKServer is licensed under [GPL-3.0](https://github.com/brian7704/OpenTAKServer/blob/master/LICENSE). It is **not** included in the container image — it is downloaded directly from its upstream sources (PyPI and GitHub) at runtime. By launching this application, you are obtaining GPL-3.0-licensed software and agree to its license terms. When running outside of Docker, you must provide your own TAK server.
+> [!NOTE]
+> OpenTAKServer is licensed under [GPL-3.0](https://github.com/brian7704/OpenTAKServer/blob/master/LICENSE). It is **not** included in the container image — it is downloaded directly from its upstream sources (PyPI and GitHub) at runtime. By launching this application, you are obtaining GPL-3.0-licensed software and agree to its license terms. When running outside of Docker, you must provide your own TAK server.
 
 ### Configuration
 
@@ -95,30 +96,25 @@ This builds the Docker image and launches the application with a V4L2 camera (de
 To use the pre-recorded video replayer instead:
 
 ```bash
-./holohub run tak --run-args="--source replayer"
+./holohub run tak replayer
 ```
 
 ### Local (without Docker)
 
-Build the application and download data:
+Build the application and download data, then run with a V4L2 camera:
 
 ```bash
-./holohub build tak
+./holohub run tak --local
 ```
 
-Run with a V4L2 camera:
+To use the pre-recorded video replayer instead:
 
 ```bash
-python3 applications/tak/tak.py --source v4l2
+./holohub run tak replayer --local
 ```
 
-Run with the video replayer:
-
-```bash
-python3 applications/tak/tak.py --source replayer --data <path_to_data_dir>
-```
-
-> **Note:** When running locally, you must have a TAK server running separately and set `TAK_HOST` accordingly. OpenTAKServer is only started automatically inside the Docker container.
+> [!NOTE]
+> When running locally, you must have a TAK server running separately and set `TAK_HOST` accordingly. OpenTAKServer is only started automatically inside the Docker container.
 
 ### Custom Video
 
