@@ -57,7 +57,12 @@ When running via the provided Dockerfile, [OpenTAKServer](https://github.com/bri
 - **HTTP API** on port `18081`
 - **Web UI** on port `18080` (served by nginx)
 
-The first launch takes approximately 30 seconds longer while OTS is downloaded from PyPI and configured. Subsequent launches start immediately.
+The first launch takes 1-2 minutes longer while OTS is downloaded from PyPI and configured. Subsequent launches start immediately.
+
+The default OTS admin credentials are:
+
+- **Username:** `administrator`
+- **Password:** `password`
 
 > **Note:** OpenTAKServer is licensed under [GPL-3.0](https://github.com/brian7704/OpenTAKServer/blob/master/LICENSE). It is **not** included in the container image — it is downloaded directly from its upstream sources (PyPI and GitHub) at runtime. By launching this application, you are obtaining GPL-3.0-licensed software and agree to its license terms. When running outside of Docker, you must provide your own TAK server.
 
@@ -85,15 +90,9 @@ Build and run the application using the HoloHub CLI:
 ./holohub run tak
 ```
 
-This builds the Docker image and launches the application. On first run, OpenTAKServer is downloaded and configured automatically. The OTS Web UI is accessible at `http://localhost:18080` once the container is running.
+This builds the Docker image and launches the application with a V4L2 camera (default). On first run, OpenTAKServer is downloaded and configured automatically. The OTS Web UI is accessible at `http://localhost:18080` once the container is running.
 
-To use a V4L2 camera (default):
-
-```bash
-./holohub run tak
-```
-
-To use the pre-recorded video replayer:
+To use the pre-recorded video replayer instead:
 
 ```bash
 ./holohub run tak --run-args="--source replayer"

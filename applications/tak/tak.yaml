@@ -40,10 +40,6 @@ detector:
 tak_cot:
   tak_host: "localhost"
   tak_port: 18088
-  # Demo defaults for the local OpenTAKServer instance running in the container.
-  # Replace with your own credentials if connecting to an external TAK server.
-  tak_user: "administrator"
-  tak_pass: "password"
   base_lat: 28.54770
   base_lon: -81.37942
 

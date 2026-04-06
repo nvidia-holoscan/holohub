@@ -22,6 +22,7 @@ import random
 import socket
 import time
 import xml.etree.ElementTree as ET
+from collections import OrderedDict
 from typing import Optional
 
 import cupy as cp
@@ -40,8 +41,6 @@ class TakCotOp(Operator):
         *args,
         tak_host: str,
         tak_port: int = 18088,
-        tak_user: str = "",
-        tak_pass: str = "",
         base_lat: float = 28.53830862,
         base_lon: float = -81.37923400,
         marker_type: str = "a-h-A-M-A",
@@ -52,8 +51,6 @@ class TakCotOp(Operator):
     ):
         self.tak_host = tak_host
         self.tak_port = tak_port
-        self.tak_user = tak_user
-        self.tak_pass = tak_pass
 
         self.base_lat = base_lat
         self.base_lon = base_lon
@@ -67,7 +64,8 @@ class TakCotOp(Operator):
         self.detection_count = 0
         self.last_send_time = 0.0
         self._presence_sent = False
-        self._detection_offsets: dict[str, tuple[float, float]] = {}
+        self._detection_offsets: OrderedDict[str, tuple[float, float]] = OrderedDict()
+        self._max_offsets = 1000
 
         super().__init__(fragment, *args, **kwargs)
 
@@ -278,13 +276,17 @@ class TakCotOp(Operator):
                     )
 
                 # Cache offsets per detection_id so markers don't jump
-                if detection_id not in self._detection_offsets:
+                if detection_id in self._detection_offsets:
+                    self._detection_offsets.move_to_end(detection_id)
+                else:
                     # ~150 feet ≈ 46 meters ≈ 0.000405 degrees
                     # Place detections south-east (bottom-right) of the base
                     self._detection_offsets[detection_id] = (
                         random.uniform(-0.000405, 0),
                         random.uniform(0, 0.000405),
                     )
+                    if len(self._detection_offsets) > self._max_offsets:
+                        self._detection_offsets.popitem(last=False)
                 lat_offset, lon_offset = self._detection_offsets[detection_id]
 
                 lat = self.base_lat + lat_offset
