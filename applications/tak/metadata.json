@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "MOT Detection with TAK Integration",
+		"name": "Multi-Object Tracking and Detection with TAK Integration",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -57,9 +57,22 @@
 				}
 			]
 		},
-		"run": {
-			"command": "python3 <holohub_app_source>/tak.py",
-			"workdir": "holohub_bin"
+		"default_mode": "v4l2",
+		"modes": {
+			"v4l2": {
+				"description": "V4L2 camera input (default)",
+				"run": {
+					"command": "python3 <holohub_app_source>/tak.py --source v4l2",
+					"workdir": "holohub_bin"
+				}
+			},
+			"replayer": {
+				"description": "Pre-recorded video stream replayer",
+				"run": {
+					"command": "python3 <holohub_app_source>/tak.py --source replayer",
+					"workdir": "holohub_bin"
+				}
+			}
 		}
 	}
 }
