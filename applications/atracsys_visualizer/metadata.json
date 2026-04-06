@@ -49,7 +49,7 @@
         "description": "Required only for live_camera mode. The public Dockerfile provides CUDA-enabled OpenCV, but the proprietary Atracsys SDK and S3DK must still be installed locally or added in a private derivative image."
       }
     },
-    "default_mode": "replayer",
+    "default_mode": "live_camera",
     "modes": {
       "replayer": {
         "description": "Run the replay-first Atracsys visualizer mode",

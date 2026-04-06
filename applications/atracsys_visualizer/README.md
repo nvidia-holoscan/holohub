@@ -66,10 +66,18 @@ add_flow(camera_master, recorder, {{"visible_base", ""}});
 
 ## Build and run
 
-Replay mode (Default):
+> [!IMPORTANT]
+> On platforms defaulting to CUDA 13+, you **must** explicitly append `--cuda 12` to your `build` and `run` commands to avoid OpenCV compilation crashes. For devices natively running CUDA 12 or lower, the flag is entirely optional and can be omitted.
+
+Live mode (Default):
 ```bash
-# Important: On setups defaulting to CUDA 13+, you must explicitly specify --cuda 12 
-# to avoid OpenCV compilation errors.
+./holohub build atracsys_visualizer live_camera --cuda 12
+./holohub run atracsys_visualizer live_camera --cuda 12
+```
+
+Replay mode:
+```bash
+./holohub build atracsys_visualizer replayer --cuda 12
 ./holohub run atracsys_visualizer replayer --cuda 12
 ```
 
@@ -86,13 +94,6 @@ Below is an example for Turing architecture (e.g., RTX 2080 uses `7.5`). You sho
 ./holohub build-container atracsys_visualizer \
   --cuda 12 \
   --build-args="--build-arg CUDA_ARCH_BIN=8.7"
-```
-
-Live mode follows the usual HoloHub pattern. However, if you explicitly pre-built the container with custom `--cuda` and `--build-args` overrides as shown above, you must append `--no-docker-build` to your daily `build` and `run` commands so Docker doesn't try to blindly rebuild the container ignoring your custom architecture!
-
-```bash
-./holohub build atracsys_visualizer live_camera --no-docker-build
-./holohub run atracsys_visualizer live_camera --no-docker-build
 ```
 
 If you prefer a local host/toolchain build instead of the container flow:
