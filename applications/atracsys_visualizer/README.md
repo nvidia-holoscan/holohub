@@ -27,7 +27,7 @@ The application is split into:
 - an optional `atracsys_camera` operator package for live hardware input
 - a single C++ application entrypoint with configuration via `atracsys_visualizer.yaml`
 
-## 📸 Visual Showcase
+## Visual Showcase
 *(User Note: Insert your awesome GIFs/screenshots of the visualizer working here before merging the PR! To render properly, use `![Demo](link_to_gif)`)*
 
 ## SDK and Data Acquisition
@@ -48,7 +48,7 @@ GXF dataset can be requested:
 1. Contact [Company Name] at [Contact Email/Link] to request the dataset zip file.
 2. Extract the contents into `data/atracsys_visualizer/`.
 
-## ⏺️ Recording Your Own Data
+## Recording Your Own Data
 
 If you have the physical hardware and wish to generate your own Replay GXF datasets, you can attach the built-in [VideoStreamRecorderOp](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_operators_extensions.html#videostreamrecorderop) to the `live_camera` mode!
 
@@ -63,6 +63,17 @@ In `atracsys_visualizer.cpp`, instantiate the recorder and connect it to the `At
 auto recorder = make_operator<holoscan::ops::VideoStreamRecorderOp>("recorder", from_config("recorder_visible"));
 add_flow(camera_master, recorder, {{"visible_base", ""}});
 ```
+
+## Marker Registration and Calibration
+
+To track custom instruments with the spryTrack camera, you must first register their geometry. The application includes a sample geometry file `geometry10.ini` representing a custom marker made of 4 reflective fiducials.
+
+### Registration Procedure
+1. Use the **Atracsys spryTrack GUI** to identify the raw fiducials.
+2. Extract the fiducial coordinates and create a `.ini` file (see `geometry10.ini` for the format).
+3. Perform the **Marker Recalibration** procedure to refine the geometry and ensure stable tracking.
+
+For detailed instructions on registering new instruments and using the recalibration tool, please refer to the official **Atracsys SDK Documentation and Implementation Guide**.
 
 ## Build and run
 
