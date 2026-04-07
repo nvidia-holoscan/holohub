@@ -117,7 +117,9 @@ class PulseCompressionOp(Operator):
         waveform = op_input.receive("waveform")
 
         waveform_windowed = waveform * window
-        waveform_windowed_norm = (waveform_windowed / cp.linalg.norm(waveform_windowed)).astype(x.dtype)
+        waveform_windowed_norm = (waveform_windowed / cp.linalg.norm(waveform_windowed)).astype(
+            x.dtype
+        )
 
         if self._plan_1d is None:
             self._plan_1d = Plan1d(Nfft, _cufft_type(x.dtype), 1)
