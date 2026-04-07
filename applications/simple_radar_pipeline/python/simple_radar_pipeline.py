@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,6 @@ except ImportError:
 
 import cupyx.scipy.signal as cusignal
 from cupy.cuda.cufft import CUFFT_C2C, CUFFT_Z2Z, Plan1d
-
 from holoscan.conditions import CountCondition
 from holoscan.core import Application, Operator, OperatorSpec
 
@@ -47,7 +46,9 @@ window = cusignal.windows.hamming(waveform_length)
 # The -2 is a hack here to account for a 3 tap MTI filter
 range_doppler_window = cp.transpose(
     cp.repeat(
-        cp.expand_dims(cusignal.windows.hamming(num_pulses - 2), 0), num_compressed_range_bins, axis=0
+        cp.expand_dims(cusignal.windows.hamming(num_pulses - 2), 0),
+        num_compressed_range_bins,
+        axis=0,
     )
 )
 Nfft = 2 ** math.ceil(math.log2(np.max([num_uncompressed_range_bins, waveform_length])))
@@ -152,7 +153,9 @@ class MTIFilterOp(Operator):
     def compute(self, op_input, op_output, context):
         x = op_input.receive("x")
         for channel in range(num_channels):
-            x_conv2 = cusignal.convolve2d(x[channel, :, :], cp.array([[1], [-2], [-1]], dtype=cp.complex64), mode="valid")
+            x_conv2 = cusignal.convolve2d(
+                x[channel, :, :], cp.array([[1], [-2], [-1]], dtype=cp.complex64), mode="valid"
+            )
             x_conv2_stack = cp.stack([x_conv2] * num_channels)
 
         op_output.emit(x_conv2_stack, "X")
