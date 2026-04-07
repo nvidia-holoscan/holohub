@@ -71,7 +71,7 @@ if(BUILD_TESTING)
                "PYTHONPATH=${GXF_LIB_DIR}/../python/lib")
 
   set_tests_properties(tak_python_test
-                PROPERTIES PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit\\. Stop ticking\\."
+                PROPERTIES PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking."
                 FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
 
 endif()

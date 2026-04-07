@@ -289,23 +289,21 @@ def main():
         tak_logger.info("Waiting for OTS to be ready (TCP port %d)...", cot_port)
         start_wait = time.time()
         for attempt in range(60):
-            if ots_proc.poll() is not None:
-                tak_logger.error(
-                    "start_ots.sh exited with code %d before OTS became ready. "
-                    "Check /tmp/ots_start.log for details.",
-                    ots_proc.returncode,
-                )
-                break
             try:
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                s.settimeout(1.0)
-                s.connect(("localhost", cot_port))
-                s.close()
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.settimeout(1.0)
+                    s.connect(("localhost", cot_port))
                 elapsed = time.time() - start_wait
                 tak_logger.info("OTS is ready (took %.0fs)", elapsed)
                 break
             except OSError:
-                s.close()
+                if ots_proc.poll() is not None and ots_proc.returncode != 0:
+                    tak_logger.error(
+                        "start_ots.sh exited with code %d before OTS became ready. "
+                        "Check /tmp/ots_start.log for details.",
+                        ots_proc.returncode,
+                    )
+                    break
                 elapsed = time.time() - start_wait
                 if attempt > 0 and attempt % 5 == 0:
                     tak_logger.info("Still waiting for OTS... (%.0fs elapsed)", elapsed)
