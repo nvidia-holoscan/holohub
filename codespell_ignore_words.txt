@@ -14,6 +14,7 @@ hsi
 INFOR
 Infor
 infor
+MOT
 nd
 thirdparty
 unexpect
