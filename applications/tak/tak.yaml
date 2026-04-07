@@ -1,0 +1,46 @@
+%YAML 1.2
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+replayer:
+  basename: "traffic"
+  frame_rate: 0
+  repeat: true
+  realtime: true
+  count: 0
+
+v4l2_source:
+  device: "/dev/video0"
+  pixel_format: "YUYV"
+
+detection_preprocessor:
+  out_tensor_name: source_video
+  out_dtype: "uint8"
+  resize_width: 640
+  resize_height: 640
+
+detector:
+  confidence: 0.25
+  imgsz: 640
+  model_path: "yolov8s.pt"
+  bytetrack_path: "bytetrack.yaml"
+
+tak_cot:
+  tak_host: "localhost"
+  tak_port: 18088
+  base_lat: 28.54770
+  base_lon: -81.37942
+
+holoviz:

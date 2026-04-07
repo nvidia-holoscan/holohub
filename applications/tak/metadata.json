@@ -1,0 +1,78 @@
+{
+	"application": {
+		"name": "Multi-Object Tracking and Detection with TAK Integration",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.0.0",
+		"changelog": {
+			"1.0.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "3.5.0",
+			"tested_versions": [
+				"3.5.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": [
+			"Computer Vision and Perception",
+			"Object Detection",
+			"TAK",
+			"YOLOv8",
+			"Video",
+			"Visualization",
+			"Camera"
+		],
+		"ranking": 2,
+		"dependencies": {
+			"pip": [
+				"ultralytics",
+				"opencv-python-headless",
+				"pytak",
+				"aiohttp",
+				"cryptography",
+				"lap"
+			]
+		},
+		"requirements": {
+			"data": [
+				{
+					"model": "https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt",
+					"video": "https://www.pexels.com/download/video/19326803/?fps=29.97&h=720&w=1280"
+				}
+			],
+			"hardware": [
+				{
+					"name": "camera",
+					"description": "This application requires a Video4Linux (V4L2) compatible device as input.",
+					"required": false
+				}
+			]
+		},
+		"default_mode": "v4l2",
+		"modes": {
+			"v4l2": {
+				"description": "V4L2 camera input (default)",
+				"run": {
+					"command": "python3 <holohub_app_source>/tak.py --source v4l2",
+					"workdir": "holohub_bin"
+				}
+			},
+			"replayer": {
+				"description": "Pre-recorded video stream replayer",
+				"run": {
+					"command": "python3 <holohub_app_source>/tak.py --source replayer",
+					"workdir": "holohub_bin"
+				}
+			}
+		}
+	}
+}
