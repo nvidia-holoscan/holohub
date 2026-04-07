@@ -117,23 +117,19 @@ class PulseCompressionOp(Operator):
         waveform = op_input.receive("waveform")
 
         waveform_windowed = waveform * window
-        waveform_windowed_norm = waveform_windowed / cp.linalg.norm(waveform_windowed)
+        waveform_windowed_norm = (waveform_windowed / cp.linalg.norm(waveform_windowed)).astype(x.dtype)
 
         if self._plan_1d is None:
-            self._plan_1d = Plan1d(Nfft, _cufft_type(waveform_windowed_norm.dtype), 1)
+            self._plan_1d = Plan1d(Nfft, _cufft_type(x.dtype), 1)
             self._plan_batched = Plan1d(Nfft, _cufft_type(x.dtype), num_pulses)
 
         with self._plan_1d:
             W = cp.conj(cp.fft.fft(waveform_windowed_norm, Nfft))
         with self._plan_batched:
             X = cp.fft.fft(x, Nfft, 1)
+            Y = cp.fft.ifft(cp.multiply(X, W), Nfft, 1)
 
-        for pulse in range(num_pulses):
-            with self._plan_1d:
-                y = cp.fft.ifft(cp.multiply(X[pulse, :], W), Nfft, 0)
-            x[pulse, 0:num_compressed_range_bins] = y[0:num_compressed_range_bins]
-
-        x_compressed = x[:, 0:num_compressed_range_bins]
+        x_compressed = Y[:, 0:num_compressed_range_bins]
 
         x_compressed_stack = cp.stack([x_compressed] * num_channels)
 
