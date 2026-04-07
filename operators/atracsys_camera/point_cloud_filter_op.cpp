@@ -17,8 +17,6 @@
 
 #include "point_cloud_filter_op.hpp"
 
-#include <cuda_runtime_api.h>
-
 #include <stdexcept>
 #include <string>
 
@@ -32,12 +30,6 @@ namespace holoscan::ops {
 namespace {
 
 constexpr const char* kStructuredTensorName = "structured_points";
-
-inline void check_cuda(cudaError_t code, const char* message) {
-  if (code != cudaSuccess) {
-    throw std::runtime_error(std::string(message) + ": " + cudaGetErrorString(code));
-  }
-}
 
 }  // namespace
 
@@ -57,10 +49,6 @@ void PointCloudFilterOp::setup(holoscan::OperatorSpec& spec) {
 }
 
 void PointCloudFilterOp::start() {
-  size_t max_points = 1280 * 960;
-  check_cuda(cudaMalloc((void**)&device_points_buffer_, max_points * 3 * sizeof(float)),
-             "alloc device_points_buffer_");
-
   for (auto& entity : structured_output_entities_) { entity.reset(); }
   structured_output_entity_index_ = 0;
   structured_output_point_count_ = 0;
@@ -68,10 +56,6 @@ void PointCloudFilterOp::start() {
 }
 
 void PointCloudFilterOp::stop() {
-  if (device_points_buffer_)
-    cudaFree(device_points_buffer_);
-  device_points_buffer_ = nullptr;
-
   holoscan::Operator::stop();
 }
 
@@ -129,6 +113,14 @@ void PointCloudFilterOp::compute(holoscan::InputContext& op_input,
   else
     op_input.receive_cuda_stream("in_disparity", true, cuda_stream);
 
+  int total_points = width * height;
+
+  ensure_structured_output_entities(context, total_points);
+  auto& out_entity_opt = structured_output_entities_[structured_output_entity_index_].value();
+  auto out_gxf_entity = nvidia::gxf::Entity(out_entity_opt);
+  auto tensor = out_gxf_entity.get<nvidia::gxf::Tensor>(kStructuredTensorName);
+  float* d_out_points = reinterpret_cast<float*>(tensor.value()->pointer());
+
   launch_point_cloud_filter(d_disp_map,
                             width,
                             height,
@@ -138,28 +130,15 @@ void PointCloudFilterOp::compute(holoscan::InputContext& op_input,
                             5000.0f,
                             5000.0f,
                             5000.0f,
-                            device_points_buffer_,
+                            d_out_points,
                             cuda_stream);
 
-  int total_points = width * height;
   if (!first_cloud_logged_) {
     first_cloud_logged_ = true;
     HOLOSCAN_LOG_INFO(
         "PointCloudFilterOp: first structured cloud dispatched asynchronously with {} max points",
         total_points);
   }
-
-  ensure_structured_output_entities(context, total_points);
-  auto& out_entity_opt = structured_output_entities_[structured_output_entity_index_].value();
-  auto out_gxf_entity = nvidia::gxf::Entity(out_entity_opt);
-  auto tensor = out_gxf_entity.get<nvidia::gxf::Tensor>(kStructuredTensorName);
-
-  check_cuda(cudaMemcpyAsync(tensor.value()->pointer(),
-                             device_points_buffer_,
-                             total_points * 3 * sizeof(float),
-                             cudaMemcpyDeviceToDevice,
-                             cuda_stream),
-             "PointCloudFilterOp: failed to pack structured points tensor");
 
   op_output.set_cuda_stream(cuda_stream, "out_structured_points");
   holoscan::gxf::Entity out(out_entity_opt);

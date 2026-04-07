@@ -53,7 +53,6 @@ class PointCloudFilterOp : public holoscan::Operator {
   size_t structured_output_entity_index_{0};
   size_t structured_output_point_count_{0};
 
-  float* device_points_buffer_{nullptr};
   bool first_cloud_logged_{false};
 };
 
