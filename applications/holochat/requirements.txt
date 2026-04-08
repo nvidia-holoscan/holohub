@@ -22,5 +22,5 @@ sentence_transformers==5.2.*
 starlette==0.50.*
 tiktoken==0.12.*
 torch==2.9.*
-transformers==4.57.*
+transformers==5.5.*
 uvicorn==0.38.*
