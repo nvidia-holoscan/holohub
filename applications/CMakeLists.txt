@@ -65,6 +65,7 @@ add_holohub_application(endoscopy_tool_tracking DEPENDS
 
 add_subdirectory(gstreamer)
 
+
 add_subdirectory(h264)
 
 add_holohub_application(high_speed_endoscopy DEPENDS
@@ -133,6 +134,8 @@ add_holohub_application(stereo_vision)
 
 add_holohub_application(surgical_scene_recon)
 
+add_holohub_application(tak)
+
 add_holohub_application(tao_peoplenet)
 
 add_holohub_application(network_radar_pipeline DEPENDS
@@ -171,6 +174,7 @@ add_subdirectory(video_streaming)
 add_holohub_application(webrtc_video_server)
 
 add_holohub_application(yolo_model_deployment)
+
 add_holohub_application(vila_live)
 add_holohub_application(holochat)
 add_holohub_application(xr_holoviz DEPENDS OPERATORS xr)

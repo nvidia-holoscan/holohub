@@ -1,0 +1,43 @@
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# ByteTrack multi-object tracker configuration
+# https://github.com/ifzhang/ByteTrack
+#
+# Tuned for real-time object detection on streaming video.
+
+tracker_type: bytetrack
+
+# High-confidence detection threshold for primary track association.
+track_high_thresh: 0.75
+
+# Low-confidence detection threshold for secondary (byte) association pass.
+# Detections between low and high thresholds get a second chance to match
+# existing tracks, which helps maintain continuity during partial occlusions.
+track_low_thresh: 0.1
+
+# Minimum confidence required to initialize a brand-new track.
+new_track_thresh: 0.75
+
+# Number of frames to keep a lost track alive before deletion.
+# At 30 fps this gives ~3 seconds of occlusion tolerance.
+track_buffer: 90
+
+# IoU threshold for matching detections to existing tracks.
+match_thresh: 0.75
+
+# Fuse detection confidence into the matching cost matrix.
+# Helps prefer higher-confidence detections when IoU scores are similar.
+fuse_score: true
