@@ -1755,6 +1755,7 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
   uint16_t cur_segs;
   uint32_t cur_batch_size;
   uint64_t cur_timeout_cycles;
+  uint64_t last_meta_buf_exhausted_log_cycles = 0;
 
   auto update_cur_idx = [&]() {
     cur_idx            = (cur_idx + 1) % num_queues;
@@ -1815,11 +1816,17 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
 
     if (bursts[cur_idx] == nullptr) {  // Allocate a new burst
       if (rte_mempool_get(tparams->rx_meta_pool, reinterpret_cast<void**>(&bursts[cur_idx])) < 0) {
-        HOLOSCAN_LOG_CRITICAL("Running out of RX meta buffers due to high rates. Either increase "\
-          "your number of metadata buffers (current: {}) with `rx_meta_buffers` (will "\
-          "increase memory usage) or increase your `batch_size` for port {} queue {} (will "\
-          "increase latency)", tparams->rx_meta_pool_size, cur_port, cur_q);
-        exit(1);
+        const uint64_t now_cycles = rte_get_tsc_cycles();
+        if ((last_meta_buf_exhausted_log_cycles == 0) ||
+            (now_cycles - last_meta_buf_exhausted_log_cycles) >= freq) {
+          HOLOSCAN_LOG_WARN("RX metadata pool exhausted or processing is falling behind. Either "
+            "increase your number of metadata buffers (current: {}) with `rx_meta_buffers` "
+            "(will increase memory usage) or increase your `batch_size` for port {} queue {} "
+            "(will increase latency)", tparams->rx_meta_pool_size, cur_port, cur_q);
+          last_meta_buf_exhausted_log_cycles = now_cycles;
+        }
+        update_cur_idx();
+        continue;
       }
 
       //  Queue ID for receiver to differentiate
@@ -1959,6 +1966,7 @@ int DpdkMgr::rx_core_worker(void* arg) {
   int cur_pkt_in_batch = 0;
   BurstParams* burst = nullptr;
   ExtraRxPacketInfo *pkt_info;
+  uint64_t last_meta_buf_exhausted_log_cycles = 0;
   //
   //  run loop
   //
@@ -2001,11 +2009,17 @@ int DpdkMgr::rx_core_worker(void* arg) {
 
     if (burst == nullptr) {  // Allocate a new burst
       if (rte_mempool_get(tparams->rx_meta_pool, reinterpret_cast<void**>(&burst)) < 0) {
-        HOLOSCAN_LOG_CRITICAL("Running out of RX meta buffers due to high rates. Either increase "\
-          "your number of metadata buffers (current: {}) with `rx_meta_buffers` (will "\
-          "increase memory usage) or increase your `batch_size` for port {} queue {} (will "\
-          "increase latency)", tparams->rx_meta_pool_size, tparams->port, tparams->queue);
-        exit(1);
+        const uint64_t now_cycles = rte_get_tsc_cycles();
+        if ((last_meta_buf_exhausted_log_cycles == 0) ||
+            (now_cycles - last_meta_buf_exhausted_log_cycles) >= freq) {
+          HOLOSCAN_LOG_WARN("RX metadata pool exhausted; processing may be behind or "
+            "backpressured. Either increase your number of metadata buffers (current: {}) "
+            "with `rx_meta_buffers` (will increase memory usage) or increase your "
+            "`batch_size` for port {} queue {} (will increase latency)",
+            tparams->rx_meta_pool_size, tparams->port, tparams->queue);
+          last_meta_buf_exhausted_log_cycles = now_cycles;
+        }
+        continue;
       }
 
       //  Queue ID for receiver to differentiate
