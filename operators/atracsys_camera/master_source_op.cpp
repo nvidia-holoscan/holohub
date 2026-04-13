@@ -259,7 +259,7 @@ void AtracsysMasterSourceOp::stop() {
 }
 
 void AtracsysMasterSourceOp::capture_loop() {
-  auto& dev = AtracsysDevice::instance();
+  const auto& dev = AtracsysDevice::instance();
 
   while (is_running_) {
     if (async_cond_->event_state() == holoscan::AsynchronousEventState::EVENT_DONE) {
@@ -347,7 +347,7 @@ void AtracsysMasterSourceOp::reset_state() {
 }
 
 void AtracsysMasterSourceOp::load_geometries() {
-  auto& dev = AtracsysDevice::instance();
+  const auto& dev = AtracsysDevice::instance();
   const int ref_status = sdk_.loadBody(dev.lib(), geometry_path_.get(), geometry_);
   if (ref_status == 0 || ref_status == 1) {
     sdk_.setRigidBody(dev.lib(), dev.serial(), &geometry_);
@@ -358,7 +358,7 @@ void AtracsysMasterSourceOp::load_geometries() {
 }
 
 void AtracsysMasterSourceOp::configure_camera() {
-  auto& dev = AtracsysDevice::instance();
+  const auto& dev = AtracsysDevice::instance();
   const auto& opts = dev.options();
 
   if (sdk_.setInt32(dev.lib(), dev.serial(), opts.at("Enable embedded processing"), 1) !=

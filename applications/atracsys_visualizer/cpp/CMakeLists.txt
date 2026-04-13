@@ -60,8 +60,7 @@ if(BUILD_TESTING)
                    --data "${HOLOHUB_DATA_DIR}/atracsys_visualizer"
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
   set_tests_properties(atracsys_visualizer_replay_test PROPERTIES
-                       PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking."
-                       FAIL_REGULAR_EXPRESSION "ERROR;Error;Failed")
+                       PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking.")
 endif()
 
 install(

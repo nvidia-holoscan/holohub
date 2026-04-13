@@ -680,9 +680,7 @@ void AtracsysModeSwitcherOp::handle_keyboard_request() {
 
   if (next != mode_) {
     if (next == ReplayMode::kTracking) {
-      if (mode_ != ReplayMode::kTracking) {
-        last_base_mode_ = mode_;
-      }
+      last_base_mode_ = mode_;
     } else {
       last_base_mode_ = next;
     }
@@ -944,7 +942,7 @@ void AtracsysModeSwitcherOp::compute(holoscan::InputContext& op_input,
     }
   }
 
-  auto& fiducial_entity = fiducial_text_coord_entities_[fiducial_text_coords_entity_index_].value();
+  const auto& fiducial_entity = fiducial_text_coord_entities_[fiducial_text_coords_entity_index_].value();
   upload_to_tensor(fiducial_entity,
                    kFiducialTextCoordsName,
                    reinterpret_cast<const float*>(fiducial_text_coords_.data()),

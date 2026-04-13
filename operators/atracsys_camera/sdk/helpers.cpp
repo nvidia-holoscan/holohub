@@ -49,7 +49,7 @@ DeviceData retrieveLastDevice(ftkLibrary lib, bool allowSimulator, bool quiet,
   DeviceData device;
   device.SerialNumber = 0uLL;
 
-  ftkError err = ftkError::FTK_OK;
+  ftkError err;
   if (allowSimulator) {
     err = ftkEnumerateDevices(lib, deviceEnumerator, &device);
   } else {
@@ -96,9 +96,7 @@ DeviceData retrieveLastDevice(ftkLibrary lib, bool allowSimulator, bool quiet,
 void optionEnumerator(uint64_t /*sn*/, void* user, ftkOptionsInfo* oi) {
   if (user == nullptr || oi == nullptr) return;
   auto* mapping = static_cast<map<string, uint32_t>*>(user);
-  if (mapping != nullptr) {
-    mapping->emplace(oi->name, oi->id);
-  }
+  mapping->emplace(oi->name, oi->id);
 }
 
 void error(const char* message, bool /*dontWaitForKeyboard*/) {

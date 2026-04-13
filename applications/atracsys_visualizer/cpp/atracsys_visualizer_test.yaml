@@ -1,4 +1,4 @@
-geometry_path: geometry10.ini
+geometry_path: applications/atracsys_visualizer/cpp/geometry10.ini
 
 camera_calibration_fx: 1747.79
 camera_calibration_fy: 1748.05
