@@ -1819,10 +1819,10 @@ int DpdkMgr::rx_core_multi_q_worker(void* arg) {
         const uint64_t now_cycles = rte_get_tsc_cycles();
         if ((last_meta_buf_exhausted_log_cycles == 0) ||
             (now_cycles - last_meta_buf_exhausted_log_cycles) >= freq) {
-          HOLOSCAN_LOG_WARN("Running out of RX meta buffers due to high rates. Either increase "
-            "your number of metadata buffers (current: {}) with `rx_meta_buffers` (will "
-            "increase memory usage) or increase your `batch_size` for port {} queue {} (will "
-            "increase latency)", tparams->rx_meta_pool_size, cur_port, cur_q);
+          HOLOSCAN_LOG_WARN("RX metadata pool exhausted or processing is falling behind. Either "
+            "increase your number of metadata buffers (current: {}) with `rx_meta_buffers` "
+            "(will increase memory usage) or increase your `batch_size` for port {} queue {} "
+            "(will increase latency)", tparams->rx_meta_pool_size, cur_port, cur_q);
           last_meta_buf_exhausted_log_cycles = now_cycles;
         }
         update_cur_idx();
@@ -2012,10 +2012,11 @@ int DpdkMgr::rx_core_worker(void* arg) {
         const uint64_t now_cycles = rte_get_tsc_cycles();
         if ((last_meta_buf_exhausted_log_cycles == 0) ||
             (now_cycles - last_meta_buf_exhausted_log_cycles) >= freq) {
-          HOLOSCAN_LOG_WARN("Running out of RX meta buffers due to high rates. Either increase "
-            "your number of metadata buffers (current: {}) with `rx_meta_buffers` (will "
-            "increase memory usage) or increase your `batch_size` for port {} queue {} (will "
-            "increase latency)", tparams->rx_meta_pool_size, tparams->port, tparams->queue);
+          HOLOSCAN_LOG_WARN("RX metadata pool exhausted; processing may be behind or "
+            "backpressured. Either increase your number of metadata buffers (current: {}) "
+            "with `rx_meta_buffers` (will increase memory usage) or increase your "
+            "`batch_size` for port {} queue {} (will increase latency)",
+            tparams->rx_meta_pool_size, tparams->port, tparams->queue);
           last_meta_buf_exhausted_log_cycles = now_cycles;
         }
         continue;
