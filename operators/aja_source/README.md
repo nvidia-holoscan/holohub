@@ -43,3 +43,24 @@ The operator supports various video formats based on resolution, frame rate, and
 
 - **video_buffer_output**: Video buffer containing the captured frame
 - **overlay_buffer_output** (optional): Empty video buffer for overlay when `enable_overlay` is true
+
+## Enabling overlay
+
+A typical overlay workflow uses the `aja_source` operator together with the `Holoviz` operator. `Holoviz` can capture and apply overlay information using a zero-copy path.
+
+Required configuration:
+
+**aja_source**:
+
+- `enable_overlay: true`
+
+**holoviz**:
+
+- `enable_render_buffer_input: true`
+- `enable_render_buffer_output: true`
+
+Required port connections:
+
+- `aja_source.video_buffer_output` → `holoviz.receivers`
+- `aja_source.overlay_buffer_output` → `holoviz.render_buffer_input`
+- `holoviz.render_buffer_output` → `aja_source.overlay_buffer_input`
