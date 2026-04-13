@@ -11,7 +11,7 @@ While this example generates 'offline' complex-valued data, it could be extended
 
 The output of this demonstration is a measure of the number of pulses per second processed on GPU.
 
- The main objectives of this demonstration are to:
+The main objectives of this demonstration are to:
 
 - Highlight developer productivity in building an end-to-end streaming application with Holoscan and existing GPU-Accelerated Python libraries
 - Demonstrate how to construct and connect isolated units of work via Holoscan operators, particularly with handling multiple inputs and outputs into an Operator
@@ -19,17 +19,12 @@ The output of this demonstration is a measure of the number of pulses per second
 
 ## Running the Application
 
-Prior to running the application, the user needs to install the necessary dependencies. This is most easily done in an Anaconda environment.
-
 ```bash
-conda create --name holoscan-sdr-demo python=3.8
-conda activate holoscan-sdr-demo
-conda install -c conda-forge -c rapidsai -c nvidia cusignal
-pip install holoscan
+./holohub run simple_radar_pipeline
 ```
 
-The simple radar signal processing pipeline example can then be run via
+## Performance: Explicit cuFFT Plan Caching
 
-```bash
-python applications/simple_radar_pipeline/simple_radar_pipeline.py
-```
+When profiling with NVIDIA Nsight Systems, a large `cuModuleLoadData` call was observed at the start of every pipeline iteration. This indicated that cuFFT plans were being evicted from CuPy's internal LRU plan cache between ticks of `compute()`, causing the GPU driver to reload and recompile CUDA modules on each call.
+
+The fix is to explicitly create and hold `cupy.cuda.cufft.Plan1d` objects as instance attributes on the operators that perform FFTs (`PulseCompressionOp` and `RangeDopplerOp`). Plans are created once on the first `compute()` call and reused on every subsequent tick via CuPy's `with plan:` context manager, which bypasses the LRU cache lookup entirely.
