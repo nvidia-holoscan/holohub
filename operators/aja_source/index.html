@@ -19034,6 +19034,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#enabling-overlay" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enabling overlay
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#api-reference" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -19290,6 +19301,24 @@
 <ul>
 <li><strong>video_buffer_output</strong>: Video buffer containing the captured frame</li>
 <li><strong>overlay_buffer_output</strong> (optional): Empty video buffer for overlay when <code>enable_overlay</code> is true</li>
+</ul>
+<h2 id="enabling-overlay">Enabling overlay<a class="headerlink" href="#enabling-overlay" title="Permanent link">#</a></h2>
+<p>A typical overlay workflow uses the <code>aja_source</code> operator together with the <code>Holoviz</code> operator. <code>Holoviz</code> can capture and apply overlay information using a zero-copy path.</p>
+<p>Required configuration:</p>
+<p><strong>aja_source</strong>:</p>
+<ul>
+<li><code>enable_overlay: true</code></li>
+</ul>
+<p><strong>holoviz</strong>:</p>
+<ul>
+<li><code>enable_render_buffer_input: true</code></li>
+<li><code>enable_render_buffer_output: true</code></li>
+</ul>
+<p>Required port connections:</p>
+<ul>
+<li><code>aja_source.video_buffer_output</code> → <code>holoviz.receivers</code></li>
+<li><code>aja_source.overlay_buffer_output</code> → <code>holoviz.render_buffer_input</code></li>
+<li><code>holoviz.render_buffer_output</code> → <code>aja_source.overlay_buffer_input</code></li>
 </ul>
 <h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
 <h3 id="python">Python<a class="headerlink" href="#python" title="Permanent link">#</a></h3>
