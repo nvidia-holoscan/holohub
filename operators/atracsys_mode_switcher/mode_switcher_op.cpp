@@ -942,7 +942,8 @@ void AtracsysModeSwitcherOp::compute(holoscan::InputContext& op_input,
     }
   }
 
-  const auto& fiducial_entity = fiducial_text_coord_entities_[fiducial_text_coords_entity_index_].value();
+  const auto& fiducial_entity =
+      fiducial_text_coord_entities_[fiducial_text_coords_entity_index_].value();
   upload_to_tensor(fiducial_entity,
                    kFiducialTextCoordsName,
                    reinterpret_cast<const float*>(fiducial_text_coords_.data()),
