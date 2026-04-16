@@ -36,7 +36,8 @@
       "replay_sample": {
         "type": "data",
         "name": "Atracsys replay sample",
-        "description": "Tiny replay dataset used for the replay mode. This implementation can trim a local recording set for development and is intended to reference a hosted sample for the upstream PR."
+        "description": "Tiny replay dataset used for the replay mode. This implementation can trim a local recording set for development and is intended to reference a hosted sample for the upstream PR.",
+        "url": "https://github.com/artrittelaku-wayland/holohub/releases/download/dataset-v1.0/atracsys_visualizer.zip"
       },
       "atracsys_hardware": {
         "type": "hardware",
@@ -49,7 +50,7 @@
         "description": "Required only for live_camera mode. The public Dockerfile provides CUDA-enabled OpenCV, but the proprietary Atracsys SDK and S3DK must still be installed locally or added in a private derivative image."
       }
     },
-    "default_mode": "live_camera",
+    "default_mode": "replayer",
     "modes": {
       "replayer": {
         "description": "Run the replay-first Atracsys visualizer mode",

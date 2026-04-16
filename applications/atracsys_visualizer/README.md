@@ -28,45 +28,43 @@ The application is split into:
 - a single C++ application entrypoint with configuration via `atracsys_visualizer.yaml`
 
 ## Visual Showcase
-*(User Note: Insert your awesome GIFs/screenshots of the visualizer working here before merging the PR! To render properly, use `![Demo](link_to_gif)`)*
+![Atracsys Visualizer Demo](demo.gif)
+
+The animation above demonstrates the core imaging capabilities of the Atracsys spryTrack 300 camera: **Visible Mode**, **Infrared Mode**, and **Structured-Light Mode**, alongside its high-accuracy marker tracking.
+
+When observing the different streams and enabling tracking (by pressing `4`), the visualizer behaves according to the camera's hardware constraints:
+- **Infrared Mode + Tracking**: Since marker tracking natively utilizes the infrared sensors, both the IR video stream and the 3D marker overlay update simultaneously in real-time.
+- **Visible & Structured-Light Modes + Tracking**: When tracking is activated during these modes, the last captured camera frame is frozen as a static background, while the real-time tracking of the registered marker is continuously rendered on top of it.
 
 ## SDK and Data Acquisition
 
 ### Getting the Atracsys SDKs
 The Atracsys SDK and S3DK are proprietary hardware drivers and are **not** bundled in this repository. 
-To run the `live_camera` mode, you must first obtain the SDKs directly from the vendor:
-1. Contact Atracsys support for licensing and downloading the `atracsys-4.9.0` and `s3dk` toolchains.
-2. Install them on your local machine.
+To run the `live_camera` mode with your Atracsys spryTrack 300 camera, you must first obtain the SDKs directly from the vendor. 
+
+Please contact **support@atracsys.com** to request the following packages based on your architecture:
+- spryTrack SDK v4.9.0 (for x86_64)
+- spryTrack SDK v4.9.0 (for aarch64)
+- S3DK Structured Light SDK (for x86_64)
+- S3DK Structured Light SDK (for aarch64)
+
+Once provided:
+1. Install them on your local machine.
 
 Recommended live SDK layout for HoloHub:
 - Atracsys SDK config under `/opt/atracsys-4.9.0/cmake/Atracsys`
 - S3DK root under `/opt/s3dk`
 
-### Getting the Replay Dataset (1GB High-Fidelity)
-If you wish to test `replayer` mode using real hardware recordings instead of mocked test data, the complete 1GB 
-GXF dataset can be requested:
-1. Contact [Company Name] at [Contact Email/Link] to request the dataset zip file.
-2. Extract the contents into `data/atracsys_visualizer/`.
+### Getting the Replay Dataset (High-Fidelity)
+The application includes a CMake integration to fetch the required GXF datasets automatically. When you build or run the `replayer` mode, the dataset is automatically downloaded and extracted to `data/atracsys_visualizer` from the application's GitHub Release tag. No manual intervention is needed.
 
 ## Recording Your Own Data
 
-If you have the physical hardware and wish to generate your own Replay GXF datasets, you can attach the built-in [VideoStreamRecorderOp](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_operators_extensions.html#videostreamrecorderop) to the `live_camera` mode!
-
-```yaml
-# Example YAML addition to record the Visible stream
-recorder_visible:
-  directory: "/tmp/my_recording"
-  basename: "visible_base"
-```
-In `atracsys_visualizer.cpp`, instantiate the recorder and connect it to the `AtracsysMasterSourceOp`'s `visible_base` port:
-```cpp
-auto recorder = make_operator<holoscan::ops::VideoStreamRecorderOp>("recorder", from_config("recorder_visible"));
-add_flow(camera_master, recorder, {{"visible_base", ""}});
-```
+If you have the physical hardware and wish to generate your own Replay GXF datasets, you can use the built-in [VideoStreamRecorderOp](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_operators_extensions.html#videostreamrecorderop) and connect it to any of the camera ports in the `live_camera` mode.
 
 ## Marker Registration and Calibration
 
-To track custom instruments with the spryTrack camera, you must first register their geometry. The application includes a sample geometry file `geometry10.ini` representing a custom marker made of 4 reflective fiducials.
+To track custom instruments with the spryTrack 300 camera, you must first register their geometry. The application includes a sample geometry file `geometry10.ini` representing a custom marker made of 4 reflective fiducials.
 
 ### Registration Procedure
 1. Use the **Atracsys spryTrack GUI** to identify the raw fiducials.
@@ -77,43 +75,21 @@ For detailed instructions on registering new instruments and using the recalibra
 
 ## Build and run
 
-> [!IMPORTANT]
-> On platforms defaulting to CUDA 13+, you **must** explicitly append `--cuda 12` to your `build` and `run` commands to avoid OpenCV compilation crashes. For devices natively running CUDA 12 or lower, the flag is entirely optional and can be omitted.
-
-Live mode (Default):
+Replay mode (Default):
 ```bash
-./holohub build atracsys_visualizer live_camera --cuda 12
-./holohub run atracsys_visualizer live_camera --cuda 12
+./holohub build atracsys_visualizer
+./holohub run atracsys_visualizer
+```
+Or, you can explicitly specify the mode:
+```bash
+./holohub build atracsys_visualizer replayer
+./holohub run atracsys_visualizer replayer
 ```
 
-Replay mode:
+Live mode:
 ```bash
-./holohub build atracsys_visualizer replayer --cuda 12
-./holohub run atracsys_visualizer replayer --cuda 12
-```
-
-If you want to prebuild the application container and control the CUDA architecture used for the
-OpenCV build, you can explicitly map your GPU's Compute Capability. This is crucial if HoloHub cannot perfectly auto-detect your exact NVIDIA driver.
-
-Below is an example for Turing architecture (e.g., RTX 2080 uses `7.5`). You should pick the `CUDA_ARCH_BIN` that matches your local GPU:
-- **Turing:** `7.5`
-- **Ampere:** `8.6`
-- **Ada Lovelace:** `8.9`
-- **Jetson Orin:** `8.7`
-
-```bash
-./holohub build-container atracsys_visualizer \
-  --cuda 12 \
-  --build-args="--build-arg CUDA_ARCH_BIN=8.7"
-```
-
-If you prefer a local host/toolchain build instead of the container flow:
-```bash
-./holohub build atracsys_visualizer live_camera \
-  --local \
-  --build-with atracsys_camera \
-  --configure-args="-DAtracsys_DIR=/opt/atracsys-4.9.0/cmake/Atracsys" \
-  --configure-args="-DS3DK_ROOT=/opt/s3dk"
+./holohub build atracsys_visualizer live_camera
+./holohub run atracsys_visualizer live_camera
 ```
 
 ## Controls

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2026 Wayland Technologies. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,30 @@ else()
       "Optional operators requested for the active HoloHub app build" FORCE)
 endif()
 
+if(HOLOHUB_DOWNLOAD_DATASETS AND NOT EXISTS "${HOLOHUB_DATA_DIR}/atracsys_visualizer/ir_base.gxf_entities")
+  message(STATUS "Downloading Atracsys Visualizer demo dataset...")
+  file(DOWNLOAD "https://github.com/artrittelaku-wayland/holohub/releases/download/dataset-v1.0/atracsys_visualizer.zip"
+       "${CMAKE_CURRENT_BINARY_DIR}/atracsys_visualizer.zip"
+       SHOW_PROGRESS
+       STATUS DOWNLOAD_STATUS)
+  
+  list(GET DOWNLOAD_STATUS 0 STATUS_CODE)
+  if(NOT STATUS_CODE EQUAL 0)
+    message(FATAL_ERROR "Failed to download dataset. Status: ${DOWNLOAD_STATUS}")
+  endif()
 
+  message(STATUS "Extracting Atracsys Visualizer demo dataset...")
+  file(MAKE_DIRECTORY "${HOLOHUB_DATA_DIR}")
+  execute_process(
+    COMMAND ${CMAKE_COMMAND} -E tar xf "${CMAKE_CURRENT_BINARY_DIR}/atracsys_visualizer.zip"
+    WORKING_DIRECTORY "${HOLOHUB_DATA_DIR}"
+    RESULT_VARIABLE EXTRACT_STATUS
+  )
+  if(NOT EXTRACT_STATUS EQUAL 0)
+    message(FATAL_ERROR "Failed to extract dataset.")
+  endif()
+  file(REMOVE "${CMAKE_CURRENT_BINARY_DIR}/atracsys_visualizer.zip")
+endif()
 
 if(HOLOHUB_BUILD_CPP)
   add_subdirectory(cpp)
