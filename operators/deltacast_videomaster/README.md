@@ -1,5 +1,11 @@
 # DELTACAST VideoMaster Operators
 
+> **Deprecation Notice:** These operators are deprecated and will be replaced by SDK-native
+> `VideoAcquisitionOperator` and `VideoTransmissionOperator` subclasses built on the `video_io`
+> base library introduced in Holoscan SDK. The `video_io` base provides a vendor-agnostic
+> contract with standardized multi-stream port allocation, capability reporting, and telemetry.
+> New applications should plan to migrate to the SDK-native Deltacast operators once available.
+
 The DELTACAST VideoMaster operator provides functionality to capture and stream high-quality video streams from DELTACAST cards. It supports both SDI and HDMI input and output sources, enabling professional video capture in various formats and resolutions. DELTACAST VideoMaster operators are designed to work seamlessly with DELTACAST's hardware capabilities.
 
 This library contains two operators:

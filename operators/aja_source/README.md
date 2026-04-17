@@ -1,5 +1,11 @@
 # AJA Source Operator
 
+> **Deprecation Notice:** This operator is deprecated and will be replaced by an SDK-native
+> `VideoAcquisitionOperator` subclass built on the `video_io` base library introduced in
+> Holoscan SDK. The `video_io` base provides a vendor-agnostic contract with standardized
+> multi-stream port allocation, capability reporting, and telemetry. New applications should
+> plan to migrate to the SDK-native AJA operator once available.
+
 The AJA Source operator provides functionality to capture high-quality video streams from AJA capture cards and devices. It offers comprehensive support for both SDI (Serial Digital Interface) and HDMI (High-Definition Multimedia Interface) input sources, allowing for professional video capture in various formats and resolutions. The operator is designed to work seamlessly with AJA's hardware capabilities, including features like frame synchronization and format detection. Additionally, it provides an optional overlay channel capability that enables real-time mixing and compositing of multiple video streams, making it suitable for applications requiring picture-in-picture, graphics overlay, or other video mixing scenarios.
 
 ## Requirements
