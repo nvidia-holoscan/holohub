@@ -8,7 +8,7 @@ langchain==1.2.*
 langchain-community==0.3.*
 langchain-huggingface==1.2.*
 langchain-chroma==1.1.*
-langchain-text-splitters==0.3.*
+langchain-text-splitters==1.1.*
 mcp==1.24.*
 numpy==2.3.*
 openai==2.13.*
