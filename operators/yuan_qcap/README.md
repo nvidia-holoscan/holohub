@@ -1,10 +1,12 @@
 # YUAN QCAP Source Operator
 
-> **Deprecation Notice:** This operator is deprecated and will be replaced by an SDK-native
-> `VideoAcquisitionOperator` subclass built on the `video_io` base library introduced in
-> Holoscan SDK. The `video_io` base provides a vendor-agnostic contract with standardized
-> multi-stream port allocation, capability reporting, and telemetry. New applications should
-> plan to migrate to the SDK-native Yuan operator once available.
+> **Deprecation Notice (since Holoscan SDK v4.2.0):** This operator is deprecated and will
+> be replaced by an SDK-native `VideoAcquisitionOperator` subclass built on the `video_io`
+> base library introduced in Holoscan SDK. The `video_io` base provides a vendor-agnostic
+> contract with standardized multi-stream port allocation, capability reporting, and
+> telemetry. New applications should plan to migrate to the SDK-native Yuan operator once
+> available. See the [Holoscan SDK v4.2.0 release notes](https://github.com/nvidia-holoscan/holoscan-sdk/releases/tag/v4.2.0)
+> for details on `VideoAcquisitionOperator` and `VideoTransmissionOperator`.
 
 The `QCAPSourceOp` operator provides video stream capture from YUAN High-Tech capture cards, supporting various video formats and configurations for professional video acquisition.
 
