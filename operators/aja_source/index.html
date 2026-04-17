@@ -19303,23 +19303,40 @@
 <li><strong>overlay_buffer_output</strong> (optional): Empty video buffer for overlay when <code>enable_overlay</code> is true</li>
 </ul>
 <h2 id="enabling-overlay">Enabling overlay<a class="headerlink" href="#enabling-overlay" title="Permanent link">#</a></h2>
-<p>A typical overlay workflow uses the <code>aja_source</code> operator together with the <code>Holoviz</code> operator. <code>Holoviz</code> can capture and apply overlay information using a zero-copy path.</p>
-<p>Required configuration:</p>
-<p><strong>aja_source</strong>:</p>
+<p>AJA source operator supports overlay workflows through its overlay input/output buffers.
+Holoviz is a good candidate for this workflow because it can consume and return the render buffer directly.
+In particular, it can render into an existing RGBA render buffer provided at <code>render_buffer_input</code> and, when <code>render_buffer_output</code> is enabled, return the filled render buffer while reusing the same input buffer instead of allocating a new one.
+This makes it suitable for low-latency overlay paths and avoids an extra buffer allocation/copy in the common AJA overlay workflow, but it is not strictly required as long as another operator correctly handles the buffers provided by <code>aja_source</code>.</p>
+<p>To enable overlay on the AJA source operator, set <code>enable_overlay: true</code>.</p>
+<p>For Holoviz-based overlay workflows, configure the <strong>Holoviz</strong> operator with
+<code>enable_render_buffer_input: true</code> and <code>enable_render_buffer_output: true</code>.
+These are Holoviz settings (not <code>aja_source</code> parameters).</p>
+<p>Two common usage patterns are:</p>
+<ol>
+<li><strong>Overlay-only path (headless Holoviz)</strong></li>
+</ol>
+<p>Holoviz is configured with <code>headless: true</code> and is only used to render overlay content into the render buffer that is sent back to the AJA source operator.</p>
+<p>Required connections:</p>
+<div class="highlight"><pre><span></span><code><span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">visualizer</span><span class="p">,</span> <span class="p">{(</span><span class="s2">&quot;overlay_buffer_output&quot;</span><span class="p">,</span> <span class="s2">&quot;render_buffer_input&quot;</span><span class="p">)})</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">visualizer</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="p">{(</span><span class="s2">&quot;render_buffer_output&quot;</span><span class="p">,</span> <span class="s2">&quot;overlay_buffer_input&quot;</span><span class="p">)})</span>
+</code></pre></div>
+<ol>
+<li><strong>Holoviz displays the source image and the overlay</strong></li>
+</ol>
+<p>In this case, Holoviz is also used as the display sink for the captured source image, so the source image must be connected to Holoviz through <code>receivers</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">visualizer</span><span class="p">,</span> <span class="p">{(</span><span class="s2">&quot;video_buffer_output&quot;</span><span class="p">,</span> <span class="s2">&quot;receivers&quot;</span><span class="p">)})</span>
+</code></pre></div>
+<p>The overlay feedback loop is still required:</p>
+<div class="highlight"><pre><span></span><code><span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">visualizer</span><span class="p">,</span> <span class="p">{(</span><span class="s2">&quot;overlay_buffer_output&quot;</span><span class="p">,</span> <span class="s2">&quot;render_buffer_input&quot;</span><span class="p">)})</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">visualizer</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="p">{(</span><span class="s2">&quot;render_buffer_output&quot;</span><span class="p">,</span> <span class="s2">&quot;overlay_buffer_input&quot;</span><span class="p">)})</span>
+</code></pre></div>
+<p>In summary:</p>
 <ul>
-<li><code>enable_overlay: true</code></li>
+<li><code>video_buffer_output</code> carries the captured source image to Holoviz for display (used in pattern 2 only).</li>
+<li><code>overlay_buffer_output</code> provides the render buffer consumed by Holoviz.</li>
+<li><code>render_buffer_output</code> returns the rendered overlay buffer back from Holoviz to the AJA source operator.</li>
 </ul>
-<p><strong>holoviz</strong>:</p>
-<ul>
-<li><code>enable_render_buffer_input: true</code></li>
-<li><code>enable_render_buffer_output: true</code></li>
-</ul>
-<p>Required port connections:</p>
-<ul>
-<li><code>aja_source.video_buffer_output</code> → <code>holoviz.receivers</code></li>
-<li><code>aja_source.overlay_buffer_output</code> → <code>holoviz.render_buffer_input</code></li>
-<li><code>holoviz.render_buffer_output</code> → <code>aja_source.overlay_buffer_input</code></li>
-</ul>
+<p>Any overlay tensors, masks, text, or geometry should still be connected to Holoviz according to the needs of the application graph.</p>
 <h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
 <h3 id="python">Python<a class="headerlink" href="#python" title="Permanent link">#</a></h3>
 <h4 id="ajasourceop"><code>AJASourceOp</code><a class="headerlink" href="#ajasourceop" title="Permanent link">#</a></h4>
