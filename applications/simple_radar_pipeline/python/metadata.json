@@ -24,16 +24,13 @@
 		"requirements": {
 			"libraries": [{
 				"name": "numpy",
-				"version": "1.23.2"
+				"version": "2.4.3"
 			},
             {
 				"name": "cupy",
-				"version": "11.4"
-			},
-            {
-				"name": "cusignal",
-				"version": "22.12"
-			}]
+				"version": "13.6"
+			}
+            ]
 		},
 		"run": {
 			"command": "python3 simple_radar_pipeline.py",

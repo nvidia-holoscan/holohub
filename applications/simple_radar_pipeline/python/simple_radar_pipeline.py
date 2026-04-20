@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,11 +26,8 @@ try:
 except ImportError:
     raise ImportError("This demo requires cupy, but it could not be imported.")
 
-try:
-    import cusignal
-except ImportError:
-    raise ImportError("This demo requires cusignal, but it could not be imported.")
-
+import cupyx.scipy.signal as cusignal
+from cupy.cuda.cufft import CUFFT_C2C, CUFFT_Z2Z, Plan1d
 from holoscan.conditions import CountCondition
 from holoscan.core import Application, Operator, OperatorSpec
 
@@ -45,11 +42,13 @@ Pfa = 1e-5
 iterations = 100
 
 # Window Settings
-window = cusignal.hamming(waveform_length)
+window = cusignal.windows.hamming(waveform_length)
 # The -2 is a hack here to account for a 3 tap MTI filter
 range_doppler_window = cp.transpose(
     cp.repeat(
-        cp.expand_dims(cusignal.hamming(num_pulses - 2), 0), num_compressed_range_bins, axis=0
+        cp.expand_dims(cusignal.windows.hamming(num_pulses - 2), 0),
+        num_compressed_range_bins,
+        axis=0,
     )
 )
 Nfft = 2 ** math.ceil(math.log2(np.max([num_uncompressed_range_bins, waveform_length])))
@@ -97,10 +96,15 @@ class SignalGeneratorOp(Operator):
         op_output.emit(waveform, "waveform")
 
 
+def _cufft_type(dtype):
+    return CUFFT_C2C if dtype == cp.complex64 else CUFFT_Z2Z
+
+
 class PulseCompressionOp(Operator):
     def __init__(self, *args, **kwargs):
         # Need to call the base class constructor last
-        self.index = 0
+        self._plan_1d = None
+        self._plan_batched = None
         super().__init__(*args, **kwargs)
 
     def setup(self, spec: OperatorSpec):
@@ -113,16 +117,21 @@ class PulseCompressionOp(Operator):
         waveform = op_input.receive("waveform")
 
         waveform_windowed = waveform * window
-        waveform_windowed_norm = waveform_windowed / cp.linalg.norm(waveform_windowed)
+        waveform_windowed_norm = (waveform_windowed / cp.linalg.norm(waveform_windowed)).astype(
+            x.dtype
+        )
 
-        W = cp.conj(cp.fft.fft(waveform_windowed_norm, Nfft))
-        X = cp.fft.fft(x, Nfft, 1)
+        if self._plan_1d is None:
+            self._plan_1d = Plan1d(Nfft, _cufft_type(x.dtype), 1)
+            self._plan_batched = Plan1d(Nfft, _cufft_type(x.dtype), num_pulses)
 
-        for pulse in range(num_pulses):
-            y = cp.fft.ifft(cp.multiply(X[pulse, :], W), Nfft, 0)
-            x[pulse, 0:num_compressed_range_bins] = y[0:num_compressed_range_bins]
+        with self._plan_1d:
+            W = cp.conj(cp.fft.fft(waveform_windowed_norm, Nfft))
+        with self._plan_batched:
+            X = cp.fft.fft(x, Nfft, 1)
+            Y = cp.fft.ifft(cp.multiply(X, W), Nfft, 1)
 
-        x_compressed = x[:, 0:num_compressed_range_bins]
+        x_compressed = Y[:, 0:num_compressed_range_bins]
 
         x_compressed_stack = cp.stack([x_compressed] * num_channels)
 
@@ -142,7 +151,9 @@ class MTIFilterOp(Operator):
     def compute(self, op_input, op_output, context):
         x = op_input.receive("x")
         for channel in range(num_channels):
-            x_conv2 = cusignal.convolve2d(x[channel, :, :], cp.array([[1], [-2], [-1]]), "valid")
+            x_conv2 = cusignal.convolve2d(
+                x[channel, :, :], cp.array([[1], [-2], [-1]], dtype=cp.complex64), mode="valid"
+            )
             x_conv2_stack = cp.stack([x_conv2] * num_channels)
 
         op_output.emit(x_conv2_stack, "X")
@@ -151,7 +162,7 @@ class MTIFilterOp(Operator):
 class RangeDopplerOp(Operator):
     def __init__(self, *args, **kwargs):
         # Need to call the base class constructor last
-        self.index = 0
+        self._plan_rd = None
         super().__init__(*args, **kwargs)
 
     def setup(self, spec: OperatorSpec):
@@ -161,7 +172,12 @@ class RangeDopplerOp(Operator):
     def compute(self, op_input, op_output, context):
         x = op_input.receive("x")
         for channel in range(num_channels):
-            x_window = cp.fft.fft(cp.multiply(x[channel, :, :], range_doppler_window), NDfft, 0)
+            inp = cp.multiply(x[channel, :, :], range_doppler_window)
+            if self._plan_rd is None:
+                # inp shape: (num_pulses-2, num_compressed_range_bins); fft along axis 0
+                self._plan_rd = Plan1d(NDfft, _cufft_type(inp.dtype), inp.shape[1])
+            with self._plan_rd:
+                x_window = cp.fft.fft(inp, NDfft, 0)
             x_window_stack = cp.stack([x_window] * num_channels)
 
         op_output.emit(x_window_stack, "X")

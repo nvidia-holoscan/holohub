@@ -8,12 +8,12 @@ langchain==1.2.*
 langchain-community==0.3.*
 langchain-huggingface==1.2.*
 langchain-chroma==1.1.*
-langchain-text-splitters==0.3.*
+langchain-text-splitters==1.1.*
 mcp==1.24.*
 numpy==2.3.*
 openai==2.13.*
 pydantic-core==2.41.*
-pypdf==6.9.*
+pypdf==6.10.*
 PyYAML==6.0.*
 requests==2.33.*
 safetensors==0.7.*
@@ -22,5 +22,5 @@ sentence_transformers==5.2.*
 starlette==0.50.*
 tiktoken==0.12.*
 torch==2.9.*
-transformers==4.57.*
+transformers==5.5.*
 uvicorn==0.38.*
