@@ -31,6 +31,12 @@ namespace {
 
 constexpr const char* kStructuredTensorName = "structured_points";
 
+inline void check_cuda(cudaError_t code, const char* message) {
+  if (code != cudaSuccess) {
+    throw std::runtime_error(std::string(message) + ": " + cudaGetErrorString(code));
+  }
+}
+
 }  // namespace
 
 void PointCloudFilterOp::setup(holoscan::OperatorSpec& spec) {
@@ -84,21 +90,17 @@ void PointCloudFilterOp::compute(holoscan::InputContext& op_input,
                                  holoscan::OutputContext& op_output,
                                  holoscan::ExecutionContext& context) {
   auto q_mat_msg = op_input.receive<std::shared_ptr<std::vector<float>>>("in_q_matrix");
-  if (!q_mat_msg || !q_mat_msg.value() || q_mat_msg.value()->size() != 16) {
-    HOLOSCAN_LOG_WARN("PointCloudFilterOp: invalid Q matrix input.");
-    return;
+  auto q_mat = q_mat_msg.value();
+  if (!q_mat || q_mat->size() != 16) {
+    throw std::runtime_error("PointCloudFilterOp: invalid Q matrix input");
   }
-  const float* h_Q = q_mat_msg.value()->data();
+  const float* h_Q = q_mat->data();
 
   auto in_entity_value = op_input.receive<holoscan::gxf::Entity>("in_disparity");
-  if (!in_entity_value) {
-    return;
-  }
   auto in_entity = nvidia::gxf::Entity(in_entity_value.value());
   auto disp_tensor = in_entity.get<nvidia::gxf::Tensor>("disparity_map");
   if (!disp_tensor) {
-    HOLOSCAN_LOG_WARN("PointCloudFilterOp: failed to fetch disparity_map tensor.");
-    return;
+    throw std::runtime_error("PointCloudFilterOp: failed to fetch disparity_map tensor");
   }
 
   const int32_t height = disp_tensor.value()->shape().dimension(0);
@@ -107,11 +109,13 @@ void PointCloudFilterOp::compute(holoscan::InputContext& op_input,
   const size_t step = width * sizeof(int16_t);
 
   cudaStream_t cuda_stream = cudaStreamDefault;
-  auto maybe_stream = context.allocate_cuda_stream("point_cloud_filter_stream");
-  if (maybe_stream)
-    cuda_stream = maybe_stream.value();
-  else
-    op_input.receive_cuda_stream("in_disparity", true, cuda_stream);
+  op_input.receive_cuda_stream("in_disparity", true, cuda_stream);
+  if (cuda_stream == cudaStreamDefault) {
+    auto maybe_stream = context.allocate_cuda_stream("point_cloud_filter_stream");
+    if (maybe_stream) {
+      cuda_stream = maybe_stream.value();
+    }
+  }
 
   int total_points = width * height;
 
@@ -132,7 +136,8 @@ void PointCloudFilterOp::compute(holoscan::InputContext& op_input,
                             5000.0f,
                             d_out_points,
                             cuda_stream);
-
+  check_cuda(cudaGetLastError(), "Failed to launch point cloud filter kernel");
+  
   if (!first_cloud_logged_) {
     first_cloud_logged_ = true;
     HOLOSCAN_LOG_INFO(

@@ -196,7 +196,7 @@ void AtracsysMasterSourceOp::start() {
   frame_timeout_ms_ = 500;
 
   if (!s3dk_) {
-    s3dk_ = new RealS3DKWrapper();
+    s3dk_ = std::make_unique<RealS3DKWrapper>();
   }
   if (!s3dk_->initializeDeviceHelper(&device_sn_, dev.lib(), &image_type_)) {
     throw std::runtime_error("AtracsysMasterSourceOp: initializeDeviceHelper failed");
@@ -250,10 +250,7 @@ void AtracsysMasterSourceOp::stop() {
   gpu_frame_ = nullptr;
   engine_ = nullptr;
   stereo_params_ = nullptr;
-  if (s3dk_) {
-    delete s3dk_;
-    s3dk_ = nullptr;
-  }
+  s3dk_.reset();
 
   holoscan::Operator::stop();
 }

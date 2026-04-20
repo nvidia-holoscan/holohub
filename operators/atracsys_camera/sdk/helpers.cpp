@@ -99,15 +99,21 @@ void optionEnumerator(uint64_t /*sn*/, void* user, ftkOptionsInfo* oi) {
   mapping->emplace(oi->name, oi->id);
 }
 
-void error(const char* message, bool /*dontWaitForKeyboard*/) {
+namespace atracsys::sdk {
+
+void throwSdkError(const char* message, bool /*dontWaitForKeyboard*/) {
   throw std::runtime_error(message);
 }
 
 void checkError(ftkLibrary lib, bool dontWaitForKeyboard, bool /*quit*/) {
   char buf[1024];
-  if (ftkGetLastErrorString(lib, sizeof(buf), buf) == ftkError::FTK_OK) {
-    if (std::strlen(buf) > 0) {
-      error(buf, dontWaitForKeyboard);
-    }
+  const auto status = ftkGetLastErrorString(lib, sizeof(buf), buf);
+  if (status != ftkError::FTK_OK) {
+    throw std::runtime_error("ftkGetLastErrorString failed with error code: " + std::to_string(status));
+  }
+  if (std::strlen(buf) > 0) {
+    throwSdkError(buf, dontWaitForKeyboard);
   }
 }
+
+} // namespace atracsys::sdk

@@ -104,11 +104,13 @@ RUN apt-get update && \
       vulkan-tools && \
     rm -rf /var/lib/apt/lists/*
 
-# Keep S3DK-compatible sonames available even when OpenCV is built from source.
-RUN if [ -f /usr/local/lib/libopencv_world.so.4.10.0 ]; then \
-      ln -sf /usr/local/lib/libopencv_world.so.4.10.0 /usr/local/lib/libopencv_world.so.411 && \
-      ln -sf /usr/local/lib/libopencv_world.so.4.10.0 /usr/local/lib/libopencv_world.so.4.10; \
+# Fail the build if the required custom OpenCV 4.10 is missing, preventing silent S3DK crashes.
+# Keep S3DK-compatible sonames available (aliasing to .410 since S3DK is tested on OpenCV 4.10)
+RUN if [ ! -f /usr/local/lib/libopencv_world.so.4.10.0 ]; then \
+      echo "ERROR: OpenCV 4.10.0 artifact not found in /usr/local/lib/" && exit 1; \
     fi && \
+    ln -sf /usr/local/lib/libopencv_world.so.4.10.0 /usr/local/lib/libopencv_world.so.410 && \
+    ln -sf /usr/local/lib/libopencv_world.so.4.10.0 /usr/local/lib/libopencv_world.so.4.10 && \
     ldconfig
 
 RUN mkdir -p /tmp/scripts

@@ -40,7 +40,7 @@ typedef struct CUstream_st* cudaStream_t;
 
 namespace holoscan::ops {
 
-class AtracsysMasterSourceOp : public holoscan::Operator {
+class __attribute__((visibility("default"))) AtracsysMasterSourceOp : public holoscan::Operator {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS_SUPER(AtracsysMasterSourceOp, holoscan::Operator)
 
@@ -104,7 +104,7 @@ class AtracsysMasterSourceOp : public holoscan::Operator {
   static constexpr size_t kMaxMarkers = 10;
 
   RealSDKWrapper sdk_;
-  IS3DKInterface* s3dk_{nullptr};
+  std::unique_ptr<IS3DKInterface> s3dk_;
   uint64_t device_sn_{0};
   ftkFrameQuery* frame_{nullptr};
 

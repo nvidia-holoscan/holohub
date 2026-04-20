@@ -68,13 +68,13 @@ target_include_directories(atracsys_camera
   PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/sdk
-    ${CMAKE_SOURCE_DIR}/operators/atracsys_mode_switcher
     ${OpenCV_INCLUDE_DIRS}
 )
 
 target_link_libraries(atracsys_camera
   PUBLIC
     holoscan::core
+    atracsys_mode_switcher
     CUDA::cudart
     Atracsys::SDK
     S3DK::S3DK

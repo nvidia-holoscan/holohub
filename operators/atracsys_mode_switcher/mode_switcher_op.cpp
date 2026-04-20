@@ -321,7 +321,7 @@ void add_device_tensor_to_entity(nvidia::gxf::Entity& entity,
                                  const std::shared_ptr<holoscan::Allocator>& allocator,
                                  const char* tensor_name, const nvidia::gxf::Shape& shape,
                                  const T* data, size_t element_count, const char* tensor_error,
-                                 const char* copy_error) {
+                                 const char* copy_error, cudaStream_t cuda_stream = cudaStreamDefault) {
   auto tensor = entity.add<nvidia::gxf::Tensor>(tensor_name);
   if (!tensor) {
     throw std::runtime_error(tensor_error);
@@ -331,8 +331,8 @@ void add_device_tensor_to_entity(nvidia::gxf::Entity& entity,
       nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(context.context(), allocator->gxf_cid());
   tensor.value()->reshape<T>(shape, nvidia::gxf::MemoryStorageType::kDevice, alloc.value());
   check_cuda(
-      cudaMemcpy(
-          tensor.value()->pointer(), data, element_count * sizeof(T), cudaMemcpyHostToDevice),
+      cudaMemcpyAsync(
+          tensor.value()->pointer(), data, element_count * sizeof(T), cudaMemcpyHostToDevice, cuda_stream),
       copy_error);
 }
 
@@ -341,7 +341,7 @@ holoscan::gxf::Entity create_device_tensor_entity(
     const holoscan::ExecutionContext& context,
     const std::shared_ptr<holoscan::Allocator>& allocator, const char* tensor_name,
     const nvidia::gxf::Shape& shape, const T* data, size_t element_count, const char* entity_error,
-    const char* tensor_error, const char* copy_error) {
+    const char* tensor_error, const char* copy_error, cudaStream_t cuda_stream = cudaStreamDefault) {
   auto msg = nvidia::gxf::Entity::New(context.context());
   if (!msg) {
     throw std::runtime_error(entity_error);
@@ -355,7 +355,8 @@ holoscan::gxf::Entity create_device_tensor_entity(
                                  data,
                                  element_count,
                                  tensor_error,
-                                 copy_error);
+                                 copy_error,
+                                 cuda_stream);
 
   return holoscan::gxf::Entity(std::move(msg.value()));
 }
@@ -363,7 +364,7 @@ holoscan::gxf::Entity create_device_tensor_entity(
 inline holoscan::gxf::Entity create_overlay_entity(
     const holoscan::ExecutionContext& context,
     const std::shared_ptr<holoscan::Allocator>& allocator,
-    const std::vector<float>& overlay_coords) {
+    const std::vector<float>& overlay_coords, cudaStream_t cuda_stream = cudaStreamDefault) {
   auto msg = nvidia::gxf::Entity::New(context.context());
   if (!msg) {
     throw std::runtime_error("Failed to allocate marker overlay message");
@@ -378,14 +379,15 @@ inline holoscan::gxf::Entity create_overlay_entity(
       overlay_coords.data(),
       overlay_coords.size(),
       "Failed to add marker overlay tensor",
-      "Failed to upload marker overlay coordinates");
+      "Failed to upload marker overlay coordinates",
+      cuda_stream);
   return holoscan::gxf::Entity(std::move(msg.value()));
 }
 
 inline holoscan::gxf::Entity create_marker_points_entity(
     const holoscan::ExecutionContext& context,
     const std::shared_ptr<holoscan::Allocator>& allocator, const float* points,
-    size_t point_count) {
+    size_t point_count, cudaStream_t cuda_stream = cudaStreamDefault) {
   auto msg = nvidia::gxf::Entity::New(context.context());
   if (!msg) {
     throw std::runtime_error("Failed to allocate marker points message");
@@ -400,19 +402,20 @@ inline holoscan::gxf::Entity create_marker_points_entity(
                                      points,
                                      point_count,
                                      "Failed to add marker points tensor",
-                                     "Failed to upload marker point coordinates");
+                                     "Failed to upload marker point coordinates",
+                                     cuda_stream);
   return holoscan::gxf::Entity(std::move(msg.value()));
 }
 
 void upload_to_tensor(const holoscan::gxf::Entity& entity, const char* tensor_name,
                       const void* data, size_t bytes, const char* tensor_error,
-                      const char* copy_error) {
+                      const char* copy_error, cudaStream_t cuda_stream = cudaStreamDefault) {
   auto gxf_entity = nvidia::gxf::Entity(entity);
   auto tensor = gxf_entity.get<nvidia::gxf::Tensor>(tensor_name);
   if (!tensor) {
     throw std::runtime_error(tensor_error);
   }
-  check_cuda(cudaMemcpy(tensor.value()->pointer(), data, bytes, cudaMemcpyHostToDevice),
+  check_cuda(cudaMemcpyAsync(tensor.value()->pointer(), data, bytes, cudaMemcpyHostToDevice, cuda_stream),
              copy_error);
 }
 
@@ -712,6 +715,12 @@ void AtracsysModeSwitcherOp::emit_blank_base(const holoscan::ExecutionContext& c
 void AtracsysModeSwitcherOp::compute(holoscan::InputContext& op_input,
                                      holoscan::OutputContext& op_output,
                                      holoscan::ExecutionContext& context) {
+  cudaStream_t cuda_stream = cudaStreamDefault;
+  auto maybe_stream = context.allocate_cuda_stream("mode_switcher_stream");
+  if (maybe_stream) {
+    cuda_stream = maybe_stream.value();
+  }
+
   ensure_static_entities(context);
   handle_keyboard_request();
 
@@ -821,8 +830,10 @@ void AtracsysModeSwitcherOp::compute(holoscan::InputContext& op_input,
     auto poses_tensor = gxf_entity.get<nvidia::gxf::Tensor>(kMarkerPosesName);
     if (poses_tensor) {
       const uint32_t num_markers = poses_tensor.value()->shape().dimension(0);
-      transformed_marker_points_scratch_.reserve(marker_local_geometry_mm_.size());
-      scene_marker_point_buffer_.reserve(marker_local_geometry_mm_.size() * 3);
+        transformed_marker_points_scratch_.clear();
+        transformed_marker_points_scratch_.reserve(marker_local_geometry_mm_.size() * num_markers);
+        scene_marker_point_buffer_.clear();
+        scene_marker_point_buffer_.reserve(marker_local_geometry_mm_.size() * 3 * num_markers);
 
       marker_poses_host_.resize(num_markers * 16);
       const auto storage = poses_tensor.value()->storage_type();
@@ -850,7 +861,6 @@ void AtracsysModeSwitcherOp::compute(holoscan::InputContext& op_input,
           transformed_marker_points_scratch_.push_back(
               transform_local_geometry_point(pose_transform, local_point));
         }
-        break;
       }
 
       for (const auto& world_point : transformed_marker_points_scratch_) {
@@ -892,12 +902,14 @@ void AtracsysModeSwitcherOp::compute(holoscan::InputContext& op_input,
 
     if (!overlay_coords.empty()) {
       auto projected_overlay =
-          create_overlay_entity(context, display_allocator_.get(), overlay_coords);
+          create_overlay_entity(context, display_allocator_.get(), overlay_coords, cuda_stream);
+      op_output.set_cuda_stream(cuda_stream, "out_overlay");
       op_output.emit(projected_overlay, "out_overlay");
       emitted_overlay = true;
     }
   }
   if (!emitted_overlay) {
+    op_output.set_cuda_stream(cuda_stream, "out_overlay");
     emit_cached_entity(
         hidden_overlay_entities_[static_entity_index_].value(), op_output, "out_overlay");
   }
@@ -907,11 +919,14 @@ void AtracsysModeSwitcherOp::compute(holoscan::InputContext& op_input,
     auto marker_points_entity = create_marker_points_entity(context,
                                                             display_allocator_.get(),
                                                             scene_marker_point_buffer_.data(),
-                                                            scene_marker_point_buffer_.size());
+                                                            scene_marker_point_buffer_.size(),
+                                                            cuda_stream);
+    op_output.set_cuda_stream(cuda_stream, "out_marker_points");
     op_output.emit(marker_points_entity, "out_marker_points");
     emitted_marker_points = true;
   }
   if (!emitted_marker_points) {
+    op_output.set_cuda_stream(cuda_stream, "out_marker_points");
     emit_cached_entity(hidden_marker_points_entities_[static_entity_index_].value(),
                        op_output,
                        "out_marker_points");
@@ -949,7 +964,9 @@ void AtracsysModeSwitcherOp::compute(holoscan::InputContext& op_input,
                    reinterpret_cast<const float*>(fiducial_text_coords_.data()),
                    kMaxFiducials * 3 * sizeof(float),
                    "Failed to retrieve fiducial text coords tensor",
-                   "Failed to upload fiducial text coords");
+                   "Failed to upload fiducial text coords",
+                   cuda_stream);
+  op_output.set_cuda_stream(cuda_stream, "out_fiducial_text_coords");
   emit_cached_entity(fiducial_entity, op_output, "out_fiducial_text_coords");
   fiducial_text_coords_entity_index_ =
       (fiducial_text_coords_entity_index_ + 1) % fiducial_text_coord_entities_.size();

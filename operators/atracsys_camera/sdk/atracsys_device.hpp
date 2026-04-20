@@ -38,18 +38,28 @@ class AtracsysDevice {
     std::lock_guard<std::mutex> lk(m_);
     if (lib_) return;
 
-    lib_ = ftkInitExt(nullptr, &buffer_);
-    if (!lib_) {
+    ftkLibrary new_lib = ftkInitExt(nullptr, &buffer_);
+    if (!new_lib) {
       throw std::runtime_error(buffer_.data ? buffer_.data : "ftkInitExt failed");
     }
 
-    DeviceData devInfo = retrieveLastDevice(lib_, false, false, true);
-    sn_ = devInfo.SerialNumber;
-    if (!sn_) throw std::runtime_error("No Atracsys devices detected");
+    try {
+      DeviceData devInfo = retrieveLastDevice(new_lib, false, false, true);
+      const uint64_t serial = devInfo.SerialNumber;
+      if (!serial) throw std::runtime_error("No Atracsys devices detected");
 
-    if (ftkEnumerateOptions(lib_, sn_, optionEnumerator, &options_) != ftkError::FTK_OK ||
-        options_.empty()) {
-      throw std::runtime_error("ftkEnumerateOptions failed");
+      std::map<std::string, uint32_t> options;
+      if (ftkEnumerateOptions(new_lib, serial, optionEnumerator, &options) != ftkError::FTK_OK ||
+          options.empty()) {
+        throw std::runtime_error("ftkEnumerateOptions failed");
+      }
+
+      lib_ = new_lib;
+      sn_ = serial;
+      options_ = std::move(options);
+    } catch (...) {
+      ftkClose(&new_lib);
+      throw;
     }
   }
 
@@ -57,6 +67,8 @@ class AtracsysDevice {
     std::lock_guard<std::mutex> lk(m_);
     if (lib_) ftkClose(&lib_);
     lib_ = nullptr;
+    sn_ = 0;
+    options_.clear();
   }
 
   ftkLibrary lib() const { return lib_; }

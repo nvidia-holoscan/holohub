@@ -18,7 +18,7 @@ graph TD
     MasterSource --> |Disparity Tensor| PointCloud[PointCloudFilterOp]:::hardware
     PointCloud --> |Structured Points Tensor| ModeSwitcher
     Bayer --> |RGB Tensor| ModeSwitcher
-    
+
     ModeSwitcher --> |Filtered Active Mode Data| Holoviz[HolovizOp]:::software
 ```
 
@@ -39,14 +39,16 @@ When observing the different streams and enabling tracking (by pressing `4`), th
 ## SDK and Data Acquisition
 
 ### Getting the Atracsys SDKs
-The Atracsys SDK and S3DK are proprietary hardware drivers and are **not** bundled in this repository. 
-To run the `live_camera` mode with your Atracsys spryTrack 300 camera, you must first obtain the SDKs directly from the vendor. 
+The Atracsys SDK and S3DK are proprietary hardware drivers and are **not** bundled in this repository.
+To run the `live_camera` mode with your Atracsys spryTrack 300 camera, you must first obtain the SDKs directly from the vendor.
 
 Please contact **support@atracsys.com** to request the following packages based on your architecture:
 - spryTrack SDK v4.9.0 (for x86_64)
 - spryTrack SDK v4.9.0 (for aarch64)
 - S3DK Structured Light SDK (for x86_64)
 - S3DK Structured Light SDK (for aarch64)
+
+> **Note:** The S3DK SDK dynamically links against OpenCV. The provided wrapper and Dockerfile alias the `libopencv_world.so.4.10.0` library to `libopencv_world.so.410` based on the vendor's tested ABI compatibility with OpenCV 4.10. Ensure your S3DK version matches this requirement.
 
 Once provided:
 1. Install them on your local machine.

@@ -25,18 +25,30 @@ set(ATRACSYS_VISUALIZER_SOURCE_RECORDINGS_DIR "" CACHE PATH
 
 if(ATRACSYS_VISUALIZER_ENABLE_LIVE_CAMERA)
   set(OP_atracsys_camera ON CACHE BOOL "Build the atracsys_camera operator" FORCE)
-  set(HOLOHUB_BUILD_OPERATORS "atracsys_camera" CACHE STRING
-      "Optional operators requested for the active HoloHub app build" FORCE)
 else()
   set(OP_atracsys_camera OFF CACHE BOOL "Build the atracsys_camera operator" FORCE)
-  set(HOLOHUB_BUILD_OPERATORS "" CACHE STRING
-      "Optional operators requested for the active HoloHub app build" FORCE)
 endif()
 
+set(_holohub_build_operators ${HOLOHUB_BUILD_OPERATORS})
+if(ATRACSYS_VISUALIZER_ENABLE_LIVE_CAMERA)
+  list(APPEND _holohub_build_operators atracsys_camera)
+else()
+  list(REMOVE_ITEM _holohub_build_operators atracsys_camera)
+endif()
+list(REMOVE_DUPLICATES _holohub_build_operators)
+set(HOLOHUB_BUILD_OPERATORS "${_holohub_build_operators}" CACHE STRING
+    "Optional operators requested for the active HoloHub app build" FORCE)
+unset(_holohub_build_operators)
+
 if(HOLOHUB_DOWNLOAD_DATASETS AND NOT EXISTS "${HOLOHUB_DATA_DIR}/atracsys_visualizer/ir_base.gxf_entities")
+  set(ATRACSYS_VISUALIZER_DATASET_URL
+      "https://github.com/waylandio/holohub/releases/download/dataset-v1.0/atracsys_visualizer.zip")
+  set(ATRACSYS_VISUALIZER_DATASET_SHA256 "674551dee1c40bf4f2b62c0ea23be01b6126d0cf549971d87b2fd86b0d4895e9")
   message(STATUS "Downloading Atracsys Visualizer demo dataset...")
-  file(DOWNLOAD "https://github.com/waylandio/holohub/releases/download/dataset-v1.0/atracsys_visualizer.zip"
+  file(DOWNLOAD "${ATRACSYS_VISUALIZER_DATASET_URL}"
        "${CMAKE_CURRENT_BINARY_DIR}/atracsys_visualizer.zip"
+       EXPECTED_HASH SHA256=${ATRACSYS_VISUALIZER_DATASET_SHA256}
+       TLS_VERIFY ON
        SHOW_PROGRESS
        STATUS DOWNLOAD_STATUS)
 

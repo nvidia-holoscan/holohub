@@ -39,7 +39,7 @@ enum class ReplayMode {
   kTracking = 4,
 };
 
-class AtracsysModeSwitcherOp : public holoscan::Operator {
+class __attribute__((visibility("default"))) AtracsysModeSwitcherOp : public holoscan::Operator {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS_SUPER(AtracsysModeSwitcherOp, holoscan::Operator)
 

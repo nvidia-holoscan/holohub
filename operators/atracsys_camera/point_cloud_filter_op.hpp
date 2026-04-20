@@ -31,7 +31,7 @@ typedef struct CUstream_st* cudaStream_t;
 
 namespace holoscan::ops {
 
-class PointCloudFilterOp : public holoscan::Operator {
+class __attribute__((visibility("default"))) PointCloudFilterOp : public holoscan::Operator {
  public:
   HOLOSCAN_OPERATOR_FORWARD_ARGS_SUPER(PointCloudFilterOp, holoscan::Operator)
 

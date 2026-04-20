@@ -18,6 +18,7 @@
 #pragma once
 
 #include <array>
+#include <cmath>
 
 namespace holoscan::ops {
 
@@ -31,7 +32,19 @@ struct CameraCalibration {
   int image_width{0};
   int image_height{0};
 
-  [[nodiscard]] bool valid() const { return image_width > 0 && image_height > 0; }
+  [[nodiscard]] bool valid() const {
+    if (image_width <= 0 || image_height <= 0 || fx <= 0.0F || fy <= 0.0F ||
+        !std::isfinite(fx) || !std::isfinite(fy) || !std::isfinite(cx) ||
+        !std::isfinite(cy) || !std::isfinite(skew)) {
+      return false;
+    }
+    for (const float coefficient : distortion) {
+      if (!std::isfinite(coefficient)) {
+        return false;
+      }
+    }
+    return true;
+  }
 };
 
 }  // namespace holoscan::ops

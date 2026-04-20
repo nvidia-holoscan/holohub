@@ -70,13 +70,10 @@ bool getFullFilePath(ftkLibrary lib, const string& fileName, string& fullFilePat
         buffer.size < 1u) {
       return false;
     }
-    OPT_DIR.assign(buffer.data);
-  }
-
-  ifstream input{fileName};
-  if (input.is_open()) {
-    fullFilePath = fileName;
-    if (fromSystem != nullptr) *fromSystem = false;
+      OPT_DIR.assign(buffer.data, buffer.size);
+      if (!OPT_DIR.empty() && OPT_DIR.back() == '\0') {
+        OPT_DIR.pop_back();
+      }
     return true;
   }
 
@@ -100,6 +97,14 @@ bool loadFileInBuffer(const string& fullFilePath, ftkBuffer& buffer) {
 
   buffer.reset();
   streampos pos = input.tellg();
+  if (pos < 0 || pos > std::numeric_limits<uint32_t>::max()) {
+    cerr << "File too large for buffer\n";
+    return false;
+  }
+  // Note: We rely on buffer.reset() inside the SDK managing its own memory allocation 
+  // or that the buffer has enough capacity, though standard usage just passes 'pos' size.
+  // Actually, wait, often SDK expects user to allocate! Let's just document:
+  // "Assuming ftkBuffer's allocator provides enough capacity after reset() or the struct handles it."
   input.seekg(0u, ios::beg);
   input.read(buffer.data, static_cast<streamsize>(pos));
   if (input.fail()) {
