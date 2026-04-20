@@ -17,6 +17,7 @@
 
 #include "point_cloud_filter_op.hpp"
 
+#include <limits>
 #include <stdexcept>
 #include <string>
 
@@ -105,8 +106,17 @@ void PointCloudFilterOp::compute(holoscan::InputContext& op_input,
 
   const int32_t height = disp_tensor.value()->shape().dimension(0);
   const int32_t width = disp_tensor.value()->shape().dimension(1);
+  if (height <= 0 || width <= 0) {
+    throw std::runtime_error("PointCloudFilterOp: invalid disparity_map dimensions");
+  }
+
+  const size_t total_points_sz = static_cast<size_t>(width) * static_cast<size_t>(height);
+  if (total_points_sz > static_cast<size_t>(std::numeric_limits<int32_t>::max())) {
+      throw std::runtime_error(
+          "PointCloudFilterOp: disparity_map dimensions exceed safe int32 limit");
+
   const int16_t* d_disp_map = reinterpret_cast<const int16_t*>(disp_tensor.value()->pointer());
-  const size_t step = width * sizeof(int16_t);
+  const size_t step = static_cast<size_t>(width) * sizeof(int16_t);
 
   cudaStream_t cuda_stream = cudaStreamDefault;
   op_input.receive_cuda_stream("in_disparity", true, cuda_stream);
@@ -116,8 +126,6 @@ void PointCloudFilterOp::compute(holoscan::InputContext& op_input,
       cuda_stream = maybe_stream.value();
     }
   }
-
-  int total_points = width * height;
 
   ensure_structured_output_entities(context, total_points);
   auto& out_entity_opt = structured_output_entities_[structured_output_entity_index_].value();
@@ -152,5 +160,4 @@ void PointCloudFilterOp::compute(holoscan::InputContext& op_input,
   structured_output_entity_index_ =
       (structured_output_entity_index_ + 1) % structured_output_entities_.size();
 }
-
 }  // namespace holoscan::ops

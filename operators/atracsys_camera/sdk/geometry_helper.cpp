@@ -22,6 +22,7 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <string>
 
 using namespace std;
@@ -70,11 +71,10 @@ bool getFullFilePath(ftkLibrary lib, const string& fileName, string& fullFilePat
         buffer.size < 1u) {
       return false;
     }
-      OPT_DIR.assign(buffer.data, buffer.size);
-      if (!OPT_DIR.empty() && OPT_DIR.back() == '\0') {
-        OPT_DIR.pop_back();
-      }
-    return true;
+    OPT_DIR.assign(reinterpret_cast<const char*>(buffer.data), buffer.size);
+    if (!OPT_DIR.empty() && OPT_DIR.back() == '\0') {
+      OPT_DIR.pop_back();
+    }
   }
 
   const string candidate = OPT_DIR + "/" + fileName;
@@ -101,11 +101,14 @@ bool loadFileInBuffer(const string& fullFilePath, ftkBuffer& buffer) {
     cerr << "File too large for buffer\n";
     return false;
   }
-  // Note: We rely on buffer.reset() inside the SDK managing its own memory allocation
-  // or that the buffer has enough capacity, though standard usage just passes 'pos' size.
-  // Actually, wait, often SDK expects user to allocate! Let's just document:
-  // "Assuming ftkBuffer's allocator provides enough capacity after reset()
-  // or the struct handles it."
+
+  if (static_cast<size_t>(pos) > buffer.capacity) {
+    if (buffer.resize(static_cast<size_t>(pos)) != ftkError::FTK_OK) {
+      cerr << "Failed to resize ftkBuffer for file\n";
+      return false;
+    }
+  }
+
   input.seekg(0u, ios::beg);
   input.read(buffer.data, static_cast<streamsize>(pos));
   if (input.fail()) {

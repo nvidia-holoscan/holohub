@@ -29,6 +29,7 @@ The application is split into:
 - a single C++ application entrypoint with configuration via `atracsys_visualizer.yaml`
 
 ## Visual Showcase
+
 ![Atracsys Visualizer Demo](demo.gif)
 
 The animation above demonstrates the core imaging capabilities of the Atracsys spryTrack 300 camera: **Visible Mode**, **Infrared Mode**, and **Structured-Light Mode**, alongside its high-accuracy marker tracking.
@@ -41,10 +42,11 @@ When observing the different streams and enabling tracking (by pressing `4`), th
 ## SDK and Data Acquisition
 
 ### Getting the Atracsys SDKs
+
 The Atracsys SDK and S3DK are proprietary hardware drivers and are **not** bundled in this repository.
 To run the `live_camera` mode with your Atracsys spryTrack 300 camera, you must first obtain the SDKs directly from the vendor.
 
-Please contact **support@atracsys.com** to request the following packages based on your architecture:
+Please contact **<support@atracsys.com>** to request the following packages based on your architecture:
 
 - spryTrack SDK v4.9.0 (for x86_64)
 - spryTrack SDK v4.9.0 (for aarch64)
@@ -63,6 +65,7 @@ Recommended live SDK layout for HoloHub:
 - S3DK root under `/opt/s3dk`
 
 ### Getting the Replay Dataset (High-Fidelity)
+
 The application includes a CMake integration to fetch the required GXF datasets automatically. When you build or run the `replayer` mode, the dataset is automatically downloaded and extracted to `data/atracsys_visualizer` from the application's GitHub Release tag. No manual intervention is needed.
 
 ## Recording Your Own Data
@@ -86,17 +89,21 @@ For detailed instructions on registering new instruments and using the recalibra
 > **Note:** The underlying dependencies (like OpenCV) currently require CUDA 12 to build successfully. Please append `--cuda 12` to your build and run commands.
 
 Replay mode (Default):
+
 ```bash
 ./holohub build atracsys_visualizer --cuda 12
 ./holohub run atracsys_visualizer --cuda 12
 ```
+
 Or, you can explicitly specify the mode:
+
 ```bash
 ./holohub build atracsys_visualizer replayer --cuda 12
 ./holohub run atracsys_visualizer replayer --cuda 12
 ```
 
 Live mode:
+
 ```bash
 ./holohub build atracsys_visualizer live_camera --cuda 12
 ./holohub run atracsys_visualizer live_camera --cuda 12
@@ -107,4 +114,4 @@ Live mode:
 - `1`: Visible mode
 - `2`: Infrared mode
 - `3`: Structured-light mode
-- `4`: Tracking mode
+- `4`: Toggle tracking overlay on top of the current base mode (Visible/Infrared/Structured)

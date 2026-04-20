@@ -18,6 +18,7 @@
 #pragma once
 
 #include <map>
+#include <stdexcept>
 #include <string>
 
 #include <s3dk_gpu.hpp>
@@ -76,12 +77,15 @@ inline void configure_device_defaults(ftkLibrary lib, uint64_t sn,
 
 }  // namespace
 
-class RealS3DKWrapper : public IS3DKInterface {
+class RealS3DKWrapper : public atracsys::IS3DKInterface {
  public:
   StereoParameters* createStereoParameters() override { return create_stereo_parameters(); }
 
   bool initializeDeviceHelper(uint64_t* device_sn, ftkLibrary lib,
                               ImageType3D* image_type) override {
+    if (!device_sn || !lib || !image_type) {
+      throw std::runtime_error("initializeDeviceHelper: invalid arguments");
+    }
     auto options = enumerate_sdk_options(lib, *device_sn);
     const std::string device_type = device_type_string(lib, *device_sn, options);
     bool valid = false;

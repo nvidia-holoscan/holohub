@@ -46,13 +46,12 @@ endif()
 
 find_package(holoscan 4.0.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
-find_package(CUDAToolkit REQUIRED)
 find_package(Atracsys REQUIRED COMPONENTS SDK)
 find_package(TBB REQUIRED)
 find_package(OpenMP REQUIRED)
 find_package(OpenCV REQUIRED COMPONENTS core calib3d imgproc highgui ximgproc)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/../../cmake/modules")
 find_package(S3DK REQUIRED)
 
 add_library(atracsys_camera SHARED

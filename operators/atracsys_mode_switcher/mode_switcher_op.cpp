@@ -833,10 +833,8 @@ void AtracsysModeSwitcherOp::compute(holoscan::InputContext& op_input,
     auto poses_tensor = gxf_entity.get<nvidia::gxf::Tensor>(kMarkerPosesName);
     if (poses_tensor) {
       const uint32_t num_markers = poses_tensor.value()->shape().dimension(0);
-        transformed_marker_points_scratch_.clear();
-        transformed_marker_points_scratch_.reserve(marker_local_geometry_mm_.size() * num_markers);
-        scene_marker_point_buffer_.clear();
-        scene_marker_point_buffer_.reserve(marker_local_geometry_mm_.size() * 3 * num_markers);
+      transformed_marker_points_scratch_.reserve(marker_local_geometry_mm_.size() * num_markers);
+      scene_marker_point_buffer_.reserve(marker_local_geometry_mm_.size() * 3 * num_markers);
 
       marker_poses_host_.resize(num_markers * 16);
       const auto storage = poses_tensor.value()->storage_type();
@@ -846,11 +844,12 @@ void AtracsysModeSwitcherOp::compute(holoscan::InputContext& op_input,
                     poses_tensor.value()->pointer(),
                     num_markers * 16 * sizeof(float));
       } else {
-        check_cuda(cudaMemcpy(marker_poses_host_.data(),
-                              poses_tensor.value()->pointer(),
-                              num_markers * 16 * sizeof(float),
-                              cudaMemcpyDeviceToHost),
+        check_cuda(cudaMemcpyAsync(marker_poses_host_.data(), poses_tensor.value()->pointer(),
+                                   num_markers * 16 * sizeof(float), cudaMemcpyDeviceToHost,
+                                   cuda_stream),
                    "Failed to copy marker poses to host for point extraction");
+        check_cuda(cudaStreamSynchronize(cuda_stream),
+                   "Failed to synchronize pose D2H copy stream");
       }
 
       for (uint32_t i = 0; i < num_markers; ++i) {

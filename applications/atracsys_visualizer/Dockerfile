@@ -35,16 +35,10 @@ RUN apt-get update && \
       git \
       gfortran \
       libatlas-base-dev \
-      libavcodec-dev \
-      libavformat-dev \
       libjpeg-dev \
       libpng-dev \
-      libswscale-dev \
       libtbb-dev \
       libtiff-dev \
-      libv4l-dev \
-      libx264-dev \
-      libxvidcore-dev \
       python3-dev \
       unzip \
       wget && \

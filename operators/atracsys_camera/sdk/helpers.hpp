@@ -19,8 +19,9 @@
 
 #include <ftkInterface.h>
 
-#include <map>
 #include <string>
+
+namespace atracsys::sdk {
 
 struct DeviceData {
   uint64_t SerialNumber{0};
@@ -33,7 +34,6 @@ DeviceData retrieveLastDevice(ftkLibrary lib, bool allowSimulator = false, bool 
                               bool dontWaitForKeyboard = true);
 void optionEnumerator(uint64_t sn, void* user, ftkOptionsInfo* oi);
 
-namespace atracsys::sdk {
 void throwSdkError(const char* message, bool dontWaitForKeyboard = false);
 void checkError(ftkLibrary lib, bool dontWaitForKeyboard = false, bool quit = true);
 }  // namespace atracsys::sdk

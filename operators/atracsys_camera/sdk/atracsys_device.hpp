@@ -44,12 +44,15 @@ class AtracsysDevice {
     }
 
     try {
-      DeviceData devInfo = retrieveLastDevice(new_lib, false, false, true);
+      atracsys::sdk::DeviceData devInfo =
+          atracsys::sdk::retrieveLastDevice(new_lib, false, false, true);
       const uint64_t serial = devInfo.SerialNumber;
       if (!serial) throw std::runtime_error("No Atracsys devices detected");
 
       std::map<std::string, uint32_t> options;
-      if (ftkEnumerateOptions(new_lib, serial, optionEnumerator, &options) != ftkError::FTK_OK ||
+      if (ftkEnumerateOptions(
+              new_lib, serial, atracsys::sdk::optionEnumerator, &options) !=
+              ftkError::FTK_OK ||
           options.empty()) {
         throw std::runtime_error("ftkEnumerateOptions failed");
       }

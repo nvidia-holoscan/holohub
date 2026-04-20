@@ -26,7 +26,7 @@
 #include <stdexcept>
 #include <string>
 
-using namespace std;
+namespace atracsys::sdk {
 
 void deviceEnumerator(uint64_t sn, void* user, ftkDeviceType type) {
   if (user != nullptr) {
@@ -65,7 +65,7 @@ DeviceData retrieveLastDevice(ftkLibrary lib, bool allowSimulator, bool quiet,
   }
 
   if (!quiet) {
-    string text;
+    std::string text;
     switch (device.Type) {
       case ftkDeviceType::DEV_SPRYTRACK_180:
         text = "sTk 180";
@@ -86,8 +86,8 @@ DeviceData retrieveLastDevice(ftkLibrary lib, bool allowSimulator, bool quiet,
         text = "UNKNOWN";
         break;
     }
-    cout << "Detected Atracsys device: " << text << " SN=0x" << setw(16)
-         << setfill('0') << hex << device.SerialNumber << dec << '\n';
+    std::cout << "Detected Atracsys device: " << text << " SN=0x" << std::setw(16)
+         << std::setfill('0') << std::hex << device.SerialNumber << std::dec << '\n';
   }
 
   return device;
@@ -95,11 +95,9 @@ DeviceData retrieveLastDevice(ftkLibrary lib, bool allowSimulator, bool quiet,
 
 void optionEnumerator(uint64_t /*sn*/, void* user, ftkOptionsInfo* oi) {
   if (user == nullptr || oi == nullptr) return;
-  auto* mapping = static_cast<map<string, uint32_t>*>(user);
+  auto* mapping = static_cast<std::map<std::string, uint32_t>*>(user);
   mapping->emplace(oi->name, oi->id);
 }
-
-namespace atracsys::sdk {
 
 void throwSdkError(const char* message, bool /*dontWaitForKeyboard*/) {
   throw std::runtime_error(message);

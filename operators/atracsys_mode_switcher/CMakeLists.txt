@@ -18,7 +18,6 @@ project(atracsys_mode_switcher LANGUAGES CXX)
 
 find_package(holoscan 4.0.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
-find_package(CUDAToolkit REQUIRED)
 
 add_library(atracsys_mode_switcher SHARED
   mode_switcher_keyboard.cpp

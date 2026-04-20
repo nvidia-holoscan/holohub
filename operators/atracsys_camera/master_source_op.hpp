@@ -104,7 +104,7 @@ class __attribute__((visibility("default"))) AtracsysMasterSourceOp : public hol
   static constexpr size_t kMaxMarkers = 10;
 
   RealSDKWrapper sdk_;
-  std::unique_ptr<IS3DKInterface> s3dk_;
+  std::unique_ptr<RealS3DKWrapper> s3dk_;
   uint64_t device_sn_{0};
   ftkFrameQuery* frame_{nullptr};
 

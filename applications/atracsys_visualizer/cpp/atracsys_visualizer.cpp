@@ -263,12 +263,20 @@ int main(int argc, char** argv) {
     }
   }
 
-  auto app = holoscan::make_application<AtracsysVisualizerApp>();
-  app->set_source(options.source);
-  app->set_data_path(options.data_path);
-  app->set_config_path(options.config_path);
-  app->config(options.config_path);
-  app->run();
+  try {
+    auto app = holoscan::make_application<AtracsysVisualizerApp>();
+    app->set_source(options.source);
+    app->set_data_path(options.data_path);
+    app->set_config_path(options.config_path);
+    app->config(options.config_path);
+    app->run();
 
-  return 0;
+    return 0;
+  } catch (const std::exception& e) {
+    HOLOSCAN_LOG_ERROR("Application failed with exception: {}", e.what());
+    return 1;
+  } catch (...) {
+    HOLOSCAN_LOG_ERROR("Application failed with unknown exception.");
+    return 1;
+  }
 }

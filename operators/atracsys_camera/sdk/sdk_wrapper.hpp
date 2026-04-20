@@ -19,7 +19,7 @@
 
 #include "sdk_interface.hpp"
 
-class RealSDKWrapper : public ISDKInterface {
+class RealSDKWrapper : public atracsys::ISDKInterface {
  public:
   ftkError setInt32(ftkLibrary lib, uint64_t sn, uint32_t optID, int32_t val) override {
     return ftkSetInt32(lib, sn, optID, val);
@@ -56,7 +56,14 @@ class RealSDKWrapper : public ISDKInterface {
 
   ftkError initExt(const char* config, ftkBuffer* buffer) override {
     ftkLibrary lib = ftkInitExt(config, buffer);
-    return (lib != nullptr) ? ftkError::FTK_OK : ftkError::FTK_ERR_INV_PTR;
+    if (!lib) {
+      if (buffer && buffer->data) {
+        throw std::runtime_error(std::string("ftkInitExt failed: ") +
+                                 reinterpret_cast<const char*>(buffer->data));
+      }
+      throw std::runtime_error("ftkInitExt failed (unknown error)");
+    }
+    return ftkError::FTK_OK;
   }
 
   void close(ftkLibrary* lib) override { ftkClose(lib); }

@@ -26,6 +26,8 @@ struct GpuFrame3D;
 enum class ImageType3D : uint32_t;
 struct StereoParameters;
 
+namespace atracsys {
+
 class IS3DKInterface {
  public:
   virtual ~IS3DKInterface() = default;
@@ -38,3 +40,5 @@ class IS3DKInterface {
   virtual bool computeDispMap(const ftkFrameQuery* frame, const stereo_matching_engine* engine,
                               GpuFrame3D* frame3d, StereoParameters* stereo) = 0;
 };
+
+}  // namespace atracsys

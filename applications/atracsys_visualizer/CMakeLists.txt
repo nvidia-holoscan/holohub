@@ -24,21 +24,25 @@ set(ATRACSYS_VISUALIZER_SOURCE_RECORDINGS_DIR "" CACHE PATH
     "Optional path to local Atracsys recordings used to trim a development replay sample")
 
 if(ATRACSYS_VISUALIZER_ENABLE_LIVE_CAMERA)
-  set(OP_atracsys_camera ON CACHE BOOL "Build the atracsys_camera operator" FORCE)
+  set(OP_atracsys_camera ON CACHE BOOL "Build the atracsys_camera operator")
 else()
-  set(OP_atracsys_camera OFF CACHE BOOL "Build the atracsys_camera operator" FORCE)
+  set(OP_atracsys_camera OFF CACHE BOOL "Build the atracsys_camera operator")
 endif()
 
-set(_holohub_build_operators ${HOLOHUB_BUILD_OPERATORS})
-if(ATRACSYS_VISUALIZER_ENABLE_LIVE_CAMERA)
-  list(APPEND _holohub_build_operators atracsys_camera)
-else()
-  list(REMOVE_ITEM _holohub_build_operators atracsys_camera)
+if(NOT DEFINED HOLOHUB_BUILD_OPERATORS)
+  set(HOLOHUB_BUILD_OPERATORS "" CACHE STRING "Operators to build dynamically")
 endif()
-list(REMOVE_DUPLICATES _holohub_build_operators)
-set(HOLOHUB_BUILD_OPERATORS "${_holohub_build_operators}" CACHE STRING
-    "Optional operators requested for the active HoloHub app build" FORCE)
-unset(_holohub_build_operators)
+
+if(ATRACSYS_VISUALIZER_ENABLE_LIVE_CAMERA)
+  if(NOT "atracsys_camera" IN_LIST HOLOHUB_BUILD_OPERATORS)
+    set(HOLOHUB_BUILD_OPERATORS "${HOLOHUB_BUILD_OPERATORS};atracsys_camera" CACHE STRING "Operators to build dynamically" FORCE)
+  endif()
+else()
+  if("atracsys_camera" IN_LIST HOLOHUB_BUILD_OPERATORS)
+    list(REMOVE_ITEM HOLOHUB_BUILD_OPERATORS "atracsys_camera")
+    set(HOLOHUB_BUILD_OPERATORS "${HOLOHUB_BUILD_OPERATORS}" CACHE STRING "Operators to build dynamically" FORCE)
+  endif()
+endif()
 
 if(HOLOHUB_DOWNLOAD_DATASETS AND NOT EXISTS "${HOLOHUB_DATA_DIR}/atracsys_visualizer/ir_base.gxf_entities")
   set(ATRACSYS_VISUALIZER_DATASET_URL

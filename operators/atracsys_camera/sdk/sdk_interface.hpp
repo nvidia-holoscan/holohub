@@ -24,6 +24,8 @@
 
 #include "geometry_helper.hpp"
 
+namespace atracsys {
+
 class ISDKInterface {
  public:
   virtual ~ISDKInterface() = default;
@@ -47,3 +49,5 @@ class ISDKInterface {
   virtual ftkError getLastErrorString(ftkLibrary lib, uint32_t size, char* buffer) = 0;
   virtual int loadBody(ftkLibrary lib, const std::string& fileName, ftkRigidBody& geometry) = 0;
 };
+
+}  // namespace atracsys

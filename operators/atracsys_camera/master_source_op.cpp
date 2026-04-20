@@ -266,6 +266,9 @@ void AtracsysMasterSourceOp::capture_loop() {
 
     const auto frame_status = sdk_.getLastFrame(dev.lib(), dev.serial(), frame_, frame_timeout_ms_);
     if (frame_status == ftkError::FTK_OK && frame_->imageHeader) {
+      // The capture thread writes to frame_ here. Below we signal EVENT_DONE, which uses
+      // the necessary acquire/release memory ordering (via AsynchronousCondition::event_state)
+      // so compute() safely reads frame_ after seeing EVENT_DONE.
       async_cond_->event_state(holoscan::AsynchronousEventState::EVENT_DONE);
     } else {
       ++frame_timeout_count_;
@@ -285,8 +288,12 @@ void AtracsysMasterSourceOp::compute(holoscan::InputContext& op_input,
                                      holoscan::OutputContext& op_output,
                                      holoscan::ExecutionContext& context) {
   auto hw_cmd = op_input.receive<std::shared_ptr<atracsys::HardwareModeCommand>>("in_hw_cmd");
-  if (active_scheduler_mode_ == SchedulerMode::kExclusive && hw_cmd && hw_cmd.value()) {
-    apply_pending_command(hw_cmd.value());
+  if (hw_cmd && hw_cmd.value()) {
+    if (active_scheduler_mode_ == SchedulerMode::kExclusive) {
+      apply_pending_command(hw_cmd.value());
+    } else if (active_scheduler_mode_ == SchedulerMode::kMixed) {
+      HOLOSCAN_LOG_DEBUG("AtracsysMasterSourceOp: hw_cmd ignored in mixed mode");
+    }
   }
 
   if (!frame_ || !frame_->imageHeader) {
@@ -596,7 +603,7 @@ void AtracsysMasterSourceOp::emit_marker_poses(holoscan::OutputContext& op_outpu
 void AtracsysMasterSourceOp::emit_structured_points(holoscan::OutputContext& op_output,
                                                     holoscan::ExecutionContext& context,
                                                     cudaStream_t cuda_stream) {
-  if (!s3dk_ || !gpu_frame_ || !frame_ || !frame_->imageHeader || !stereo_params_) {
+  if (!s3dk_ || !gpu_frame_ || !frame_ || !frame_->imageHeader || !stereo_params_ || !engine_) {
     HOLOSCAN_LOG_WARN("AtracsysMasterSourceOp: structured-light path not fully initialized");
     return;
   }
@@ -625,7 +632,9 @@ void AtracsysMasterSourceOp::emit_structured_points(holoscan::OutputContext& op_
   const int width = disp_map.cols;
   const int height = disp_map.rows;
   auto Q_mat = stereo_params_->Q_32F;
-  if (Q_mat.empty() || Q_mat.type() != CV_32FC1) {
+  if (Q_mat.empty() || Q_mat.type() != CV_32FC1 || Q_mat.rows != 4 ||
+      Q_mat.cols != 4 || !Q_mat.isContinuous()) {
+    HOLOSCAN_LOG_WARN("AtracsysMasterSourceOp: invalid Q_matrix structure");
     return;
   }
 
@@ -652,9 +661,8 @@ void AtracsysMasterSourceOp::emit_structured_points(holoscan::OutputContext& op_
   disparity_output_entity_index_ =
       (disparity_output_entity_index_ + 1) % disparity_output_entities_.size();
 
-  auto q_msg = std::make_shared<std::vector<float>>();
-  q_msg->assign(reinterpret_cast<const float*>(Q_mat.data),
-                reinterpret_cast<const float*>(Q_mat.data) + 16);
+  auto q_msg = std::make_shared<std::vector<float>>(16);
+  std::memcpy(q_msg->data(), Q_mat.ptr<float>(), 16 * sizeof(float));
   op_output.emit(q_msg, "out_q_matrix");
 }
 
