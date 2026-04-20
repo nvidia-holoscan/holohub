@@ -5,6 +5,7 @@ It consumes replayed or live visible, infrared, structured-light, and marker-pos
 emits the currently selected base image, projected overlays, point clouds, and Holoviz text specs.
 
 The operator keeps the Atracsys interaction model inside one reusable package:
+
 - keyboard-driven mode changes for interactive runs
 - placeholder outputs when a stream is not active yet
 - marker geometry projection onto visible or infrared frames
@@ -12,12 +13,14 @@ The operator keeps the Atracsys interaction model inside one reusable package:
 - hardware-mode commands for the optional live camera source
 
 Inputs:
+
 - `in_visible_base`
 - `in_ir_base`
 - `in_structured_points`
 - `in_marker_poses`
 
 Outputs:
+
 - `out_base`
 - `out_overlay`
 - `out_marker_points`

@@ -112,8 +112,10 @@ void PointCloudFilterOp::compute(holoscan::InputContext& op_input,
 
   const size_t total_points_sz = static_cast<size_t>(width) * static_cast<size_t>(height);
   if (total_points_sz > static_cast<size_t>(std::numeric_limits<int32_t>::max())) {
-      throw std::runtime_error(
-          "PointCloudFilterOp: disparity_map dimensions exceed safe int32 limit");
+    throw std::runtime_error(
+        "PointCloudFilterOp: disparity_map dimensions exceed safe int32 limit");
+  }
+  const int32_t total_points = static_cast<int32_t>(total_points_sz);
 
   const int16_t* d_disp_map = reinterpret_cast<const int16_t*>(disp_tensor.value()->pointer());
   const size_t step = static_cast<size_t>(width) * sizeof(int16_t);
