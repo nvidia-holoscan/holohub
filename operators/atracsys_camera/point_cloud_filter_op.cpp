@@ -53,6 +53,11 @@ void PointCloudFilterOp::setup(holoscan::OperatorSpec& spec) {
              "cuda_stream_pool",
              "CudaStreamPool",
              "CUDA stream pool used for async GPU operations");
+
+  spec.param(min_z_, "min_z", "Min Z", "Minimum Z coordinate for points", 0.0f);
+  spec.param(max_z_, "max_z", "Max Z", "Maximum Z coordinate for points", 5000.0f);
+  spec.param(max_x_, "max_x", "Max X", "Maximum absolute X coordinate for points", 5000.0f);
+  spec.param(max_y_, "max_y", "Max Y", "Maximum absolute Y coordinate for points", 5000.0f);
 }
 
 void PointCloudFilterOp::start() {
@@ -81,9 +86,26 @@ void PointCloudFilterOp::ensure_structured_output_entities(
   const nvidia::gxf::Shape shape{static_cast<int32_t>(point_count), 3};
   auto alloc = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(
       context.context(), structured_allocator_.get()->gxf_cid());
+  if (!alloc) {
+      throw std::runtime_error("PointCloudFilterOp: failed to create allocator handle");
+  }
+
   auto msg = nvidia::gxf::Entity::New(context.context());
+  if (!msg) {
+      throw std::runtime_error("PointCloudFilterOp: failed to create new entity");
+  }
+
   auto tensor = msg.value().add<nvidia::gxf::Tensor>(kStructuredTensorName);
-  tensor.value()->reshape<float>(shape, nvidia::gxf::MemoryStorageType::kDevice, alloc.value());
+  if (!tensor) {
+      throw std::runtime_error("PointCloudFilterOp: failed to add tensor to entity");
+  }
+
+  auto reshape_result = tensor.value()->reshape<float>(
+      shape, nvidia::gxf::MemoryStorageType::kDevice, alloc.value());
+  if (!reshape_result) {
+      throw std::runtime_error("PointCloudFilterOp: failed to reshape tensor");
+  }
+
   structured_output_entities_[structured_output_entity_index_].emplace(std::move(msg.value()));
 }
 
@@ -140,10 +162,10 @@ void PointCloudFilterOp::compute(holoscan::InputContext& op_input,
                             height,
                             step,
                             h_Q,
-                            0.0f,
-                            5000.0f,
-                            5000.0f,
-                            5000.0f,
+                            min_z_.get(),
+                            max_z_.get(),
+                            max_x_.get(),
+                            max_y_.get(),
                             d_out_points,
                             cuda_stream);
   check_cuda(cudaGetLastError(), "Failed to launch point cloud filter kernel");

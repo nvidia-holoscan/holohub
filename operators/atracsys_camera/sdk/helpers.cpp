@@ -56,7 +56,7 @@ DeviceData retrieveLastDevice(ftkLibrary lib, bool allowSimulator, bool quiet,
     err = ftkEnumerateDevices(lib, fusionTrackEnumerator, &device);
   }
 
-  if (err > ftkError::FTK_OK) {
+  if (err != ftkError::FTK_OK) {
     throw std::runtime_error("ftkEnumerateDevices returned an error");
   }
 
@@ -108,7 +108,7 @@ void checkError(ftkLibrary lib, bool dontWaitForKeyboard, bool /*quit*/) {
   const auto status = ftkGetLastErrorString(lib, sizeof(buf), buf);
   if (status != ftkError::FTK_OK) {
     throw std::runtime_error("ftkGetLastErrorString failed with error code: " +
-                             std::to_string(status));
+                             std::to_string(static_cast<int>(status)));
   }
   if (std::strlen(buf) > 0) {
     throwSdkError(buf, dontWaitForKeyboard);

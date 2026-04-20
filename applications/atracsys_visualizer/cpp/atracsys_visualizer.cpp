@@ -246,24 +246,25 @@ class AtracsysVisualizerApp : public holoscan::Application {
 };
 
 int main(int argc, char** argv) {
-  CommandLineOptions options;
-  if (!parse_arguments(argc, argv, options)) {
-    return 0;
-  }
-
-  if (options.config_path.empty()) {
-    options.config_path = "atracsys_visualizer.yaml";
-  }
-
-  if (options.data_path.empty()) {
-    if (const char* env_path = std::getenv("HOLOSCAN_INPUT_PATH")) {
-      options.data_path = env_path;
-    } else {
-      options.data_path = "data/atracsys_visualizer";
-    }
-  }
-
   try {
+    CommandLineOptions options;
+    if (!parse_arguments(argc, argv, options)) {
+      return 0;
+    }
+
+    if (options.config_path.empty()) {
+      options.config_path = "atracsys_visualizer.yaml";
+    }
+
+    if (options.data_path.empty()) {
+      if (const char* env_path = std::getenv("HOLOSCAN_INPUT_PATH")) {
+        options.data_path =
+            std::string(env_path) + "/atracsys_visualizer";
+      } else {
+        options.data_path = "data/atracsys_visualizer";
+      }
+    }
+
     auto app = holoscan::make_application<AtracsysVisualizerApp>();
     app->set_source(options.source);
     app->set_data_path(options.data_path);

@@ -19,18 +19,18 @@
 
 #include <ftkInterface.h>
 
+#include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <mutex>
 #include <string>
-
-using namespace std;
 
 static void getDataDirOptionId(uint64_t sn, void* user, ftkOptionsInfo* oi);
 
-int loadRigidBody(ftkLibrary lib, const string& fileName, ftkRigidBody& geometry) {
-  string fullFileName;
+int loadRigidBody(ftkLibrary lib, const std::string& fileName, ftkRigidBody& geometry) {
+  std::string fullFileName;
   bool fromDataDir = false;
   if (!getFullFilePath(lib, fileName, fullFileName, &fromDataDir)) {
     return 2;
@@ -48,37 +48,41 @@ int loadRigidBody(ftkLibrary lib, const string& fileName, ftkRigidBody& geometry
   return fromDataDir ? 1 : 0;
 }
 
-bool getFullFilePath(ftkLibrary lib, const string& fileName, string& fullFilePath,
+bool getFullFilePath(ftkLibrary lib, const std::string& fileName, std::string& fullFilePath,
                      bool* fromSystem) {
   static uint32_t FTK_OPT_DATA_DIR = 0u;
-  static string OPT_DIR;
+  static std::string OPT_DIR;
+  static std::once_flag flag;
 
-  if (FTK_OPT_DATA_DIR == 0u) {
+  std::call_once(flag, [&]() {
     if (ftkEnumerateOptions(lib, 0uLL, getDataDirOptionId, &FTK_OPT_DATA_DIR) !=
         ftkError::FTK_WAR_OPT_GLOBAL_ONLY) {
-      cerr << "Could not get the data directory option ID\n";
-      return false;
+      std::cerr << "Could not get the data directory option ID\n";
+      FTK_OPT_DATA_DIR = 0u;
+      return;
     }
-    if (FTK_OPT_DATA_DIR == 0u) {
-      cerr << "Could not get the data directory option ID\n";
-      return false;
+    if (FTK_OPT_DATA_DIR != 0u) {
+      ftkBuffer buffer{};
+      if (ftkGetData(lib, 0uLL, FTK_OPT_DATA_DIR, &buffer) == ftkError::FTK_OK &&
+          buffer.size >= 1u) {
+        OPT_DIR.assign(reinterpret_cast<const char*>(buffer.data), buffer.size);
+        if (!OPT_DIR.empty() && OPT_DIR.back() == '\0') {
+          OPT_DIR.pop_back();
+        }
+      }
     }
-  }
+  });
 
+  if (FTK_OPT_DATA_DIR == 0u) {
+    std::cerr << "Could not get the data directory option ID\n";
+    return false;
+  }
   if (OPT_DIR.empty()) {
-    ftkBuffer buffer{};
-    if (ftkGetData(lib, 0uLL, FTK_OPT_DATA_DIR, &buffer) != ftkError::FTK_OK ||
-        buffer.size < 1u) {
-      return false;
-    }
-    OPT_DIR.assign(reinterpret_cast<const char*>(buffer.data), buffer.size);
-    if (!OPT_DIR.empty() && OPT_DIR.back() == '\0') {
-      OPT_DIR.pop_back();
-    }
+    return false;
   }
 
-  const string candidate = OPT_DIR + "/" + fileName;
-  ifstream system_input{candidate};
+  const std::string candidate = OPT_DIR + "/" + fileName;
+  std::ifstream system_input{candidate};
   if (system_input.is_open()) {
     fullFilePath = candidate;
     if (fromSystem != nullptr) *fromSystem = true;
@@ -88,31 +92,31 @@ bool getFullFilePath(ftkLibrary lib, const string& fileName, string& fullFilePat
   return false;
 }
 
-bool loadFileInBuffer(const string& fullFilePath, ftkBuffer& buffer) {
-  ifstream input(fullFilePath, ios::binary | ios::ate);
+bool loadFileInBuffer(const std::string& fullFilePath, ftkBuffer& buffer) {
+  std::ifstream input(fullFilePath, std::ios::binary | std::ios::ate);
   if (!input.is_open()) {
-    cerr << "Could not open file '" << fullFilePath << "'\n";
+    std::cerr << "Could not open file '" << fullFilePath << "'\n";
     return false;
   }
 
   buffer.reset();
-  streampos pos = input.tellg();
+  std::streampos pos = input.tellg();
   if (pos < 0 || pos > std::numeric_limits<uint32_t>::max()) {
-    cerr << "File too large for buffer\n";
+    std::cerr << "File too large for buffer\n";
     return false;
   }
 
-  if (static_cast<size_t>(pos) > buffer.capacity) {
-    if (buffer.resize(static_cast<size_t>(pos)) != ftkError::FTK_OK) {
-      cerr << "Failed to resize ftkBuffer for file\n";
-      return false;
-    }
+  const auto file_size = static_cast<size_t>(pos);
+  if (file_size > sizeof(buffer.data)) {
+    std::cerr << "Failed: file size exceeds ftkBuffer array capacity\n";
+    return false;
   }
+  buffer.size = 0u;
 
-  input.seekg(0u, ios::beg);
-  input.read(buffer.data, static_cast<streamsize>(pos));
+  input.seekg(0u, std::ios::beg);
+  input.read(buffer.data, static_cast<std::streamsize>(pos));
   if (input.fail()) {
-    cerr << "Could not read file '" << fullFilePath << "'\n";
+    std::cerr << "Could not read file '" << fullFilePath << "'\n";
     return false;
   }
   buffer.size = static_cast<uint32_t>(pos);

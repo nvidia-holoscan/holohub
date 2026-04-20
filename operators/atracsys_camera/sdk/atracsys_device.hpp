@@ -40,7 +40,11 @@ class AtracsysDevice {
 
     ftkLibrary new_lib = ftkInitExt(nullptr, &buffer_);
     if (!new_lib) {
-      throw std::runtime_error(buffer_.data ? buffer_.data : "ftkInitExt failed");
+      if (buffer_.data && buffer_.size > 0) {
+        throw std::runtime_error(
+            std::string(reinterpret_cast<const char*>(buffer_.data), buffer_.size));
+      }
+      throw std::runtime_error("ftkInitExt failed");
     }
 
     try {

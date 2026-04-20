@@ -183,44 +183,6 @@ void AtracsysMasterSourceOp::setup(holoscan::OperatorSpec& spec) {
 
 void AtracsysMasterSourceOp::start() {
   reset_state();
-  frame_timeout_count_ = 0;
-  first_frame_logged_ = false;
-  first_structured_cloud_logged_ = false;
-
-  auto& dev = AtracsysDevice::instance();
-  dev.init();
-  device_sn_ = dev.serial();
-
-  active_scheduler_mode_ = configured_scheduler_mode();
-  active_hw_mode_ = configured_initial_hw_mode();
-  frame_timeout_ms_ = 500;
-
-  if (!s3dk_) {
-    s3dk_ = std::make_unique<RealS3DKWrapper>();
-  }
-  if (!s3dk_->initializeDeviceHelper(&device_sn_, dev.lib(), &image_type_)) {
-    throw std::runtime_error("AtracsysMasterSourceOp: initializeDeviceHelper failed");
-  }
-
-  load_geometries();
-  configure_camera();
-
-  frame_ = sdk_.createFrame();
-  if (!frame_) {
-    throw std::runtime_error("AtracsysMasterSourceOp: ftkCreateFrame failed");
-  }
-  configure_frame();
-
-  stereo_params_ = s3dk_->createStereoParameters();
-  engine_ = s3dk_->createDefaultEngine();
-  gpu_frame_ = s3dk_->createGpu3DFrame(image_type_);
-  if (gpu_frame_) {
-    const int scale = validated_scale_factor(scale_factor_.get());
-    gpu_frame_->_scale = scale;
-  }
-  if (stereo_params_) {
-    stereo_params_->scale = validated_scale_factor(scale_factor_.get());
-  }
 
   for (auto& [name, cond] : conditions()) {
     if (auto async_cond = std::dynamic_pointer_cast<holoscan::AsynchronousCondition>(cond)) {
@@ -234,9 +196,58 @@ void AtracsysMasterSourceOp::start() {
         "AsynchronousCondition.");
   }
 
-  is_running_ = true;
-  async_cond_->event_state(holoscan::AsynchronousEventState::EVENT_WAITING);
-  capture_thread_ = std::thread(&AtracsysMasterSourceOp::capture_loop, this);
+  frame_timeout_count_ = 0;
+  first_frame_logged_ = false;
+  first_structured_cloud_logged_ = false;
+
+  auto& dev = AtracsysDevice::instance();
+  dev.init();
+
+  try {
+    device_sn_ = dev.serial();
+
+    active_scheduler_mode_ = configured_scheduler_mode();
+    active_hw_mode_ = configured_initial_hw_mode();
+    frame_timeout_ms_ = 500;
+
+    if (!s3dk_) {
+      s3dk_ = std::make_unique<RealS3DKWrapper>();
+    }
+    if (!s3dk_->initializeDeviceHelper(&device_sn_, dev.lib(), &image_type_)) {
+      throw std::runtime_error(
+          "AtracsysMasterSourceOp: initializeDeviceHelper failed");
+    }
+
+    load_geometries();
+    configure_camera();
+
+    frame_ = sdk_.createFrame();
+    if (!frame_) {
+      throw std::runtime_error(
+          "AtracsysMasterSourceOp: ftkCreateFrame failed");
+    }
+    configure_frame();
+
+    stereo_params_ = s3dk_->createStereoParameters();
+    engine_ = s3dk_->createDefaultEngine();
+    gpu_frame_ = s3dk_->createGpu3DFrame(image_type_);
+    if (gpu_frame_) {
+      const int scale = validated_scale_factor(scale_factor_.get());
+      gpu_frame_->_scale = scale;
+    }
+    if (stereo_params_) {
+      stereo_params_->scale = validated_scale_factor(scale_factor_.get());
+    }
+
+    is_running_ = true;
+    async_cond_->event_state(
+        holoscan::AsynchronousEventState::EVENT_WAITING);
+    capture_thread_ =
+        std::thread(&AtracsysMasterSourceOp::capture_loop, this);
+  } catch (...) {
+    AtracsysDevice::instance().shutdown();
+    throw;
+  }
 }
 
 void AtracsysMasterSourceOp::stop() {
@@ -251,6 +262,8 @@ void AtracsysMasterSourceOp::stop() {
   engine_ = nullptr;
   stereo_params_ = nullptr;
   s3dk_.reset();
+
+  AtracsysDevice::instance().shutdown();
 
   holoscan::Operator::stop();
 }

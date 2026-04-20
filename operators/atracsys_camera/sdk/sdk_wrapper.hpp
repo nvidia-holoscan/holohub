@@ -17,6 +17,9 @@
 
 #pragma once
 
+#include <stdexcept>
+#include <string>
+
 #include "sdk_interface.hpp"
 
 class RealSDKWrapper : public atracsys::ISDKInterface {

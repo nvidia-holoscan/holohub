@@ -26,11 +26,11 @@
 #include "helpers.hpp"
 #include "s3dk_interface.hpp"
 
-namespace {
+namespace atracsys::sdk::detail {
 
 inline std::map<std::string, uint32_t> enumerate_sdk_options(ftkLibrary lib, uint64_t sn) {
   std::map<std::string, uint32_t> options;
-  if (ftkEnumerateOptions(lib, sn, optionEnumerator, &options) != ftkError::FTK_OK ||
+  if (ftkEnumerateOptions(lib, sn, atracsys::sdk::optionEnumerator, &options) != ftkError::FTK_OK ||
       options.empty()) {
     throw std::runtime_error("Cannot retrieve Atracsys SDK options.");
   }
@@ -53,16 +53,17 @@ inline std::string device_type_string(ftkLibrary lib, uint64_t sn,
 
 inline void set_device_option(ftkLibrary lib, uint64_t sn,
                               const std::map<std::string, uint32_t>& options, const char* name,
-                              int32_t value, bool required = true) {
+                              int32_t value) {
   auto it = options.find(name);
   if (it == options.end()) {
-    if (required)
-      throw std::runtime_error(std::string("Missing Atracsys option: ") + name);
     return;
   }
 
-  if (ftkSetInt32(lib, sn, it->second, value) != ftkError::FTK_OK && required) {
-    throw std::runtime_error(std::string("Failed to set Atracsys option: ") + name);
+  const ftkError status = ftkSetInt32(lib, sn, it->second, value);
+  if (status != ftkError::FTK_OK) {
+    throw std::runtime_error(
+        std::string("Failed to set Atracsys option: ") + name +
+        ", status: " + std::to_string(static_cast<int>(status)));
   }
 }
 
@@ -70,12 +71,12 @@ inline void configure_device_defaults(ftkLibrary lib, uint64_t sn,
                                       const std::map<std::string, uint32_t>& options) {
   set_device_option(lib, sn, options, "Enable embedded processing", 1);
   set_device_option(lib, sn, options, "Enable images sending", 1);
-  set_device_option(lib, sn, options, "Calibration export", 1, false);
-  set_device_option(lib, sn, options, "Embedded Symmetrise coordinates", 0, false);
-  set_device_option(lib, sn, options, "Enable 16 bits pictures", 0, false);
+  set_device_option(lib, sn, options, "Calibration export", 1);
+  set_device_option(lib, sn, options, "Embedded Symmetrise coordinates", 0);
+  set_device_option(lib, sn, options, "Enable 16 bits pictures", 0);
 }
 
-}  // namespace
+}  // namespace atracsys::sdk::detail
 
 class RealS3DKWrapper : public atracsys::IS3DKInterface {
  public:
@@ -86,14 +87,16 @@ class RealS3DKWrapper : public atracsys::IS3DKInterface {
     if (!device_sn || !lib || !image_type) {
       throw std::runtime_error("initializeDeviceHelper: invalid arguments");
     }
-    auto options = enumerate_sdk_options(lib, *device_sn);
-    const std::string device_type = device_type_string(lib, *device_sn, options);
+    auto options =
+        atracsys::sdk::detail::enumerate_sdk_options(lib, *device_sn);
+    const std::string device_type =
+        atracsys::sdk::detail::device_type_string(lib, *device_sn, options);
     bool valid = false;
     *image_type = convert_string_image_type(device_type, &valid);
     if (!valid) {
       throw std::runtime_error("Unsupported Atracsys device type for S3DK: " + device_type);
     }
-    configure_device_defaults(lib, *device_sn, options);
+    atracsys::sdk::detail::configure_device_defaults(lib, *device_sn, options);
     return true;
   }
 

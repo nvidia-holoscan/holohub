@@ -36,6 +36,7 @@ typedef struct CUstream_st* cudaStream_t;
 #include "hardware_mode_command.hpp"
 #include "sdk/atracsys_device.hpp"
 #include "sdk/s3dk_interface.hpp"
+#include "sdk/s3dk_wrapper.hpp"
 #include "sdk/sdk_wrapper.hpp"
 
 namespace holoscan::ops {

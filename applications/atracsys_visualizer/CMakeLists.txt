@@ -44,6 +44,10 @@ else()
   endif()
 endif()
 
+if(NOT DEFINED HOLOHUB_DATA_DIR OR HOLOHUB_DATA_DIR STREQUAL "")
+  message(FATAL_ERROR "HOLOHUB_DATA_DIR must be set when building with datasets")
+endif()
+
 if(HOLOHUB_DOWNLOAD_DATASETS AND NOT EXISTS "${HOLOHUB_DATA_DIR}/atracsys_visualizer/ir_base.gxf_entities")
   set(ATRACSYS_VISUALIZER_DATASET_URL
       "https://github.com/waylandio/holohub/releases/download/dataset-v1.0/atracsys_visualizer.zip")

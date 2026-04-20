@@ -47,6 +47,10 @@ class __attribute__((visibility("default"))) PointCloudFilterOp : public holosca
 
   holoscan::Parameter<std::shared_ptr<holoscan::Allocator>> structured_allocator_;
   holoscan::Parameter<std::shared_ptr<holoscan::CudaStreamPool>> cuda_stream_pool_;
+  holoscan::Parameter<float> min_z_;
+  holoscan::Parameter<float> max_z_;
+  holoscan::Parameter<float> max_x_;
+  holoscan::Parameter<float> max_y_;
 
   static constexpr size_t kEntityRingSize = 4;
   std::array<std::optional<holoscan::gxf::Entity>, kEntityRingSize> structured_output_entities_;
