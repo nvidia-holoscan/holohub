@@ -137,7 +137,7 @@ void PointCloudFilterOp::compute(holoscan::InputContext& op_input,
                             d_out_points,
                             cuda_stream);
   check_cuda(cudaGetLastError(), "Failed to launch point cloud filter kernel");
-  
+
   if (!first_cloud_logged_) {
     first_cloud_logged_ = true;
     HOLOSCAN_LOG_INFO(

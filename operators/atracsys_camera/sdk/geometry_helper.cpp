@@ -101,10 +101,11 @@ bool loadFileInBuffer(const string& fullFilePath, ftkBuffer& buffer) {
     cerr << "File too large for buffer\n";
     return false;
   }
-  // Note: We rely on buffer.reset() inside the SDK managing its own memory allocation 
+  // Note: We rely on buffer.reset() inside the SDK managing its own memory allocation
   // or that the buffer has enough capacity, though standard usage just passes 'pos' size.
   // Actually, wait, often SDK expects user to allocate! Let's just document:
-  // "Assuming ftkBuffer's allocator provides enough capacity after reset() or the struct handles it."
+  // "Assuming ftkBuffer's allocator provides enough capacity after reset()
+  // or the struct handles it."
   input.seekg(0u, ios::beg);
   input.read(buffer.data, static_cast<streamsize>(pos));
   if (input.fail()) {

@@ -109,11 +109,12 @@ void checkError(ftkLibrary lib, bool dontWaitForKeyboard, bool /*quit*/) {
   char buf[1024];
   const auto status = ftkGetLastErrorString(lib, sizeof(buf), buf);
   if (status != ftkError::FTK_OK) {
-    throw std::runtime_error("ftkGetLastErrorString failed with error code: " + std::to_string(status));
+    throw std::runtime_error("ftkGetLastErrorString failed with error code: " +
+                             std::to_string(status));
   }
   if (std::strlen(buf) > 0) {
     throwSdkError(buf, dontWaitForKeyboard);
   }
 }
 
-} // namespace atracsys::sdk
+}  // namespace atracsys::sdk

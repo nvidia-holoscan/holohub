@@ -321,7 +321,8 @@ void add_device_tensor_to_entity(nvidia::gxf::Entity& entity,
                                  const std::shared_ptr<holoscan::Allocator>& allocator,
                                  const char* tensor_name, const nvidia::gxf::Shape& shape,
                                  const T* data, size_t element_count, const char* tensor_error,
-                                 const char* copy_error, cudaStream_t cuda_stream = cudaStreamDefault) {
+                                 const char* copy_error,
+                                 cudaStream_t cuda_stream = cudaStreamDefault) {
   auto tensor = entity.add<nvidia::gxf::Tensor>(tensor_name);
   if (!tensor) {
     throw std::runtime_error(tensor_error);
@@ -331,8 +332,8 @@ void add_device_tensor_to_entity(nvidia::gxf::Entity& entity,
       nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(context.context(), allocator->gxf_cid());
   tensor.value()->reshape<T>(shape, nvidia::gxf::MemoryStorageType::kDevice, alloc.value());
   check_cuda(
-      cudaMemcpyAsync(
-          tensor.value()->pointer(), data, element_count * sizeof(T), cudaMemcpyHostToDevice, cuda_stream),
+      cudaMemcpyAsync(tensor.value()->pointer(), data,
+                      element_count * sizeof(T), cudaMemcpyHostToDevice, cuda_stream),
       copy_error);
 }
 
@@ -341,7 +342,8 @@ holoscan::gxf::Entity create_device_tensor_entity(
     const holoscan::ExecutionContext& context,
     const std::shared_ptr<holoscan::Allocator>& allocator, const char* tensor_name,
     const nvidia::gxf::Shape& shape, const T* data, size_t element_count, const char* entity_error,
-    const char* tensor_error, const char* copy_error, cudaStream_t cuda_stream = cudaStreamDefault) {
+    const char* tensor_error, const char* copy_error,
+    cudaStream_t cuda_stream = cudaStreamDefault) {
   auto msg = nvidia::gxf::Entity::New(context.context());
   if (!msg) {
     throw std::runtime_error(entity_error);
@@ -415,7 +417,8 @@ void upload_to_tensor(const holoscan::gxf::Entity& entity, const char* tensor_na
   if (!tensor) {
     throw std::runtime_error(tensor_error);
   }
-  check_cuda(cudaMemcpyAsync(tensor.value()->pointer(), data, bytes, cudaMemcpyHostToDevice, cuda_stream),
+  check_cuda(cudaMemcpyAsync(tensor.value()->pointer(), data, bytes,
+                             cudaMemcpyHostToDevice, cuda_stream),
              copy_error);
 }
 

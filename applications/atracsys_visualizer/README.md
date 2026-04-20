@@ -23,6 +23,7 @@ graph TD
 ```
 
 The application is split into:
+
 - a required reusable `AtracsysModeSwitcherOp` operator
 - an optional `atracsys_camera` operator package for live hardware input
 - a single C++ application entrypoint with configuration via `atracsys_visualizer.yaml`
@@ -33,6 +34,7 @@ The application is split into:
 The animation above demonstrates the core imaging capabilities of the Atracsys spryTrack 300 camera: **Visible Mode**, **Infrared Mode**, and **Structured-Light Mode**, alongside its high-accuracy marker tracking.
 
 When observing the different streams and enabling tracking (by pressing `4`), the visualizer behaves according to the camera's hardware constraints:
+
 - **Infrared Mode + Tracking**: Since marker tracking natively utilizes the infrared sensors, both the IR video stream and the 3D marker overlay update simultaneously in real-time.
 - **Visible & Structured-Light Modes + Tracking**: When tracking is activated during these modes, the last captured camera frame is frozen as a static background, while the real-time tracking of the registered marker is continuously rendered on top of it.
 
@@ -43,6 +45,7 @@ The Atracsys SDK and S3DK are proprietary hardware drivers and are **not** bundl
 To run the `live_camera` mode with your Atracsys spryTrack 300 camera, you must first obtain the SDKs directly from the vendor.
 
 Please contact **support@atracsys.com** to request the following packages based on your architecture:
+
 - spryTrack SDK v4.9.0 (for x86_64)
 - spryTrack SDK v4.9.0 (for aarch64)
 - S3DK Structured Light SDK (for x86_64)
@@ -51,9 +54,11 @@ Please contact **support@atracsys.com** to request the following packages based 
 > **Note:** The S3DK SDK dynamically links against OpenCV. The provided wrapper and Dockerfile alias the `libopencv_world.so.4.10.0` library to `libopencv_world.so.410` based on the vendor's tested ABI compatibility with OpenCV 4.10. Ensure your S3DK version matches this requirement.
 
 Once provided:
+
 1. Install them on your local machine.
 
 Recommended live SDK layout for HoloHub:
+
 - Atracsys SDK config under `/opt/atracsys-4.9.0/cmake/Atracsys`
 - S3DK root under `/opt/s3dk`
 
@@ -69,6 +74,7 @@ If you have the physical hardware and wish to generate your own Replay GXF datas
 To track custom instruments with the spryTrack 300 camera, you must first register their geometry. The application includes a sample geometry file `geometry10.ini` representing a custom marker made of 4 reflective fiducials.
 
 ### Registration Procedure
+
 1. Use the **Atracsys spryTrack GUI** to identify the raw fiducials.
 2. Extract the fiducial coordinates and create a `.ini` file (see `geometry10.ini` for the format).
 3. Perform the **Marker Recalibration** procedure to refine the geometry and ensure stable tracking.
