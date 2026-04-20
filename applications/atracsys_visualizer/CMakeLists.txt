@@ -35,11 +35,11 @@ endif()
 
 if(HOLOHUB_DOWNLOAD_DATASETS AND NOT EXISTS "${HOLOHUB_DATA_DIR}/atracsys_visualizer/ir_base.gxf_entities")
   message(STATUS "Downloading Atracsys Visualizer demo dataset...")
-  file(DOWNLOAD "https://github.com/artrittelaku-wayland/holohub/releases/download/dataset-v1.0/atracsys_visualizer.zip"
+  file(DOWNLOAD "https://github.com/waylandio/holohub/releases/download/dataset-v1.0/atracsys_visualizer.zip"
        "${CMAKE_CURRENT_BINARY_DIR}/atracsys_visualizer.zip"
        SHOW_PROGRESS
        STATUS DOWNLOAD_STATUS)
-  
+
   list(GET DOWNLOAD_STATUS 0 STATUS_CODE)
   if(NOT STATUS_CODE EQUAL 0)
     message(FATAL_ERROR "Failed to download dataset. Status: ${DOWNLOAD_STATUS}")

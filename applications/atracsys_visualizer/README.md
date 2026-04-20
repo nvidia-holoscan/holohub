@@ -75,21 +75,23 @@ For detailed instructions on registering new instruments and using the recalibra
 
 ## Build and run
 
+> **Note:** The underlying dependencies (like OpenCV) currently require CUDA 12 to build successfully. Please append `--cuda 12` to your build and run commands.
+
 Replay mode (Default):
 ```bash
-./holohub build atracsys_visualizer
-./holohub run atracsys_visualizer
+./holohub build atracsys_visualizer --cuda 12
+./holohub run atracsys_visualizer --cuda 12
 ```
 Or, you can explicitly specify the mode:
 ```bash
-./holohub build atracsys_visualizer replayer
-./holohub run atracsys_visualizer replayer
+./holohub build atracsys_visualizer replayer --cuda 12
+./holohub run atracsys_visualizer replayer --cuda 12
 ```
 
 Live mode:
 ```bash
-./holohub build atracsys_visualizer live_camera
-./holohub run atracsys_visualizer live_camera
+./holohub build atracsys_visualizer live_camera --cuda 12
+./holohub run atracsys_visualizer live_camera --cuda 12
 ```
 
 ## Controls

@@ -37,7 +37,7 @@
         "type": "data",
         "name": "Atracsys replay sample",
         "description": "Tiny replay dataset used for the replay mode. This implementation can trim a local recording set for development and is intended to reference a hosted sample for the upstream PR.",
-        "url": "https://github.com/artrittelaku-wayland/holohub/releases/download/dataset-v1.0/atracsys_visualizer.zip"
+        "url": "https://github.com/waylandio/holohub/releases/download/dataset-v1.0/atracsys_visualizer.zip"
       },
       "atracsys_hardware": {
         "type": "hardware",
