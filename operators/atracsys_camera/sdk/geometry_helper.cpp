@@ -50,11 +50,22 @@ int loadRigidBody(ftkLibrary lib, const std::string& fileName, ftkRigidBody& geo
 
 bool getFullFilePath(ftkLibrary lib, const std::string& fileName, std::string& fullFilePath,
                      bool* fromSystem) {
+  std::ifstream local_input{fileName};
+  if (local_input.is_open()) {
+    fullFilePath = fileName;
+    if (fromSystem != nullptr) *fromSystem = false;
+    return true;
+  }
+
   static uint32_t FTK_OPT_DATA_DIR = 0u;
   static std::string OPT_DIR;
   static std::once_flag flag;
 
   std::call_once(flag, [&]() {
+    // When called with serial 0uLL (global scope), ftkEnumerateOptions returns
+    // FTK_WAR_OPT_GLOBAL_ONLY (not FTK_OK) indicating options are global-only.
+    // We intentionally check for that specific warning when relying on
+    // getDataDirOptionId to populate FTK_OPT_DATA_DIR, so OPT_DIR resolves correctly.
     if (ftkEnumerateOptions(lib, 0uLL, getDataDirOptionId, &FTK_OPT_DATA_DIR) !=
         ftkError::FTK_WAR_OPT_GLOBAL_ONLY) {
       std::cerr << "Could not get the data directory option ID\n";

@@ -27,10 +27,6 @@
 #include <thread>
 #include <vector>
 
-extern "C" {
-typedef struct CUstream_st* cudaStream_t;
-}
-
 #include "holoscan/holoscan.hpp"
 
 #include "hardware_mode_command.hpp"

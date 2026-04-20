@@ -35,7 +35,8 @@ endif()
 
 if(ATRACSYS_VISUALIZER_ENABLE_LIVE_CAMERA)
   if(NOT "atracsys_camera" IN_LIST HOLOHUB_BUILD_OPERATORS)
-    set(HOLOHUB_BUILD_OPERATORS "${HOLOHUB_BUILD_OPERATORS};atracsys_camera" CACHE STRING "Operators to build dynamically" FORCE)
+    list(APPEND HOLOHUB_BUILD_OPERATORS "atracsys_camera")
+    set(HOLOHUB_BUILD_OPERATORS "${HOLOHUB_BUILD_OPERATORS}" CACHE STRING "Operators to build dynamically" FORCE)
   endif()
 else()
   if("atracsys_camera" IN_LIST HOLOHUB_BUILD_OPERATORS)
@@ -44,12 +45,13 @@ else()
   endif()
 endif()
 
-if(NOT DEFINED HOLOHUB_DATA_DIR OR HOLOHUB_DATA_DIR STREQUAL "")
-  message(FATAL_ERROR "HOLOHUB_DATA_DIR must be set when building with datasets")
-endif()
+if(HOLOHUB_DOWNLOAD_DATASETS)
+  if(NOT DEFINED HOLOHUB_DATA_DIR OR HOLOHUB_DATA_DIR STREQUAL "")
+    message(FATAL_ERROR "HOLOHUB_DATA_DIR must be set when building with datasets")
+  endif()
 
-if(HOLOHUB_DOWNLOAD_DATASETS AND NOT EXISTS "${HOLOHUB_DATA_DIR}/atracsys_visualizer/ir_base.gxf_entities")
-  set(ATRACSYS_VISUALIZER_DATASET_URL
+  if(NOT EXISTS "${HOLOHUB_DATA_DIR}/atracsys_visualizer/ir_base.gxf_entities")
+    set(ATRACSYS_VISUALIZER_DATASET_URL
       "https://github.com/waylandio/holohub/releases/download/dataset-v1.0/atracsys_visualizer.zip")
   set(ATRACSYS_VISUALIZER_DATASET_SHA256 "674551dee1c40bf4f2b62c0ea23be01b6126d0cf549971d87b2fd86b0d4895e9")
   message(STATUS "Downloading Atracsys Visualizer demo dataset...")
@@ -76,6 +78,7 @@ if(HOLOHUB_DOWNLOAD_DATASETS AND NOT EXISTS "${HOLOHUB_DATA_DIR}/atracsys_visual
     message(FATAL_ERROR "Failed to extract dataset.")
   endif()
   file(REMOVE "${CMAKE_CURRENT_BINARY_DIR}/atracsys_visualizer.zip")
+  endif()
 endif()
 
 if(HOLOHUB_BUILD_CPP)

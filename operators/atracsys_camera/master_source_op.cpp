@@ -245,6 +245,7 @@ void AtracsysMasterSourceOp::start() {
     capture_thread_ =
         std::thread(&AtracsysMasterSourceOp::capture_loop, this);
   } catch (...) {
+    destroy_frame();
     AtracsysDevice::instance().shutdown();
     throw;
   }
@@ -321,7 +322,7 @@ void AtracsysMasterSourceOp::compute(holoscan::InputContext& op_input,
     cuda_stream = maybe_stream.value();
   }
 
-  const auto format = frame_->imageHeader->format;
+  const auto format = static_cast<ftkPixelFormat>(frame_->imageHeader->format);
   if (!first_frame_logged_) {
     first_frame_logged_ = true;
     HOLOSCAN_LOG_INFO("AtracsysMasterSourceOp: received first {} frame ({}x{})",
@@ -331,10 +332,12 @@ void AtracsysMasterSourceOp::compute(holoscan::InputContext& op_input,
   }
   if (is_visible_format(format)) {
     emit_visible_frame(op_output, context, cuda_stream);
-  } else if (is_ir_format(format)) {
+  }
+  if (is_ir_format(format)) {
     emit_ir_frame(op_output, context, cuda_stream);
     emit_marker_poses(op_output, context, cuda_stream);
-  } else if (is_structured_format(format)) {
+  }
+  if (is_structured_format(format)) {
     emit_structured_points(op_output, context, cuda_stream);
   }
 
@@ -514,12 +517,12 @@ void AtracsysMasterSourceOp::configure_structured_frame_state() const {
   auto& roi = gpu_frame_->_ROIbox;
 
   const bool roi_invalid = (roi.x_min < 0) || (roi.y_min < 0) || (roi.x_max <= roi.x_min) ||
-                           (roi.y_max <= roi.y_min) || (roi.x_max > width) || (roi.y_max > height);
+                           (roi.y_max <= roi.y_min) || (roi.x_max > height) || (roi.y_max > width);
   if (roi_invalid) {
     roi.x_min = 0;
     roi.y_min = 0;
-    roi.x_max = width;
-    roi.y_max = height;
+    roi.x_max = height;
+    roi.y_max = width;
   }
 }
 

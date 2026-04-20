@@ -49,7 +49,9 @@ void print_usage() {
                "[--source replayer|live_camera]\n";
 }
 
-bool parse_arguments(int argc, char** argv, CommandLineOptions& options) {
+enum class ParseResult { kRun, kHelp, kError };
+
+ParseResult parse_arguments(int argc, char** argv, CommandLineOptions& options) {
   static option long_options[] = {{"config", required_argument, nullptr, 'c'},
                                   {"data", required_argument, nullptr, 'd'},
                                   {"source", required_argument, nullptr, 's'},
@@ -74,10 +76,10 @@ bool parse_arguments(int argc, char** argv, CommandLineOptions& options) {
         break;
       case 'h':
         print_usage();
-        return false;
+        return ParseResult::kHelp;
       default:
         print_usage();
-        return false;
+        return ParseResult::kError;
     }
   }
 
@@ -85,7 +87,7 @@ bool parse_arguments(int argc, char** argv, CommandLineOptions& options) {
     throw std::runtime_error("Unsupported --source value: " + options.source);
   }
 
-  return true;
+  return ParseResult::kRun;
 }
 
 std::shared_ptr<holoscan::ops::CameraCalibration> make_camera_calibration(
@@ -181,6 +183,7 @@ class AtracsysVisualizerApp : public holoscan::Application {
 
       auto point_cloud_filter = make_operator<holoscan::ops::PointCloudFilterOp>(
           "point_cloud_filter",
+          from_config("point_cloud_filter"),
           Arg("structured_allocator") = structured_points_allocator,
           Arg("cuda_stream_pool") = cuda_stream_pool);
 
@@ -248,8 +251,12 @@ class AtracsysVisualizerApp : public holoscan::Application {
 int main(int argc, char** argv) {
   try {
     CommandLineOptions options;
-    if (!parse_arguments(argc, argv, options)) {
+    const auto parse_result = parse_arguments(argc, argv, options);
+    if (parse_result == ParseResult::kHelp) {
       return 0;
+    }
+    if (parse_result == ParseResult::kError) {
+      return 1;
     }
 
     if (options.config_path.empty()) {

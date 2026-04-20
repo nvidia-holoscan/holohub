@@ -113,6 +113,9 @@ void PointCloudFilterOp::compute(holoscan::InputContext& op_input,
                                  holoscan::OutputContext& op_output,
                                  holoscan::ExecutionContext& context) {
   auto q_mat_msg = op_input.receive<std::shared_ptr<std::vector<float>>>("in_q_matrix");
+  if (!q_mat_msg) {
+    throw std::runtime_error("PointCloudFilterOp: expected q matrix");
+  }
   auto q_mat = q_mat_msg.value();
   if (!q_mat || q_mat->size() != 16) {
     throw std::runtime_error("PointCloudFilterOp: invalid Q matrix input");
@@ -120,6 +123,9 @@ void PointCloudFilterOp::compute(holoscan::InputContext& op_input,
   const float* h_Q = q_mat->data();
 
   auto in_entity_value = op_input.receive<holoscan::gxf::Entity>("in_disparity");
+  if (!in_entity_value) {
+    throw std::runtime_error("PointCloudFilterOp: expected disparity");
+  }
   auto in_entity = nvidia::gxf::Entity(in_entity_value.value());
   auto disp_tensor = in_entity.get<nvidia::gxf::Tensor>("disparity_map");
   if (!disp_tensor) {
@@ -179,6 +185,10 @@ void PointCloudFilterOp::compute(holoscan::InputContext& op_input,
 
   op_output.set_cuda_stream(cuda_stream, "out_structured_points");
   holoscan::gxf::Entity out(out_entity_opt);
+  // This mirrors the Greedy-Scheduler-only ring-buffer pattern used by st2110_source:
+  // op_output.emit() takes its reference to the entity synchronously before returning, so
+  // immediately resetting this slot is only safe with single-worker sequential execution.
+  // Reusing the slot this way would be unsafe under MultiThreadScheduler or EventBasedScheduler.
   op_output.emit(out, "out_structured_points");
   structured_output_entities_[structured_output_entity_index_].reset();
   structured_output_entity_index_ =

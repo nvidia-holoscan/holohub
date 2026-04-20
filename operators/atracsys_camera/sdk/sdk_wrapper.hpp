@@ -60,9 +60,10 @@ class RealSDKWrapper : public atracsys::ISDKInterface {
   ftkError initExt(const char* config, ftkBuffer* buffer) override {
     ftkLibrary lib = ftkInitExt(config, buffer);
     if (!lib) {
-      if (buffer && buffer->data) {
-        throw std::runtime_error(std::string("ftkInitExt failed: ") +
-                                 reinterpret_cast<const char*>(buffer->data));
+      if (buffer && buffer->data && buffer->size > 0) {
+        throw std::runtime_error(
+            std::string("ftkInitExt failed: ") +
+            std::string(reinterpret_cast<const char*>(buffer->data), buffer->size));
       }
       throw std::runtime_error("ftkInitExt failed (unknown error)");
     }

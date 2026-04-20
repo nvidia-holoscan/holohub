@@ -48,7 +48,11 @@ inline std::string device_type_string(ftkLibrary lib, uint64_t sn,
   if (ftkGetData(lib, sn, it->second, &buffer) != ftkError::FTK_OK) {
     throw std::runtime_error("Failed to fetch Atracsys device type.");
   }
-  return std::string(buffer.data, buffer.size);
+  std::string result(reinterpret_cast<const char*>(buffer.data), buffer.size);
+  if (!result.empty() && result.back() == '\0') {
+    result.pop_back();
+  }
+  return result;
 }
 
 inline void set_device_option(ftkLibrary lib, uint64_t sn,
