@@ -497,12 +497,12 @@ void AtracsysMasterSourceOp::configure_structured_frame_state() const {
   auto& roi = gpu_frame_->_ROIbox;
 
   const bool roi_invalid = (roi.x_min < 0) || (roi.y_min < 0) || (roi.x_max <= roi.x_min) ||
-                           (roi.y_max <= roi.y_min) || (roi.x_max > height) || (roi.y_max > width);
+                           (roi.y_max <= roi.y_min) || (roi.x_max > width) || (roi.y_max > height);
   if (roi_invalid) {
     roi.x_min = 0;
     roi.y_min = 0;
-    roi.x_max = height;
-    roi.y_max = width;
+    roi.x_max = width;
+    roi.y_max = height;
   }
 }
 
