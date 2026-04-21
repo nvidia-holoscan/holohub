@@ -55,7 +55,11 @@ BUILD_TYPES = {
 
 
 class Color:
-    """Utility class for terminal color formatting"""
+    """Utility class for terminal color formatting.
+
+    ANSI codes are emitted only when stdout is a TTY. When piped or redirected,
+    all formatting is stripped so scripts can parse the output cleanly.
+    """
 
     # ANSI color codes
     RED = "\033[31m"
@@ -71,7 +75,12 @@ class Color:
 
     @staticmethod
     def format(text: str, color: str, bold: bool = False) -> str:
-        """Format text with color and optional bold attribute"""
+        """Format text with color and optional bold attribute.
+
+        Returns plain text (no ANSI codes) when stdout is not a TTY.
+        """
+        if not sys.stdout.isatty():
+            return text
         result = color
         if bold:
             result += Color.BOLD
