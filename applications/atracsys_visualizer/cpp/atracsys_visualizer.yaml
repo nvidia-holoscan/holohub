@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 Wayland Technologies. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 geometry_path: applications/atracsys_visualizer/cpp/geometry10.ini
 
 camera_calibration_fx: 1747.79

@@ -29,7 +29,6 @@ target_link_libraries(atracsys_visualizer
   holoscan::ops::bayer_demosaic
   holoscan::ops::holoviz
   holoscan::ops::video_stream_replayer
-  yaml-cpp::yaml-cpp
   atracsys_mode_switcher
 )
 

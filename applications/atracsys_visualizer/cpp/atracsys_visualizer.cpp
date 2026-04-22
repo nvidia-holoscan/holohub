@@ -22,7 +22,6 @@
 #include <stdexcept>
 #include <string>
 
-#include <yaml-cpp/yaml.h>
 #include <holoscan/holoscan.hpp>
 #include <holoscan/operators/bayer_demosaic/bayer_demosaic.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
@@ -90,24 +89,32 @@ ParseResult parse_arguments(int argc, char** argv, CommandLineOptions& options) 
   return ParseResult::kRun;
 }
 
-std::shared_ptr<holoscan::ops::CameraCalibration> make_camera_calibration(
-    const std::string& config_path) {
-  YAML::Node config = YAML::LoadFile(config_path);
-  auto calibration = std::make_shared<holoscan::ops::CameraCalibration>();
-  calibration->fx = static_cast<float>(config["camera_calibration_fx"].as<double>());
-  calibration->fy = static_cast<float>(config["camera_calibration_fy"].as<double>());
-  calibration->cx = static_cast<float>(config["camera_calibration_cx"].as<double>());
-  calibration->cy = static_cast<float>(config["camera_calibration_cy"].as<double>());
-  calibration->skew = static_cast<float>(config["camera_calibration_skew"].as<double>());
-  calibration->image_width = config["camera_calibration_image_width"].as<int>();
-  calibration->image_height = config["camera_calibration_image_height"].as<int>();
+auto find_config_node(holoscan::Application& app, const std::string& key) {
+  for (const auto& yaml_node : app.config().yaml_nodes()) {
+    const auto config_node = yaml_node[key];
+    if (config_node && config_node.IsDefined()) { return config_node; }
+  }
+  throw std::runtime_error("Missing config entry: " + key);
+}
 
-  auto distortion = config["camera_calibration_distortion"].as<std::vector<double>>();
-  if (distortion.size() != calibration->distortion.size()) {
+std::shared_ptr<holoscan::ops::CameraCalibration> make_camera_calibration(
+    holoscan::Application& app) {
+  auto calibration = std::make_shared<holoscan::ops::CameraCalibration>();
+  calibration->fx = static_cast<float>(app.from_config("camera_calibration_fx").as<double>());
+  calibration->fy = static_cast<float>(app.from_config("camera_calibration_fy").as<double>());
+  calibration->cx = static_cast<float>(app.from_config("camera_calibration_cx").as<double>());
+  calibration->cy = static_cast<float>(app.from_config("camera_calibration_cy").as<double>());
+  calibration->skew =
+      static_cast<float>(app.from_config("camera_calibration_skew").as<double>());
+  calibration->image_width = app.from_config("camera_calibration_image_width").as<int>();
+  calibration->image_height = app.from_config("camera_calibration_image_height").as<int>();
+
+  const auto distortion_node = find_config_node(app, "camera_calibration_distortion");
+  if (!distortion_node.IsSequence() || distortion_node.size() != calibration->distortion.size()) {
     throw std::runtime_error("camera_calibration_distortion must contain exactly 5 coefficients");
   }
-  for (size_t i = 0; i < distortion.size(); ++i) {
-    calibration->distortion[i] = static_cast<float>(distortion[i]);
+  for (size_t i = 0; i < distortion_node.size(); ++i) {
+    calibration->distortion[i] = static_cast<float>(distortion_node[i].as<double>());
   }
 
   if (!calibration->valid()) {
@@ -122,7 +129,6 @@ class AtracsysVisualizerApp : public holoscan::Application {
  public:
   void set_source(std::string source) { source_ = std::move(source); }
   void set_data_path(std::string data_path) { data_path_ = std::move(data_path); }
-  void set_config_path(std::string config_path) { config_path_ = std::move(config_path); }
 
   void compose() override {
     using namespace holoscan;
@@ -149,7 +155,7 @@ class AtracsysVisualizerApp : public holoscan::Application {
     HOLOSCAN_LOG_INFO("AtracsysVisualizerApp: loading geometry path");
     const std::string geometry_path = from_config("geometry_path").as<std::string>();
     HOLOSCAN_LOG_INFO("AtracsysVisualizerApp: loading camera calibration");
-    auto camera_calibration = make_camera_calibration(config_path_);
+    auto camera_calibration = make_camera_calibration(*this);
 
     HOLOSCAN_LOG_INFO("AtracsysVisualizerApp: creating holoviz and bayer demosaic operators");
     auto holoviz = make_operator<ops::HolovizOp>(
@@ -243,7 +249,6 @@ class AtracsysVisualizerApp : public holoscan::Application {
   }
 
  private:
-  std::string config_path_;
   std::string source_{"replayer"};
   std::string data_path_{"data/atracsys_visualizer"};
 };
@@ -275,7 +280,6 @@ int main(int argc, char** argv) {
     auto app = holoscan::make_application<AtracsysVisualizerApp>();
     app->set_source(options.source);
     app->set_data_path(options.data_path);
-    app->set_config_path(options.config_path);
     app->config(options.config_path);
     app->run();
 

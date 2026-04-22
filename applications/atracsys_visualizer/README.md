@@ -4,6 +4,17 @@
 structured-light, and tracking data. The default mode uses recorded streams so the visualization
 stack can be built and exercised without proprietary live-camera dependencies.
 
+## Visual Showcase
+
+![Atracsys Visualizer Demo](demo.gif)
+
+The animation above demonstrates the core imaging capabilities of the Atracsys spryTrack 300 camera: **Visible Mode**, **Infrared Mode**, and **Structured-Light Mode**, alongside its high-accuracy marker tracking.
+
+When observing the different streams and enabling tracking (by pressing `4`), the visualizer behaves according to the camera's hardware constraints:
+
+- **Infrared Mode + Tracking**: Since marker tracking natively utilizes the infrared sensors, both the IR video stream and the 3D marker overlay update simultaneously in real-time.
+- **Visible & Structured-Light Modes + Tracking**: When tracking is activated during these modes, the last captured camera frame is frozen as a static background, while the real-time tracking of the registered marker is continuously rendered on top of it.
+
 ## Architecture
 
 ```mermaid
@@ -28,17 +39,6 @@ The application is split into:
 - an optional `atracsys_camera` operator package for live hardware input
 - a single C++ application entrypoint with configuration via `atracsys_visualizer.yaml`
 
-## Visual Showcase
-
-![Atracsys Visualizer Demo](demo.gif)
-
-The animation above demonstrates the core imaging capabilities of the Atracsys spryTrack 300 camera: **Visible Mode**, **Infrared Mode**, and **Structured-Light Mode**, alongside its high-accuracy marker tracking.
-
-When observing the different streams and enabling tracking (by pressing `4`), the visualizer behaves according to the camera's hardware constraints:
-
-- **Infrared Mode + Tracking**: Since marker tracking natively utilizes the infrared sensors, both the IR video stream and the 3D marker overlay update simultaneously in real-time.
-- **Visible & Structured-Light Modes + Tracking**: When tracking is activated during these modes, the last captured camera frame is frozen as a static background, while the real-time tracking of the registered marker is continuously rendered on top of it.
-
 ## SDK and Data Acquisition
 
 ### Getting the Atracsys SDKs
@@ -46,7 +46,7 @@ When observing the different streams and enabling tracking (by pressing `4`), th
 The Atracsys SDK and S3DK are proprietary hardware drivers and are **not** bundled in this repository.
 To run the `live_camera` mode with your Atracsys spryTrack 300 camera, you must first obtain the SDKs directly from the vendor.
 
-Please contact **<support@atracsys.com>** to request the following packages based on your architecture:
+Please contact **<contact@wayland.io>** to request the following packages based on your architecture:
 
 - spryTrack SDK v4.9.0 (for x86_64)
 - spryTrack SDK v4.9.0 (for aarch64)
@@ -87,6 +87,8 @@ For detailed instructions on registering new instruments and using the recalibra
 ## Build and run
 
 > **Note:** The underlying dependencies (like OpenCV) currently require CUDA 12 to build successfully. Please append `--cuda 12` to your build and run commands.
+>
+> **Note:** The first container build compiles OpenCV 4.10 from source, so the initial `./holohub build` or `./holohub run` can take a significant amount of time. Subsequent runs should be faster once the container layers are cached.
 
 Replay mode (Default):
 

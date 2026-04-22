@@ -23,61 +23,52 @@ option(ATRACSYS_VISUALIZER_ENABLE_LIVE_CAMERA
 set(ATRACSYS_VISUALIZER_SOURCE_RECORDINGS_DIR "" CACHE PATH
     "Optional path to local Atracsys recordings used to trim a development replay sample")
 
-if(ATRACSYS_VISUALIZER_ENABLE_LIVE_CAMERA)
-  set(OP_atracsys_camera ON CACHE BOOL "Build the atracsys_camera operator")
+if(DEFINED HOLOHUB_BUILD_OPERATORS)
+  string(REPLACE "\"" "" holohub_build_operators "${HOLOHUB_BUILD_OPERATORS}")
 else()
-  set(OP_atracsys_camera OFF CACHE BOOL "Build the atracsys_camera operator")
-endif()
-
-if(NOT DEFINED HOLOHUB_BUILD_OPERATORS)
-  set(HOLOHUB_BUILD_OPERATORS "" CACHE STRING "Operators to build dynamically")
+  set(holohub_build_operators "")
 endif()
 
 if(ATRACSYS_VISUALIZER_ENABLE_LIVE_CAMERA)
-  if(NOT "atracsys_camera" IN_LIST HOLOHUB_BUILD_OPERATORS)
-    list(APPEND HOLOHUB_BUILD_OPERATORS "atracsys_camera")
-    set(HOLOHUB_BUILD_OPERATORS "${HOLOHUB_BUILD_OPERATORS}" CACHE STRING "Operators to build dynamically" FORCE)
+  if(NOT "atracsys_camera" IN_LIST holohub_build_operators)
+    list(APPEND holohub_build_operators "atracsys_camera")
   endif()
+  set(OP_atracsys_camera ON CACHE BOOL "Build the atracsys_camera operator" FORCE)
 else()
-  if("atracsys_camera" IN_LIST HOLOHUB_BUILD_OPERATORS)
-    list(REMOVE_ITEM HOLOHUB_BUILD_OPERATORS "atracsys_camera")
-    set(HOLOHUB_BUILD_OPERATORS "${HOLOHUB_BUILD_OPERATORS}" CACHE STRING "Operators to build dynamically" FORCE)
-  endif()
+  list(REMOVE_ITEM holohub_build_operators "atracsys_camera")
+  set(OP_atracsys_camera OFF CACHE BOOL "Build the atracsys_camera operator" FORCE)
 endif()
+
+set(HOLOHUB_BUILD_OPERATORS "${holohub_build_operators}" CACHE STRING
+    "Operators to build dynamically" FORCE)
 
 if(HOLOHUB_DOWNLOAD_DATASETS)
   if(NOT DEFINED HOLOHUB_DATA_DIR OR HOLOHUB_DATA_DIR STREQUAL "")
     message(FATAL_ERROR "HOLOHUB_DATA_DIR must be set when building with datasets")
   endif()
 
+  include(holoscan_download_data)
+
   if(NOT EXISTS "${HOLOHUB_DATA_DIR}/atracsys_visualizer/ir_base.gxf_entities")
-    set(ATRACSYS_VISUALIZER_DATASET_URL
-      "https://github.com/waylandio/holohub/releases/download/dataset-v1.0/atracsys_visualizer.zip")
-  set(ATRACSYS_VISUALIZER_DATASET_SHA256 "674551dee1c40bf4f2b62c0ea23be01b6126d0cf549971d87b2fd86b0d4895e9")
-  message(STATUS "Downloading Atracsys Visualizer demo dataset...")
-  file(DOWNLOAD "${ATRACSYS_VISUALIZER_DATASET_URL}"
-       "${CMAKE_CURRENT_BINARY_DIR}/atracsys_visualizer.zip"
-       EXPECTED_HASH SHA256=${ATRACSYS_VISUALIZER_DATASET_SHA256}
-       TLS_VERIFY ON
-       SHOW_PROGRESS
-       STATUS DOWNLOAD_STATUS)
+    holoscan_download_data(atracsys_visualizer
+      URL https://github.com/waylandio/holohub/releases/download/dataset-v1.0/atracsys_visualizer.zip
+      DOWNLOAD_NAME atracsys_visualizer.zip
+      DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
+    )
 
-  list(GET DOWNLOAD_STATUS 0 STATUS_CODE)
-  if(NOT STATUS_CODE EQUAL 0)
-    message(FATAL_ERROR "Failed to download dataset. Status: ${DOWNLOAD_STATUS}")
-  endif()
+    add_custom_command(
+      OUTPUT "${HOLOHUB_DATA_DIR}/atracsys_visualizer/.layout-normalized.stamp"
+      COMMAND ${CMAKE_COMMAND}
+              "-DDATASET_DIR=${HOLOHUB_DATA_DIR}/atracsys_visualizer"
+              "-DSTAMP_FILE=${HOLOHUB_DATA_DIR}/atracsys_visualizer/.layout-normalized.stamp"
+              -P "${CMAKE_CURRENT_SOURCE_DIR}/normalize_dataset_layout.cmake"
+      DEPENDS atracsys_visualizer_data
+      VERBATIM
+    )
 
-  message(STATUS "Extracting Atracsys Visualizer demo dataset...")
-  file(MAKE_DIRECTORY "${HOLOHUB_DATA_DIR}")
-  execute_process(
-    COMMAND ${CMAKE_COMMAND} -E tar xf "${CMAKE_CURRENT_BINARY_DIR}/atracsys_visualizer.zip"
-    WORKING_DIRECTORY "${HOLOHUB_DATA_DIR}"
-    RESULT_VARIABLE EXTRACT_STATUS
-  )
-  if(NOT EXTRACT_STATUS EQUAL 0)
-    message(FATAL_ERROR "Failed to extract dataset.")
-  endif()
-  file(REMOVE "${CMAKE_CURRENT_BINARY_DIR}/atracsys_visualizer.zip")
+    add_custom_target(atracsys_visualizer_dataset ALL
+      DEPENDS "${HOLOHUB_DATA_DIR}/atracsys_visualizer/.layout-normalized.stamp"
+    )
   endif()
 endif()
 

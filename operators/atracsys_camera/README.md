@@ -22,7 +22,7 @@ The package provides:
 
 The live camera operator relies on vendor SDKs which are **not included**. To compile and use this operator, you must:
 
-1. Contact Atracsys to obtain the latest SDK and the S3DK.
+1. Contact **<contact@wayland.io>** to obtain the latest SDK and the S3DK.
 2. Install the Atracsys SDK so that its CMake package is discoverable (e.g., at `/opt/atracsys-4.9.0`).
 3. Install the S3DK such that it is discoverable through `S3DK_ROOT` (e.g., at `/opt/s3dk`).
 

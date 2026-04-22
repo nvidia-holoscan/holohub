@@ -1,6 +1,6 @@
 {
   "operator": {
-    "name": "AtracsysCameraOp",
+    "name": "Atracsys Camera Operators",
     "description": "Optional live-camera operators for Atracsys hardware, including the master source and structured-light point-cloud conversion path.",
     "authors": [
       {
