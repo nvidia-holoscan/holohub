@@ -55,7 +55,16 @@ BUILD_TYPES = {
 
 
 class Color:
-    """Utility class for terminal color formatting"""
+    """Utility class for terminal color formatting.
+
+    ANSI codes are emitted based on the destination stream and environment:
+      - NO_COLOR=<non-empty>    always strip colors (no-color.org)
+      - FORCE_COLOR=<non-empty> always emit colors
+      - otherwise: emit only when the destination stream is a TTY
+
+    Callers that write to stderr should pass stream=sys.stderr so the TTY
+    check targets the correct destination.
+    """
 
     # ANSI color codes
     RED = "\033[31m"
@@ -70,8 +79,23 @@ class Color:
     RESET = "\033[0m"
 
     @staticmethod
-    def format(text: str, color: str, bold: bool = False) -> str:
-        """Format text with color and optional bold attribute"""
+    def _should_color(stream=None) -> bool:
+        if os.environ.get("NO_COLOR"):
+            return False
+        if os.environ.get("FORCE_COLOR"):
+            return True
+        stream = stream or sys.stdout
+        return hasattr(stream, "isatty") and stream.isatty()
+
+    @staticmethod
+    def format(text: str, color: str, bold: bool = False, stream=None) -> str:
+        """Format text with color and optional bold attribute.
+
+        Returns plain text (no ANSI codes) when the destination stream is not
+        a TTY, or when NO_COLOR is set. Set FORCE_COLOR to override.
+        """
+        if not Color._should_color(stream):
+            return text
         result = color
         if bold:
             result += Color.BOLD
@@ -81,8 +105,8 @@ class Color:
     def _create_color_method(color_code: str):
         """Create a color method for the given color code"""
 
-        def color_method(text: str, bold: bool = False) -> str:
-            return Color.format(text, color_code, bold)
+        def color_method(text: str, bold: bool = False, stream=None) -> str:
+            return Color.format(text, color_code, bold, stream=stream)
 
         return color_method
 
@@ -148,16 +172,19 @@ def check_skip_builds(args) -> Tuple[bool, bool]:
 
 def fatal(message: str) -> None:
     """Print fatal error and exit with backtrace"""
+    err = sys.stderr
     print(
-        f"{Color.red(get_timestamp())} {Color.red('[FATAL]', bold=True)} {message}", file=sys.stderr
+        f"{Color.red(get_timestamp(), stream=err)} "
+        f"{Color.red('[FATAL]', bold=True, stream=err)} {message}",
+        file=err,
     )
-    print("\nBacktrace: ...", file=sys.stderr)
-    traceback.print_list(traceback.extract_stack()[-3:], file=sys.stderr)
+    print("\nBacktrace: ...", file=err)
+    traceback.print_list(traceback.extract_stack()[-3:], file=err)
     sys.exit(1)
 
 
 def warn(message: str) -> None:
-    print(f"{Color.yellow('WARNING:')} {message}", file=sys.stderr)
+    print(f"{Color.yellow('WARNING:', stream=sys.stderr)} {message}", file=sys.stderr)
 
 
 def _get_holohub_root() -> Path:
