@@ -1,0 +1,66 @@
+{
+	"application": {
+		"name": "Python GStreamer Video Recorder",
+		"authors": [
+			{
+				"name": "Medical Robotics Team",
+				"affiliation": "TECNALIA"
+			}
+		],
+		"language": "Python",
+		"version": "1.1.0",
+		"changelog": {
+			"1.0.0": "Initial Python Binding Release"
+		},
+		"requirements": {
+			"system_packages": [
+				"pkg-config",
+				"libgstreamer1.0-dev",
+				"libgstreamer-plugins-base1.0-dev",
+				"gstreamer1.0-plugins-base",
+				"gstreamer1.0-plugins-bad",
+				"gstreamer1.0-plugins-good",
+				"gstreamer1.0-plugins-ugly"
+			],
+			"optional_packages": [
+				"gstreamer1.0-cuda (for CUDA support, requires GStreamer 1.24+)"
+			]
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "3.8.0",
+			"tested_versions": [
+				"4.1.0"
+			]
+		},
+		"platforms": [
+			"aarch64",
+			"x86_64"
+		],
+		"tags": ["Video", "GStreamer", "Recording", "Encoding", "File"],
+		"ranking": 2,
+		"description": "Record Holoscan video streams to file using GStreamer encoding. Supports multiple codecs (H.264, H.265, VP8, VP9) and both host/device memory for efficient video recording.",
+		"default_mode": "pattern",
+		"modes": {
+			"pattern": {
+				"description": "Record a pattern generator video",
+				"build": {
+					"cmake_options": ["-DHOLOHUB_BUILD_PYTHON=ON"]
+				},
+				"run": {
+					"command": "python3 <holohub_app_source>/gst_video_recorder.py --source pattern",
+					"workdir": "holohub_bin"
+				}
+			},
+			"v4l2": {
+				"description": "Record video from a V4L2 camera",
+				"build": {
+					"cmake_options": ["-DHOLOHUB_BUILD_PYTHON=ON"]
+				},
+				"run": {
+					"command": "python3 <holohub_app_source>/gst_video_recorder.py --source v4l2",
+					"workdir": "holohub_bin"
+				}
+			}
+		}
+	}
+}

@@ -27,6 +27,9 @@ These components allow you to:
 
 Records incoming Holoscan tensors to video files using GStreamer encoding pipelines.
 
+This operator is available in both **C++** and **Python**.
+The Python binding mirrors the C++ interface and supports the same constructor keywords.
+
 **Key Features:**
 
 - Multiple codec support: H.264 (nvh264, x264), H.265 (nvh265, x265)
