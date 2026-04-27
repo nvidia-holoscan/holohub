@@ -25,8 +25,8 @@
 #include <holoscan/operators/v4l2_video_capture/v4l2_video_capture.hpp>
 #include <holoscan/operators/format_converter/format_converter.hpp>
 #include <gst_video_recorder_op.hpp>
-#include "pattern_generator.hpp"
-#include "../common/arg_parser.hpp"
+#include "../../common/pattern_generator.hpp"
+#include "../../common/arg_parser.hpp"
 
 namespace {
 
