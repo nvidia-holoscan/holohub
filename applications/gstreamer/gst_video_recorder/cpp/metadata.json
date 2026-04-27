@@ -29,7 +29,7 @@
 		"holoscan_sdk": {
 			"minimum_required_version": "3.8.0",
 			"tested_versions": [
-				"3.8.0"
+				"4.1.0"
 			]
 		},
 		"platforms": [
@@ -44,21 +44,21 @@
 			"default": {
 				"description": "Record Holoscan video streams to file using GStreamer encoding (V4L2 camera or pattern generator).",
 				"run": {
-					"command": "applications/gstreamer/gst_video_recorder/gst-video-recorder",
+					"command": "<holohub_app_bin>/gst-video-recorder",
 					"workdir": "holohub_bin"
 				}
 			},
 			"v4l2": {
 				"description": "Record video from a V4L2 camera",
 				"run": {
-					"command": "applications/gstreamer/gst_video_recorder/gst-video-recorder --source v4l2",
+					"command": "<holohub_app_bin>/gst-video-recorder --source v4l2",
 					"workdir": "holohub_bin"
 				}
 			},
 			"pattern": {
 				"description": "Record a pattern generator video",
 				"run": {
-					"command": "applications/gstreamer/gst_video_recorder/gst-video-recorder --source pattern",
+					"command": "<holohub_app_bin>/gst-video-recorder --source pattern",
 					"workdir": "holohub_bin"
 				}
 			}

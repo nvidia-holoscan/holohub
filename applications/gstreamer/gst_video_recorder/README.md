@@ -2,6 +2,10 @@
 
 A Holoscan application that demonstrates video recording using the GStreamer encoding pipeline.
 
+This application is available in both **C++** and **Python** implementations.
+Both versions expose the **same command-line interface** and behavior.
+The only difference when building or launching the application is the `--language` flag: use `--language cpp` for the C++ version or `--language python` for the Python version.
+
 ![GStreamer Video Recorder Pipeline](docs/pipeline_diagram.png)
 *Fig. 1: Application architecture showing the integration of Holoscan operators with GStreamer's encoding pipeline*
 
@@ -42,11 +46,19 @@ For more information about this application, refer to:
 
 ## Quick Start
 
-To run the application with the default settings, run one of the following commands:
+To run the application with the default settings, choose the implementation with `--language cpp` or `--language python` and then use the same runtime arguments.
+
+Examples with the C++ implementation:
 
 | Using the V4L2 Camera | Generating Test Patterns |
 | --- | --- |
-| `./holohub run gst_video_recorder v4l2` | `./holohub run gst_video_recorder pattern` |
+| `./holohub run gst_video_recorder v4l2 --language cpp` | `./holohub run gst_video_recorder pattern --language cpp` |
+
+Examples with the Python implementation:
+
+| Using the V4L2 Camera | Generating Test Patterns |
+| --- | --- |
+| `./holohub run gst_video_recorder v4l2 --language python` | `./holohub run gst_video_recorder pattern --language python` |
 
 These commands build and run the customized container for this application with all the dependencies installed (defined by `Dockerfile`), and then build and start the application using the default settings. The output video will be saved in the build directory as `output.mp4`.
 
@@ -66,14 +78,20 @@ The `install_deps.sh` script installs:
 - GStreamer development libraries
 - All necessary GStreamer plugins for encoding
 
-Choose one of the following options to build the application:
+Choose one of the following options to build the application.
+Select the implementation with `--language cpp` or `--language python`:
 
 | Containerized Build (Recommended) | Local Build |
 | --- | --- |
-| Install the application: | Install dependencies, from the `gst_video_recorder` directory: |
-| `./holohub build gst_video_recorder` | `./install_deps.sh` |
-| | Then build locally: |
-| | `./holohub build --local gst_video_recorder` |
+| No manual dependency installation is required. Dependencies are installed in the application container image. | Install dependencies on the host, from the `gst_video_recorder` directory: |
+| `./holohub build gst_video_recorder --language cpp` | `./install_deps.sh` |
+| `./holohub build gst_video_recorder --language python` | Then build locally: |
+| | `./holohub build --local gst_video_recorder --language cpp` |
+| | `./holohub build --local gst_video_recorder --language python` |
+
+For the Python implementation, the pattern source uses device storage by default and requires CuPy.
+The containerized build uses the Holoscan base image, which already provides CuPy.
+For local builds, install the CuPy wheel matching your CUDA major version before running the Python application or tests, for example `python3 -m pip install cupy-cuda12x` or `python3 -m pip install cupy-cuda13x`.
 
 ### Usage Reference
 
@@ -87,7 +105,7 @@ Reference for running `gst_video_recorder` that includes:
 The recommended way to run the application is through the `holohub` launcher:
 
 ```bash
-./holohub run gst_video_recorder --run-args="[OPTIONS]"
+./holohub run gst_video_recorder --language <cpp|python> --run-args="[OPTIONS]"
 ```
 
 Alternatively, if you know the binary location, you can run it directly:
@@ -137,6 +155,9 @@ The command line options include the following main categories:
 | --- | --- | --- |
 | `--pattern <type>` | Pattern type: `0` = animated gradient, `1` = animated checkerboard, `2` = color bars (SMPTE style) | `0` |
 | `--storage <type>` | Memory storage type: `0` = host memory, `1` = device or CUDA memory | `1` |
+
+The Python implementation requires both NumPy and CuPy.
+CuPy is required because the Python implementation uses device storage in the default path, matching the C++ defaults.
 
 ## Testing
 
