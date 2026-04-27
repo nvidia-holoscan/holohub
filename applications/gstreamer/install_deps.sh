@@ -45,6 +45,7 @@ $USE_SUDO apt-get install -y pkg-config
 # Install GStreamer development libraries
 echo "📦 Installing GStreamer development packages..."
 $USE_SUDO apt-get install -y \
+    gstreamer1.0-tools \
     libgstreamer1.0-dev \
     libgstreamer-plugins-base1.0-dev \
     libgstreamer-plugins-bad1.0-dev

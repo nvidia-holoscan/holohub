@@ -12,7 +12,7 @@
     "changelog": {
       "1.0.0": "Initial release with GstVideoRecorderOp and GstSrcBridge"
     },
-    "language": ["C++"],
+    "language": ["C++", "Python"],
     "holoscan_sdk": {
       "minimum_required_version": "3.8.0",
       "tested_versions": ["3.8.0"]
