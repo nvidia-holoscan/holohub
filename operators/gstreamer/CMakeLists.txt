@@ -116,6 +116,11 @@ else()
     message(STATUS "GStreamer CUDA support: DISABLED (gstreamer-cuda-1.0 not found - requires GStreamer 1.24+)")
 endif()
 
+# Python bindings for GstVideoRecorderOp
+if(HOLOHUB_BUILD_PYTHON)
+  add_subdirectory(python)
+endif()
+
 # Install library
 install(TARGETS holoscan_gstreamer_bridge DESTINATION lib)
 
