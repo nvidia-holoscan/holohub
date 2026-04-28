@@ -54,20 +54,7 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
       URL https://github.com/waylandio/holohub/releases/download/dataset-v1.0/atracsys_visualizer.zip
       DOWNLOAD_NAME atracsys_visualizer.zip
       DOWNLOAD_DIR ${HOLOHUB_DATA_DIR}
-    )
-
-    add_custom_command(
-      OUTPUT "${HOLOHUB_DATA_DIR}/atracsys_visualizer/.layout-normalized.stamp"
-      COMMAND ${CMAKE_COMMAND}
-              "-DDATASET_DIR=${HOLOHUB_DATA_DIR}/atracsys_visualizer"
-              "-DSTAMP_FILE=${HOLOHUB_DATA_DIR}/atracsys_visualizer/.layout-normalized.stamp"
-              -P "${CMAKE_CURRENT_SOURCE_DIR}/normalize_dataset_layout.cmake"
-      DEPENDS atracsys_visualizer_data
-      VERBATIM
-    )
-
-    add_custom_target(atracsys_visualizer_dataset ALL
-      DEPENDS "${HOLOHUB_DATA_DIR}/atracsys_visualizer/.layout-normalized.stamp"
+        ALL
     )
   endif()
 endif()

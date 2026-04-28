@@ -245,6 +245,20 @@ void AtracsysMasterSourceOp::start() {
     capture_thread_ =
         std::thread(&AtracsysMasterSourceOp::capture_loop, this);
   } catch (...) {
+    if (s3dk_) {
+      if (gpu_frame_) {
+        s3dk_->destroyGpu3DFrame(gpu_frame_);
+        gpu_frame_ = nullptr;
+      }
+      if (engine_) {
+        s3dk_->destroyDefaultEngine(engine_);
+        engine_ = nullptr;
+      }
+      if (stereo_params_) {
+        s3dk_->destroyStereoParameters(stereo_params_);
+        stereo_params_ = nullptr;
+      }
+    }
     destroy_frame();
     AtracsysDevice::instance().shutdown();
     throw;
@@ -259,9 +273,22 @@ void AtracsysMasterSourceOp::stop() {
 
   reset_state();
   destroy_frame();
-  gpu_frame_ = nullptr;
-  engine_ = nullptr;
-  stereo_params_ = nullptr;
+
+  if (s3dk_) {
+    if (gpu_frame_) {
+      s3dk_->destroyGpu3DFrame(gpu_frame_);
+      gpu_frame_ = nullptr;
+    }
+    if (engine_) {
+      s3dk_->destroyDefaultEngine(engine_);
+      engine_ = nullptr;
+    }
+    if (stereo_params_) {
+      s3dk_->destroyStereoParameters(stereo_params_);
+      stereo_params_ = nullptr;
+    }
+  }
+
   s3dk_.reset();
 
   AtracsysDevice::instance().shutdown();
@@ -304,7 +331,14 @@ void AtracsysMasterSourceOp::compute(holoscan::InputContext& op_input,
   auto hw_cmd = op_input.receive<std::shared_ptr<atracsys::HardwareModeCommand>>("in_hw_cmd");
   if (hw_cmd && hw_cmd.value()) {
     if (active_scheduler_mode_ == SchedulerMode::kExclusive) {
-      apply_pending_command(hw_cmd.value());
+      try {
+        apply_pending_command(hw_cmd.value());
+      } catch (const std::exception& e) {
+        HOLOSCAN_LOG_ERROR(
+            "AtracsysMasterSourceOp: failed to switch hardware mode to {} - {}",
+            static_cast<int>(hw_cmd.value()->mode),
+            e.what());
+      }
     } else if (active_scheduler_mode_ == SchedulerMode::kMixed) {
       HOLOSCAN_LOG_DEBUG("AtracsysMasterSourceOp: hw_cmd ignored in mixed mode");
     }
@@ -368,12 +402,13 @@ void AtracsysMasterSourceOp::reset_state() {
 
 void AtracsysMasterSourceOp::load_geometries() {
   const auto& dev = AtracsysDevice::instance();
-  const int ref_status = sdk_.loadBody(dev.lib(), geometry_path_.get(), geometry_);
-  if (ref_status == 0 || ref_status == 1) {
+  const ftkError ref_status = sdk_.loadBody(dev.lib(), geometry_path_.get(), geometry_);
+  if (ref_status == ftkError::FTK_OK) {
     sdk_.setRigidBody(dev.lib(), dev.serial(), &geometry_);
   } else {
-    HOLOSCAN_LOG_WARN("AtracsysMasterSourceOp: failed to load geometry from {}",
-                      geometry_path_.get());
+    HOLOSCAN_LOG_ERROR("AtracsysMasterSourceOp: failed to load geometry from {} (error code: {})",
+                       geometry_path_.get(), static_cast<int>(ref_status));
+    throw std::runtime_error("Failed to load geometry file: " + geometry_path_.get());
   }
 }
 
@@ -381,25 +416,33 @@ void AtracsysMasterSourceOp::configure_camera() {
   const auto& dev = AtracsysDevice::instance();
   const auto& opts = dev.options();
 
-  if (sdk_.setInt32(dev.lib(), dev.serial(), opts.at("Enable embedded processing"), 1) !=
-      ftkError::FTK_OK) {
-    throw std::runtime_error("AtracsysMasterSourceOp: failed to enable embedded processing");
+  if (opts.count("Enable embedded processing") == 0 ||
+      sdk_.setInt32(dev.lib(), dev.serial(), opts.at("Enable embedded processing"), 1) !=
+          ftkError::FTK_OK) {
+    throw std::runtime_error(
+        "AtracsysMasterSourceOp: failed to enable embedded processing (missing or unsupported)");
   }
-  if (sdk_.setInt32(dev.lib(), dev.serial(), opts.at("Enable images sending"), 1) !=
-      ftkError::FTK_OK) {
-    throw std::runtime_error("AtracsysMasterSourceOp: failed to enable image sending");
+  if (opts.count("Enable images sending") == 0 ||
+      sdk_.setInt32(dev.lib(), dev.serial(), opts.at("Enable images sending"), 1) !=
+          ftkError::FTK_OK) {
+    throw std::runtime_error(
+        "AtracsysMasterSourceOp: failed to enable image sending (missing or unsupported)");
   }
-  if (sdk_.setInt32(dev.lib(),
+  if (opts.count("Image Integration Time for VIS frames") == 0 ||
+      sdk_.setInt32(dev.lib(),
                     dev.serial(),
                     opts.at("Image Integration Time for VIS frames"),
                     vis_integration_time_us_.get()) != ftkError::FTK_OK) {
-    throw std::runtime_error("AtracsysMasterSourceOp: failed to set VIS integration time");
+    throw std::runtime_error(
+        "AtracsysMasterSourceOp: failed to set VIS integration time (missing or unsupported)");
   }
-  if (sdk_.setInt32(dev.lib(),
+  if (opts.count("Image Integration Time for SL frames") == 0 ||
+      sdk_.setInt32(dev.lib(),
                     dev.serial(),
                     opts.at("Image Integration Time for SL frames"),
                     sl_integration_time_us_.get()) != ftkError::FTK_OK) {
-    HOLOSCAN_LOG_WARN("AtracsysMasterSourceOp: failed to set SL integration time");
+    HOLOSCAN_LOG_WARN(
+        "AtracsysMasterSourceOp: failed to set SL integration time (missing or unsupported)");
   }
   if (opts.count("Enable dot projectors") &&
       sdk_.setInt32(dev.lib(), dev.serial(), opts.at("Enable dot projectors"), 2) !=
@@ -688,8 +731,8 @@ void AtracsysMasterSourceOp::apply_pending_command(
     return;
   }
 
+  set_exclusive_pattern(cmd->mode);
   active_hw_mode_ = cmd->mode;
-  set_exclusive_pattern(active_hw_mode_);
 }
 
 void AtracsysMasterSourceOp::set_scheduler_pattern(const std::string& pattern) {
@@ -705,9 +748,19 @@ void AtracsysMasterSourceOp::set_scheduler_pattern(const std::string& pattern) {
   std::memcpy(buf.data, pattern.c_str(), pattern.size());
   buf.size = static_cast<uint32_t>(pattern.size());
 
-  if (sdk_.setData(dev.lib(), dev.serial(), opts.at("Image Scheduler Pattern"), &buf) !=
-      ftkError::FTK_OK) {
-    throw std::runtime_error("AtracsysMasterSourceOp: failed to set scheduler pattern");
+  if (opts.count("Image Scheduler Pattern") == 0) {
+    throw std::runtime_error(
+        "AtracsysMasterSourceOp: option 'Image Scheduler Pattern' missing. "
+        "Check firmware version.");
+  }
+
+  ftkError err =
+      sdk_.setData(dev.lib(), dev.serial(), opts.at("Image Scheduler Pattern"), &buf);
+  if (err != ftkError::FTK_OK) {
+    throw std::runtime_error(
+        "AtracsysMasterSourceOp: failed to set scheduler pattern "
+        "(SDK error: " +
+        std::to_string(static_cast<int>(err)) + ")");
   }
 
   current_pattern_ = pattern;

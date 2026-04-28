@@ -4,9 +4,9 @@
 structured-light, and tracking data. The default mode uses recorded streams so the visualization
 stack can be built and exercised without proprietary live-camera dependencies.
 
-## Visual Showcase
-
 ![Atracsys Visualizer Demo](demo.gif)
+
+## Visual Showcase
 
 The animation above demonstrates the core imaging capabilities of the Atracsys spryTrack 300 camera: **Visible Mode**, **Infrared Mode**, and **Structured-Light Mode**, alongside its high-accuracy marker tracking.
 

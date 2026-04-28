@@ -47,7 +47,8 @@ class ISDKInterface {
   virtual ftkError getData(ftkLibrary lib, uint64_t sn, uint32_t optID, ftkBuffer* buffer) = 0;
   virtual ftkError getInt32(ftkLibrary lib, uint64_t sn, uint32_t optID, int32_t* val) = 0;
   virtual ftkError getLastErrorString(ftkLibrary lib, uint32_t size, char* buffer) = 0;
-  virtual int loadBody(ftkLibrary lib, const std::string& fileName, ftkRigidBody& geometry) = 0;
+  virtual ftkError loadBody(ftkLibrary lib, const std::string& fileName,
+                            ftkRigidBody& geometry) = 0;
 };
 
 }  // namespace atracsys

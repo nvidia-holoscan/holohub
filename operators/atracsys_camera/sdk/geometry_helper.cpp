@@ -29,23 +29,18 @@
 
 static void getDataDirOptionId(uint64_t sn, void* user, ftkOptionsInfo* oi);
 
-int loadRigidBody(ftkLibrary lib, const std::string& fileName, ftkRigidBody& geometry) {
+ftkError loadRigidBody(ftkLibrary lib, const std::string& fileName, ftkRigidBody& geometry) {
   std::string fullFileName;
   bool fromDataDir = false;
   if (!getFullFilePath(lib, fileName, fullFileName, &fromDataDir)) {
-    return 2;
+    return ftkError::FTK_WAR_FILE_NOT_FOUND;
   }
   ftkBuffer buffer{};
   if (!loadFileInBuffer(fullFileName, buffer)) {
-    return 2;
+    return ftkError::FTK_ERR_READ;
   }
 
-  ftkError err = ftkLoadRigidBodyFromFile(lib, &buffer, &geometry);
-  if (err != ftkError::FTK_OK) {
-    return 2;
-  }
-
-  return fromDataDir ? 1 : 0;
+  return ftkLoadRigidBodyFromFile(lib, &buffer, &geometry);
 }
 
 bool getFullFilePath(ftkLibrary lib, const std::string& fileName, std::string& fullFilePath,

@@ -17,6 +17,7 @@
 
 #pragma once
 
+#include <ftkErrors.h>
 #include <ftkTypes.h>
 
 #include <string>
@@ -29,4 +30,4 @@ struct ftkRigidBody;
 bool getFullFilePath(ftkLibrary lib, const std::string& fileName, std::string& fullFilePath,
                      bool* fromSystem = nullptr);
 bool loadFileInBuffer(const std::string& fullFilePath, ftkBuffer& buffer);
-int loadRigidBody(ftkLibrary lib, const std::string& fileName, ftkRigidBody& geometry);
+ftkError loadRigidBody(ftkLibrary lib, const std::string& fileName, ftkRigidBody& geometry);

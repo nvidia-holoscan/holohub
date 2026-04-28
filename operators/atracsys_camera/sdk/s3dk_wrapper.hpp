@@ -85,6 +85,7 @@ inline void configure_device_defaults(ftkLibrary lib, uint64_t sn,
 class RealS3DKWrapper : public atracsys::IS3DKInterface {
  public:
   StereoParameters* createStereoParameters() override { return create_stereo_parameters(); }
+  void destroyStereoParameters(StereoParameters* ptr) override { delete ptr; }
 
   bool initializeDeviceHelper(uint64_t* device_sn, ftkLibrary lib,
                               ImageType3D* image_type) override {
@@ -105,10 +106,12 @@ class RealS3DKWrapper : public atracsys::IS3DKInterface {
   }
 
   stereo_matching_engine* createDefaultEngine() override { return create_default_engine(); }
+  void destroyDefaultEngine(stereo_matching_engine* ptr) override { delete ptr; }
 
   GpuFrame3D* createGpu3DFrame(ImageType3D image_type) override {
     return create_gpu3DFrame(image_type);
   }
+  void destroyGpu3DFrame(GpuFrame3D* ptr) override { delete ptr; }
 
   bool computeDispMap(const ftkFrameQuery* frame, const stereo_matching_engine* engine,
                       GpuFrame3D* frame3d, StereoParameters* stereo) override {

@@ -84,7 +84,7 @@ class RealSDKWrapper : public atracsys::ISDKInterface {
     return ftkGetLastErrorString(lib, size, buffer);
   }
 
-  int loadBody(ftkLibrary lib, const std::string& fileName, ftkRigidBody& geometry) override {
+  ftkError loadBody(ftkLibrary lib, const std::string& fileName, ftkRigidBody& geometry) override {
     return loadRigidBody(lib, fileName, geometry);
   }
 };

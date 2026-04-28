@@ -33,10 +33,13 @@ class IS3DKInterface {
   virtual ~IS3DKInterface() = default;
 
   virtual StereoParameters* createStereoParameters() = 0;
+  virtual void destroyStereoParameters(StereoParameters* ptr) = 0;
   virtual bool initializeDeviceHelper(uint64_t* device_sn, ftkLibrary lib,
                                       ImageType3D* image_type) = 0;
   virtual stereo_matching_engine* createDefaultEngine() = 0;
+  virtual void destroyDefaultEngine(stereo_matching_engine* ptr) = 0;
   virtual GpuFrame3D* createGpu3DFrame(ImageType3D image_type) = 0;
+  virtual void destroyGpu3DFrame(GpuFrame3D* ptr) = 0;
   virtual bool computeDispMap(const ftkFrameQuery* frame, const stereo_matching_engine* engine,
                               GpuFrame3D* frame3d, StereoParameters* stereo) = 0;
 };
