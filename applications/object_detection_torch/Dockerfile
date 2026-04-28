@@ -43,7 +43,7 @@ ARG GPU_TYPE
 ARG CUDA_MAJOR
 RUN INDEX_URL=""; \
     if [ "${GPU_TYPE}" = "igpu" ] && [ "${CUDA_MAJOR}" = "12" ]; then \
-        # Install cuDNN for PyTorch
+        # Install cuDNN for Jetpack 6.x PyTorch
         # Some cuDNN libraries have been intentionally removed from the base image, so we need to reinstall them
         apt-get update && \
         apt-get install -y --reinstall --no-install-recommends \
