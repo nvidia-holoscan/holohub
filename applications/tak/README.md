@@ -1,4 +1,4 @@
-# Multi-Object Tracking and Detection with TAK Integration
+# Multi-Object Tracking and Detection with TAK
 
 Real-time multi-object detection and tracking with [Team Awareness Kit (TAK)](https://tak.gov/) server integration. Detected objects are visualized locally via Holoviz and uploaded as Cursor-on-Target (CoT) markers to a TAK server for shared situational awareness.
 
