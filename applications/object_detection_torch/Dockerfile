@@ -42,24 +42,15 @@ RUN echo $(python3 -c "import torch; print(torch.__path__[0])")/lib > /etc/ld.so
 ARG GPU_TYPE
 ARG CUDA_MAJOR
 RUN INDEX_URL=""; \
-    if [ "${GPU_TYPE}" = "igpu" ]; then \
+    if [ "${GPU_TYPE}" = "igpu" ] && [ "${CUDA_MAJOR}" = "12" ]; then \
         # Install cuDNN for PyTorch
         # Some cuDNN libraries have been intentionally removed from the base image, so we need to reinstall them
         apt-get update && \
-        if [ "${CUDA_MAJOR}" = "12" ]; then \
-            apt-get install -y --reinstall --no-install-recommends \
-                libcudnn9-cuda-12 \
-                libcudnn9-dev-cuda-12 && \
-            INDEX_URL="https://pypi.jetson-ai-lab.io/jp6/cu126"; \
-        elif [ "${CUDA_MAJOR}" = "13" ]; then \
-            apt-get install -y --reinstall --no-install-recommends \
-                libcudnn9-cuda-13 \
-                libcudnn9-dev-cuda-13 && \
-            INDEX_URL="https://pypi.jetson-ai-lab.io/sbsa/cu130"; \
-        else \
-            echo "Error: Unsupported CUDA_MAJOR (${CUDA_MAJOR}) for iGPU" && exit 1; \
-        fi && \
-        rm -rf /var/lib/apt/lists/*; \
+        apt-get install -y --reinstall --no-install-recommends \
+            libcudnn9-cuda-12 \
+            libcudnn9-dev-cuda-12 && \
+        rm -rf /var/lib/apt/lists/* && \
+        INDEX_URL="https://pypi.jetson-ai-lab.io/jp6/cu126"; \
     elif [ "${CUDA_MAJOR}" = "12" ]; then \
         INDEX_URL="https://download.pytorch.org/whl/cu129"; \
     elif [ "${CUDA_MAJOR}" = "13" ]; then \
