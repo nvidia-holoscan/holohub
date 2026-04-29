@@ -29,6 +29,10 @@
          <lastmod>2026-04-29</lastmod>
     </url>
     <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/applications/atracsys_visualizer/</loc>
+         <lastmod>2026-04-29</lastmod>
+    </url>
+    <url>
          <loc>https://nvidia-holoscan.github.io/holohub/applications/basic_networking_ping/</loc>
          <lastmod>2026-04-29</lastmod>
     </url>
@@ -586,6 +590,14 @@
     </url>
     <url>
          <loc>https://nvidia-holoscan.github.io/holohub/operators/apriltag_detector/</loc>
+         <lastmod>2026-04-29</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/operators/atracsys_camera/</loc>
+         <lastmod>2026-04-29</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/operators/atracsys_mode_switcher/</loc>
          <lastmod>2026-04-29</lastmod>
     </url>
     <url>
