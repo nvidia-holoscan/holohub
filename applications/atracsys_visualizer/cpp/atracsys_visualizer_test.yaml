@@ -1,0 +1,132 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 Wayland Technologies. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+geometry_path: applications/atracsys_visualizer/cpp/geometry10.ini
+
+camera_calibration_fx: 1747.79
+camera_calibration_fy: 1748.05
+camera_calibration_cx: 509.405
+camera_calibration_cy: 507.443
+camera_calibration_skew: 0.000188741
+camera_calibration_image_width: 1280
+camera_calibration_image_height: 960
+camera_calibration_distortion: [-0.0701588, 0.154015, 0.000190457, 0.000125541, 0.0737279]
+
+image_allocator:
+  storage_type: 1
+  block_size: 2304000
+  num_blocks: 16
+
+visible_rgb_allocator:
+  storage_type: 1
+  block_size: 3686400
+  num_blocks: 16
+
+display_allocator:
+  storage_type: 1
+  block_size: 4096
+  num_blocks: 64
+
+structured_points_allocator:
+  device_memory_initial_size: "256MB"
+  device_memory_max_size: "512MB"
+  host_memory_initial_size: "16MB"
+  host_memory_max_size: "64MB"
+
+replayer_allocator:
+  device_memory_initial_size: "128MB"
+  device_memory_max_size: "256MB"
+  host_memory_initial_size: "128MB"
+  host_memory_max_size: "256MB"
+
+cuda_stream_pool:
+  reserved_size: 1
+
+point_cloud_filter:
+  min_z: 0.0
+  max_z: 5000.0
+  max_x: 5000.0
+  max_y: 5000.0
+
+replayer_visible_base:
+  basename: "visible_base"
+  frame_rate: 0
+  repeat: false
+  realtime: true
+  count: 6
+
+replayer_ir_base:
+  basename: "ir_base"
+  frame_rate: 0
+  repeat: false
+  realtime: true
+  count: 6
+
+replayer_structured_points:
+  basename: "structured_points"
+  frame_rate: 0
+  repeat: false
+  realtime: true
+  count: 6
+
+replayer_marker_poses:
+  basename: "marker_poses"
+  frame_rate: 0
+  repeat: false
+  realtime: true
+  count: 6
+
+mode_switcher:
+  enable_keyboard: false
+  initial_mode: 4
+
+visible_bayer_demosaic:
+  in_tensor_name: "base"
+  out_tensor_name: "base"
+  interpolation_mode: 0
+  bayer_grid_pos: 3
+  generate_alpha: false
+
+holoviz:
+  width: 1280
+  height: 720
+  headless: true
+  tensors:
+    - name: base
+      receiver: base
+      type: unknown
+      priority: 0
+    - name: fiducials_overlay
+      receiver: fiducials_overlay
+      type: ovals
+      color: [0.15, 0.95, 0.25, 1.0]
+      line_width: 7
+      point_size: 28
+      priority: 20
+      opacity: 1.0
+    - name: structured_points
+      receiver: structured_points
+      type: points_3d
+      color: [0.72, 0.72, 0.72, 1.0]
+      point_size: 3
+      priority: 10
+      opacity: 1.0
+    - name: marker_points
+      receiver: marker_points
+      type: points_3d
+      color: [0.20, 1.0, 0.28, 1.0]
+      point_size: 28
+      priority: 15
+      opacity: 1.0
+    - name: mode_text
+      receiver: mode_text
+      type: text
+      text: [" "]
+      color: [1.0, 1.0, 1.0, 1.0]
+      priority: 30
+    - name: fiducial_text_coords
+      receiver: fiducial_text_coords
+      type: text
+      text: [" ", " ", " ", " ", " ", " "]
+      color: [0.82, 0.92, 0.84, 1.0]
+      priority: 30

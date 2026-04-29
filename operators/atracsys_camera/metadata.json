@@ -1,0 +1,50 @@
+{
+  "operator": {
+    "name": "Atracsys Camera Operators",
+    "description": "Optional live-camera operators for Atracsys hardware, including the master source and structured-light point-cloud conversion path.",
+    "authors": [
+      {
+        "name": "Artrit Telaku",
+        "affiliation": "Wayland Technologies"
+      }
+    ],
+    "language": [
+      "C++"
+    ],
+    "version": "0.1.0",
+    "changelog": {
+      "0.1.0": "Initial optional live Atracsys camera operator package."
+    },
+    "holoscan_sdk": {
+      "minimum_required_version": "4.0.0",
+      "tested_versions": [
+        "4.0.0"
+      ]
+    },
+    "platforms": [
+      "x86_64",
+      "aarch64"
+    ],
+    "tags": [
+      "Camera",
+      "Tracking",
+      "Structured Light",
+      "Hardware"
+    ],
+    "ranking": 4,
+    "requirements": {
+      "hardware": [
+        {
+          "name": "Atracsys camera",
+          "description": "Atracsys hardware is required for live mode."
+        }
+      ],
+      "software": [
+        {
+          "name": "Atracsys SDK, S3DK, and CUDA-enabled OpenCV",
+          "description": "The live camera operator depends on the vendor SDKs plus an OpenCV build with CUDA support."
+        }
+      ]
+    }
+  }
+}
