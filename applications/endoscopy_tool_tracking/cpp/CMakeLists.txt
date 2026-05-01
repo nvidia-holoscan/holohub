@@ -32,6 +32,8 @@ target_link_libraries(endoscopy_tool_tracking
   holoscan::ops::holoviz
   lstm_tensor_rt_inference
   tool_tracking_postprocessor
+  holoscan::videomaster # FIXME
+#  $<TARGET_NAME_IF_EXISTS:holoscan::videomaster>
 )
 
 target_link_libraries(endoscopy_tool_tracking PRIVATE $<TARGET_NAME_IF_EXISTS:holoscan::aja>)

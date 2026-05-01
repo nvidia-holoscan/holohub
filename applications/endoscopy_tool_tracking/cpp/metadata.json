@@ -40,6 +40,19 @@
 					}
 			]
 		},
+		"dependencies": {
+			"operators": ["deltacast_videomaster"],
+			"modules": [
+					{
+							"name": "holoscan-deltacast",
+							"provides_operators": ["deltacast_videomaster"],
+							"source": {
+								"git_url": "/tmp/holoscan-deltacast",
+								"ref": "master"
+							}
+					}
+			]
+		},
 		"default_mode": "replayer",
         "modes": {
 			"replayer": {
@@ -47,6 +60,16 @@
 				"build": {
 					"cmake_options": ["-DHOLOHUB_BUILD_PYTHON=OFF"]
 					},
+				"run": {
+					"command": "<holohub_app_bin>/endoscopy_tool_tracking --data <holohub_data_dir>/endoscopy",
+					"workdir": "holohub_bin"
+				}
+			},
+			"deltacast": {
+				"description": "Run the application with a live Deltacast VideoMaster capture card (requires holoscan-deltacast module and hardware)",
+				"build": {
+					"cmake_options": ["-DHOLOHUB_BUILD_PYTHON=OFF", "-DOP_deltacast_videomaster=ON"]
+				},
 				"run": {
 					"command": "<holohub_app_bin>/endoscopy_tool_tracking --data <holohub_data_dir>/endoscopy",
 					"workdir": "holohub_bin"
