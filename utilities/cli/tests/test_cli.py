@@ -17,6 +17,7 @@
 import os
 import subprocess
 import sys
+import tempfile
 import unittest
 from io import StringIO
 from pathlib import Path
@@ -271,6 +272,33 @@ class TestHoloHubCLI(unittest.TestCase):
         self.assertTrue(pre_commit_calls, f"pre-commit was never invoked, got: {invoked}")
         self.assertIn("--all-files", pre_commit_calls[0])
         self.assertNotIn("--files", pre_commit_calls[0])
+
+    def test_lint_resolves_relative_path_against_project_root(self):
+        """Lint paths should not depend on the caller's current working directory."""
+        cwd = os.getcwd()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            try:
+                os.chdir(temp_dir)
+                target = self.cli._resolve_lint_target("utilities/cli")
+            finally:
+                os.chdir(cwd)
+
+        self.assertEqual(target, (HoloHubCLI.HOLOHUB_ROOT / "utilities/cli").resolve())
+
+    def test_lint_rejects_missing_path(self):
+        with patch("sys.stderr", new_callable=StringIO) as mock_stderr:
+            with self.assertRaises(SystemExit) as cm:
+                self.cli._resolve_lint_target("does-not-exist")
+        self.assertEqual(cm.exception.code, 1)
+        self.assertIn("does not exist", mock_stderr.getvalue())
+
+    def test_lint_rejects_outside_path(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with patch("sys.stderr", new_callable=StringIO) as mock_stderr:
+                with self.assertRaises(SystemExit) as cm:
+                    self.cli._resolve_lint_target(temp_dir)
+        self.assertEqual(cm.exception.code, 1)
+        self.assertIn("outside the project root", mock_stderr.getvalue())
 
     @patch("utilities.cli.holohub.shutil.which", return_value="/usr/bin/pre-commit")
     @patch("utilities.cli.util.run_command")

@@ -1690,8 +1690,8 @@ class HoloHubCLI:
             )
 
         cmd: List[str] = ["pre-commit", "run", "--show-diff-on-failure", "--color=always"]
-        target = Path(args.path).resolve() if args.path else HoloHubCLI.HOLOHUB_ROOT
-        if not args.path or target == HoloHubCLI.HOLOHUB_ROOT:
+        target = self._resolve_lint_target(args.path)
+        if target == HoloHubCLI.HOLOHUB_ROOT.resolve():
             cmd.append("--all-files")
         else:
             files = self._collect_lint_files(target)
@@ -1706,20 +1706,43 @@ class HoloHubCLI:
             print(Color.green("Everything looks good!"))
         sys.exit(result.returncode)
 
+    def _resolve_lint_target(self, path_arg: Optional[str]) -> Path:
+        """Resolve and validate the lint target relative to the project root."""
+        root = HoloHubCLI.HOLOHUB_ROOT.resolve()
+        if not path_arg:
+            return root
+
+        path = Path(path_arg)
+        target = path.resolve() if path.is_absolute() else (root / path).resolve()
+        if not target.exists():
+            print(Color.red(f"Lint path `{path_arg}` does not exist."), file=sys.stderr)
+            sys.exit(1)
+
+        if not target.is_relative_to(root):
+            print(
+                Color.red(f"Lint path `{path_arg}` resolves outside the project root `{root}`."),
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
+        return target
+
     def _collect_lint_files(self, target: Path) -> List[str]:
         """Collect git-tracked and unignored files for ``pre-commit run --files``."""
+        root = HoloHubCLI.HOLOHUB_ROOT.resolve()
+        target_arg = "." if target == root else str(target.relative_to(root))
         try:
             output = subprocess.check_output(
                 [
                     "git",
                     "-C",
-                    str(HoloHubCLI.HOLOHUB_ROOT),
+                    str(root),
                     "ls-files",
                     "--cached",
                     "--others",
                     "--exclude-standard",
                     "--",
-                    str(target),
+                    target_arg,
                 ],
                 text=True,
                 stderr=subprocess.DEVNULL,
@@ -1749,7 +1772,7 @@ class HoloHubCLI:
             sys.exit(1)
 
     def _install_lint_deps(self, dry_run: bool = False, env: Optional[dict] = None) -> None:
-        """Install pre-commit and register the git hook."""
+        """Install pre-commit and prefetch hook environments."""
         env = env or os.environ.copy()
         print(holohub_cli_util.format_cmd("cd " + str(HoloHubCLI.HOLOHUB_ROOT), is_dryrun=dry_run))
         if not dry_run:
@@ -1768,8 +1791,16 @@ class HoloHubCLI:
             dry_run=dry_run,
             env=env,
         )
+        if not (HoloHubCLI.HOLOHUB_ROOT / ".pre-commit-config.yaml").exists():
+            print(
+                Color.yellow(
+                    "No `.pre-commit-config.yaml` found; skipping pre-commit hook prefetch."
+                )
+            )
+            return
+
         cmd = [sys.executable, "-m", "pre_commit", "install-hooks"]
-        holohub_cli_util.run_command(cmd, check=False, dry_run=dry_run, env=env)
+        holohub_cli_util.run_command(cmd, dry_run=dry_run, env=env)
 
     def _install_template_deps(self, dry_run: bool = False) -> None:
         """Install template dependencies"""
