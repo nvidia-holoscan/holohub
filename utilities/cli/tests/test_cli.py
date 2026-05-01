@@ -393,8 +393,9 @@ class TestHoloHubCLI(unittest.TestCase):
                 args.func(args)
         self.assertEqual(cm.exception.code, 0)
 
+    @patch("utilities.cli.holohub.HoloHubCLI._running_in_virtual_env", return_value=False)
     @patch("utilities.cli.util.run_command")
-    def test_lint_install_dependencies_prefetches_hooks(self, mock_run_command):
+    def test_lint_install_dependencies_prefetches_hooks(self, mock_run_command, _mock_venv):
         """`--install-dependencies` should pip-install pre-commit and prefetch hooks."""
         mock_run_command.return_value = subprocess.CompletedProcess([], 0)
 
@@ -403,6 +404,9 @@ class TestHoloHubCLI(unittest.TestCase):
 
         invoked = [call.args[0] for call in mock_run_command.call_args_list]
         self.assertTrue(any(cmd[:3] == [sys.executable, "-m", "pip"] for cmd in invoked))
+        self.assertTrue(
+            any(cmd[:5] == [sys.executable, "-m", "pip", "install", "--user"] for cmd in invoked)
+        )
         self.assertTrue(
             any(cmd == [sys.executable, "-m", "pre_commit", "install-hooks"] for cmd in invoked)
         )

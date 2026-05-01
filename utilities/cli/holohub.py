@@ -1771,6 +1771,11 @@ class HoloHubCLI:
             )
             sys.exit(1)
 
+    @staticmethod
+    def _running_in_virtual_env() -> bool:
+        """Return True when Python is running inside a virtual environment."""
+        return sys.prefix != getattr(sys, "base_prefix", sys.prefix) or hasattr(sys, "real_prefix")
+
     def _install_lint_deps(self, dry_run: bool = False, env: Optional[dict] = None) -> None:
         """Install pre-commit and prefetch hook environments."""
         env = env or os.environ.copy()
@@ -1779,15 +1784,17 @@ class HoloHubCLI:
             os.chdir(HoloHubCLI.HOLOHUB_ROOT)
             self._check_pre_commit_cache_writable(env)
 
-        holohub_cli_util.run_command(
+        pip_install_cmd = [sys.executable, "-m", "pip", "install"]
+        if not self._running_in_virtual_env():
+            pip_install_cmd.append("--user")
+        pip_install_cmd.extend(
             [
-                sys.executable,
-                "-m",
-                "pip",
-                "install",
                 "-r",
                 str(HoloHubCLI.HOLOHUB_ROOT / "utilities/requirements.lint.txt"),
-            ],
+            ]
+        )
+        holohub_cli_util.run_command(
+            pip_install_cmd,
             dry_run=dry_run,
             env=env,
         )
