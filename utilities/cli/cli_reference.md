@@ -201,7 +201,7 @@ Without `-- command`, the container starts with the image's default entrypoint (
 # Launch an interactive shell in the container (image default entrypoint)
 ./holohub run-container
 
-# Execute a simple command inside the container
+# Run linting inside the container. If pre-commit is missing, it is installed first.
 ./holohub run-container -- ./holohub lint
 
 # Compound command: wrap in quotes so it stays as one argument
@@ -355,7 +355,10 @@ List available modes for an application (from `metadata.json`).
 
 ### Lint
 
-Run linting tools on the codebase or a path.
+Run linting tools on the codebase or a path. `./holohub lint` is a thin wrapper around
+[pre-commit](https://pre-commit.com/) and uses the hooks declared in
+`.pre-commit-config.yaml` at the project root. Downstream wrappers can intercept
+the `lint` subcommand and route it to their own tooling, or rely on this default.
 
 **Usage:**
 
@@ -365,25 +368,39 @@ Run linting tools on the codebase or a path.
 
 **Arguments:**
 
-| Argument | Description                               |
-| -------- | ----------------------------------------- |
-| `path`   | Path to lint (default: current directory) |
+- `path` — Path to lint. Default is the project root (`pre-commit run --all-files`). A subpath runs `pre-commit run --files <files under path>`.
 
 **Options:**
 
-| Option                   | Description                                    |
-| ------------------------ | ---------------------------------------------- |
-| `--fix`                  | Auto-fix lint issues where possible            |
-| `--install-dependencies` | Install lint dependencies (may require `sudo`) |
-| `--dryrun`               | Print commands without executing               |
+- `--fix` — Compatibility alias. Pre-commit hooks already auto-fix where possible.
+- `--install-dependencies` — Install `pre-commit` and prefetch hook environments.
+  It does not change git hooks.
+- `--dryrun` — Print the pre-commit command without executing.
 
 **Examples:**
 
 ```bash
-./holohub lint
-./holohub lint --fix
-./holohub lint --install-dependencies
+./holohub lint                       # all files
+./holohub lint applications/foo      # only files under applications/foo
+./holohub lint --install-dependencies # explicit setup/prefetch
 ```
+
+For container linting, `./holohub lint` installs `pre-commit` automatically if
+it is not already available:
+
+```bash
+./holohub run-container -- ./holohub lint
+```
+
+The container sets `HOME` to the mounted workspace, so the generated `.local/`
+install and `.cache/pre-commit/` hook environments can be reused by later
+disposable containers. Both directories are ignored by git. Use
+`./holohub lint --install-dependencies` when you want to prefetch hooks or
+install dependencies without running lint.
+
+If no `.pre-commit-config.yaml` is present at the project root, the command exits
+zero with a recommendation (this keeps downstream wrappers that do not yet ship
+a config from breaking their CI).
 
 ---
 
@@ -442,7 +459,7 @@ Show a compact overview of the development environment: platform, git state, con
 
 - **Platform** — architecture, GPU type/name, CUDA version, Holoscan SDK version
 - **Git** — current branch, short commit hash, dirty/modified file count
-- **Images** — HoloHub-related Docker images with creation time and running status
+- **Containers** — HoloHub-related Docker images with creation time and running status
 - **Docker disk** — disk usage summary (images, containers, build cache)
 - **Builds** — CMake build directories with OK/FAIL status and last-modified time
 - **Build/Data folders** — disk usage of build and data cache directories

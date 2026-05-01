@@ -39,15 +39,6 @@ def is_cookiecutter_available():
         return False
 
 
-def is_ruff_available():
-    try:
-        import ruff  # noqa: F401
-
-        return True
-    except ImportError:
-        return False
-
-
 class TestHoloHubCLI(unittest.TestCase):
     def setUp(self):
         self.cli = HoloHubCLI()
@@ -256,33 +247,143 @@ class TestHoloHubCLI(unittest.TestCase):
                 self.assertIn("Project 'nonexistent' not found.", stderr_output)
                 self.assertNotIn("Did you mean", stderr_output)
 
-    @patch("utilities.cli.util.run_command")
-    def test_lint_command(self, mock_run_command):
-        """Test the lint command parsing"""
-        mock_run_command.return_value = None
-
+    def test_lint_command_parsing(self):
+        """Test the lint command parser surfaces all expected flags."""
         args = self.cli.parser.parse_args("lint test/path --fix --install-dependencies".split())
         self.assertEqual(args.command, "lint")
         self.assertEqual(args.path, "test/path")
         self.assertTrue(args.fix)
         self.assertTrue(args.install_dependencies)
 
-        # Call the function to verify it's called with correct args
-        args.func(args)
-        # Verify that run_command was called at least once
-        mock_run_command.assert_called()
+    @patch("utilities.cli.holohub.shutil.which", return_value="/usr/bin/pre-commit")
+    @patch("utilities.cli.util.run_command")
+    def test_lint_default_runs_pre_commit_all_files(self, mock_run_command, _mock_which):
+        """`./holohub lint` (no path) should call `pre-commit run --all-files`."""
+        mock_run_command.return_value = subprocess.CompletedProcess([], 0)
 
-    def test_lint_fix_command(self):
-        args = self.cli.parser.parse_args("lint --fix".split())
-        try:
+        args = self.cli.parser.parse_args(["lint", "--dryrun"])
+        with self.assertRaises(SystemExit) as cm:
             args.func(args)
-        except FileNotFoundError as e:
-            if is_ruff_available():
-                raise e
-            else:
-                self.assertIn("ruff", str(e))  # if not installed, it complains about ruff
-        except SystemExit as e:
-            self.assertEqual(e.code, 0)
+        self.assertEqual(cm.exception.code, 0)
+
+        invoked = [call.args[0] for call in mock_run_command.call_args_list]
+        pre_commit_calls = [cmd for cmd in invoked if cmd and cmd[0] == "pre-commit"]
+        self.assertTrue(pre_commit_calls, f"pre-commit was never invoked, got: {invoked}")
+        self.assertIn("--all-files", pre_commit_calls[0])
+        self.assertNotIn("--files", pre_commit_calls[0])
+
+    @patch("utilities.cli.holohub.shutil.which", return_value="/usr/bin/pre-commit")
+    @patch("utilities.cli.util.run_command")
+    def test_lint_fix_is_compatibility_alias(self, mock_run_command, _mock_which):
+        """`--fix` should still drive `pre-commit run` (no separate fix path)."""
+        mock_run_command.return_value = subprocess.CompletedProcess([], 0)
+
+        args = self.cli.parser.parse_args(["lint", "--fix", "--dryrun"])
+        with self.assertRaises(SystemExit) as cm:
+            args.func(args)
+        self.assertEqual(cm.exception.code, 0)
+
+        invoked = [call.args[0] for call in mock_run_command.call_args_list]
+        pre_commit_calls = [cmd for cmd in invoked if cmd and cmd[0] == "pre-commit"]
+        self.assertTrue(pre_commit_calls)
+        self.assertIn("--all-files", pre_commit_calls[0])
+
+    @patch("utilities.cli.holohub.holohub_cli_util.is_running_in_docker", return_value=True)
+    @patch("utilities.cli.holohub.shutil.which", return_value="/usr/bin/pre-commit")
+    @patch("utilities.cli.util.run_command")
+    def test_lint_uses_persistent_pre_commit_cache_in_docker(
+        self, mock_run_command, _mock_which, _mock_is_docker
+    ):
+        """Docker lint runs should cache pre-commit environments in the mounted workspace."""
+        mock_run_command.return_value = subprocess.CompletedProcess([], 0)
+
+        args = self.cli.parser.parse_args(["lint", "--dryrun"])
+        with self.assertRaises(SystemExit) as cm:
+            args.func(args)
+        self.assertEqual(cm.exception.code, 0)
+
+        env = mock_run_command.call_args.kwargs["env"]
+        self.assertEqual(
+            env["PRE_COMMIT_HOME"],
+            str(HoloHubCLI.HOLOHUB_ROOT / ".cache" / "pre-commit"),
+        )
+
+    @patch(
+        "utilities.cli.holohub.tempfile.NamedTemporaryFile",
+        return_value=MagicMock(__enter__=lambda _self: None, __exit__=lambda *_args: None),
+    )
+    @patch("utilities.cli.holohub.shutil.which", side_effect=[None, "/usr/bin/pre-commit"])
+    @patch("utilities.cli.util.run_command")
+    def test_lint_auto_installs_when_pre_commit_missing(
+        self, mock_run_command, _mock_which, _mock_tmp
+    ):
+        """When `pre-commit` is not on PATH, lint should install deps then run."""
+        mock_run_command.return_value = subprocess.CompletedProcess([], 0)
+
+        args = self.cli.parser.parse_args(["lint"])
+        with self.assertRaises(SystemExit) as cm:
+            args.func(args)
+        self.assertEqual(cm.exception.code, 0)
+
+        invoked = [call.args[0] for call in mock_run_command.call_args_list]
+        self.assertTrue(any(cmd[:3] == [sys.executable, "-m", "pip"] for cmd in invoked))
+        self.assertTrue(any(cmd and cmd[0] == "pre-commit" for cmd in invoked))
+
+    @patch("utilities.cli.holohub.shutil.which", return_value="/usr/bin/pre-commit")
+    @patch(
+        "utilities.cli.holohub.tempfile.NamedTemporaryFile",
+        side_effect=PermissionError("simulated read-only cache"),
+    )
+    def test_lint_friendly_error_when_cache_unwritable(self, _mock_tmp, _mock_which):
+        """When the pre-commit cache exists but isn't writable, fail fast with a
+        chown hint instead of letting pre-commit produce a cryptic SQLite error."""
+        args = self.cli.parser.parse_args(["lint"])
+        with patch("sys.stderr", new_callable=StringIO) as mock_stderr:
+            with self.assertRaises(SystemExit) as cm:
+                args.func(args)
+        self.assertEqual(cm.exception.code, 1)
+        msg = mock_stderr.getvalue()
+        self.assertIn("not writable", msg)
+        self.assertIn("chown", msg)
+
+    @patch("utilities.cli.holohub.shutil.which", return_value=None)
+    def test_lint_no_config_exits_zero(self, _mock_which):
+        """Downstream wrappers without `.pre-commit-config.yaml` should exit 0 with a
+        recommendation, even when pre-commit is not installed."""
+        from utilities.cli.holohub import HoloHubCLI
+
+        original_exists = Path.exists
+
+        def fake_exists(self_path):
+            if self_path == HoloHubCLI.HOLOHUB_ROOT / ".pre-commit-config.yaml":
+                return False
+            return original_exists(self_path)
+
+        args = self.cli.parser.parse_args(["lint"])
+        with patch("pathlib.Path.exists", fake_exists):
+            with self.assertRaises(SystemExit) as cm:
+                args.func(args)
+        self.assertEqual(cm.exception.code, 0)
+
+    @patch("utilities.cli.util.run_command")
+    def test_lint_install_dependencies_prefetches_hooks(self, mock_run_command):
+        """`--install-dependencies` should pip-install pre-commit and prefetch hooks."""
+        mock_run_command.return_value = subprocess.CompletedProcess([], 0)
+
+        args = self.cli.parser.parse_args(["lint", "--install-dependencies", "--dryrun"])
+        args.func(args)
+
+        invoked = [call.args[0] for call in mock_run_command.call_args_list]
+        self.assertTrue(any(cmd[:3] == [sys.executable, "-m", "pip"] for cmd in invoked))
+        self.assertTrue(
+            any(cmd == [sys.executable, "-m", "pre_commit", "install-hooks"] for cmd in invoked)
+        )
+        self.assertFalse(
+            any(
+                len(cmd) >= 4 and cmd[:4] == [sys.executable, "-m", "pre_commit", "install"]
+                for cmd in invoked
+            )
+        )
 
     @unittest.skipIf(not is_cookiecutter_available(), "cookiecutter not installed")
     @patch("utilities.cli.holohub.HoloHubCLI._install_template_deps")
