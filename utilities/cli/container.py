@@ -99,6 +99,9 @@ class HoloHubContainer:
     DEFAULT_DOCKER_BUILD_ARGS = os.environ.get("HOLOHUB_DEFAULT_DOCKER_BUILD_ARGS", "")
     # Additional Default run arguments for docker run command
     DEFAULT_DOCKER_RUN_ARGS = os.environ.get("HOLOHUB_DEFAULT_DOCKER_RUN_ARGS", "")
+    DISPLAY_FORWARDING_DISABLED_MESSAGE = (
+        "No DISPLAY or WAYLAND_DISPLAY set; skipping display forwarding."
+    )
 
     @classmethod
     def default_base_image(cls, cuda_version: Optional[Union[str, int]] = None) -> str:
@@ -452,6 +455,7 @@ class HoloHubContainer:
         self.cuda_version = None  # None means use default from get_cuda_tag
         self.dryrun = False
         self.verbose = False
+        self._display_temp_files: List[Path] = []
 
     def build(
         self,
@@ -610,6 +614,7 @@ class HoloHubContainer:
         cmd.extend(self.ucx_args())
         cmd.extend(self.get_device_mounts())
         cmd.extend(self.group_args())
+        self._display_temp_files = []
         cmd.extend(self.get_display_options(enable_x11, ssh_x11))
         cmd.extend(self.get_nsys_options(nsys_profile, nsys_location))
         cmd.extend(self.get_pythonpath_options(local_sdk_root, img))
@@ -632,7 +637,10 @@ class HoloHubContainer:
             cmd_list = [f'"{arg}"' if " " in str(arg) else str(arg) for arg in cmd]
             print(f"Launch command: {' '.join(cmd_list)}")
 
-        run_command(cmd, dry_run=self.dryrun)
+        try:
+            run_command(cmd, dry_run=self.dryrun)
+        finally:
+            self._cleanup_display_temp_files()
 
     def get_basic_args(self) -> List[str]:
         """Basic container runtime arguments"""
@@ -772,74 +780,99 @@ class HoloHubContainer:
             )
         return args
 
-    def enable_x11_access(self) -> None:
-        if (
-            "DISPLAY" in os.environ
-            and shutil.which("xhost")
-            and os.environ.get("XDG_SESSION_TYPE", "x11") in ["x11", "tty", ""]
-        ):
-            run_command(["xhost", "+local:docker"], check=False, dry_run=self.dryrun)
-
     def get_display_options(self, enable_x11: bool, ssh_x11: bool) -> List[str]:
-        """Get display-related options"""
+        """Get display-related Docker options from DISPLAY and WAYLAND_DISPLAY."""
         options = []
-        if "XDG_SESSION_TYPE" in os.environ:
+        del enable_x11, ssh_x11
+
+        display = os.environ.get("DISPLAY")
+        wayland_display = os.environ.get("WAYLAND_DISPLAY")
+        if not display and not wayland_display:
+            info(self.DISPLAY_FORWARDING_DISABLED_MESSAGE)
+            return options
+
+        if os.environ.get("XDG_SESSION_TYPE"):
             options.extend(["-e", "XDG_SESSION_TYPE"])
-            if os.environ["XDG_SESSION_TYPE"] == "wayland":
-                options.extend(["-e", "WAYLAND_DISPLAY"])
 
-        if "XDG_RUNTIME_DIR" in os.environ:
-            options.extend(["-e", "XDG_RUNTIME_DIR"])
-            if os.path.isdir(os.environ["XDG_RUNTIME_DIR"]):
-                options.extend(
-                    ["-v", f"{os.environ['XDG_RUNTIME_DIR']}:{os.environ['XDG_RUNTIME_DIR']}"]
-                )
+        # Required by Vulkan, dconf, pipewire, etc. on both X11 and Wayland.
+        runtime_dir = os.environ.get("XDG_RUNTIME_DIR")
+        if runtime_dir and Path(runtime_dir).is_dir():
+            options.extend(["-e", "XDG_RUNTIME_DIR", "-v", f"{runtime_dir}:{runtime_dir}"])
 
-        # Handle X11 forwarding
-        if enable_x11 or ssh_x11:
-            # Enable X11 access for Docker containers
-            self.enable_x11_access()
-            options.extend(["-v", "/tmp/.X11-unix:/tmp/.X11-unix", "-e", "DISPLAY"])
+        if wayland_display:
+            options.extend(["-e", "WAYLAND_DISPLAY"])
 
-        # Handle SSH X11 forwarding
-        if ssh_x11:
-            if "DISPLAY" not in os.environ:
-                warn(
-                    "SSH X11 forwarding requested but DISPLAY environment variable is not set; skipping SSH X11 forwarding setup."
-                )
-            else:
-                if not shutil.which("xauth"):
-                    warn(
-                        "SSH X11 forwarding requested but xauth was not found; skipping xauth setup."
-                    )
-                else:
-                    result = run_command(
-                        ["xauth", "nlist", os.environ["DISPLAY"]],
-                        check=False,
-                        capture_output=True,
-                        text=True,
-                        dry_run=self.dryrun,
-                    )
-                    if result.stdout and result.returncode == 0:
-                        xauth_file = "/tmp/.docker.xauth"
-                        with tempfile.NamedTemporaryFile(mode="w+t", delete=True) as tmp:
-                            for line in result.stdout.splitlines(True):
-                                tmp.write("ffff" + line[4:])
-                            tmp.flush()
-
-                            if not self.dryrun:
-                                Path(xauth_file).touch(mode=0o600)
-
-                            run_command(
-                                ["xauth", "-f", xauth_file, "nmerge", tmp.name],
-                                check=False,
-                                dry_run=self.dryrun,
-                            )
-                        options.extend(
-                            ["-v", f"{xauth_file}:{xauth_file}", "-e", f"XAUTHORITY={xauth_file}"]
-                        )
+        if display:
+            if Path("/tmp/.X11-unix").is_dir() and not self._is_ssh_x11_display(display):
+                options.extend(["-v", "/tmp/.X11-unix:/tmp/.X11-unix:ro"])
+            options.extend(["-e", "DISPLAY"])
+            options.extend(self._get_xauth_options(display))
 
         return options
+
+    @staticmethod
+    def _is_ssh_x11_display(display: str) -> bool:
+        return display.startswith(("localhost:", "127.0.0.1:", "[::1]:", "::1:"))
+
+    def _get_xauth_options(self, display: str) -> List[str]:
+        if not shutil.which("xauth"):
+            warn(
+                "xauth not found on host; install xauth (or x11-xauth) so X11 "
+                "applications can authenticate inside the container."
+            )
+            return []
+
+        if self.dryrun:
+            placeholder = "/tmp/.docker.xauth"
+            return ["-v", f"{placeholder}:{placeholder}:ro", "-e", f"XAUTHORITY={placeholder}"]
+
+        result = run_command(
+            ["xauth", "nlist", display],
+            check=False,
+            capture_output=True,
+            text=True,
+            dry_run=self.dryrun,
+        )
+        if result.returncode != 0 or not result.stdout:
+            warn(
+                f"xauth nlist returned no entries for DISPLAY={display}; "
+                "X11 may not authenticate inside the container."
+            )
+            return []
+
+        xauth_fd, xauth_file = tempfile.mkstemp(prefix=".docker.xauth-")
+        os.close(xauth_fd)
+        xauth_path = Path(xauth_file)
+
+        xauth_entries = "".join(
+            f"ffff{line[4:]}" for line in result.stdout.splitlines(keepends=True) if len(line) >= 4
+        )
+        merge_result = run_command(
+            ["xauth", "-f", str(xauth_path), "nmerge", "-"],
+            check=False,
+            input=xauth_entries,
+            text=True,
+            dry_run=self.dryrun,
+        )
+        if merge_result.returncode != 0:
+            xauth_path.unlink(missing_ok=True)
+            warn(
+                f"xauth nmerge failed for DISPLAY={display}; "
+                "X11 may not authenticate inside the container."
+            )
+            return []
+
+        self._display_temp_files.append(xauth_path)
+        return ["-v", f"{xauth_path}:{xauth_path}:ro", "-e", f"XAUTHORITY={xauth_path}"]
+
+    def _cleanup_display_temp_files(self) -> None:
+        for path in self._display_temp_files:
+            try:
+                path.unlink(missing_ok=True)
+            except OSError:
+                # Suppress I/O errors so cleanup doesn't mask the original exception.
+                pass
+        self._display_temp_files.clear()
 
     def get_ngc_options(self) -> List[str]:
         """Get NGC-related options"""

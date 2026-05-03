@@ -2285,8 +2285,6 @@ class HoloHubCLI:
         devcontainer_env_options = container.get_devcontainer_args(
             docker_opts=getattr(args, "docker_opts", None) or ""
         )
-        # Enable X11 access for Docker containers
-        container.enable_x11_access()
 
         devcontainer_content = holohub_cli_util.get_devcontainer_config(
             holohub_root=self.HOLOHUB_ROOT, project_name=args.project, dry_run=args.dryrun

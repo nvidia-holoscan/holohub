@@ -16,6 +16,7 @@
 
 import os
 import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -159,6 +160,75 @@ class TestHoloHubContainer(unittest.TestCase):
         self.assertTrue("run" in docker_run_call)
         self.assertTrue("--runtime" in docker_run_call and "nvidia" in docker_run_call)
         self.assertIn(self.container.image_names[0], docker_run_call)
+
+    @patch.dict(os.environ, {}, clear=True)
+    def test_get_display_options_without_display_returns_empty(self):
+        """No display environment should skip display forwarding."""
+        self.assertEqual(self.container.get_display_options(True, False), [])
+
+    @patch.dict(os.environ, {"DISPLAY": ":0"}, clear=True)
+    def test_get_display_options_native_x11_uses_socket_and_xauth(self):
+        """Native X11 should mount the UNIX socket and a generated Xauthority file."""
+
+        def fake_run_command(cmd, **kwargs):
+            if cmd[:2] == ["xauth", "nlist"]:
+                return subprocess.CompletedProcess(cmd, 0, stdout="0100 0000 0000\n")
+            return subprocess.CompletedProcess(cmd, 0)
+
+        with (
+            patch("utilities.cli.container.Path.is_dir", return_value=True),
+            patch("utilities.cli.container.shutil.which", return_value="/usr/bin/xauth"),
+            patch("utilities.cli.container.run_command", side_effect=fake_run_command) as mock_run,
+        ):
+            options = self.container.get_display_options(True, False)
+
+        self.assertIn("-v", options)
+        self.assertIn("/tmp/.X11-unix:/tmp/.X11-unix:ro", options)
+        self.assertIn("-e", options)
+        self.assertIn("DISPLAY", options)
+        self.assertTrue(any(opt.endswith(":ro") and ".docker.xauth-" in opt for opt in options))
+        self.assertTrue(any(opt.startswith("XAUTHORITY=") for opt in options))
+        self.assertEqual(mock_run.call_count, 2)
+        self.assertTrue(mock_run.call_args_list[1].kwargs["input"].startswith("ffff"))
+
+        xauth_mount = next(opt for opt in options if ".docker.xauth-" in opt)
+        xauth_path = Path(xauth_mount.split(":", 1)[0])
+        self.assertTrue(xauth_path.exists())
+        self.container._cleanup_display_temp_files()
+        self.assertFalse(xauth_path.exists())
+
+    @patch.dict(os.environ, {"DISPLAY": "localhost:10.0"}, clear=True)
+    def test_get_display_options_tcp_x11_skips_unix_socket(self):
+        """SSH-forwarded X11 uses TCP and should not mount /tmp/.X11-unix."""
+        with (
+            patch("utilities.cli.container.Path.is_dir", return_value=True),
+            patch("utilities.cli.container.shutil.which", return_value=None),
+        ):
+            options = self.container.get_display_options(True, True)
+
+        self.assertIn("DISPLAY", options)
+        self.assertNotIn("/tmp/.X11-unix:/tmp/.X11-unix:ro", options)
+        self.assertFalse(any(opt.startswith("XAUTHORITY=") for opt in options))
+
+    @patch.dict(
+        os.environ,
+        {
+            "WAYLAND_DISPLAY": "wayland-0",
+            "XDG_RUNTIME_DIR": "/run/user/1000",
+            "XDG_SESSION_TYPE": "wayland",
+        },
+        clear=True,
+    )
+    def test_get_display_options_wayland_forwards_runtime_dir(self):
+        """Wayland should forward XDG_RUNTIME_DIR (mounted) and WAYLAND_DISPLAY."""
+        with patch("utilities.cli.container.Path.is_dir", return_value=True):
+            options = self.container.get_display_options(True, False)
+
+        self.assertIn("XDG_SESSION_TYPE", options)
+        self.assertIn("WAYLAND_DISPLAY", options)
+        self.assertIn("XDG_RUNTIME_DIR", options)
+        self.assertIn("/run/user/1000:/run/user/1000", options)
+        self.assertNotIn("DISPLAY", options)
 
     @patch("subprocess.CompletedProcess")
     def test_dry_run(self, mock_completed_process):

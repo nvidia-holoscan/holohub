@@ -155,11 +155,10 @@ To launch custom HoloHub container with fully qualified name, e.g. "holohub:ngc-
 ./holohub run-container --img holohub:ngc-sdk-sample-app --no-docker-build
 ```
 
-### Forward X11 Graphics Over SSH
+### Forward Graphics From Containers
 
-```bash
-  ./holohub run-container --ssh-x11
-```
+HoloHub automatically forwards X11 and Wayland displays when `DISPLAY` or
+`WAYLAND_DISPLAY` is set on the host.
 
 ### Support Nsight Systems profiling in the HoloHub Container
 
