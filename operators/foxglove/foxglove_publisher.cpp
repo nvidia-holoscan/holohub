@@ -1034,8 +1034,9 @@ uint32_t tensor_image_step(const Tensor& tensor,
                            const TensorImageLayout& layout,
                            const std::string& encoding,
                            uint32_t width) {
-  const auto stride = tensor.stride(layout.height_dim);
-  if (stride > 0) {
+  const auto strides = tensor.strides();
+  if (layout.height_dim < strides.size() && strides[layout.height_dim] > 0) {
+    const auto stride = strides[layout.height_dim];
     if (stride > std::numeric_limits<uint32_t>::max()) {
       throw std::runtime_error("Tensor image row stride exceeds Foxglove RawImage step range");
     }

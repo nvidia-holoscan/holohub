@@ -51,6 +51,12 @@ if(EXISTS "${_foxglove_root}/foxglove")
 endif()
 
 file(GLOB _foxglove_sources CONFIGURE_DEPENDS "${_foxglove_root}/src/*.cpp")
+if(NOT _foxglove_sources)
+  message(FATAL_ERROR
+    "No C++ sources found under '${_foxglove_root}/src'. "
+    "Check that HOLOHUB_FOXGLOVE_SDK_VERSION (${HOLOHUB_FOXGLOVE_SDK_VERSION}) "
+    "matches the expected Foxglove SDK layout.")
+endif()
 
 add_library(foxglove_sdk_cpp STATIC ${_foxglove_sources})
 add_library(foxglove::sdk ALIAS foxglove_sdk_cpp)

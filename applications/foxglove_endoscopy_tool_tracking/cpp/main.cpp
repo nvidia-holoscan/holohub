@@ -136,11 +136,6 @@ class ToolTrackingFoxgloveAdapterOp : public holoscan::Operator {
                                         "Clipper",
                                         "Irrigator",
                                         "Spec.Bag"});
-    spec.param(presence_threshold_,
-               "presence_threshold",
-               "Presence threshold",
-               "Minimum per-tool presence probability required to publish an annotation",
-               0.5);
   }
 
   void compute(holoscan::InputContext& op_input,
@@ -169,38 +164,40 @@ class ToolTrackingFoxgloveAdapterOp : public holoscan::Operator {
 
     const auto labels = labels_.get();
     for (size_t index = 0; index < coords.size() / 3; ++index) {
-      const auto confidence = static_cast<double>(coords[index * 3 + 2]);
-      if (!std::isfinite(confidence) || confidence < presence_threshold_.get()) {
-        continue;
-      }
       const auto maybe_point = image_coordinates(coords[index * 3 + 0], coords[index * 3 + 1]);
       if (!maybe_point) {
         continue;
       }
       const auto [x, y] = maybe_point.value();
+      const auto marker_size = static_cast<double>(coords[index * 3 + 2]);
+      if (!std::isfinite(marker_size) || marker_size <= 0.0) {
+        continue;
+      }
 
       const auto label = index < labels.size() ? labels[index] : fmt::format("tool_{}", index);
-      constexpr double box_extent = 24.0;
+      const double box_extent =
+          marker_size <= 1.0
+              ? marker_size * static_cast<double>(std::min(kEndoscopyWidth, kEndoscopyHeight))
+              : marker_size;
       holoscan::ops::FoxgloveBox2D box;
       box.x = std::clamp(x - box_extent * 0.5, 0.0, static_cast<double>(kEndoscopyWidth - 1));
       box.y = std::clamp(y - box_extent * 0.5, 0.0, static_cast<double>(kEndoscopyHeight - 1));
       box.width = std::min(box_extent, static_cast<double>(kEndoscopyWidth) - box.x);
       box.height = std::min(box_extent, static_cast<double>(kEndoscopyHeight) - box.y);
       box.label = label;
-      box.confidence = confidence;
       annotations.boxes.push_back(std::move(box));
 
       holoscan::ops::FoxglovePointsAnnotation point_set;
       point_set.type = foxglove::messages::PointsAnnotation::PointsAnnotationType::POINTS;
       point_set.label = label;
-      point_set.thickness = 10.0;
-      point_set.points.push_back({x, y, confidence, label});
+      point_set.thickness = std::max(4.0, box_extent * 0.4);
+      point_set.points.push_back({x, y, -1.0, label});
       annotations.point_sets.push_back(std::move(point_set));
 
       holoscan::ops::FoxgloveText text;
       text.x = x + 6.0;
       text.y = y - 6.0;
-      text.text = fmt::format("{} {:.2f}", label, confidence);
+      text.text = label;
       text.font_size = 14.0;
       annotations.texts.push_back(std::move(text));
     }
@@ -228,7 +225,6 @@ class ToolTrackingFoxgloveAdapterOp : public holoscan::Operator {
   holoscan::Parameter<std::string> annotation_topic_;
   holoscan::Parameter<std::string> state_topic_;
   holoscan::Parameter<std::vector<std::string>> labels_;
-  holoscan::Parameter<double> presence_threshold_;
   std::chrono::steady_clock::time_point last_tick_{};
 };
 
@@ -313,6 +309,14 @@ bool parse_arguments(int argc, char** argv, std::string& data_path, std::string&
   return true;
 }
 
+std::filesystem::path executable_directory(const char* executable_path) {
+  try {
+    return std::filesystem::canonical(executable_path).parent_path();
+  } catch (const std::filesystem::filesystem_error&) {
+    return std::filesystem::current_path();
+  }
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -339,7 +343,8 @@ int main(int argc, char** argv) {
         config_env != nullptr && config_env[0] != '\0') {
       config_path = config_env;
     } else {
-      config_path = "foxglove_endoscopy_tool_tracking.yaml";
+      config_path =
+          (executable_directory(argv[0]) / "foxglove_endoscopy_tool_tracking.yaml").string();
     }
   }
 

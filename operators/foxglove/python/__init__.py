@@ -38,12 +38,13 @@ except ImportError as exc:
 
 try:
     from holoscan.core import io_type_registry
+except ImportError:
+    io_type_registry = None
 
+if io_type_registry is not None:
     from ._foxglove import register_types as _register_types
 
     _register_types(io_type_registry)
-except ImportError:
-    pass
 
 __all__ = [
     "FoxgloveBatch",

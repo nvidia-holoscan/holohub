@@ -65,7 +65,6 @@ lstm_inference:
 tool_tracking_foxglove:
   annotation_topic: "/detections"
   state_topic: "/state/inference_fps"
-  presence_threshold: 0.5
   labels:
     - Grasper
     - Bipolar
