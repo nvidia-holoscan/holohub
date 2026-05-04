@@ -881,6 +881,23 @@ uint32_t infer_image_step(uint32_t width, const std::string& encoding) {
   return width;
 }
 
+namespace {
+
+uint32_t video_buffer_image_step(const nvidia::gxf::VideoBufferInfo& info,
+                                 uint32_t width,
+                                 const std::string& encoding) {
+  if (!info.color_planes.empty() && info.color_planes[0].stride > 0) {
+    const auto stride = info.color_planes[0].stride;
+    if (stride > std::numeric_limits<uint32_t>::max()) {
+      throw std::runtime_error("GXF VideoBuffer row stride exceeds Foxglove RawImage step range");
+    }
+    return static_cast<uint32_t>(stride);
+  }
+  return infer_image_step(width, encoding);
+}
+
+}  // namespace
+
 void FoxglovePublisherOp::setup(OperatorSpec& spec) {
   spec.input<std::vector<std::shared_ptr<FoxgloveBatch>>>("messages", IOSpec::kAnySize);
   spec.input<gxf::Entity>("image", IOSpec::kAnySize);
@@ -1175,8 +1192,9 @@ FoxgloveImage FoxglovePublisherOp::image_from_entity(gxf::Entity entity, cudaStr
       image.encoding = encoding;
       image.width = image_width_.get() == 0 ? info.width : image_width_.get();
       image.height = image_height_.get() == 0 ? info.height : image_height_.get();
-      image.step = image_step_.get() == 0 ? infer_image_step(image.width, image.encoding)
-                                          : image_step_.get();
+      image.step = image_step_.get() == 0
+                       ? video_buffer_image_step(info, image.width, image.encoding)
+                       : image_step_.get();
       image.data = copy_host_or_device(buffer.pointer(),
                                        buffer.size(),
                                        buffer.storage_type() ==
@@ -1871,7 +1889,8 @@ FoxgloveImage FoxgloveTensorAdapterOp::image_from_video_buffer(
   image.encoding = encoding;
   image.width = width_.get() == 0 ? info.width : width_.get();
   image.height = height_.get() == 0 ? info.height : height_.get();
-  image.step = step_.get() == 0 ? infer_image_step(image.width, image.encoding) : step_.get();
+  image.step = step_.get() == 0 ? video_buffer_image_step(info, image.width, image.encoding)
+                                : step_.get();
   image.data = copy_host_or_device(buffer.pointer(),
                                    buffer.size(),
                                    buffer.storage_type() ==

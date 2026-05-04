@@ -54,6 +54,7 @@ class PyFoxglovePublisherOp : public FoxglovePublisherOp {
                         uint32_t image_height = 0,
                         uint32_t image_step = 0,
                         bool image_prefer_video_buffer = true,
+                        std::shared_ptr<Allocator> allocator = nullptr,
                         const std::string& name = "foxglove_publisher")
       : FoxglovePublisherOp(ArgList{Arg{"bind_address", bind_address},
                                     Arg{"port", port},
@@ -73,7 +74,8 @@ class PyFoxglovePublisherOp : public FoxglovePublisherOp {
                                     Arg{"image_height", image_height},
                                     Arg{"image_step", image_step},
                                     Arg{"image_prefer_video_buffer",
-                                        image_prefer_video_buffer}}) {
+                                        image_prefer_video_buffer},
+                                    Arg{"allocator", allocator}}) {
     add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;
@@ -98,6 +100,7 @@ class PyFoxgloveTensorAdapterOp : public FoxgloveTensorAdapterOp {
                             bool prefer_video_buffer = true,
                             const std::string& timestamp_metadata_keys =
                                 "acquisition_timestamp_ns,timestamp_ns,sensor_timestamp_ns",
+                            std::shared_ptr<Allocator> allocator = nullptr,
                             const std::string& name = "foxglove_tensor_adapter")
       : FoxgloveTensorAdapterOp(ArgList{Arg{"topic", topic},
                                         Arg{"frame_id", frame_id},
@@ -107,7 +110,8 @@ class PyFoxgloveTensorAdapterOp : public FoxgloveTensorAdapterOp {
                                         Arg{"height", height},
                                         Arg{"step", step},
                                         Arg{"prefer_video_buffer", prefer_video_buffer},
-                                        Arg{"timestamp_metadata_keys", timestamp_metadata_keys}}) {
+                                        Arg{"timestamp_metadata_keys", timestamp_metadata_keys},
+                                        Arg{"allocator", allocator}}) {
     add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;
@@ -137,6 +141,7 @@ class PyFoxgloveDetectionAdapterOp : public FoxgloveDetectionAdapterOp {
                                bool clamp_to_image = true,
                                const std::string& timestamp_metadata_keys =
                                    "acquisition_timestamp_ns,timestamp_ns,sensor_timestamp_ns",
+                               std::shared_ptr<Allocator> allocator = nullptr,
                                const std::string& name = "foxglove_detection_adapter")
       : FoxgloveDetectionAdapterOp(ArgList{Arg{"annotation_topic", annotation_topic},
                                            Arg{"boxes_tensor", boxes_tensor},
@@ -152,7 +157,8 @@ class PyFoxgloveDetectionAdapterOp : public FoxgloveDetectionAdapterOp {
                                            Arg{"normalized_coordinates", normalized_coordinates},
                                            Arg{"clamp_to_image", clamp_to_image},
                                            Arg{"timestamp_metadata_keys",
-                                               timestamp_metadata_keys}}) {
+                                               timestamp_metadata_keys},
+                                           Arg{"allocator", allocator}}) {
     add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;
@@ -177,6 +183,7 @@ class PyFoxgloveSegmentationMaskAdapterOp : public FoxgloveSegmentationMaskAdapt
                                       const std::string& timestamp_metadata_keys =
                                           "acquisition_timestamp_ns,timestamp_ns,"
                                           "sensor_timestamp_ns",
+                                      std::shared_ptr<Allocator> allocator = nullptr,
                                       const std::string& name =
                                           "foxglove_segmentation_mask_adapter")
       : FoxgloveSegmentationMaskAdapterOp(ArgList{Arg{"topic", topic},
@@ -187,7 +194,8 @@ class PyFoxgloveSegmentationMaskAdapterOp : public FoxgloveSegmentationMaskAdapt
                                                   Arg{"height", height},
                                                   Arg{"step", step},
                                                   Arg{"timestamp_metadata_keys",
-                                                      timestamp_metadata_keys}}) {
+                                                      timestamp_metadata_keys},
+                                                  Arg{"allocator", allocator}}) {
     add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;
@@ -209,13 +217,15 @@ class PyFoxgloveCompressedVideoAdapterOp : public FoxgloveCompressedVideoAdapter
       const std::string& format = "h264",
       const std::string& timestamp_metadata_keys =
           "acquisition_timestamp_ns,timestamp_ns,sensor_timestamp_ns",
+      std::shared_ptr<Allocator> allocator = nullptr,
       const std::string& name = "foxglove_compressed_video_adapter")
       : FoxgloveCompressedVideoAdapterOp(ArgList{
             Arg{"topic", topic},
             Arg{"frame_id", frame_id},
             Arg{"tensor_name", tensor_name},
             Arg{"format", format},
-            Arg{"timestamp_metadata_keys", timestamp_metadata_keys}}) {
+            Arg{"timestamp_metadata_keys", timestamp_metadata_keys},
+            Arg{"allocator", allocator}}) {
     add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;
@@ -237,13 +247,15 @@ class PyFoxglovePoseAdapterOp : public FoxglovePoseAdapterOp {
                           const std::string& format = "matrix4x4",
                           const std::string& timestamp_metadata_keys =
                               "acquisition_timestamp_ns,timestamp_ns,sensor_timestamp_ns",
+                          std::shared_ptr<Allocator> allocator = nullptr,
                           const std::string& name = "foxglove_pose_adapter")
       : FoxglovePoseAdapterOp(ArgList{Arg{"topic", topic},
                                       Arg{"tensor_name", tensor_name},
                                       Arg{"parent_frame_id", parent_frame_id},
                                       Arg{"child_frame_id", child_frame_id},
                                       Arg{"format", format},
-                                      Arg{"timestamp_metadata_keys", timestamp_metadata_keys}}) {
+                                      Arg{"timestamp_metadata_keys", timestamp_metadata_keys},
+                                      Arg{"allocator", allocator}}) {
     add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;
@@ -442,6 +454,7 @@ PYBIND11_MODULE(_foxglove, m) {
                     uint32_t,
                     uint32_t,
                     bool,
+                    std::shared_ptr<Allocator>,
                     const std::string&>(),
            "fragment"_a,
            "bind_address"_a = "0.0.0.0"s,
@@ -463,6 +476,7 @@ PYBIND11_MODULE(_foxglove, m) {
            "image_height"_a = 0,
            "image_step"_a = 0,
            "image_prefer_video_buffer"_a = true,
+           "allocator"_a = std::shared_ptr<Allocator>(),
            "name"_a = "foxglove_publisher"s);
 
   py::class_<FoxgloveTensorAdapterOp,
@@ -481,6 +495,7 @@ PYBIND11_MODULE(_foxglove, m) {
                     uint32_t,
                     bool,
                     const std::string&,
+                    std::shared_ptr<Allocator>,
                     const std::string&>(),
            "fragment"_a,
            "topic"_a = "/image"s,
@@ -493,6 +508,7 @@ PYBIND11_MODULE(_foxglove, m) {
            "prefer_video_buffer"_a = true,
            "timestamp_metadata_keys"_a =
                "acquisition_timestamp_ns,timestamp_ns,sensor_timestamp_ns"s,
+           "allocator"_a = std::shared_ptr<Allocator>(),
            "name"_a = "foxglove_tensor_adapter"s);
 
   py::class_<FoxgloveDetectionAdapterOp,
@@ -516,6 +532,7 @@ PYBIND11_MODULE(_foxglove, m) {
                     bool,
                     bool,
                     const std::string&,
+                    std::shared_ptr<Allocator>,
                     const std::string&>(),
            "fragment"_a,
            "annotation_topic"_a = "/detections"s,
@@ -533,6 +550,7 @@ PYBIND11_MODULE(_foxglove, m) {
            "clamp_to_image"_a = true,
            "timestamp_metadata_keys"_a =
                "acquisition_timestamp_ns,timestamp_ns,sensor_timestamp_ns"s,
+           "allocator"_a = std::shared_ptr<Allocator>(),
            "name"_a = "foxglove_detection_adapter"s);
 
   py::class_<FoxgloveSegmentationMaskAdapterOp,
@@ -552,6 +570,7 @@ PYBIND11_MODULE(_foxglove, m) {
                     uint32_t,
                     uint32_t,
                     const std::string&,
+                    std::shared_ptr<Allocator>,
                     const std::string&>(),
            "fragment"_a,
            "topic"_a = "/segmentation"s,
@@ -563,6 +582,7 @@ PYBIND11_MODULE(_foxglove, m) {
            "step"_a = 0,
            "timestamp_metadata_keys"_a =
                "acquisition_timestamp_ns,timestamp_ns,sensor_timestamp_ns"s,
+           "allocator"_a = std::shared_ptr<Allocator>(),
            "name"_a = "foxglove_segmentation_mask_adapter"s);
 
   py::class_<FoxgloveCompressedVideoAdapterOp,
@@ -579,6 +599,7 @@ PYBIND11_MODULE(_foxglove, m) {
                     const std::string&,
                     const std::string&,
                     const std::string&,
+                    std::shared_ptr<Allocator>,
                     const std::string&>(),
            "fragment"_a,
            "topic"_a = "/video/compressed"s,
@@ -587,6 +608,7 @@ PYBIND11_MODULE(_foxglove, m) {
            "format"_a = "h264"s,
            "timestamp_metadata_keys"_a =
                "acquisition_timestamp_ns,timestamp_ns,sensor_timestamp_ns"s,
+           "allocator"_a = std::shared_ptr<Allocator>(),
            "name"_a = "foxglove_compressed_video_adapter"s);
 
   py::class_<FoxglovePoseAdapterOp,
@@ -603,6 +625,7 @@ PYBIND11_MODULE(_foxglove, m) {
                     const std::string&,
                     const std::string&,
                     const std::string&,
+                    std::shared_ptr<Allocator>,
                     const std::string&>(),
            "fragment"_a,
            "topic"_a = "/tf"s,
@@ -612,6 +635,7 @@ PYBIND11_MODULE(_foxglove, m) {
            "format"_a = "matrix4x4"s,
            "timestamp_metadata_keys"_a =
                "acquisition_timestamp_ns,timestamp_ns,sensor_timestamp_ns"s,
+           "allocator"_a = std::shared_ptr<Allocator>(),
            "name"_a = "foxglove_pose_adapter"s);
 
 #if HOLOHUB_FOXGLOVE_HAS_EMITTER_RECEIVER_REGISTRY
