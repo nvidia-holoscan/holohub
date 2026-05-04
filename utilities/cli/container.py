@@ -20,6 +20,7 @@ import os
 import re
 import shlex
 import shutil
+import signal
 import stat
 import subprocess
 import sys
@@ -57,6 +58,74 @@ from .util import (
 )
 
 SCCACHE_CONTAINER_DIR = "/.cache/sccache"
+
+
+def _extract_docker_opt_value(docker_opts: str, flag: str) -> Optional[str]:
+    """Return the value of a docker option flag from a free-form options string."""
+    if not docker_opts or flag not in docker_opts:
+        return None
+    try:
+        tokens = shlex.split(docker_opts)
+    except ValueError:
+        return None
+    prefix = f"{flag}="
+    for i, token in enumerate(tokens):
+        if token == flag and i + 1 < len(tokens):
+            return tokens[i + 1]
+        if token.startswith(prefix):
+            return token.split("=", 1)[1]
+    return None
+
+
+def _read_container_id(cidfile: Path) -> Optional[str]:
+    """Read a Docker container ID from a cidfile if Docker has written it."""
+    try:
+        container_id = cidfile.read_text().strip()
+    except OSError:
+        return None
+    return container_id or None
+
+
+class _ContainerTerminationSignal(Exception):
+    """Raised from the signal handler to return control to the parent CLI."""
+
+    def __init__(self, signum: int):
+        self.signum = signum
+        super().__init__(signum)
+
+
+class _ContainerTerminationHandler:
+    """Record termination signals so the parent CLI can clean up its container.
+
+    The handler intentionally only records the signal; it does not run subprocesses
+    from the signal context. The caller is expected to perform cleanup (e.g.
+    `docker stop`) on the main thread after the guarded block exits.
+    """
+
+    def __init__(self):
+        self._previous_handlers = {}
+
+    def __enter__(self):
+        for signal_name in ("SIGINT", "SIGTERM", "SIGHUP"):
+            signum = getattr(signal, signal_name, None)
+            if signum is None:
+                continue
+            try:
+                self._previous_handlers[signum] = signal.getsignal(signum)
+                signal.signal(signum, self._handle_signal)
+            except (OSError, RuntimeError, ValueError):
+                continue
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        for signum, handler in self._previous_handlers.items():
+            try:
+                signal.signal(signum, handler)
+            except (OSError, RuntimeError, ValueError):
+                continue
+
+    def _handle_signal(self, signum, frame) -> None:
+        raise _ContainerTerminationSignal(signum)
 
 
 class HoloHubContainer:
@@ -598,9 +667,18 @@ class HoloHubContainer:
         add_volumes = add_volumes or []
         extra_args = extra_args or []
 
+        explicit_cidfile = _extract_docker_opt_value(docker_opts, "--cidfile")
+        if explicit_cidfile:
+            cidfile = Path(explicit_cidfile)
+            cidfile_args: List[str] = []
+        else:
+            cidfile = Path(tempfile.gettempdir()) / f"holohub-container-{os.getpid()}.cid"
+            cidfile_args = ["--cidfile", str(cidfile)]
+
         cmd = [self.DOCKER_EXE, "run"]
 
         cmd.extend(self.get_basic_args())
+        cmd.extend(cidfile_args)
         cmd.extend(self.get_security_args(as_root))
         cmd.extend(self.get_volume_args(add_volumes, enable_mps))
         cmd.extend(self.get_gpu_runtime_args())
@@ -632,7 +710,45 @@ class HoloHubContainer:
             cmd_list = [f'"{arg}"' if " " in str(arg) else str(arg) for arg in cmd]
             print(f"Launch command: {' '.join(cmd_list)}")
 
-        run_command(cmd, dry_run=self.dryrun)
+        if self.dryrun:
+            run_command(cmd, dry_run=self.dryrun)
+            return
+
+        # Docker refuses to start if --cidfile already exists; clear stale files
+        # left by a prior crashed run that happened to share this PID.
+        if not explicit_cidfile:
+            cidfile.unlink(missing_ok=True)
+
+        try:
+            try:
+                with _ContainerTerminationHandler():
+                    run_command(cmd)
+                return
+            except _ContainerTerminationSignal as exc:
+                sig = exc.signum
+
+            try:
+                signal_name = signal.Signals(sig).name
+            except ValueError:
+                signal_name = str(sig)
+            container_id = _read_container_id(cidfile)
+            if container_id:
+                warn(f"Received {signal_name}; stopping HoloHub container {container_id}")
+                subprocess.run(
+                    [self.DOCKER_EXE, "stop", "--time", "10", container_id],
+                    check=False,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+            else:
+                warn(f"Received {signal_name}; no HoloHub container ID was written to {cidfile}")
+            # Re-raise via default handler so we exit with the conventional 128+N status.
+            signal.signal(sig, signal.SIG_DFL)
+            os.kill(os.getpid(), sig)
+            sys.exit(128 + sig)
+        finally:
+            if not explicit_cidfile:
+                cidfile.unlink(missing_ok=True)
 
     def get_basic_args(self) -> List[str]:
         """Basic container runtime arguments"""

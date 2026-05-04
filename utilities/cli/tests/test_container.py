@@ -25,7 +25,7 @@ from unittest.mock import patch
 # Add the utilities directory to the Python path
 sys.path.append(str(Path(os.getcwd()) / "utilities"))
 
-from utilities.cli.container import HoloHubContainer
+from utilities.cli.container import HoloHubContainer, _ContainerTerminationSignal
 from utilities.cli.util import get_cuda_tag, get_default_cuda_version
 
 
@@ -157,8 +157,77 @@ class TestHoloHubContainer(unittest.TestCase):
         self.assertIsNotNone(docker_run_call, "Docker run command not found in mock calls")
         self.assertTrue("docker" in docker_run_call)
         self.assertTrue("run" in docker_run_call)
+        self.assertNotIn("--name", docker_run_call)
+        self.assertIn("--cidfile", docker_run_call)
+        self.assertNotIn("--label", docker_run_call)
         self.assertTrue("--runtime" in docker_run_call and "nvidia" in docker_run_call)
         self.assertIn(self.container.image_names[0], docker_run_call)
+
+    @patch("utilities.cli.container.check_nvidia_ctk")
+    @patch("utilities.cli.container.get_image_pythonpath")
+    @patch("subprocess.run")
+    @patch("subprocess.check_output")
+    def test_run_respects_explicit_cidfile(
+        self, mock_check_output, mock_run, mock_get_image_pythonpath, mock_check_nvidia_ctk
+    ):
+        """An explicit Docker cidfile should not be overwritten."""
+        mock_check_nvidia_ctk.return_value = None
+        mock_check_output.return_value = ""
+        mock_get_image_pythonpath.return_value = ""
+        self.container.run(docker_opts="--cidfile /tmp/custom-holohub.cid")
+
+        docker_run_call = None
+        for call in mock_run.call_args_list:
+            cmd = call[0][0]
+            if isinstance(cmd, list) and len(cmd) > 0 and cmd[0] == "docker" and "run" in cmd:
+                docker_run_call = cmd
+                break
+
+        self.assertIsNotNone(docker_run_call, "Docker run command not found in mock calls")
+        self.assertEqual(docker_run_call.count("--cidfile"), 1)
+        self.assertIn("/tmp/custom-holohub.cid", docker_run_call)
+
+    @patch("utilities.cli.container.check_nvidia_ctk")
+    @patch("utilities.cli.container.get_image_pythonpath")
+    @patch("utilities.cli.container.os.kill")
+    @patch("utilities.cli.container.signal.signal")
+    @patch("utilities.cli.container.subprocess.run")
+    @patch("utilities.cli.container.run_command")
+    @patch("subprocess.check_output")
+    def test_run_stops_cidfile_container_on_signal(
+        self,
+        mock_check_output,
+        mock_run_command,
+        mock_subprocess_run,
+        _mock_signal,
+        mock_kill,
+        mock_get_image_pythonpath,
+        mock_check_nvidia_ctk,
+    ):
+        """Signal cleanup should stop the exact container ID Docker wrote."""
+        mock_check_nvidia_ctk.return_value = None
+        mock_check_output.return_value = ""
+        mock_get_image_pythonpath.return_value = ""
+
+        def interrupt_after_cidfile(cmd, **_kwargs):
+            if "--cidfile" not in cmd:
+                return None
+            cidfile = Path(cmd[cmd.index("--cidfile") + 1])
+            cidfile.write_text("container123\n")
+            raise _ContainerTerminationSignal(15)
+
+        mock_run_command.side_effect = interrupt_after_cidfile
+
+        with self.assertRaises(SystemExit) as raised:
+            self.container.run()
+
+        self.assertEqual(raised.exception.code, 128 + 15)
+        mock_subprocess_run.assert_called_once()
+        self.assertEqual(
+            mock_subprocess_run.call_args[0][0],
+            ["docker", "stop", "--time", "10", "container123"],
+        )
+        mock_kill.assert_called_once_with(os.getpid(), 15)
 
     @patch("subprocess.CompletedProcess")
     def test_dry_run(self, mock_completed_process):
@@ -167,6 +236,7 @@ class TestHoloHubContainer(unittest.TestCase):
         self.container.run()
         cmd = mock_completed_process.call_args[0][0]
         self.assertIn(self.container.image_names[0], cmd)
+        self.assertIn("--cidfile", cmd)
         self.assertIn("c 81:* rmw", cmd)
         self.container.dryrun = False
 
