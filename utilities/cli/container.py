@@ -59,6 +59,14 @@ from .util import (
 SCCACHE_CONTAINER_DIR = "/.cache/sccache"
 
 
+def make_container_name(app_name: str, mode_name: Optional[str] = None) -> str:
+    """Return a deterministic Docker container name for a HoloHub app run."""
+    slug = app_name.replace("_", "-")
+    if mode_name:
+        return f"holohub-{slug}-{mode_name.replace('_', '-')}"
+    return f"holohub-{slug}"
+
+
 class HoloHubContainer:
     """
     Describes the container environment for a HoloHub project.
@@ -585,6 +593,7 @@ class HoloHubContainer:
         add_volumes: List[str] = None,
         enable_mps: bool = False,
         extra_args: List[str] = None,
+        container_name: Optional[str] = None,
     ) -> None:
         """Launch the container"""
 
@@ -624,6 +633,9 @@ class HoloHubContainer:
 
         if docker_opts:
             cmd.extend(shlex.split(docker_opts))
+
+        if container_name:
+            cmd.extend(["--name", container_name, "--label", "holohub.cli"])
 
         cmd.append(img)
         cmd.extend(extra_args)

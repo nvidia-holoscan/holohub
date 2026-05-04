@@ -46,7 +46,7 @@ from typing import List, Optional
 
 import utilities.cli.util as holohub_cli_util
 import utilities.metadata.gather_metadata as metadata_util
-from utilities.cli.container import HoloHubContainer
+from utilities.cli.container import HoloHubContainer, make_container_name
 from utilities.cli.util import Color
 from utilities.metadata.utils import get_schema_path, list_normalized_languages, normalize_language
 
@@ -817,6 +817,7 @@ class HoloHubCLI:
         # Resolve mode for docker_build_args / docker_run_args if project with modes
         build_args = args.build_args
         docker_opts = args.docker_opts
+        mode_name = None
         if args.project:
             project_data = self.find_project(args.project, language=getattr(args, "language", None))
             mode_name, mode_config = self.resolve_mode(project_data, getattr(args, "mode", None))
@@ -874,6 +875,7 @@ class HoloHubCLI:
             add_volumes=args.add_volume,
             enable_mps=getattr(args, "mps", False),
             extra_args=trailing_args,
+            container_name=make_container_name(args.project, mode_name) if args.project else None,
         )
 
     def handle_test(self, args: argparse.Namespace) -> None:
@@ -1556,6 +1558,7 @@ class HoloHubCLI:
                 add_volumes=getattr(args, "add_volume", None),
                 enable_mps=getattr(args, "mps", False),
                 extra_args=extra_args,
+                container_name=make_container_name(args.project, mode_name),
             )
 
     def handle_list(self, args: argparse.Namespace) -> None:
