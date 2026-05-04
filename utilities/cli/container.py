@@ -635,7 +635,7 @@ class HoloHubContainer:
             cmd.extend(shlex.split(docker_opts))
 
         if container_name:
-            cmd.extend(["--name", container_name, "--label", "holohub.cli"])
+            cmd.extend(["--name", container_name, "--label", "holohub.cli=true"])
 
         cmd.append(img)
         cmd.extend(extra_args)
