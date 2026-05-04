@@ -159,6 +159,16 @@ class HoloHubContainer:
     @staticmethod
     def get_run_argparse() -> argparse.ArgumentParser:
         """Get argument parser for container run options"""
+
+        class _DeprecatedDisplayFlagAction(argparse.Action):
+            def __call__(self, parser, namespace, values, option_string=None):
+                warn(
+                    f"{option_string} is deprecated and ignored; X11 and Wayland "
+                    "forwarding now happens automatically when DISPLAY or "
+                    "WAYLAND_DISPLAY is set."
+                )
+                setattr(namespace, self.dest, True)
+
         parser = argparse.ArgumentParser(add_help=False)
         parser.add_argument(
             "--docker-opts",
@@ -168,8 +178,10 @@ class HoloHubContainer:
         )
         parser.add_argument(
             "--ssh-x11",
-            action="store_true",
-            help="Enable X11 forwarding of graphical HoloHub applications over SSH",
+            action=_DeprecatedDisplayFlagAction,
+            nargs=0,
+            default=False,
+            help="[DEPRECATED] X11 over SSH is now auto-detected from DISPLAY",
         )
         parser.add_argument(
             "--nsys-profile",
@@ -204,9 +216,10 @@ class HoloHubContainer:
         )
         parser.add_argument(
             "--enable-x11",
-            action="store_true",
+            action=_DeprecatedDisplayFlagAction,
+            nargs=0,
             default=True,
-            help="Enable X11 forwarding (default: True)",
+            help="[DEPRECATED] X11/Wayland forwarding is now auto-detected",
         )
         return parser
 
