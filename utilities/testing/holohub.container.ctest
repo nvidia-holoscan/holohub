@@ -71,8 +71,8 @@ if(NOT TAG)
   set(TAG latest)
 endif()
 
-set(CTEST_SOURCE_DIRECTORY "/workspace/holohub")
-set(CTEST_BINARY_DIRECTORY "/workspace/holohub/build-${PROJ_NAME}")
+get_filename_component(CTEST_SOURCE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/../.." ABSOLUTE)
+set(CTEST_BINARY_DIRECTORY "${CTEST_SOURCE_DIRECTORY}/build-${PROJ_NAME}")
 
 if(NOT CTEST_SITE)
   set(CTEST_SITE "SITE_NA")
@@ -97,7 +97,7 @@ ctest_read_custom_files("${CTEST_BINARY_DIRECTORY}")
 
 set(configure_options
   ${CONFIGURE_OPTIONS}
-  -D HOLOHUB_DATA_DIR=/workspace/holohub/data-${PROJ_NAME}-${TAG}
+  -D HOLOHUB_DATA_DIR=${CTEST_SOURCE_DIRECTORY}/data-${PROJ_NAME}-${TAG}
   -D CMAKE_BUILD_TYPE=RelWithDebInfo
 )
 
