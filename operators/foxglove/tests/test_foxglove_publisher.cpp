@@ -183,13 +183,19 @@ class SyntheticImageSourceOp : public Operator {
                "allocator",
                "Allocator",
                "Allocator for the synthetic image tensor",
-               std::static_pointer_cast<Allocator>(
-                   fragment()->make_resource<UnboundedAllocator>("allocator")));
+               std::shared_ptr<Allocator>{});
     spec.output<gxf::Entity>("output");
   }
 
   void initialize() override {
-    add_arg(allocator_.default_value());
+    auto allocator = allocator_.try_get().value_or(nullptr);
+    if (!allocator) {
+      allocator =
+          std::static_pointer_cast<Allocator>(fragment()->make_resource<UnboundedAllocator>(
+              "allocator"));
+      allocator_.try_get() = allocator;
+    }
+    add_arg(Arg{"allocator", allocator});
     Operator::initialize();
   }
 
@@ -271,6 +277,9 @@ TEST(FoxglovePublisherHelpers, InferImageStep) {
   EXPECT_EQ(infer_image_step(640, "rgb8"), 1920u);
   EXPECT_EQ(infer_image_step(640, "mono16"), 1280u);
   EXPECT_EQ(infer_image_step(640, "32FC1"), 2560u);
+  EXPECT_EQ(infer_image_step(640, "16UC3"), 3840u);
+  EXPECT_EQ(infer_image_step(640, "32FC3"), 7680u);
+  EXPECT_EQ(infer_image_step(640, "rgba32f"), 10240u);
 }
 
 TEST(FoxglovePublisherHelpers, ByteVectorCopy) {

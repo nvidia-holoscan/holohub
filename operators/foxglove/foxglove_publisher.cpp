@@ -7,11 +7,15 @@
 
 #include <algorithm>
 #include <any>
+#include <atomic>
 #include <cmath>
 #include <chrono>
 #include <cstring>
 #include <ctime>
+#include <filesystem>
 #include <iomanip>
+#include <initializer_list>
+#include <iterator>
 #include <limits>
 #include <sstream>
 #include <stdexcept>
@@ -338,19 +342,21 @@ std::optional<foxglove::Parameter> foxglove_parameter_from_wrapper(
   return std::nullopt;
 }
 
-std::optional<double> foxglove_parameter_as_double(const foxglove::ParameterView& parameter) {
-  if (parameter.is<double>()) {
-    return parameter.get<double>();
+template <typename Value>
+std::optional<double> parameter_value_as_double(const Value& value) {
+  if (const auto* double_value = std::get_if<double>(&value)) {
+    return *double_value;
   }
-  if (parameter.is<int64_t>()) {
-    return static_cast<double>(parameter.get<int64_t>());
+  if (const auto* int_value = std::get_if<int64_t>(&value)) {
+    return static_cast<double>(*int_value);
   }
   return std::nullopt;
 }
 
-std::optional<int64_t> foxglove_parameter_as_int64(const foxglove::ParameterView& parameter) {
-  if (parameter.is<int64_t>()) {
-    return parameter.get<int64_t>();
+template <typename Value>
+std::optional<int64_t> parameter_value_as_int64(const Value& value) {
+  if (const auto* int_value = std::get_if<int64_t>(&value)) {
+    return *int_value;
   }
   return std::nullopt;
 }
@@ -374,58 +380,61 @@ bool set_integer_parameter(ParameterWrapper& wrapper, int64_t value) {
   return true;
 }
 
-bool set_holoscan_parameter_from_foxglove(ParameterWrapper& wrapper,
-                                         const foxglove::ParameterView& parameter) {
-  if (wrapper.storage_ptr() == nullptr || !parameter.hasValue()) {
+template <typename Value>
+bool set_holoscan_parameter_from_value(ParameterWrapper& wrapper, const Value& value) {
+  if (wrapper.storage_ptr() == nullptr || std::holds_alternative<std::monostate>(value)) {
     return false;
   }
   const auto& type = wrapper.type();
-  if (type == typeid(bool) && parameter.is<bool>()) {
-    static_cast<Parameter<bool>*>(wrapper.storage_ptr())->try_get() = parameter.get<bool>();
-    return true;
+  if (type == typeid(bool)) {
+    if (const auto* bool_value = std::get_if<bool>(&value)) {
+      static_cast<Parameter<bool>*>(wrapper.storage_ptr())->try_get() = *bool_value;
+      return true;
+    }
   }
-  if (type == typeid(std::string) && parameter.is<std::string>()) {
-    static_cast<Parameter<std::string>*>(wrapper.storage_ptr())->try_get() =
-        parameter.get<std::string>();
-    return true;
+  if (type == typeid(std::string)) {
+    if (const auto* string_value = std::get_if<std::string>(&value)) {
+      static_cast<Parameter<std::string>*>(wrapper.storage_ptr())->try_get() = *string_value;
+      return true;
+    }
   }
   if (type == typeid(float)) {
-    if (const auto value = foxglove_parameter_as_double(parameter)) {
+    if (const auto double_value = parameter_value_as_double(value)) {
       static_cast<Parameter<float>*>(wrapper.storage_ptr())->try_get() =
-          static_cast<float>(value.value());
+          static_cast<float>(double_value.value());
       return true;
     }
   }
   if (type == typeid(double)) {
-    if (const auto value = foxglove_parameter_as_double(parameter)) {
-      static_cast<Parameter<double>*>(wrapper.storage_ptr())->try_get() = value.value();
+    if (const auto double_value = parameter_value_as_double(value)) {
+      static_cast<Parameter<double>*>(wrapper.storage_ptr())->try_get() = double_value.value();
       return true;
     }
   }
-  if (const auto value = foxglove_parameter_as_int64(parameter)) {
+  if (const auto int_value = parameter_value_as_int64(value)) {
     if (type == typeid(int8_t)) {
-      return set_integer_parameter<int8_t>(wrapper, value.value());
+      return set_integer_parameter<int8_t>(wrapper, int_value.value());
     }
     if (type == typeid(uint8_t)) {
-      return set_integer_parameter<uint8_t>(wrapper, value.value());
+      return set_integer_parameter<uint8_t>(wrapper, int_value.value());
     }
     if (type == typeid(int16_t)) {
-      return set_integer_parameter<int16_t>(wrapper, value.value());
+      return set_integer_parameter<int16_t>(wrapper, int_value.value());
     }
     if (type == typeid(uint16_t)) {
-      return set_integer_parameter<uint16_t>(wrapper, value.value());
+      return set_integer_parameter<uint16_t>(wrapper, int_value.value());
     }
     if (type == typeid(int32_t)) {
-      return set_integer_parameter<int32_t>(wrapper, value.value());
+      return set_integer_parameter<int32_t>(wrapper, int_value.value());
     }
     if (type == typeid(uint32_t)) {
-      return set_integer_parameter<uint32_t>(wrapper, value.value());
+      return set_integer_parameter<uint32_t>(wrapper, int_value.value());
     }
     if (type == typeid(int64_t)) {
-      return set_integer_parameter<int64_t>(wrapper, value.value());
+      return set_integer_parameter<int64_t>(wrapper, int_value.value());
     }
     if (type == typeid(uint64_t)) {
-      return set_integer_parameter<uint64_t>(wrapper, value.value());
+      return set_integer_parameter<uint64_t>(wrapper, int_value.value());
     }
   }
   return false;
@@ -866,22 +875,180 @@ uint64_t resolve_timestamp_ns(uint64_t timestamp_ns) {
 }
 
 uint32_t infer_image_step(uint32_t width, const std::string& encoding) {
+  auto typed_encoding_step = [width, &encoding](
+                                 const std::string& prefix,
+                                 uint32_t bytes_per_element) -> std::optional<uint32_t> {
+    if (encoding.rfind(prefix, 0) != 0) {
+      return std::nullopt;
+    }
+    const auto suffix = encoding.substr(prefix.size());
+    if (suffix.empty()) {
+      return std::nullopt;
+    }
+    try {
+      const auto channels = static_cast<uint64_t>(std::stoul(suffix));
+      const auto bytes = static_cast<uint64_t>(width) * bytes_per_element * channels;
+      if (bytes > std::numeric_limits<uint32_t>::max()) {
+        throw std::runtime_error("Image row step exceeds Foxglove RawImage step range");
+      }
+      return static_cast<uint32_t>(bytes);
+    } catch (const std::invalid_argument&) {
+      return std::nullopt;
+    } catch (const std::out_of_range&) {
+      throw std::runtime_error("Image encoding channel count exceeds supported range");
+    }
+  };
+
+  for (const auto& [prefix, bytes_per_element] :
+       std::initializer_list<std::pair<std::string, uint32_t>>{
+           {"8UC", 1}, {"8SC", 1}, {"16UC", 2}, {"16SC", 2}, {"32UC", 4},
+           {"32SC", 4}, {"32FC", 4}, {"64FC", 8}}) {
+    if (const auto step = typed_encoding_step(prefix, bytes_per_element)) {
+      return step.value();
+    }
+  }
   if (encoding == "rgba8" || encoding == "bgra8") {
     return width * 4;
   }
-  if (encoding == "rgb8" || encoding == "bgr8" || encoding == "8UC3") {
+  if (encoding == "rgb8" || encoding == "bgr8") {
     return width * 3;
   }
-  if (encoding == "mono16" || encoding == "16UC1") {
+  if (encoding == "mono16") {
     return width * 2;
   }
-  if (encoding == "32FC1") {
+  if (encoding == "rgba32f" || encoding == "bgra32f") {
+    return width * 16;
+  }
+  if (encoding == "rgb32f" || encoding == "bgr32f") {
+    return width * 12;
+  }
+  if (encoding == "mono32f") {
     return width * 4;
   }
   return width;
 }
 
 namespace {
+
+struct TensorImageLayout {
+  uint32_t height = 0;
+  uint32_t width = 0;
+  uint32_t channels = 1;
+  size_t height_dim = 0;
+};
+
+uint32_t checked_tensor_dim(int64_t value, const std::string& name) {
+  if (value <= 0 || value > static_cast<int64_t>(std::numeric_limits<uint32_t>::max())) {
+    throw std::runtime_error(fmt::format("Tensor image {} dimension is out of range", name));
+  }
+  return static_cast<uint32_t>(value);
+}
+
+TensorImageLayout tensor_image_layout(const Tensor& tensor, const std::string& context) {
+  const auto shape = tensor.shape();
+  if (shape.size() < 2 || shape.size() > 4) {
+    throw std::runtime_error(fmt::format("{} must have rank 2, 3, or 4", context));
+  }
+
+  TensorImageLayout layout;
+  if (shape.size() == 4) {
+    if (shape[0] != 1) {
+      throw std::runtime_error(fmt::format("{} batched tensor input must have batch size 1",
+                                           context));
+    }
+    layout.height = checked_tensor_dim(shape[1], "height");
+    layout.width = checked_tensor_dim(shape[2], "width");
+    layout.channels = checked_tensor_dim(shape[3], "channel");
+    layout.height_dim = 1;
+    return layout;
+  }
+
+  if (shape.size() == 3 && (shape[2] == 1 || shape[2] == 3 || shape[2] == 4)) {
+    layout.height = checked_tensor_dim(shape[0], "height");
+    layout.width = checked_tensor_dim(shape[1], "width");
+    layout.channels = checked_tensor_dim(shape[2], "channel");
+    layout.height_dim = 0;
+    return layout;
+  }
+
+  layout.height = checked_tensor_dim(shape[shape.size() - 2], "height");
+  layout.width = checked_tensor_dim(shape[shape.size() - 1], "width");
+  layout.channels = 1;
+  layout.height_dim = shape.size() - 2;
+  return layout;
+}
+
+uint32_t tensor_dtype_bytes(const Tensor& tensor) {
+  const auto dtype = tensor.dtype();
+  if (dtype.lanes != 1 || dtype.bits % 8 != 0) {
+    throw std::runtime_error("Tensor image dtype must use whole-byte scalar elements");
+  }
+  return dtype.bits / 8;
+}
+
+std::string tensor_image_encoding(const Tensor& tensor, uint32_t channels) {
+  const auto dtype = tensor.dtype();
+  if (dtype.lanes != 1) {
+    throw std::runtime_error("Tensor image dtype lanes > 1 require explicit image_encoding");
+  }
+  if (dtype.code == kDLUInt && dtype.bits == 8) {
+    if (channels == 1) {
+      return "mono8";
+    }
+    if (channels == 3) {
+      return "rgb8";
+    }
+    if (channels == 4) {
+      return "rgba8";
+    }
+    return fmt::format("8UC{}", channels);
+  }
+  if (dtype.code == kDLUInt && dtype.bits == 16) {
+    if (channels == 1) {
+      return "mono16";
+    }
+    return fmt::format("16UC{}", channels);
+  }
+  if (dtype.code == kDLUInt && dtype.bits == 32) {
+    return fmt::format("32UC{}", channels);
+  }
+  if (dtype.code == kDLInt && dtype.bits == 8) {
+    return fmt::format("8SC{}", channels);
+  }
+  if (dtype.code == kDLInt && dtype.bits == 16) {
+    return fmt::format("16SC{}", channels);
+  }
+  if (dtype.code == kDLInt && dtype.bits == 32) {
+    return fmt::format("32SC{}", channels);
+  }
+  if (dtype.code == kDLFloat && dtype.bits == 32) {
+    return fmt::format("32FC{}", channels);
+  }
+  if (dtype.code == kDLFloat && dtype.bits == 64) {
+    return fmt::format("64FC{}", channels);
+  }
+  throw std::runtime_error("Tensor image dtype requires explicit image_encoding");
+}
+
+uint32_t tensor_image_step(const Tensor& tensor,
+                           const TensorImageLayout& layout,
+                           const std::string& encoding,
+                           uint32_t width) {
+  const auto stride = tensor.stride(layout.height_dim);
+  if (stride > 0) {
+    if (stride > std::numeric_limits<uint32_t>::max()) {
+      throw std::runtime_error("Tensor image row stride exceeds Foxglove RawImage step range");
+    }
+    return static_cast<uint32_t>(stride);
+  }
+  const auto bytes = static_cast<uint64_t>(width) * layout.channels * tensor_dtype_bytes(tensor);
+  if (bytes > std::numeric_limits<uint32_t>::max()) {
+    throw std::runtime_error("Tensor image row step exceeds Foxglove RawImage step range");
+  }
+  const auto inferred_from_dtype = static_cast<uint32_t>(bytes);
+  const auto inferred_from_encoding = infer_image_step(width, encoding);
+  return std::max(inferred_from_dtype, inferred_from_encoding);
+}
 
 uint32_t video_buffer_image_step(const nvidia::gxf::VideoBufferInfo& info,
                                  uint32_t width,
@@ -991,10 +1158,15 @@ void FoxglovePublisherOp::setup(OperatorSpec& spec) {
 }
 
 void FoxglovePublisherOp::open_mcap_writer(const std::string& path) {
+  const auto compression = [this]() {
+    std::lock_guard<std::mutex> lock(parameter_mutex_);
+    return mcap_compression_.get();
+  }();
+
   foxglove::McapWriterOptions writer_options;
   writer_options.context = context_;
   writer_options.path = path;
-  writer_options.compression = mcap_compression_from_string(mcap_compression_.get());
+  writer_options.compression = mcap_compression_from_string(compression);
   writer_options.truncate = true;
 
   auto writer_result = foxglove::McapWriter::create(writer_options);
@@ -1020,8 +1192,13 @@ void FoxglovePublisherOp::close_mcap_writer() {
 }
 
 std::string FoxglovePublisherOp::snapshot_mcap_path() const {
+  static std::atomic<uint64_t> snapshot_counter{0};
   const auto now = std::chrono::system_clock::now();
   const auto time = std::chrono::system_clock::to_time_t(now);
+  const auto milliseconds =
+      std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count() %
+      1000;
+  const auto nonce = snapshot_counter.fetch_add(1, std::memory_order_relaxed);
   std::tm local_time{};
 #if defined(_WIN32)
   localtime_s(&local_time, &time);
@@ -1029,18 +1206,29 @@ std::string FoxglovePublisherOp::snapshot_mcap_path() const {
   localtime_r(&time, &local_time);
 #endif
   std::ostringstream suffix;
-  suffix << std::put_time(&local_time, "%Y%m%d_%H%M%S");
+  suffix << std::put_time(&local_time, "%Y%m%d_%H%M%S") << '_' << std::setw(3)
+         << std::setfill('0') << milliseconds << '_' << nonce;
 
-  const auto path = mcap_path_.get();
-  const auto dot = path.find_last_of('.');
-  if (dot == std::string::npos) {
-    return fmt::format("{}_{}.mcap", path, suffix.str());
+  const std::filesystem::path base_path = [this]() {
+    std::lock_guard<std::mutex> lock(parameter_mutex_);
+    return std::filesystem::path(mcap_path_.get());
+  }();
+  auto stem = base_path.stem().string();
+  if (stem.empty()) {
+    stem = "holoscan_foxglove";
   }
-  return fmt::format("{}_{}{}", path.substr(0, dot), suffix.str(), path.substr(dot));
+  auto extension = base_path.extension().string();
+  if (extension.empty()) {
+    extension = ".mcap";
+  }
+
+  const auto snapshot_name = fmt::format("{}_{}{}", stem, suffix.str(), extension);
+  return (base_path.parent_path() / snapshot_name).string();
 }
 
 std::vector<foxglove::Parameter> FoxglovePublisherOp::foxglove_parameters(
     const std::vector<std::string_view>& names) {
+  std::lock_guard<std::mutex> lock(parameter_mutex_);
   std::vector<foxglove::Parameter> parameters;
   if (fragment() == nullptr) {
     return parameters;
@@ -1063,15 +1251,55 @@ std::vector<foxglove::Parameter> FoxglovePublisherOp::foxglove_parameters(
   return parameters;
 }
 
-std::vector<foxglove::Parameter> FoxglovePublisherOp::set_foxglove_parameters(
+std::vector<foxglove::Parameter> FoxglovePublisherOp::enqueue_foxglove_parameter_updates(
     const std::vector<foxglove::ParameterView>& params) {
-  auto mutable_parameters = parse_name_set(mutable_parameters_.get());
-  for (const auto& parameter : params) {
-    const auto name = std::string(parameter.name());
-    if (mutable_parameters.find(name) == mutable_parameters.end()) {
-      HOLOSCAN_LOG_WARN("Ignoring read-only Foxglove parameter update for '{}'", name);
-      continue;
+  std::vector<PendingParameterUpdate> updates;
+  {
+    std::lock_guard<std::mutex> lock(parameter_mutex_);
+    auto mutable_parameters = parse_name_set(mutable_parameters_.get());
+    for (const auto& parameter : params) {
+      const auto name = std::string(parameter.name());
+      if (mutable_parameters.find(name) == mutable_parameters.end()) {
+        HOLOSCAN_LOG_WARN("Ignoring read-only Foxglove parameter update for '{}'", name);
+        continue;
+      }
+      if (!parameter.hasValue()) {
+        HOLOSCAN_LOG_WARN("Ignoring empty Foxglove parameter update for '{}'", name);
+        continue;
+      }
+
+      ParameterValue value;
+      if (parameter.is<bool>()) {
+        value = parameter.get<bool>();
+      } else if (parameter.is<std::string>()) {
+        value = parameter.get<std::string>();
+      } else if (parameter.is<double>()) {
+        value = parameter.get<double>();
+      } else if (parameter.is<int64_t>()) {
+        value = parameter.get<int64_t>();
+      } else {
+        HOLOSCAN_LOG_WARN("Ignoring unsupported Foxglove parameter update type for '{}'", name);
+        continue;
+      }
+      updates.push_back({name, std::move(value)});
     }
+    pending_parameter_updates_.insert(pending_parameter_updates_.end(),
+                                      std::make_move_iterator(updates.begin()),
+                                      std::make_move_iterator(updates.end()));
+  }
+  return foxglove_parameters();
+}
+
+void FoxglovePublisherOp::apply_pending_parameter_updates() {
+  std::lock_guard<std::mutex> lock(parameter_mutex_);
+  if (pending_parameter_updates_.empty()) {
+    return;
+  }
+  auto updates = std::move(pending_parameter_updates_);
+  pending_parameter_updates_.clear();
+
+  for (const auto& update : updates) {
+    const auto& name = update.name;
     const auto separator = name.find('.');
     if (separator == std::string::npos || fragment() == nullptr) {
       continue;
@@ -1087,11 +1315,19 @@ std::vector<foxglove::Parameter> FoxglovePublisherOp::set_foxglove_parameters(
     if (iter == params_map.end()) {
       continue;
     }
-    if (!set_holoscan_parameter_from_foxglove(iter->second, parameter)) {
+    if (!set_holoscan_parameter_from_value(iter->second, update.value)) {
       HOLOSCAN_LOG_WARN("Could not update Foxglove parameter '{}'", name);
     }
   }
-  return foxglove_parameters();
+}
+
+bool FoxglovePublisherOp::should_publish_raw_image(const std::string& topic) {
+  std::lock_guard<std::mutex> lock(mcap_mutex_);
+  raw_image_channel(topic);
+  return should_log_channel(topic,
+                            raw_image_channels_,
+                            drop_when_unsubscribed_.get(),
+                            mcap_writer_.has_value());
 }
 
 void FoxglovePublisherOp::register_services() {
@@ -1118,12 +1354,16 @@ void FoxglovePublisherOp::register_services() {
   make_service("start_recording",
                [this]([[maybe_unused]] const foxglove::ServiceRequest& request,
                       foxglove::ServiceResponder&& responder) {
+                 const auto path = [this]() {
+                   std::lock_guard<std::mutex> parameter_lock(parameter_mutex_);
+                   return mcap_path_.get();
+                 }();
                  std::lock_guard<std::mutex> lock(mcap_mutex_);
                  try {
                    if (!mcap_writer_) {
-                     open_mcap_writer(mcap_path_.get());
+                     open_mcap_writer(path);
                    }
-                   const auto response = fmt::format(R"({{"path":"{}"}})", mcap_path_.get());
+                   const auto response = fmt::format(R"({{"path":"{}"}})", path);
                    const auto* data =
                        reinterpret_cast<const std::byte*>(response.data());
                    std::move(responder).respondOk(data, response.size());
@@ -1223,10 +1463,7 @@ FoxgloveImage FoxglovePublisherOp::image_from_entity(gxf::Entity entity, cudaStr
 FoxgloveImage FoxglovePublisherOp::image_from_tensor_map(const TensorMap& tensors,
                                                          cudaStream_t stream) {
   const auto& tensor = tensor_from_map(tensors, image_tensor_name_.get(), "direct image input");
-  const auto shape = tensor->shape();
-  if (shape.size() < 2) {
-    throw std::runtime_error("Direct tensor image input must have rank >= 2");
-  }
+  const auto layout = tensor_image_layout(*tensor, "Direct tensor image input");
 
   FoxgloveImage image;
   image.topic = normalize_topic(image_topic_.get(), "/image");
@@ -1234,23 +1471,18 @@ FoxgloveImage FoxglovePublisherOp::image_from_tensor_map(const TensorMap& tensor
   image.width = image_width_.get();
   image.height = image_height_.get();
   if (image.height == 0) {
-    image.height = static_cast<uint32_t>(shape[0]);
+    image.height = layout.height;
   }
   if (image.width == 0) {
-    image.width = static_cast<uint32_t>(shape[1]);
+    image.width = layout.width;
   }
 
   image.encoding = image_encoding_.get();
   if (image.encoding.empty()) {
-    if (shape.size() >= 3 && shape[2] == 4) {
-      image.encoding = "rgba8";
-    } else if (shape.size() >= 3 && shape[2] == 3) {
-      image.encoding = "rgb8";
-    } else {
-      image.encoding = "mono8";
-    }
+    image.encoding = tensor_image_encoding(*tensor, layout.channels);
   }
-  image.step = image_step_.get() == 0 ? infer_image_step(image.width, image.encoding)
+  image.step = image_step_.get() == 0 ? tensor_image_step(*tensor, layout, image.encoding,
+                                                          image.width)
                                       : image_step_.get();
 
   const auto device = tensor->device();
@@ -1283,7 +1515,7 @@ void FoxglovePublisherOp::start() {
       [this]([[maybe_unused]] uint32_t client_id,
              [[maybe_unused]] std::optional<std::string_view> request_id,
              const std::vector<foxglove::ParameterView>& params) {
-        return set_foxglove_parameters(params);
+        return enqueue_foxglove_parameter_updates(params);
       };
 
   auto server_result = foxglove::WebSocketServer::create(std::move(options));
@@ -1354,8 +1586,8 @@ void FoxglovePublisherOp::stop() {
 void FoxglovePublisherOp::compute(InputContext& op_input,
                                   [[maybe_unused]] OutputContext& op_output,
                                   [[maybe_unused]] ExecutionContext& context) {
+  apply_pending_parameter_updates();
   uint64_t latest_timestamp = 0;
-  std::lock_guard<std::mutex> lock(mcap_mutex_);
 
   auto maybe_batches = op_input.receive<std::vector<std::shared_ptr<FoxgloveBatch>>>("messages");
   if (maybe_batches) {
@@ -1390,31 +1622,37 @@ void FoxglovePublisherOp::compute(InputContext& op_input,
   }
 
   if (auto maybe_images = op_input.receive<std::vector<gxf::Entity>>("image")) {
-    const auto stream = op_input.receive_cuda_stream("image", false, true);
-    size_t index = 0;
-    for (auto& entity : maybe_images.value()) {
-      const auto timestamp_ns = timestamp_from_input_metadata_at(
-          *this, op_input, "image", timestamp_metadata_keys_.get(), index++);
-      auto image = image_from_entity(std::move(entity), stream);
-      image.timestamp_ns = timestamp_ns;
-      latest_timestamp = std::max(latest_timestamp, publish_image(image));
-      for (const auto& key_value : metadata_key_values(*this, timestamp_ns)) {
-        latest_timestamp = std::max(latest_timestamp, publish_key_value(key_value));
+    const auto topic = normalize_topic(image_topic_.get(), "/image");
+    if (should_publish_raw_image(topic)) {
+      const auto stream = op_input.receive_cuda_stream("image", false, true);
+      size_t index = 0;
+      for (auto& entity : maybe_images.value()) {
+        const auto timestamp_ns = timestamp_from_input_metadata_at(
+            *this, op_input, "image", timestamp_metadata_keys_.get(), index++);
+        auto image = image_from_entity(std::move(entity), stream);
+        image.timestamp_ns = timestamp_ns;
+        latest_timestamp = std::max(latest_timestamp, publish_image(image));
+        for (const auto& key_value : metadata_key_values(*this, timestamp_ns)) {
+          latest_timestamp = std::max(latest_timestamp, publish_key_value(key_value));
+        }
       }
     }
   }
 
   if (auto maybe_tensors = op_input.receive<std::vector<TensorMap>>("tensors")) {
-    const auto stream = op_input.receive_cuda_stream("tensors", false, true);
-    size_t index = 0;
-    for (const auto& tensors : maybe_tensors.value()) {
-      const auto timestamp_ns = timestamp_from_input_metadata_at(
-          *this, op_input, "tensors", timestamp_metadata_keys_.get(), index++);
-      auto image = image_from_tensor_map(tensors, stream);
-      image.timestamp_ns = timestamp_ns;
-      latest_timestamp = std::max(latest_timestamp, publish_image(image));
-      for (const auto& key_value : metadata_key_values(*this, timestamp_ns)) {
-        latest_timestamp = std::max(latest_timestamp, publish_key_value(key_value));
+    const auto topic = normalize_topic(image_topic_.get(), "/image");
+    if (should_publish_raw_image(topic)) {
+      const auto stream = op_input.receive_cuda_stream("tensors", false, true);
+      size_t index = 0;
+      for (const auto& tensors : maybe_tensors.value()) {
+        const auto timestamp_ns = timestamp_from_input_metadata_at(
+            *this, op_input, "tensors", timestamp_metadata_keys_.get(), index++);
+        auto image = image_from_tensor_map(tensors, stream);
+        image.timestamp_ns = timestamp_ns;
+        latest_timestamp = std::max(latest_timestamp, publish_image(image));
+        for (const auto& key_value : metadata_key_values(*this, timestamp_ns)) {
+          latest_timestamp = std::max(latest_timestamp, publish_key_value(key_value));
+        }
       }
     }
   }
@@ -1590,13 +1828,6 @@ foxglove::messages::KeyValuePairChannel& FoxglovePublisherOp::key_value_channel(
 uint64_t FoxglovePublisherOp::publish_image(const FoxgloveImage& image) {
   const auto log_time_ns = resolve_timestamp_ns(image.timestamp_ns);
   auto topic = normalize_topic(image.topic, "/image");
-  auto& channel = raw_image_channel(topic);
-  if (!should_log_channel(topic,
-                          raw_image_channels_,
-                          drop_when_unsubscribed_.get(),
-                          mcap_writer_.has_value())) {
-    return log_time_ns;
-  }
   foxglove::messages::RawImage message;
   message.timestamp = timestamp_from_ns(log_time_ns);
   message.frame_id = image.frame_id;
@@ -1605,6 +1836,14 @@ uint64_t FoxglovePublisherOp::publish_image(const FoxgloveImage& image) {
   message.encoding = image.encoding;
   message.step = image.step == 0 ? infer_image_step(image.width, image.encoding) : image.step;
   message.data = image.data;
+  std::lock_guard<std::mutex> lock(mcap_mutex_);
+  auto& channel = raw_image_channel(topic);
+  if (!should_log_channel(topic,
+                          raw_image_channels_,
+                          drop_when_unsubscribed_.get(),
+                          mcap_writer_.has_value())) {
+    return log_time_ns;
+  }
   throw_on_foxglove_error(channel.log(message, log_time_ns), "RawImage log");
   return log_time_ns;
 }
@@ -1612,6 +1851,12 @@ uint64_t FoxglovePublisherOp::publish_image(const FoxgloveImage& image) {
 uint64_t FoxglovePublisherOp::publish_compressed_video(const FoxgloveCompressedVideo& video) {
   const auto log_time_ns = resolve_timestamp_ns(video.timestamp_ns);
   auto topic = normalize_topic(video.topic, "/video/compressed");
+  foxglove::messages::CompressedVideo message;
+  message.timestamp = timestamp_from_ns(log_time_ns);
+  message.frame_id = video.frame_id;
+  message.format = video.format;
+  message.data = video.data;
+  std::lock_guard<std::mutex> lock(mcap_mutex_);
   auto& channel = compressed_video_channel(topic);
   if (!should_log_channel(topic,
                           compressed_video_channels_,
@@ -1619,11 +1864,6 @@ uint64_t FoxglovePublisherOp::publish_compressed_video(const FoxgloveCompressedV
                           mcap_writer_.has_value())) {
     return log_time_ns;
   }
-  foxglove::messages::CompressedVideo message;
-  message.timestamp = timestamp_from_ns(log_time_ns);
-  message.frame_id = video.frame_id;
-  message.format = video.format;
-  message.data = video.data;
   throw_on_foxglove_error(channel.log(message, log_time_ns), "CompressedVideo log");
   return log_time_ns;
 }
@@ -1632,13 +1872,6 @@ uint64_t FoxglovePublisherOp::publish_calibration(
     const FoxgloveCameraCalibration& calibration) {
   const auto log_time_ns = resolve_timestamp_ns(calibration.timestamp_ns);
   auto topic = normalize_topic(calibration.topic, "/camera/calibration");
-  auto& channel = calibration_channel(topic);
-  if (!should_log_channel(topic,
-                          calibration_channels_,
-                          drop_when_unsubscribed_.get(),
-                          mcap_writer_.has_value())) {
-    return log_time_ns;
-  }
   foxglove::messages::CameraCalibration message;
   message.timestamp = timestamp_from_ns(log_time_ns);
   message.frame_id = calibration.frame_id;
@@ -1649,6 +1882,14 @@ uint64_t FoxglovePublisherOp::publish_calibration(
   message.k = calibration.k;
   message.r = calibration.r;
   message.p = calibration.p;
+  std::lock_guard<std::mutex> lock(mcap_mutex_);
+  auto& channel = calibration_channel(topic);
+  if (!should_log_channel(topic,
+                          calibration_channels_,
+                          drop_when_unsubscribed_.get(),
+                          mcap_writer_.has_value())) {
+    return log_time_ns;
+  }
   throw_on_foxglove_error(channel.log(message, log_time_ns), "CameraCalibration log");
   return log_time_ns;
 }
@@ -1657,13 +1898,6 @@ uint64_t FoxglovePublisherOp::publish_annotations(
     const FoxgloveImageAnnotations& annotations) {
   const auto log_time_ns = resolve_timestamp_ns(annotations.timestamp_ns);
   auto topic = normalize_topic(annotations.topic, "/image/annotations");
-  auto& channel = annotation_channel(topic);
-  if (!should_log_channel(topic,
-                          annotation_channels_,
-                          drop_when_unsubscribed_.get(),
-                          mcap_writer_.has_value())) {
-    return log_time_ns;
-  }
   foxglove::messages::ImageAnnotations message;
   message.timestamp = timestamp_from_ns(log_time_ns);
   for (const auto& box : annotations.boxes) {
@@ -1726,6 +1960,14 @@ uint64_t FoxglovePublisherOp::publish_annotations(
     label.background_color = foxglove::messages::Color{0.0, 0.0, 0.0, 0.45};
     message.texts.push_back(std::move(label));
   }
+  std::lock_guard<std::mutex> lock(mcap_mutex_);
+  auto& channel = annotation_channel(topic);
+  if (!should_log_channel(topic,
+                          annotation_channels_,
+                          drop_when_unsubscribed_.get(),
+                          mcap_writer_.has_value())) {
+    return log_time_ns;
+  }
   throw_on_foxglove_error(channel.log(message, log_time_ns), "ImageAnnotations log");
   return log_time_ns;
 }
@@ -1733,6 +1975,13 @@ uint64_t FoxglovePublisherOp::publish_annotations(
 uint64_t FoxglovePublisherOp::publish_point_cloud(const FoxglovePointCloud& point_cloud) {
   const auto log_time_ns = resolve_timestamp_ns(point_cloud.timestamp_ns);
   auto topic = normalize_topic(point_cloud.topic, "/points");
+  foxglove::messages::PointCloud message;
+  message.timestamp = timestamp_from_ns(log_time_ns);
+  message.frame_id = point_cloud.frame_id;
+  message.point_stride = point_cloud.point_stride;
+  message.fields = point_cloud.fields;
+  message.data = point_cloud.data;
+  std::lock_guard<std::mutex> lock(mcap_mutex_);
   auto& channel = point_cloud_channel(topic);
   if (!should_log_channel(topic,
                           point_cloud_channels_,
@@ -1740,12 +1989,6 @@ uint64_t FoxglovePublisherOp::publish_point_cloud(const FoxglovePointCloud& poin
                           mcap_writer_.has_value())) {
     return log_time_ns;
   }
-  foxglove::messages::PointCloud message;
-  message.timestamp = timestamp_from_ns(log_time_ns);
-  message.frame_id = point_cloud.frame_id;
-  message.point_stride = point_cloud.point_stride;
-  message.fields = point_cloud.fields;
-  message.data = point_cloud.data;
   throw_on_foxglove_error(channel.log(message, log_time_ns), "PointCloud log");
   return log_time_ns;
 }
@@ -1754,13 +1997,6 @@ uint64_t FoxglovePublisherOp::publish_frame_transform(
     const FoxgloveFrameTransform& transform) {
   const auto log_time_ns = resolve_timestamp_ns(transform.timestamp_ns);
   auto topic = normalize_topic(transform.topic, "/tf");
-  auto& channel = frame_transform_channel(topic);
-  if (!should_log_channel(topic,
-                          frame_transform_channels_,
-                          drop_when_unsubscribed_.get(),
-                          mcap_writer_.has_value())) {
-    return log_time_ns;
-  }
   foxglove::messages::FrameTransform message;
   message.timestamp = timestamp_from_ns(log_time_ns);
   message.parent_frame_id = transform.parent_frame_id;
@@ -1769,6 +2005,14 @@ uint64_t FoxglovePublisherOp::publish_frame_transform(
       transform.translation[0], transform.translation[1], transform.translation[2]};
   message.rotation = foxglove::messages::Quaternion{
       transform.rotation[0], transform.rotation[1], transform.rotation[2], transform.rotation[3]};
+  std::lock_guard<std::mutex> lock(mcap_mutex_);
+  auto& channel = frame_transform_channel(topic);
+  if (!should_log_channel(topic,
+                          frame_transform_channels_,
+                          drop_when_unsubscribed_.get(),
+                          mcap_writer_.has_value())) {
+    return log_time_ns;
+  }
   throw_on_foxglove_error(channel.log(message, log_time_ns), "FrameTransform log");
   return log_time_ns;
 }
@@ -1776,6 +2020,10 @@ uint64_t FoxglovePublisherOp::publish_frame_transform(
 uint64_t FoxglovePublisherOp::publish_key_value(const FoxgloveKeyValue& key_value) {
   const auto log_time_ns = resolve_timestamp_ns(key_value.timestamp_ns);
   auto topic = normalize_topic(key_value.topic, "/state");
+  foxglove::messages::KeyValuePair message;
+  message.key = key_value.key;
+  message.value = key_value.value;
+  std::lock_guard<std::mutex> lock(mcap_mutex_);
   auto& channel = key_value_channel(topic);
   if (!should_log_channel(topic,
                           key_value_channels_,
@@ -1783,9 +2031,6 @@ uint64_t FoxglovePublisherOp::publish_key_value(const FoxgloveKeyValue& key_valu
                           mcap_writer_.has_value())) {
     return log_time_ns;
   }
-  foxglove::messages::KeyValuePair message;
-  message.key = key_value.key;
-  message.value = key_value.value;
   throw_on_foxglove_error(channel.log(message, log_time_ns), "KeyValuePair log");
   return log_time_ns;
 }
@@ -1903,10 +2148,7 @@ FoxgloveImage FoxgloveTensorAdapterOp::image_from_video_buffer(
 
 FoxgloveImage FoxgloveTensorAdapterOp::image_from_tensor(const Tensor& tensor,
                                                          cudaStream_t stream) const {
-  const auto shape = tensor.shape();
-  if (shape.size() < 2) {
-    throw std::runtime_error("Tensor image input must have rank >= 2");
-  }
+  const auto layout = tensor_image_layout(tensor, "Tensor image input");
 
   FoxgloveImage image;
   image.topic = normalize_topic(topic_.get(), "/image");
@@ -1914,23 +2156,19 @@ FoxgloveImage FoxgloveTensorAdapterOp::image_from_tensor(const Tensor& tensor,
   image.width = width_.get();
   image.height = height_.get();
   if (image.height == 0) {
-    image.height = static_cast<uint32_t>(shape[0]);
+    image.height = layout.height;
   }
   if (image.width == 0) {
-    image.width = static_cast<uint32_t>(shape[1]);
+    image.width = layout.width;
   }
 
   image.encoding = encoding_.get();
   if (image.encoding.empty()) {
-    if (shape.size() >= 3 && shape[2] == 4) {
-      image.encoding = "rgba8";
-    } else if (shape.size() >= 3 && shape[2] == 3) {
-      image.encoding = "rgb8";
-    } else {
-      image.encoding = "mono8";
-    }
+    image.encoding = tensor_image_encoding(tensor, layout.channels);
   }
-  image.step = step_.get() == 0 ? infer_image_step(image.width, image.encoding) : step_.get();
+  image.step =
+      step_.get() == 0 ? tensor_image_step(tensor, layout, image.encoding, image.width)
+                       : step_.get();
 
   const auto device = tensor.device();
   const bool is_device = device.device_type == kDLCUDA || device.device_type == kDLCUDAManaged;
@@ -2210,37 +2448,15 @@ void FoxgloveSegmentationMaskAdapterOp::compute(InputContext& op_input,
       timestamp_from_input_metadata(*this, op_input, "input", timestamp_metadata_keys_.get());
   const auto& tensors = maybe_tensors.value();
   const auto& tensor = tensor_from_map(tensors, tensor_name_.get(), "segmentation mask");
-  const auto shape = tensor->shape();
-  if (shape.size() < 2) {
-    throw std::runtime_error("Segmentation tensor must have rank >= 2");
-  }
+  const auto layout = tensor_image_layout(*tensor, "Segmentation tensor");
 
   uint32_t height = height_.get();
   uint32_t width = width_.get();
-  if (shape.size() >= 3) {
-    const auto last = shape.back();
-    if (last == 1 || last == 3 || last == 4) {
-      if (height == 0) {
-        height = static_cast<uint32_t>(shape[shape.size() - 3]);
-      }
-      if (width == 0) {
-        width = static_cast<uint32_t>(shape[shape.size() - 2]);
-      }
-    } else {
-      if (height == 0) {
-        height = static_cast<uint32_t>(shape[shape.size() - 2]);
-      }
-      if (width == 0) {
-        width = static_cast<uint32_t>(shape[shape.size() - 1]);
-      }
-    }
-  } else {
-    if (height == 0) {
-      height = static_cast<uint32_t>(shape[0]);
-    }
-    if (width == 0) {
-      width = static_cast<uint32_t>(shape[1]);
-    }
+  if (height == 0) {
+    height = layout.height;
+  }
+  if (width == 0) {
+    width = layout.width;
   }
 
   FoxgloveImage image;
@@ -2249,7 +2465,9 @@ void FoxgloveSegmentationMaskAdapterOp::compute(InputContext& op_input,
   image.encoding = encoding_.get().empty() ? "mono8" : encoding_.get();
   image.width = width;
   image.height = height;
-  image.step = step_.get() == 0 ? infer_image_step(image.width, image.encoding) : step_.get();
+  image.step =
+      step_.get() == 0 ? tensor_image_step(*tensor, layout, image.encoding, image.width)
+                       : step_.get();
   image.timestamp_ns = timestamp_ns;
   image.data = copy_tensor_bytes(*tensor, allocator_.get(), &pinned_host_pool_, stream);
 

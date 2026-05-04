@@ -13,6 +13,7 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <variant>
 #include <vector>
 
 #include <cuda_runtime_api.h>
@@ -193,6 +194,12 @@ class FoxglovePublisherOp : public Operator {
       std::unordered_map<std::string, foxglove::messages::FrameTransformChannel>;
   using KeyValueChannelMap =
       std::unordered_map<std::string, foxglove::messages::KeyValuePairChannel>;
+  using ParameterValue = std::variant<std::monostate, bool, std::string, double, int64_t>;
+
+  struct PendingParameterUpdate {
+    std::string name;
+    ParameterValue value;
+  };
 
   uint64_t publish_image(const FoxgloveImage& image);
   uint64_t publish_compressed_video(const FoxgloveCompressedVideo& video);
@@ -210,8 +217,10 @@ class FoxglovePublisherOp : public Operator {
   FoxgloveImage image_from_tensor_map(const TensorMap& tensors, cudaStream_t stream);
   std::vector<foxglove::Parameter> foxglove_parameters(
       const std::vector<std::string_view>& names = {});
-  std::vector<foxglove::Parameter> set_foxglove_parameters(
+  std::vector<foxglove::Parameter> enqueue_foxglove_parameter_updates(
       const std::vector<foxglove::ParameterView>& params);
+  void apply_pending_parameter_updates();
+  bool should_publish_raw_image(const std::string& topic);
 
   foxglove::messages::RawImageChannel& raw_image_channel(const std::string& topic);
   foxglove::messages::CompressedVideoChannel& compressed_video_channel(const std::string& topic);
@@ -242,6 +251,7 @@ class FoxglovePublisherOp : public Operator {
   Parameter<std::shared_ptr<Allocator>> allocator_;
 
   mutable std::mutex mcap_mutex_;
+  mutable std::mutex parameter_mutex_;
   foxglove::Context context_;
   std::optional<foxglove::WebSocketServer> server_;
   std::optional<foxglove::McapWriter> mcap_writer_;
@@ -253,6 +263,7 @@ class FoxglovePublisherOp : public Operator {
   PointCloudChannelMap point_cloud_channels_;
   FrameTransformChannelMap frame_transform_channels_;
   KeyValueChannelMap key_value_channels_;
+  std::vector<PendingParameterUpdate> pending_parameter_updates_;
   PinnedHostBufferPool pinned_host_pool_;
 };
 

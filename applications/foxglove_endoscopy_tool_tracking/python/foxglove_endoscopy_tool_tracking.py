@@ -76,7 +76,7 @@ class FoxgloveEndoscopyToolTrackingApp(Application):
                 self,
                 name="postprocessor_pool",
                 storage_type=MemoryStorageType.DEVICE,
-                block_size=107 * 60 * 7 * 4 * 4,
+                block_size=107 * 60 * 7 * 4,
                 num_blocks=4,
             ),
         )
