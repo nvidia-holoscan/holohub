@@ -60,23 +60,6 @@ from .util import (
 SCCACHE_CONTAINER_DIR = "/.cache/sccache"
 
 
-def _extract_docker_opt_value(docker_opts: str, flag: str) -> Optional[str]:
-    """Return the value of a docker option flag from a free-form options string."""
-    if not docker_opts or flag not in docker_opts:
-        return None
-    try:
-        tokens = shlex.split(docker_opts)
-    except ValueError:
-        return None
-    prefix = f"{flag}="
-    for i, token in enumerate(tokens):
-        if token == flag and i + 1 < len(tokens):
-            return tokens[i + 1]
-        if token.startswith(prefix):
-            return token.split("=", 1)[1]
-    return None
-
-
 def _read_container_id(cidfile: Path) -> Optional[str]:
     """Read a Docker container ID from a cidfile if Docker has written it."""
     try:
@@ -670,18 +653,12 @@ class HoloHubContainer:
         add_volumes = add_volumes or []
         extra_args = extra_args or []
 
-        explicit_cidfile = _extract_docker_opt_value(docker_opts, "--cidfile")
-        if explicit_cidfile:
-            cidfile = Path(explicit_cidfile)
-            cidfile_args: List[str] = []
-        else:
-            cidfile = Path(tempfile.gettempdir()) / f"holohub-container-{os.getpid()}.cid"
-            cidfile_args = ["--cidfile", str(cidfile)]
+        cidfile = Path(tempfile.gettempdir()) / f"holohub-container-{os.getpid()}.cid"
 
         cmd = [self.DOCKER_EXE, "run"]
 
         cmd.extend(self.get_basic_args())
-        cmd.extend(cidfile_args)
+        cmd.extend(["--cidfile", str(cidfile)])
         cmd.extend(self.get_security_args(as_root))
         cmd.extend(self.get_volume_args(add_volumes, enable_mps))
         cmd.extend(self.get_gpu_runtime_args())
@@ -719,8 +696,7 @@ class HoloHubContainer:
 
         # Docker refuses to start if --cidfile already exists; clear stale files
         # left by a prior crashed run that happened to share this PID.
-        if not explicit_cidfile:
-            cidfile.unlink(missing_ok=True)
+        cidfile.unlink(missing_ok=True)
 
         try:
             try:
@@ -750,15 +726,13 @@ class HoloHubContainer:
             # os.kill below may terminate the process before the outer `finally`
             # runs, so unlink the cidfile here. The `finally` remains as a fallback
             # for the SystemExit path.
-            if not explicit_cidfile:
-                cidfile.unlink(missing_ok=True)
+            cidfile.unlink(missing_ok=True)
             # Re-raise via default handler so we exit with the conventional 128+N status.
             signal.signal(sig, signal.SIG_DFL)
             os.kill(os.getpid(), sig)
             sys.exit(128 + sig)
         finally:
-            if not explicit_cidfile:
-                cidfile.unlink(missing_ok=True)
+            cidfile.unlink(missing_ok=True)
 
     def get_basic_args(self) -> List[str]:
         """Basic container runtime arguments"""

@@ -163,30 +163,6 @@ class TestHoloHubContainer(unittest.TestCase):
 
     @patch("utilities.cli.container.check_nvidia_ctk")
     @patch("utilities.cli.container.get_image_pythonpath")
-    @patch("subprocess.run")
-    @patch("subprocess.check_output")
-    def test_run_respects_explicit_cidfile(
-        self, mock_check_output, mock_run, mock_get_image_pythonpath, mock_check_nvidia_ctk
-    ):
-        """An explicit Docker cidfile should not be overwritten."""
-        mock_check_nvidia_ctk.return_value = None
-        mock_check_output.return_value = ""
-        mock_get_image_pythonpath.return_value = ""
-        self.container.run(docker_opts="--cidfile /tmp/custom-holohub.cid")
-
-        docker_run_call = None
-        for call in mock_run.call_args_list:
-            cmd = call[0][0]
-            if isinstance(cmd, list) and len(cmd) > 0 and cmd[0] == "docker" and "run" in cmd:
-                docker_run_call = cmd
-                break
-
-        self.assertIsNotNone(docker_run_call, "Docker run command not found in mock calls")
-        self.assertEqual(docker_run_call.count("--cidfile"), 1)
-        self.assertIn("/tmp/custom-holohub.cid", docker_run_call)
-
-    @patch("utilities.cli.container.check_nvidia_ctk")
-    @patch("utilities.cli.container.get_image_pythonpath")
     @patch("utilities.cli.container.os.kill")
     @patch("utilities.cli.container.signal.signal")
     @patch("utilities.cli.container.subprocess.run")
@@ -257,47 +233,6 @@ class TestHoloHubContainer(unittest.TestCase):
         self.assertEqual(raised.exception.code, 128 + 2)
         mock_subprocess_run.assert_not_called()
         mock_kill.assert_called_once_with(os.getpid(), 2)
-
-    @patch("utilities.cli.container.check_nvidia_ctk")
-    @patch("utilities.cli.container.get_image_pythonpath")
-    @patch("utilities.cli.container.os.kill")
-    @patch("utilities.cli.container.signal.signal")
-    @patch("utilities.cli.container.subprocess.run")
-    @patch("utilities.cli.container.run_command")
-    @patch("subprocess.check_output")
-    def test_run_preserves_explicit_cidfile_on_signal(
-        self,
-        mock_check_output,
-        mock_run_command,
-        mock_subprocess_run,
-        _mock_signal,
-        mock_kill,
-        mock_get_image_pythonpath,
-        mock_check_nvidia_ctk,
-    ):
-        """An explicit cidfile must not be unlinked by signal cleanup."""
-        mock_check_nvidia_ctk.return_value = None
-        mock_check_output.return_value = ""
-        mock_get_image_pythonpath.return_value = ""
-
-        explicit_path = Path(self.test_dir) / "external.cid"
-
-        def interrupt_after_cidfile(cmd, **_kwargs):
-            explicit_path.write_text("external-id\n")
-            raise _ContainerTerminationSignal(15)
-
-        mock_run_command.side_effect = interrupt_after_cidfile
-
-        with self.assertRaises(SystemExit):
-            self.container.run(docker_opts=f"--cidfile {explicit_path}")
-
-        self.assertEqual(
-            mock_subprocess_run.call_args[0][0],
-            ["docker", "stop", "--time", "10", "external-id"],
-        )
-        # The explicit cidfile is owned by the caller; we must not delete it.
-        self.assertTrue(explicit_path.exists())
-        mock_kill.assert_called_once_with(os.getpid(), 15)
 
     @patch("subprocess.CompletedProcess")
     def test_dry_run(self, mock_completed_process):
