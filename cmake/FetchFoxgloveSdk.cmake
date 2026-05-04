@@ -4,6 +4,10 @@
 include(FetchContent)
 find_package(Threads REQUIRED)
 
+if(TARGET foxglove::sdk)
+  return()
+endif()
+
 set(HOLOHUB_FOXGLOVE_SDK_VERSION "0.23.1" CACHE STRING "Foxglove SDK version")
 set(HOLOHUB_FOXGLOVE_SDK_TAG "sdk/v${HOLOHUB_FOXGLOVE_SDK_VERSION}")
 
