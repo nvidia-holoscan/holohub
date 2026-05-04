@@ -119,9 +119,12 @@ class _ContainerTerminationHandler:
 
     def __exit__(self, exc_type, exc, tb):
         for signum, handler in self._previous_handlers.items():
+            # signal.getsignal returns None for natively-installed handlers,
+            # and signal.signal(None) raises TypeError — swallow it so we don't
+            # mask the original termination exception during cleanup.
             try:
                 signal.signal(signum, handler)
-            except (OSError, RuntimeError, ValueError):
+            except (OSError, RuntimeError, TypeError, ValueError):
                 continue
 
     def _handle_signal(self, signum, frame) -> None:
@@ -738,10 +741,17 @@ class HoloHubContainer:
                     [self.DOCKER_EXE, "stop", "--time", "10", container_id],
                     check=False,
                     stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
                 )
             else:
-                warn(f"Received {signal_name}; no HoloHub container ID was written to {cidfile}")
+                warn(
+                    f"Received {signal_name}; no container ID was written to {cidfile} yet — "
+                    "the container may still be starting. Run `docker ps` to check and stop it manually."
+                )
+            # os.kill below may terminate the process before the outer `finally`
+            # runs, so unlink the cidfile here. The `finally` remains as a fallback
+            # for the SystemExit path.
+            if not explicit_cidfile:
+                cidfile.unlink(missing_ok=True)
             # Re-raise via default handler so we exit with the conventional 128+N status.
             signal.signal(sig, signal.SIG_DFL)
             os.kill(os.getpid(), sig)
