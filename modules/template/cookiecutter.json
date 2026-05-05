@@ -1,0 +1,27 @@
+{
+    "project_name": "My Sensor Holoscan Module",
+    "module_slug": "{{ cookiecutter.project_name.lower().replace(' ', '_').replace('-', '_') }}",
+    "module_repo_name": "holoscan-{{ cookiecutter.module_slug.replace('_', '-') }}",
+    "operator_slug": "{{ cookiecutter.module_slug }}_op",
+    "full_name": "Your Name",
+    "affiliation": "Your Organization",
+    "language": "cpp",
+    "version": "0.1.0",
+    "holoscan_version": "4.0.0",
+    "description": "A Holoscan Module extending the Holoscan SDK.",
+    "_license": "Apache-2.0",
+    "contact_email": "your.email@example.com",
+    "__prompts__": {
+        "project_name": "Module name (e.g. 'My Sensor')",
+        "module_slug": "Module slug — snake_case identifier used for Python import and C++ namespace (e.g. 'my_sensor')",
+        "module_repo_name": "Repository folder name — kebab-case, prefixed 'holoscan-' (e.g. 'holoscan-my-sensor')",
+        "operator_slug": "Initial operator name in snake_case (e.g. 'my_sensor_op'). CamelCase class name is derived.",
+        "full_name": "Author name",
+        "affiliation": "Author organization",
+        "language": "Implementation language: 'cpp' (C++ with pybind11 Python bindings) or 'python' (pure Python)",
+        "version": "Initial version",
+        "holoscan_version": "Minimum Holoscan SDK version required",
+        "description": "Short module description",
+        "contact_email": "Maintainer contact email (used in Debian package metadata)"
+    }
+}

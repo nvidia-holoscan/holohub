@@ -1,0 +1,10 @@
+{
+    "module": {
+        "name": "missing_holoscan_sdk",
+        "authors": [{ "name": "NVIDIA", "affiliation": "NVIDIA" }],
+        "version": "0.1.0",
+        "language": ["Python"],
+        "platforms": ["x86_64"],
+        "tags": ["example"]
+    }
+}

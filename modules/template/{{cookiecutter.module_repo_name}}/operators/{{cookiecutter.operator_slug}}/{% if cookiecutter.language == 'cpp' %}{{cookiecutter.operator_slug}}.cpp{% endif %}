@@ -1,0 +1,22 @@
+// SPDX-FileCopyrightText: Copyright (c) {% now 'utc', '%Y' %} {{ cookiecutter.full_name }}{% if cookiecutter.affiliation %} / {{ cookiecutter.affiliation }}{% endif %}. All rights reserved.
+// SPDX-License-Identifier: {{ cookiecutter._license }}
+{%- set op_class = cookiecutter.operator_slug.split('_')|map('capitalize')|join('') %}
+
+#include "{{ cookiecutter.operator_slug }}.hpp"
+
+namespace holoscan::{{ cookiecutter.module_slug }} {
+
+void {{ op_class }}::setup(OperatorSpec& spec) {
+  // TODO: declare ports and parameters, e.g.:
+  // spec.input<int>("in");
+  // spec.output<int>("out");
+  // spec.param(my_param_, "my_param", "My Parameter", "Description", 1);
+}
+
+void {{ op_class }}::compute(InputContext& op_input, OutputContext& op_output, ExecutionContext& /*context*/) {
+  // TODO: implement compute logic, e.g.:
+  // auto value = op_input.receive<int>("in").value();
+  // op_output.emit(value, "out");
+}
+
+}  // namespace holoscan::{{ cookiecutter.module_slug }}

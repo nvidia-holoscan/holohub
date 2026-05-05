@@ -1,0 +1,47 @@
+# SPDX-FileCopyrightText: Copyright (c) {% now 'utc', '%Y' %} {{ cookiecutter.full_name }}{% if cookiecutter.affiliation %} / {{ cookiecutter.affiliation }}{% endif %}. All rights reserved.
+# SPDX-License-Identifier: {{ cookiecutter._license }}
+
+[build-system]
+requires = ["scikit-build-core>=0.10"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "holoscan-{{ cookiecutter.module_slug.replace('_', '-') }}"
+version = "{{ cookiecutter.version }}"
+description = "{{ cookiecutter.description }}"
+readme = "README.md"
+license = { text = "{{ cookiecutter._license }}" }
+authors = [
+    { name = "{{ cookiecutter.full_name }}" },
+]
+requires-python = ">=3.10"
+
+# NOTE: holoscan SDK is not declared as a runtime dependency here because the
+# wheel cannot guarantee binary compatibility across CUDA variants (cu12/cu13).
+# See IMPLEMENTATION_PLAN.md open question #1. Document the install command in
+# the README.
+
+[tool.scikit-build]
+cmake.version = ">=3.24"
+# Build only what the wheel needs: turn off test and app subprojects, and
+# turn off the deb option (which is build-type-driven, not wheel-driven).
+cmake.args = [
+    "-D{{ cookiecutter.module_slug | upper }}_BUILD_TESTING=OFF",
+    "-DBUILD_ALL=OFF",
+    "-DOP_{{ cookiecutter.operator_slug }}=ON",
+]
+# Wheel content comes from CMake install rules. Use *relative* DESTINATIONs in
+# install(...) calls — scikit-build-core stages those into the wheel root.
+# Setting wheel.install-dir = "/" would require the experimental flag.
+wheel.packages = []
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP"]
+ignore = ["E501", "UP007"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["holoscan"]

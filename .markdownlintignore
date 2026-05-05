@@ -1,2 +1,3 @@
 # MkDocs Material uses indented content for admonitions and tabs; MD046 conflicts
 tutorials/high_performance_networking/README.md
+modules/template/{{cookiecutter.module_repo_name}}/
