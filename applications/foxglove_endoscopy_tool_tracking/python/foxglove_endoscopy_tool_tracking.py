@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026, Chris von Csefalvay.
 # SPDX-License-Identifier: Apache-2.0
 
-import os
 import math
+import os
 import time
 from argparse import ArgumentParser
 
