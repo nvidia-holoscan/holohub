@@ -251,6 +251,8 @@ def main():
 
     if not os.path.isdir(args.data):
         raise ValueError(f"Data path '{args.data}' does not exist.")
+    if not os.path.isfile(args.config):
+        raise ValueError(f"Config path '{args.config}' does not exist.")
 
     app = FoxgloveEndoscopyToolTrackingApp(args.data)
     app.config(args.config)

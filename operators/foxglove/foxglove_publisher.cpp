@@ -19,6 +19,7 @@
 #include <limits>
 #include <sstream>
 #include <stdexcept>
+#include <string_view>
 #include <type_traits>
 #include <unordered_set>
 #include <utility>
@@ -230,6 +231,67 @@ std::shared_ptr<Tensor> optional_tensor_from_map(const TensorMap& tensors,
   }
   const auto iter = tensors.find(name);
   return iter == tensors.end() ? nullptr : iter->second;
+}
+
+std::shared_ptr<Tensor> tensor_from_entity(gxf::Entity& entity,
+                                           const std::string& name,
+                                           const char* purpose) {
+  if (!name.empty()) {
+    auto tensor = entity.get<Tensor>(name.c_str());
+    if (tensor) {
+      return tensor;
+    }
+    throw std::runtime_error(
+        fmt::format("{} input entity has no tensor named '{}'", purpose, name));
+  }
+
+  auto tensor = entity.get<Tensor>();
+  if (tensor) {
+    return tensor;
+  }
+  throw std::runtime_error(fmt::format("{} input entity contains no Tensor", purpose));
+}
+
+std::string json_escape(std::string_view text) {
+  std::string escaped;
+  escaped.reserve(text.size());
+  for (const unsigned char ch : text) {
+    switch (ch) {
+      case '"':
+        escaped += "\\\"";
+        break;
+      case '\\':
+        escaped += "\\\\";
+        break;
+      case '\b':
+        escaped += "\\b";
+        break;
+      case '\f':
+        escaped += "\\f";
+        break;
+      case '\n':
+        escaped += "\\n";
+        break;
+      case '\r':
+        escaped += "\\r";
+        break;
+      case '\t':
+        escaped += "\\t";
+        break;
+      default:
+        if (ch < 0x20) {
+          escaped += fmt::format("\\u{:04x}", static_cast<unsigned int>(ch));
+        } else {
+          escaped.push_back(static_cast<char>(ch));
+        }
+        break;
+    }
+  }
+  return escaped;
+}
+
+std::string path_response_json(const std::string& path) {
+  return fmt::format(R"({{"path":"{}"}})", json_escape(path));
 }
 
 std::string trim_copy(std::string text) {
@@ -1371,7 +1433,7 @@ void FoxglovePublisherOp::register_services() {
                    if (!mcap_writer_) {
                      open_mcap_writer(path, compression);
                    }
-                   const auto response = fmt::format(R"({{"path":"{}"}})", path);
+                   const auto response = path_response_json(path);
                    const auto* data =
                        reinterpret_cast<const std::byte*>(response.data());
                    std::move(responder).respondOk(data, response.size());
@@ -1399,7 +1461,7 @@ void FoxglovePublisherOp::register_services() {
                  try {
                    close_mcap_writer();
                    open_mcap_writer(path, compression);
-                   const auto response = fmt::format(R"({{"path":"{}"}})", path);
+                   const auto response = path_response_json(path);
                    const auto* data =
                        reinterpret_cast<const std::byte*>(response.data());
                    std::move(responder).respondOk(data, response.size());
@@ -1455,17 +1517,10 @@ FoxgloveImage FoxglovePublisherOp::image_from_entity(gxf::Entity entity, cudaStr
     }
   }
 
-  auto maybe_tensor = image_tensor_name_.get().empty()
-                          ? entity.get<Tensor>()
-                          : entity.get<Tensor>(image_tensor_name_.get().c_str());
-  if (!maybe_tensor) {
-    maybe_tensor = entity.get<Tensor>();
-  }
-  if (!maybe_tensor) {
-    throw std::runtime_error("Direct Foxglove image input contains neither VideoBuffer nor Tensor");
-  }
+  const auto tensor_name = image_tensor_name_.get();
+  auto maybe_tensor = tensor_from_entity(entity, tensor_name, "Direct Foxglove image");
   TensorMap tensors;
-  tensors.emplace(image_tensor_name_.get(), maybe_tensor);
+  tensors.emplace(tensor_name, maybe_tensor);
   return image_from_tensor_map(tensors, stream);
 }
 
@@ -2118,15 +2173,7 @@ void FoxgloveTensorAdapterOp::compute(InputContext& op_input,
     }
   }
 
-  auto maybe_tensor = tensor_name_.get().empty() ? entity.get<Tensor>()
-                                                 : entity.get<Tensor>(tensor_name_.get().c_str());
-  if (!maybe_tensor) {
-    maybe_tensor = entity.get<Tensor>();
-  }
-  if (!maybe_tensor) {
-    throw std::runtime_error(
-        "FoxgloveTensorAdapterOp input entity contains neither VideoBuffer nor Tensor");
-  }
+  auto maybe_tensor = tensor_from_entity(entity, tensor_name_.get(), "FoxgloveTensorAdapterOp");
   auto image = image_from_tensor(*maybe_tensor, stream);
   image.timestamp_ns = timestamp_ns;
   log_resolved_topic_once(topic_logged_, name(), image.topic);
@@ -2335,6 +2382,15 @@ void FoxgloveDetectionAdapterOp::compute(InputContext& op_input,
         score = item[4];
         class_id = static_cast<int64_t>(std::llround(item[5]));
       } else if (combined_format_.get() == "batch_label_score_xyxy") {
+        const auto batch_index = static_cast<int64_t>(std::llround(item[0]));
+        if (batch_index != 0) {
+          throw std::runtime_error(fmt::format(
+              "FoxgloveDetectionAdapterOp combined_format=batch_label_score_xyxy supports "
+              "only batch index 0, got {} on row {}; split batched detections before "
+              "publishing",
+              batch_index,
+              row));
+        }
         x1 = item[3];
         y1 = item[4];
         x2 = item[5];
@@ -2545,14 +2601,8 @@ void FoxgloveCompressedVideoAdapterOp::compute(InputContext& op_input,
   const auto timestamp_ns =
       timestamp_from_input_metadata(*this, op_input, "input", timestamp_metadata_keys_.get());
 
-  auto maybe_tensor = tensor_name_.get().empty() ? entity.get<Tensor>()
-                                                 : entity.get<Tensor>(tensor_name_.get().c_str());
-  if (!maybe_tensor) {
-    maybe_tensor = entity.get<Tensor>();
-  }
-  if (!maybe_tensor) {
-    throw std::runtime_error("Compressed video input entity does not contain a Tensor");
-  }
+  auto maybe_tensor =
+      tensor_from_entity(entity, tensor_name_.get(), "FoxgloveCompressedVideoAdapterOp");
 
   FoxgloveCompressedVideo video;
   video.topic = normalize_topic(topic_.get(), "/video/compressed");

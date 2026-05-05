@@ -2,7 +2,7 @@
 
 `FoxglovePublisherOp` publishes `FoxgloveBatch` messages from a Holoscan graph
 to Foxglove over WebSocket and can optionally write the same stream to MCAP.
-The batch can carry images, camera calibration, image annotations, point clouds
+The batch can carry images, camera calibration, image annotations, point clouds,
 compressed video, frame transforms, and key-value state variables. The operator
 preserves upstream Holoscan capture timestamps from metadata when present, so
 MCAP recordings replay against sensor time rather than publication wall-clock
