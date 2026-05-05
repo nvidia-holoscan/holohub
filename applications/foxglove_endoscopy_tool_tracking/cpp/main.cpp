@@ -354,7 +354,8 @@ int main(int argc, char** argv) {
   }
 
   if (!std::filesystem::is_directory(data_directory)) {
-    HOLOSCAN_LOG_ERROR("Input data path '{}' does not exist or is not a directory.", data_directory);
+    HOLOSCAN_LOG_ERROR("Input data path '{}' does not exist or is not a directory.",
+                       data_directory);
     return 1;
   }
 
