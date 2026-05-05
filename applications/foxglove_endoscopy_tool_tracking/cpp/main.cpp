@@ -11,10 +11,12 @@
 #include <cstring>
 #include <cstdlib>
 #include <filesystem>
+#include <limits.h>
 #include <optional>
 #include <string>
 #include <utility>
 #include <vector>
+#include <unistd.h>
 
 #include <cuda_runtime_api.h>
 #include <fmt/format.h>
@@ -143,7 +145,7 @@ class ToolTrackingFoxgloveAdapterOp : public holoscan::Operator {
                [[maybe_unused]] holoscan::ExecutionContext& context) override {
     auto maybe_entity = op_input.receive<holoscan::gxf::Entity>("input");
     if (!maybe_entity) {
-      return;
+      throw std::runtime_error("ToolTrackingFoxgloveAdapterOp required input is empty");
     }
 
     auto tensor = maybe_entity.value().get<holoscan::Tensor>("scaled_coords");
@@ -310,6 +312,15 @@ bool parse_arguments(int argc, char** argv, std::string& data_path, std::string&
 }
 
 std::filesystem::path executable_directory(const char* executable_path) {
+#if defined(__linux__)
+  std::string proc_path(PATH_MAX, '\0');
+  const auto length = readlink("/proc/self/exe", proc_path.data(), proc_path.size() - 1);
+  if (length > 0) {
+    proc_path.resize(static_cast<size_t>(length));
+    return std::filesystem::path(proc_path).parent_path();
+  }
+#endif
+
   try {
     return std::filesystem::canonical(executable_path).parent_path();
   } catch (const std::filesystem::filesystem_error&) {
@@ -338,6 +349,11 @@ int main(int argc, char** argv) {
     }
   }
 
+  if (!std::filesystem::is_directory(data_directory)) {
+    HOLOSCAN_LOG_ERROR("Input data path '{}' does not exist or is not a directory.", data_directory);
+    return 1;
+  }
+
   if (config_path.empty()) {
     if (const auto* config_env = std::getenv("HOLOSCAN_CONFIG_PATH");
         config_env != nullptr && config_env[0] != '\0') {
@@ -346,6 +362,11 @@ int main(int argc, char** argv) {
       config_path =
           (executable_directory(argv[0]) / "foxglove_endoscopy_tool_tracking.yaml").string();
     }
+  }
+
+  if (!std::filesystem::is_regular_file(config_path)) {
+    HOLOSCAN_LOG_ERROR("Configuration file '{}' does not exist.", config_path);
+    return 1;
   }
 
   auto app = holoscan::make_application<App>();

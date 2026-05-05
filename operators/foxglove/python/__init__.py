@@ -30,6 +30,8 @@ try:
         PointsAnnotationType,
     )
 except ImportError as exc:
+    if 'unknown base type "holoscan::' not in str(exc):
+        raise
     raise ImportError(
         "Failed to import holohub.foxglove._foxglove. Rebuild the Foxglove "
         "operator with the active Holoscan SDK so the pybind11 ABI matches "
@@ -42,9 +44,13 @@ except ImportError:
     io_type_registry = None
 
 if io_type_registry is not None:
-    from ._foxglove import register_types as _register_types
-
-    _register_types(io_type_registry)
+    try:
+        from ._foxglove import register_types as _register_types
+    except ImportError as exc:
+        if "cannot import name 'register_types'" not in str(exc):
+            raise
+    else:
+        _register_types(io_type_registry)
 
 __all__ = [
     "FoxgloveBatch",

@@ -208,9 +208,11 @@ class FoxglovePublisherOp : public Operator {
   uint64_t publish_point_cloud(const FoxglovePointCloud& point_cloud);
   uint64_t publish_frame_transform(const FoxgloveFrameTransform& transform);
   uint64_t publish_key_value(const FoxgloveKeyValue& key_value);
-  void open_mcap_writer(const std::string& path);
+  void open_mcap_writer(const std::string& path, const std::string& compression);
   void close_mcap_writer();
-  std::string snapshot_mcap_path() const;
+  std::string mcap_compression() const;
+  std::string mcap_path() const;
+  std::string snapshot_mcap_path(const std::string& base_path) const;
   void register_services();
   void precreate_channels();
   FoxgloveImage image_from_entity(gxf::Entity entity, cudaStream_t stream);

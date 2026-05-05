@@ -59,6 +59,17 @@ mask_adapter:
   height: 60
   step: 1712
 
+tool_tracking_foxglove:
+  annotation_topic: "/detections"
+  labels:
+    - Grasper
+    - Bipolar
+    - Hook
+    - Scissors
+    - Clipper
+    - Irrigator
+    - Spec.Bag
+
 foxglove:
   bind_address: "0.0.0.0"
   port: 8765

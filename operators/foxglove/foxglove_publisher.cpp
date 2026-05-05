@@ -1158,12 +1158,8 @@ void FoxglovePublisherOp::setup(OperatorSpec& spec) {
              std::shared_ptr<Allocator>{});
 }
 
-void FoxglovePublisherOp::open_mcap_writer(const std::string& path) {
-  const auto compression = [this]() {
-    std::lock_guard<std::mutex> lock(parameter_mutex_);
-    return mcap_compression_.get();
-  }();
-
+void FoxglovePublisherOp::open_mcap_writer(const std::string& path,
+                                           const std::string& compression) {
   foxglove::McapWriterOptions writer_options;
   writer_options.context = context_;
   writer_options.path = path;
@@ -1181,6 +1177,16 @@ void FoxglovePublisherOp::open_mcap_writer(const std::string& path) {
   HOLOSCAN_LOG_INFO("Recording Foxglove stream to {}", path);
 }
 
+std::string FoxglovePublisherOp::mcap_compression() const {
+  std::lock_guard<std::mutex> lock(parameter_mutex_);
+  return mcap_compression_.get();
+}
+
+std::string FoxglovePublisherOp::mcap_path() const {
+  std::lock_guard<std::mutex> lock(parameter_mutex_);
+  return mcap_path_.get();
+}
+
 void FoxglovePublisherOp::close_mcap_writer() {
   if (!mcap_writer_) {
     return;
@@ -1192,7 +1198,7 @@ void FoxglovePublisherOp::close_mcap_writer() {
   mcap_writer_.reset();
 }
 
-std::string FoxglovePublisherOp::snapshot_mcap_path() const {
+std::string FoxglovePublisherOp::snapshot_mcap_path(const std::string& base_path_string) const {
   static std::atomic<uint64_t> snapshot_counter{0};
   const auto now = std::chrono::system_clock::now();
   const auto time = std::chrono::system_clock::to_time_t(now);
@@ -1210,10 +1216,7 @@ std::string FoxglovePublisherOp::snapshot_mcap_path() const {
   suffix << std::put_time(&local_time, "%Y%m%d_%H%M%S") << '_' << std::setw(3)
          << std::setfill('0') << milliseconds << '_' << nonce;
 
-  const std::filesystem::path base_path = [this]() {
-    std::lock_guard<std::mutex> lock(parameter_mutex_);
-    return std::filesystem::path(mcap_path_.get());
-  }();
+  const std::filesystem::path base_path(base_path_string);
   auto stem = base_path.stem().string();
   if (stem.empty()) {
     stem = "holoscan_foxglove";
@@ -1361,14 +1364,12 @@ void FoxglovePublisherOp::register_services() {
   make_service("start_recording",
                [this]([[maybe_unused]] const foxglove::ServiceRequest& request,
                       foxglove::ServiceResponder&& responder) {
-                 const auto path = [this]() {
-                   std::lock_guard<std::mutex> parameter_lock(parameter_mutex_);
-                   return mcap_path_.get();
-                 }();
+                 const auto path = mcap_path();
+                 const auto compression = mcap_compression();
                  std::lock_guard<std::mutex> lock(mcap_mutex_);
                  try {
                    if (!mcap_writer_) {
-                     open_mcap_writer(path);
+                     open_mcap_writer(path, compression);
                    }
                    const auto response = fmt::format(R"({{"path":"{}"}})", path);
                    const auto* data =
@@ -1392,11 +1393,12 @@ void FoxglovePublisherOp::register_services() {
   make_service("snapshot_mcap",
                [this]([[maybe_unused]] const foxglove::ServiceRequest& request,
                       foxglove::ServiceResponder&& responder) {
+                 const auto path = snapshot_mcap_path(mcap_path());
+                 const auto compression = mcap_compression();
                  std::lock_guard<std::mutex> lock(mcap_mutex_);
                  try {
                    close_mcap_writer();
-                   const auto path = snapshot_mcap_path();
-                   open_mcap_writer(path);
+                   open_mcap_writer(path, compression);
                    const auto response = fmt::format(R"({{"path":"{}"}})", path);
                    const auto* data =
                        reinterpret_cast<const std::byte*>(response.data());
@@ -1539,8 +1541,10 @@ void FoxglovePublisherOp::start() {
                     server_->port());
 
   if (enable_mcap_.get()) {
+    const auto path = mcap_path();
+    const auto compression = mcap_compression();
     std::lock_guard<std::mutex> lock(mcap_mutex_);
-    open_mcap_writer(mcap_path_.get());
+    open_mcap_writer(path, compression);
   }
 }
 
@@ -2092,7 +2096,7 @@ void FoxgloveTensorAdapterOp::compute(InputContext& op_input,
                                       [[maybe_unused]] ExecutionContext& context) {
   auto maybe_entity = op_input.receive<gxf::Entity>("input");
   if (!maybe_entity) {
-    return;
+    throw std::runtime_error("FoxgloveTensorAdapterOp required input is empty");
   }
   auto entity = maybe_entity.value();
   const auto stream = op_input.receive_cuda_stream("input", false, true);
@@ -2283,7 +2287,7 @@ void FoxgloveDetectionAdapterOp::compute(InputContext& op_input,
                                          [[maybe_unused]] ExecutionContext& context) {
   auto maybe_tensors = op_input.receive<TensorMap>("input");
   if (!maybe_tensors) {
-    return;
+    throw std::runtime_error("FoxgloveDetectionAdapterOp required input is empty");
   }
   const auto stream = op_input.receive_cuda_stream("input", false, true);
   const auto timestamp_ns =
@@ -2455,7 +2459,7 @@ void FoxgloveSegmentationMaskAdapterOp::compute(InputContext& op_input,
                                                 [[maybe_unused]] ExecutionContext& context) {
   auto maybe_tensors = op_input.receive<TensorMap>("input");
   if (!maybe_tensors) {
-    return;
+    throw std::runtime_error("FoxgloveSegmentationMaskAdapterOp required input is empty");
   }
   const auto stream = op_input.receive_cuda_stream("input", false, true);
   const auto timestamp_ns =
@@ -2534,7 +2538,7 @@ void FoxgloveCompressedVideoAdapterOp::compute(InputContext& op_input,
                                                [[maybe_unused]] ExecutionContext& context) {
   auto maybe_entity = op_input.receive<gxf::Entity>("input");
   if (!maybe_entity) {
-    return;
+    throw std::runtime_error("FoxgloveCompressedVideoAdapterOp required input is empty");
   }
   auto entity = maybe_entity.value();
   const auto stream = op_input.receive_cuda_stream("input", false, true);
@@ -2611,7 +2615,7 @@ void FoxglovePoseAdapterOp::compute(InputContext& op_input,
                                     [[maybe_unused]] ExecutionContext& context) {
   auto maybe_tensors = op_input.receive<TensorMap>("input");
   if (!maybe_tensors) {
-    return;
+    throw std::runtime_error("FoxglovePoseAdapterOp required input is empty");
   }
   const auto stream = op_input.receive_cuda_stream("input", false, true);
   const auto timestamp_ns =

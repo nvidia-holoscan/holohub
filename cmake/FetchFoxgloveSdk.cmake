@@ -50,7 +50,7 @@ if(EXISTS "${_foxglove_root}/foxglove")
   set(_foxglove_root "${_foxglove_root}/foxglove")
 endif()
 
-file(GLOB _foxglove_sources CONFIGURE_DEPENDS "${_foxglove_root}/src/*.cpp")
+file(GLOB _foxglove_sources "${_foxglove_root}/src/*.cpp")
 if(NOT _foxglove_sources)
   message(FATAL_ERROR
     "No C++ sources found under '${_foxglove_root}/src'. "
