@@ -42,8 +42,9 @@ The C++ app publishes:
 | `/detections` | `ImageAnnotations` | Tool points, labels, and small boxes aligned to `/video`. |
 | `/state/inference_fps` | `KeyValuePair` | Inference throughput estimate for plotting. |
 
-The Python app publishes `/video` and `/tool_mask`. It demonstrates the Python
-publisher and tensor adapter path; the C++ app is the fuller annotation example.
+The Python app publishes `/video`, `/tool_mask`, and `/detections`. It
+demonstrates the Python publisher and tensor/annotation adapter path; the C++
+app is the fuller example because it also publishes inference FPS.
 
 ## Notes
 
