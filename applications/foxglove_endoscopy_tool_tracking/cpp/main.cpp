@@ -267,6 +267,8 @@ class App : public holoscan::Application {
 
     auto tracking_adapter = make_operator<ToolTrackingFoxgloveAdapterOp>(
         "tool_tracking_foxglove", from_config("tool_tracking_foxglove"));
+    auto mask_adapter = make_operator<ops::FoxgloveTensorAdapterOp>(
+        "mask_to_foxglove", from_config("mask_adapter"));
 
     auto foxglove = make_operator<ops::FoxglovePublisherOp>(
         "foxglove",
@@ -279,7 +281,9 @@ class App : public holoscan::Application {
     add_flow(format_converter, lstm_inferer);
     add_flow(lstm_inferer, postprocessor, {{"tensor", "in"}});
     add_flow(postprocessor, tracking_adapter, {{"out", "input"}});
+    add_flow(postprocessor, mask_adapter, {{"out", "input"}});
     add_flow(tracking_adapter, foxglove, {{"messages", "messages"}});
+    add_flow(mask_adapter, foxglove, {{"messages", "messages"}});
   }
 
  private:

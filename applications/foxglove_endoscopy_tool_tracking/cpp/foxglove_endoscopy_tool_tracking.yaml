@@ -74,6 +74,15 @@ tool_tracking_foxglove:
     - Irrigator
     - Spec.Bag
 
+mask_adapter:
+  topic: "/tool_mask"
+  frame_id: "endoscope"
+  tensor_name: "mask"
+  encoding: "rgba32f"
+  width: 107
+  height: 60
+  step: 1712
+
 foxglove:
   bind_address: "0.0.0.0"
   port: 8765

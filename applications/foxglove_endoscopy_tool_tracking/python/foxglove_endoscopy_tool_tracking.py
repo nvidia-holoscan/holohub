@@ -3,7 +3,6 @@
 
 import math
 import os
-import time
 from argparse import ArgumentParser
 
 import cupy as cp
@@ -43,6 +42,23 @@ def image_coordinates(x, y):
     return None
 
 
+def timestamp_from_input(op, op_input, port_name):
+    metadata = getattr(op, "metadata", None)
+    if metadata is not None:
+        for key in ("acquisition_timestamp_ns", "timestamp_ns", "sensor_timestamp_ns"):
+            timestamp = metadata.get(key, 0)
+            if timestamp:
+                return int(timestamp)
+
+    get_acquisition_timestamp = getattr(op_input, "get_acquisition_timestamp", None)
+    if get_acquisition_timestamp is not None:
+        timestamp = get_acquisition_timestamp(port_name)
+        if timestamp:
+            return int(timestamp)
+
+    return 0
+
+
 class ToolTrackingFoxgloveAdapterOp(Operator):
     def setup(self, spec: OperatorSpec):
         spec.input("input")
@@ -66,7 +82,7 @@ class ToolTrackingFoxgloveAdapterOp(Operator):
 
         annotations = FoxgloveImageAnnotations()
         annotations.topic = self.annotation_topic
-        annotations.timestamp_ns = time.time_ns()
+        annotations.timestamp_ns = timestamp_from_input(self, op_input, "input")
 
         boxes = []
         point_sets = []
