@@ -41,6 +41,7 @@
         // X11 support
         "DISPLAY": "${localEnv:DISPLAY}",
         // Wayland support
+        "WAYLAND_DISPLAY": "${localEnv:WAYLAND_DISPLAY}",
         "XDG_RUNTIME_DIR": "${localEnv:XDG_RUNTIME_DIR}",
         "XDG_SESSION_TYPE": "${localEnv:XDG_SESSION_TYPE}",
         "NVIDIA_DRIVER_CAPABILITIES": "all",
