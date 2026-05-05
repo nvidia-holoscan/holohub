@@ -44,6 +44,8 @@ def image_coordinates(x, y):
 
 def timestamp_from_input(op, op_input, port_name):
     metadata = getattr(op, "metadata", None)
+    if callable(metadata):
+        metadata = metadata()
     if metadata is not None:
         for key in ("acquisition_timestamp_ns", "timestamp_ns", "sensor_timestamp_ns"):
             timestamp = metadata.get(key, 0)

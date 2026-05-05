@@ -644,6 +644,18 @@ PYBIND11_MODULE(_foxglove, m) {
         "std::shared_ptr<holoscan::ops::FoxgloveBatch>"s);
     registry.add_emitter_receiver<std::vector<std::shared_ptr<FoxgloveBatch>>>(
         "std::vector<std::shared_ptr<holoscan::ops::FoxgloveBatch>>"s);
+    registry.add_emitter_receiver<std::shared_ptr<FoxgloveImageAnnotations>>(
+        "std::shared_ptr<holoscan::ops::FoxgloveImageAnnotations>"s);
+    registry.add_emitter_receiver<std::vector<std::shared_ptr<FoxgloveImageAnnotations>>>(
+        "std::vector<std::shared_ptr<holoscan::ops::FoxgloveImageAnnotations>>"s);
+    registry.add_emitter_receiver<std::shared_ptr<FoxglovePointCloud>>(
+        "std::shared_ptr<holoscan::ops::FoxglovePointCloud>"s);
+    registry.add_emitter_receiver<std::vector<std::shared_ptr<FoxglovePointCloud>>>(
+        "std::vector<std::shared_ptr<holoscan::ops::FoxglovePointCloud>>"s);
+    registry.add_emitter_receiver<std::shared_ptr<FoxgloveKeyValue>>(
+        "std::shared_ptr<holoscan::ops::FoxgloveKeyValue>"s);
+    registry.add_emitter_receiver<std::vector<std::shared_ptr<FoxgloveKeyValue>>>(
+        "std::vector<std::shared_ptr<holoscan::ops::FoxgloveKeyValue>>"s);
   });
 #endif
 }

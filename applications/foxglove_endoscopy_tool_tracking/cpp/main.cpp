@@ -160,9 +160,10 @@ class ToolTrackingFoxgloveAdapterOp : public holoscan::Operator {
     }
 
     auto batch = std::make_shared<holoscan::ops::FoxgloveBatch>();
+    const auto frame_timestamp_ns = timestamp_from_input(*this, op_input, "input");
     holoscan::ops::FoxgloveImageAnnotations annotations;
     annotations.topic = annotation_topic_.get();
-    annotations.timestamp_ns = timestamp_from_input(*this, op_input, "input");
+    annotations.timestamp_ns = frame_timestamp_ns;
 
     const auto labels = labels_.get();
     for (size_t index = 0; index < coords.size() / 3; ++index) {
@@ -214,7 +215,7 @@ class ToolTrackingFoxgloveAdapterOp : public holoscan::Operator {
         fps.topic = state_topic_.get();
         fps.key = "inference_fps";
         fps.value = fmt::format("{:.2f}", 1.0 / elapsed);
-        fps.timestamp_ns = holoscan::ops::now_epoch_ns();
+        fps.timestamp_ns = frame_timestamp_ns;
         batch->key_values.push_back(std::move(fps));
       }
     }
