@@ -38,6 +38,7 @@ from .util import (
     fatal,
     find_hsdk_build_rel_dir,
     get_arch_gpu_str,
+    get_cli_arg_value,
     get_compute_capacity,
     get_cuda_tag,
     get_current_branch_slug,
@@ -670,12 +671,24 @@ class HoloHubContainer:
         add_volumes = add_volumes or []
         extra_args = extra_args or []
 
-        cidfile = Path(tempfile.gettempdir()) / f"holohub-container-{os.getpid()}.cid"
+        # If the caller already supplies --cidfile (via DEFAULT_DOCKER_RUN_ARGS or
+        # docker_opts), use that path for cleanup and skip injecting our own —
+        # Docker rejects duplicate --cidfile flags.
+        default_run_args = shlex.split(HoloHubContainer.DEFAULT_DOCKER_RUN_ARGS or "")
+        extra_run_args = shlex.split(docker_opts or "")
+        explicit_cidfile = get_cli_arg_value(default_run_args + extra_run_args, "--cidfile")
+        internal_cidfile: Optional[Path] = None
+        if explicit_cidfile:
+            cidfile = Path(explicit_cidfile)
+        else:
+            internal_cidfile = Path(tempfile.gettempdir()) / f"holohub-container-{os.getpid()}.cid"
+            cidfile = internal_cidfile
 
         cmd = [self.DOCKER_EXE, "run"]
 
         cmd.extend(self.get_basic_args())
-        cmd.extend(["--cidfile", str(cidfile)])
+        if internal_cidfile is not None:
+            cmd.extend(["--cidfile", str(internal_cidfile)])
         cmd.extend(self.get_security_args(as_root))
         cmd.extend(self.get_volume_args(add_volumes, enable_mps))
         cmd.extend(self.get_gpu_runtime_args())
@@ -694,12 +707,9 @@ class HoloHubContainer:
         if local_sdk_root or os.environ.get("HOLOSCAN_SDK_ROOT"):
             cmd.extend(self.get_local_sdk_options(local_sdk_root))
 
-        # Add default docker run arguments
-        if HoloHubContainer.DEFAULT_DOCKER_RUN_ARGS:
-            cmd.extend(shlex.split(HoloHubContainer.DEFAULT_DOCKER_RUN_ARGS))
-
-        if docker_opts:
-            cmd.extend(shlex.split(docker_opts))
+        # Default docker run arguments and caller-supplied docker_opts (parsed above).
+        cmd.extend(default_run_args)
+        cmd.extend(extra_run_args)
 
         cmd.append(img)
         cmd.extend(extra_args)
@@ -713,9 +723,11 @@ class HoloHubContainer:
                 run_command(cmd, dry_run=self.dryrun)
                 return
 
-            # Docker refuses to start if --cidfile already exists; clear stale files
-            # left by a prior crashed run that happened to share this PID.
-            cidfile.unlink(missing_ok=True)
+            # Docker refuses to start if --cidfile already exists; clear stale internal
+            # files left by a prior crashed run that happened to share this PID. Caller-
+            # provided cidfiles are the caller's responsibility — never remove them.
+            if internal_cidfile is not None:
+                internal_cidfile.unlink(missing_ok=True)
 
             try:
                 try:
@@ -744,14 +756,16 @@ class HoloHubContainer:
                     )
                 # os.kill below may terminate the process before the outer `finally`
                 # blocks run, so unlink the cidfile and clean display temp files here.
-                cidfile.unlink(missing_ok=True)
+                if internal_cidfile is not None:
+                    internal_cidfile.unlink(missing_ok=True)
                 self._cleanup_display_temp_files()
                 # Re-raise via default handler so we exit with the conventional 128+N status.
                 signal.signal(sig, signal.SIG_DFL)
                 os.kill(os.getpid(), sig)
                 sys.exit(128 + sig)
             finally:
-                cidfile.unlink(missing_ok=True)
+                if internal_cidfile is not None:
+                    internal_cidfile.unlink(missing_ok=True)
         finally:
             self._cleanup_display_temp_files()
 

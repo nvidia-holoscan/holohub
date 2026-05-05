@@ -27,7 +27,7 @@ from unittest.mock import patch
 sys.path.append(str(Path(os.getcwd()) / "utilities"))
 
 from utilities.cli.container import HoloHubContainer, _ContainerTerminationSignal
-from utilities.cli.util import get_cuda_tag, get_default_cuda_version
+from utilities.cli.util import get_cli_arg_value, get_cuda_tag, get_default_cuda_version
 
 
 class TestHoloHubContainer(unittest.TestCase):
@@ -162,6 +162,7 @@ class TestHoloHubContainer(unittest.TestCase):
         self.assertTrue("--runtime" in docker_run_call and "nvidia" in docker_run_call)
         self.assertIn(self.container.image_names[0], docker_run_call)
 
+    @patch.dict(os.environ, {}, clear=True)
     @patch("utilities.cli.container.check_nvidia_ctk")
     @patch("utilities.cli.container.get_image_pythonpath")
     @patch("utilities.cli.container.os.kill")
@@ -204,6 +205,51 @@ class TestHoloHubContainer(unittest.TestCase):
         )
         mock_kill.assert_called_once_with(os.getpid(), 15)
 
+    @patch.dict(os.environ, {}, clear=True)
+    @patch("utilities.cli.container.check_nvidia_ctk")
+    @patch("utilities.cli.container.get_image_pythonpath")
+    @patch("utilities.cli.container.os.kill")
+    @patch("utilities.cli.container.signal.signal")
+    @patch("utilities.cli.container.subprocess.run")
+    @patch("utilities.cli.container.run_command")
+    @patch("subprocess.check_output")
+    def test_run_stops_user_cidfile_container_on_signal(
+        self,
+        mock_check_output,
+        mock_run_command,
+        mock_subprocess_run,
+        _mock_signal,
+        mock_kill,
+        mock_get_image_pythonpath,
+        mock_check_nvidia_ctk,
+    ):
+        """Signal cleanup should follow a caller-provided Docker --cidfile and not
+        inject our own (Docker rejects duplicate --cidfile flags)."""
+        mock_check_nvidia_ctk.return_value = None
+        mock_check_output.return_value = ""
+        mock_get_image_pythonpath.return_value = ""
+        user_cidfile = self.test_dir_path / "user.cid"
+
+        def interrupt_after_cidfile(cmd, **_kwargs):
+            self.assertEqual(cmd.count("--cidfile"), 1)
+            self.assertEqual(get_cli_arg_value(cmd, "--cidfile"), str(user_cidfile))
+            user_cidfile.write_text("user-container\n")
+            raise _ContainerTerminationSignal(15)
+
+        mock_run_command.side_effect = interrupt_after_cidfile
+
+        with self.assertRaises(SystemExit) as raised:
+            self.container.run(docker_opts=f"--cidfile {user_cidfile}")
+
+        self.assertEqual(raised.exception.code, 128 + 15)
+        self.assertEqual(
+            mock_subprocess_run.call_args[0][0],
+            ["docker", "stop", "--time", "10", "user-container"],
+        )
+        self.assertTrue(user_cidfile.exists())
+        mock_kill.assert_called_once_with(os.getpid(), 15)
+
+    @patch.dict(os.environ, {}, clear=True)
     @patch("utilities.cli.container.check_nvidia_ctk")
     @patch("utilities.cli.container.get_image_pythonpath")
     @patch("utilities.cli.container.os.kill")

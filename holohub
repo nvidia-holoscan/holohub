@@ -16,4 +16,4 @@
 # limitations under the License.
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-PYTHONPATH="${PYTHONPATH}:${SCRIPT_DIR}" exec python3 "${SCRIPT_DIR}/utilities/cli/holohub.py" "$@"
+PYTHONPATH="${PYTHONPATH:+${PYTHONPATH}:}${SCRIPT_DIR}" exec python3 "${SCRIPT_DIR}/utilities/cli/holohub.py" "$@"
