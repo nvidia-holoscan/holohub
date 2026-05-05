@@ -20,6 +20,7 @@ import os
 import re
 import shlex
 import shutil
+import signal
 import stat
 import subprocess
 import sys
@@ -37,6 +38,7 @@ from .util import (
     fatal,
     find_hsdk_build_rel_dir,
     get_arch_gpu_str,
+    get_cli_arg_value,
     get_compute_capacity,
     get_cuda_tag,
     get_current_branch_slug,
@@ -57,6 +59,60 @@ from .util import (
 )
 
 SCCACHE_CONTAINER_DIR = "/.cache/sccache"
+
+
+def _read_container_id(cidfile: Path) -> Optional[str]:
+    """Read a Docker container ID from a cidfile if Docker has written it."""
+    try:
+        container_id = cidfile.read_text().strip()
+    except OSError:
+        return None
+    return container_id or None
+
+
+class _ContainerTerminationSignal(Exception):
+    """Raised from the signal handler to return control to the parent CLI."""
+
+    def __init__(self, signum: int):
+        self.signum = signum
+        super().__init__(signum)
+
+
+class _ContainerTerminationHandler:
+    """Record termination signals so the parent CLI can clean up its container.
+
+    The handler intentionally only records the signal; it does not run subprocesses
+    from the signal context. The caller is expected to perform cleanup (e.g.
+    `docker stop`) on the main thread after the guarded block exits.
+    """
+
+    def __init__(self):
+        self._previous_handlers = {}
+
+    def __enter__(self):
+        for signal_name in ("SIGINT", "SIGTERM", "SIGHUP"):
+            signum = getattr(signal, signal_name, None)
+            if signum is None:
+                continue
+            try:
+                self._previous_handlers[signum] = signal.getsignal(signum)
+                signal.signal(signum, self._handle_signal)
+            except (OSError, RuntimeError, ValueError):
+                continue
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        for signum, handler in self._previous_handlers.items():
+            # signal.getsignal returns None for natively-installed handlers,
+            # and signal.signal(None) raises TypeError — swallow it so we don't
+            # mask the original termination exception during cleanup.
+            try:
+                signal.signal(signum, handler)
+            except (OSError, RuntimeError, TypeError, ValueError):
+                continue
+
+    def _handle_signal(self, signum, frame) -> None:
+        raise _ContainerTerminationSignal(signum)
 
 
 class HoloHubContainer:
@@ -615,9 +671,24 @@ class HoloHubContainer:
         add_volumes = add_volumes or []
         extra_args = extra_args or []
 
+        # If the caller already supplies --cidfile (via DEFAULT_DOCKER_RUN_ARGS or
+        # docker_opts), use that path for cleanup and skip injecting our own —
+        # Docker rejects duplicate --cidfile flags.
+        default_run_args = shlex.split(HoloHubContainer.DEFAULT_DOCKER_RUN_ARGS or "")
+        extra_run_args = shlex.split(docker_opts or "")
+        explicit_cidfile = get_cli_arg_value(default_run_args + extra_run_args, "--cidfile")
+        internal_cidfile: Optional[Path] = None
+        if explicit_cidfile:
+            cidfile = Path(explicit_cidfile)
+        else:
+            internal_cidfile = Path(tempfile.gettempdir()) / f"holohub-container-{os.getpid()}.cid"
+            cidfile = internal_cidfile
+
         cmd = [self.DOCKER_EXE, "run"]
 
         cmd.extend(self.get_basic_args())
+        if internal_cidfile is not None:
+            cmd.extend(["--cidfile", str(internal_cidfile)])
         cmd.extend(self.get_security_args(as_root))
         cmd.extend(self.get_volume_args(add_volumes, enable_mps))
         cmd.extend(self.get_gpu_runtime_args())
@@ -636,12 +707,9 @@ class HoloHubContainer:
         if local_sdk_root or os.environ.get("HOLOSCAN_SDK_ROOT"):
             cmd.extend(self.get_local_sdk_options(local_sdk_root))
 
-        # Add default docker run arguments
-        if HoloHubContainer.DEFAULT_DOCKER_RUN_ARGS:
-            cmd.extend(shlex.split(HoloHubContainer.DEFAULT_DOCKER_RUN_ARGS))
-
-        if docker_opts:
-            cmd.extend(shlex.split(docker_opts))
+        # Default docker run arguments and caller-supplied docker_opts (parsed above).
+        cmd.extend(default_run_args)
+        cmd.extend(extra_run_args)
 
         cmd.append(img)
         cmd.extend(extra_args)
@@ -651,7 +719,53 @@ class HoloHubContainer:
             print(f"Launch command: {' '.join(cmd_list)}")
 
         try:
-            run_command(cmd, dry_run=self.dryrun)
+            if self.dryrun:
+                run_command(cmd, dry_run=self.dryrun)
+                return
+
+            # Docker refuses to start if --cidfile already exists; clear stale internal
+            # files left by a prior crashed run that happened to share this PID. Caller-
+            # provided cidfiles are the caller's responsibility — never remove them.
+            if internal_cidfile is not None:
+                internal_cidfile.unlink(missing_ok=True)
+
+            try:
+                try:
+                    with _ContainerTerminationHandler():
+                        run_command(cmd)
+                    return
+                except _ContainerTerminationSignal as exc:
+                    sig = exc.signum
+
+                try:
+                    signal_name = signal.Signals(sig).name
+                except ValueError:
+                    signal_name = str(sig)
+                container_id = _read_container_id(cidfile)
+                if container_id:
+                    warn(f"Received {signal_name}; stopping HoloHub container {container_id}")
+                    subprocess.run(
+                        [self.DOCKER_EXE, "stop", "--time", "10", container_id],
+                        check=False,
+                        stdout=subprocess.DEVNULL,
+                    )
+                else:
+                    warn(
+                        f"Received {signal_name}; no container ID was written to {cidfile} yet — "
+                        "the container may still be starting. Run `docker ps` to check and stop it manually."
+                    )
+                # os.kill below may terminate the process before the outer `finally`
+                # blocks run, so unlink the cidfile and clean display temp files here.
+                if internal_cidfile is not None:
+                    internal_cidfile.unlink(missing_ok=True)
+                self._cleanup_display_temp_files()
+                # Re-raise via default handler so we exit with the conventional 128+N status.
+                signal.signal(sig, signal.SIG_DFL)
+                os.kill(os.getpid(), sig)
+                sys.exit(128 + sig)
+            finally:
+                if internal_cidfile is not None:
+                    internal_cidfile.unlink(missing_ok=True)
         finally:
             self._cleanup_display_temp_files()
 

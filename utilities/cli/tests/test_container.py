@@ -26,8 +26,8 @@ from unittest.mock import patch
 # Add the utilities directory to the Python path
 sys.path.append(str(Path(os.getcwd()) / "utilities"))
 
-from utilities.cli.container import HoloHubContainer
-from utilities.cli.util import get_cuda_tag, get_default_cuda_version
+from utilities.cli.container import HoloHubContainer, _ContainerTerminationSignal
+from utilities.cli.util import get_cli_arg_value, get_cuda_tag, get_default_cuda_version
 
 
 class TestHoloHubContainer(unittest.TestCase):
@@ -158,8 +158,128 @@ class TestHoloHubContainer(unittest.TestCase):
         self.assertIsNotNone(docker_run_call, "Docker run command not found in mock calls")
         self.assertTrue("docker" in docker_run_call)
         self.assertTrue("run" in docker_run_call)
+        self.assertIn("--cidfile", docker_run_call)
         self.assertTrue("--runtime" in docker_run_call and "nvidia" in docker_run_call)
         self.assertIn(self.container.image_names[0], docker_run_call)
+
+    @patch.dict(os.environ, {}, clear=True)
+    @patch("utilities.cli.container.check_nvidia_ctk")
+    @patch("utilities.cli.container.get_image_pythonpath")
+    @patch("utilities.cli.container.os.kill")
+    @patch("utilities.cli.container.signal.signal")
+    @patch("utilities.cli.container.subprocess.run")
+    @patch("utilities.cli.container.run_command")
+    @patch("subprocess.check_output")
+    def test_run_stops_cidfile_container_on_signal(
+        self,
+        mock_check_output,
+        mock_run_command,
+        mock_subprocess_run,
+        _mock_signal,
+        mock_kill,
+        mock_get_image_pythonpath,
+        mock_check_nvidia_ctk,
+    ):
+        """Signal cleanup should stop the exact container ID Docker wrote."""
+        mock_check_nvidia_ctk.return_value = None
+        mock_check_output.return_value = ""
+        mock_get_image_pythonpath.return_value = ""
+
+        def interrupt_after_cidfile(cmd, **_kwargs):
+            if "--cidfile" not in cmd:
+                return None
+            cidfile = Path(cmd[cmd.index("--cidfile") + 1])
+            cidfile.write_text("container123\n")
+            raise _ContainerTerminationSignal(15)
+
+        mock_run_command.side_effect = interrupt_after_cidfile
+
+        with self.assertRaises(SystemExit) as raised:
+            self.container.run()
+
+        self.assertEqual(raised.exception.code, 128 + 15)
+        mock_subprocess_run.assert_called_once()
+        self.assertEqual(
+            mock_subprocess_run.call_args[0][0],
+            ["docker", "stop", "--time", "10", "container123"],
+        )
+        mock_kill.assert_called_once_with(os.getpid(), 15)
+
+    @patch.dict(os.environ, {}, clear=True)
+    @patch("utilities.cli.container.check_nvidia_ctk")
+    @patch("utilities.cli.container.get_image_pythonpath")
+    @patch("utilities.cli.container.os.kill")
+    @patch("utilities.cli.container.signal.signal")
+    @patch("utilities.cli.container.subprocess.run")
+    @patch("utilities.cli.container.run_command")
+    @patch("subprocess.check_output")
+    def test_run_stops_user_cidfile_container_on_signal(
+        self,
+        mock_check_output,
+        mock_run_command,
+        mock_subprocess_run,
+        _mock_signal,
+        mock_kill,
+        mock_get_image_pythonpath,
+        mock_check_nvidia_ctk,
+    ):
+        """Signal cleanup should follow a caller-provided Docker --cidfile and not
+        inject our own (Docker rejects duplicate --cidfile flags)."""
+        mock_check_nvidia_ctk.return_value = None
+        mock_check_output.return_value = ""
+        mock_get_image_pythonpath.return_value = ""
+        user_cidfile = self.test_dir_path / "user.cid"
+
+        def interrupt_after_cidfile(cmd, **_kwargs):
+            self.assertEqual(cmd.count("--cidfile"), 1)
+            self.assertEqual(get_cli_arg_value(cmd, "--cidfile"), str(user_cidfile))
+            user_cidfile.write_text("user-container\n")
+            raise _ContainerTerminationSignal(15)
+
+        mock_run_command.side_effect = interrupt_after_cidfile
+
+        with self.assertRaises(SystemExit) as raised:
+            self.container.run(docker_opts=f"--cidfile {user_cidfile}")
+
+        self.assertEqual(raised.exception.code, 128 + 15)
+        self.assertEqual(
+            mock_subprocess_run.call_args[0][0],
+            ["docker", "stop", "--time", "10", "user-container"],
+        )
+        self.assertTrue(user_cidfile.exists())
+        mock_kill.assert_called_once_with(os.getpid(), 15)
+
+    @patch.dict(os.environ, {}, clear=True)
+    @patch("utilities.cli.container.check_nvidia_ctk")
+    @patch("utilities.cli.container.get_image_pythonpath")
+    @patch("utilities.cli.container.os.kill")
+    @patch("utilities.cli.container.signal.signal")
+    @patch("utilities.cli.container.subprocess.run")
+    @patch("utilities.cli.container.run_command")
+    @patch("subprocess.check_output")
+    def test_run_warns_when_cidfile_empty_on_signal(
+        self,
+        mock_check_output,
+        mock_run_command,
+        mock_subprocess_run,
+        _mock_signal,
+        mock_kill,
+        mock_get_image_pythonpath,
+        mock_check_nvidia_ctk,
+    ):
+        """If Docker hasn't written the cidfile yet, no docker stop is issued."""
+        mock_check_nvidia_ctk.return_value = None
+        mock_check_output.return_value = ""
+        mock_get_image_pythonpath.return_value = ""
+
+        mock_run_command.side_effect = _ContainerTerminationSignal(2)
+
+        with self.assertRaises(SystemExit) as raised:
+            self.container.run()
+
+        self.assertEqual(raised.exception.code, 128 + 2)
+        mock_subprocess_run.assert_not_called()
+        mock_kill.assert_called_once_with(os.getpid(), 2)
 
     @patch.dict(os.environ, {}, clear=True)
     def test_get_display_options_without_display_returns_empty(self):
@@ -237,6 +357,7 @@ class TestHoloHubContainer(unittest.TestCase):
         self.container.run()
         cmd = mock_completed_process.call_args[0][0]
         self.assertIn(self.container.image_names[0], cmd)
+        self.assertIn("--cidfile", cmd)
         self.assertIn("c 81:* rmw", cmd)
         self.container.dryrun = False
 
