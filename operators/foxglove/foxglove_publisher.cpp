@@ -1322,12 +1322,18 @@ void FoxglovePublisherOp::apply_pending_parameter_updates() {
   }
 }
 
+bool FoxglovePublisherOp::drop_when_unsubscribed() const {
+  std::lock_guard<std::mutex> lock(parameter_mutex_);
+  return drop_when_unsubscribed_.get();
+}
+
 bool FoxglovePublisherOp::should_publish_raw_image(const std::string& topic) {
+  const auto drop_when_unsubscribed_value = drop_when_unsubscribed();
   std::lock_guard<std::mutex> lock(mcap_mutex_);
   raw_image_channel(topic);
   return should_log_channel(topic,
                             raw_image_channels_,
-                            drop_when_unsubscribed_.get(),
+                            drop_when_unsubscribed_value,
                             mcap_writer_.has_value());
 }
 
@@ -1829,6 +1835,7 @@ foxglove::messages::KeyValuePairChannel& FoxglovePublisherOp::key_value_channel(
 uint64_t FoxglovePublisherOp::publish_image(const FoxgloveImage& image) {
   const auto log_time_ns = resolve_timestamp_ns(image.timestamp_ns);
   auto topic = normalize_topic(image.topic, "/image");
+  const auto drop_when_unsubscribed_value = drop_when_unsubscribed();
   foxglove::messages::RawImage message;
   message.timestamp = timestamp_from_ns(log_time_ns);
   message.frame_id = image.frame_id;
@@ -1841,7 +1848,7 @@ uint64_t FoxglovePublisherOp::publish_image(const FoxgloveImage& image) {
   auto& channel = raw_image_channel(topic);
   if (!should_log_channel(topic,
                           raw_image_channels_,
-                          drop_when_unsubscribed_.get(),
+                          drop_when_unsubscribed_value,
                           mcap_writer_.has_value())) {
     return log_time_ns;
   }
@@ -1852,6 +1859,7 @@ uint64_t FoxglovePublisherOp::publish_image(const FoxgloveImage& image) {
 uint64_t FoxglovePublisherOp::publish_compressed_video(const FoxgloveCompressedVideo& video) {
   const auto log_time_ns = resolve_timestamp_ns(video.timestamp_ns);
   auto topic = normalize_topic(video.topic, "/video/compressed");
+  const auto drop_when_unsubscribed_value = drop_when_unsubscribed();
   foxglove::messages::CompressedVideo message;
   message.timestamp = timestamp_from_ns(log_time_ns);
   message.frame_id = video.frame_id;
@@ -1861,7 +1869,7 @@ uint64_t FoxglovePublisherOp::publish_compressed_video(const FoxgloveCompressedV
   auto& channel = compressed_video_channel(topic);
   if (!should_log_channel(topic,
                           compressed_video_channels_,
-                          drop_when_unsubscribed_.get(),
+                          drop_when_unsubscribed_value,
                           mcap_writer_.has_value())) {
     return log_time_ns;
   }
@@ -1873,6 +1881,7 @@ uint64_t FoxglovePublisherOp::publish_calibration(
     const FoxgloveCameraCalibration& calibration) {
   const auto log_time_ns = resolve_timestamp_ns(calibration.timestamp_ns);
   auto topic = normalize_topic(calibration.topic, "/camera/calibration");
+  const auto drop_when_unsubscribed_value = drop_when_unsubscribed();
   foxglove::messages::CameraCalibration message;
   message.timestamp = timestamp_from_ns(log_time_ns);
   message.frame_id = calibration.frame_id;
@@ -1887,7 +1896,7 @@ uint64_t FoxglovePublisherOp::publish_calibration(
   auto& channel = calibration_channel(topic);
   if (!should_log_channel(topic,
                           calibration_channels_,
-                          drop_when_unsubscribed_.get(),
+                          drop_when_unsubscribed_value,
                           mcap_writer_.has_value())) {
     return log_time_ns;
   }
@@ -1899,6 +1908,7 @@ uint64_t FoxglovePublisherOp::publish_annotations(
     const FoxgloveImageAnnotations& annotations) {
   const auto log_time_ns = resolve_timestamp_ns(annotations.timestamp_ns);
   auto topic = normalize_topic(annotations.topic, "/image/annotations");
+  const auto drop_when_unsubscribed_value = drop_when_unsubscribed();
   foxglove::messages::ImageAnnotations message;
   message.timestamp = timestamp_from_ns(log_time_ns);
   for (const auto& box : annotations.boxes) {
@@ -1965,7 +1975,7 @@ uint64_t FoxglovePublisherOp::publish_annotations(
   auto& channel = annotation_channel(topic);
   if (!should_log_channel(topic,
                           annotation_channels_,
-                          drop_when_unsubscribed_.get(),
+                          drop_when_unsubscribed_value,
                           mcap_writer_.has_value())) {
     return log_time_ns;
   }
@@ -1976,6 +1986,7 @@ uint64_t FoxglovePublisherOp::publish_annotations(
 uint64_t FoxglovePublisherOp::publish_point_cloud(const FoxglovePointCloud& point_cloud) {
   const auto log_time_ns = resolve_timestamp_ns(point_cloud.timestamp_ns);
   auto topic = normalize_topic(point_cloud.topic, "/points");
+  const auto drop_when_unsubscribed_value = drop_when_unsubscribed();
   foxglove::messages::PointCloud message;
   message.timestamp = timestamp_from_ns(log_time_ns);
   message.frame_id = point_cloud.frame_id;
@@ -1986,7 +1997,7 @@ uint64_t FoxglovePublisherOp::publish_point_cloud(const FoxglovePointCloud& poin
   auto& channel = point_cloud_channel(topic);
   if (!should_log_channel(topic,
                           point_cloud_channels_,
-                          drop_when_unsubscribed_.get(),
+                          drop_when_unsubscribed_value,
                           mcap_writer_.has_value())) {
     return log_time_ns;
   }
@@ -1998,6 +2009,7 @@ uint64_t FoxglovePublisherOp::publish_frame_transform(
     const FoxgloveFrameTransform& transform) {
   const auto log_time_ns = resolve_timestamp_ns(transform.timestamp_ns);
   auto topic = normalize_topic(transform.topic, "/tf");
+  const auto drop_when_unsubscribed_value = drop_when_unsubscribed();
   foxglove::messages::FrameTransform message;
   message.timestamp = timestamp_from_ns(log_time_ns);
   message.parent_frame_id = transform.parent_frame_id;
@@ -2010,7 +2022,7 @@ uint64_t FoxglovePublisherOp::publish_frame_transform(
   auto& channel = frame_transform_channel(topic);
   if (!should_log_channel(topic,
                           frame_transform_channels_,
-                          drop_when_unsubscribed_.get(),
+                          drop_when_unsubscribed_value,
                           mcap_writer_.has_value())) {
     return log_time_ns;
   }
@@ -2021,6 +2033,7 @@ uint64_t FoxglovePublisherOp::publish_frame_transform(
 uint64_t FoxglovePublisherOp::publish_key_value(const FoxgloveKeyValue& key_value) {
   const auto log_time_ns = resolve_timestamp_ns(key_value.timestamp_ns);
   auto topic = normalize_topic(key_value.topic, "/state");
+  const auto drop_when_unsubscribed_value = drop_when_unsubscribed();
   foxglove::messages::KeyValuePair message;
   message.key = key_value.key;
   message.value = key_value.value;
@@ -2028,7 +2041,7 @@ uint64_t FoxglovePublisherOp::publish_key_value(const FoxgloveKeyValue& key_valu
   auto& channel = key_value_channel(topic);
   if (!should_log_channel(topic,
                           key_value_channels_,
-                          drop_when_unsubscribed_.get(),
+                          drop_when_unsubscribed_value,
                           mcap_writer_.has_value())) {
     return log_time_ns;
   }

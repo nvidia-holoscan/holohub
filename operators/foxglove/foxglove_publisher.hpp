@@ -220,6 +220,7 @@ class FoxglovePublisherOp : public Operator {
   std::vector<foxglove::Parameter> enqueue_foxglove_parameter_updates(
       const std::vector<foxglove::ParameterView>& params);
   void apply_pending_parameter_updates();
+  bool drop_when_unsubscribed() const;
   bool should_publish_raw_image(const std::string& topic);
 
   foxglove::messages::RawImageChannel& raw_image_channel(const std::string& topic);
