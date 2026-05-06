@@ -83,6 +83,17 @@ if(NOT CMAKE_CUDA_ARCHITECTURES)
   set(CMAKE_CUDA_ARCHITECTURES "native")
 endif()
 
+# External Holoscan Module manifest.
+#
+# The HoloHub CLI writes ${CMAKE_BINARY_DIR}/external_operators_manifest.cmake
+# before configure runs. The manifest is data-only — FetchContent_Declare
+# entries (lazy; nothing fetches yet) and HOLOHUB_EXT_OP_<op>_PROVIDER
+# variables that map operator names to providing modules. The end-of-file
+# block below scans those after the rest of the tree has registered which
+# OP_<op>=ON, and FetchContent_MakeAvailable's only the modules whose
+# operators ended up enabled.
+include(${CMAKE_BINARY_DIR}/external_operators_manifest.cmake OPTIONAL)
+
 # Build packaging
 add_subdirectory(pkg)
 
@@ -100,6 +111,36 @@ add_subdirectory(operators)
 
 # Build the extensions
 add_subdirectory(gxf_extensions)
+
+# ── Resolve external operators that ended up enabled ──────────────────
+#
+# Walk the cache for HOLOHUB_EXT_OP_<op>_PROVIDER entries (set by the
+# manifest above). For each operator whose option is ON in the cache,
+# collect its providing module. Then FetchContent_MakeAvailable each unique
+# module exactly once — that fetches sources lazily and add_subdirectory's
+# the module's top-level CMakeLists. The module's per-operator gating
+# (PROJECT_IS_TOP_LEVEL=FALSE → BUILD_ALL=OFF, plus the cache-FORCE'd
+# OP_<op>=ON values from add_holohub_application(... DEPENDS OPERATORS …))
+# means only the requested operators in the fetched module actually build.
+get_cmake_property(_holohub_all_vars VARIABLES)
+set(_holohub_ext_modules_needed "")
+foreach(_var IN LISTS _holohub_all_vars)
+  if(_var MATCHES "^HOLOHUB_EXT_OP_(.+)_PROVIDER$")
+    set(_op_name "${CMAKE_MATCH_1}")
+    if(${OP_${_op_name}})
+      list(APPEND _holohub_ext_modules_needed "${${_var}}")
+    endif()
+  endif()
+endforeach()
+
+if(_holohub_ext_modules_needed)
+  list(REMOVE_DUPLICATES _holohub_ext_modules_needed)
+  include(FetchContent)
+  foreach(_provider IN LISTS _holohub_ext_modules_needed)
+    message(STATUS "Fetching external Holoscan Module: ${_provider}")
+    FetchContent_MakeAvailable(${_provider})
+  endforeach()
+endif()
 
 option(BUILD_HOLOHUB_TESTING OFF)
 if(BUILD_TESTING AND BUILD_HOLOHUB_TESTING)

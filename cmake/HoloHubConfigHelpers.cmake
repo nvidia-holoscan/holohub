@@ -25,6 +25,8 @@
 # - add_holohub_application(): Build applications with operator/extension dependencies
 # - add_holohub_operator(): Build operators with extension dependencies
 # - add_holohub_extension(): Build extensions
+# - holohub_declare_external_module(): Declare an external Holoscan Module and register
+#   its operators with HoloHub's lazy-fetch post-step
 #
 # Global Variables:
 # - BUILD_ALL: Global flag to enable/disable all components (default: OFF)
@@ -219,4 +221,56 @@ function(add_holohub_extension NAME)
   if(${extname})
     add_subdirectory(${NAME})
   endif()
+endfunction()
+
+# =====================================================
+# Helper function to declare external Holoscan Modules
+# =====================================================
+# Declares an external Holoscan Module dependency and registers its operators with
+# HoloHub's lazy-fetch post-step. Equivalent to calling FetchContent_Declare followed
+# by setting HOLOHUB_EXT_OP_<op>_PROVIDER for each advertised operator.
+#
+# The HoloHub CLI generates calls to this function automatically from a consumer's
+# metadata.json into ${CMAKE_BINARY_DIR}/external_operators_manifest.cmake. Use this
+# function directly when bypassing the CLI.
+#
+# Parameters:
+#   PROVIDER: CMake-safe identifier for the module (used as the FetchContent name and
+#             in ${PROVIDER}_SOURCE_DIR etc.). Prefer underscores over hyphens.
+#
+# Keyword Arguments:
+#   PROVIDES_OPERATORS: Operators this module supplies. The root CMakeLists.txt
+#                       post-step calls FetchContent_MakeAvailable for this module
+#                       only when at least one of these operators is OP_<op>=ON.
+#   <FetchContent_Declare args>: All remaining arguments are forwarded verbatim to
+#                       FetchContent_Declare(PROVIDER ...). Any option accepted by
+#                       FetchContent_Declare (GIT_REPOSITORY, GIT_TAG, SOURCE_DIR,
+#                       GIT_SHALLOW, etc.) is valid here.
+#
+# HOLOHUB_EXT_OP_<op>_PROVIDER variables are set as NORMAL (non-cache) variables.
+# They must be set fresh each configure run; a cached entry whose FetchContent_Declare
+# was not registered in the current run would cause FetchContent_MakeAvailable to fail
+# with "No content details recorded for <provider>".
+#
+# Example:
+#   holohub_declare_external_module(holoscan_deltacast
+#       GIT_REPOSITORY  https://github.com/nvidia/holoscan-deltacast
+#       GIT_TAG         2dac97236a8b3689ab08b5bc0b5a319e0558c807
+#       PROVIDES_OPERATORS deltacast_videomaster
+#   )
+#
+# For local development, set FETCHCONTENT_SOURCE_DIR_<UPPER_PROVIDER> before calling
+# this function to redirect FetchContent at a local working copy:
+#   set(FETCHCONTENT_SOURCE_DIR_HOLOSCAN_DELTACAST "/path/to/local" CACHE PATH "" FORCE)
+#   holohub_declare_external_module(holoscan_deltacast
+#       SOURCE_DIR  "/path/to/local"
+#       PROVIDES_OPERATORS deltacast_videomaster
+#   )
+function(holohub_declare_external_module PROVIDER)
+  cmake_parse_arguments(ARG "" "" "PROVIDES_OPERATORS" ${ARGN})
+  include(FetchContent)
+  FetchContent_Declare(${PROVIDER} ${ARG_UNPARSED_ARGUMENTS})
+  foreach(_op IN LISTS ARG_PROVIDES_OPERATORS)
+    set("HOLOHUB_EXT_OP_${_op}_PROVIDER" "${PROVIDER}" PARENT_SCOPE)
+  endforeach()
 endfunction()
