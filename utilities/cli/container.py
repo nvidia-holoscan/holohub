@@ -20,6 +20,7 @@ import os
 import re
 import shlex
 import shutil
+import signal
 import stat
 import subprocess
 import sys
@@ -37,6 +38,7 @@ from .util import (
     fatal,
     find_hsdk_build_rel_dir,
     get_arch_gpu_str,
+    get_cli_arg_value,
     get_compute_capacity,
     get_cuda_tag,
     get_current_branch_slug,
@@ -57,6 +59,60 @@ from .util import (
 )
 
 SCCACHE_CONTAINER_DIR = "/.cache/sccache"
+
+
+def _read_container_id(cidfile: Path) -> Optional[str]:
+    """Read a Docker container ID from a cidfile if Docker has written it."""
+    try:
+        container_id = cidfile.read_text().strip()
+    except OSError:
+        return None
+    return container_id or None
+
+
+class _ContainerTerminationSignal(Exception):
+    """Raised from the signal handler to return control to the parent CLI."""
+
+    def __init__(self, signum: int):
+        self.signum = signum
+        super().__init__(signum)
+
+
+class _ContainerTerminationHandler:
+    """Record termination signals so the parent CLI can clean up its container.
+
+    The handler intentionally only records the signal; it does not run subprocesses
+    from the signal context. The caller is expected to perform cleanup (e.g.
+    `docker stop`) on the main thread after the guarded block exits.
+    """
+
+    def __init__(self):
+        self._previous_handlers = {}
+
+    def __enter__(self):
+        for signal_name in ("SIGINT", "SIGTERM", "SIGHUP"):
+            signum = getattr(signal, signal_name, None)
+            if signum is None:
+                continue
+            try:
+                self._previous_handlers[signum] = signal.getsignal(signum)
+                signal.signal(signum, self._handle_signal)
+            except (OSError, RuntimeError, ValueError):
+                continue
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        for signum, handler in self._previous_handlers.items():
+            # signal.getsignal returns None for natively-installed handlers,
+            # and signal.signal(None) raises TypeError — swallow it so we don't
+            # mask the original termination exception during cleanup.
+            try:
+                signal.signal(signum, handler)
+            except (OSError, RuntimeError, TypeError, ValueError):
+                continue
+
+    def _handle_signal(self, signum, frame) -> None:
+        raise _ContainerTerminationSignal(signum)
 
 
 class HoloHubContainer:
@@ -99,6 +155,9 @@ class HoloHubContainer:
     DEFAULT_DOCKER_BUILD_ARGS = os.environ.get("HOLOHUB_DEFAULT_DOCKER_BUILD_ARGS", "")
     # Additional Default run arguments for docker run command
     DEFAULT_DOCKER_RUN_ARGS = os.environ.get("HOLOHUB_DEFAULT_DOCKER_RUN_ARGS", "")
+    DISPLAY_FORWARDING_DISABLED_MESSAGE = (
+        "No DISPLAY or WAYLAND_DISPLAY set; skipping display forwarding."
+    )
 
     @classmethod
     def default_base_image(cls, cuda_version: Optional[Union[str, int]] = None) -> str:
@@ -156,6 +215,16 @@ class HoloHubContainer:
     @staticmethod
     def get_run_argparse() -> argparse.ArgumentParser:
         """Get argument parser for container run options"""
+
+        class _DeprecatedDisplayFlagAction(argparse.Action):
+            def __call__(self, parser, namespace, values, option_string=None):
+                warn(
+                    f"{option_string} is deprecated and ignored; X11 and Wayland "
+                    "forwarding now happens automatically when DISPLAY or "
+                    "WAYLAND_DISPLAY is set."
+                )
+                setattr(namespace, self.dest, True)
+
         parser = argparse.ArgumentParser(add_help=False)
         parser.add_argument(
             "--docker-opts",
@@ -165,8 +234,10 @@ class HoloHubContainer:
         )
         parser.add_argument(
             "--ssh-x11",
-            action="store_true",
-            help="Enable X11 forwarding of graphical HoloHub applications over SSH",
+            action=_DeprecatedDisplayFlagAction,
+            nargs=0,
+            default=False,
+            help="[DEPRECATED] X11 over SSH is now auto-detected from DISPLAY",
         )
         parser.add_argument(
             "--nsys-profile",
@@ -201,9 +272,10 @@ class HoloHubContainer:
         )
         parser.add_argument(
             "--enable-x11",
-            action="store_true",
+            action=_DeprecatedDisplayFlagAction,
+            nargs=0,
             default=True,
-            help="Enable X11 forwarding (default: True)",
+            help="[DEPRECATED] X11/Wayland forwarding is now auto-detected",
         )
         return parser
 
@@ -452,6 +524,7 @@ class HoloHubContainer:
         self.cuda_version = None  # None means use default from get_cuda_tag
         self.dryrun = False
         self.verbose = False
+        self._display_temp_files: List[Path] = []
 
     def build(
         self,
@@ -598,9 +671,24 @@ class HoloHubContainer:
         add_volumes = add_volumes or []
         extra_args = extra_args or []
 
+        # If the caller already supplies --cidfile (via DEFAULT_DOCKER_RUN_ARGS or
+        # docker_opts), use that path for cleanup and skip injecting our own —
+        # Docker rejects duplicate --cidfile flags.
+        default_run_args = shlex.split(HoloHubContainer.DEFAULT_DOCKER_RUN_ARGS or "")
+        extra_run_args = shlex.split(docker_opts or "")
+        explicit_cidfile = get_cli_arg_value(default_run_args + extra_run_args, "--cidfile")
+        internal_cidfile: Optional[Path] = None
+        if explicit_cidfile:
+            cidfile = Path(explicit_cidfile)
+        else:
+            internal_cidfile = Path(tempfile.gettempdir()) / f"holohub-container-{os.getpid()}.cid"
+            cidfile = internal_cidfile
+
         cmd = [self.DOCKER_EXE, "run"]
 
         cmd.extend(self.get_basic_args())
+        if internal_cidfile is not None:
+            cmd.extend(["--cidfile", str(internal_cidfile)])
         cmd.extend(self.get_security_args(as_root))
         cmd.extend(self.get_volume_args(add_volumes, enable_mps))
         cmd.extend(self.get_gpu_runtime_args())
@@ -610,6 +698,7 @@ class HoloHubContainer:
         cmd.extend(self.ucx_args())
         cmd.extend(self.get_device_mounts())
         cmd.extend(self.group_args())
+        self._display_temp_files = []
         cmd.extend(self.get_display_options(enable_x11, ssh_x11))
         cmd.extend(self.get_nsys_options(nsys_profile, nsys_location))
         cmd.extend(self.get_pythonpath_options(local_sdk_root, img))
@@ -618,12 +707,9 @@ class HoloHubContainer:
         if local_sdk_root or os.environ.get("HOLOSCAN_SDK_ROOT"):
             cmd.extend(self.get_local_sdk_options(local_sdk_root))
 
-        # Add default docker run arguments
-        if HoloHubContainer.DEFAULT_DOCKER_RUN_ARGS:
-            cmd.extend(shlex.split(HoloHubContainer.DEFAULT_DOCKER_RUN_ARGS))
-
-        if docker_opts:
-            cmd.extend(shlex.split(docker_opts))
+        # Default docker run arguments and caller-supplied docker_opts (parsed above).
+        cmd.extend(default_run_args)
+        cmd.extend(extra_run_args)
 
         cmd.append(img)
         cmd.extend(extra_args)
@@ -632,7 +718,56 @@ class HoloHubContainer:
             cmd_list = [f'"{arg}"' if " " in str(arg) else str(arg) for arg in cmd]
             print(f"Launch command: {' '.join(cmd_list)}")
 
-        run_command(cmd, dry_run=self.dryrun)
+        try:
+            if self.dryrun:
+                run_command(cmd, dry_run=self.dryrun)
+                return
+
+            # Docker refuses to start if --cidfile already exists; clear stale internal
+            # files left by a prior crashed run that happened to share this PID. Caller-
+            # provided cidfiles are the caller's responsibility — never remove them.
+            if internal_cidfile is not None:
+                internal_cidfile.unlink(missing_ok=True)
+
+            try:
+                try:
+                    with _ContainerTerminationHandler():
+                        run_command(cmd)
+                    return
+                except _ContainerTerminationSignal as exc:
+                    sig = exc.signum
+
+                try:
+                    signal_name = signal.Signals(sig).name
+                except ValueError:
+                    signal_name = str(sig)
+                container_id = _read_container_id(cidfile)
+                if container_id:
+                    warn(f"Received {signal_name}; stopping HoloHub container {container_id}")
+                    subprocess.run(
+                        [self.DOCKER_EXE, "stop", "--time", "10", container_id],
+                        check=False,
+                        stdout=subprocess.DEVNULL,
+                    )
+                else:
+                    warn(
+                        f"Received {signal_name}; no container ID was written to {cidfile} yet — "
+                        "the container may still be starting. Run `docker ps` to check and stop it manually."
+                    )
+                # os.kill below may terminate the process before the outer `finally`
+                # blocks run, so unlink the cidfile and clean display temp files here.
+                if internal_cidfile is not None:
+                    internal_cidfile.unlink(missing_ok=True)
+                self._cleanup_display_temp_files()
+                # Re-raise via default handler so we exit with the conventional 128+N status.
+                signal.signal(sig, signal.SIG_DFL)
+                os.kill(os.getpid(), sig)
+                sys.exit(128 + sig)
+            finally:
+                if internal_cidfile is not None:
+                    internal_cidfile.unlink(missing_ok=True)
+        finally:
+            self._cleanup_display_temp_files()
 
     def get_basic_args(self) -> List[str]:
         """Basic container runtime arguments"""
@@ -772,74 +907,99 @@ class HoloHubContainer:
             )
         return args
 
-    def enable_x11_access(self) -> None:
-        if (
-            "DISPLAY" in os.environ
-            and shutil.which("xhost")
-            and os.environ.get("XDG_SESSION_TYPE", "x11") in ["x11", "tty", ""]
-        ):
-            run_command(["xhost", "+local:docker"], check=False, dry_run=self.dryrun)
-
     def get_display_options(self, enable_x11: bool, ssh_x11: bool) -> List[str]:
-        """Get display-related options"""
+        """Get display-related Docker options from DISPLAY and WAYLAND_DISPLAY."""
         options = []
-        if "XDG_SESSION_TYPE" in os.environ:
+        del enable_x11, ssh_x11
+
+        display = os.environ.get("DISPLAY")
+        wayland_display = os.environ.get("WAYLAND_DISPLAY")
+        if not display and not wayland_display:
+            info(self.DISPLAY_FORWARDING_DISABLED_MESSAGE)
+            return options
+
+        if os.environ.get("XDG_SESSION_TYPE"):
             options.extend(["-e", "XDG_SESSION_TYPE"])
-            if os.environ["XDG_SESSION_TYPE"] == "wayland":
-                options.extend(["-e", "WAYLAND_DISPLAY"])
 
-        if "XDG_RUNTIME_DIR" in os.environ:
-            options.extend(["-e", "XDG_RUNTIME_DIR"])
-            if os.path.isdir(os.environ["XDG_RUNTIME_DIR"]):
-                options.extend(
-                    ["-v", f"{os.environ['XDG_RUNTIME_DIR']}:{os.environ['XDG_RUNTIME_DIR']}"]
-                )
+        # Required by Vulkan, dconf, pipewire, etc. on both X11 and Wayland.
+        runtime_dir = os.environ.get("XDG_RUNTIME_DIR")
+        if runtime_dir and Path(runtime_dir).is_dir():
+            options.extend(["-e", "XDG_RUNTIME_DIR", "-v", f"{runtime_dir}:{runtime_dir}"])
 
-        # Handle X11 forwarding
-        if enable_x11 or ssh_x11:
-            # Enable X11 access for Docker containers
-            self.enable_x11_access()
-            options.extend(["-v", "/tmp/.X11-unix:/tmp/.X11-unix", "-e", "DISPLAY"])
+        if wayland_display:
+            options.extend(["-e", "WAYLAND_DISPLAY"])
 
-        # Handle SSH X11 forwarding
-        if ssh_x11:
-            if "DISPLAY" not in os.environ:
-                warn(
-                    "SSH X11 forwarding requested but DISPLAY environment variable is not set; skipping SSH X11 forwarding setup."
-                )
-            else:
-                if not shutil.which("xauth"):
-                    warn(
-                        "SSH X11 forwarding requested but xauth was not found; skipping xauth setup."
-                    )
-                else:
-                    result = run_command(
-                        ["xauth", "nlist", os.environ["DISPLAY"]],
-                        check=False,
-                        capture_output=True,
-                        text=True,
-                        dry_run=self.dryrun,
-                    )
-                    if result.stdout and result.returncode == 0:
-                        xauth_file = "/tmp/.docker.xauth"
-                        with tempfile.NamedTemporaryFile(mode="w+t", delete=True) as tmp:
-                            for line in result.stdout.splitlines(True):
-                                tmp.write("ffff" + line[4:])
-                            tmp.flush()
-
-                            if not self.dryrun:
-                                Path(xauth_file).touch(mode=0o600)
-
-                            run_command(
-                                ["xauth", "-f", xauth_file, "nmerge", tmp.name],
-                                check=False,
-                                dry_run=self.dryrun,
-                            )
-                        options.extend(
-                            ["-v", f"{xauth_file}:{xauth_file}", "-e", f"XAUTHORITY={xauth_file}"]
-                        )
+        if display:
+            if Path("/tmp/.X11-unix").is_dir() and not self._is_ssh_x11_display(display):
+                options.extend(["-v", "/tmp/.X11-unix:/tmp/.X11-unix:ro"])
+            options.extend(["-e", "DISPLAY"])
+            options.extend(self._get_xauth_options(display))
 
         return options
+
+    @staticmethod
+    def _is_ssh_x11_display(display: str) -> bool:
+        return display.startswith(("localhost:", "127.0.0.1:", "[::1]:", "::1:"))
+
+    def _get_xauth_options(self, display: str) -> List[str]:
+        if not shutil.which("xauth"):
+            warn(
+                "xauth not found on host; install xauth (or x11-xauth) so X11 "
+                "applications can authenticate inside the container."
+            )
+            return []
+
+        if self.dryrun:
+            placeholder = "/tmp/.docker.xauth"
+            return ["-v", f"{placeholder}:{placeholder}:ro", "-e", f"XAUTHORITY={placeholder}"]
+
+        result = run_command(
+            ["xauth", "nlist", display],
+            check=False,
+            capture_output=True,
+            text=True,
+            dry_run=self.dryrun,
+        )
+        if result.returncode != 0 or not result.stdout:
+            warn(
+                f"xauth nlist returned no entries for DISPLAY={display}; "
+                "X11 may not authenticate inside the container."
+            )
+            return []
+
+        xauth_fd, xauth_file = tempfile.mkstemp(prefix=".docker.xauth-")
+        os.close(xauth_fd)
+        xauth_path = Path(xauth_file)
+
+        xauth_entries = "".join(
+            f"ffff{line[4:]}" for line in result.stdout.splitlines(keepends=True) if len(line) >= 4
+        )
+        merge_result = run_command(
+            ["xauth", "-f", str(xauth_path), "nmerge", "-"],
+            check=False,
+            input=xauth_entries,
+            text=True,
+            dry_run=self.dryrun,
+        )
+        if merge_result.returncode != 0:
+            xauth_path.unlink(missing_ok=True)
+            warn(
+                f"xauth nmerge failed for DISPLAY={display}; "
+                "X11 may not authenticate inside the container."
+            )
+            return []
+
+        self._display_temp_files.append(xauth_path)
+        return ["-v", f"{xauth_path}:{xauth_path}:ro", "-e", f"XAUTHORITY={xauth_path}"]
+
+    def _cleanup_display_temp_files(self) -> None:
+        for path in self._display_temp_files:
+            try:
+                path.unlink(missing_ok=True)
+            except OSError:
+                # Suppress I/O errors so cleanup doesn't mask the original exception.
+                pass
+        self._display_temp_files.clear()
 
     def get_ngc_options(self) -> List[str]:
         """Get NGC-related options"""

@@ -46,8 +46,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm "$KW_KEYRING" \
     && apt-get install --no-install-recommends -y \
         kitware-archive-keyring \
-        cmake="3.*" \
-        cmake-data="3.*" \
+        cmake="3.31.11*" \
+        cmake-data="3.31.11*" \
     && rm -rf /var/lib/apt/lists/*
 
 # ============================================================

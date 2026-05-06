@@ -16,7 +16,10 @@ cmake_minimum_required(VERSION 3.20)
 
 message(STATUS "PROJECT_NAME: ${PROJECT_NAME}")
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+include(GNUInstallDirs)
+target_include_directories(${PROJECT_NAME} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 target_sources(${PROJECT_NAME} PRIVATE adv_network_rdma_mgr.cpp)
 

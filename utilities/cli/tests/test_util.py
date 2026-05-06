@@ -65,5 +65,29 @@ class TestUtilGitHelpers(unittest.TestCase):
         mock_run_info_command.assert_called()
 
 
+class TestGetCliArgValue(unittest.TestCase):
+    def test_returns_none_when_flag_absent(self):
+        self.assertIsNone(util.get_cli_arg_value(["docker", "run", "image"], "--cidfile"))
+
+    def test_space_form(self):
+        args = ["docker", "run", "--cidfile", "/tmp/a.cid", "image"]
+        self.assertEqual(util.get_cli_arg_value(args, "--cidfile"), "/tmp/a.cid")
+
+    def test_equals_form(self):
+        args = ["docker", "run", "--cidfile=/tmp/a.cid", "image"]
+        self.assertEqual(util.get_cli_arg_value(args, "--cidfile"), "/tmp/a.cid")
+
+    def test_last_occurrence_wins(self):
+        args = ["--cidfile", "/tmp/first.cid", "--cidfile=/tmp/last.cid"]
+        self.assertEqual(util.get_cli_arg_value(args, "--cidfile"), "/tmp/last.cid")
+
+    def test_dangling_flag_returns_none(self):
+        self.assertIsNone(util.get_cli_arg_value(["--cidfile"], "--cidfile"))
+
+    def test_does_not_match_prefix_collision(self):
+        # "--cidfilex" should not satisfy a "--cidfile" lookup.
+        self.assertIsNone(util.get_cli_arg_value(["--cidfilex=/tmp/a.cid"], "--cidfile"))
+
+
 if __name__ == "__main__":
     unittest.main()
