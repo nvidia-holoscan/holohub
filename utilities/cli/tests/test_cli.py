@@ -590,6 +590,20 @@ class TestHoloHubCLI(unittest.TestCase):
         self.assertIn("-DHOLOHUB_BUILD_OPERATORS", cmake_args_str)
         self.assertIn(f'"{operators}"', cmake_args_str)
 
+    def test_holohub_wrapper_execs_python_cli(self):
+        """The shell wrapper should not stay as a parent process of the Python CLI."""
+        holohub_script = Path(os.getcwd()) / "holohub"
+        if not holohub_script.exists():
+            self.skipTest("holohub bash script not found")
+
+        commands = [
+            line.strip()
+            for line in holohub_script.read_text().splitlines()
+            if line.strip() and not line.strip().startswith("#")
+        ]
+        self.assertIn(" exec python3 ", f" {commands[-1]} ")
+        self.assertIn('"${SCRIPT_DIR}/utilities/cli/holohub.py"', commands[-1])
+
     def test_custom_script_name_entry_point(self):
         """Test that CLI behaves as if it's called with the custom script name"""
         import subprocess

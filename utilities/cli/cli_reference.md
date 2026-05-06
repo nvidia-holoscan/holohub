@@ -79,7 +79,7 @@ Used by: `run-container`, `build`, `run`, `install`.
 | Option                    | Description                                                                   |
 | ------------------------- | ----------------------------------------------------------------------------- |
 | `--docker-opts <opts>`    | Additional options to `docker run` (for example `--docker-opts='--gpus=all'`) |
-| `--ssh-x11`               | Enable X11 forwarding over SSH                                                |
+| `--ssh-x11`               | Deprecated; display forwarding is auto-detected from `DISPLAY`                |
 | `--nsys-profile`          | Support Nsight Systems profiling in container                                 |
 | `--local-sdk-root <path>` | Path to Holoscan SDK on host for local SDK container                          |
 | `--init`                  | Use tini entry point                                                          |
@@ -88,7 +88,7 @@ Used by: `run-container`, `build`, `run`, `install`.
 | `--as-root`               | Run container as root                                                         |
 | `--nsys-location <path>`  | Nsight Systems installation path on host                                      |
 | `--mps`                   | Mount CUDA MPS host directories into container (if MPS enabled on host)       |
-| `--enable-x11`            | Enable X11 forwarding (default: true)                                         |
+| `--enable-x11`            | Deprecated; X11/Wayland forwarding is auto-detected                           |
 
 ---
 

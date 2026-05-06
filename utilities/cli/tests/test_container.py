@@ -16,6 +16,7 @@
 
 import os
 import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -25,8 +26,8 @@ from unittest.mock import patch
 # Add the utilities directory to the Python path
 sys.path.append(str(Path(os.getcwd()) / "utilities"))
 
-from utilities.cli.container import HoloHubContainer
-from utilities.cli.util import get_cuda_tag, get_default_cuda_version
+from utilities.cli.container import HoloHubContainer, _ContainerTerminationSignal
+from utilities.cli.util import get_cli_arg_value, get_cuda_tag, get_default_cuda_version
 
 
 class TestHoloHubContainer(unittest.TestCase):
@@ -157,8 +158,197 @@ class TestHoloHubContainer(unittest.TestCase):
         self.assertIsNotNone(docker_run_call, "Docker run command not found in mock calls")
         self.assertTrue("docker" in docker_run_call)
         self.assertTrue("run" in docker_run_call)
+        self.assertIn("--cidfile", docker_run_call)
         self.assertTrue("--runtime" in docker_run_call and "nvidia" in docker_run_call)
         self.assertIn(self.container.image_names[0], docker_run_call)
+
+    @patch.dict(os.environ, {}, clear=True)
+    @patch("utilities.cli.container.check_nvidia_ctk")
+    @patch("utilities.cli.container.get_image_pythonpath")
+    @patch("utilities.cli.container.os.kill")
+    @patch("utilities.cli.container.signal.signal")
+    @patch("utilities.cli.container.subprocess.run")
+    @patch("utilities.cli.container.run_command")
+    @patch("subprocess.check_output")
+    def test_run_stops_cidfile_container_on_signal(
+        self,
+        mock_check_output,
+        mock_run_command,
+        mock_subprocess_run,
+        _mock_signal,
+        mock_kill,
+        mock_get_image_pythonpath,
+        mock_check_nvidia_ctk,
+    ):
+        """Signal cleanup should stop the exact container ID Docker wrote."""
+        mock_check_nvidia_ctk.return_value = None
+        mock_check_output.return_value = ""
+        mock_get_image_pythonpath.return_value = ""
+
+        def interrupt_after_cidfile(cmd, **_kwargs):
+            if "--cidfile" not in cmd:
+                return None
+            cidfile = Path(cmd[cmd.index("--cidfile") + 1])
+            cidfile.write_text("container123\n")
+            raise _ContainerTerminationSignal(15)
+
+        mock_run_command.side_effect = interrupt_after_cidfile
+
+        with self.assertRaises(SystemExit) as raised:
+            self.container.run()
+
+        self.assertEqual(raised.exception.code, 128 + 15)
+        mock_subprocess_run.assert_called_once()
+        self.assertEqual(
+            mock_subprocess_run.call_args[0][0],
+            ["docker", "stop", "--time", "10", "container123"],
+        )
+        mock_kill.assert_called_once_with(os.getpid(), 15)
+
+    @patch.dict(os.environ, {}, clear=True)
+    @patch("utilities.cli.container.check_nvidia_ctk")
+    @patch("utilities.cli.container.get_image_pythonpath")
+    @patch("utilities.cli.container.os.kill")
+    @patch("utilities.cli.container.signal.signal")
+    @patch("utilities.cli.container.subprocess.run")
+    @patch("utilities.cli.container.run_command")
+    @patch("subprocess.check_output")
+    def test_run_stops_user_cidfile_container_on_signal(
+        self,
+        mock_check_output,
+        mock_run_command,
+        mock_subprocess_run,
+        _mock_signal,
+        mock_kill,
+        mock_get_image_pythonpath,
+        mock_check_nvidia_ctk,
+    ):
+        """Signal cleanup should follow a caller-provided Docker --cidfile and not
+        inject our own (Docker rejects duplicate --cidfile flags)."""
+        mock_check_nvidia_ctk.return_value = None
+        mock_check_output.return_value = ""
+        mock_get_image_pythonpath.return_value = ""
+        user_cidfile = self.test_dir_path / "user.cid"
+
+        def interrupt_after_cidfile(cmd, **_kwargs):
+            self.assertEqual(cmd.count("--cidfile"), 1)
+            self.assertEqual(get_cli_arg_value(cmd, "--cidfile"), str(user_cidfile))
+            user_cidfile.write_text("user-container\n")
+            raise _ContainerTerminationSignal(15)
+
+        mock_run_command.side_effect = interrupt_after_cidfile
+
+        with self.assertRaises(SystemExit) as raised:
+            self.container.run(docker_opts=f"--cidfile {user_cidfile}")
+
+        self.assertEqual(raised.exception.code, 128 + 15)
+        self.assertEqual(
+            mock_subprocess_run.call_args[0][0],
+            ["docker", "stop", "--time", "10", "user-container"],
+        )
+        self.assertTrue(user_cidfile.exists())
+        mock_kill.assert_called_once_with(os.getpid(), 15)
+
+    @patch.dict(os.environ, {}, clear=True)
+    @patch("utilities.cli.container.check_nvidia_ctk")
+    @patch("utilities.cli.container.get_image_pythonpath")
+    @patch("utilities.cli.container.os.kill")
+    @patch("utilities.cli.container.signal.signal")
+    @patch("utilities.cli.container.subprocess.run")
+    @patch("utilities.cli.container.run_command")
+    @patch("subprocess.check_output")
+    def test_run_warns_when_cidfile_empty_on_signal(
+        self,
+        mock_check_output,
+        mock_run_command,
+        mock_subprocess_run,
+        _mock_signal,
+        mock_kill,
+        mock_get_image_pythonpath,
+        mock_check_nvidia_ctk,
+    ):
+        """If Docker hasn't written the cidfile yet, no docker stop is issued."""
+        mock_check_nvidia_ctk.return_value = None
+        mock_check_output.return_value = ""
+        mock_get_image_pythonpath.return_value = ""
+
+        mock_run_command.side_effect = _ContainerTerminationSignal(2)
+
+        with self.assertRaises(SystemExit) as raised:
+            self.container.run()
+
+        self.assertEqual(raised.exception.code, 128 + 2)
+        mock_subprocess_run.assert_not_called()
+        mock_kill.assert_called_once_with(os.getpid(), 2)
+
+    @patch.dict(os.environ, {}, clear=True)
+    def test_get_display_options_without_display_returns_empty(self):
+        """No display environment should skip display forwarding."""
+        self.assertEqual(self.container.get_display_options(True, False), [])
+
+    @patch.dict(os.environ, {"DISPLAY": ":0"}, clear=True)
+    def test_get_display_options_native_x11_uses_socket_and_xauth(self):
+        """Native X11 should mount the UNIX socket and a generated Xauthority file."""
+
+        def fake_run_command(cmd, **kwargs):
+            if cmd[:2] == ["xauth", "nlist"]:
+                return subprocess.CompletedProcess(cmd, 0, stdout="0100 0000 0000\n")
+            return subprocess.CompletedProcess(cmd, 0)
+
+        with (
+            patch("utilities.cli.container.Path.is_dir", return_value=True),
+            patch("utilities.cli.container.shutil.which", return_value="/usr/bin/xauth"),
+            patch("utilities.cli.container.run_command", side_effect=fake_run_command) as mock_run,
+        ):
+            options = self.container.get_display_options(True, False)
+
+        self.assertIn("-v", options)
+        self.assertIn("/tmp/.X11-unix:/tmp/.X11-unix:ro", options)
+        self.assertIn("-e", options)
+        self.assertIn("DISPLAY", options)
+        self.assertTrue(any(opt.endswith(":ro") and ".docker.xauth-" in opt for opt in options))
+        self.assertTrue(any(opt.startswith("XAUTHORITY=") for opt in options))
+        self.assertEqual(mock_run.call_count, 2)
+        self.assertTrue(mock_run.call_args_list[1].kwargs["input"].startswith("ffff"))
+
+        xauth_mount = next(opt for opt in options if ".docker.xauth-" in opt)
+        xauth_path = Path(xauth_mount.split(":", 1)[0])
+        self.assertTrue(xauth_path.exists())
+        self.container._cleanup_display_temp_files()
+        self.assertFalse(xauth_path.exists())
+
+    @patch.dict(os.environ, {"DISPLAY": "localhost:10.0"}, clear=True)
+    def test_get_display_options_tcp_x11_skips_unix_socket(self):
+        """SSH-forwarded X11 uses TCP and should not mount /tmp/.X11-unix."""
+        with (
+            patch("utilities.cli.container.Path.is_dir", return_value=True),
+            patch("utilities.cli.container.shutil.which", return_value=None),
+        ):
+            options = self.container.get_display_options(True, True)
+
+        self.assertIn("DISPLAY", options)
+        self.assertNotIn("/tmp/.X11-unix:/tmp/.X11-unix:ro", options)
+        self.assertFalse(any(opt.startswith("XAUTHORITY=") for opt in options))
+
+    @patch.dict(
+        os.environ,
+        {
+            "WAYLAND_DISPLAY": "wayland-0",
+            "XDG_RUNTIME_DIR": "/run/user/1000",
+            "XDG_SESSION_TYPE": "wayland",
+        },
+        clear=True,
+    )
+    def test_get_display_options_wayland_forwards_runtime_dir(self):
+        """Wayland should forward XDG_RUNTIME_DIR (mounted) and WAYLAND_DISPLAY."""
+        with patch("utilities.cli.container.Path.is_dir", return_value=True):
+            options = self.container.get_display_options(True, False)
+
+        self.assertIn("XDG_SESSION_TYPE", options)
+        self.assertIn("WAYLAND_DISPLAY", options)
+        self.assertIn("XDG_RUNTIME_DIR", options)
+        self.assertIn("/run/user/1000:/run/user/1000", options)
+        self.assertNotIn("DISPLAY", options)
 
     @patch("subprocess.CompletedProcess")
     def test_dry_run(self, mock_completed_process):
@@ -167,6 +357,7 @@ class TestHoloHubContainer(unittest.TestCase):
         self.container.run()
         cmd = mock_completed_process.call_args[0][0]
         self.assertIn(self.container.image_names[0], cmd)
+        self.assertIn("--cidfile", cmd)
         self.assertIn("c 81:* rmw", cmd)
         self.container.dryrun = False
 
