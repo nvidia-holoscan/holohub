@@ -1035,6 +1035,28 @@ def build_holohub_path_mapping(
     return path_mapping
 
 
+def get_cli_arg_value(args: List[str], flag: str) -> Optional[str]:
+    """Return the last value of ``flag`` in a CLI argument list.
+
+    Supports both ``--flag value`` and ``--flag=value`` forms. Returns ``None``
+    if the flag is not present. The last-wins rule mirrors typical CLI behavior
+    where later occurrences override earlier ones.
+    """
+    value: Optional[str] = None
+    prefix = f"{flag}="
+    i = 0
+    while i < len(args):
+        arg = args[i]
+        if arg == flag and i + 1 < len(args):
+            value = args[i + 1]
+            i += 2
+            continue
+        if arg.startswith(prefix):
+            value = arg.removeprefix(prefix)
+        i += 1
+    return value
+
+
 def docker_args_to_devcontainer_format(docker_args: List[str]) -> List[str]:
     """Convert Docker argument format to devcontainer format (--flag value -> --flag=value)"""
     standalone = {"--rm", "--init", "--no-cache"}
@@ -1061,20 +1083,12 @@ def get_entrypoint_command_args(
 ) -> tuple[str, List[str]]:
     """Determine how to execute a shell command in a Docker container."""
 
-    # Check if user provided a custom entrypoint
-    entrypoint = None
-    if "--entrypoint" in docker_opts:
-        try:
-            tokens = shlex.split(docker_opts)
-            for i, token in enumerate(tokens):
-                if token == "--entrypoint" and i + 1 < len(tokens):
-                    entrypoint = tokens[i + 1]
-                    break
-                elif token.startswith("--entrypoint="):
-                    entrypoint = token.split("=", 1)[1]
-                    break
-        except ValueError:
-            pass
+    # Check if user provided a custom entrypoint.
+    entrypoint: Optional[str] = None
+    try:
+        entrypoint = get_cli_arg_value(shlex.split(docker_opts), "--entrypoint")
+    except ValueError:
+        pass
 
     if entrypoint:  # If user provided a custom entrypoint
         if entrypoint in ["/bin/sh", "/bin/bash", "sh", "bash"]:
