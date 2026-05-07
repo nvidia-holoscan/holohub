@@ -67,7 +67,11 @@ def _stub_ultralytics_optional_models() -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Export Ultralytics YOLO pose weights to ONNX.")
-    parser.add_argument("--model", default="yolo11l-pose.pt", help="Checkpoint name or path (default: yolo11l-pose.pt)")
+    parser.add_argument(
+        "--model",
+        default="yolo11l-pose.pt",
+        help="Checkpoint name or path (default: yolo11l-pose.pt)",
+    )
     parser.add_argument("--opset", type=int, default=20, help="ONNX opset (default: 20)")
     parser.add_argument(
         "--ultralytics-config-dir",
