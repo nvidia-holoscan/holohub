@@ -17,11 +17,21 @@ project(body_pose_estimation NONE)
 find_package(holoscan 1.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-# Download the yolov8 pose model if it doesn't exist
-add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/body_pose_estimation/yolov11l-pose.onnx"
-    COMMAND "PATH=${PATH}:/workspace/holohub/.local/bin" /usr/local/bin/yolo export model=yolo11l-pose.pt format=onnx opset=20
+# Export YOLO11 pose weights to ONNX (see export_yolo_pose_onnx.py; avoids torchvision via SAM import chain).
+add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/body_pose_estimation/yolo11l-pose.onnx"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/ultralytics_user"
+    COMMAND ${CMAKE_COMMAND} -E env
+            "PATH=$ENV{PATH}:${CMAKE_SOURCE_DIR}/.local/bin"
+            "ORT_LOG_SEVERITY_LEVEL=3"
+            "PIP_ROOT_USER_ACTION=ignore"
+            "PIP_NO_CACHE_DIR=1"
+            python3 "${CMAKE_CURRENT_SOURCE_DIR}/export_yolo_pose_onnx.py"
+            --opset 20
+            --ultralytics-config-dir "${CMAKE_CURRENT_BINARY_DIR}/ultralytics_user"
     COMMAND mkdir -p "${HOLOHUB_DATA_DIR}/body_pose_estimation"
     COMMAND mv yolo11l-pose.onnx "${HOLOHUB_DATA_DIR}/body_pose_estimation/"
+    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/export_yolo_pose_onnx.py"
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
 
 # Download the testing video
@@ -43,7 +53,7 @@ add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/body_pose_estimation/twirl.gxf_in
 
 add_custom_target(body_pose_estimation_data ALL
                   DEPENDS
-                  "${HOLOHUB_DATA_DIR}/body_pose_estimation/yolov11l-pose.onnx"
+                  "${HOLOHUB_DATA_DIR}/body_pose_estimation/yolo11l-pose.onnx"
                   "${HOLOHUB_DATA_DIR}/body_pose_estimation/twirl.gxf_index")
 
 
