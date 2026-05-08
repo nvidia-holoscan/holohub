@@ -370,6 +370,26 @@ def run_info_command(cmd: List[str], cwd: Optional[str] = None) -> Optional[str]
         return None
 
 
+def parse_tsv(output: Optional[str], min_cols: int = 1) -> List[List[str]]:
+    """Parse tab-separated output (e.g. ``docker --format``) into rows of cells.
+
+    Drops blank lines, strips CR (handles CRLF) without consuming trailing tab
+    fields, and strips per-cell whitespace. Rows shorter than ``min_cols`` are
+    skipped.
+    """
+    if not output:
+        return []
+    rows: List[List[str]] = []
+    for raw in output.split("\n"):
+        line = raw.rstrip("\r")
+        if not line.strip():
+            continue
+        parts = [p.strip() for p in line.split("\t")]
+        if len(parts) >= min_cols:
+            rows.append(parts)
+    return rows
+
+
 def dir_size_mb(path: Path) -> float:
     """Return the total size of a directory tree in megabytes."""
     total = 0

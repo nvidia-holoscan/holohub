@@ -34,6 +34,7 @@ from .util import (
     get_host_arch,
     get_host_gpu,
     get_sdk_version,
+    parse_tsv,
     relative_time,
     run_info_command,
 )
@@ -69,6 +70,20 @@ class RunningContainerInfo:
     app: Optional[str]
     mode: Optional[str]
     started: str
+
+
+@dataclass
+class DockerContainerRow:
+    """Parsed row from ``docker container ls``; internal to this module."""
+
+    container_id: str
+    name: str
+    image: str
+    image_id: str
+    started: str
+    is_cli: bool
+    app: Optional[str]
+    mode: Optional[str]
 
 
 @dataclass
@@ -135,72 +150,62 @@ def collect_folder_info(paths: List[Path]) -> List[FolderInfo]:
     return results
 
 
-def query_docker_ps_rows() -> List[dict]:
+def query_docker_container_rows() -> List[DockerContainerRow]:
     """Run a single ``docker container ls`` and return parsed rows.
 
-    Each row dict carries: container_id, name, image, started, cli, app, mode.
-    Returns ``[]`` if Docker is unavailable or no containers are running. Shared
-    by ``collect_image_info`` (for the running-image badge) and
-    ``collect_running_containers`` (for the CLI-only listing) so both can
-    reuse a single Docker round-trip.
+    Shared by ``collect_image_info`` (running-image badge) and
+    ``collect_running_containers`` (CLI-only listing) so both reuse a single
+    Docker round-trip. Returns ``[]`` if Docker is unavailable.
     """
     docker_exe = os.environ.get("HOLOHUB_DOCKER_EXE", "docker")
     fmt = (
-        "{{.ID}}\t{{.Names}}\t{{.Image}}\t{{.RunningFor}}"
+        "{{.ID}}\t{{.Names}}\t{{.Image}}\t{{.ImageID}}\t{{.RunningFor}}"
         f'\t{{{{.Label "{LABEL_CLI}"}}}}'
         f'\t{{{{.Label "{LABEL_APP}"}}}}'
         f'\t{{{{.Label "{LABEL_MODE}"}}}}'
     )
     output = run_info_command([docker_exe, "container", "ls", "--format", fmt])
-    rows: List[dict] = []
-    if not output:
-        return rows
-    for raw_line in output.split("\n"):
-        # Strip CR only — tabs are field separators and must be preserved.
-        line = raw_line.rstrip("\r")
-        if not line.strip():
-            continue
-        parts = [p.strip() for p in line.split("\t")]
-        if len(parts) < 7:
-            continue
-        rows.append(
-            {
-                "container_id": parts[0],
-                "name": parts[1],
-                "image": parts[2],
-                "started": parts[3],
-                "cli": parts[4],
-                "app": parts[5],
-                "mode": parts[6],
-            }
+    return [
+        DockerContainerRow(
+            container_id=parts[0],
+            name=parts[1],
+            image=parts[2],
+            image_id=parts[3],
+            started=parts[4],
+            is_cli=parts[5] == "true",
+            app=parts[6] or None,
+            mode=parts[7] or None,
         )
-    return rows
+        for parts in parse_tsv(output, min_cols=8)
+    ]
 
 
-def collect_image_info(docker_ps_rows: Optional[List[dict]] = None) -> List[ImageInfo]:
+def collect_image_info(
+    docker_rows: Optional[List[DockerContainerRow]] = None,
+) -> List[ImageInfo]:
     images = []
     image_prefix = os.environ.get("HOLOHUB_REPO_PREFIX", "holohub")
     prefixes = [image_prefix]
     docker_exe = os.environ.get("HOLOHUB_DOCKER_EXE", "docker")
 
-    if docker_ps_rows is None:
-        docker_ps_rows = query_docker_ps_rows()
-    running_image_refs = {row["image"] for row in docker_ps_rows if row.get("image")}
+    if docker_rows is None:
+        docker_rows = query_docker_container_rows()
+    # Match by both image ref and image ID so multiple tags of the same image
+    # are all marked Running when any container off that image is up.
+    running_image_refs: set = set()
+    for row in docker_rows:
+        if row.image:
+            running_image_refs.add(row.image)
+        if row.image_id:
+            running_image_refs.add(row.image_id)
 
     images_output = run_info_command(
         [docker_exe, "images", "--format", "{{.ID}}\t{{.Repository}}:{{.Tag}}\t{{.CreatedSince}}"]
     )
-    if not images_output:
-        return images
-
-    for line in images_output.split("\n"):
-        parts = line.strip().split("\t")
-        if len(parts) < 3:
-            continue
+    for parts in parse_tsv(images_output, min_cols=3):
         image_id, image_name, created = parts[0], parts[1], parts[2]
         if not any(prefix in image_name for prefix in prefixes):
             continue
-
         is_running = image_id in running_image_refs or image_name in running_image_refs
         status = "Running" if is_running else "Stopped"
         images.append(ImageInfo(image=image_name, created=created, status=status))
@@ -208,22 +213,22 @@ def collect_image_info(docker_ps_rows: Optional[List[dict]] = None) -> List[Imag
 
 
 def collect_running_containers(
-    docker_ps_rows: Optional[List[dict]] = None,
+    docker_rows: Optional[List[DockerContainerRow]] = None,
 ) -> List[RunningContainerInfo]:
     """Return CLI-launched containers, filtered by the ``holohub.cli=true`` label."""
-    if docker_ps_rows is None:
-        docker_ps_rows = query_docker_ps_rows()
+    if docker_rows is None:
+        docker_rows = query_docker_container_rows()
     return [
         RunningContainerInfo(
-            container_id=r["container_id"],
-            name=r["name"],
-            image=r["image"],
-            app=r["app"] or None,
-            mode=r["mode"] or None,
-            started=r["started"],
+            container_id=r.container_id,
+            name=r.name,
+            image=r.image,
+            app=r.app,
+            mode=r.mode,
+            started=r.started,
         )
-        for r in docker_ps_rows
-        if r["cli"] == "true"
+        for r in docker_rows
+        if r.is_cli
     ]
 
 
@@ -231,13 +236,7 @@ def collect_docker_disk_usage() -> Optional[str]:
     """Get total Docker disk usage summary in one call."""
     docker_exe = os.environ.get("HOLOHUB_DOCKER_EXE", "docker")
     output = run_info_command([docker_exe, "system", "df", "--format", "{{.Type}}\t{{.Size}}"])
-    if not output:
-        return None
-    parts = {}
-    for line in output.strip().split("\n"):
-        cols = line.split("\t")
-        if len(cols) >= 2:
-            parts[cols[0].strip()] = cols[1].strip()
+    parts = {row[0]: row[1] for row in parse_tsv(output, min_cols=2)}
     if not parts:
         return None
     return ", ".join(f"{k}: {v}" for k, v in parts.items())
