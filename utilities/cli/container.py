@@ -32,6 +32,9 @@ from utilities.metadata.utils import list_normalized_languages
 
 from .util import (
     DEFAULT_BASE_SDK_VERSION,
+    LABEL_APP,
+    LABEL_CLI,
+    LABEL_MODE,
     build_holohub_path_mapping,
     check_nvidia_ctk,
     docker_args_to_devcontainer_format,
@@ -59,10 +62,6 @@ from .util import (
 )
 
 SCCACHE_CONTAINER_DIR = "/.cache/sccache"
-
-LABEL_CLI = "holohub.cli"
-LABEL_APP = "holohub.app"
-LABEL_MODE = "holohub.mode"
 
 
 def _read_container_id(cidfile: Path) -> Optional[str]:

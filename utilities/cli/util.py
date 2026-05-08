@@ -34,6 +34,10 @@ DEFAULT_BASE_SDK_VERSION = "4.1.0"
 
 DEFAULT_GIT_REF = "latest"
 
+LABEL_CLI = "holohub.cli"
+LABEL_APP = "holohub.app"
+LABEL_MODE = "holohub.mode"
+
 PROJECT_PREFIXES = {
     "application": "APP",
     "benchmark": "APP",

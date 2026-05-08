@@ -154,7 +154,9 @@ Every container started by `run`, `run-container`, `build`, and `install` is sta
 docker container ls --filter label=holohub.cli=true                       # all CLI containers
 docker container ls --filter label=holohub.app=<app>                      # one app
 docker container ls --filter label=holohub.app=<app> --filter label=holohub.mode=<mode>
-docker container stop $(docker container ls -q --filter label=holohub.app=<app>)
+docker container stop $(docker container ls -q \
+  --filter label=holohub.cli=true \
+  --filter label=holohub.app=<app>)
 ```
 
 `./holohub status` (`--json` for machine output) reports the same set in its **Containers** section, so agents can discover running containers without invoking `docker` directly.

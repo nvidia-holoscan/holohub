@@ -127,8 +127,8 @@ class TestStatusCollectors(unittest.TestCase):
     @patch("utilities.cli.status.run_info_command")
     def test_collect_image_info(self, mock_run):
         mock_run.side_effect = lambda cmd: (
-            "holohub:latest\tabc123"
-            if "ps" in cmd
+            "abc123\thumble-puppy\tholohub:latest\t5 minutes ago\ttrue\t\t"
+            if "ls" in cmd
             else (
                 "img001\tholohub:latest\t2 hours ago\nimg002\tother:v1\t1 day ago"
                 if "images" in cmd
@@ -195,11 +195,13 @@ class TestStatusCollectors(unittest.TestCase):
 
     @patch("utilities.cli.status.run_info_command")
     def test_collect_running_containers(self, mock_run):
-        """Containers are filtered by holohub.cli=true; app/mode come from per-label format."""
+        """Filters CLI rows from a single `docker container ls`; non-CLI rows are dropped."""
         mock_run.return_value = (
-            "abc123def456\thumble-puppy\tholohub:test_app\t5 minutes ago\ttest_app\treplayer\n"
-            # Bare run-container shell — no project, no mode (empty label fields).
-            "fed987cba321\teager-fox\tholohub:dev\t10 seconds ago\t\t"
+            "abc123def456\thumble-puppy\tholohub:test_app\t5 minutes ago\ttrue\ttest_app\treplayer\n"
+            # Bare run-container shell — has cli=true but no project/mode.
+            "fed987cba321\teager-fox\tholohub:dev\t10 seconds ago\ttrue\t\t\n"
+            # A non-CLI container — no holohub.cli label, must be excluded.
+            "999foreignxxx\tunrelated\tnginx:latest\t1 hour ago\t\t\t"
         )
         containers = collect_running_containers()
         self.assertEqual(len(containers), 2)
@@ -213,8 +215,17 @@ class TestStatusCollectors(unittest.TestCase):
         self.assertIsNone(containers[1].mode)
 
         invoked_cmd = mock_run.call_args[0][0]
-        self.assertIn("ps", invoked_cmd)
-        self.assertIn("label=holohub.cli=true", invoked_cmd)
+        self.assertIn("container", invoked_cmd)
+        self.assertIn("ls", invoked_cmd)
+
+        # CRLF and trailing whitespace must be stripped from parsed fields.
+        mock_run.return_value = (
+            "abc123def456\thumble-puppy\tholohub:test_app\t5 minutes ago"
+            "\ttrue\ttest_app\treplayer\r\n"
+        )
+        crlf = collect_running_containers()
+        self.assertEqual(crlf[0].mode, "replayer")
+        self.assertEqual(crlf[0].app, "test_app")
 
         mock_run.return_value = None
         self.assertEqual(collect_running_containers(), [])

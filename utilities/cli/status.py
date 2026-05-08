@@ -22,8 +22,10 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import List, Optional
 
-from .container import LABEL_APP, LABEL_CLI, LABEL_MODE
 from .util import (
+    LABEL_APP,
+    LABEL_CLI,
+    LABEL_MODE,
     Color,
     dir_size_mb,
     format_size,
@@ -133,20 +135,57 @@ def collect_folder_info(paths: List[Path]) -> List[FolderInfo]:
     return results
 
 
-def collect_image_info() -> List[ImageInfo]:
+def query_docker_ps_rows() -> List[dict]:
+    """Run a single ``docker container ls`` and return parsed rows.
+
+    Each row dict carries: container_id, name, image, started, cli, app, mode.
+    Returns ``[]`` if Docker is unavailable or no containers are running. Shared
+    by ``collect_image_info`` (for the running-image badge) and
+    ``collect_running_containers`` (for the CLI-only listing) so both can
+    reuse a single Docker round-trip.
+    """
+    docker_exe = os.environ.get("HOLOHUB_DOCKER_EXE", "docker")
+    fmt = (
+        "{{.ID}}\t{{.Names}}\t{{.Image}}\t{{.RunningFor}}"
+        f'\t{{{{.Label "{LABEL_CLI}"}}}}'
+        f'\t{{{{.Label "{LABEL_APP}"}}}}'
+        f'\t{{{{.Label "{LABEL_MODE}"}}}}'
+    )
+    output = run_info_command([docker_exe, "container", "ls", "--format", fmt])
+    rows: List[dict] = []
+    if not output:
+        return rows
+    for raw_line in output.split("\n"):
+        # Strip CR only — tabs are field separators and must be preserved.
+        line = raw_line.rstrip("\r")
+        if not line.strip():
+            continue
+        parts = [p.strip() for p in line.split("\t")]
+        if len(parts) < 7:
+            continue
+        rows.append(
+            {
+                "container_id": parts[0],
+                "name": parts[1],
+                "image": parts[2],
+                "started": parts[3],
+                "cli": parts[4],
+                "app": parts[5],
+                "mode": parts[6],
+            }
+        )
+    return rows
+
+
+def collect_image_info(docker_ps_rows: Optional[List[dict]] = None) -> List[ImageInfo]:
     images = []
     image_prefix = os.environ.get("HOLOHUB_REPO_PREFIX", "holohub")
     prefixes = [image_prefix]
     docker_exe = os.environ.get("HOLOHUB_DOCKER_EXE", "docker")
 
-    # Use image IDs from running containers for reliable comparison
-    running_image_ids: set = set()
-    ps_output = run_info_command([docker_exe, "ps", "--format", "{{.Image}}\t{{.ID}}"])
-    if ps_output:
-        for line in ps_output.split("\n"):
-            parts = line.strip().split("\t")
-            if parts:
-                running_image_ids.add(parts[0].strip())
+    if docker_ps_rows is None:
+        docker_ps_rows = query_docker_ps_rows()
+    running_image_refs = {row["image"] for row in docker_ps_rows if row.get("image")}
 
     images_output = run_info_command(
         [docker_exe, "images", "--format", "{{.ID}}\t{{.Repository}}:{{.Tag}}\t{{.CreatedSince}}"]
@@ -162,50 +201,30 @@ def collect_image_info() -> List[ImageInfo]:
         if not any(prefix in image_name for prefix in prefixes):
             continue
 
-        # Check if any running container uses this image (by ID or name)
-        is_running = image_id in running_image_ids or image_name in running_image_ids
+        is_running = image_id in running_image_refs or image_name in running_image_refs
         status = "Running" if is_running else "Stopped"
         images.append(ImageInfo(image=image_name, created=created, status=status))
     return images
 
 
-def collect_running_containers() -> List[RunningContainerInfo]:
+def collect_running_containers(
+    docker_ps_rows: Optional[List[dict]] = None,
+) -> List[RunningContainerInfo]:
     """Return CLI-launched containers, filtered by the ``holohub.cli=true`` label."""
-    docker_exe = os.environ.get("HOLOHUB_DOCKER_EXE", "docker")
-    output = run_info_command(
-        [
-            docker_exe,
-            "ps",
-            "--filter",
-            f"label={LABEL_CLI}=true",
-            "--format",
-            (
-                "{{.ID}}\t{{.Names}}\t{{.Image}}\t{{.RunningFor}}"
-                f'\t{{{{.Label "{LABEL_APP}"}}}}\t{{{{.Label "{LABEL_MODE}"}}}}'
-            ),
-        ]
-    )
-    containers: List[RunningContainerInfo] = []
-    if not output:
-        return containers
-    for line in output.split("\n"):
-        if not line.strip():
-            continue
-        parts = line.split("\t")
-        if len(parts) < 6:
-            continue
-        container_id, name, image, started, app, mode = parts[:6]
-        containers.append(
-            RunningContainerInfo(
-                container_id=container_id,
-                name=name,
-                image=image,
-                app=app or None,
-                mode=mode or None,
-                started=started,
-            )
+    if docker_ps_rows is None:
+        docker_ps_rows = query_docker_ps_rows()
+    return [
+        RunningContainerInfo(
+            container_id=r["container_id"],
+            name=r["name"],
+            image=r["image"],
+            app=r["app"] or None,
+            mode=r["mode"] or None,
+            started=r["started"],
         )
-    return containers
+        for r in docker_ps_rows
+        if r["cli"] == "true"
+    ]
 
 
 def collect_docker_disk_usage() -> Optional[str]:

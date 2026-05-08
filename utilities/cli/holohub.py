@@ -1972,12 +1972,15 @@ class HoloHubCLI:
             collect_running_containers,
             format_status,
             format_status_json,
+            query_docker_ps_rows,
         )
 
         platform_info = collect_platform_info()
         git_info = collect_git_info(self.HOLOHUB_ROOT)
-        images = collect_image_info()
-        running_containers = collect_running_containers()
+        # Single `docker container ls` call shared by both collectors.
+        ps_rows = query_docker_ps_rows()
+        images = collect_image_info(docker_ps_rows=ps_rows)
+        running_containers = collect_running_containers(docker_ps_rows=ps_rows)
         builds = collect_build_info(self.DEFAULT_BUILD_PARENT_DIR)
         build_folders = collect_folder_info(
             self._collect_cache_dirs(["build", "build-*"], self.DEFAULT_BUILD_PARENT_DIR)

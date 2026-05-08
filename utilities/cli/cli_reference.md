@@ -823,7 +823,9 @@ Examples:
 docker container ls --filter label=holohub.cli=true                            # all CLI-launched containers
 docker container ls --filter label=holohub.app=<app>                           # all containers for one app
 docker container ls --filter label=holohub.app=<app> --filter label=holohub.mode=<mode>
-docker container stop $(docker container ls -q --filter label=holohub.app=<app>)
+docker container stop $(docker container ls -q \
+  --filter label=holohub.cli=true \
+  --filter label=holohub.app=<app>)
 ```
 
 `./holohub status` and `./holohub status --json` surface the same set in the **Containers** section so agents can discover running containers without invoking `docker` directly.
