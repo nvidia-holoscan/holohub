@@ -1369,11 +1369,7 @@ exec {holohub_script} "$@"
         mock_container_class,
         mock_find_project,
     ):
-        """The resolved mode flows from each handler into HoloHubContainer.run().
-
-        The container uses ``mode_name`` to stamp ``--label holohub.mode=...`` so
-        agents can find a specific mode's container via ``docker container ls``.
-        """
+        """Each handler forwards the resolved mode_name into HoloHubContainer.run()."""
         project_data = {
             "project_name": "test_project",
             "source_folder": Path(os.getcwd()) / "applications" / "test_project",
@@ -1399,8 +1395,7 @@ exec {holohub_script} "$@"
             ("run test_project standalone", "standalone"),
             ("build test_project standalone", "standalone"),
             ("install test_project standalone", "standalone"),
-            # Implicit single-mode resolution still labels the mode so containers
-            # are discoverable even when the user omits it on the CLI.
+            # Implicit single-mode resolution still resolves to the only mode.
             ("run-container test_project", "standalone"),
             ("run test_project", "standalone"),
         ]
@@ -1419,11 +1414,7 @@ exec {holohub_script} "$@"
     @patch("utilities.cli.holohub.HoloHubContainer")
     @patch.dict(os.environ, {}, clear=True)
     def test_run_container_without_project_passes_no_mode(self, mock_container_class):
-        """``run-container`` without a project must still call run() with mode_name=None.
-
-        The bare dev container has no app/mode, but should still receive
-        ``--label holohub.cli=true`` via the default labels in HoloHubContainer.run().
-        """
+        """``run-container`` with no project calls run() with mode_name=None."""
         mock_container = MagicMock()
         mock_container_class.return_value = mock_container
         mock_container.image_name = "holohub:dev"

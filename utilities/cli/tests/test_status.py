@@ -195,12 +195,11 @@ class TestStatusCollectors(unittest.TestCase):
 
     @patch("utilities.cli.status.run_info_command")
     def test_collect_running_containers(self, mock_run):
-        """Containers are filtered by holohub.cli=true and parsed from {{.Labels}}."""
+        """Containers are filtered by holohub.cli=true; app/mode come from per-label format."""
         mock_run.return_value = (
-            "abc123def456\thumble-puppy\tholohub:test_app\t5 minutes ago"
-            "\tholohub.cli=true,holohub.app=test_app,holohub.mode=replayer\n"
-            # Bare run-container shell — no project, no mode.
-            "fed987cba321\teager-fox\tholohub:dev\t10 seconds ago\tholohub.cli=true"
+            "abc123def456\thumble-puppy\tholohub:test_app\t5 minutes ago\ttest_app\treplayer\n"
+            # Bare run-container shell — no project, no mode (empty label fields).
+            "fed987cba321\teager-fox\tholohub:dev\t10 seconds ago\t\t"
         )
         containers = collect_running_containers()
         self.assertEqual(len(containers), 2)
@@ -213,13 +212,10 @@ class TestStatusCollectors(unittest.TestCase):
         self.assertIsNone(containers[1].app)
         self.assertIsNone(containers[1].mode)
 
-        # The collector must invoke `docker ps` with the holohub.cli filter so
-        # results never include containers launched outside the CLI.
         invoked_cmd = mock_run.call_args[0][0]
         self.assertIn("ps", invoked_cmd)
         self.assertIn("label=holohub.cli=true", invoked_cmd)
 
-        # Empty docker output (no running CLI containers) must yield an empty list.
         mock_run.return_value = None
         self.assertEqual(collect_running_containers(), [])
         mock_run.return_value = ""
@@ -253,8 +249,7 @@ class TestStatusFormatting(unittest.TestCase):
         self.assertIn("Images:", output)
         self.assertIn("(none)", output)
 
-        # Running containers section appears with app/mode summary. Strip ANSI
-        # color escapes so we can assert on the bold heading reliably.
+        # Strip ANSI color codes so the bold "Containers:" heading is matchable.
         ansi = re.compile(r"\x1b\[[0-9;]*m")
         output = ansi.sub(
             "", format_status(*_status_args(), running_containers=_running_containers())
@@ -264,10 +259,7 @@ class TestStatusFormatting(unittest.TestCase):
         self.assertIn("test_app", output)
         self.assertIn("replayer", output)
 
-        # No running containers → no Containers heading (we don't want to show
-        # a redundant "(none)" line when the list is empty). The Docker-disk
-        # summary line has its own "Containers: …" substring, so anchor on the
-        # bold heading style ("Containers:" at the start of a line).
+        # Empty list → no Containers heading (avoid redundant "(none)" line).
         output = ansi.sub("", format_status(*_status_args(), running_containers=[]))
         self.assertNotIn("\nContainers:\n", output)
 
@@ -279,7 +271,7 @@ class TestStatusFormatting(unittest.TestCase):
         self.assertEqual(len(data["images"]), 1)
         self.assertEqual(len(data["builds"]), 1)
         self.assertIn("docker_disk", data)
-        # Containers key always present (empty list when none) so agents can rely on it.
+        # `containers` is always present (empty list when none) so callers can rely on it.
         self.assertEqual(data["containers"], [])
 
         args = _status_args()

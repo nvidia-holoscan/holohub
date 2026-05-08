@@ -22,6 +22,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import List, Optional
 
+from .container import LABEL_APP, LABEL_CLI, LABEL_MODE
 from .util import (
     Color,
     dir_size_mb,
@@ -169,21 +170,19 @@ def collect_image_info() -> List[ImageInfo]:
 
 
 def collect_running_containers() -> List[RunningContainerInfo]:
-    """List currently running containers launched by the HoloHub CLI.
-
-    Filtered by the ``holohub.cli=true`` label that ``HoloHubContainer.run()`` stamps
-    onto every container. Provides a stable, deterministic alternative to parsing
-    process trees when an agent needs to find or stop CLI-launched containers.
-    """
+    """Return CLI-launched containers, filtered by the ``holohub.cli=true`` label."""
     docker_exe = os.environ.get("HOLOHUB_DOCKER_EXE", "docker")
     output = run_info_command(
         [
             docker_exe,
             "ps",
             "--filter",
-            "label=holohub.cli=true",
+            f"label={LABEL_CLI}=true",
             "--format",
-            "{{.ID}}\t{{.Names}}\t{{.Image}}\t{{.RunningFor}}\t{{.Labels}}",
+            (
+                "{{.ID}}\t{{.Names}}\t{{.Image}}\t{{.RunningFor}}"
+                f'\t{{{{.Label "{LABEL_APP}"}}}}\t{{{{.Label "{LABEL_MODE}"}}}}'
+            ),
         ]
     )
     containers: List[RunningContainerInfo] = []
@@ -193,23 +192,16 @@ def collect_running_containers() -> List[RunningContainerInfo]:
         if not line.strip():
             continue
         parts = line.split("\t")
-        if len(parts) < 5:
+        if len(parts) < 6:
             continue
-        container_id, name, image, started, labels_str = parts[:5]
-        labels: dict[str, str] = {}
-        # `{{.Labels}}` returns "key=value,key=value"; values are not expected to
-        # contain commas, but skip malformed entries defensively.
-        for kv in labels_str.split(","):
-            if "=" in kv:
-                key, value = kv.split("=", 1)
-                labels[key.strip()] = value.strip()
+        container_id, name, image, started, app, mode = parts[:6]
         containers.append(
             RunningContainerInfo(
                 container_id=container_id,
                 name=name,
                 image=image,
-                app=labels.get("holohub.app"),
-                mode=labels.get("holohub.mode"),
+                app=app or None,
+                mode=mode or None,
                 started=started,
             )
         )
@@ -299,7 +291,6 @@ def format_status(
     else:
         lines.append(f"\n{Color.white('Images:', bold=True)} (none)")
 
-    # Running CLI containers (filtered by holohub.cli=true label)
     if running_containers:
         lines.append(f"\n{Color.white('Containers:', bold=True)}")
         for c in running_containers:

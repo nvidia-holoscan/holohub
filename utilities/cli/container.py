@@ -60,6 +60,10 @@ from .util import (
 
 SCCACHE_CONTAINER_DIR = "/.cache/sccache"
 
+LABEL_CLI = "holohub.cli"
+LABEL_APP = "holohub.app"
+LABEL_MODE = "holohub.mode"
+
 
 def _read_container_id(cidfile: Path) -> Optional[str]:
     """Read a Docker container ID from a cidfile if Docker has written it."""
@@ -644,20 +648,13 @@ class HoloHubContainer:
                 run_command(cmd, dry_run=self.dryrun)
 
     def get_label_args(self, mode_name: Optional[str] = None) -> List[str]:
-        """Docker labels stamped onto every container launched via the CLI.
-
-        These labels let agents and humans locate HoloHub-launched containers
-        deterministically (e.g. ``docker container ls --filter label=holohub.app=<name>``)
-        without parsing process trees. ``holohub.cli`` is always emitted; ``holohub.app``
-        and ``holohub.mode`` are emitted when a project (and mode, respectively) is
-        associated with this run.
-        """
-        args = ["--label", "holohub.cli=true"]
+        """Build --label args identifying this container as a CLI launch."""
+        args = ["--label", f"{LABEL_CLI}=true"]
         project_name = self.get_project_name()
         if project_name:
-            args.extend(["--label", f"holohub.app={project_name}"])
+            args.extend(["--label", f"{LABEL_APP}={project_name}"])
         if mode_name:
-            args.extend(["--label", f"holohub.mode={mode_name}"])
+            args.extend(["--label", f"{LABEL_MODE}={mode_name}"])
         return args
 
     def run(
