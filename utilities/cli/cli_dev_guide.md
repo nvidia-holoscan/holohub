@@ -140,6 +140,27 @@ Everything after `--` is joined into a single string and executed via `bash -c`,
 ./holohub run-container <app> -- "cmake -B build -S . -DAPP_<app>=ON && cmake --build build"
 ```
 
+### Find and stop CLI containers
+
+Every container started by `run`, `run-container`, `build`, and `install` is stamped with Docker labels so agents can locate and clean them up without parsing process trees:
+
+| Label          | Value                                       |
+| -------------- | ------------------------------------------- |
+| `holohub.cli`  | `true` (always present)                     |
+| `holohub.app`  | Project name (when a project is specified)  |
+| `holohub.mode` | Resolved mode name (when the project has one) |
+
+```bash
+docker container ls --filter label=holohub.cli=true                       # all CLI containers
+docker container ls --filter label=holohub.app=<app>                      # one app
+docker container ls --filter label=holohub.app=<app> --filter label=holohub.mode=<mode>
+docker container stop $(docker container ls -q --filter label=holohub.app=<app>)
+```
+
+`./holohub status` (`--json` for machine output) reports the same set in its **Containers** section, so agents can discover running containers without invoking `docker` directly.
+
+Prefer SIGINT/SIGTERM on the CLI process when possible — the CLI installs handlers that propagate the signal to the container (`docker stop`); label-based filtering is the fallback when the CLI can't run cleanup itself (e.g., SIGKILL in a sandbox).
+
 ### Resource management
 
 - `CMAKE_BUILD_PARALLEL_LEVEL=N` — cap parallel jobs to prevent OOM.

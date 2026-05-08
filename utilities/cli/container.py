@@ -643,6 +643,23 @@ class HoloHubContainer:
                     cmd.extend(["-t", f"{tag_name}-{script}", "-t", f"{tag_name}"])
                 run_command(cmd, dry_run=self.dryrun)
 
+    def get_label_args(self, mode_name: Optional[str] = None) -> List[str]:
+        """Docker labels stamped onto every container launched via the CLI.
+
+        These labels let agents and humans locate HoloHub-launched containers
+        deterministically (e.g. ``docker container ls --filter label=holohub.app=<name>``)
+        without parsing process trees. ``holohub.cli`` is always emitted; ``holohub.app``
+        and ``holohub.mode`` are emitted when a project (and mode, respectively) is
+        associated with this run.
+        """
+        args = ["--label", "holohub.cli=true"]
+        project_name = self.get_project_name()
+        if project_name:
+            args.extend(["--label", f"holohub.app={project_name}"])
+        if mode_name:
+            args.extend(["--label", f"holohub.mode={mode_name}"])
+        return args
+
     def run(
         self,
         img: Optional[str] = None,
@@ -658,6 +675,7 @@ class HoloHubContainer:
         add_volumes: List[str] = None,
         enable_mps: bool = False,
         extra_args: List[str] = None,
+        mode_name: Optional[str] = None,
     ) -> None:
         """Launch the container"""
 
@@ -710,6 +728,8 @@ class HoloHubContainer:
         # Default docker run arguments and caller-supplied docker_opts (parsed above).
         cmd.extend(default_run_args)
         cmd.extend(extra_run_args)
+
+        cmd.extend(self.get_label_args(mode_name))
 
         cmd.append(img)
         cmd.extend(extra_args)

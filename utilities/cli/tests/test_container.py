@@ -361,6 +361,50 @@ class TestHoloHubContainer(unittest.TestCase):
         self.assertIn("c 81:* rmw", cmd)
         self.container.dryrun = False
 
+    def test_get_label_args_without_project(self):
+        """A container with no project still gets the holohub.cli marker label."""
+        container = HoloHubContainer(project_metadata=None)
+        self.assertEqual(container.get_label_args(), ["--label", "holohub.cli=true"])
+
+    def test_get_label_args_with_project(self):
+        """A project-bound container labels the app for filtering by name."""
+        self.assertEqual(
+            self.container.get_label_args(),
+            ["--label", "holohub.cli=true", "--label", "holohub.app=test_project"],
+        )
+
+    def test_get_label_args_with_mode(self):
+        """The optional mode label is appended only when a mode name is supplied."""
+        self.assertEqual(
+            self.container.get_label_args(mode_name="standalone"),
+            [
+                "--label",
+                "holohub.cli=true",
+                "--label",
+                "holohub.app=test_project",
+                "--label",
+                "holohub.mode=standalone",
+            ],
+        )
+
+    @patch("subprocess.CompletedProcess")
+    def test_run_emits_holohub_labels(self, mock_completed_process):
+        """`docker run` should be stamped with holohub.cli/app/mode labels."""
+        self.container.dryrun = True
+        self.container.run(mode_name="standalone")
+        # In dryrun mode run_command passes the formatted command string to
+        # subprocess.CompletedProcess; check for label substrings on it directly.
+        cmd_str = mock_completed_process.call_args[0][0]
+        self.assertIn("--label holohub.cli=true", cmd_str)
+        self.assertIn("--label holohub.app=test_project", cmd_str)
+        self.assertIn("--label holohub.mode=standalone", cmd_str)
+        # Labels must come before the image positional (Docker stops parsing options there).
+        self.assertLess(
+            cmd_str.rfind("--label "),
+            cmd_str.rfind(self.container.image_names[0]),
+        )
+        self.container.dryrun = False
+
     @patch("utilities.cli.container.get_image_pythonpath")
     @patch.dict(os.environ, {}, clear=True)
     def test_get_pythonpath_options_sdk_only(self, mock_get_image_pythonpath):

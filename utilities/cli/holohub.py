@@ -817,6 +817,7 @@ class HoloHubCLI:
         # Resolve mode for docker_build_args / docker_run_args if project with modes
         build_args = args.build_args
         docker_opts = args.docker_opts
+        mode_name: Optional[str] = None
         if args.project:
             project_data = self.find_project(args.project, language=getattr(args, "language", None))
             mode_name, mode_config = self.resolve_mode(project_data, getattr(args, "mode", None))
@@ -874,6 +875,7 @@ class HoloHubCLI:
             add_volumes=args.add_volume,
             enable_mps=getattr(args, "mps", False),
             extra_args=trailing_args,
+            mode_name=mode_name,
         )
 
     def handle_test(self, args: argparse.Namespace) -> None:
@@ -1308,6 +1310,7 @@ class HoloHubCLI:
                 add_volumes=getattr(args, "add_volume", None),
                 enable_mps=getattr(args, "mps", False),
                 extra_args=extra_args,
+                mode_name=mode_name,
             )
 
     def handle_run(self, args: argparse.Namespace) -> None:
@@ -1556,6 +1559,7 @@ class HoloHubCLI:
                 add_volumes=getattr(args, "add_volume", None),
                 enable_mps=getattr(args, "mps", False),
                 extra_args=extra_args,
+                mode_name=mode_name,
             )
 
     def handle_list(self, args: argparse.Namespace) -> None:
@@ -1965,13 +1969,15 @@ class HoloHubCLI:
             collect_git_info,
             collect_image_info,
             collect_platform_info,
+            collect_running_containers,
             format_status,
             format_status_json,
         )
 
         platform_info = collect_platform_info()
         git_info = collect_git_info(self.HOLOHUB_ROOT)
-        containers = collect_image_info()
+        images = collect_image_info()
+        running_containers = collect_running_containers()
         builds = collect_build_info(self.DEFAULT_BUILD_PARENT_DIR)
         build_folders = collect_folder_info(
             self._collect_cache_dirs(["build", "build-*"], self.DEFAULT_BUILD_PARENT_DIR)
@@ -1981,19 +1987,22 @@ class HoloHubCLI:
         )
         docker_disk = collect_docker_disk_usage()
 
+        fmt_kwargs = {
+            "docker_disk": docker_disk,
+            "running_containers": running_containers,
+        }
         fmt_args = (
             platform_info,
             git_info,
-            containers,
+            images,
             builds,
             build_folders,
             data_folders,
-            docker_disk,
         )
         if args.json:
-            print(format_status_json(*fmt_args))
+            print(format_status_json(*fmt_args, **fmt_kwargs))
         else:
-            print(format_status(*fmt_args))
+            print(format_status(*fmt_args, **fmt_kwargs))
 
     def handle_env_check(self, args: argparse.Namespace) -> None:
         """Handle env-check command to run system checks"""
@@ -2143,6 +2152,7 @@ class HoloHubCLI:
                 add_volumes=getattr(args, "add_volume", None),
                 enable_mps=getattr(args, "mps", False),
                 extra_args=extra_args,
+                mode_name=mode_name,
             )
 
     def _collect_cache_dirs(self, patterns: list[str], default_dir=None) -> list:

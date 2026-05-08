@@ -16,6 +16,7 @@
 
 import json
 import os
+import re
 import sys
 import tempfile
 import time
@@ -31,12 +32,14 @@ from utilities.cli.status import (
     GitInfo,
     ImageInfo,
     PlatformInfo,
+    RunningContainerInfo,
     collect_build_info,
     collect_docker_disk_usage,
     collect_folder_info,
     collect_git_info,
     collect_image_info,
     collect_platform_info,
+    collect_running_containers,
     format_status,
     format_status_json,
 )
@@ -52,6 +55,19 @@ def _status_args():
         [FolderInfo("/tmp/build", 512.0)],
         [FolderInfo("/tmp/data", 1024.0)],
         "Images: 5GB, Containers: 100MB",
+    ]
+
+
+def _running_containers():
+    return [
+        RunningContainerInfo(
+            container_id="abc123def456",
+            name="humble-puppy",
+            image="holohub:test_app",
+            app="test_app",
+            mode="replayer",
+            started="5 minutes ago",
+        )
     ]
 
 
@@ -177,6 +193,38 @@ class TestStatusCollectors(unittest.TestCase):
         mock_run.return_value = None
         self.assertIsNone(collect_docker_disk_usage())
 
+    @patch("utilities.cli.status.run_info_command")
+    def test_collect_running_containers(self, mock_run):
+        """Containers are filtered by holohub.cli=true and parsed from {{.Labels}}."""
+        mock_run.return_value = (
+            "abc123def456\thumble-puppy\tholohub:test_app\t5 minutes ago"
+            "\tholohub.cli=true,holohub.app=test_app,holohub.mode=replayer\n"
+            # Bare run-container shell — no project, no mode.
+            "fed987cba321\teager-fox\tholohub:dev\t10 seconds ago\tholohub.cli=true"
+        )
+        containers = collect_running_containers()
+        self.assertEqual(len(containers), 2)
+        self.assertEqual(
+            (containers[0].container_id, containers[0].app, containers[0].mode),
+            ("abc123def456", "test_app", "replayer"),
+        )
+        self.assertEqual(containers[0].image, "holohub:test_app")
+        self.assertEqual(containers[0].started, "5 minutes ago")
+        self.assertIsNone(containers[1].app)
+        self.assertIsNone(containers[1].mode)
+
+        # The collector must invoke `docker ps` with the holohub.cli filter so
+        # results never include containers launched outside the CLI.
+        invoked_cmd = mock_run.call_args[0][0]
+        self.assertIn("ps", invoked_cmd)
+        self.assertIn("label=holohub.cli=true", invoked_cmd)
+
+        # Empty docker output (no running CLI containers) must yield an empty list.
+        mock_run.return_value = None
+        self.assertEqual(collect_running_containers(), [])
+        mock_run.return_value = ""
+        self.assertEqual(collect_running_containers(), [])
+
 
 class TestStatusFormatting(unittest.TestCase):
     def test_format_status_text(self):
@@ -205,6 +253,24 @@ class TestStatusFormatting(unittest.TestCase):
         self.assertIn("Images:", output)
         self.assertIn("(none)", output)
 
+        # Running containers section appears with app/mode summary. Strip ANSI
+        # color escapes so we can assert on the bold heading reliably.
+        ansi = re.compile(r"\x1b\[[0-9;]*m")
+        output = ansi.sub(
+            "", format_status(*_status_args(), running_containers=_running_containers())
+        )
+        self.assertIn("\nContainers:\n", output)
+        self.assertIn("abc123def456", output)
+        self.assertIn("test_app", output)
+        self.assertIn("replayer", output)
+
+        # No running containers → no Containers heading (we don't want to show
+        # a redundant "(none)" line when the list is empty). The Docker-disk
+        # summary line has its own "Containers: …" substring, so anchor on the
+        # bold heading style ("Containers:" at the start of a line).
+        output = ansi.sub("", format_status(*_status_args(), running_containers=[]))
+        self.assertNotIn("\nContainers:\n", output)
+
     def test_format_status_json(self):
         data = json.loads(format_status_json(*_status_args()))
         self.assertEqual(data["platform"]["arch"], "x86_64")
@@ -213,10 +279,20 @@ class TestStatusFormatting(unittest.TestCase):
         self.assertEqual(len(data["images"]), 1)
         self.assertEqual(len(data["builds"]), 1)
         self.assertIn("docker_disk", data)
+        # Containers key always present (empty list when none) so agents can rely on it.
+        self.assertEqual(data["containers"], [])
 
         args = _status_args()
         args[6] = None
         self.assertNotIn("docker_disk", json.loads(format_status_json(*args)))
+
+        data = json.loads(
+            format_status_json(*_status_args(), running_containers=_running_containers())
+        )
+        self.assertEqual(len(data["containers"]), 1)
+        self.assertEqual(data["containers"][0]["app"], "test_app")
+        self.assertEqual(data["containers"][0]["mode"], "replayer")
+        self.assertEqual(data["containers"][0]["container_id"], "abc123def456")
 
 
 if __name__ == "__main__":

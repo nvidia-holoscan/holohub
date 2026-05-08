@@ -443,6 +443,7 @@ Show a compact overview of the development environment: platform, git state, con
 - **Platform** — architecture, GPU type/name, CUDA version, Holoscan SDK version
 - **Git** — current branch, short commit hash, dirty/modified file count
 - **Images** — HoloHub-related Docker images with creation time and running status
+- **Containers** — currently running containers launched by the CLI (filtered by `holohub.cli=true` label), with container ID, app, mode, image, and uptime. JSON output always exposes a `containers` array. See [Container Labels](#container-labels)
 - **Docker disk** — disk usage summary (images, containers, build cache)
 - **Builds** — CMake build directories with OK/FAIL status and last-modified time
 - **Build/Data folders** — disk usage of build and data cache directories
@@ -805,6 +806,27 @@ Environment variable `HOLOHUB_BUILD_LOCAL` forces local mode (same as `--local`)
 3. Run the application inside the container
 
 Dedicated commands (`build`, `run`, `build-container`, `run-container`) allow clear workflow control when the full default pipeline is not needed.
+
+### Container Labels
+
+Every container started by `run`, `run-container`, `build`, and `install` is stamped with Docker labels so it can be located via `docker container ls --filter` without parsing process trees:
+
+| Label          | Value                                          | When emitted                |
+| -------------- | ---------------------------------------------- | --------------------------- |
+| `holohub.cli`  | `true`                                         | Always                      |
+| `holohub.app`  | Project name (e.g. `body_pose_estimation`)     | When a project is specified |
+| `holohub.mode` | Resolved mode name (e.g. `replayer`)           | When the project has a mode |
+
+Examples:
+
+```bash
+docker container ls --filter label=holohub.cli=true                            # all CLI-launched containers
+docker container ls --filter label=holohub.app=<app>                           # all containers for one app
+docker container ls --filter label=holohub.app=<app> --filter label=holohub.mode=<mode>
+docker container stop $(docker container ls -q --filter label=holohub.app=<app>)
+```
+
+`./holohub status` and `./holohub status --json` surface the same set in the **Containers** section so agents can discover running containers without invoking `docker` directly.
 
 ---
 

@@ -53,6 +53,22 @@ class ImageInfo:
 
 
 @dataclass
+class RunningContainerInfo:
+    """A container started by the CLI, identified by the holohub.cli label.
+
+    `app` and `mode` come from the holohub.app / holohub.mode labels and may be
+    None — e.g. a bare ``./holohub run-container`` shell has no project or mode.
+    """
+
+    container_id: str
+    name: str
+    image: str
+    app: Optional[str]
+    mode: Optional[str]
+    started: str
+
+
+@dataclass
 class GitInfo:
     branch: str
     commit: str
@@ -152,6 +168,54 @@ def collect_image_info() -> List[ImageInfo]:
     return images
 
 
+def collect_running_containers() -> List[RunningContainerInfo]:
+    """List currently running containers launched by the HoloHub CLI.
+
+    Filtered by the ``holohub.cli=true`` label that ``HoloHubContainer.run()`` stamps
+    onto every container. Provides a stable, deterministic alternative to parsing
+    process trees when an agent needs to find or stop CLI-launched containers.
+    """
+    docker_exe = os.environ.get("HOLOHUB_DOCKER_EXE", "docker")
+    output = run_info_command(
+        [
+            docker_exe,
+            "ps",
+            "--filter",
+            "label=holohub.cli=true",
+            "--format",
+            "{{.ID}}\t{{.Names}}\t{{.Image}}\t{{.RunningFor}}\t{{.Labels}}",
+        ]
+    )
+    containers: List[RunningContainerInfo] = []
+    if not output:
+        return containers
+    for line in output.split("\n"):
+        if not line.strip():
+            continue
+        parts = line.split("\t")
+        if len(parts) < 5:
+            continue
+        container_id, name, image, started, labels_str = parts[:5]
+        labels: dict[str, str] = {}
+        # `{{.Labels}}` returns "key=value,key=value"; values are not expected to
+        # contain commas, but skip malformed entries defensively.
+        for kv in labels_str.split(","):
+            if "=" in kv:
+                key, value = kv.split("=", 1)
+                labels[key.strip()] = value.strip()
+        containers.append(
+            RunningContainerInfo(
+                container_id=container_id,
+                name=name,
+                image=image,
+                app=labels.get("holohub.app"),
+                mode=labels.get("holohub.mode"),
+                started=started,
+            )
+        )
+    return containers
+
+
 def collect_docker_disk_usage() -> Optional[str]:
     """Get total Docker disk usage summary in one call."""
     docker_exe = os.environ.get("HOLOHUB_DOCKER_EXE", "docker")
@@ -210,6 +274,7 @@ def format_status(
     build_folders: List[FolderInfo],
     data_folders: List[FolderInfo],
     docker_disk: Optional[str] = None,
+    running_containers: Optional[List[RunningContainerInfo]] = None,
 ) -> str:
     lines = []
 
@@ -233,6 +298,15 @@ def format_status(
             lines.append(f"  {img.image:<50} {img.created:<20} {color(img.status)}")
     else:
         lines.append(f"\n{Color.white('Images:', bold=True)} (none)")
+
+    # Running CLI containers (filtered by holohub.cli=true label)
+    if running_containers:
+        lines.append(f"\n{Color.white('Containers:', bold=True)}")
+        for c in running_containers:
+            target = " / ".join(filter(None, [c.app, c.mode])) or "(no project)"
+            lines.append(
+                f"  {c.container_id[:12]:<14} {target:<30} " f"{c.image:<40} ↑ {c.started}"
+            )
 
     # Docker disk summary
     if docker_disk:
@@ -272,11 +346,13 @@ def format_status_json(
     build_folders: List[FolderInfo],
     data_folders: List[FolderInfo],
     docker_disk: Optional[str] = None,
+    running_containers: Optional[List[RunningContainerInfo]] = None,
 ) -> str:
     data = {
         "platform": asdict(platform),
         "git": asdict(git) if git else None,
         "images": [asdict(img) for img in images],
+        "containers": [asdict(c) for c in (running_containers or [])],
         "builds": [asdict(b) for b in builds],
         "build_folders": [asdict(f) for f in build_folders],
         "data_folders": [asdict(f) for f in data_folders],
