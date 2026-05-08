@@ -30,6 +30,7 @@ add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/body_pose_estimation/yolo11l-pose
             --ultralytics-config-dir "${CMAKE_CURRENT_BINARY_DIR}/ultralytics_user"
     COMMAND mkdir -p "${HOLOHUB_DATA_DIR}/body_pose_estimation"
     COMMAND mv yolo11l-pose.onnx "${HOLOHUB_DATA_DIR}/body_pose_estimation/"
+    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/export_yolo_pose_onnx.py"
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
 
