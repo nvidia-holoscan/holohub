@@ -144,11 +144,11 @@ Everything after `--` is joined into a single string and executed via `bash -c`,
 
 Every container started by `run`, `run-container`, `build`, and `install` is stamped with Docker labels so agents can locate and clean them up without parsing process trees:
 
-| Label          | Value                                       |
-| -------------- | ------------------------------------------- |
-| `holohub.cli`  | `true` (always present)                     |
-| `holohub.app`  | Project name (when a project is specified)  |
-| `holohub.mode` | Resolved mode name (when the project has one) |
+| Label          | Value                                           |
+| -------------- | ----------------------------------------------- |
+| `holohub.cli`  | `true` (always present)                         |
+| `holohub.app`  | Project name (when a project is specified)      |
+| `holohub.mode` | Resolved mode name (when the project has one)   |
 
 ```bash
 docker container ls --filter label=holohub.cli=true                       # all CLI containers
