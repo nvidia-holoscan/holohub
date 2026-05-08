@@ -35,7 +35,7 @@ class PyFoxglovePublisherOp : public FoxglovePublisherOp {
 
   PyFoxglovePublisherOp(Fragment* fragment,
                         const py::args& args,
-                        const std::string& bind_address = "0.0.0.0",
+                        const std::string& bind_address = "127.0.0.1",
                         uint16_t port = 8765,
                         const std::string& server_name = "Holoscan Foxglove",
                         bool publish_server_time = true,
@@ -457,7 +457,7 @@ PYBIND11_MODULE(_foxglove, m) {
                     std::shared_ptr<Allocator>,
                     const std::string&>(),
            "fragment"_a,
-           "bind_address"_a = "0.0.0.0"s,
+           "bind_address"_a = "127.0.0.1"s,
            "port"_a = 8765,
            "server_name"_a = "Holoscan Foxglove"s,
            "publish_server_time"_a = true,

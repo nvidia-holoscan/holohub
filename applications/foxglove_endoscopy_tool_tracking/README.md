@@ -5,9 +5,7 @@ It replays the standard HoloHub endoscopy sample, runs the existing LSTM
 tool-tracking inference path, and publishes video, tool-coordinate annotations,
 and inference FPS to Foxglove Studio.
 
-The sample is intentionally small. The reusable contribution is
-`operators/foxglove`; this application exists so reviewers can run the operator
-inside a familiar HoloHub graph and inspect live topics quickly.
+![Foxglove Studio endoscopy view](docs/foxglove_endoscopy_tool_tracking.png)
 
 ## Requirements
 

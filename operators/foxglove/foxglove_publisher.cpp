@@ -50,6 +50,23 @@ void throw_on_foxglove_error(foxglove::FoxgloveError error, const std::string& a
   }
 }
 
+template <typename ChannelMap>
+void close_channels(ChannelMap& channels, std::string_view channel_type) {
+  for (auto& [topic, channel] : channels) {
+    if constexpr (std::is_same_v<decltype(channel.close()), void>) {
+      channel.close();
+    } else {
+      const auto error = channel.close();
+      if (error != foxglove::FoxgloveError::Ok) {
+        HOLOSCAN_LOG_WARN("Failed to close Foxglove {} channel '{}' cleanly: {}",
+                          channel_type,
+                          topic,
+                          foxglove::strerror(error));
+      }
+    }
+  }
+}
+
 void throw_on_cuda_error(cudaError_t error, const std::string& action) {
   if (error != cudaSuccess) {
     throw std::runtime_error(fmt::format("{} failed: {}", action, cudaGetErrorString(error)));
@@ -1140,7 +1157,7 @@ void FoxglovePublisherOp::setup(OperatorSpec& spec) {
              "bind_address",
              "Bind address",
              "Address for the Foxglove WebSocket server to bind",
-             std::string("0.0.0.0"));
+             std::string("127.0.0.1"));
   spec.param(port_, "port", "Port", "Foxglove WebSocket server port", uint16_t{8765});
   spec.param(server_name_,
              "server_name",
@@ -1573,13 +1590,29 @@ void FoxglovePublisherOp::start() {
       [this]([[maybe_unused]] uint32_t client_id,
              [[maybe_unused]] std::optional<std::string_view> request_id,
              const std::vector<std::string_view>& param_names) {
-        return foxglove_parameters(param_names);
+        try {
+          return foxglove_parameters(param_names);
+        } catch (const std::exception& error) {
+          HOLOSCAN_LOG_ERROR("Failed to handle Foxglove parameter read request: {}",
+                             error.what());
+        } catch (...) {
+          HOLOSCAN_LOG_ERROR("Failed to handle Foxglove parameter read request: unknown error");
+        }
+        return std::vector<foxglove::Parameter>{};
       };
   options.callbacks.onSetParameters =
       [this]([[maybe_unused]] uint32_t client_id,
              [[maybe_unused]] std::optional<std::string_view> request_id,
              const std::vector<foxglove::ParameterView>& params) {
-        return enqueue_foxglove_parameter_updates(params);
+        try {
+          return enqueue_foxglove_parameter_updates(params);
+        } catch (const std::exception& error) {
+          HOLOSCAN_LOG_ERROR("Failed to handle Foxglove parameter update request: {}",
+                             error.what());
+        } catch (...) {
+          HOLOSCAN_LOG_ERROR("Failed to handle Foxglove parameter update request: unknown error");
+        }
+        return std::vector<foxglove::Parameter>{};
       };
 
   auto server_result = foxglove::WebSocketServer::create(std::move(options));
@@ -1604,27 +1637,13 @@ void FoxglovePublisherOp::start() {
 }
 
 void FoxglovePublisherOp::stop() {
-  for (auto& [_, channel] : raw_image_channels_) {
-    channel.close();
-  }
-  for (auto& [_, channel] : compressed_video_channels_) {
-    channel.close();
-  }
-  for (auto& [_, channel] : calibration_channels_) {
-    channel.close();
-  }
-  for (auto& [_, channel] : annotation_channels_) {
-    channel.close();
-  }
-  for (auto& [_, channel] : point_cloud_channels_) {
-    channel.close();
-  }
-  for (auto& [_, channel] : frame_transform_channels_) {
-    channel.close();
-  }
-  for (auto& [_, channel] : key_value_channels_) {
-    channel.close();
-  }
+  close_channels(raw_image_channels_, "RawImage");
+  close_channels(compressed_video_channels_, "CompressedVideo");
+  close_channels(calibration_channels_, "CameraCalibration");
+  close_channels(annotation_channels_, "ImageAnnotations");
+  close_channels(point_cloud_channels_, "PointCloud");
+  close_channels(frame_transform_channels_, "FrameTransform");
+  close_channels(key_value_channels_, "KeyValuePair");
   raw_image_channels_.clear();
   compressed_video_channels_.clear();
   calibration_channels_.clear();

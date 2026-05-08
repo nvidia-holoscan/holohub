@@ -173,7 +173,7 @@ Outputs:
 
 | Parameter | Type | Default | Description |
 | --------- | ---- | ------- | ----------- |
-| `bind_address` | `std::string` | `0.0.0.0` | WebSocket bind address. |
+| `bind_address` | `std::string` | `127.0.0.1` | WebSocket bind address. Use `0.0.0.0` only when remote clients should be able to connect. |
 | `port` | `uint16_t` | `8765` | WebSocket port. |
 | `server_name` | `std::string` | `Holoscan Foxglove` | Name advertised to Foxglove. |
 | `publish_server_time` | `bool` | `true` | Broadcast latest batch timestamp with Foxglove's Time capability. |
@@ -276,7 +276,7 @@ auto adapter = make_operator<ops::FoxgloveTensorAdapterOp>(
 
 auto foxglove = make_operator<ops::FoxglovePublisherOp>(
     "foxglove",
-    Arg("bind_address", std::string("0.0.0.0")),
+    Arg("bind_address", std::string("127.0.0.1")),
     Arg("port", uint16_t{8765}));
 
 add_flow(segmentation_postprocessor, adapter, {{"out_tensor", "input"}});
