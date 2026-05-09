@@ -1,0 +1,24 @@
+name: Check linting
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main, holoscan-sdk-lws2]
+
+permissions:
+  contents: read
+
+jobs:
+  check-lint:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: sudo ./holohub lint --install-dependencies
+
+      - name: Run linter
+        run: ./holohub lint
