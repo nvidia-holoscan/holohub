@@ -39,7 +39,7 @@ class TestHoloHubContainer(unittest.TestCase):
 
         # create a Dockerfile in the test directory
         self.dockerfile_path.write_text(
-            "FROM nvcr.io/nvidia/clara-holoscan/holoscan:4.1.0-cuda12-dgpu"
+            "FROM nvcr.io/nvidia/clara-holoscan/holoscan:4.2.0-cuda12-dgpu"
         )
 
         # create project metadata
