@@ -1638,16 +1638,19 @@ class HoloHubCLI:
         can intercept this subcommand to route to their own tooling.
         """
         env = os.environ.copy()
-        local_bin_path = Path.home() / ".local" / "bin"
-        if str(local_bin_path) not in env.get("PATH", ""):
-            env["PATH"] = str(local_bin_path) + ":" + env.get("PATH", "")
-            print(f"Added {local_bin_path} to PATH.")
+        if not self._running_in_virtual_env():
+            local_bin_path = Path.home() / ".local" / "bin"
+            if str(local_bin_path) not in env.get("PATH", ""):
+                env["PATH"] = str(local_bin_path) + ":" + env.get("PATH", "")
+                holohub_cli_util.info(f"Added {local_bin_path} to PATH.")
 
         if holohub_cli_util.is_running_in_docker():
             env["PRE_COMMIT_HOME"] = str(HoloHubCLI.HOLOHUB_ROOT / ".cache" / "pre-commit")
-            print(f"Set PRE_COMMIT_HOME to {env['PRE_COMMIT_HOME']}")
+            holohub_cli_util.info(f"Set PRE_COMMIT_HOME to {env['PRE_COMMIT_HOME']}")
 
         if args.install_dependencies:
+            if not args.dryrun:
+                self._check_pre_commit_cache_writable(env)
             self._install_lint_deps(args.dryrun, env=env)
             return
 
@@ -1659,12 +1662,10 @@ class HoloHubCLI:
 
         config_path = HoloHubCLI.HOLOHUB_ROOT / ".pre-commit-config.yaml"
         if not args.dryrun and not config_path.exists():
-            print(
-                Color.yellow(
-                    "No `.pre-commit-config.yaml` found at the project root. "
-                    "Nothing configured for linting; we recommend setting up pre-commit "
-                    "(https://pre-commit.com/) and committing a config."
-                )
+            holohub_cli_util.warn(
+                "No `.pre-commit-config.yaml` found at the project root. "
+                "Nothing configured for linting; we recommend setting up pre-commit "
+                "(https://pre-commit.com/) and committing a config."
             )
             sys.exit(0)
 
@@ -1674,14 +1675,10 @@ class HoloHubCLI:
                 holohub_cli_util.info("pre-commit is not installed; installing lint dependencies.")
                 self._install_lint_deps(False, env=env)
                 if shutil.which("pre-commit", path=env["PATH"]) is None:
-                    print(
-                        Color.red(
-                            "pre-commit was installed but is still not available on PATH. "
-                            "Please check your Python user install location."
-                        ),
-                        file=sys.stderr,
+                    holohub_cli_util.fatal(
+                        "pre-commit was installed but is still not available on PATH. "
+                        "Please check your Python user install location."
                     )
-                    sys.exit(1)
 
         if args.fix:
             holohub_cli_util.info(
@@ -1689,14 +1686,14 @@ class HoloHubCLI:
                 "where possible."
             )
 
-        cmd: List[str] = ["pre-commit", "run", "--show-diff-on-failure", "--color=always"]
+        cmd: List[str] = ["pre-commit", "run", "--show-diff-on-failure"]
         target = self._resolve_lint_target(args.path)
         if target == HoloHubCLI.HOLOHUB_ROOT.resolve():
             cmd.append("--all-files")
         else:
             files = self._collect_lint_files(target)
             if not files:
-                print(Color.yellow(f"No files found under {target}; nothing to lint."))
+                holohub_cli_util.warn(f"No files found under {target}; nothing to lint.")
                 sys.exit(0)
             cmd.append("--files")
             cmd.extend(files)
@@ -1715,15 +1712,12 @@ class HoloHubCLI:
         path = Path(path_arg)
         target = path.resolve() if path.is_absolute() else (root / path).resolve()
         if not target.exists():
-            print(Color.red(f"Lint path `{path_arg}` does not exist."), file=sys.stderr)
-            sys.exit(1)
+            holohub_cli_util.fatal(f"Lint path `{path_arg}` does not exist.")
 
         if not target.is_relative_to(root):
-            print(
-                Color.red(f"Lint path `{path_arg}` resolves outside the project root `{root}`."),
-                file=sys.stderr,
+            holohub_cli_util.fatal(
+                f"Lint path `{path_arg}` resolves outside the project root `{root}`."
             )
-            sys.exit(1)
 
         return target
 
@@ -1747,9 +1741,13 @@ class HoloHubCLI:
                 text=True,
                 stderr=subprocess.DEVNULL,
             )
-            return [line for line in output.splitlines() if line]
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            return []
+        except FileNotFoundError:
+            holohub_cli_util.fatal("`git` is not available; cannot resolve lint target files.")
+        except subprocess.CalledProcessError:
+            holohub_cli_util.fatal(
+                f"Failed to enumerate lint files via `git ls-files` for `{target_arg}`."
+            )
+        return [line for line in output.splitlines() if line]
 
     def _check_pre_commit_cache_writable(self, env: dict) -> None:
         """Fail early with a clear message if pre-commit's cache cannot be written."""
@@ -1759,30 +1757,25 @@ class HoloHubCLI:
             with tempfile.NamedTemporaryFile(dir=cache_dir, prefix=".holohub-write-test-"):
                 pass
         except (PermissionError, OSError):
-            print(
-                Color.red(
-                    f"pre-commit cache `{cache_dir}` is not writable by the current user "
-                    f"(typically caused by a previous `sudo pre-commit` run).\n"
-                    f"Fix it with one of:\n"
-                    f'  sudo chown -R "$(id -u):$(id -g)" {cache_dir}\n'
-                    f"  sudo rm -rf {cache_dir}"
-                ),
-                file=sys.stderr,
+            quoted = shlex.quote(str(cache_dir))
+            holohub_cli_util.fatal(
+                f"pre-commit cache `{cache_dir}` is not writable by the current user "
+                f"(typically caused by a previous `sudo pre-commit` run).\n"
+                f"Fix it with one of:\n"
+                f'  sudo chown -R "$(id -u):$(id -g)" {quoted}\n'
+                f"  sudo rm -rf {quoted}"
             )
-            sys.exit(1)
 
     @staticmethod
     def _running_in_virtual_env() -> bool:
         """Return True when Python is running inside a virtual environment."""
         return sys.prefix != getattr(sys, "base_prefix", sys.prefix) or hasattr(sys, "real_prefix")
 
-    def _install_lint_deps(self, dry_run: bool = False, env: Optional[dict] = None) -> None:
+    def _install_lint_deps(self, dry_run: bool, env: dict) -> None:
         """Install pre-commit and prefetch hook environments."""
-        env = env or os.environ.copy()
         print(holohub_cli_util.format_cmd("cd " + str(HoloHubCLI.HOLOHUB_ROOT), is_dryrun=dry_run))
         if not dry_run:
             os.chdir(HoloHubCLI.HOLOHUB_ROOT)
-            self._check_pre_commit_cache_writable(env)
 
         pip_install_cmd = [sys.executable, "-m", "pip", "install"]
         if not self._running_in_virtual_env():
@@ -1799,10 +1792,8 @@ class HoloHubCLI:
             env=env,
         )
         if not (HoloHubCLI.HOLOHUB_ROOT / ".pre-commit-config.yaml").exists():
-            print(
-                Color.yellow(
-                    "No `.pre-commit-config.yaml` found; skipping pre-commit hook prefetch."
-                )
+            holohub_cli_util.warn(
+                "No `.pre-commit-config.yaml` found; skipping pre-commit hook prefetch."
             )
             return
 
