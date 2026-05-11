@@ -14,15 +14,17 @@ and inference FPS to Foxglove Studio.
   HoloHub data workflow.
 - Foxglove Studio connected to `ws://localhost:8765`.
 
-## Run
+## Quick start
 
-Run the C++ app:
+You can build and run the application within a container using the following command:
+
+**For C++:**
 
 ```bash
 ./holohub run foxglove_endoscopy_tool_tracking --language cpp
 ```
 
-Run the Python app:
+**For Python:**
 
 ```bash
 ./holohub run foxglove_endoscopy_tool_tracking --language python
