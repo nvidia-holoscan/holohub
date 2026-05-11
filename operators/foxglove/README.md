@@ -1,20 +1,20 @@
 # Foxglove Holoscan operator
 
 `FoxglovePublisherOp` publishes `FoxgloveBatch` messages from a Holoscan graph
-to Foxglove over WebSocket and can optionally write the same stream to MCAP.
-The batch can carry images, camera calibration, image annotations, point clouds,
-compressed video, frame transforms, and key-value state variables. The operator
-preserves upstream Holoscan capture timestamps from metadata when present, so
-MCAP recordings replay against sensor time rather than publication wall-clock
-time.
+to [Foxglove](https://foxglove.dev/) over WebSocket and can optionally write the
+same stream to MCAP. The batch can carry images, camera calibration, image
+annotations, point clouds, compressed video, frame transforms, and key-value
+state variables. The operator preserves upstream Holoscan capture timestamps
+from metadata when present, so MCAP recordings replay against sensor time rather
+than publication wall-clock time.
 
 ## Purpose
 
 This operator is intended for observability in Holoscan applications. It gives a
-running graph a Foxglove Studio endpoint without requiring ROS, and it keeps the
-Foxglove data model close to the data already moving through a Holoscan
-pipeline: video frames, segmentation masks, detections, state values, point
-clouds, encoded video, and frame transforms.
+running graph a [Foxglove Studio](https://foxglove.dev/download) endpoint
+without requiring ROS, and it keeps the Foxglove data model close to the data
+already moving through a Holoscan pipeline: video frames, segmentation masks,
+detections, state values, point clouds, encoded video, and frame transforms.
 
 The contribution is centered on the reusable operator. The included
 `foxglove_endoscopy_tool_tracking` application is a small runnable example that
@@ -24,8 +24,10 @@ shows how to connect the operator to an existing HoloHub workflow.
 
 - Holoscan SDK 4.1.0 or newer.
 - CUDA-capable x86_64 or aarch64 platform supported by HoloHub.
-- Foxglove Studio, either the desktop application or a compatible browser-based
-  session, for live visualization.
+- [Foxglove Studio](https://foxglove.dev/download) for live visualization. The
+  [Foxglove web app](https://app.foxglove.dev/) can also connect, but browser
+  networking restrictions can make local or private-network WebSocket endpoints
+  trickier than the desktop application.
 - Foxglove SDK 0.23.1. HoloHub fetches this dependency through
   `cmake/FetchFoxgloveSdk.cmake` when building the operator.
 - Optional write access to an output directory when `enable_mcap=true`.
@@ -58,6 +60,12 @@ Run HoloHub lint before submitting changes:
 
 Add the publisher at the end of a graph, start the application, and connect
 Foxglove Studio to `ws://localhost:8765`.
+
+For connection setup details, see Foxglove's
+[custom data source guide](https://docs.foxglove.dev/docs/getting-started/custom).
+The [Foxglove web app](https://app.foxglove.dev/) is also supported, although
+browser security policies can make direct WebSocket connections to local or
+private hosts more finicky than the desktop application.
 
 For raw frames, use `FoxgloveTensorAdapterOp` or the publisher's direct `image`
 port. For inference outputs, use `FoxgloveDetectionAdapterOp` or

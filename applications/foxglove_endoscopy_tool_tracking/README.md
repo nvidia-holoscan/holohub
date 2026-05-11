@@ -3,7 +3,7 @@
 This application shows the Foxglove operator in an endoscopy tool-tracking graph.
 It replays the standard HoloHub endoscopy sample, runs the existing LSTM
 tool-tracking inference path, and publishes video, tool-coordinate annotations,
-and inference FPS to [Foxglove Studio](https://foxglove.dev).
+and inference FPS to [Foxglove Studio](https://foxglove.dev/).
 
 ![Foxglove Studio endoscopy view](docs/foxglove_endoscopy_tool_tracking.png)
 
@@ -12,7 +12,22 @@ and inference FPS to [Foxglove Studio](https://foxglove.dev).
 - Holoscan SDK 4.1.0 or newer.
 - The HoloHub endoscopy tool-tracking dataset generated through the normal
   HoloHub data workflow.
-- Foxglove Studio connected to `ws://localhost:8765`.
+- [Foxglove Studio](https://foxglove.dev/download) installed. The
+  [Foxglove web app](https://app.foxglove.dev/) can also connect, but browser
+  networking restrictions can make local or private-network WebSocket endpoints
+  trickier than the desktop application.
+
+## Foxglove Studio setup
+
+Install [Foxglove Studio](https://foxglove.dev/download), then start the
+application and create a Foxglove WebSocket connection to `ws://localhost:8765`.
+The included app config binds `0.0.0.0`, so remote clients on trusted networks
+can connect Studio to `ws://<target-host>:8765`. Foxglove documents the custom
+WebSocket connection flow in its
+[custom data source guide](https://docs.foxglove.dev/docs/getting-started/custom).
+The [Foxglove web app](https://app.foxglove.dev/) can be used too, but browser
+security policies can make direct WebSocket connections to local or private
+hosts more finicky; use the desktop app first when debugging connectivity.
 
 ## Quick start
 
