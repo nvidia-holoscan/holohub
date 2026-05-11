@@ -41,6 +41,7 @@ ci/
 ngc-cli/
 CTestConfig.cmake
 .ngc
+.npm
 
 # AI coding assistants
 .cursor/
