@@ -1,0 +1,62 @@
+{
+  "application": {
+    "name": "Foxglove endoscopy tool tracking",
+    "description": "Python entry point for publishing the endoscopy tool-tracking graph to Foxglove Studio.",
+    "authors": [
+      {
+        "name": "Chris von Csefalvay",
+        "affiliation": "HCLTech"
+      }
+    ],
+    "version": "0.1.0",
+    "changelog": {
+      "0.1.0": "Initial Python example for the Foxglove operator using the HoloHub endoscopy tool-tracking workflow."
+    },
+    "language": [
+      "Python"
+    ],
+    "holoscan_sdk": {
+      "minimum_required_version": "4.1.0",
+      "tested_versions": [
+        "4.2.0",
+        "4.1.0"
+      ]
+    },
+    "platforms": [
+      "x86_64",
+      "aarch64"
+    ],
+    "tags": [
+      "Visualization",
+      "Observability",
+      "Video",
+      "Inference"
+    ],
+    "ranking": 2,
+    "requirements": {
+      "data": [
+        {
+          "name": "Holoscan Sample App Data for AI-based Endoscopy Tool Tracking",
+          "description": "Convolutional LSTM model and sample surgical video used by the HoloHub endoscopy tool-tracking workflow.",
+          "url": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data",
+          "version": "20230222"
+        }
+      ]
+    },
+    "default_mode": "replayer",
+    "modes": {
+      "replayer": {
+        "description": "Run the application in replayer mode.",
+        "build": {
+          "cmake_options": [
+            "-DHOLOHUB_BUILD_PYTHON=ON"
+          ]
+        },
+        "run": {
+          "command": "python3 <holohub_app_source>/foxglove_endoscopy_tool_tracking.py --data <holohub_data_dir>/endoscopy",
+          "workdir": "holohub_bin"
+        }
+      }
+    }
+  }
+}

@@ -28,6 +28,7 @@ add_holohub_operator(display_gpu_resident)
 add_holohub_operator(ucxx_send_receive)
 add_holohub_operator(emergent_source DEPENDS EXTENSIONS emergent_source)
 add_holohub_operator(fft)
+add_holohub_operator(foxglove)
 add_holohub_operator(gamma_correction DEPENDS OPERATORS slang_shader)
 add_holohub_operator(grpc_operators)
 add_holohub_operator(gstreamer)
@@ -69,11 +70,12 @@ add_holohub_operator(yuan_qcap DEPENDS EXTENSIONS yuan_qcap)
 add_holohub_operator(ehr_query_llm)
 add_holohub_operator(xr)
 
-# install
-install(
-    DIRECTORY "${CMAKE_BINARY_DIR}/python/lib/holohub"
-    DESTINATION python/lib
-    FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-    DIRECTORY_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-    PATTERN "__pycache__" EXCLUDE
-)
+if(HOLOHUB_BUILD_PYTHON)
+  install(
+      DIRECTORY "${CMAKE_BINARY_DIR}/python/lib/holohub"
+      DESTINATION python/lib
+      FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+      DIRECTORY_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+      PATTERN "__pycache__" EXCLUDE
+  )
+endif()

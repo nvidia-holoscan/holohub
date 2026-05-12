@@ -67,6 +67,11 @@ add_holohub_application(endoscopy_tool_tracking DEPENDS
                                   yuan_qcap
                                   vtk_renderer)
 
+add_holohub_application(foxglove_endoscopy_tool_tracking DEPENDS
+                        OPERATORS foxglove
+                                  lstm_tensor_rt_inference
+                                  tool_tracking_postprocessor)
+
 add_subdirectory(gstreamer)
 
 
