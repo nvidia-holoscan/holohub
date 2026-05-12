@@ -15,7 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 ############################################################
 # Base image
 ############################################################
@@ -27,6 +26,13 @@ FROM ${BASE_IMAGE} AS base
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG CMAKE_BUILD_TYPE=Release
+
+# Default-empty source stage for the consolidated holoscan-cli. Override with a
+# real checkout via:
+#   docker buildx build --build-context holoscan-cli-src=/path/to/holoscan-cli ...
+# The holoscan-cli host CLI passes this automatically when HOLOSCAN_CLI_SOURCE
+# is set in the environment.
+FROM scratch AS holoscan-cli-src
 
 # --------------------------------------------------------------------------
 #
@@ -59,6 +65,40 @@ ENV PIP_BREAK_SYSTEM_PACKAGES=1
 RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
         curl -sS https://bootstrap.pypa.io/get-pip.py | ${PYTHON_VERSION} \
     ; fi
+
+# Install the consolidated Holoscan Platform CLI. Three install sources are
+# supported, in order of precedence:
+#   1. Local checkout exposed via `--build-context holoscan-cli-src=<path>`.
+#      The host CLI passes this automatically when HOLOSCAN_CLI_SOURCE is set.
+#   2. The HOLOSCAN_CLI_INSTALL_SPEC build arg, e.g.
+#        --build-arg HOLOSCAN_CLI_INSTALL_SPEC=holoscan-cli==4.3.0
+#        --build-arg HOLOSCAN_CLI_INSTALL_SPEC=git+https://github.com/nvidia-holoscan/holoscan-cli.git@main
+#   3. Default value `holoscan-cli` (the published PyPI release).
+# Provides the `holoscan` console script used by the in-container recursion
+# (`holoscan build/run/install <project> --local`). The local-source path
+# copies to a writable temp dir before installing because BuildKit bind mounts
+# are read-only and pip's PEP 517 build writes transient artifacts into the
+# source tree (e.g. poetry-dynamic-versioning version metadata).
+ARG HOLOSCAN_CLI_INSTALL_SPEC=holoscan-cli
+RUN --mount=type=bind,from=holoscan-cli-src,target=/tmp/holoscan-cli-src \
+    if [ -f /tmp/holoscan-cli-src/pyproject.toml ]; then \
+        echo "Installing consolidated holoscan-cli from local source build-context"; \
+        cp -a /tmp/holoscan-cli-src /tmp/holoscan-cli-src-writable; \
+        python3 -m pip install --no-cache-dir /tmp/holoscan-cli-src-writable; \
+        rm -rf /tmp/holoscan-cli-src-writable; \
+    else \
+        echo "Installing holoscan-cli from spec: ${HOLOSCAN_CLI_INSTALL_SPEC}"; \
+        python3 -m pip install --no-cache-dir "${HOLOSCAN_CLI_INSTALL_SPEC}"; \
+    fi
+
+# Fail the build fast if the installed `holoscan-cli` is pre-consolidation
+# (e.g. PyPI 4.0.0). That release has the `holoscan` console script and a
+# `version` subcommand, so a smoke that only runs `holoscan version` passes
+# silently; the discriminator is the source-project dispatch table that the
+# in-container recursion (`holoscan build/run/install <project> --local`)
+# relies on.
+RUN holoscan version \
+    && python3 -c "from holoscan_cli.__main__ import PROJECT_COMMANDS; assert {'build','run','list','install'} <= set(PROJECT_COMMANDS), f'consolidated CLI missing commands: {set(PROJECT_COMMANDS)}'"
 
 # --------------------------------------------------------------------------
 #
