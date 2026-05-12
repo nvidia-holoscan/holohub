@@ -268,14 +268,18 @@ class App : public holoscan::Application {
 
     auto tracking_adapter = make_operator<ToolTrackingFoxgloveAdapterOp>(
         "tool_tracking_foxglove", from_config("tool_tracking_foxglove"));
+    auto foxglove_host_allocator = make_resource<UnboundedAllocator>("foxglove_host_allocator");
     auto mask_adapter = make_operator<ops::FoxgloveTensorAdapterOp>(
-        "mask_to_foxglove", from_config("mask_adapter"));
+        "mask_to_foxglove",
+        from_config("mask_adapter"),
+        Arg("allocator") = foxglove_host_allocator);
 
     auto foxglove = make_operator<ops::FoxglovePublisherOp>(
         "foxglove",
         from_config("foxglove"),
         Arg("image_topic", std::string("/video")),
-        Arg("image_frame_id", std::string("endoscope")));
+        Arg("image_frame_id", std::string("endoscope")),
+        Arg("allocator") = foxglove_host_allocator);
 
     add_flow(replayer, foxglove, {{"output", "image"}});
     add_flow(replayer, format_converter, {{"output", "source_video"}});

@@ -18,6 +18,7 @@
     "holoscan_sdk": {
       "minimum_required_version": "4.1.0",
       "tested_versions": [
+        "4.2.0",
         "4.1.0"
       ]
     },
@@ -31,7 +32,7 @@
       "Video",
       "Inference"
     ],
-    "ranking": 3,
+    "ranking": 2,
     "requirements": {
       "data": [
         {

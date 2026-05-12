@@ -8,7 +8,12 @@ from argparse import ArgumentParser
 import cupy as cp
 from holoscan.core import Application, Operator, OperatorSpec
 from holoscan.operators import FormatConverterOp, VideoStreamReplayerOp
-from holoscan.resources import BlockMemoryPool, CudaStreamPool, MemoryStorageType
+from holoscan.resources import (
+    BlockMemoryPool,
+    CudaStreamPool,
+    MemoryStorageType,
+    UnboundedAllocator,
+)
 
 from holohub.foxglove import (
     FoxgloveBatch,
@@ -209,10 +214,16 @@ class FoxgloveEndoscopyToolTrackingApp(Application):
                 num_blocks=4,
             ),
         )
+        # Holoscan 4.2+ treats allocator as a GXF resource; null fails graph setup.
+        foxglove_host_allocator = UnboundedAllocator(
+            self,
+            name="foxglove_host_allocator",
+        )
         mask_adapter = FoxgloveTensorAdapterOp(
             self,
             name="mask_to_foxglove",
             **self.kwargs("mask_adapter"),
+            allocator=foxglove_host_allocator,
         )
         tracking_adapter = ToolTrackingFoxgloveAdapterOp(
             self,
@@ -223,6 +234,7 @@ class FoxgloveEndoscopyToolTrackingApp(Application):
             self,
             name="foxglove",
             **self.kwargs("foxglove"),
+            allocator=foxglove_host_allocator,
         )
 
         self.add_flow(replayer, foxglove, {("output", "image")})
