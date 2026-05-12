@@ -15,10 +15,13 @@
  * limitations under the License.
  */
 
+#include <atomic>
 #include <ifaddrs.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <mqueue.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include <rte_ring.h>
 #include <rte_mempool.h>
 #include <rte_errno.h>
@@ -1358,13 +1361,20 @@ void RdmaMgr::free_tx_burst(BurstParams* burst) {
   rte_mempool_put(tx_meta, burst);
 }
 
-std::string RdmaMgr::generate_random_string(int len) {
-  const char tokens[] = "abcdefghijklmnopqrstuvwxyz";
-  std::string tmp;
-
-  for (int i = 0; i < len; i++) { tmp += tokens[rand() % (sizeof(tokens) - 1)]; }
-
-  return tmp;
+std::string RdmaMgr::generate_eal_file_prefix() {
+  static std::atomic<uint32_t> counter{0};
+  uint64_t pidns_inode = 0;
+  struct stat st;
+  if (::stat("/proc/self/ns/pid", &st) == 0) {
+    pidns_inode = static_cast<uint64_t>(st.st_ino);
+  } else {
+    HOLOSCAN_LOG_WARN(
+        "Could not stat /proc/self/ns/pid for EAL file-prefix uniqueness; "
+        "containers sharing /dev/hugepages may collide on DPDK file-prefix");
+  }
+  return "rdma_" + std::to_string(static_cast<uint32_t>(::getpid())) + "_" +
+         std::to_string(pidns_inode) + "_" +
+         std::to_string(counter.fetch_add(1, std::memory_order_relaxed));
 }
 
 void RdmaMgr::initialize() {
@@ -1441,7 +1451,7 @@ void RdmaMgr::initialize() {
 
   strncpy(_argv[arg++], "adv_net_operator", max_arg_size - 1);
   strncpy(_argv[arg++],
-          (std::string("--file-prefix=") + generate_random_string(10)).c_str(),
+          (std::string("--file-prefix=") + generate_eal_file_prefix()).c_str(),
           max_arg_size - 1);
   strncpy(_argv[arg++], "-l", max_arg_size - 1);
   strncpy(_argv[arg++], cores.c_str(), max_arg_size - 1);

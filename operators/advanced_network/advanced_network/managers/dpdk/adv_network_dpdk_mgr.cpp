@@ -26,6 +26,8 @@
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
+#include <sys/stat.h>
+#include <unistd.h>
 #include <arpa/inet.h>
 
 #include "advanced_network/dpdk_log.h"
@@ -224,13 +226,20 @@ void DpdkMgr::setup_accurate_send_scheduling_mask() {
 }
 
 
-std::string DpdkMgr::generate_random_string(int len) {
-  const char tokens[] = "abcdefghijklmnopqrstuvwxyz";
-  std::string tmp;
-
-  for (int i = 0; i < len; i++) { tmp += tokens[rand() % (sizeof(tokens) - 1)]; }
-
-  return tmp;
+std::string DpdkMgr::generate_eal_file_prefix() {
+  static std::atomic<uint32_t> counter{0};
+  uint64_t pidns_inode = 0;
+  struct stat st;
+  if (::stat("/proc/self/ns/pid", &st) == 0) {
+    pidns_inode = static_cast<uint64_t>(st.st_ino);
+  } else {
+    HOLOSCAN_LOG_WARN(
+        "Could not stat /proc/self/ns/pid for EAL file-prefix uniqueness; "
+        "containers sharing /dev/hugepages may collide on DPDK file-prefix");
+  }
+  return "dpdk_" + std::to_string(static_cast<uint32_t>(::getpid())) + "_" +
+         std::to_string(pidns_inode) + "_" +
+         std::to_string(counter.fetch_add(1, std::memory_order_relaxed));
 }
 
 // HWS doesn't allow zero queues on an interface, so we make some dummy interfaces here for
@@ -362,7 +371,7 @@ void DpdkMgr::initialize() {
 
   strncpy(_argv[arg++], "operator", max_arg_size - 1);
   strncpy(_argv[arg++],
-          (std::string("--file-prefix=") + generate_random_string(10)).c_str(),
+          (std::string("--file-prefix=") + generate_eal_file_prefix()).c_str(),
           max_arg_size - 1);
   strncpy(_argv[arg++], "-l", max_arg_size - 1);
   strncpy(_argv[arg++], cores.c_str(), max_arg_size - 1);
