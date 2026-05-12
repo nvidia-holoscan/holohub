@@ -941,7 +941,35 @@ class HoloHubContainer:
     def _is_ssh_x11_display(display: str) -> bool:
         return display.startswith(("localhost:", "127.0.0.1:", "[::1]:", "::1:"))
 
+    @staticmethod
+    def _peer_creds_sufficient(display: str) -> bool:
+        """Probe whether the X server already accepts connections without a cookie.
+
+        Tries to query the X server with `XAUTHORITY=/dev/null` so Xlib has no
+        cookies to offer; if the query still succeeds, a non-cookie auth family
+        (typically SI:localuser) is granting access. The container runs as the
+        same UID via `-u $(id -u):$(id -g)`, so the same auth applies inside.
+        """
+        if not shutil.which("xset"):
+            return False
+        try:
+            return (
+                subprocess.run(
+                    ["xset", "-display", display, "q"],
+                    env={**os.environ, "XAUTHORITY": "/dev/null"},
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    timeout=2,
+                ).returncode
+                == 0
+            )
+        except (OSError, subprocess.SubprocessError):
+            return False
+
     def _get_xauth_options(self, display: str) -> List[str]:
+        if not self.dryrun and self._peer_creds_sufficient(display):
+            return []
+
         if not shutil.which("xauth"):
             warn(
                 "xauth not found on host; install xauth (or x11-xauth) so X11 "
