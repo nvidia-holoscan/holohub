@@ -14,8 +14,7 @@
 # limitations under the License.
 
 # Make sure to order by alphabetical list
-add_holohub_application(adv_networking_bench DEPENDS
-                        OPERATORS advanced_network)
+add_holohub_application(adv_networking_bench)
 
 add_holohub_application(aja_video_capture DEPENDS
                         OPERATORS aja_source)
@@ -26,8 +25,7 @@ add_holohub_application(atracsys_visualizer DEPENDS
                         OPERATORS atracsys_mode_switcher
                         OPTIONAL  atracsys_camera)
 
-add_holohub_application(basic_networking_ping DEPENDS
-                        OPERATORS basic_network)
+add_holohub_application(basic_networking_ping)
 
 add_holohub_application(bci_visualization DEPENDS
                         OPERATORS volume_renderer)
@@ -115,8 +113,7 @@ add_holohub_application(multiai_ultrasound DEPENDS
 add_subdirectory(nvidia_video_codec)
 
 add_holohub_application(simple_radar_pipeline)
-add_holohub_application(simple_pdw_pipeline DEPENDS
-                        OPERATORS basic_network)
+add_holohub_application(simple_pdw_pipeline)
 
 add_holohub_application(object_detection_torch DEPENDS
                         OPERATORS OPTIONAL aja_source)
@@ -147,13 +144,10 @@ add_holohub_application(tak)
 
 add_holohub_application(tao_peoplenet)
 
-add_holohub_application(network_radar_pipeline DEPENDS
-                        OPERATORS basic_network
-                                  advanced_network)
+add_holohub_application(network_radar_pipeline)
 
 add_holohub_application(psd_pipeline DEPENDS
-                        OPERATORS advanced_network
-                                  fft
+                        OPERATORS fft
                                   high_rate_psd
                                   low_rate_psd
                                   vita49_psd_packetizer
@@ -163,9 +157,7 @@ add_holohub_application(ultrasound_segmentation DEPENDS
                         OPERATORS OPTIONAL aja_source)
 
 add_holohub_application(velodyne_lidar_app DEPENDS
-                        OPERATORS velodyne_lidar
-                                  basic_network
-                                  )
+                        OPERATORS velodyne_lidar)
 
 add_holohub_application(volume_rendering DEPENDS
                         OPERATORS volume_loader

@@ -14,24 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#if ANO_MGR_DPDK
+#if DAQIRI_MGR_DPDK
 #include "default_bench_op_rx.h"
 #include "default_bench_op_tx.h"
 #endif
-#if ANO_MGR_RIVERMAX
-#include "default_bench_op_rx.h"
-#include "rivermax_bench_op_tx.h"
-#endif
-#if ANO_MGR_GPUNETIO
-#include "doca_bench_op_rx.h"
-#include "doca_bench_op_tx.h"
-#endif
-#if ANO_MGR_RDMA
+#if DAQIRI_MGR_RDMA
 #include "rdma_bench.h"
 #endif
-#include "advanced_network/common.h"
-#include "advanced_network/kernels.h"
 #include "holoscan/holoscan.hpp"
+#include <daqiri/daqiri.h>
+#include "src/kernels.h"
 #include <assert.h>
 #include <sys/time.h>
 
@@ -40,84 +32,14 @@ class App : public holoscan::Application {
   void compose() override {
     using namespace holoscan;
 
-    auto adv_net_config = from_config("advanced_network").as<advanced_network::NetworkConfig>();
-    if (advanced_network::adv_net_init(adv_net_config) != advanced_network::Status::SUCCESS) {
-      HOLOSCAN_LOG_ERROR("Failed to configure the Advanced Network manager");
-      exit(1);
-    }
-    HOLOSCAN_LOG_INFO("Configured the Advanced Network manager");
+    const auto [rdma_server_en, rdma_client_en] = daqiri::get_rdma_configs_enabled(config());
+    const auto [rx_en, tx_en] = daqiri::get_rx_tx_configs_enabled(config());
+    const auto mgr_type = daqiri::get_manager_type();
 
-    const auto [rdma_server_en, rdma_client_en] =
-        holoscan::advanced_network::get_rdma_configs_enabled(config());
-    const auto [rx_en, tx_en] = advanced_network::get_rx_tx_configs_enabled(config());
-    const auto mgr_type = advanced_network::get_manager_type(config());
+    HOLOSCAN_LOG_INFO("Using DAQIRI manager {}", daqiri::manager_type_to_string(mgr_type));
 
-    HOLOSCAN_LOG_INFO("Using Advanced Network manager {}",
-                      advanced_network::manager_type_to_string(mgr_type));
-
-    // DPDK is the default manager backend
-    if (mgr_type == advanced_network::ManagerType::DPDK) {
-#if ANO_MGR_DPDK
-      if (rx_en) {
-        auto bench_rx = make_operator<ops::AdvNetworkingBenchDefaultRxOp>(
-            "bench_rx",
-            from_config("bench_rx"),
-            make_condition<BooleanCondition>("is_alive", true));
-        add_operator(bench_rx);
-      }
-      if (tx_en) {
-        auto bench_tx = make_operator<ops::AdvNetworkingBenchDefaultTxOp>(
-            "bench_tx",
-            from_config("bench_tx"),
-            make_condition<BooleanCondition>("is_alive", true));
-        add_operator(bench_tx);
-      }
-#else
-      HOLOSCAN_LOG_ERROR("DPDK manager/backend is disabled");
-      exit(1);
-#endif
-
-    } else if (mgr_type == advanced_network::ManagerType::DOCA) {
-#if ANO_MGR_GPUNETIO
-      if (rx_en) {
-        auto bench_rx = make_operator<ops::AdvNetworkingBenchDocaRxOp>(
-            "bench_rx",
-            from_config("bench_rx"),
-            make_condition<BooleanCondition>("is_alive", true));
-        add_operator(bench_rx);
-      }
-      if (tx_en) {
-        auto bench_tx = make_operator<ops::AdvNetworkingBenchDocaTxOp>(
-            "bench_tx",
-            from_config("bench_tx"),
-            make_condition<BooleanCondition>("is_alive", true));
-        add_operator(bench_tx);
-      }
-#else
-      HOLOSCAN_LOG_ERROR("GPUNetIO manager/backend is disabled");
-      exit(1);
-#endif
-    } else if (mgr_type == advanced_network::ManagerType::RIVERMAX) {
-#if ANO_MGR_RIVERMAX
-      if (rx_en) {
-        std::string bench_rx_name = "bench_rx";
-        auto bench_rx = make_operator<ops::AdvNetworkingBenchDefaultRxOp>(bench_rx_name,
-                                                                          from_config("bench_rx"));
-        add_operator(bench_rx);
-      }
-      if (tx_en) {
-        auto bench_tx = make_operator<ops::AdvNetworkingBenchRivermaxTxOp>(
-            "bench_tx",
-            from_config("bench_tx"),
-            make_condition<BooleanCondition>("is_alive", true));
-        add_operator(bench_tx);
-      }
-#else
-      HOLOSCAN_LOG_ERROR("RIVERMAX manager/backend is not supported");
-      exit(1);
-#endif
-    } else if (mgr_type == holoscan::advanced_network::ManagerType::RDMA) {
-#if ANO_MGR_RDMA
+    if (rdma_server_en || rdma_client_en) {
+#if DAQIRI_MGR_RDMA
       if (rdma_server_en) {
         auto bench_server = make_operator<ops::AdvNetworkingRdmaOp>(
             "rdma_bench_server",
@@ -133,13 +55,33 @@ class App : public holoscan::Application {
             make_condition<BooleanCondition>("is_alive", true));
         add_operator(bench_client);
       }
-
 #else
-      HOLOSCAN_LOG_ERROR("RDMA ANO manager/backend is not supported");
+      HOLOSCAN_LOG_ERROR("DAQIRI RDMA/RoCE support is disabled");
       exit(1);
 #endif
+    } else if (mgr_type == daqiri::ManagerType::DPDK) {
+#if DAQIRI_MGR_DPDK
+      if (rx_en) {
+        auto bench_rx = make_operator<ops::AdvNetworkingBenchDefaultRxOp>(
+            "bench_rx",
+            from_config("bench_rx"),
+            make_condition<BooleanCondition>("is_alive", true));
+        add_operator(bench_rx);
+      }
+      if (tx_en) {
+        auto bench_tx = make_operator<ops::AdvNetworkingBenchDefaultTxOp>(
+            "bench_tx",
+            from_config("bench_tx"),
+          make_condition<BooleanCondition>("is_alive", true));
+        add_operator(bench_tx);
+      }
+#else
+      HOLOSCAN_LOG_ERROR("DPDK manager/backend is disabled");
+      exit(1);
+#endif
+
     } else {
-      HOLOSCAN_LOG_ERROR("Invalid Advanced Network manager/backend");
+      HOLOSCAN_LOG_ERROR("Unsupported DAQIRI manager/backend");
       exit(1);
     }
   }
@@ -159,11 +101,17 @@ int main(int argc, char** argv) {
   if (!config_path.is_absolute()) {
     config_path = std::filesystem::canonical(argv[0]).parent_path() / config_path;
   }
+  if (daqiri::daqiri_init(config_path.string()) != daqiri::Status::SUCCESS) {
+    HOLOSCAN_LOG_ERROR("Failed to configure DAQIRI");
+    return -1;
+  }
+  HOLOSCAN_LOG_INFO("Configured DAQIRI");
   app->config(config_path);
   app->scheduler(app->make_scheduler<MultiThreadScheduler>("multithread-scheduler",
                                                            app->from_config("scheduler")));
   app->run();
 
-  advanced_network::shutdown();
+  daqiri::print_stats();
+  daqiri::shutdown();
   return 0;
 }

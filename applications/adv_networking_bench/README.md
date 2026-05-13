@@ -2,10 +2,10 @@
 
 > [!TIP]
 > Review the [High Performance Networking tutorial](/tutorials/high_performance_networking/README.md) for guided
-> instructions to configure your system and test the Advanced Network library.
+> instructions to configure your system and test DAQIRI.
 
-This is a sample application to measure a lower bound on performance for the [Advanced Network
-library](/operators/advanced_network/README.md) by receiving packets, optionally doing work on them, and freeing
+This is a sample application to measure a lower bound on performance for the [DAQIRI
+library](https://github.com/NVIDIA/daqiri) by receiving packets, optionally doing work on them, and freeing
 the buffers. While only freeing the packets is an unrealistic workload, it's useful to see at a high level whether
 the application is able to keep up with the bare minimum amount of work to do. The application contains both a
 transmitter and receiver that are designed to run on different systems, and may be configured independently.
@@ -48,7 +48,7 @@ found in this directory.
 - `header_data_split`: bool
   Turn on GPUDirect header-data split mode
 - `batch_size`: integer
-  Size in packets for a single batch. This should be a multiple of the advanced_network queue batch size.
+  Size in packets for a single batch. This should be a multiple of the configured DAQIRI queue batch size.
   A larger batch size consumes more memory since any work will not start unless this batch size is filled. Consider
   reducing this value if errors are occurring.
 - `max_packet_size`: integer
@@ -64,7 +64,7 @@ found in this directory.
 
 ### Requirements
 
-This application requires all configuration and requirements from the [Advanced Network library](/operators/advanced_network/README.md) first.
+This application requires all configuration and requirements from the [DAQIRI](https://github.com/NVIDIA/daqiri) first.
 
 ### Build Instructions
 
@@ -72,18 +72,6 @@ This application requires all configuration and requirements from the [Advanced 
 
 ```bash
 ./holohub build adv_networking_bench --language=cpp
-```
-
-#### GPUNetIO (build)
-
-```bash
-./holohub build adv_networking_bench --language=cpp --build-args="--target gpunetio" --configure-args="-D ANO_MGR:STRING=gpunetio"
-```
-
-#### Rivermax (build)
-
-```bash
-./holohub build adv_networking_bench --language=cpp --build-args="--target rivermax" --configure-args="-D ANO_MGR:STRING=rivermax"
 ```
 
 ### Run Instructions
@@ -113,53 +101,6 @@ To run with a different configuration file than the default `adv_networking_benc
 
 # Run with another configuration
 ./build/adv_networking_bench/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_default_rx_multi_q.yaml
-```
-
-#### GPUNetIO (run)
-
-```bash
-# Ensure the gdrdrv kernel module is loaded on the system
-lsmod | grep gdrdrv
-
-# Start the container interactively
-./holohub run-container adv_networking_bench \
-  --language cpp \
-  --build-args="--target gpunetio" \
-  --docker-opts="-u root --privileged --device /dev/gdrdrv -w /workspace/holohub"
-
-# <- Now in the container environment ->
-
-# Build the app if you made any changes
-./holohub build adv_networking_bench \
-  --language=cpp \
-  --configure-args="-D ANO_MGR:STRING=gpunetio"
-
-# Run with GPUNetIO configuration
-./build/adv_networking_bench/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_gpunetio_tx_rx.yaml
-```
-
-#### Rivermax (run)
-
-```bash
-# Start the container with the right target and the license file
-./holohub run-container adv_networking_bench \
-  --language=cpp \
-  --build-args="--target rivermax" \
-  --docker-opts="\
-    -u root --privileged \
-    -v /opt/mellanox/rivermax/rivermax.lic:/opt/mellanox/rivermax/rivermax.lic \
-    -w /workspace/holohub/ \
-  "
-
-# <- Now in the container environment ->
-
-# Build the app if you made any changes
-./holohub build adv_networking_bench \
-  --language=cpp \
-  --configure-args="-D ANO_MGR:STRING=rivermax"
-
-# Run with Rivermax configuration
-./build/adv_networking_bench/applications/adv_networking_bench/cpp/adv_networking_bench adv_networking_bench_rmax_rx.yaml
 ```
 
 ### Test Instructions

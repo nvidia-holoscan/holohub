@@ -16,14 +16,14 @@
  */
 #pragma once
 
-#include "advanced_network/common.h"
 #include "holoscan/holoscan.hpp"
+#include <daqiri/daqiri.h>
 #include <queue>
 #include <arpa/inet.h>
 #include <assert.h>
 #include <sys/time.h>
 
-using namespace holoscan::advanced_network;
+using namespace daqiri;
 
 namespace holoscan::ops {
 
@@ -41,7 +41,7 @@ class AdvNetworkingRdmaOp : public Operator {
         ttl_bytes_sent_,
         ttl_pkts_sent_);
 
-    HOLOSCAN_LOG_INFO("ANO benchmark RDMA op shutting down");
+    HOLOSCAN_LOG_INFO("DAQIRI benchmark RDMA op shutting down");
     freeResources();
   }
 
@@ -82,7 +82,7 @@ class AdvNetworkingRdmaOp : public Operator {
     BurstParams* burst;
 
     // Establish connection. If we're a client we connect to the server. If we're a server we ask
-    // for a connection ID from the advanced_network library.
+    // for a connection ID from DAQIRI.
     if (conn_id_ == 0) {
       if (!server_.get()) {
         HOLOSCAN_LOG_INFO(

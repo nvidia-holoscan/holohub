@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-#include "advanced_network/common.h"
-#include "advanced_network/kernels.h"
 #include "holoscan/holoscan.hpp"
+#include <daqiri/daqiri.h>
+#include "src/kernels.h"
 #include <queue>
 #include <arpa/inet.h>
 #include <assert.h>
@@ -28,7 +28,7 @@
 
 #define BURST_ACCESS_METHOD BURST_ACCESS_METHOD_RAW_PTR
 
-using namespace holoscan::advanced_network;
+using namespace daqiri;
 
 namespace holoscan::ops {
 
@@ -128,7 +128,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
     spec.param<std::string>(interface_name_,
                             "interface_name",
                             "Port name",
-                            "Name of the port to poll on from the advanced_network config",
+                            "Name of the port to poll on from DAQIRI config",
                             "rx_port");
     spec.param<bool>(hds_,
                      "split_boundary",
@@ -209,7 +209,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
 
       // Track packet payloads for the current burst
       if (gpu_direct_.get()) {
-        /* GPUDirect mode (needs to match if the advanced_network queue uses 1 or more memory regions)
+        /* GPUDirect mode (needs to match if DAQIRI queue uses 1 or more memory regions)
         * Save off the GPU pointers into a host-pinned buffer (h_dev_ptrs_) to reassemble later.
         */
         if (hds_.get()) {
@@ -247,7 +247,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
           }
         }
       } else {
-        /* CPU Mode (needs to match if the advanced_network queue uses no GPU memory regions)
+        /* CPU Mode (needs to match if DAQIRI queue uses no GPU memory regions)
         * Copy each packet payload in a continuous host-pinned buffer, copy of that larger buffer to
         * the GPU will occur later (copying each packet to GPU directly would be too expensive).
         *
@@ -410,7 +410,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
   std::array<void**, num_concurrent> h_dev_ptrs_;  // Host-pinned list of device pointers
   std::array<void*, num_concurrent> full_batch_data_d_;  // Device aggregated batch
   std::array<void*, num_concurrent> full_batch_data_h_;  // Host aggregated batch
-  Parameter<std::string> interface_name_;                // Port name from advanced_network config
+  Parameter<std::string> interface_name_;                // Port name from DAQIRI config
   Parameter<bool> hds_;                                  // Header-data split enabled
   Parameter<bool> gpu_direct_;                           // GPUDirect enabled
   Parameter<uint32_t> batch_size_;                       // Batch size for one processing block

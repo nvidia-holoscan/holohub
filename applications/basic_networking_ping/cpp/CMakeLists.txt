@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +18,14 @@ project(basic_networking_ping CXX)
 
 find_package(holoscan 0.5 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+find_package(yaml-cpp REQUIRED CONFIG
+             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+if(DEFINED ENV{DAQIRI_ROOT})
+  list(PREPEND CMAKE_PREFIX_PATH "$ENV{DAQIRI_ROOT}")
+endif()
+list(PREPEND CMAKE_PREFIX_PATH "/opt/daqiri")
+find_package(daqiri REQUIRED CONFIG)
+include(HoloHubDaqiri)
 
 add_executable(basic_networking_ping
   main.cpp
@@ -26,21 +34,17 @@ add_executable(basic_networking_ping
 target_link_libraries(basic_networking_ping
   PRIVATE
   holoscan::core
-  basic_network
+  yaml-cpp
 )
+holohub_link_daqiri(basic_networking_ping)
 
 # Copy config file
-add_custom_target(basic_networking_ping_rx_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../basic_networking_ping_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../basic_networking_ping_rx.yaml"
-)
-add_custom_target(basic_networking_ping_tx_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../basic_networking_ping_tx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../basic_networking_ping_tx.yaml"
+add_custom_target(basic_networking_ping_yaml
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../basic_networking_ping.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../basic_networking_ping.yaml"
 )
 
-add_dependencies(basic_networking_ping basic_networking_ping_rx_yaml)
-add_dependencies(basic_networking_ping basic_networking_ping_tx_yaml)
+add_dependencies(basic_networking_ping basic_networking_ping_yaml)
 
 install(
   TARGETS basic_networking_ping
@@ -50,8 +54,7 @@ install(
 
 install(
   FILES
-    ../basic_networking_ping_rx.yaml
-    ../basic_networking_ping_tx.yaml
+    ../basic_networking_ping.yaml
   DESTINATION examples/basic_networking_ping
   COMPONENT basic_networking_ping-configs
   PERMISSIONS OWNER_READ OWNER_WRITE

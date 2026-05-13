@@ -1,6 +1,6 @@
 # High Performance Networking with Holoscan
 
-This tutorial demonstrates how to use the Advanced Network library (referred to as `advanced_network` in HoloHub) for low latency and high throughput communication through NVIDIA SmartNICs. With a properly tuned system, the Advanced Network library can achieve hundreds of Gbps with latencies in the low microseconds.
+This tutorial demonstrates how to use DAQIRI (referred to as `daqiri` in HoloHub) for low latency and high throughput communication through NVIDIA SmartNICs. With a properly tuned system, DAQIRI can achieve hundreds of Gbps with latencies in the low microseconds.
 
 !!! note
 
@@ -25,7 +25,7 @@ Achieving high performance networking is a complex problem that involves many sy
 
 ### Kernel Bypass
 
-In this context, Kernel Bypass refers to bypassing the operating system's kernel to directly communicate with the network interface (NIC), greatly reducing the latency and overhead of the Linux network stack. There are multiple technologies that achieve this in different fashions. They're all Ethernet-based, but differ in their implementation and features. The goal of the Advanced Network library in Holoscan Networking is to provide a common higher-level interface to all these backends:
+In this context, Kernel Bypass refers to bypassing the operating system's kernel to directly communicate with the network interface (NIC), greatly reducing the latency and overhead of the Linux network stack. There are multiple technologies that achieve this in different fashions. They're all Ethernet-based, but differ in their implementation and features. The goal of DAQIRI in Holoscan Networking is to provide a common higher-level interface to all these backends:
 
 - **RDMA**: Remote Direct Memory Access, using the open-source [`rdma-core`](https://github.com/linux-rdma/rdma-core) library. It differs from the other Ethernet-based backends with its server/client model and RoCE (RDMA over Ethernet) protocol. Given the extra cost and complexity to setup on both ends, it offers a simpler user interface, orders packets on arrival, and is the only one to offer a high reliability mode.
 - **DPDK**: the Data Plane Development Kit is an open-source project part of the Linux Foundation with a strong and long-lasting community support. Its RTE Flow capability is generally considered the most flexible solution to split packets ingress and egress data.
@@ -34,14 +34,14 @@ In this context, Kernel Bypass refers to bypassing the operating system's kernel
 
 ??? example "Work In Progress"
 
-    The Holoscan Advanced Network library integration testing infrastructure is under active development. As such:
+    The Holoscan DAQIRI integration testing infrastructure is under active development. As such:
 
     - The **DPDK** backend is supported and distributed with the `holoscan-networking` package, and is the only backend actively tested at this time.
     - The **DOCA GPUNetIO** backend is supported and distributed with the `holoscan-networking` package, with testing infrastructure under development.
     - The **NVIDIA Rivermax** backend is supported for Rx only when building from source, but not yet distributed nor actively tested. Tx support is under development.
     - The **RDMA** backend is under active development and should be available soon.
 
-Which backend is best for your use case will depend on multiple factors, such as packet size, batch size, data type, and more. The goal of the Advanced Network library is to abstract the interface to these backends, allowing developers to focus on the application logic and experiment with different configurations to identify the best technology for their use case.
+Which backend is best for your use case will depend on multiple factors, such as packet size, batch size, data type, and more. The goal of DAQIRI is to abstract the interface to these backends, allowing developers to focus on the application logic and experiment with different configurations to identify the best technology for their use case.
 
 ### GPUDirect
 
@@ -413,7 +413,7 @@ Assuming you already have [NVIDIA drivers](https://docs.nvidia.com/datacenter/te
 
         ```bash
         cd holohub
-        sudo ./operators/advanced_network/python/tune_system.py --check topo
+        sudo $DAQIRI_ROOT/python/tune_system.py --check topo
 
         ```
 
@@ -486,7 +486,7 @@ Before diving in each of the setups below, we provide a utility script as part o
 
     ```bash
     cd holohub
-    sudo ./operators/advanced_network/python/tune_system.py --check all
+    sudo $DAQIRI_ROOT/python/tune_system.py --check all
     ```
 
 ??? abstract "See an example output"
@@ -547,7 +547,7 @@ Run the following command to check the GPUDirect communication matrix. **You are
 
         ```bash
         cd holohub
-        sudo ./operators/advanced_network/python/tune_system.py --check topo
+        sudo $DAQIRI_ROOT/python/tune_system.py --check topo
         ```
 
     ??? abstract "See an example output"
@@ -640,7 +640,7 @@ The instructions below are meant to understand if your system is able to extract
 
         ```bash
         cd holohub
-        sudo ./operators/advanced_network/python/tune_system.py --check mps
+        sudo $DAQIRI_ROOT/python/tune_system.py --check mps
         ```
 
     ??? abstract "See an example output"
@@ -742,7 +742,7 @@ Unlike the PCIe properties queried in the previous section, the MRRS is configur
 
         ```bash
         cd holohub
-        sudo ./operators/advanced_network/python/tune_system.py --check mrrs
+        sudo $DAQIRI_ROOT/python/tune_system.py --check mrrs
         ```
 
 === "manual"
@@ -781,7 +781,7 @@ Update MRRS:
 
     ```bash
     cd holohub
-    sudo ./operators/advanced_network/python/tune_system.py --set mrrs
+    sudo $DAQIRI_ROOT/python/tune_system.py --set mrrs
     ```
 
 !!! note
@@ -953,13 +953,9 @@ Rerunning the initial commands should now list 3 hugepages of 1GB each. 1GB will
 
 ### 3.5 Isolate CPU cores
 
-!!! note
-
-    This optimization is less impactful when using the `gpunetio` backend since the GPU polls the NIC.
-
 The CPU interacting with the NIC to route packets is sensitive to perturbations, especially with smaller packet/batch sizes requiring more frequent work. Isolating a CPU in Linux prevents unwanted user or kernel threads from running on it, reducing context switching and latency spikes from noisy neighbors.
 
-We recommend isolating the CPU cores you will select to interact with the NIC (defined in the `advanced_network` configuration [described later](#51-understand-the-configuration-parameters) in this tutorial). This is done by setting additional flags on the kernel bootline.
+We recommend isolating the CPU cores you will select to interact with the NIC (defined in the `daqiri` configuration [described later](#51-understand-the-configuration-parameters) in this tutorial). This is done by setting additional flags on the kernel bootline.
 
 You can first check if any of the recommended flags were already set on the last boot:
 
@@ -975,7 +971,7 @@ You can first check if any of the recommended flags were already set on the last
 
         ```bash
         cd holohub
-        sudo ./operators/advanced_network/python/tune_system.py --check cmdline
+        sudo $DAQIRI_ROOT/python/tune_system.py --check cmdline
         ```
 
 === "manual"
@@ -1061,7 +1057,7 @@ Check the current governor for each of your cores:
 
         ```bash
         cd holohub
-        sudo ./operators/advanced_network/python/tune_system.py --check cpu-freq
+        sudo $DAQIRI_ROOT/python/tune_system.py --check cpu-freq
         ```
 
     ??? abstract "See an example output"
@@ -1251,7 +1247,7 @@ The GPU BAR1 memory is the primary resource consumed by `GPUDirect`. It allows o
 
         ```bash
         cd holohub
-        sudo ./operators/advanced_network/python/tune_system.py --check bar1-size
+        sudo $DAQIRI_ROOT/python/tune_system.py --check bar1-size
         ```
 
     ??? abstract "See an example output"
@@ -1412,7 +1408,7 @@ Jumbo frames are Ethernet frames that carry a payload larger than the standard 1
 
         ```bash
         cd holohub
-        sudo ./operators/advanced_network/python/tune_system.py --check mtu
+        sudo $DAQIRI_ROOT/python/tune_system.py --check mtu
         ```
 
     ??? abstract "See an example output"
@@ -1494,18 +1490,19 @@ Identify the location of the `adv_networking_bench` executable, and of the confi
     ls -1 /opt/nvidia/holoscan/examples/adv_networking_bench/
     adv_networking_bench
     adv_networking_bench_default_rx_multi_q.yaml
+    adv_networking_bench_default_sw_loopback.yaml
     adv_networking_bench_default_tx_rx_hds.yaml
+    adv_networking_bench_default_tx_rx_multi_q_hds.yaml
     adv_networking_bench_default_tx_rx.yaml
-    adv_networking_bench_gpunetio_tx_rx.yaml
-    adv_networking_bench_rivermax_rx.yaml
+    adv_networking_bench_rdma_tx_rx.yaml
+    adv_networking_bench_rx_arb_match.yaml
     CMakeLists.txt
     default_bench_op_rx.h
     default_bench_op_tx.h
-    doca_bench_op_rx.h
-    doca_bench_op_tx.h
     kernels.cu
     kernels.cuh
     main.cpp
+    rdma_bench.h
     ```
 
 === "From source"
@@ -1516,19 +1513,20 @@ Identify the location of the `adv_networking_bench` executable, and of the confi
     ls -1 ./install/examples/adv_networking_bench
     adv_networking_bench
     adv_networking_bench_default_rx_multi_q.yaml
+    adv_networking_bench_default_sw_loopback.yaml
     adv_networking_bench_default_tx_rx_hds.yaml
+    adv_networking_bench_default_tx_rx_multi_q_hds.yaml
     adv_networking_bench_default_tx_rx.yaml
-    adv_networking_bench_gpunetio_tx_rx.yaml
     adv_networking_bench.py
-    adv_networking_bench_rivermax_rx.yaml
+    adv_networking_bench_rdma_tx_rx.yaml
+    adv_networking_bench_rx_arb_match.yaml
     CMakeLists.txt
     default_bench_op_rx.h
     default_bench_op_tx.h
-    doca_bench_op_rx.h
-    doca_bench_op_tx.h
     kernels.cu
     kernels.cuh
     main.cpp
+    rdma_bench.h
     ```
 
     !!! warning
@@ -1569,7 +1567,7 @@ Retrieve the PCIe addresses of both ports of your NIC. We'll arbitrarily use the
 
 ##### Configure the NIC for Tx and Rx
 
-Set the NIC addresses in the `interfaces` section of the `advanced_network` section, making sure to remove the template brackets `< >`. This configures your NIC independently of your application:
+Set the NIC addresses in the `interfaces` section of the `daqiri` section, making sure to remove the template brackets `< >`. This configures your NIC independently of your application:
 
 - Set the `address` field of the `tx_port` interface to one of these addresses. That interface will be able to transmit ethernet packets.
 - Set the `address` field of the `rx_port` interface to the other address. This interface will be able to receive ethernet packets.
@@ -1608,7 +1606,7 @@ To run the benchmarking application to run a loopback on your system, you'll nee
 
 ```yaml hl_lines="4"
 bench_tx:
-    interface_name: "tx_port" # Name of the TX port from the advanced_network config
+    interface_name: "tx_port" # Name of the TX port from DAQIRI config
     ...
     eth_dst_addr: <00:00:00:00:00:00> # Destination MAC address - required when Rx flow_isolation=true
     ...
@@ -1618,7 +1616,7 @@ bench_tx:
 
     ```yaml hl_lines="4"
     bench_tx:
-        interface_name: "tx_port" # Name of the TX port from the advanced_network config
+        interface_name: "tx_port" # Name of the TX port from DAQIRI config
         ...
         eth_dst_addr: 48:b0:2d:ee:83:ad # Destination MAC address - required when Rx flow_isolation=true
         ...
@@ -1628,7 +1626,7 @@ bench_tx:
 
     - `eth_dst_addr` - the destination ethernet MAC address - will be embedded in the packet headers by the application. This is required here because the Rx interface above has `flow_isolation: true` (explained in more details below). In that configuration, only the packets listing the adequate destination MAC address will be accepted by the Rx interface.
     - We ignore the IP fields (`ip_src_addr`, `ip_dst_addr`) for now, as we are testing on a layer 2 network by just connecting a cable between the two interfaces on our system, therefore having mock values has no impact.
-    - You might have noted the lack of a `eth_src_addr` field in this `bench_tx` section. This is because the source Ethernet MAC address can be inferred automatically by the Advanced Network library from the PCIe address of the Tx interface referenced above.
+    - You might have noted the lack of a `eth_src_addr` field in this `bench_tx` section. This is because the source Ethernet MAC address can be inferred automatically by DAQIRI from the PCIe address of the Tx interface referenced above.
 
 ### 4.2 Run the loopback test
 
@@ -1644,7 +1642,7 @@ After having modified the configuration file, ensure you have connected an SFP c
 
     === "Bare Metal"
 
-        This assumes you have the required dependencies (holoscan, doca, etc.) installed locally on your system.
+        This assumes you have the required dependencies, including DAQIRI, installed locally on your system.
 
         ```bash
         sudo ./install/examples/adv_networking_bench/adv_networking_bench adv_networking_bench_default_tx_rx.yaml
@@ -1666,14 +1664,14 @@ The application will run indefinitely. You can stop it gracefully with `Ctrl-C`.
     ```log
     [info] [fragment.cpp:599] Loading extensions from configs...
     [info] [gxf_executor.cpp:264] Creating context
-    [info] [main.cpp:35] Initializing advanced network operator
-    [info] [main.cpp:40] Using ANO manager dpdk
-    [info] [adv_network_rx.cpp:35] Adding output port bench_rx_out
-    [info] [adv_network_rx.cpp:51] AdvNetworkOpRx::initialize()
-    [info] [adv_network_common.h:607] Finished reading advanced network operator config
-    [info] [adv_network_dpdk_mgr.cpp:373] Attempting to use 2 ports for high-speed network
-    [info] [adv_network_dpdk_mgr.cpp:382] Setting DPDK log level to: Info
-    [info] [adv_network_dpdk_mgr.cpp:402] DPDK EAL arguments: adv_net_operator --file-prefix=nwlrbbmqbh -l 3,11,9 --log-level=9 --log-level=pmd.net.mlx5:info -a 0005:03:00.0,txq_inline_max=0,dv_flow_en=2 -a 0005:03:00.1,txq_inline_max=0,dv_flow_en=2
+    [info] [main.cpp:35] Initializing DAQIRI
+    [info] [main.cpp:40] Using DAQIRI manager dpdk
+    [info] [daqiri_rx.cpp:35] Adding output port bench_rx_out
+    [info] [daqiri_rx.cpp:51] DAQIRI RX::initialize()
+    [info] [daqiri_common.h:607] Finished reading DAQIRI config
+    [info] [daqiri_dpdk_mgr.cpp:373] Attempting to use 2 ports for high-speed network
+    [info] [daqiri_dpdk_mgr.cpp:382] Setting DPDK log level to: Info
+    [info] [daqiri_dpdk_mgr.cpp:402] DPDK EAL arguments: daqiri --file-prefix=nwlrbbmqbh -l 3,11,9 --log-level=9 --log-level=pmd.net.mlx5:info -a 0005:03:00.0,txq_inline_max=0,dv_flow_en=2 -a 0005:03:00.1,txq_inline_max=0,dv_flow_en=2
     Log level 9 higher than maximum (8)
     EAL: Detected CPU lcores: 12
     EAL: Detected NUMA nodes: 1
@@ -1690,84 +1688,84 @@ The application will run indefinitely. You can stop it gracefully with `Ctrl-C`.
     mlx5_net: enhanced MPS is enabled
     mlx5_net: port 1 MAC address is 48:B0:2D:EE:83:AD
     TELEMETRY: No legacy callbacks, legacy socket not created
-    [info] [adv_network_dpdk_mgr.cpp:298] Port 0 has no RX queues. Creating dummy queue.
-    [info] [adv_network_dpdk_mgr.cpp:165] Adjusting buffer size to 9228 for headroom
-    [info] [adv_network_dpdk_mgr.cpp:165] Adjusting buffer size to 9128 for headroom
-    [info] [adv_network_dpdk_mgr.cpp:165] Adjusting buffer size to 9128 for headroom
-    [info] [adv_network_mgr.cpp:116] Registering memory regions
-    [info] [adv_network_mgr.cpp:178] Successfully allocated memory region MR_Unused_P0 at 0x100fa0000 type 2 with 9100 bytes (32768 elements @ 9228 bytes total 302383104)
-    [info] [adv_network_mgr.cpp:178] Successfully allocated memory region Data_RX_GPU at 0xffff4fc00000 type 3 with 9000 bytes (51200 elements @ 9128 bytes total 467402752)
-    [info] [adv_network_mgr.cpp:178] Successfully allocated memory region Data_TX_GPU at 0xffff33e00000 type 3 with 9000 bytes (51200 elements @ 9128 bytes total 467402752)
-    [info] [adv_network_mgr.cpp:191] Finished allocating memory regions
-    [info] [adv_network_dpdk_mgr.cpp:223] Successfully registered external memory for Data_TX_GPU
-    [info] [adv_network_dpdk_mgr.cpp:223] Successfully registered external memory for Data_RX_GPU
-    [info] [adv_network_dpdk_mgr.cpp:193] Mapped external memory descriptor for 0xffff4fc00000 to device 0
-    [info] [adv_network_dpdk_mgr.cpp:193] Mapped external memory descriptor for 0xffff33e00000 to device 0
-    [info] [adv_network_dpdk_mgr.cpp:193] Mapped external memory descriptor for 0xffff4fc00000 to device 1
-    [info] [adv_network_dpdk_mgr.cpp:193] Mapped external memory descriptor for 0xffff33e00000 to device 1
-    [info] [adv_network_dpdk_mgr.cpp:454] DPDK init (0005:03:00.0) -- RX: ENABLED TX: ENABLED
-    [info] [adv_network_dpdk_mgr.cpp:464] Configuring RX queue: UNUSED_P0_Q0 (0) on port 0
-    [info] [adv_network_dpdk_mgr.cpp:513] Created mempool RXP_P0_Q0_MR0 : mbufs=32768 elsize=9228 ptr=0x10041c380
-    [info] [adv_network_dpdk_mgr.cpp:523] Max packet size needed for RX: 9100
-    [info] [adv_network_dpdk_mgr.cpp:564] Configuring TX queue: ADC Samples (0) on port 0
-    [info] [adv_network_dpdk_mgr.cpp:607] Created mempool TXP_P0_Q0_MR0 : mbufs=51200 elsize=9000 ptr=0x100c1fc00
-    [info] [adv_network_dpdk_mgr.cpp:621] Max packet size needed with TX: 9100
-    [info] [adv_network_dpdk_mgr.cpp:632] Setting port config for port 0 mtu:9082
-    [info] [adv_network_dpdk_mgr.cpp:663] Initializing port 0 with 1 RX queues and 1 TX queues...
+    [info] [daqiri_dpdk_mgr.cpp:298] Port 0 has no RX queues. Creating dummy queue.
+    [info] [daqiri_dpdk_mgr.cpp:165] Adjusting buffer size to 9228 for headroom
+    [info] [daqiri_dpdk_mgr.cpp:165] Adjusting buffer size to 9128 for headroom
+    [info] [daqiri_dpdk_mgr.cpp:165] Adjusting buffer size to 9128 for headroom
+    [info] [common.h:116] Registering memory regions
+    [info] [common.h:178] Successfully allocated memory region MR_Unused_P0 at 0x100fa0000 type 2 with 9100 bytes (32768 elements @ 9228 bytes total 302383104)
+    [info] [common.h:178] Successfully allocated memory region Data_RX_GPU at 0xffff4fc00000 type 3 with 9000 bytes (51200 elements @ 9128 bytes total 467402752)
+    [info] [common.h:178] Successfully allocated memory region Data_TX_GPU at 0xffff33e00000 type 3 with 9000 bytes (51200 elements @ 9128 bytes total 467402752)
+    [info] [common.h:191] Finished allocating memory regions
+    [info] [daqiri_dpdk_mgr.cpp:223] Successfully registered external memory for Data_TX_GPU
+    [info] [daqiri_dpdk_mgr.cpp:223] Successfully registered external memory for Data_RX_GPU
+    [info] [daqiri_dpdk_mgr.cpp:193] Mapped external memory descriptor for 0xffff4fc00000 to device 0
+    [info] [daqiri_dpdk_mgr.cpp:193] Mapped external memory descriptor for 0xffff33e00000 to device 0
+    [info] [daqiri_dpdk_mgr.cpp:193] Mapped external memory descriptor for 0xffff4fc00000 to device 1
+    [info] [daqiri_dpdk_mgr.cpp:193] Mapped external memory descriptor for 0xffff33e00000 to device 1
+    [info] [daqiri_dpdk_mgr.cpp:454] DPDK init (0005:03:00.0) -- RX: ENABLED TX: ENABLED
+    [info] [daqiri_dpdk_mgr.cpp:464] Configuring RX queue: UNUSED_P0_Q0 (0) on port 0
+    [info] [daqiri_dpdk_mgr.cpp:513] Created mempool RXP_P0_Q0_MR0 : mbufs=32768 elsize=9228 ptr=0x10041c380
+    [info] [daqiri_dpdk_mgr.cpp:523] Max packet size needed for RX: 9100
+    [info] [daqiri_dpdk_mgr.cpp:564] Configuring TX queue: ADC Samples (0) on port 0
+    [info] [daqiri_dpdk_mgr.cpp:607] Created mempool TXP_P0_Q0_MR0 : mbufs=51200 elsize=9000 ptr=0x100c1fc00
+    [info] [daqiri_dpdk_mgr.cpp:621] Max packet size needed with TX: 9100
+    [info] [daqiri_dpdk_mgr.cpp:632] Setting port config for port 0 mtu:9082
+    [info] [daqiri_dpdk_mgr.cpp:663] Initializing port 0 with 1 RX queues and 1 TX queues...
     mlx5_net: port 0 Tx queues number update: 0 -> 1
     mlx5_net: port 0 Rx queues number update: 0 -> 1
-    [info] [adv_network_dpdk_mgr.cpp:679] Successfully configured ethdev
-    [info] [adv_network_dpdk_mgr.cpp:689] Successfully set descriptors to 8192/8192
-    [info] [adv_network_dpdk_mgr.cpp:704] Port 0 not in isolation mode
-    [info] [adv_network_dpdk_mgr.cpp:713] Setting up port:0, queue:0, Num scatter:1 pool:0x10041c380
-    [info] [adv_network_dpdk_mgr.cpp:734] Successfully setup RX port 0 queue 0
-    [info] [adv_network_dpdk_mgr.cpp:756] Successfully set up TX queue 0/0
-    [info] [adv_network_dpdk_mgr.cpp:761] Enabling promiscuous mode for port 0
+    [info] [daqiri_dpdk_mgr.cpp:679] Successfully configured ethdev
+    [info] [daqiri_dpdk_mgr.cpp:689] Successfully set descriptors to 8192/8192
+    [info] [daqiri_dpdk_mgr.cpp:704] Port 0 not in isolation mode
+    [info] [daqiri_dpdk_mgr.cpp:713] Setting up port:0, queue:0, Num scatter:1 pool:0x10041c380
+    [info] [daqiri_dpdk_mgr.cpp:734] Successfully setup RX port 0 queue 0
+    [info] [daqiri_dpdk_mgr.cpp:756] Successfully set up TX queue 0/0
+    [info] [daqiri_dpdk_mgr.cpp:761] Enabling promiscuous mode for port 0
     mlx5_net: [mlx5dr_cmd_query_caps]: Failed to query wire port regc value
     mlx5_net: port 0 Rx queues number update: 1 -> 1
-    [info] [adv_network_dpdk_mgr.cpp:775] Successfully started port 0
-    [info] [adv_network_dpdk_mgr.cpp:778] Port 0, MAC address: 48:B0:2D:EE:83:AC
-    [info] [adv_network_dpdk_mgr.cpp:1111] Applying tx_eth_src offload for port 0
-    [info] [adv_network_dpdk_mgr.cpp:454] DPDK init (0005:03:00.1) -- RX: ENABLED TX: DISABLED
-    [info] [adv_network_dpdk_mgr.cpp:464] Configuring RX queue: Data (0) on port 1
-    [info] [adv_network_dpdk_mgr.cpp:513] Created mempool RXP_P1_Q0_MR0 : mbufs=51200 elsize=9128 ptr=0x125a5b940
-    [info] [adv_network_dpdk_mgr.cpp:523] Max packet size needed for RX: 9000
-    [info] [adv_network_dpdk_mgr.cpp:621] Max packet size needed with TX: 9000
-    [info] [adv_network_dpdk_mgr.cpp:632] Setting port config for port 1 mtu:8982
-    [info] [adv_network_dpdk_mgr.cpp:663] Initializing port 1 with 1 RX queues and 0 TX queues...
+    [info] [daqiri_dpdk_mgr.cpp:775] Successfully started port 0
+    [info] [daqiri_dpdk_mgr.cpp:778] Port 0, MAC address: 48:B0:2D:EE:83:AC
+    [info] [daqiri_dpdk_mgr.cpp:1111] Applying tx_eth_src offload for port 0
+    [info] [daqiri_dpdk_mgr.cpp:454] DPDK init (0005:03:00.1) -- RX: ENABLED TX: DISABLED
+    [info] [daqiri_dpdk_mgr.cpp:464] Configuring RX queue: Data (0) on port 1
+    [info] [daqiri_dpdk_mgr.cpp:513] Created mempool RXP_P1_Q0_MR0 : mbufs=51200 elsize=9128 ptr=0x125a5b940
+    [info] [daqiri_dpdk_mgr.cpp:523] Max packet size needed for RX: 9000
+    [info] [daqiri_dpdk_mgr.cpp:621] Max packet size needed with TX: 9000
+    [info] [daqiri_dpdk_mgr.cpp:632] Setting port config for port 1 mtu:8982
+    [info] [daqiri_dpdk_mgr.cpp:663] Initializing port 1 with 1 RX queues and 0 TX queues...
     mlx5_net: port 1 Rx queues number update: 0 -> 1
-    [info] [adv_network_dpdk_mgr.cpp:679] Successfully configured ethdev
-    [info] [adv_network_dpdk_mgr.cpp:689] Successfully set descriptors to 8192/8192
-    [info] [adv_network_dpdk_mgr.cpp:701] Port 1 in isolation mode
-    [info] [adv_network_dpdk_mgr.cpp:713] Setting up port:1, queue:0, Num scatter:1 pool:0x125a5b940
-    [info] [adv_network_dpdk_mgr.cpp:734] Successfully setup RX port 1 queue 0
-    [info] [adv_network_dpdk_mgr.cpp:764] Not enabling promiscuous mode on port 1 since flow isolation is enabled
+    [info] [daqiri_dpdk_mgr.cpp:679] Successfully configured ethdev
+    [info] [daqiri_dpdk_mgr.cpp:689] Successfully set descriptors to 8192/8192
+    [info] [daqiri_dpdk_mgr.cpp:701] Port 1 in isolation mode
+    [info] [daqiri_dpdk_mgr.cpp:713] Setting up port:1, queue:0, Num scatter:1 pool:0x125a5b940
+    [info] [daqiri_dpdk_mgr.cpp:734] Successfully setup RX port 1 queue 0
+    [info] [daqiri_dpdk_mgr.cpp:764] Not enabling promiscuous mode on port 1 since flow isolation is enabled
     mlx5_net: [mlx5dr_cmd_query_caps]: Failed to query wire port regc value
     mlx5_net: port 1 Rx queues number update: 1 -> 1
-    [info] [adv_network_dpdk_mgr.cpp:775] Successfully started port 1
-    [info] [adv_network_dpdk_mgr.cpp:778] Port 1, MAC address: 48:B0:2D:EE:83:AD
-    [info] [adv_network_dpdk_mgr.cpp:790] Adding RX flow ADC Samples
-    [info] [adv_network_dpdk_mgr.cpp:998] Adding IPv4 length match for 1050
-    [info] [adv_network_dpdk_mgr.cpp:1018] Adding UDP port match for src/dst 4096/4096
-    [info] [adv_network_dpdk_mgr.cpp:814] Setting up RX burst pool with 8191 batches of size 81920
-    [info] [adv_network_dpdk_mgr.cpp:833] Setting up RX burst pool with 8191 batches of size 20480
-    [info] [adv_network_dpdk_mgr.cpp:875] Setting up TX ring TX_RING_P0_Q0
-    [info] [adv_network_dpdk_mgr.cpp:901] Setting up TX burst pool TX_BURST_POOL_P0_Q0 with 10240 pointers at 0x125a0d4c0
-    [info] [adv_network_dpdk_mgr.cpp:1186] Config validated successfully
-    [info] [adv_network_dpdk_mgr.cpp:1199] Starting advanced network workers
-    [info] [adv_network_dpdk_mgr.cpp:1278] Flushing packet on port 1
-    [info] [adv_network_dpdk_mgr.cpp:1478] Starting RX Core 9, port 1, queue 0, socket 0
-    [info] [adv_network_dpdk_mgr.cpp:1268] Done starting workers
+    [info] [daqiri_dpdk_mgr.cpp:775] Successfully started port 1
+    [info] [daqiri_dpdk_mgr.cpp:778] Port 1, MAC address: 48:B0:2D:EE:83:AD
+    [info] [daqiri_dpdk_mgr.cpp:790] Adding RX flow ADC Samples
+    [info] [daqiri_dpdk_mgr.cpp:998] Adding IPv4 length match for 1050
+    [info] [daqiri_dpdk_mgr.cpp:1018] Adding UDP port match for src/dst 4096/4096
+    [info] [daqiri_dpdk_mgr.cpp:814] Setting up RX burst pool with 8191 batches of size 81920
+    [info] [daqiri_dpdk_mgr.cpp:833] Setting up RX burst pool with 8191 batches of size 20480
+    [info] [daqiri_dpdk_mgr.cpp:875] Setting up TX ring TX_RING_P0_Q0
+    [info] [daqiri_dpdk_mgr.cpp:901] Setting up TX burst pool TX_BURST_POOL_P0_Q0 with 10240 pointers at 0x125a0d4c0
+    [info] [daqiri_dpdk_mgr.cpp:1186] Config validated successfully
+    [info] [daqiri_dpdk_mgr.cpp:1199] Starting advanced network workers
+    [info] [daqiri_dpdk_mgr.cpp:1278] Flushing packet on port 1
+    [info] [daqiri_dpdk_mgr.cpp:1478] Starting RX Core 9, port 1, queue 0, socket 0
+    [info] [daqiri_dpdk_mgr.cpp:1268] Done starting workers
     [info] [default_bench_op_tx.h:79] AdvNetworkingBenchDefaultTxOp::initialize()
-    [info] [adv_network_dpdk_mgr.cpp:1637] Starting TX Core 11, port 0, queue 0 socket 0 using burst pool 0x125a0d4c0 ring 0x127690740
+    [info] [daqiri_dpdk_mgr.cpp:1637] Starting TX Core 11, port 0, queue 0 socket 0 using burst pool 0x125a0d4c0 ring 0x127690740
     [info] [default_bench_op_tx.h:113] Initialized 4 streams and events
     [info] [default_bench_op_tx.h:130] AdvNetworkingBenchDefaultTxOp::initialize() complete
     [info] [default_bench_op_rx.h:67] AdvNetworkingBenchDefaultRxOp::initialize()
     [info] [gxf_executor.cpp:1797] creating input IOSpec named 'burst_in'
     [info] [default_bench_op_rx.h:104] AdvNetworkingBenchDefaultRxOp::initialize() complete
-    [info] [adv_network_tx.cpp:46] AdvNetworkOpTx::initialize()
+    [info] [daqiri_tx.cpp:46] DAQIRI TX::initialize()
     [info] [gxf_executor.cpp:1797] creating input IOSpec named 'burst_in'
-    [info] [adv_network_common.h:607] Finished reading advanced network operator config
+    [info] [daqiri_common.h:607] Finished reading DAQIRI config
     [info] [gxf_executor.cpp:2208] Activating Graph...
     [info] [gxf_executor.cpp:2238] Running Graph...
     [info] [multi_thread_scheduler.cpp:300] MultiThreadScheduler started worker thread [pool name: default_pool, thread uid: 0]
@@ -1799,73 +1797,73 @@ The application will run indefinitely. You can stop it gracefully with `Ctrl-C`.
 
     [info] [multi_thread_scheduler.cpp:316] Worker Thread [pool name: default_pool, thread uid: 4] exiting.
     [info] [multi_thread_scheduler.cpp:688] All async worker threads joined, deactivating all entities
-    [info] [adv_network_rx.cpp:46] AdvNetworkOpRx::stop()
-    [info] [adv_network_dpdk_mgr.cpp:1928] DPDK ANO shutdown called 2
-    [info] [adv_network_tx.cpp:41] AdvNetworkOpTx::stop()
-    [info] [adv_network_dpdk_mgr.cpp:1928] DPDK ANO shutdown called 1
-    [info] [adv_network_dpdk_mgr.cpp:1133] Port 0:
-    [info] [adv_network_dpdk_mgr.cpp:1135]  - Received packets:    0
-    [info] [adv_network_dpdk_mgr.cpp:1136]  - Transmit packets:    6005066864
-    [info] [adv_network_dpdk_mgr.cpp:1137]  - Received bytes:      0
-    [info] [adv_network_dpdk_mgr.cpp:1138]  - Transmit bytes:      6389391347584
-    [info] [adv_network_dpdk_mgr.cpp:1139]  - Missed packets:      0
-    [info] [adv_network_dpdk_mgr.cpp:1140]  - Errored packets:     0
-    [info] [adv_network_dpdk_mgr.cpp:1141]  - RX out of buffers:   0
-    [info] [adv_network_dpdk_mgr.cpp:1143]    ** Extended Stats **
-    [info] [adv_network_dpdk_mgr.cpp:1173]       tx_good_packets:          6005070000
-    [info] [adv_network_dpdk_mgr.cpp:1173]       tx_good_bytes:            6389394480000
-    [info] [adv_network_dpdk_mgr.cpp:1173]       tx_q0_packets:            6005070000
-    [info] [adv_network_dpdk_mgr.cpp:1173]       tx_q0_bytes:              6389394480000
-    [info] [adv_network_dpdk_mgr.cpp:1173]       rx_multicast_bytes:               9589
-    [info] [adv_network_dpdk_mgr.cpp:1173]       rx_multicast_packets:             22
-    [info] [adv_network_dpdk_mgr.cpp:1173]       tx_unicast_bytes:         6389394480000
-    [info] [adv_network_dpdk_mgr.cpp:1173]       tx_multicast_bytes:               9589
-    [info] [adv_network_dpdk_mgr.cpp:1173]       tx_unicast_packets:               6005070000
-    [info] [adv_network_dpdk_mgr.cpp:1173]       tx_multicast_packets:             22
-    [info] [adv_network_dpdk_mgr.cpp:1173]       tx_phy_packets:           6005070022
-    [info] [adv_network_dpdk_mgr.cpp:1173]       rx_phy_packets:           24
-    [info] [adv_network_dpdk_mgr.cpp:1173]       tx_phy_bytes:             6413414769677
-    [info] [adv_network_dpdk_mgr.cpp:1173]       rx_phy_bytes:             9805
-    [info] [adv_network_dpdk_mgr.cpp:1133] Port 1:
-    [info] [adv_network_dpdk_mgr.cpp:1135]  - Received packets:    6004323692
-    [info] [adv_network_dpdk_mgr.cpp:1136]  - Transmit packets:    0
-    [info] [adv_network_dpdk_mgr.cpp:1137]  - Received bytes:      6388600255072
-    [info] [adv_network_dpdk_mgr.cpp:1138]  - Transmit bytes:      0
-    [info] [adv_network_dpdk_mgr.cpp:1139]  - Missed packets:      746308
-    [info] [adv_network_dpdk_mgr.cpp:1140]  - Errored packets:     0
-    [info] [adv_network_dpdk_mgr.cpp:1141]  - RX out of buffers:   5047027287
-    [info] [adv_network_dpdk_mgr.cpp:1143]    ** Extended Stats **
-    [info] [adv_network_dpdk_mgr.cpp:1173]       rx_good_packets:          6004323692
-    [info] [adv_network_dpdk_mgr.cpp:1173]       rx_good_bytes:            6388600255072
-    [info] [adv_network_dpdk_mgr.cpp:1173]       rx_missed_errors:         746308
-    [info] [adv_network_dpdk_mgr.cpp:1173]       rx_mbuf_allocation_errors:                5047027287
-    [info] [adv_network_dpdk_mgr.cpp:1173]       rx_q0_packets:            6004323692
-    [info] [adv_network_dpdk_mgr.cpp:1173]       rx_q0_bytes:              6388600255072
-    [info] [adv_network_dpdk_mgr.cpp:1173]       rx_q0_errors:             5047027287
-    [info] [adv_network_dpdk_mgr.cpp:1173]       rx_unicast_bytes:         6389394480000
-    [info] [adv_network_dpdk_mgr.cpp:1173]       rx_multicast_bytes:               9589
-    [info] [adv_network_dpdk_mgr.cpp:1173]       rx_unicast_packets:               6005070000
-    [info] [adv_network_dpdk_mgr.cpp:1173]       rx_multicast_packets:             22
-    [info] [adv_network_dpdk_mgr.cpp:1173]       tx_multicast_bytes:               9589
-    [info] [adv_network_dpdk_mgr.cpp:1173]       tx_multicast_packets:             22
-    [info] [adv_network_dpdk_mgr.cpp:1173]       tx_phy_packets:           24
-    [info] [adv_network_dpdk_mgr.cpp:1173]       rx_phy_packets:           6005070022
-    [info] [adv_network_dpdk_mgr.cpp:1173]       tx_phy_bytes:             9805
-    [info] [adv_network_dpdk_mgr.cpp:1173]       rx_phy_bytes:             6413414769677
-    [info] [adv_network_dpdk_mgr.cpp:1173]       rx_out_of_buffer:         746308
-    [info] [adv_network_dpdk_mgr.cpp:1935] ANO DPDK manager shutting down
-    [info] [adv_network_dpdk_mgr.cpp:1622] Total packets received by application (port/queue 1/0): 6004323692
-    [info] [adv_network_dpdk_mgr.cpp:1698] Total packets transmitted by application (port/queue 0/0): 6005070000
+    [info] [daqiri_rx.cpp:46] DAQIRI RX::stop()
+    [info] [daqiri_dpdk_mgr.cpp:1928] DAQIRI DPDK shutdown called 2
+    [info] [daqiri_tx.cpp:41] DAQIRI TX::stop()
+    [info] [daqiri_dpdk_mgr.cpp:1928] DAQIRI DPDK shutdown called 1
+    [info] [daqiri_dpdk_mgr.cpp:1133] Port 0:
+    [info] [daqiri_dpdk_mgr.cpp:1135]  - Received packets:    0
+    [info] [daqiri_dpdk_mgr.cpp:1136]  - Transmit packets:    6005066864
+    [info] [daqiri_dpdk_mgr.cpp:1137]  - Received bytes:      0
+    [info] [daqiri_dpdk_mgr.cpp:1138]  - Transmit bytes:      6389391347584
+    [info] [daqiri_dpdk_mgr.cpp:1139]  - Missed packets:      0
+    [info] [daqiri_dpdk_mgr.cpp:1140]  - Errored packets:     0
+    [info] [daqiri_dpdk_mgr.cpp:1141]  - RX out of buffers:   0
+    [info] [daqiri_dpdk_mgr.cpp:1143]    ** Extended Stats **
+    [info] [daqiri_dpdk_mgr.cpp:1173]       tx_good_packets:          6005070000
+    [info] [daqiri_dpdk_mgr.cpp:1173]       tx_good_bytes:            6389394480000
+    [info] [daqiri_dpdk_mgr.cpp:1173]       tx_q0_packets:            6005070000
+    [info] [daqiri_dpdk_mgr.cpp:1173]       tx_q0_bytes:              6389394480000
+    [info] [daqiri_dpdk_mgr.cpp:1173]       rx_multicast_bytes:               9589
+    [info] [daqiri_dpdk_mgr.cpp:1173]       rx_multicast_packets:             22
+    [info] [daqiri_dpdk_mgr.cpp:1173]       tx_unicast_bytes:         6389394480000
+    [info] [daqiri_dpdk_mgr.cpp:1173]       tx_multicast_bytes:               9589
+    [info] [daqiri_dpdk_mgr.cpp:1173]       tx_unicast_packets:               6005070000
+    [info] [daqiri_dpdk_mgr.cpp:1173]       tx_multicast_packets:             22
+    [info] [daqiri_dpdk_mgr.cpp:1173]       tx_phy_packets:           6005070022
+    [info] [daqiri_dpdk_mgr.cpp:1173]       rx_phy_packets:           24
+    [info] [daqiri_dpdk_mgr.cpp:1173]       tx_phy_bytes:             6413414769677
+    [info] [daqiri_dpdk_mgr.cpp:1173]       rx_phy_bytes:             9805
+    [info] [daqiri_dpdk_mgr.cpp:1133] Port 1:
+    [info] [daqiri_dpdk_mgr.cpp:1135]  - Received packets:    6004323692
+    [info] [daqiri_dpdk_mgr.cpp:1136]  - Transmit packets:    0
+    [info] [daqiri_dpdk_mgr.cpp:1137]  - Received bytes:      6388600255072
+    [info] [daqiri_dpdk_mgr.cpp:1138]  - Transmit bytes:      0
+    [info] [daqiri_dpdk_mgr.cpp:1139]  - Missed packets:      746308
+    [info] [daqiri_dpdk_mgr.cpp:1140]  - Errored packets:     0
+    [info] [daqiri_dpdk_mgr.cpp:1141]  - RX out of buffers:   5047027287
+    [info] [daqiri_dpdk_mgr.cpp:1143]    ** Extended Stats **
+    [info] [daqiri_dpdk_mgr.cpp:1173]       rx_good_packets:          6004323692
+    [info] [daqiri_dpdk_mgr.cpp:1173]       rx_good_bytes:            6388600255072
+    [info] [daqiri_dpdk_mgr.cpp:1173]       rx_missed_errors:         746308
+    [info] [daqiri_dpdk_mgr.cpp:1173]       rx_mbuf_allocation_errors:                5047027287
+    [info] [daqiri_dpdk_mgr.cpp:1173]       rx_q0_packets:            6004323692
+    [info] [daqiri_dpdk_mgr.cpp:1173]       rx_q0_bytes:              6388600255072
+    [info] [daqiri_dpdk_mgr.cpp:1173]       rx_q0_errors:             5047027287
+    [info] [daqiri_dpdk_mgr.cpp:1173]       rx_unicast_bytes:         6389394480000
+    [info] [daqiri_dpdk_mgr.cpp:1173]       rx_multicast_bytes:               9589
+    [info] [daqiri_dpdk_mgr.cpp:1173]       rx_unicast_packets:               6005070000
+    [info] [daqiri_dpdk_mgr.cpp:1173]       rx_multicast_packets:             22
+    [info] [daqiri_dpdk_mgr.cpp:1173]       tx_multicast_bytes:               9589
+    [info] [daqiri_dpdk_mgr.cpp:1173]       tx_multicast_packets:             22
+    [info] [daqiri_dpdk_mgr.cpp:1173]       tx_phy_packets:           24
+    [info] [daqiri_dpdk_mgr.cpp:1173]       rx_phy_packets:           6005070022
+    [info] [daqiri_dpdk_mgr.cpp:1173]       tx_phy_bytes:             9805
+    [info] [daqiri_dpdk_mgr.cpp:1173]       rx_phy_bytes:             6413414769677
+    [info] [daqiri_dpdk_mgr.cpp:1173]       rx_out_of_buffer:         746308
+    [info] [daqiri_dpdk_mgr.cpp:1935] DAQIRI DPDK manager shutting down
+    [info] [daqiri_dpdk_mgr.cpp:1622] Total packets received by application (port/queue 1/0): 6004323692
+    [info] [daqiri_dpdk_mgr.cpp:1698] Total packets transmitted by application (port/queue 0/0): 6005070000
     [info] [multi_thread_scheduler.cpp:645] Multithread scheduler stopped.
     [info] [multi_thread_scheduler.cpp:664] Multithread scheduler finished.
     [info] [gxf_executor.cpp:2243] Deactivating Graph...
     [info] [multi_thread_scheduler.cpp:491] TOTAL EXECUTION TIME OF SCHEDULER : 523694.460857 ms
 
     [info] [gxf_executor.cpp:2251] Graph execution finished.
-    [info] [adv_network_dpdk_mgr.cpp:1928] DPDK ANO shutdown called 0
-    [info] [default_bench_op_tx.h:51] ANO benchmark TX op shutting down
+    [info] [daqiri_dpdk_mgr.cpp:1928] DAQIRI DPDK shutdown called 0
+    [info] [default_bench_op_tx.h:51] DAQIRI benchmark TX op shutting down
     [info] [default_bench_op_rx.h:56] Finished receiver with 6388570603520/6004295680 bytes/packets received and 0 packets dropped
-    [info] [default_bench_op_rx.h:61] ANO benchmark RX op shutting down
+    [info] [default_bench_op_rx.h:61] DAQIRI benchmark RX op shutting down
     [info] [default_bench_op_rx.h:108] AdvNetworkingBenchDefaultRxOp::freeResources() start
     [info] [default_bench_op_rx.h:116] AdvNetworkingBenchDefaultRxOp::freeResources() complete
     [info] [gxf_executor.cpp:294] Destroying context
@@ -1907,8 +1905,8 @@ sudo mlnx_perf -i $if_name
         ```log
         mlx5_common: Fail to create MR for address (0xffff2fc00000)
         mlx5_common: Device 0005:03:00.0 unable to DMA map
-        [critical] [adv_network_dpdk_mgr.cpp:188] Could not DMA map EXT memory: -1 err=Invalid argument
-        [critical] [adv_network_dpdk_mgr.cpp:430] Failed to map MRs
+        [critical] [daqiri_dpdk_mgr.cpp:188] Could not DMA map EXT memory: -1 err=Invalid argument
+        [critical] [daqiri_dpdk_mgr.cpp:430] Failed to map MRs
         ```
 
         [Make sure that `nvidia-peermem` is loaded](#24-enable-gpudirect).
@@ -2009,7 +2007,7 @@ scheduler: # (1)!
   stop_on_deadlock_timeout: 500
   # max_duration_ms: 20000
 
-advanced_network: # (2)!
+daqiri: # (2)!
   cfg:
     version: 1
     manager: "dpdk" # (3)!
@@ -2071,7 +2069,7 @@ advanced_network: # (2)!
             ipv4_len: 1050
 
 bench_rx: # (30)!
-  interface_name: "rx_port" # Name of the RX port from the advanced_network config
+  interface_name: "rx_port" # Name of the RX port from DAQIRI config
   gpu_direct: true          # Set to true if using a GPU region for the Rx queues.
   split_boundary: true      # Whether header and data are split for Rx (Header to CPU)
   batch_size: 10240
@@ -2079,7 +2077,7 @@ bench_rx: # (30)!
   header_size: 64
 
 bench_tx: # (31)!
-  interface_name: "tx_port" # Name of the TX port from the advanced_network config
+  interface_name: "tx_port" # Name of the TX port from DAQIRI config
   gpu_direct: true          # Set to true if using a GPU region for the Tx queues.
   split_boundary: 0         # Byte boundary where header and data are split for Tx, 0 if no split
   batch_size: 10240
@@ -2092,9 +2090,9 @@ bench_tx: # (31)!
   udp_dst_port: 4096        # UDP destination port
 ```
 
-1. The `scheduler` section is passed to the multi threaded scheduler we declare in the `#!cpp main()` function of this application. See the [holoscan SDK documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/components/schedulers#multithreadscheduler) for more details. This is related to the Holoscan core library and is not specific to Holoscan Networking.
-2. The `advanced_network` section is passed to the `advanced_network::adv_net_init` which is responsible for setting up the NIC. That function should be called in your `#!cpp Application::compose()` function.
-3. `manager` is the backend networking library. default: `dpdk`. Other: `gpunetio` (DOCA GPUNet IO + DOCA Ethernet & Flow). Coming soon: `rivermax`, `rdma`.
+1. The `scheduler` section is passed to the multi threaded scheduler we declare in the `#!cpp main()` function of this application. See the [holoscan SDK documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/components/schedulers.html) and [API docs](https://docs.nvidia.com/holoscan/sdk-user-guide/api/cpp/classholoscan_1_1multithreadscheduler.html) for more details. This is related to the Holoscan core library and is not specific to Holoscan Networking.
+2. The `daqiri` section is passed to `daqiri::daqiri_init`, which is responsible for setting up the NIC. That function should be called before the application graph starts.
+3. `stream_type` and `protocol` select a DAQIRI backend. The HoloHub examples use raw DPDK-style packet I/O and DAQIRI socket/RDMA paths.
 4. `master_core` is the ID of the CPU core used for setup. It does not need to be isolated, and is recommended to differ differ from the `cpu_core` fields below used for polling the NIC.
 5. The `memory_regions` section lists where the NIC will write/read data from/to when bypassing the OS kernel. Tip: when using GPU buffer regions, keeping the sum of their buffer sizes lower than 80% of your BAR1 size is generally a good rule of thumb 👍.
 6. A descriptive name for that memory region to refer to later in the `interfaces` section.
@@ -2195,8 +2193,8 @@ bench_tx: # (31)!
         target_link_libraries(my_app
             PRIVATE
                 holoscan::core
-                holoscan::ops::advanced_network_rx
-                holoscan::ops::advanced_network_tx
+                daqiri raw RX APIs
+                daqiri raw TX APIs
                 my_other_dependencies
                 ...
         )
@@ -2243,7 +2241,7 @@ bench_tx: # (31)!
     2. Add the following to the [`application/CMakeLists.txt`](https://github.com/nvidia-holoscan/holohub/blob/main/applications/adv_networking_bench/CMakeLists.txt) file:
 
         ```cmake
-        add_holohub_application(my_app DEPENDS OPERATORS advanced_network)
+        find_package(daqiri REQUIRED CONFIG)
         ```
 
     3. Create a `CMakeLists.txt` file in your application directory like this one:
@@ -2267,8 +2265,8 @@ bench_tx: # (31)!
         target_link_libraries(my_app
             PRIVATE
                 holoscan::core
-                holoscan::ops::advanced_network_rx
-                holoscan::ops::advanced_network_tx
+                daqiri raw RX APIs
+                daqiri raw TX APIs
                 my_other_dependencies
                 ...
         )

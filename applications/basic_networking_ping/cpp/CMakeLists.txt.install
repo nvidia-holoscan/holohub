@@ -18,7 +18,33 @@ project(basic_networking_ping CXX)
 
 # Find dependencies
 find_package(holoscan 0.5 REQUIRED CONFIG PATHS "/opt/nvidia/holoscan")
-find_package(holoscan-networking REQUIRED CONFIG PATHS "/opt/nvidia/holoscan")
+find_package(yaml-cpp REQUIRED CONFIG PATHS "/opt/nvidia/holoscan")
+if(DEFINED ENV{DAQIRI_ROOT})
+  list(PREPEND CMAKE_PREFIX_PATH "$ENV{DAQIRI_ROOT}")
+endif()
+list(PREPEND CMAKE_PREFIX_PATH "/opt/daqiri")
+find_package(daqiri REQUIRED CONFIG)
+
+function(link_daqiri target_name)
+  set(_daqiri_targets daqiri::daqiri)
+  foreach(_daqiri_manager IN ITEMS dpdk socket rdma)
+    if(TARGET "daqiri::${_daqiri_manager}")
+      list(APPEND _daqiri_targets "daqiri::${_daqiri_manager}")
+    endif()
+  endforeach()
+
+  # DAQIRI static packages can contain cross-references between core and manager archives.
+  if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.24")
+    string(JOIN "," _daqiri_link_group ${_daqiri_targets})
+    target_link_libraries("${target_name}" PRIVATE "$<LINK_GROUP:RESCAN,${_daqiri_link_group}>")
+  else()
+    target_link_libraries("${target_name}" PRIVATE
+      "-Wl,--start-group"
+      ${_daqiri_targets}
+      "-Wl,--end-group"
+    )
+  endif()
+endfunction()
 
 # Create the executable
 add_executable(basic_networking_ping
@@ -27,17 +53,13 @@ add_executable(basic_networking_ping
 target_link_libraries(basic_networking_ping
   PRIVATE
   holoscan::core
-  holoscan::ops::basic_network
+  yaml-cpp
 )
+link_daqiri(basic_networking_ping)
 
-# Copy config files
-add_custom_target(basic_networking_ping_rx_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/basic_networking_ping_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/basic_networking_ping_rx.yaml"
+# Copy config file
+add_custom_target(basic_networking_ping_yaml
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/basic_networking_ping.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/basic_networking_ping.yaml"
 )
-add_dependencies(basic_networking_ping basic_networking_ping_rx_yaml)
-add_custom_target(basic_networking_ping_tx_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/basic_networking_ping_tx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/basic_networking_ping_tx.yaml"
-)
-add_dependencies(basic_networking_ping basic_networking_ping_tx_yaml)
+add_dependencies(basic_networking_ping basic_networking_ping_yaml)

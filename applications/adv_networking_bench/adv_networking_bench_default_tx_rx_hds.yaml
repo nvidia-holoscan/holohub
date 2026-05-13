@@ -21,10 +21,10 @@ scheduler:
   stop_on_deadlock_timeout: 500
   # max_duration_ms: 20000
 
-advanced_network:
+daqiri:
   cfg:
     version: 1
-    manager: "dpdk"
+    stream_type: "raw"
     master_core: 3
     debug: false
     log_level: "info"
@@ -90,7 +90,7 @@ advanced_network:
             ipv4_len: 1050
 
 bench_rx:
-  interface_name: "rx_port" # Name of the RX port from the advanced_network config
+  interface_name: "rx_port" # Name of the RX port from DAQIRI config
   gpu_direct: true          # Set to true if using a GPU region for the Rx queues.
   split_boundary: true      # Whether header and data is split (Header to CPU)
   batch_size: 10240
@@ -98,7 +98,7 @@ bench_rx:
   header_size: 64
 
 bench_tx:
-  interface_name: "tx_port" # Name of the TX port from the advanced_network config
+  interface_name: "tx_port" # Name of the TX port from DAQIRI config
   gpu_direct: true          # Set to true if using a GPU region for the Tx queues.
   split_boundary: true         # Whether header and data is split (Header to CPU, payload to GPU)
   batch_size: 10240

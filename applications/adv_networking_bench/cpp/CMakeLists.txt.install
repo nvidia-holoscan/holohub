@@ -23,14 +23,32 @@ project(adv_networking_bench CXX CUDA)
 
 # Dependencies
 find_package(holoscan 2.6 REQUIRED CONFIG PATHS "/opt/nvidia/holoscan")
-find_package(holoscan-networking REQUIRED CONFIG PATHS "/opt/nvidia/holoscan")
-include(FetchContent)
-FetchContent_Declare(
-  MatX
-  GIT_REPOSITORY https://github.com/NVIDIA/MatX.git
-  GIT_TAG v0.8.0
-)
-FetchContent_MakeAvailable(MatX)
+if(DEFINED ENV{DAQIRI_ROOT})
+  list(PREPEND CMAKE_PREFIX_PATH "$ENV{DAQIRI_ROOT}")
+endif()
+list(PREPEND CMAKE_PREFIX_PATH "/opt/daqiri")
+find_package(daqiri REQUIRED CONFIG)
+
+function(link_daqiri target_name)
+  set(_daqiri_targets daqiri::daqiri)
+  foreach(_daqiri_manager IN ITEMS dpdk socket rdma)
+    if(TARGET "daqiri::${_daqiri_manager}")
+      list(APPEND _daqiri_targets "daqiri::${_daqiri_manager}")
+    endif()
+  endforeach()
+
+  # DAQIRI static packages can contain cross-references between core and manager archives.
+  if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.24")
+    string(JOIN "," _daqiri_link_group ${_daqiri_targets})
+    target_link_libraries("${target_name}" PRIVATE "$<LINK_GROUP:RESCAN,${_daqiri_link_group}>")
+  else()
+    target_link_libraries("${target_name}" PRIVATE
+      "-Wl,--start-group"
+      ${_daqiri_targets}
+      "-Wl,--end-group"
+    )
+  endif()
+endfunction()
 
 # Create the executable
 add_executable(adv_networking_bench
@@ -40,62 +58,36 @@ add_executable(adv_networking_bench
 target_link_libraries(adv_networking_bench
   PRIVATE
   holoscan::core
-  holoscan::ops::advanced_network_rx
-  holoscan::ops::advanced_network_tx
-  matx::matx
 )
+link_daqiri(adv_networking_bench)
 
 # Configure manager support through compile definitions
-if(NOT DEFINED ANO_MGR)
-    # Initialize ANO_MGR with a default if not provided
-    # Note: rivermax not added to the default list yet since it requires licensing
-    set(ANO_MGR "dpdk rdma" CACHE STRING "Manager type(s) list")
+if(NOT DEFINED DAQIRI_MGR)
+    set(DAQIRI_MGR "dpdk socket rdma" CACHE STRING "DAQIRI manager type(s) list")
 endif()
-separate_arguments(ANO_MGR_LIST UNIX_COMMAND ${ANO_MGR})
-foreach(MGR IN LISTS ANO_MGR_LIST)
-    message(STATUS "Adding manager ${MGR} to the configuration")
-    target_compile_definitions(${PROJECT_NAME} PUBLIC "ANO_MGR_${MGR}=1")
+separate_arguments(DAQIRI_MGR_LIST UNIX_COMMAND ${DAQIRI_MGR})
+foreach(MGR IN LISTS DAQIRI_MGR_LIST)
+    string(TOUPPER "${MGR}" MGR_UPPER)
+    message(STATUS "Adding DAQIRI manager ${MGR} to the application configuration")
+    target_compile_definitions(${PROJECT_NAME} PUBLIC "DAQIRI_MGR_${MGR_UPPER}=1")
 endforeach()
 
 # Copy config files
-add_custom_target(adv_networking_bench_default_tx_rx_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/adv_networking_bench_default_tx_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/adv_networking_bench_default_tx_rx.yaml"
+set(ADV_NETWORKING_BENCH_CONFIGS
+  adv_networking_bench_default_tx_rx.yaml
+  adv_networking_bench_default_rx_multi_q.yaml
+  adv_networking_bench_default_sw_loopback.yaml
+  adv_networking_bench_default_tx_rx_multi_q_hds.yaml
+  adv_networking_bench_default_tx_rx_hds.yaml
+  adv_networking_bench_rx_arb_match.yaml
+  adv_networking_bench_rdma_tx_rx.yaml
 )
-add_dependencies(adv_networking_bench adv_networking_bench_default_tx_rx_yaml)
 
-add_custom_target(adv_networking_bench_default_rx_multi_q_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/adv_networking_bench_default_rx_multi_q.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/adv_networking_bench_default_rx_multi_q.yaml"
-)
-add_dependencies(adv_networking_bench adv_networking_bench_default_rx_multi_q_yaml)
-
-add_custom_target(adv_networking_bench_default_tx_rx_hds_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/adv_networking_bench_default_tx_rx_hds.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/adv_networking_bench_default_tx_rx_hds.yaml"
-)
-add_dependencies(adv_networking_bench adv_networking_bench_default_tx_rx_hds_yaml)
-
-add_custom_target(adv_networking_bench_gpunetio_tx_rx_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/adv_networking_bench_gpunetio_tx_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/adv_networking_bench_gpunetio_tx_rx.yaml"
-)
-add_dependencies(adv_networking_bench adv_networking_bench_gpunetio_tx_rx_yaml)
-
-add_custom_target(adv_networking_bench_rivermax_rx_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/adv_networking_bench_rivermax_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/adv_networking_bench_rivermax_rx.yaml"
-)
-add_dependencies(adv_networking_bench adv_networking_bench_rmax_rx_yaml)
-
-add_custom_target(adv_networking_bench_rivermax_tx_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/adv_networking_bench_rivermax_tx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/adv_networking_bench_rivermax_tx.yaml"
-)
-add_dependencies(adv_networking_bench adv_networking_bench_rmax_tx_yaml)
-
-add_custom_target(adv_networking_bench_rivermax_tx_rx_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/adv_networking_bench_rivermax_tx_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/adv_networking_bench_rivermax_tx_rx.yaml"
-)
-add_dependencies(adv_networking_bench adv_networking_bench_rmax_tx_rx_yaml)
+foreach(CONFIG_FILE IN LISTS ADV_NETWORKING_BENCH_CONFIGS)
+  string(REPLACE "." "_" CONFIG_TARGET "${CONFIG_FILE}")
+  add_custom_target(${CONFIG_TARGET}
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/${CONFIG_FILE}" ${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${CONFIG_FILE}"
+  )
+  add_dependencies(adv_networking_bench ${CONFIG_TARGET})
+endforeach()

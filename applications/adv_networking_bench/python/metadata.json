@@ -8,13 +8,14 @@
 			}
 		],
 		"language": "Python",
-		"version": "1.0",
+		"version": "1.1",
 		"changelog": {
+			"1.1": "Port networking backend to DAQIRI",
 			"1.0": "Initial Release"
 		},
 		"platforms": ["x86_64", "aarch64"],
 		"tags": ["Networking and Distributed Computing", "Distributed", "UDP", "GPUDirect", "DPDK"],
-		"dockerfile": "operators/advanced_network/Dockerfile",
+		"dockerfile": "pkg/holoscan-networking/Dockerfile",
 		"holoscan_sdk": {
 			"minimum_required_version": "0.6.0",
 			"tested_versions": [
@@ -23,13 +24,10 @@
 		},
 		"ranking": 1,
 		"requirements": {
-			"operators": [{
-				"name": "adv_network_rx",
-				"version": "1.0"
-			},
-      {
-				"name": "adv_network_tx",
-				"version": "1.0"
+			"libraries": [{
+				"name": "DAQIRI",
+				"version": "0.1.0",
+				"url": "https://github.com/NVIDIA/daqiri"
 			}]
 		},
 		"run": {

@@ -26,10 +26,11 @@ scheduler:
   stop_on_deadlock_timeout: 500
   # max_duration_ms: 20000
 
-advanced_network:
+daqiri:
   cfg:
     version: 1
-    manager: "rdma"
+    stream_type: "socket"
+    protocol: "roce"
     master_core: 3
     debug: false
     log_level: "info"
@@ -58,10 +59,15 @@ advanced_network:
 
     interfaces:
     - name: my_client             # Do not change! Referenced in code
-      rdma_config:
-        mode: client
-        transport_mode: RC
       address: 192.168.11.2       # The address to use, or leave blank for route lookup
+      socket_config:
+        mode: client
+        local_ip: 192.168.11.2
+        remote_ip: 192.168.10.2
+        remote_port: 4096
+        max_payload_size: 9000
+      roce_config:
+        transport_mode: RC
       tx:
         queues:
         - name: "Client_TX_Queue"
@@ -75,11 +81,14 @@ advanced_network:
           cpu_core: 7
           batch_size: 1
     - name: my_server             # Do not change! Referenced in code
-      rdma_config:
-        mode: server
-        transport_mode: RC
-        port: 4096
       address: 192.168.10.2       # The IP address of the interface to bind to
+      socket_config:
+        mode: server
+        local_ip: 192.168.10.2
+        local_port: 4096
+        max_payload_size: 9000
+      roce_config:
+        transport_mode: RC
       rx:
         queues:
         - name: "Server_RX_Queue"

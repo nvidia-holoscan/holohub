@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -78,7 +78,7 @@ def update_yaml_file(yaml_path: str, output_path: str, updates: Dict[str, Any]) 
     Example:
         update_yaml_file(yaml_path, output_path, {
             "scheduler.max_duration_ms": 5000,
-            "advanced_network.cfg.interfaces[0].address": "0000:3b:00.0",
+            "daqiri.cfg.interfaces[0].address": "0000:3b:00.0",
             "bench_tx.eth_dst_addr": "00:11:22:33:44:55"
         })
 

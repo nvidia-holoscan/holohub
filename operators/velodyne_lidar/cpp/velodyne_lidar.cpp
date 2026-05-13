@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights
+ * SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights
  * reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,8 +18,6 @@
 #include "velodyne_lidar.hpp"
 
 #include <holoscan/holoscan.hpp>
-
-#include <basic_network_operator_common.h>
 
 #include "velodyne_constants.hpp"
 #include "velodyne_convert_xyz.hpp"
@@ -82,21 +80,21 @@ void VelodyneLidarOp::compute(holoscan::InputContext& op_input, holoscan::Output
   // the packet can be parsed.
   packet_buffer_index_ = (packet_buffer_index_ + 1) % packet_buffer_size_;
 
-  auto data = op_input.receive<std::shared_ptr<NetworkOpBurstParams>>("burst_in");
-  HOLOSCAN_LOG_DEBUG("First packet byte: " + std::to_string((*data)->data[0]) +
-                     ", Last packet byte: " + std::to_string((*data)->data[(*data)->len - 1]) +
-                     ", Length: " + std::to_string((*data)->len) +
-                     ", Num packets: " + std::to_string((*data)->num_pkts));
+  auto data = op_input.receive<NetworkPacket>("burst_in");
+  HOLOSCAN_LOG_DEBUG("First packet byte: " + std::to_string(data->data[0]) +
+                     ", Last packet byte: " + std::to_string(data->data[data->len - 1]) +
+                     ", Length: " + std::to_string(data->len) +
+                     ", Num packets: " + std::to_string(data->num_pkts));
 
-  if ((*data)->len != VLP16_PACKET_SIZE) {
+  if (data->len != VLP16_PACKET_SIZE) {
     HOLOSCAN_LOG_ERROR(
         "Received data length does not match expected VLP16 packet size. Expected: " +
-        std::to_string(VLP16_PACKET_SIZE) + ", Received: " + std::to_string((*data)->len));
+        std::to_string(VLP16_PACKET_SIZE) + ", Received: " + std::to_string(data->len));
     return;
   }
 
   velodyne_helper_.ConvertRawPacketToDeviceXYZ(
-      reinterpret_cast<data_collection::sensors::RawVelodynePacket*>((*data)->data),
+      reinterpret_cast<data_collection::sensors::RawVelodynePacket*>(data->data),
       reinterpret_cast<data_collection::sensors::PointXYZ*>(
           reinterpret_cast<float*>(cloud_tensor_->data()) +
           (packet_buffer_index_ * VLP16_PACKET_CLOUD_SIZE * CLOUD_DIMENSION)));

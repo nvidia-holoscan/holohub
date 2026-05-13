@@ -15,23 +15,23 @@
  * limitations under the License.
  */
 
-#include "advanced_network/common.h"
-#include "advanced_network/kernels.h"
 #include "kernels.cuh"
 #include "holoscan/holoscan.hpp"
+#include <daqiri/daqiri.h>
+#include "src/kernels.h"
 #include <queue>
 #include <arpa/inet.h>
 #include <assert.h>
 #include <sys/time.h>
 
-using namespace holoscan::advanced_network;
+using namespace daqiri;
 
 namespace holoscan::ops {
 
 /*
-  The Advanced Networking Benchmark app uses the Advanced Network library to show how to
+  The Advanced Networking Benchmark app uses DAQIRI to show how to
   send and receive packets at very high rates. The application is configurable
-  to show different scenarios that might be used with the Advanced Network library.
+  to show different scenarios that might be used with DAQIRI.
   For both TX and RX, there are three possible modes: CPU-only, Header-data split,
   and GPU-only. CPU-only gives the worst performance of the three, but allows the
   packets to be viewed in CPU memory. Header-data split and GPU-only mode both
@@ -149,7 +149,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
       cudaMemset(gds_header_, 0, header_size_.get());
 
       populate_dummy_headers(pkt);
-      // advanced_network expects host order when setting
+      // DAQIRI expects host order when setting
       ip_src_ = ntohl(ip_src_);
       ip_dst_ = ntohl(ip_dst_);
 
@@ -198,8 +198,8 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
                          42);
     spec.param<std::string>(interface_name_,
                             "interface_name",
-                            "Name of NIC from advanced_network config",
-                            "Name of NIC from advanced_network config");
+                            "Name of NIC from DAQIRI config",
+                            "Name of NIC from DAQIRI config");
   }
 
   void compute(InputContext&, OutputContext& op_output, ExecutionContext&) override {
@@ -291,7 +291,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
         }
       }
 
-      // Figure out the CPU and GPU length portions for advanced_network
+      // Figure out the CPU and GPU length portions for DAQIRI
       if (gpu_direct_.get() && hds_.get()) {
         gpu_bufs[cur_idx][num_pkt] =
             reinterpret_cast<uint8_t*>(get_segment_packet_ptr(msg, 1, num_pkt));

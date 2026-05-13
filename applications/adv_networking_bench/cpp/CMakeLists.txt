@@ -19,6 +19,12 @@ project(adv_networking_bench CXX CUDA)
 # Dependencies
 find_package(holoscan 2.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+if(DEFINED ENV{DAQIRI_ROOT})
+  list(PREPEND CMAKE_PREFIX_PATH "$ENV{DAQIRI_ROOT}")
+endif()
+list(PREPEND CMAKE_PREFIX_PATH "/opt/daqiri")
+find_package(daqiri REQUIRED CONFIG)
+include(HoloHubDaqiri)
 
 # Global variables
 set(CMAKE_CUDA_ARCHITECTURES "70;80;90")
@@ -31,87 +37,39 @@ add_executable(adv_networking_bench
 target_link_libraries(adv_networking_bench
   PRIVATE
   holoscan::core
-  holoscan::advanced_network
 )
+holohub_link_daqiri(adv_networking_bench)
 
 # Configure manager support through compile definitions
-if(NOT DEFINED ANO_MGR)
-    # Initialize ANO_MGR with a default if not provided
-    # Note: rivermax not added to the default list yet since it requires licensing
-    set(ANO_MGR "dpdk rdma" CACHE STRING "Manager type(s) list")
+if(NOT DEFINED DAQIRI_MGR)
+    set(DAQIRI_MGR "dpdk socket rdma" CACHE STRING "DAQIRI manager type(s) list")
 endif()
-separate_arguments(ANO_MGR_LIST UNIX_COMMAND ${ANO_MGR})
-foreach(MGR IN LISTS ANO_MGR_LIST)
-    message(STATUS "Adding manager ${MGR} to the configuration")
-    target_compile_definitions(${PROJECT_NAME} PUBLIC "ANO_MGR_${MGR}=1")
+separate_arguments(DAQIRI_MGR_LIST UNIX_COMMAND ${DAQIRI_MGR})
+foreach(MGR IN LISTS DAQIRI_MGR_LIST)
+    string(TOUPPER "${MGR}" MGR_UPPER)
+    message(STATUS "Adding DAQIRI manager ${MGR} to the application configuration")
+    target_compile_definitions(${PROJECT_NAME} PUBLIC "DAQIRI_MGR_${MGR_UPPER}=1")
 endforeach()
 
 # Copy config file
-add_custom_target(adv_networking_bench_default_tx_rx_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_tx_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_tx_rx.yaml"
+set(ADV_NETWORKING_BENCH_CONFIGS
+  adv_networking_bench_default_tx_rx.yaml
+  adv_networking_bench_default_rx_multi_q.yaml
+  adv_networking_bench_default_sw_loopback.yaml
+  adv_networking_bench_default_tx_rx_multi_q_hds.yaml
+  adv_networking_bench_default_tx_rx_hds.yaml
+  adv_networking_bench_rx_arb_match.yaml
+  adv_networking_bench_rdma_tx_rx.yaml
 )
-add_dependencies(adv_networking_bench adv_networking_bench_default_tx_rx_yaml)
 
-add_custom_target(adv_networking_bench_default_rx_multi_q_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_rx_multi_q.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_rx_multi_q.yaml"
-)
-add_dependencies(adv_networking_bench adv_networking_bench_default_rx_multi_q_yaml)
-
-add_custom_target(adv_networking_bench_default_sw_loopback_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_sw_loopback.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_sw_loopback.yaml"
-)
-add_dependencies(adv_networking_bench adv_networking_bench_default_sw_loopback_yaml)
-
-add_custom_target(adv_networking_bench_default_tx_rx_multi_q_hds_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_tx_rx_multi_q_hds.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_tx_rx_multi_q_hds.yaml"
-)
-add_dependencies(adv_networking_bench adv_networking_bench_default_tx_rx_multi_q_hds_yaml)
-
-add_custom_target(adv_networking_bench_default_tx_rx_hds_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_tx_rx_hds.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_default_tx_rx_hds.yaml"
-)
-add_dependencies(adv_networking_bench adv_networking_bench_default_tx_rx_hds_yaml)
-
-add_custom_target(adv_networking_bench_gpunetio_tx_rx_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_gpunetio_tx_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_gpunetio_tx_rx.yaml"
-)
-add_dependencies(adv_networking_bench adv_networking_bench_gpunetio_tx_rx_yaml)
-
-add_custom_target(adv_networking_bench_rivermax_rx_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_rivermax_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_rivermax_rx.yaml"
-)
-add_dependencies(adv_networking_bench adv_networking_bench_rivermax_rx_yaml)
-
-add_custom_target(adv_networking_bench_rivermax_tx_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_rivermax_tx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_rivermax_tx.yaml"
-)
-add_dependencies(adv_networking_bench adv_networking_bench_rivermax_tx_yaml)
-
-add_custom_target(adv_networking_bench_rivermax_tx_rx_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_rivermax_tx_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_rivermax_rx.yaml"
-)
-add_dependencies(adv_networking_bench adv_networking_bench_rivermax_tx_rx_yaml)
-
-add_custom_target(adv_networking_bench_rx_arb_match_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_rx_arb_match.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_rx_arb_match.yaml"
-)
-add_dependencies(adv_networking_bench adv_networking_bench_rx_arb_match_yaml)
-
-add_custom_target(adv_networking_bench_rdma_tx_rx_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_rdma_tx_rx.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../adv_networking_bench_rdma_tx_rx.yaml"
-)
-add_dependencies(adv_networking_bench adv_networking_bench_rdma_tx_rx_yaml)
+foreach(CONFIG_FILE IN LISTS ADV_NETWORKING_BENCH_CONFIGS)
+  string(REPLACE "." "_" CONFIG_TARGET "${CONFIG_FILE}")
+  add_custom_target(${CONFIG_TARGET}
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../${CONFIG_FILE}" ${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../${CONFIG_FILE}"
+  )
+  add_dependencies(adv_networking_bench ${CONFIG_TARGET})
+endforeach()
 
 # Installation
 install(TARGETS adv_networking_bench
@@ -124,10 +82,8 @@ install(
     ../adv_networking_bench_default_tx_rx.yaml
     ../adv_networking_bench_default_rx_multi_q.yaml
     ../adv_networking_bench_default_sw_loopback.yaml
-    ../adv_networking_bench_gpunetio_tx_rx.yaml
-    ../adv_networking_bench_rivermax_rx.yaml
-    ../adv_networking_bench_rivermax_tx.yaml
-    ../adv_networking_bench_rivermax_tx_rx.yaml
+    ../adv_networking_bench_default_tx_rx_multi_q_hds.yaml
+    ../adv_networking_bench_rx_arb_match.yaml
     ../adv_networking_bench_rdma_tx_rx.yaml
   DESTINATION examples/adv_networking_bench
   COMPONENT adv_networking_bench-configs
@@ -153,8 +109,7 @@ install(
     kernels.cuh
     default_bench_op_rx.h
     default_bench_op_tx.h
-    doca_bench_op_rx.h
-    doca_bench_op_tx.h
+    rdma_bench.h
   DESTINATION examples/adv_networking_bench
   COMPONENT adv_networking_bench-cppsrc
   PERMISSIONS OWNER_READ OWNER_WRITE
@@ -169,7 +124,7 @@ if(BUILD_TESTING)
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/testing/benchmark_utils.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/testing")
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/testing/io_utils.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/testing")
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/testing/process_utils.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/testing")
-  file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/testing/test_ano_bench.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/testing")
+  file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/testing/test_daqiri_bench.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/testing")
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/testing/conftest.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/testing")
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/testing/nvidia_nic_utils.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/testing")
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/testing/yaml_config_utils.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/testing")
@@ -178,7 +133,7 @@ if(BUILD_TESTING)
   include(add_python_tests)
   add_python_tests(
     INPUT "testing"
-    ENVIRONMENT "ANO_MANAGER_LIST=${ANO_MGR_LIST}"
+    ENVIRONMENT "DAQIRI_MANAGER_LIST=${DAQIRI_MGR_LIST}"
     PYTEST_ARGS "-v" "-s" "--log-cli-level=DEBUG" "--show-capture=no"
   )
 endif()

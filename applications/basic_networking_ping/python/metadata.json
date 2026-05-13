@@ -8,12 +8,14 @@
 			}
 		],
 		"language": "Python",
-		"version": "1.0",
+		"version": "1.1",
 		"changelog": {
+			"1.1": "Port networking backend to DAQIRI",
 			"1.0": "Initial Release"
 		},
 		"platforms": ["x86_64", "aarch64"],
 		"tags": ["Networking and Distributed Computing", "Distributed", "UDP", "Communications"],
+		"dockerfile": "pkg/holoscan-networking/Dockerfile",
 		"holoscan_sdk": {
 			"minimum_required_version": "0.6.0",
 			"tested_versions": [
@@ -31,31 +33,25 @@
 		},
 		"ranking": 1,
 		"requirements": {
-			"operators": [{
-				"name": "basic_network",
-				"version": "1.0"
+			"libraries": [{
+				"name": "DAQIRI",
+				"version": "0.1.0",
+				"url": "https://github.com/NVIDIA/daqiri"
 			}]
 		},
-		"default_mode": "flexible",
+		"default_mode": "loopback",
 		"modes": {
 			"flexible": {
-				"description": "Start the receiver or transmitter with the specified arguments",
+				"description": "Run with the specified configuration arguments",
 				"run": {
 					"command": "python3 <holohub_app_source>/basic_networking_ping.py",
 					"workdir": "holohub_app_bin"
 				}
 			},
-			"rx": {
-				"description": "Start the receiver",
+			"loopback": {
+				"description": "Run DAQIRI socket UDP loopback ping",
 				"run": {
-					"command": "python3 <holohub_app_source>/basic_networking_ping.py basic_networking_ping_rx.yaml",
-					"workdir": "holohub_app_bin"
-				}
-			},
-			"tx": {
-				"description": "Start the transmitter",
-				"run": {
-					"command": "python3 <holohub_app_source>/basic_networking_ping.py basic_networking_ping_tx.yaml",
+					"command": "python3 <holohub_app_source>/basic_networking_ping.py basic_networking_ping.yaml",
 					"workdir": "holohub_app_bin"
 				}
 			}
