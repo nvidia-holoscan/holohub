@@ -4,7 +4,7 @@ diff --git a/config/arm/meson.build b/config/arm/meson.build
 @@ -360,6 +360,23 @@ implementer_phytium = {
      }
  }
- 
+
 +implementer_nvidia = {
 +    'description': 'NVIDIA',
 +    'flags': [

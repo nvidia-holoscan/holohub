@@ -262,4 +262,3 @@ def test_multi_q_hds_tx_rx(executable, work_dir, nvidia_nics, manager):
     expected_q_pkts = {i: 1 for i in range(9)}
     rx_queue_pkts_check = results.validate_rx_queue_packets(1, expected_q_pkts, allow_greater=True)
     assert rx_queue_pkts_check, "RX queue packet distribution validation failed"
-
