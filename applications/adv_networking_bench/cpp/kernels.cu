@@ -65,3 +65,14 @@ void copy_headers(uint8_t** gpu_bufs, void* header, uint16_t hdr_size, uint32_t 
                   cudaStream_t stream) {
   copy_headers<<<num_pkts, 32, 0, stream>>>(gpu_bufs, header, hdr_size);
 }
+
+__global__ void dummy_packet_reorder_kernel() {}
+
+void dummy_packet_reorder(void* out, const void* const* in, uint16_t pkt_len, uint32_t num_pkts,
+                          cudaStream_t stream) {
+  (void)out;
+  (void)in;
+  (void)pkt_len;
+  (void)num_pkts;
+  dummy_packet_reorder_kernel<<<1, 1, 0, stream>>>();
+}

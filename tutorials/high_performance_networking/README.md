@@ -1489,20 +1489,13 @@ Identify the location of the `adv_networking_bench` executable, and of the confi
     ```bash hl_lines="2 5"
     ls -1 /opt/nvidia/holoscan/examples/adv_networking_bench/
     adv_networking_bench
-    adv_networking_bench_default_rx_multi_q.yaml
-    adv_networking_bench_default_sw_loopback.yaml
-    adv_networking_bench_default_tx_rx_hds.yaml
-    adv_networking_bench_default_tx_rx_multi_q_hds.yaml
     adv_networking_bench_default_tx_rx.yaml
-    adv_networking_bench_rdma_tx_rx.yaml
-    adv_networking_bench_rx_arb_match.yaml
     CMakeLists.txt
     default_bench_op_rx.h
     default_bench_op_tx.h
     kernels.cu
     kernels.cuh
     main.cpp
-    rdma_bench.h
     ```
 
 === "From source"
@@ -1512,21 +1505,14 @@ Identify the location of the `adv_networking_bench` executable, and of the confi
     ```bash hl_lines="2 5"
     ls -1 ./install/examples/adv_networking_bench
     adv_networking_bench
-    adv_networking_bench_default_rx_multi_q.yaml
-    adv_networking_bench_default_sw_loopback.yaml
-    adv_networking_bench_default_tx_rx_hds.yaml
-    adv_networking_bench_default_tx_rx_multi_q_hds.yaml
     adv_networking_bench_default_tx_rx.yaml
     adv_networking_bench.py
-    adv_networking_bench_rdma_tx_rx.yaml
-    adv_networking_bench_rx_arb_match.yaml
     CMakeLists.txt
     default_bench_op_rx.h
     default_bench_op_tx.h
     kernels.cu
     kernels.cuh
     main.cpp
-    rdma_bench.h
     ```
 
     !!! warning

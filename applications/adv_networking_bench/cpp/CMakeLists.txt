@@ -42,7 +42,7 @@ holohub_link_daqiri(adv_networking_bench)
 
 # Configure manager support through compile definitions
 if(NOT DEFINED DAQIRI_MGR)
-    set(DAQIRI_MGR "dpdk socket rdma" CACHE STRING "DAQIRI manager type(s) list")
+    set(DAQIRI_MGR "dpdk" CACHE STRING "DAQIRI manager type(s) list")
 endif()
 separate_arguments(DAQIRI_MGR_LIST UNIX_COMMAND ${DAQIRI_MGR})
 foreach(MGR IN LISTS DAQIRI_MGR_LIST)
@@ -54,12 +54,6 @@ endforeach()
 # Copy config file
 set(ADV_NETWORKING_BENCH_CONFIGS
   adv_networking_bench_default_tx_rx.yaml
-  adv_networking_bench_default_rx_multi_q.yaml
-  adv_networking_bench_default_sw_loopback.yaml
-  adv_networking_bench_default_tx_rx_multi_q_hds.yaml
-  adv_networking_bench_default_tx_rx_hds.yaml
-  adv_networking_bench_rx_arb_match.yaml
-  adv_networking_bench_rdma_tx_rx.yaml
 )
 
 foreach(CONFIG_FILE IN LISTS ADV_NETWORKING_BENCH_CONFIGS)
@@ -78,13 +72,7 @@ install(TARGETS adv_networking_bench
 
 install(
   FILES
-    ../adv_networking_bench_default_tx_rx_hds.yaml
     ../adv_networking_bench_default_tx_rx.yaml
-    ../adv_networking_bench_default_rx_multi_q.yaml
-    ../adv_networking_bench_default_sw_loopback.yaml
-    ../adv_networking_bench_default_tx_rx_multi_q_hds.yaml
-    ../adv_networking_bench_rx_arb_match.yaml
-    ../adv_networking_bench_rdma_tx_rx.yaml
   DESTINATION examples/adv_networking_bench
   COMPONENT adv_networking_bench-configs
   PERMISSIONS OWNER_READ OWNER_WRITE
@@ -109,7 +97,6 @@ install(
     kernels.cuh
     default_bench_op_rx.h
     default_bench_op_tx.h
-    rdma_bench.h
   DESTINATION examples/adv_networking_bench
   COMPONENT adv_networking_bench-cppsrc
   PERMISSIONS OWNER_READ OWNER_WRITE

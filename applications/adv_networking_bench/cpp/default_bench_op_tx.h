@@ -18,7 +18,6 @@
 #include "kernels.cuh"
 #include "holoscan/holoscan.hpp"
 #include <daqiri/daqiri.h>
-#include "src/kernels.h"
 #include <queue>
 #include <arpa/inet.h>
 #include <assert.h>

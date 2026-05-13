@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,3 +24,6 @@ void populate_packets(uint8_t** gpu_bufs, uint16_t pkt_len, uint32_t num_pkts, u
 
 void copy_headers(uint8_t** gpu_bufs, void* header, uint16_t hdr_size, uint32_t num_pkts,
                   cudaStream_t stream);
+
+void dummy_packet_reorder(void* out, const void* const* in, uint16_t pkt_len, uint32_t num_pkts,
+                          cudaStream_t stream);
