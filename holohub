@@ -15,75 +15,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# HoloHub source-project entry point. Delegates to the consolidated
-# `holoscan-cli` (https://github.com/nvidia-holoscan/holoscan-cli) so all
-# project commands (`build`, `run`, `list`, `modes`, `test`, ...) come from a
-# single packaged CLI rather than the bundled source tree under utilities/cli/.
+# HoloHub source-project entry point. Delegates to the standalone
+# `holoscan-cli` package (https://github.com/nvidia-holoscan/holoscan-cli).
 #
-# Compatibility:
-#   HOLOHUB_CMD_NAME, HOLOHUB_ROOT, HOLOHUB_PATH_PREFIX, HOLOHUB_SEARCH_PATH,
-#   HOLOHUB_CTEST_SCRIPT, and other HOLOHUB_* environment variables continue to
-#   work; the consolidated CLI reads them transparently.
+# Configuration:
+#   HOLOSCAN_CLI_*       Environment variables consumed by the CLI; see the
+#                        holoscan-cli docs (`holoscan env-info`) for the full
+#                        surface.
 #
-# Bootstrap (auto-install when missing):
-#   HOLOSCAN_CLI_SOURCE  Path to a local holoscan-cli checkout (used during
-#                        prototype iteration). Wins over HOLOSCAN_CLI_VERSION.
-#   HOLOSCAN_CLI_VERSION Pip install spec. Examples:
-#                          HOLOSCAN_CLI_VERSION=4.3.0
-#                          HOLOSCAN_CLI_VERSION=">=4.3"
-#                          HOLOSCAN_CLI_VERSION=git+https://github.com/nvidia-holoscan/holoscan-cli.git@main
-#                        Defaults to `holoscan-cli` (latest PyPI release).
+# Bootstrap (install on first run):
+#   HOLOSCAN_CLI_SOURCE  Local holoscan-cli checkout. Takes precedence.
+#   HOLOSCAN_CLI_VERSION Pip install spec. Defaults to `holoscan-cli` (latest
+#                        on PyPI). Examples: `holoscan-cli==4.3.0`, `>=4.3`,
+#                        `git+https://github.com/nvidia-holoscan/holoscan-cli.git@main`.
+#   HOLOHUB_PYTHON_BIN   Override the Python interpreter (default: python3).
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
-export HOLOHUB_CMD_NAME="${BASH_SOURCE[0]}"
-export HOLOHUB_ROOT="${SCRIPT_DIR}"
+export HOLOSCAN_CLI_CMD_NAME="${BASH_SOURCE[0]}"
+export HOLOSCAN_CLI_ROOT="${SCRIPT_DIR}"
 
 PYTHON_BIN="${HOLOHUB_PYTHON_BIN:-python3}"
 
-# The consolidated CLI is identified by the presence of the source-project
-# dispatch table. Pre-consolidation PyPI releases (e.g. 4.0.0) import cleanly
-# but lack PROJECT_COMMANDS, so a bare `import holoscan_cli` check would falsely
-# pass.
-_holoscan_cli_has_source_project_dispatch() {
-    "${PYTHON_BIN}" - <<'PY' >/dev/null 2>&1
-from holoscan_cli.__main__ import PROJECT_COMMANDS
-
-required = {"build", "run", "list", "install"}
-assert required <= set(PROJECT_COMMANDS), f"missing: {required - set(PROJECT_COMMANDS)}"
-PY
-}
-
-_install_holoscan_cli() {
-    local spec
-    if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
-        spec="${HOLOSCAN_CLI_SOURCE}"
-        echo "[holohub] installing holoscan-cli from local source: ${spec}" >&2
-    else
-        spec="${HOLOSCAN_CLI_VERSION:-holoscan-cli}"
-        # If the user supplied a bare version like "4.3.0", normalize to a
-        # `holoscan-cli==X` spec; pass through anything that already looks like
-        # a full pip spec (range, git URL, path).
-        if [[ "${spec}" != *"=="* && "${spec}" != *">"* && "${spec}" != *"<"* \
-              && "${spec}" != *"git+"* && "${spec}" != "/"* && "${spec}" != "."* \
-              && "${spec}" != "holoscan-cli"* ]]; then
-            spec="holoscan-cli==${spec}"
-        fi
-        echo "[holohub] installing holoscan-cli (spec: ${spec})" >&2
-    fi
+if ! "${PYTHON_BIN}" -c 'import holoscan_cli' &>/dev/null; then
+    spec="${HOLOSCAN_CLI_SOURCE:-${HOLOSCAN_CLI_VERSION:-holoscan-cli}}"
+    echo "[holohub] installing ${spec}" >&2
     "${PYTHON_BIN}" -m pip install "${spec}"
-}
-
-if ! _holoscan_cli_has_source_project_dispatch; then
-    _install_holoscan_cli
-    if ! _holoscan_cli_has_source_project_dispatch; then
-        echo "Error: installed holoscan-cli does not expose the consolidated" >&2
-        echo "source-project commands. Set HOLOSCAN_CLI_VERSION to a release" >&2
-        echo "that includes them (>=4.3) or HOLOSCAN_CLI_SOURCE to a local" >&2
-        echo "checkout, then re-run." >&2
-        exit 1
-    fi
 fi
 
 if command -v holoscan >/dev/null 2>&1; then

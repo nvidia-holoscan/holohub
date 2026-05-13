@@ -145,5 +145,9 @@ endif()
 option(BUILD_HOLOHUB_TESTING OFF)
 if(BUILD_TESTING AND BUILD_HOLOHUB_TESTING)
   enable_testing()
-  add_subdirectory(utilities/cli/tests)
+  # The HoloHub CLI implementation is now the standalone ``holoscan-cli``
+  # package; its unit tests live in that repository. The only HoloHub-side
+  # CLI test still in this tree is the consolidation smoke test, which is
+  # invoked directly via ``pytest utilities/cli/tests/test_holoscan_cli_consolidation.py``
+  # against the installed holoscan-cli.
 endif()

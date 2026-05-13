@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,93 +16,63 @@
 # limitations under the License.
 
 # ==============================================================================
-# HoloHub CLI Wrapper
+# HoloHub CLI Wrapper — external-application example
 # ==============================================================================
 #
 # DESCRIPTION:
-#   This wrapper automatically downloads and manages the HoloHub CLI from the
-#   nvidia-holoscan/holohub repository. It uses sparse checkout to fetch only
-#   the required utilities and pins to a specific commit for stability.
+#   Minimal wrapper that delegates to the packaged ``holoscan-cli`` published
+#   on PyPI. Previous revisions of this script sparse-checked-out HoloHub's
+#   ``utilities/cli/`` to run an inline copy of the CLI; the CLI now lives in
+#   the standalone ``holoscan-cli`` package and HoloHub itself is one of its
+#   downstream consumers, so external apps wanting a wrapper only need to
+#   install the package and invoke it.
 #
 # USAGE:
 #   ./holohubCLI_wrapper [CLI_OPTIONS]
 #
 # ENVIRONMENT VARIABLES:
-#   CLI_REPO_URL       - Repository URL (default: https://github.com/nvidia-holoscan/holohub.git)
-#   CLI_PINNED_COMMIT  - Commit hash to checkout (default: 304ac2639ab004368c8ed9b3f2a47de2521969ca)
-#   CLI_FORCE_UPDATE   - Set to "1" to force re-download even if CLI exists
+#   HOLOSCAN_CLI_SOURCE   Path to a local holoscan-cli checkout (used during
+#                         prototype iteration). Wins over HOLOSCAN_CLI_VERSION.
+#   HOLOSCAN_CLI_VERSION  Pip install spec. Examples:
+#                           HOLOSCAN_CLI_VERSION=4.3.0
+#                           HOLOSCAN_CLI_VERSION=">=4.3"
+#                         Defaults to ``holoscan-cli`` (latest on PyPI).
+#   HOLOSCAN_CLI_PYTHON_BIN  Override the Python interpreter used to install
+#                            and invoke the CLI (default: ``python3``).
 #
 # EXAMPLES:
-#   # First run - downloads CLI automatically
 #   ./holohubCLI_wrapper --help
-#
-#   # Force update to the pinned commit
-#   CLI_FORCE_UPDATE=1 ./holohubCLI_wrapper --help
-#
-#   # Use custom repository or commit
-#   CLI_FORCE_UPDATE=1 CLI_PINNED_COMMIT="abc123def456" ./holohubCLI_wrapper --help
-#
+#   HOLOSCAN_CLI_VERSION=">=4.3" ./holohubCLI_wrapper list
+#   HOLOSCAN_CLI_SOURCE=$HOME/src/holoscan-cli ./holohubCLI_wrapper run my_app
 # ==============================================================================
 
-set -e
-set -o pipefail
+set -euo pipefail
 
-SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TMP_HOLOHUB_DIR="${SCRIPT_PATH}/.tmp-holohub"
-REPO_URL="${CLI_REPO_URL:-https://github.com/nvidia-holoscan/holohub.git}"
-CLI_PINNED_COMMIT="${CLI_PINNED_COMMIT:-304ac2639ab004368c8ed9b3f2a47de2521969ca}"
+PYTHON_BIN="${HOLOSCAN_CLI_PYTHON_BIN:-python3}"
 
-cleanup_tmp() {
-    rm -rf "${TMP_HOLOHUB_DIR}"
+_holoscan_cli_has_source_project_dispatch() {
+    "${PYTHON_BIN}" - <<'PY' >/dev/null 2>&1
+from holoscan_cli.__main__ import PROJECT_COMMANDS
+
+required = {"build", "run", "list", "install"}
+assert required <= set(PROJECT_COMMANDS), f"missing: {required - set(PROJECT_COMMANDS)}"
+PY
 }
 
-cleanup_on_error() {
-    local exit_code=$?
-    cleanup_tmp
-    exit "${exit_code}"
+_install_holoscan_cli() {
+    local spec
+    if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
+        spec="${HOLOSCAN_CLI_SOURCE}"
+        echo "[holohubCLI_wrapper] installing holoscan-cli from local source: ${spec}" >&2
+    else
+        spec="${HOLOSCAN_CLI_VERSION:-holoscan-cli}"
+        echo "[holohubCLI_wrapper] installing ${spec}" >&2
+    fi
+    "${PYTHON_BIN}" -m pip install --quiet --upgrade "${spec}"
 }
 
-trap cleanup_on_error ERR
-
-download_cli() {
-    echo "Downloading holohub CLI..."
-    cleanup_tmp
-    rm -rf "${SCRIPT_PATH}/utilities"
-    rm -rf "${SCRIPT_PATH}/cmake"
-
-    git clone --no-checkout --filter=blob:none --quiet "${REPO_URL}" "${TMP_HOLOHUB_DIR}/holohub"
-
-    cd "${TMP_HOLOHUB_DIR}/holohub"
-    git sparse-checkout init --cone >/dev/null 2>&1
-    git sparse-checkout set utilities/cli utilities/metadata utilities/testing utilities/setup cmake >/dev/null 2>&1
-
-    git fetch --quiet origin "${CLI_PINNED_COMMIT}"
-    git -c advice.detachedHead=false checkout --quiet "${CLI_PINNED_COMMIT}"
-
-    local COMMIT_HASH
-    COMMIT_HASH=$(git rev-parse HEAD 2>/dev/null)
-
-    mv "${TMP_HOLOHUB_DIR}/holohub/utilities" "${SCRIPT_PATH}"
-    mv "${TMP_HOLOHUB_DIR}/holohub/cmake" "${SCRIPT_PATH}"
-
-    cleanup_tmp
-    cd "${SCRIPT_PATH}"
-    echo "${COMMIT_HASH}" > "${SCRIPT_PATH}/utilities/cli/.cli_commit_hash"
-}
-
-# Check if CLI needs to be downloaded or force-updated (including the first time run)
-if [ "${CLI_FORCE_UPDATE}" = "1" ] || [ ! -d "${SCRIPT_PATH}/utilities/cli" ]; then
-    download_cli || { echo "Error: Failed to download CLI"; exit 1; }
-    echo "✓ CLI downloaded successfully"
+if ! _holoscan_cli_has_source_project_dispatch; then
+    _install_holoscan_cli
 fi
 
-export HOLOHUB_CMD_NAME=${BASH_SOURCE[0]}
-
-PYTHONPATH=${PYTHONPATH}:${SCRIPT_PATH} python3 ${SCRIPT_PATH}/utilities/cli/holohub.py "$@" || CLI_EXIT_CODE=$?
-
-# Check for CLI version hash after command completes
-if [ -f "${SCRIPT_PATH}/utilities/cli/version_check.py" ]; then
-    export CLI_PINNED_COMMIT
-    PYTHONPATH=${PYTHONPATH}:${SCRIPT_PATH} python3 ${SCRIPT_PATH}/utilities/cli/version_check.py 2>/dev/null || true
-fi
-exit ${CLI_EXIT_CODE:-0}
+exec "${PYTHON_BIN}" -m holoscan_cli "$@"

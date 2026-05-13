@@ -15,8 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ARG HOLOHUB_BASE_IMAGE
-FROM ${HOLOHUB_BASE_IMAGE}
+ARG HOLOSCAN_CLI_BASE_IMAGE
+FROM ${HOLOSCAN_CLI_BASE_IMAGE}
 
 ARG WORKSPACE_DIR=/workspace/holohub
 

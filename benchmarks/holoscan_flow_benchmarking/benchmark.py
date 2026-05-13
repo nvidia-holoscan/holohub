@@ -30,14 +30,11 @@ from nvitop import Device
 sys.path.append(os.path.dirname(__file__))
 from patch_python_sources import patch_directory, restore_backups
 
-# Add holohub root to path for importing utilities
 script_dir = os.path.dirname(os.path.abspath(__file__))
 holohub_root = os.path.abspath(os.path.join(script_dir, os.pardir, os.pardir))
-if holohub_root not in sys.path:
-    sys.path.insert(0, holohub_root)
 
-from utilities.cli.holohub import HoloHubCLI  # noqa: E402
-from utilities.cli.util import build_holohub_path_mapping, resolve_path_prefix  # noqa: E402
+from holoscan_cli.cli import HoloscanCLI  # noqa: E402
+from holoscan_cli.utils.holohub import build_holohub_path_mapping, resolve_path_prefix  # noqa: E402
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(format="%(asctime)s %(levelname)s: %(message)s", level=logging.DEBUG)
@@ -260,8 +257,8 @@ assignment in Holoscan's Inference operator.",
 
     args = parser.parse_args()
 
-    # Get project metadata using HoloHub CLI
-    cli = HoloHubCLI()
+    # Get project metadata using the installed holoscan-cli.
+    cli = HoloscanCLI()
     project_metadata = None
     try:
         project_metadata = cli.find_project(args.holohub_application, language=args.language)

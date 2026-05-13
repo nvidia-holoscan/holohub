@@ -7,7 +7,7 @@
     "build": {
         "dockerfile": "${localWorkspaceFolder}/.devcontainer/Dockerfile",
         "args": {
-            "HOLOHUB_BASE_IMAGE": "${localEnv:HOLOHUB_BASE_IMAGE}",
+            "HOLOSCAN_CLI_BASE_IMAGE": "${localEnv:HOLOSCAN_CLI_BASE_IMAGE}",
             "WORKSPACE_DIR": "${containerWorkspaceFolder}"
         },
         "options": [
