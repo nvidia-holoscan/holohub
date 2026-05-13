@@ -20,13 +20,13 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <mqueue.h>
-#include <sys/stat.h>
 #include <unistd.h>
 #include <rte_ring.h>
 #include <rte_mempool.h>
 #include <rte_errno.h>
 #include <rte_mbuf.h>
 #include "advanced_network/dpdk_log.h"
+#include "advanced_network/eal_utils.h"
 #include "adv_network_rdma_mgr.h"
 
 /* The ordering of most RDMA/CM setup follows the ordering specified here:
@@ -1362,19 +1362,7 @@ void RdmaMgr::free_tx_burst(BurstParams* burst) {
 }
 
 std::string RdmaMgr::generate_eal_file_prefix() {
-  static std::atomic<uint32_t> counter{0};
-  uint64_t pidns_inode = 0;
-  struct stat st;
-  if (::stat("/proc/self/ns/pid", &st) == 0) {
-    pidns_inode = static_cast<uint64_t>(st.st_ino);
-  } else {
-    HOLOSCAN_LOG_WARN(
-        "Could not stat /proc/self/ns/pid for EAL file-prefix uniqueness; "
-        "containers sharing /dev/hugepages may collide on DPDK file-prefix");
-  }
-  return "rdma_" + std::to_string(static_cast<uint32_t>(::getpid())) + "_" +
-         std::to_string(pidns_inode) + "_" +
-         std::to_string(counter.fetch_add(1, std::memory_order_relaxed));
+  return holoscan::advanced_network::make_eal_file_prefix("rdma");
 }
 
 void RdmaMgr::initialize() {

@@ -26,11 +26,10 @@
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
-#include <sys/stat.h>
-#include <unistd.h>
 #include <arpa/inet.h>
 
 #include "advanced_network/dpdk_log.h"
+#include "advanced_network/eal_utils.h"
 #include "adv_network_dpdk_mgr.h"
 #include "holoscan/holoscan.hpp"
 
@@ -227,19 +226,7 @@ void DpdkMgr::setup_accurate_send_scheduling_mask() {
 
 
 std::string DpdkMgr::generate_eal_file_prefix() {
-  static std::atomic<uint32_t> counter{0};
-  uint64_t pidns_inode = 0;
-  struct stat st;
-  if (::stat("/proc/self/ns/pid", &st) == 0) {
-    pidns_inode = static_cast<uint64_t>(st.st_ino);
-  } else {
-    HOLOSCAN_LOG_WARN(
-        "Could not stat /proc/self/ns/pid for EAL file-prefix uniqueness; "
-        "containers sharing /dev/hugepages may collide on DPDK file-prefix");
-  }
-  return "dpdk_" + std::to_string(static_cast<uint32_t>(::getpid())) + "_" +
-         std::to_string(pidns_inode) + "_" +
-         std::to_string(counter.fetch_add(1, std::memory_order_relaxed));
+  return holoscan::advanced_network::make_eal_file_prefix("dpdk");
 }
 
 // HWS doesn't allow zero queues on an interface, so we make some dummy interfaces here for
