@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -58,10 +58,14 @@ function(pybind11_add_holohub_module)
         message(STATUS "${target_name}: holoscan::pybind11 target not found, using pybind11's default ABI protection. ${pybind11_abi_details_msg}")
     endif()
 
-    # Sets the rpath of the module
+    # Sets the rpath of the module. PROJECT_SOURCE_DIR (not CMAKE_SOURCE_DIR)
+    # so the path is correct when this helper is invoked from a Holoscan
+    # Module that's been add_subdirectory()'d into another project (HoloHub
+    # consuming an external module, etc.) — CMAKE_SOURCE_DIR would point at
+    # the parent project's root, which is wrong for our rpath calculation.
     file(RELATIVE_PATH install_lib_relative_path
         ${CMAKE_CURRENT_LIST_DIR}
-        ${CMAKE_SOURCE_DIR}/${HOLOSCAN_INSTALL_LIB_DIR}
+        ${PROJECT_SOURCE_DIR}/${HOLOSCAN_INSTALL_LIB_DIR}
     )
     list(APPEND _rpath
         "\$ORIGIN/${install_lib_relative_path}" # in our install tree (same layout as src)

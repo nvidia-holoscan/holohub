@@ -1,0 +1,21 @@
+{
+    "module": {
+        "name": "dep_source_missing_ref",
+        "description": "Module with a dependency source missing the required ref field.",
+        "authors": [{ "name": "NVIDIA", "affiliation": "NVIDIA" }],
+        "version": "0.1.0",
+        "language": ["Python"],
+        "platforms": ["x86_64"],
+        "tags": ["consumer"],
+        "holoscan_sdk": {
+            "minimum_required_version": "4.0.0",
+            "tested_versions": ["4.2.0"]
+        },
+        "dependencies": [
+            {
+                "name": "upstream",
+                "source": { "git_url": "https://example.invalid/x.git" }
+            }
+        ]
+    }
+}

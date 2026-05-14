@@ -1,0 +1,26 @@
+{
+    "module": {
+        "name": "module_with_full_dependency",
+        "description": "Module with a fully-specified dependency including source and provides_operators.",
+        "authors": [{ "name": "NVIDIA", "affiliation": "NVIDIA" }],
+        "version": "0.1.0",
+        "language": ["Python"],
+        "platforms": ["x86_64"],
+        "tags": ["consumer"],
+        "holoscan_sdk": {
+            "minimum_required_version": "4.0.0",
+            "tested_versions": ["4.2.0"]
+        },
+        "dependencies": [
+            {
+                "name": "upstream_module",
+                "version": ">=1.0",
+                "source": {
+                    "git_url": "https://example.invalid/holoscan-modules/upstream.git",
+                    "ref": "1234567890abcdef1234567890abcdef12345678"
+                },
+                "provides_operators": ["upstream_op_a", "upstream_op_b"]
+            }
+        ]
+    }
+}

@@ -10,3 +10,4 @@
 operators/medical_imaging/_version.py
 applications/template
 build
+modules/template/\{\{cookiecutter

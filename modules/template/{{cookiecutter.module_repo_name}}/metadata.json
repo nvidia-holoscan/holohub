@@ -1,0 +1,35 @@
+{
+  "$schema": "holoscan/module/v2",
+  "module": {
+    "name": "holoscan-{{ cookiecutter.module_slug.replace('_', '-') }}",
+    "version": "{{ cookiecutter.version }}",
+    "description": "{{ cookiecutter.description }}",
+    "authors": [
+      {
+        "name": "{{ cookiecutter.full_name }}",
+        "affiliation": "{{ cookiecutter.affiliation }}"
+      }
+    ],
+    "license": "{{ cookiecutter._license }}",
+    "language": {% if cookiecutter.language == "cpp" %}["C++", "Python"]{% else %}["Python"]{% endif %},
+    "namespace": {
+      {% if cookiecutter.language == "cpp" %}"cpp": "holoscan::{{ cookiecutter.module_slug }}",
+      {% endif %}"python": "holoscan.{{ cookiecutter.module_slug }}"
+    },
+    "holoscan_sdk": {
+      "minimum_required_version": "{{ cookiecutter.holoscan_version }}",
+      "tested_versions": ["{{ cookiecutter.holoscan_version }}"]
+    },
+    "platforms": ["x86_64", "aarch64"],
+    "tags": ["TODO: add tags"],
+    "source_repository": "https://github.com/TODO/holoscan-{{ cookiecutter.module_slug.replace('_', '-') }}",
+    "binary_packages": {
+      "debian": "holoscan-{{ cookiecutter.module_slug.replace('_', '-') }}",
+      "pypi": "holoscan-{{ cookiecutter.module_slug.replace('_', '-') }}"
+    },
+    "testing": {
+      {% if cookiecutter.language == "cpp" %}"cpp": "ctest",
+      {% endif %}"python": "pytest"
+    }
+  }
+}

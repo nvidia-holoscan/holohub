@@ -1,0 +1,23 @@
+// SPDX-FileCopyrightText: Copyright (c) {% now 'utc', '%Y' %} {{ cookiecutter.full_name }}{% if cookiecutter.affiliation %} / {{ cookiecutter.affiliation }}{% endif %}. All rights reserved.
+// SPDX-License-Identifier: {{ cookiecutter._license }}
+//
+// GTest functional tests for {{ cookiecutter.operator_slug.split('_')|map('capitalize')|join('') }}.
+// TODO: replace the placeholder with real pipeline coverage.
+// See holoscan-example-module/tests/cpp/test_operators.cpp for a worked example.
+{%- set op_class = cookiecutter.operator_slug.split('_')|map('capitalize')|join('') %}
+
+#include <gtest/gtest.h>
+
+#include <holoscan/holoscan.hpp>
+#include <{{ cookiecutter.operator_slug }}/{{ cookiecutter.operator_slug }}.hpp>
+
+// Convenience alias for holoscan::{{ cookiecutter.module_slug }} — use in real tests.
+namespace mm = holoscan::{{ cookiecutter.module_slug }};
+
+// TODO: implement minimal Application wrappers that exercise your operator,
+// then write test functions that construct and run those apps and assert on results.
+
+TEST({{ op_class }}Test, Placeholder) {
+  // TODO: replace with a real pipeline test.
+  SUCCEED();
+}

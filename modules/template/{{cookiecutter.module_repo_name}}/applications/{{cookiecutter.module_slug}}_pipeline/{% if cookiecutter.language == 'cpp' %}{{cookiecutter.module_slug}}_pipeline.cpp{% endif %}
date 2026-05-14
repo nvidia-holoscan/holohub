@@ -1,0 +1,30 @@
+// SPDX-FileCopyrightText: Copyright (c) {% now 'utc', '%Y' %} {{ cookiecutter.full_name }}{% if cookiecutter.affiliation %} / {{ cookiecutter.affiliation }}{% endif %}. All rights reserved.
+// SPDX-License-Identifier: {{ cookiecutter._license }}
+//
+// C++ pipeline example for {{ cookiecutter.project_name }}.
+// TODO: replace the stub with your actual pipeline topology.
+//
+// Build: cmake -S . -B build -DBUILD_ALL=ON && cmake --build build
+// Run:   ./build/applications/{{ cookiecutter.module_slug }}_pipeline/{{ cookiecutter.module_slug }}_pipeline
+{%- set op_class = cookiecutter.operator_slug.split('_')|map('capitalize')|join('') %}
+{%- set app_class = cookiecutter.module_slug.split('_')|map('capitalize')|join('') + 'PipelineApp' %}
+
+#include <holoscan/holoscan.hpp>
+#include <{{ cookiecutter.operator_slug }}/{{ cookiecutter.operator_slug }}.hpp>
+
+namespace mm = holoscan::{{ cookiecutter.module_slug }};
+
+class {{ app_class }} : public holoscan::Application {
+ public:
+  void compose() override {
+    // TODO: instantiate and connect your operators, e.g.:
+    auto op = make_operator<mm::{{ op_class }}>("{{ cookiecutter.operator_slug }}");
+    // add_flow(source, op, {{"out", "in"}});
+  }
+};
+
+int main(int, char**) {
+  auto app = holoscan::make_application<{{ app_class }}>();
+  app->run();
+  return 0;
+}
