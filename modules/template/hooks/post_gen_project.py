@@ -151,7 +151,7 @@ else:
     print(f"  operators/{OPERATOR_SLUG}/{OPERATOR_SLUG}.py\n")
 
 print("Build and run:")
-print(f"  ./holohub run-container")
+print("  ./holohub run-container")
 print("  # Inside the container:")
 print(f"  ./holohub build {pipeline}")
 print(f"  ./holohub run   {pipeline} --language python\n")
