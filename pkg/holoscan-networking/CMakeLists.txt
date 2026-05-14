@@ -20,14 +20,14 @@ holohub_configure_deb(
   VENDOR "NVIDIA"
   CONTACT "Alexis Girault <agirault@nvidia.com>"
   COMPONENTS
-    basic_networking_ping-cpp
-    basic_networking_ping-configs
-    basic_networking_ping-cppsrc
-    daqiri_bench-cpp
-    daqiri_bench-configs
-    daqiri_bench-cppsrc
-    # basic_networking_ping-py
-    # daqiri_bench-py
+    daqiri_raw_ethernet_bench-cpp
+    daqiri_raw_ethernet_bench-configs
+    daqiri_raw_ethernet_bench-cppsrc
+    daqiri_socket_ping-cpp
+    daqiri_socket_ping-configs
+    daqiri_socket_ping-cppsrc
+    # daqiri_raw_ethernet_bench-py
+    # daqiri_socket_ping-py
   EXPORT_NAME holoscan-networking-targets
   DEPENDS "holoscan (>= 3.0), holoscan (<< 4.0), daqiri"
   RECOMMENDS "infiniband-diags, ibverbs-utils, mlnx-ofed-kernel-utils, mft, libhugetlbfs-bin"

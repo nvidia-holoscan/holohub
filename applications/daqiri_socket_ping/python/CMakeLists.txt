@@ -13,13 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.20)
-project(basic_networking_ping LANGUAGES NONE)
+# target does nothing but be created if this folder is reached
+add_custom_target(daqiri_socket_ping_python ALL)
 
-if(HOLOHUB_BUILD_CPP)
-  add_subdirectory(cpp)
-endif()
+# Copy config file
+message(STATUS "Copying configuration files to ${CMAKE_CURRENT_BINARY_DIR}")
+add_custom_target(daqiri_socket_ping_yaml_python
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../daqiri_socket_ping.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../daqiri_socket_ping.yaml"
+)
 
-if(HOLOHUB_BUILD_PYTHON)
-  add_subdirectory(python)
-endif()
+add_dependencies(daqiri_socket_ping_python daqiri_socket_ping_yaml_python)
+
+install(
+  FILES daqiri_socket_ping.py
+  DESTINATION examples/daqiri_socket_ping
+  COMPONENT daqiri_socket_ping-py
+)

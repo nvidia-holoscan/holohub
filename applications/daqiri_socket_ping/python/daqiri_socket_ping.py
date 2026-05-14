@@ -23,7 +23,7 @@ import daqiri
 from holoscan.conditions import BooleanCondition, CountCondition
 from holoscan.core import Application, Operator, OperatorSpec
 
-logger = logging.getLogger("BasicNetworkingPing")
+logger = logging.getLogger("DaqiriSocketPing")
 logging.basicConfig(level=logging.INFO)
 
 NUM_MSGS = 10

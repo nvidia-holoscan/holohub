@@ -14,7 +14,7 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.20)
-project(basic_networking_ping CXX)
+project(daqiri_socket_ping CXX)
 
 find_package(holoscan 0.5 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
@@ -27,36 +27,36 @@ list(PREPEND CMAKE_PREFIX_PATH "/opt/daqiri")
 find_package(daqiri REQUIRED CONFIG)
 include(HoloHubDaqiri)
 
-add_executable(basic_networking_ping
+add_executable(daqiri_socket_ping
   main.cpp
 )
 
-target_link_libraries(basic_networking_ping
+target_link_libraries(daqiri_socket_ping
   PRIVATE
   holoscan::core
   yaml-cpp
 )
-holohub_link_daqiri(basic_networking_ping)
+holohub_link_daqiri(daqiri_socket_ping)
 
 # Copy config file
-add_custom_target(basic_networking_ping_yaml
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../basic_networking_ping.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../basic_networking_ping.yaml"
+add_custom_target(daqiri_socket_ping_yaml
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../daqiri_socket_ping.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../daqiri_socket_ping.yaml"
 )
 
-add_dependencies(basic_networking_ping basic_networking_ping_yaml)
+add_dependencies(daqiri_socket_ping daqiri_socket_ping_yaml)
 
 install(
-  TARGETS basic_networking_ping
-  DESTINATION examples/basic_networking_ping
-  COMPONENT basic_networking_ping-cpp
+  TARGETS daqiri_socket_ping
+  DESTINATION examples/daqiri_socket_ping
+  COMPONENT daqiri_socket_ping-cpp
 )
 
 install(
   FILES
-    ../basic_networking_ping.yaml
-  DESTINATION examples/basic_networking_ping
-  COMPONENT basic_networking_ping-configs
+    ../daqiri_socket_ping.yaml
+  DESTINATION examples/daqiri_socket_ping
+  COMPONENT daqiri_socket_ping-configs
   PERMISSIONS OWNER_READ OWNER_WRITE
               GROUP_READ GROUP_WRITE
               WORLD_READ WORLD_WRITE
@@ -65,8 +65,8 @@ install(
 install(
   FILES CMakeLists.txt.install
   RENAME CMakeLists.txt
-  DESTINATION examples/basic_networking_ping
-  COMPONENT basic_networking_ping-cppsrc
+  DESTINATION examples/daqiri_socket_ping
+  COMPONENT daqiri_socket_ping-cppsrc
   PERMISSIONS OWNER_READ OWNER_WRITE
               GROUP_READ GROUP_WRITE
               WORLD_READ WORLD_WRITE
@@ -75,8 +75,8 @@ install(
 install(
   FILES
     main.cpp
-  DESTINATION examples/basic_networking_ping
-  COMPONENT basic_networking_ping-cppsrc
+  DESTINATION examples/daqiri_socket_ping
+  COMPONENT daqiri_socket_ping-cppsrc
   PERMISSIONS OWNER_READ OWNER_WRITE
               GROUP_READ GROUP_WRITE
               WORLD_READ WORLD_WRITE

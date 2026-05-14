@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Basic Networking Ping",
+		"name": "DAQIRI Socket Ping",
 		"authors": [
 			{
 				"name": "Cliff Burdick",
@@ -45,14 +45,14 @@
 			"flexible": {
 				"description": "Run with the specified configuration arguments",
 				"run": {
-					"command": "<holohub_app_bin>/basic_networking_ping",
+					"command": "<holohub_app_bin>/daqiri_socket_ping",
 					"workdir": "holohub_app_bin"
 				}
 			},
 			"loopback": {
 				"description": "Run DAQIRI socket UDP loopback ping",
 				"run": {
-					"command": "<holohub_app_bin>/basic_networking_ping basic_networking_ping.yaml",
+					"command": "<holohub_app_bin>/daqiri_socket_ping daqiri_socket_ping.yaml",
 					"workdir": "holohub_app_bin"
 				}
 			}

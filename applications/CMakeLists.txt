@@ -14,8 +14,6 @@
 # limitations under the License.
 
 # Make sure to order by alphabetical list
-add_holohub_application(daqiri_bench)
-
 add_holohub_application(aja_video_capture DEPENDS
                         OPERATORS aja_source)
 
@@ -24,8 +22,6 @@ add_holohub_application(async_buffer_deadline)
 add_holohub_application(atracsys_visualizer DEPENDS
                         OPERATORS atracsys_mode_switcher
                         OPTIONAL  atracsys_camera)
-
-add_holohub_application(basic_networking_ping)
 
 add_holohub_application(bci_visualization DEPENDS
                         OPERATORS volume_renderer)
@@ -36,6 +32,10 @@ add_holohub_application(body_pose_estimation DEPENDS
 add_holohub_application(colonoscopy_segmentation DEPENDS OPERATORS OPTIONAL aja_source)
 
 add_holohub_application(cvcuda_basic DEPENDS OPERATORS cvcuda_holoscan_interop)
+
+add_holohub_application(daqiri_raw_ethernet_bench)
+
+add_holohub_application(daqiri_socket_ping)
 
 add_subdirectory(dds)
 

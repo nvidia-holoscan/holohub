@@ -28,7 +28,7 @@ using namespace daqiri;
 namespace holoscan::ops {
 
 /*
-  DAQIRI Benchmark uses DAQIRI to show how to
+  DAQIRI Raw Ethernet Benchmark uses DAQIRI to show how to
   send and receive packets at very high rates. The application is configurable
   to show different scenarios that might be used with DAQIRI.
   For both TX and RX, there are three possible modes: CPU-only, Header-data split,
@@ -42,14 +42,14 @@ namespace holoscan::ops {
   launch and pushing work to them asynchronously.
 */
 
-class DaqiriBenchDefaultTxOp : public Operator {
+class DaqiriRawEthernetBenchDefaultTxOp : public Operator {
  public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS(DaqiriBenchDefaultTxOp)
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(DaqiriRawEthernetBenchDefaultTxOp)
 
-  DaqiriBenchDefaultTxOp() = default;
+  DaqiriRawEthernetBenchDefaultTxOp() = default;
 
-  ~DaqiriBenchDefaultTxOp() {
-    HOLOSCAN_LOG_INFO("DAQIRI Benchmark TX op shutting down");
+  ~DaqiriRawEthernetBenchDefaultTxOp() {
+    HOLOSCAN_LOG_INFO("DAQIRI Raw Ethernet Benchmark TX op shutting down");
   }
 
   void populate_dummy_headers(UDPIPV4Pkt& pkt) {
@@ -79,7 +79,7 @@ class DaqiriBenchDefaultTxOp : public Operator {
   }
 
   void initialize() override {
-    HOLOSCAN_LOG_INFO("DaqiriBenchDefaultTxOp::initialize()");
+    HOLOSCAN_LOG_INFO("DaqiriRawEthernetBenchDefaultTxOp::initialize()");
     holoscan::Operator::initialize();
 
     port_id_ = get_port_id(interface_name_.get());
@@ -156,7 +156,7 @@ class DaqiriBenchDefaultTxOp : public Operator {
       cudaMemcpy(gds_header_, reinterpret_cast<void*>(&pkt), sizeof(pkt), cudaMemcpyDefault);
     }
 
-    HOLOSCAN_LOG_INFO("DaqiriBenchDefaultTxOp::initialize() complete");
+    HOLOSCAN_LOG_INFO("DaqiriRawEthernetBenchDefaultTxOp::initialize() complete");
   }
 
   void setup(OperatorSpec& spec) override {

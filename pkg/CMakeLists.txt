@@ -16,4 +16,4 @@
 include(holohub_configure_deb)
 
 add_holohub_package(holoscan-networking
-                    APPLICATIONS daqiri_bench basic_networking_ping)
+                    APPLICATIONS daqiri_raw_ethernet_bench daqiri_socket_ping)

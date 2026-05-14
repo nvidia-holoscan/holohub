@@ -14,7 +14,7 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.20)
-project(daqiri_bench CXX CUDA)
+project(daqiri_raw_ethernet_bench CXX CUDA)
 
 # Dependencies
 find_package(holoscan 2.6 REQUIRED CONFIG
@@ -30,15 +30,15 @@ include(HoloHubDaqiri)
 set(CMAKE_CUDA_ARCHITECTURES "70;80;90")
 
 # Create the executable
-add_executable(daqiri_bench
+add_executable(daqiri_raw_ethernet_bench
   kernels.cu
   main.cpp
 )
-target_link_libraries(daqiri_bench
+target_link_libraries(daqiri_raw_ethernet_bench
   PRIVATE
   holoscan::core
 )
-holohub_link_daqiri(daqiri_bench)
+holohub_link_daqiri(daqiri_raw_ethernet_bench)
 
 # Configure manager support through compile definitions
 if(NOT DEFINED DAQIRI_MGR)
@@ -52,29 +52,29 @@ foreach(MGR IN LISTS DAQIRI_MGR_LIST)
 endforeach()
 
 # Copy config file
-set(DAQIRI_BENCH_CONFIGS
-  daqiri_bench_default_tx_rx.yaml
+set(DAQIRI_RAW_ETHERNET_BENCH_CONFIGS
+  daqiri_raw_ethernet_bench_default_tx_rx.yaml
 )
 
-foreach(CONFIG_FILE IN LISTS DAQIRI_BENCH_CONFIGS)
+foreach(CONFIG_FILE IN LISTS DAQIRI_RAW_ETHERNET_BENCH_CONFIGS)
   string(REPLACE "." "_" CONFIG_TARGET "${CONFIG_FILE}")
   add_custom_target(${CONFIG_TARGET}
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../${CONFIG_FILE}" ${CMAKE_CURRENT_BINARY_DIR}
     DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../${CONFIG_FILE}"
   )
-  add_dependencies(daqiri_bench ${CONFIG_TARGET})
+  add_dependencies(daqiri_raw_ethernet_bench ${CONFIG_TARGET})
 endforeach()
 
 # Installation
-install(TARGETS daqiri_bench
-        DESTINATION examples/daqiri_bench
-        COMPONENT daqiri_bench-cpp)
+install(TARGETS daqiri_raw_ethernet_bench
+        DESTINATION examples/daqiri_raw_ethernet_bench
+        COMPONENT daqiri_raw_ethernet_bench-cpp)
 
 install(
   FILES
-    ../daqiri_bench_default_tx_rx.yaml
-  DESTINATION examples/daqiri_bench
-  COMPONENT daqiri_bench-configs
+    ../daqiri_raw_ethernet_bench_default_tx_rx.yaml
+  DESTINATION examples/daqiri_raw_ethernet_bench
+  COMPONENT daqiri_raw_ethernet_bench-configs
   PERMISSIONS OWNER_READ OWNER_WRITE
               GROUP_READ GROUP_WRITE
               WORLD_READ WORLD_WRITE
@@ -83,8 +83,8 @@ install(
 install(
   FILES CMakeLists.txt.install
   RENAME CMakeLists.txt
-  DESTINATION examples/daqiri_bench
-  COMPONENT daqiri_bench-cppsrc
+  DESTINATION examples/daqiri_raw_ethernet_bench
+  COMPONENT daqiri_raw_ethernet_bench-cppsrc
   PERMISSIONS OWNER_READ OWNER_WRITE
               GROUP_READ GROUP_WRITE
               WORLD_READ WORLD_WRITE
@@ -97,8 +97,8 @@ install(
     kernels.cuh
     default_bench_op_rx.h
     default_bench_op_tx.h
-  DESTINATION examples/daqiri_bench
-  COMPONENT daqiri_bench-cppsrc
+  DESTINATION examples/daqiri_raw_ethernet_bench
+  COMPONENT daqiri_raw_ethernet_bench-cppsrc
   PERMISSIONS OWNER_READ OWNER_WRITE
               GROUP_READ GROUP_WRITE
               WORLD_READ WORLD_WRITE
@@ -111,7 +111,7 @@ if(BUILD_TESTING)
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/testing/benchmark_utils.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/testing")
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/testing/io_utils.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/testing")
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/testing/process_utils.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/testing")
-  file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/testing/test_daqiri_bench.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/testing")
+  file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/testing/test_daqiri_raw_ethernet_bench.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/testing")
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/testing/conftest.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/testing")
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/testing/nvidia_nic_utils.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/testing")
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/testing/yaml_config_utils.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/testing")

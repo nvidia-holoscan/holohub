@@ -13,20 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# target does nothing but be created if this folder is reached
-add_custom_target(basic_networking_ping_python ALL)
-
-# Copy config file
-message(STATUS "Copying configuration files to ${CMAKE_CURRENT_BINARY_DIR}")
-add_custom_target(basic_networking_ping_yaml_python
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../basic_networking_ping.yaml" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../basic_networking_ping.yaml"
-)
-
-add_dependencies(basic_networking_ping_python basic_networking_ping_yaml_python)
-
 install(
-  FILES basic_networking_ping.py
-  DESTINATION examples/basic_networking_ping
-  COMPONENT basic_networking_ping-py
+  FILES main.py
+  DESTINATION examples/daqiri_raw_ethernet_bench/
+  RENAME daqiri_raw_ethernet_bench.py
+  COMPONENT daqiri_raw_ethernet_bench-py
 )

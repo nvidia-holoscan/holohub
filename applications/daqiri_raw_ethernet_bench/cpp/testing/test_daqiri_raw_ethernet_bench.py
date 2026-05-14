@@ -42,8 +42,8 @@ def nvidia_nics():
 
 @pytest.fixture(scope="module")
 def executable(work_dir):
-    """Get the path to the daqiri_bench executable."""
-    return os.path.join(work_dir, "daqiri_bench")
+    """Get the path to the daqiri_raw_ethernet_bench executable."""
+    return os.path.join(work_dir, "daqiri_raw_ethernet_bench")
 
 
 def skip_if_manager_unavailable(manager):
@@ -94,9 +94,9 @@ def test_multi_if_loopback(
     # Prepare config
     header_size = 64  # Eth (14) + IP (20) + UDP (8) + custom header (22) as defined in yaml config
     payload_size = packet_size - header_size
-    in_config_file = os.path.join(work_dir, "daqiri_bench_default_tx_rx.yaml")
+    in_config_file = os.path.join(work_dir, "daqiri_raw_ethernet_bench_default_tx_rx.yaml")
     out_config_file = os.path.join(
-        work_dir, "testing", f"daqiri_bench_{manager}_tx_rx_{packet_size}.yaml"
+        work_dir, "testing", f"daqiri_raw_ethernet_bench_{manager}_tx_rx_{packet_size}.yaml"
     )
     update_yaml_file(
         in_config_file,

@@ -32,7 +32,7 @@
 		"ranking": 1,
 		"requirements": {
 			"applications": [
-				"daqiri_bench"
+				"daqiri_raw_ethernet_bench"
 			],
 			"libraries": [
 				{

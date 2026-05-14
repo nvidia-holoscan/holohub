@@ -13,9 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-install(
-  FILES main.py
-  DESTINATION examples/daqiri_bench/
-  RENAME daqiri_bench.py
-  COMPONENT daqiri_bench-py
-)
+cmake_minimum_required(VERSION 3.20)
+project(daqiri_socket_ping LANGUAGES NONE)
+
+if(HOLOHUB_BUILD_CPP)
+  add_subdirectory(cpp)
+endif()
+
+if(HOLOHUB_BUILD_PYTHON)
+  add_subdirectory(python)
+endif()

@@ -19,7 +19,7 @@ if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
   set(CMAKE_CUDA_ARCHITECTURES "native")
 endif()
 
-project(daqiri_bench CXX CUDA)
+project(daqiri_raw_ethernet_bench CXX CUDA)
 
 # Dependencies
 find_package(holoscan 2.6 REQUIRED CONFIG PATHS "/opt/nvidia/holoscan")
@@ -51,15 +51,15 @@ function(link_daqiri target_name)
 endfunction()
 
 # Create the executable
-add_executable(daqiri_bench
+add_executable(daqiri_raw_ethernet_bench
   kernels.cu
   main.cpp
 )
-target_link_libraries(daqiri_bench
+target_link_libraries(daqiri_raw_ethernet_bench
   PRIVATE
   holoscan::core
 )
-link_daqiri(daqiri_bench)
+link_daqiri(daqiri_raw_ethernet_bench)
 
 # Configure manager support through compile definitions
 if(NOT DEFINED DAQIRI_MGR)
@@ -73,15 +73,15 @@ foreach(MGR IN LISTS DAQIRI_MGR_LIST)
 endforeach()
 
 # Copy config files
-set(DAQIRI_BENCH_CONFIGS
-  daqiri_bench_default_tx_rx.yaml
+set(DAQIRI_RAW_ETHERNET_BENCH_CONFIGS
+  daqiri_raw_ethernet_bench_default_tx_rx.yaml
 )
 
-foreach(CONFIG_FILE IN LISTS DAQIRI_BENCH_CONFIGS)
+foreach(CONFIG_FILE IN LISTS DAQIRI_RAW_ETHERNET_BENCH_CONFIGS)
   string(REPLACE "." "_" CONFIG_TARGET "${CONFIG_FILE}")
   add_custom_target(${CONFIG_TARGET}
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/${CONFIG_FILE}" ${CMAKE_CURRENT_BINARY_DIR}
     DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${CONFIG_FILE}"
   )
-  add_dependencies(daqiri_bench ${CONFIG_TARGET})
+  add_dependencies(daqiri_raw_ethernet_bench ${CONFIG_TARGET})
 endforeach()

@@ -48,25 +48,25 @@ namespace holoscan::ops {
 
 #define ADV_NETWORK_MANAGER_WARMUP_KERNEL 1
 
-class DaqiriBenchDefaultRxOp : public Operator {
+class DaqiriRawEthernetBenchDefaultRxOp : public Operator {
  public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS(DaqiriBenchDefaultRxOp)
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(DaqiriRawEthernetBenchDefaultRxOp)
 
-  DaqiriBenchDefaultRxOp() = default;
+  DaqiriRawEthernetBenchDefaultRxOp() = default;
 
-  ~DaqiriBenchDefaultRxOp() {
+  ~DaqiriRawEthernetBenchDefaultRxOp() {
     HOLOSCAN_LOG_INFO("Finished receiver with {}/{} bytes/packets received and {} packets dropped",
                       ttl_bytes_recv_,
                       ttl_pkts_recv_,
                       ttl_packets_dropped_);
 
-    HOLOSCAN_LOG_INFO("DAQIRI Benchmark RX op shutting down");
+    HOLOSCAN_LOG_INFO("DAQIRI Raw Ethernet Benchmark RX op shutting down");
     freeResources();
   }
 
   void initialize() override {
     cudaError_t cuda_error;
-    HOLOSCAN_LOG_INFO("DaqiriBenchDefaultRxOp::initialize()");
+    HOLOSCAN_LOG_INFO("DaqiriRawEthernetBenchDefaultRxOp::initialize()");
     holoscan::Operator::initialize();
 
     port_id_ = get_port_id(interface_name_.get());
@@ -109,11 +109,11 @@ class DaqiriBenchDefaultRxOp : public Operator {
 
     if (hds_.get()) { assert(gpu_direct_.get()); }
 
-    HOLOSCAN_LOG_INFO("DaqiriBenchDefaultRxOp::initialize() complete");
+    HOLOSCAN_LOG_INFO("DaqiriRawEthernetBenchDefaultRxOp::initialize() complete");
   }
 
   void freeResources() {
-    HOLOSCAN_LOG_INFO("DaqiriBenchDefaultRxOp::freeResources() start");
+    HOLOSCAN_LOG_INFO("DaqiriRawEthernetBenchDefaultRxOp::freeResources() start");
     for (int n = 0; n < num_concurrent; n++) {
       if (full_batch_data_d_[n]) { cudaFree(full_batch_data_d_[n]); }
       if (full_batch_data_h_[n]) { cudaFreeHost(full_batch_data_h_[n]); }
@@ -121,7 +121,7 @@ class DaqiriBenchDefaultRxOp : public Operator {
       if (streams_[n]) { cudaStreamDestroy(streams_[n]); }
       if (events_[n]) { cudaEventDestroy(events_[n]); }
     }
-    HOLOSCAN_LOG_INFO("DaqiriBenchDefaultRxOp::freeResources() complete");
+    HOLOSCAN_LOG_INFO("DaqiriRawEthernetBenchDefaultRxOp::freeResources() complete");
   }
 
   void setup(OperatorSpec& spec) override {
