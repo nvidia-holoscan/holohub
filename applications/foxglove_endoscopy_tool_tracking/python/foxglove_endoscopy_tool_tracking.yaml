@@ -1,0 +1,83 @@
+%YAML 1.2
+# SPDX-FileCopyrightText: Copyright (c) 2026, Chris von Csefalvay.
+# SPDX-License-Identifier: Apache-2.0
+---
+extensions:
+  - lib/gxf_extensions/libgxf_lstm_tensor_rt_inference.so
+
+replayer:
+  basename: "surgical_video"
+  frame_rate: 0
+  repeat: true
+  realtime: true
+  count: 0
+
+format_converter:
+  out_tensor_name: source_video
+  out_dtype: "float32"
+  scale_min: 0.0
+  scale_max: 255.0
+
+lstm_inference:
+  input_tensor_names:
+    - source_video
+    - cellstate_in
+    - hiddenstate_in
+  input_state_tensor_names:
+    - cellstate_in
+    - hiddenstate_in
+  input_binding_names:
+    - data_ph:0
+    - cellstate_ph:0
+    - hiddenstate_ph:0
+  output_tensor_names:
+    - cellstate_out
+    - hiddenstate_out
+    - probs
+    - scaled_coords
+    - binary_masks
+  output_state_tensor_names:
+    - cellstate_out
+    - hiddenstate_out
+  output_binding_names:
+    - Model/net_states:0
+    - Model/net_hidden:0
+    - probs:0
+    - Localize/scaled_coords:0
+    - Localize_1/binary_masks:0
+  force_engine_update: false
+  verbose: true
+  max_workspace_size: 2147483648
+  enable_fp16_: true
+
+mask_adapter:
+  topic: "/tool_mask"
+  frame_id: "endoscope"
+  tensor_name: "mask"
+  encoding: "rgba32f"
+  width: 107
+  height: 60
+  step: 1712
+
+tool_tracking_foxglove:
+  annotation_topic: "/detections"
+  labels:
+    - Grasper
+    - Bipolar
+    - Hook
+    - Scissors
+    - Clipper
+    - Irrigator
+    - Spec.Bag
+
+foxglove:
+  bind_address: "0.0.0.0"
+  port: 8765
+  server_name: "Holoscan Foxglove endoscopy"
+  publish_server_time: true
+  drop_when_unsubscribed: true
+  enable_mcap: false
+  mcap_path: "foxglove_endoscopy_tool_tracking.mcap"
+  mcap_compression: "zstd"
+  image_topic: "/video"
+  image_frame_id: "endoscope"

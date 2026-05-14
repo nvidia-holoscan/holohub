@@ -511,7 +511,10 @@ Before submitting your contribution, ensure you've completed:
 
 ### Linting and Code Quality
 
-HoloHub enforces code quality through automated linting checks that run in CI/CD pipelines.
+HoloHub enforces code quality through [pre-commit](https://pre-commit.com/). The
+hooks are declared in [`.pre-commit-config.yaml`](./.pre-commit-config.yaml) and
+run automatically on every PR via [pre-commit.ci](https://pre-commit.ci/).
+`./holohub lint` is a thin wrapper around `pre-commit run`.
 
 #### Installing Lint Tools
 
@@ -519,21 +522,33 @@ HoloHub enforces code quality through automated linting checks that run in CI/CD
 ./holohub lint --install-dependencies
 ```
 
+This explicitly installs `pre-commit` and prefetches hook environments.
+You can also run lint directly. If `pre-commit` is not already available in the
+environment, `./holohub lint` installs it automatically before running checks:
+
+```bash
+./holohub run-container -- ./holohub lint
+```
+
+The container reuses `.local/` and `.cache/pre-commit/` from the mounted
+workspace on later runs.
+
 #### Running Lint Checks
 
 ```bash
-# Lint entire repository
+# Lint entire repository (pre-commit run --all-files)
 ./holohub lint
 
-# Lint specific path
+# Lint a specific path (pre-commit run --files ...)
 ./holohub lint path/to/your/code
 ```
 
-#### Fixing Common Lint Issues
+Most pre-commit hooks (ruff, black, isort, end-of-file-fixer, etc.) auto-fix
+issues in place; the run will fail if any files were modified. Re-run
+`./holohub lint` once to confirm a clean state.
 
-```bash
-./holohub lint --fix
-```
+`./holohub lint --fix` is kept as a compatibility alias; it behaves the same as
+`./holohub lint` because pre-commit hooks already auto-fix where possible.
 
 ### Testing
 

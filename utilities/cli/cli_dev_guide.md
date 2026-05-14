@@ -112,6 +112,31 @@ Add `--local` to bypass the Docker layer and see the underlying cmake / app comm
 
 Default CTest script: `utilities/testing/holohub.container.ctest` (relative to the directory containing `utilities/`). Override with `--ctest-script` or `HOLOHUB_CTEST_SCRIPT`. Downstream repos typically override this in their entry-point script — check the value of `HOLOHUB_CTEST_SCRIPT` there.
 
+### Lint
+
+```bash
+./holohub lint                              # pre-commit run --all-files
+./holohub lint applications/<app>           # pre-commit run --files <files under app>
+./holohub lint --install-dependencies       # explicit setup/prefetch
+```
+
+`./holohub lint` is a thin wrapper around [pre-commit](https://pre-commit.com/) and uses the hooks declared in `.pre-commit-config.yaml`. If `pre-commit` is not already available, the wrapper installs it before running lint. `--fix` is kept as a no-op compatibility alias because pre-commit hooks already auto-fix where possible.
+
+In a fresh container, `./holohub lint` installs `pre-commit`
+automatically if needed:
+
+```bash
+./holohub run-container -- ./holohub lint
+```
+
+Because `run-container` sets `HOME` to the mounted workspace, the generated
+`.local/` install and `.cache/pre-commit/` hook environments persist across
+later container runs and are already ignored by git. Use
+`./holohub lint --install-dependencies` when you want to prefetch hooks or
+install dependencies without running lint.
+
+Downstream wrappers may override `HoloHubCLI.handle_lint` (or simply ship their own `.pre-commit-config.yaml`) to point lint at different tooling. If no `.pre-commit-config.yaml` is present at the project root, the command exits zero with a recommendation so downstream wrappers without a config don't break their CI.
+
 ### Iterate fast
 
 Check for existing images first: `docker images | grep <project>`.

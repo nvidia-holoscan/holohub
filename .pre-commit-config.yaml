@@ -83,6 +83,25 @@ repos:
       - id: markdownlint
         args: [--fix, --config, .markdownlint.yaml, --ignore-path, .markdownlintignore]
 
+  - repo: local
+    hooks:
+      - id: cmakelint
+        name: cmakelint
+        entry: cmakelint
+        language: python
+        additional_dependencies: ["cmakelint==1.4.3"]
+        args:
+          - --filter=-whitespace/indent,-linelength,-readability/wonkycase,-convention/filename,-package/stdargs
+        files: '(^|/)CMakeLists\.txt$|\.cmake$'
+        exclude: |
+          (?x)(
+            ^build[^/]*/
+            | ^install[^/]*/
+            | ^data[^/]*/
+            | ^tmp/
+            | (^|/)\.[^/]+/
+          )
+
   # Copyright header check (NVIDIA SPDX)
   - repo: local
     hooks:

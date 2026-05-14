@@ -1,0 +1,47 @@
+{
+  "operator": {
+    "name": "FoxglovePublisherOp",
+    "description": "Publishes Holoscan sensor and inference messages to Foxglove over WebSocket with optional MCAP recording.",
+    "authors": [
+      {
+        "name": "Chris von Csefalvay",
+        "affiliation": "HCLTech"
+      }
+    ],
+    "version": "0.1.0",
+    "changelog": {
+      "0.1.0": "Initial release with Foxglove WebSocket and MCAP publishing, RawImage, CompressedVideo, CameraCalibration, ImageAnnotations, PointCloud, FrameTransform and KeyValuePair message support, direct publisher ports, Foxglove Parameters and recording services, Holoscan metadata timestamp propagation, pinned host staging for device buffers, tensor/video, compressed video, pose, detection and segmentation adapters and unit tests."
+    },
+    "language": [
+      "C++",
+      "Python"
+    ],
+    "holoscan_sdk": {
+      "minimum_required_version": "4.1.0",
+      "tested_versions": [
+        "4.2.0",
+        "4.1.0"
+      ]
+    },
+    "platforms": [
+      "x86_64",
+      "aarch64"
+    ],
+    "tags": [
+      "Visualization",
+      "Observability",
+      "Networking and Distributed Computing",
+      "Video",
+      "Inference"
+    ],
+    "ranking": 2,
+    "requirements": {
+      "software": [
+        {
+          "name": "Foxglove SDK",
+          "version": "0.23.1"
+        }
+      ]
+    }
+  }
+}
