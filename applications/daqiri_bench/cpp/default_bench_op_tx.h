@@ -28,7 +28,7 @@ using namespace daqiri;
 namespace holoscan::ops {
 
 /*
-  The Advanced Networking Benchmark app uses DAQIRI to show how to
+  DAQIRI Benchmark uses DAQIRI to show how to
   send and receive packets at very high rates. The application is configurable
   to show different scenarios that might be used with DAQIRI.
   For both TX and RX, there are three possible modes: CPU-only, Header-data split,
@@ -42,14 +42,14 @@ namespace holoscan::ops {
   launch and pushing work to them asynchronously.
 */
 
-class AdvNetworkingBenchDefaultTxOp : public Operator {
+class DaqiriBenchDefaultTxOp : public Operator {
  public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS(AdvNetworkingBenchDefaultTxOp)
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(DaqiriBenchDefaultTxOp)
 
-  AdvNetworkingBenchDefaultTxOp() = default;
+  DaqiriBenchDefaultTxOp() = default;
 
-  ~AdvNetworkingBenchDefaultTxOp() {
-    HOLOSCAN_LOG_INFO("Advanced Networking Benchmark TX op shutting down");
+  ~DaqiriBenchDefaultTxOp() {
+    HOLOSCAN_LOG_INFO("DAQIRI Benchmark TX op shutting down");
   }
 
   void populate_dummy_headers(UDPIPV4Pkt& pkt) {
@@ -79,7 +79,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
   }
 
   void initialize() override {
-    HOLOSCAN_LOG_INFO("AdvNetworkingBenchDefaultTxOp::initialize()");
+    HOLOSCAN_LOG_INFO("DaqiriBenchDefaultTxOp::initialize()");
     holoscan::Operator::initialize();
 
     port_id_ = get_port_id(interface_name_.get());
@@ -156,7 +156,7 @@ class AdvNetworkingBenchDefaultTxOp : public Operator {
       cudaMemcpy(gds_header_, reinterpret_cast<void*>(&pkt), sizeof(pkt), cudaMemcpyDefault);
     }
 
-    HOLOSCAN_LOG_INFO("AdvNetworkingBenchDefaultTxOp::initialize() complete");
+    HOLOSCAN_LOG_INFO("DaqiriBenchDefaultTxOp::initialize() complete");
   }
 
   void setup(OperatorSpec& spec) override {

@@ -48,25 +48,25 @@ namespace holoscan::ops {
 
 #define ADV_NETWORK_MANAGER_WARMUP_KERNEL 1
 
-class AdvNetworkingBenchDefaultRxOp : public Operator {
+class DaqiriBenchDefaultRxOp : public Operator {
  public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS(AdvNetworkingBenchDefaultRxOp)
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(DaqiriBenchDefaultRxOp)
 
-  AdvNetworkingBenchDefaultRxOp() = default;
+  DaqiriBenchDefaultRxOp() = default;
 
-  ~AdvNetworkingBenchDefaultRxOp() {
+  ~DaqiriBenchDefaultRxOp() {
     HOLOSCAN_LOG_INFO("Finished receiver with {}/{} bytes/packets received and {} packets dropped",
                       ttl_bytes_recv_,
                       ttl_pkts_recv_,
                       ttl_packets_dropped_);
 
-    HOLOSCAN_LOG_INFO("Advanced Networking Benchmark RX op shutting down");
+    HOLOSCAN_LOG_INFO("DAQIRI Benchmark RX op shutting down");
     freeResources();
   }
 
   void initialize() override {
     cudaError_t cuda_error;
-    HOLOSCAN_LOG_INFO("AdvNetworkingBenchDefaultRxOp::initialize()");
+    HOLOSCAN_LOG_INFO("DaqiriBenchDefaultRxOp::initialize()");
     holoscan::Operator::initialize();
 
     port_id_ = get_port_id(interface_name_.get());
@@ -109,11 +109,11 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
 
     if (hds_.get()) { assert(gpu_direct_.get()); }
 
-    HOLOSCAN_LOG_INFO("AdvNetworkingBenchDefaultRxOp::initialize() complete");
+    HOLOSCAN_LOG_INFO("DaqiriBenchDefaultRxOp::initialize() complete");
   }
 
   void freeResources() {
-    HOLOSCAN_LOG_INFO("AdvNetworkingBenchDefaultRxOp::freeResources() start");
+    HOLOSCAN_LOG_INFO("DaqiriBenchDefaultRxOp::freeResources() start");
     for (int n = 0; n < num_concurrent; n++) {
       if (full_batch_data_d_[n]) { cudaFree(full_batch_data_d_[n]); }
       if (full_batch_data_h_[n]) { cudaFreeHost(full_batch_data_h_[n]); }
@@ -121,7 +121,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
       if (streams_[n]) { cudaStreamDestroy(streams_[n]); }
       if (events_[n]) { cudaEventDestroy(events_[n]); }
     }
-    HOLOSCAN_LOG_INFO("AdvNetworkingBenchDefaultRxOp::freeResources() complete");
+    HOLOSCAN_LOG_INFO("DaqiriBenchDefaultRxOp::freeResources() complete");
   }
 
   void setup(OperatorSpec& spec) override {
@@ -323,7 +323,7 @@ class AdvNetworkingBenchDefaultRxOp : public Operator {
         if (gpu_direct_.get()) {
           // GPUDirect mode: we copy the payload (referenced in h_dev_ptrs_)
           // to a contiguous memory buffer (full_batch_data_d_)
-          // The DAQIRI reorder kernel is no longer part of the public API. Keep a no-op kernel
+          // DAQIRI's reorder kernel is no longer part of the public API. Keep a no-op kernel
           // launch here so the stream/event lifetime matches the old benchmark flow.
           dummy_packet_reorder(static_cast<uint8_t*>(full_batch_data_d_[cur_batch_idx_]),
                                h_dev_ptrs_[cur_batch_idx_],

@@ -1,11 +1,11 @@
-# Advanced Networking Benchmark
+# DAQIRI Benchmark
 
 > [!TIP]
 > Review the [High Performance Networking tutorial](/tutorials/high_performance_networking/README.md) for guided
 > instructions to configure your system and test DAQIRI.
 
 This sample application measures raw DAQIRI DPDK transmit and receive throughput using the single
-`adv_networking_bench_default_tx_rx.yaml` configuration. The benchmark sends UDP packets from one
+`daqiri_bench_default_tx_rx.yaml` configuration. The benchmark sends UDP packets from one
 configured interface and receives them on another configured interface.
 
 The performance of this application depends heavily on a properly-configured system and tuning parameters
@@ -14,7 +14,7 @@ that are acceptable for the workload. To configure the system, see the
 
 ## Configuration
 
-Edit `adv_networking_bench_default_tx_rx.yaml` and replace the placeholder interface PCIe addresses,
+Edit `daqiri_bench_default_tx_rx.yaml` and replace the placeholder interface PCIe addresses,
 destination MAC address, and IP addresses with values for your system.
 
 The receiver uses `bench_rx` settings:
@@ -36,25 +36,25 @@ This application requires DAQIRI and a system configured for DAQIRI DPDK raw pac
 ## Build Instructions
 
 ```bash
-./holohub build adv_networking_bench --language=cpp
+./holohub build daqiri_bench --language=cpp
 ```
 
 ## Run Instructions
 
 ```bash
-./holohub run adv_networking_bench --docker-opts "-u root --privileged" --language cpp
+./holohub run daqiri_bench --docker-opts "-u root --privileged" --language cpp
 ```
 
 To run manually inside the container:
 
 ```bash
-./holohub run-container adv_networking_bench \
+./holohub run-container daqiri_bench \
   --language cpp \
   --docker-opts="-u root --privileged -w /workspace/holohub/"
 
-./holohub build adv_networking_bench --language=cpp
-./build/adv_networking_bench/applications/adv_networking_bench/cpp/adv_networking_bench \
-  adv_networking_bench_default_tx_rx.yaml
+./holohub build daqiri_bench --language=cpp
+./build/daqiri_bench/applications/daqiri_bench/cpp/daqiri_bench \
+  daqiri_bench_default_tx_rx.yaml
 ```
 
 ## Test Instructions
@@ -62,13 +62,13 @@ To run manually inside the container:
 Build with testing enabled:
 
 ```bash
-./holohub build adv_networking_bench --configure-args="-D BUILD_TESTING:BOOL=ON"
+./holohub build daqiri_bench --configure-args="-D BUILD_TESTING:BOOL=ON"
 ```
 
 Then run the benchmark tests from the build directory:
 
 ```bash
-./holohub run-container adv_networking_bench \
-  --docker-opts "-u 0 --privileged -w /workspace/holohub/build/adv_networking_bench/" \
+./holohub run-container daqiri_bench \
+  --docker-opts "-u 0 --privileged -w /workspace/holohub/build/daqiri_bench/" \
   -- ctest --output-on-failure
 ```

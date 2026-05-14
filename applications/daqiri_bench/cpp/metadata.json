@@ -1,6 +1,6 @@
 {
 	"application": {
-		"name": "Advanced Networking Benchmark",
+		"name": "DAQIRI Benchmark",
 		"authors": [
 			{
 				"name": "Cliff Burdick",
@@ -27,7 +27,7 @@
 		"ranking": 1,
 		"requirements": {
 			"gxf_extensions": [{
-				"name": "advanced_networking_benchmark",
+				"name": "daqiri_benchmark",
 				"version": "1.2"
 			}],
 			"libraries": [{
@@ -37,7 +37,7 @@
 			}]
 		},
 		"run": {
-			"command": "<holohub_app_bin>/adv_networking_bench",
+			"command": "<holohub_app_bin>/daqiri_bench",
 			"workdir": "holohub_bin"
 		}
 	}

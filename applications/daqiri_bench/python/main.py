@@ -58,7 +58,7 @@ class RawRxConfig:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="DAQIRI raw GPUDirect TX/RX benchmark")
-    parser.add_argument("config", help="YAML config, e.g. adv_networking_bench_default_tx_rx.yaml")
+    parser.add_argument("config", help="YAML config, e.g. daqiri_bench_default_tx_rx.yaml")
     parser.add_argument(
         "--seconds", type=int, default=10, help="seconds to run; <=0 runs until Ctrl-C"
     )

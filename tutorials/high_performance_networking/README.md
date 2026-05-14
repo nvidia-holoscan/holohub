@@ -1472,7 +1472,7 @@ You can set the MTU for each interface like so, for a given `if_name` name ident
 
 ## 4. Running a test application
 
-Holoscan Networking provides a benchmarking application named `adv_networking_bench` that can be used to test the performance of the networking configuration. In this section, we'll walk you through the steps needed to configure the application for your NIC for Tx and Rx, and run a loopback test between the two interfaces with a [physical SFP cable](https://www.nvidia.com/en-us/networking/interconnect/) connecting them.
+Holoscan Networking provides a benchmarking application named `daqiri_bench` that can be used to test the performance of the networking configuration. In this section, we'll walk you through the steps needed to configure the application for your NIC for Tx and Rx, and run a loopback test between the two interfaces with a [physical SFP cable](https://www.nvidia.com/en-us/networking/interconnect/) connecting them.
 
 Make sure to install [`holoscan-networking`](#1-installing-holoscan-networking) beforehand.
 
@@ -1480,16 +1480,16 @@ Make sure to install [`holoscan-networking`](#1-installing-holoscan-networking) 
 
 #### Find the application files
 
-Identify the location of the `adv_networking_bench` executable, and of the configuration file named `adv_networking_bench_default_tx_rx.yaml`, for your installation:
+Identify the location of the `daqiri_bench` executable, and of the configuration file named `daqiri_bench_default_tx_rx.yaml`, for your installation:
 
 === "Debian installation"
 
-    Both located under `/opt/nvidia/holoscan/examples/adv_networking_bench/`:
+    Both located under `/opt/nvidia/holoscan/examples/daqiri_bench/`:
 
     ```bash hl_lines="2 5"
-    ls -1 /opt/nvidia/holoscan/examples/adv_networking_bench/
-    adv_networking_bench
-    adv_networking_bench_default_tx_rx.yaml
+    ls -1 /opt/nvidia/holoscan/examples/daqiri_bench/
+    daqiri_bench
+    daqiri_bench_default_tx_rx.yaml
     CMakeLists.txt
     default_bench_op_rx.h
     default_bench_op_tx.h
@@ -1500,13 +1500,13 @@ Identify the location of the `adv_networking_bench` executable, and of the confi
 
 === "From source"
 
-    Both located under `./install/examples/adv_networking_bench/`
+    Both located under `./install/examples/daqiri_bench/`
 
     ```bash hl_lines="2 5"
-    ls -1 ./install/examples/adv_networking_bench
-    adv_networking_bench
-    adv_networking_bench_default_tx_rx.yaml
-    adv_networking_bench.py
+    ls -1 ./install/examples/daqiri_bench
+    daqiri_bench
+    daqiri_bench_default_tx_rx.yaml
+    daqiri_bench.py
     CMakeLists.txt
     default_bench_op_rx.h
     default_bench_op_tx.h
@@ -1517,7 +1517,7 @@ Identify the location of the `adv_networking_bench` executable, and of the confi
 
     !!! warning
 
-        The configuration file is also located alongide the application source code at `applications/adv_networking_bench/adv_networking_bench_default_tx_rx.yaml`.
+        The configuration file is also located alongide the application source code at `applications/daqiri_bench/daqiri_bench_default_tx_rx.yaml`.
         However, modifying this file will not affect the configuration used by the application executable without rebuilding the application.
 
         For this reason, we recommend using the configuration file located in the install tree.
@@ -1621,7 +1621,7 @@ After having modified the configuration file, ensure you have connected an SFP c
 === "Debian installation"
 
     ```bash
-    sudo /opt/nvidia/holoscan/examples/adv_networking_bench/adv_networking_bench adv_networking_bench_default_tx_rx.yaml
+    sudo /opt/nvidia/holoscan/examples/daqiri_bench/daqiri_bench daqiri_bench_default_tx_rx.yaml
     ```
 
 === "From source"
@@ -1631,16 +1631,16 @@ After having modified the configuration file, ensure you have connected an SFP c
         This assumes you have the required dependencies, including DAQIRI, installed locally on your system.
 
         ```bash
-        sudo ./install/examples/adv_networking_bench/adv_networking_bench adv_networking_bench_default_tx_rx.yaml
+        sudo ./install/examples/daqiri_bench/daqiri_bench daqiri_bench_default_tx_rx.yaml
         ```
 
     === "Containerized"
 
         ```bash
         ./holohub run-container \
-          --img holohub:adv_networking_bench \
+          --img holohub:daqiri_bench \
           --docker-opts "-u 0 --privileged" \
-          -- bash -c "./install/examples/adv_networking_bench/adv_networking_bench adv_networking_bench_default_tx_rx.yaml"
+          -- bash -c "./install/examples/daqiri_bench/daqiri_bench daqiri_bench_default_tx_rx.yaml"
         ```
 
 The application will run indefinitely. You can stop it gracefully with `Ctrl-C`. You can also uncomment and set the `max_duration_ms` field in the `scheduler` section of the configuration file to limit the duration of the run automatically.
@@ -1742,13 +1742,13 @@ The application will run indefinitely. You can stop it gracefully with `Ctrl-C`.
     [info] [daqiri_dpdk_mgr.cpp:1278] Flushing packet on port 1
     [info] [daqiri_dpdk_mgr.cpp:1478] Starting RX Core 9, port 1, queue 0, socket 0
     [info] [daqiri_dpdk_mgr.cpp:1268] Done starting workers
-    [info] [default_bench_op_tx.h:79] AdvNetworkingBenchDefaultTxOp::initialize()
+    [info] [default_bench_op_tx.h:79] DaqiriBenchDefaultTxOp::initialize()
     [info] [daqiri_dpdk_mgr.cpp:1637] Starting TX Core 11, port 0, queue 0 socket 0 using burst pool 0x125a0d4c0 ring 0x127690740
     [info] [default_bench_op_tx.h:113] Initialized 4 streams and events
-    [info] [default_bench_op_tx.h:130] AdvNetworkingBenchDefaultTxOp::initialize() complete
-    [info] [default_bench_op_rx.h:67] AdvNetworkingBenchDefaultRxOp::initialize()
+    [info] [default_bench_op_tx.h:130] DaqiriBenchDefaultTxOp::initialize() complete
+    [info] [default_bench_op_rx.h:67] DaqiriBenchDefaultRxOp::initialize()
     [info] [gxf_executor.cpp:1797] creating input IOSpec named 'burst_in'
-    [info] [default_bench_op_rx.h:104] AdvNetworkingBenchDefaultRxOp::initialize() complete
+    [info] [default_bench_op_rx.h:104] DaqiriBenchDefaultRxOp::initialize() complete
     [info] [daqiri_tx.cpp:46] DAQIRI TX::initialize()
     [info] [gxf_executor.cpp:1797] creating input IOSpec named 'burst_in'
     [info] [daqiri_common.h:607] Finished reading DAQIRI config
@@ -1850,8 +1850,8 @@ The application will run indefinitely. You can stop it gracefully with `Ctrl-C`.
     [info] [default_bench_op_tx.h:51] DAQIRI benchmark TX op shutting down
     [info] [default_bench_op_rx.h:56] Finished receiver with 6388570603520/6004295680 bytes/packets received and 0 packets dropped
     [info] [default_bench_op_rx.h:61] DAQIRI benchmark RX op shutting down
-    [info] [default_bench_op_rx.h:108] AdvNetworkingBenchDefaultRxOp::freeResources() start
-    [info] [default_bench_op_rx.h:116] AdvNetworkingBenchDefaultRxOp::freeResources() complete
+    [info] [default_bench_op_rx.h:108] DaqiriBenchDefaultRxOp::freeResources() start
+    [info] [default_bench_op_rx.h:116] DaqiriBenchDefaultRxOp::freeResources() complete
     [info] [gxf_executor.cpp:294] Destroying context
     ```
 
@@ -1958,7 +1958,7 @@ sudo mlnx_perf -i $if_name
 
 ## 5. Building your own application
 
-This section will guide you through building your own application using the `adv_networking_bench` as an example. Make sure to install [`holoscan-networking`](#1-installing-holoscan-networking) first.
+This section will guide you through building your own application using the `daqiri_bench` as an example. Make sure to install [`holoscan-networking`](#1-installing-holoscan-networking) first.
 
 ### 5.1 Understand the configuration parameters
 
@@ -1969,18 +1969,18 @@ This section will guide you through building your own application using the `adv
     === "Debian installation"
 
         ```bash
-        /opt/nvidia/holoscan/examples/adv_networking_bench/main.cpp
+        /opt/nvidia/holoscan/examples/daqiri_bench/main.cpp
         ```
 
     === "From source"
 
         ```bash
-        ./applications/adv_networking_bench/cpp/main.cpp
+        ./applications/daqiri_bench/cpp/main.cpp
         ```
 
     If you are not yet familiar with how Holoscan applications are constructed, please refer to the [Holoscan SDK documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/holoscan-core) first.
 
-Let's look at the `adv_networking_bench_default_tx_rx.yaml` file below. Click on the (1) icons below to expand explanations for each annotated line.
+Let's look at the `daqiri_bench_default_tx_rx.yaml` file below. Click on the (1) icons below to expand explanations for each annotated line.
 { .annotate }
 
 1. The cake is a lie :cake:
@@ -2105,25 +2105,25 @@ bench_tx: # (31)!
 27. The flow `id` is used to tag the packets with what flow it arrived on. This is useful when sending multiple flows to a single queue, as the user application can differentiate which flow (i.e. rules) matched the packet based on this ID.
 28. What to do with packets that match this flow. The only supported action currently is `type: queue` to send the packet to a queue given its `id`.
 29. List of rules to match packets against. All rules must be met for a packet to match the flow. Currently supported rules include `udp_src` and `udp_dst` (port numbers), `ipv4_len` (#TODO#) etc.
-30. The `bench_rx` section is passed to the `AdvNetworkingBenchDefaultRxOp` operator in the `#!cpp Application::compose()` function of the sample application. This operator is a custom operator implemented in `default_bench_op_rx.h` that pulls and aggregates packets received from the NIC, with parameters specific to its own implementation, which can be used as a reference for your own Rx operator. The first parameter, `interface_name`, is used to specify which NIC interface to use for the Rx operation. The following parameters are should align with how `memory_regions` and `queues` were configured for the `rx` interface.
-31. The `bench_tx` section is passed to the `AdvNetworkingBenchDefaultTxOp` operator in the `#!cpp Application::compose()` function of the sample application. This operator is a custom operator implemented in `default_bench_op_tx.h` that generates dummy packets to send to the NIC, with parameters specific to its own implementation, which can be used as a reference for your own Tx operator. The first parameter, `interface_name`, is used to specify which NIC interface to use for the Tx operation. The following parameters up to `header_size` should align with how `memory_regions` and `queues` were configured for the `tx` interface. The remaining parameters are used to fill-in the ethernet header of the packets (ETH, IP, UDP).
+30. The `bench_rx` section is passed to the `DaqiriBenchDefaultRxOp` operator in the `#!cpp Application::compose()` function of the sample application. This operator is a custom operator implemented in `default_bench_op_rx.h` that pulls and aggregates packets received from the NIC, with parameters specific to its own implementation, which can be used as a reference for your own Rx operator. The first parameter, `interface_name`, is used to specify which NIC interface to use for the Rx operation. The following parameters are should align with how `memory_regions` and `queues` were configured for the `rx` interface.
+31. The `bench_tx` section is passed to the `DaqiriBenchDefaultTxOp` operator in the `#!cpp Application::compose()` function of the sample application. This operator is a custom operator implemented in `default_bench_op_tx.h` that generates dummy packets to send to the NIC, with parameters specific to its own implementation, which can be used as a reference for your own Tx operator. The first parameter, `interface_name`, is used to specify which NIC interface to use for the Tx operation. The following parameters up to `header_size` should align with how `memory_regions` and `queues` were configured for the `tx` interface. The remaining parameters are used to fill-in the ethernet header of the packets (ETH, IP, UDP).
 
 ### 5.2 Create your own Rx operator
 
 !!! example "Under construction"
 
-    This section is under construction. Refer to the implementation of the `AdvNetworkingBenchDefaultRxOp` for an example.
+    This section is under construction. Refer to the implementation of the `DaqiriBenchDefaultRxOp` for an example.
 
     === "Debian installation"
 
         ```bash
-        /opt/nvidia/holoscan/examples/adv_networking_bench/default_bench_op_rx.h
+        /opt/nvidia/holoscan/examples/daqiri_bench/default_bench_op_rx.h
         ```
 
     === "From source"
 
         ```bash
-        ./applications/adv_networking_bench/cpp/default_bench_op_rx.h
+        ./applications/daqiri_bench/cpp/default_bench_op_rx.h
         ```
 
 !!! note
@@ -2134,18 +2134,18 @@ bench_tx: # (31)!
 
 !!! example "Under construction"
 
-    This section is under construction. Refer to the implementation of the `AdvNetworkingBenchDefaultTxOp` for an example.
+    This section is under construction. Refer to the implementation of the `DaqiriBenchDefaultTxOp` for an example.
 
     === "Debian installation"
 
         ```bash
-        /opt/nvidia/holoscan/examples/adv_networking_bench/default_bench_op_tx.h
+        /opt/nvidia/holoscan/examples/daqiri_bench/default_bench_op_tx.h
         ```
 
     === "From source"
 
         ```bash
-        ./applications/adv_networking_bench/cpp/default_bench_op_tx.h
+        ./applications/daqiri_bench/cpp/default_bench_op_tx.h
         ```
 
 !!! note
@@ -2224,7 +2224,7 @@ bench_tx: # (31)!
 === "From source"
 
     1. Create an application directory under [`applications/`](https://github.com/nvidia-holoscan/holohub/tree/main/applications) in your clone of the HoloHub repository, and write your source file(s) for your application and custom operators.
-    2. Add the following to the [`application/CMakeLists.txt`](https://github.com/nvidia-holoscan/holohub/blob/main/applications/adv_networking_bench/CMakeLists.txt) file:
+    2. Add the following to the [`application/CMakeLists.txt`](https://github.com/nvidia-holoscan/holohub/blob/main/applications/daqiri_bench/CMakeLists.txt) file:
 
         ```cmake
         find_package(daqiri REQUIRED CONFIG)

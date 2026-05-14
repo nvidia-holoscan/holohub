@@ -15,7 +15,7 @@
 
 install(
   FILES main.py
-  DESTINATION examples/adv_networking_bench/
-  RENAME adv_networking_bench.py
-  COMPONENT adv_networking_bench-py
+  DESTINATION examples/daqiri_bench/
+  RENAME daqiri_bench.py
+  COMPONENT daqiri_bench-py
 )

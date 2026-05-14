@@ -32,7 +32,7 @@
 		"ranking": 1,
 		"requirements": {
 			"applications": [
-				"adv_networking_bench"
+				"daqiri_bench"
 			],
 			"libraries": [
 				{

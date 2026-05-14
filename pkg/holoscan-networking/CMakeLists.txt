@@ -23,11 +23,11 @@ holohub_configure_deb(
     basic_networking_ping-cpp
     basic_networking_ping-configs
     basic_networking_ping-cppsrc
-    adv_networking_bench-cpp
-    adv_networking_bench-configs
-    adv_networking_bench-cppsrc
+    daqiri_bench-cpp
+    daqiri_bench-configs
+    daqiri_bench-cppsrc
     # basic_networking_ping-py
-    # adv_networking_bench-py
+    # daqiri_bench-py
   EXPORT_NAME holoscan-networking-targets
   DEPENDS "holoscan (>= 3.0), holoscan (<< 4.0), daqiri"
   RECOMMENDS "infiniband-diags, ibverbs-utils, mlnx-ofed-kernel-utils, mft, libhugetlbfs-bin"

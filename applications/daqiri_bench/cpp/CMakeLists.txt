@@ -14,7 +14,7 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.20)
-project(adv_networking_bench CXX CUDA)
+project(daqiri_bench CXX CUDA)
 
 # Dependencies
 find_package(holoscan 2.6 REQUIRED CONFIG
@@ -30,15 +30,15 @@ include(HoloHubDaqiri)
 set(CMAKE_CUDA_ARCHITECTURES "70;80;90")
 
 # Create the executable
-add_executable(adv_networking_bench
+add_executable(daqiri_bench
   kernels.cu
   main.cpp
 )
-target_link_libraries(adv_networking_bench
+target_link_libraries(daqiri_bench
   PRIVATE
   holoscan::core
 )
-holohub_link_daqiri(adv_networking_bench)
+holohub_link_daqiri(daqiri_bench)
 
 # Configure manager support through compile definitions
 if(NOT DEFINED DAQIRI_MGR)
@@ -52,29 +52,29 @@ foreach(MGR IN LISTS DAQIRI_MGR_LIST)
 endforeach()
 
 # Copy config file
-set(ADV_NETWORKING_BENCH_CONFIGS
-  adv_networking_bench_default_tx_rx.yaml
+set(DAQIRI_BENCH_CONFIGS
+  daqiri_bench_default_tx_rx.yaml
 )
 
-foreach(CONFIG_FILE IN LISTS ADV_NETWORKING_BENCH_CONFIGS)
+foreach(CONFIG_FILE IN LISTS DAQIRI_BENCH_CONFIGS)
   string(REPLACE "." "_" CONFIG_TARGET "${CONFIG_FILE}")
   add_custom_target(${CONFIG_TARGET}
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/../${CONFIG_FILE}" ${CMAKE_CURRENT_BINARY_DIR}
     DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../${CONFIG_FILE}"
   )
-  add_dependencies(adv_networking_bench ${CONFIG_TARGET})
+  add_dependencies(daqiri_bench ${CONFIG_TARGET})
 endforeach()
 
 # Installation
-install(TARGETS adv_networking_bench
-        DESTINATION examples/adv_networking_bench
-        COMPONENT adv_networking_bench-cpp)
+install(TARGETS daqiri_bench
+        DESTINATION examples/daqiri_bench
+        COMPONENT daqiri_bench-cpp)
 
 install(
   FILES
-    ../adv_networking_bench_default_tx_rx.yaml
-  DESTINATION examples/adv_networking_bench
-  COMPONENT adv_networking_bench-configs
+    ../daqiri_bench_default_tx_rx.yaml
+  DESTINATION examples/daqiri_bench
+  COMPONENT daqiri_bench-configs
   PERMISSIONS OWNER_READ OWNER_WRITE
               GROUP_READ GROUP_WRITE
               WORLD_READ WORLD_WRITE
@@ -83,8 +83,8 @@ install(
 install(
   FILES CMakeLists.txt.install
   RENAME CMakeLists.txt
-  DESTINATION examples/adv_networking_bench
-  COMPONENT adv_networking_bench-cppsrc
+  DESTINATION examples/daqiri_bench
+  COMPONENT daqiri_bench-cppsrc
   PERMISSIONS OWNER_READ OWNER_WRITE
               GROUP_READ GROUP_WRITE
               WORLD_READ WORLD_WRITE
@@ -97,8 +97,8 @@ install(
     kernels.cuh
     default_bench_op_rx.h
     default_bench_op_tx.h
-  DESTINATION examples/adv_networking_bench
-  COMPONENT adv_networking_bench-cppsrc
+  DESTINATION examples/daqiri_bench
+  COMPONENT daqiri_bench-cppsrc
   PERMISSIONS OWNER_READ OWNER_WRITE
               GROUP_READ GROUP_WRITE
               WORLD_READ WORLD_WRITE

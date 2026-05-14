@@ -36,14 +36,14 @@ class App : public holoscan::Application {
     if (mgr_type == daqiri::ManagerType::DPDK) {
 #if DAQIRI_MGR_DPDK
       if (rx_en) {
-        auto bench_rx = make_operator<ops::AdvNetworkingBenchDefaultRxOp>(
+        auto bench_rx = make_operator<ops::DaqiriBenchDefaultRxOp>(
             "bench_rx",
             from_config("bench_rx"),
             make_condition<BooleanCondition>("is_alive", true));
         add_operator(bench_rx);
       }
       if (tx_en) {
-        auto bench_tx = make_operator<ops::AdvNetworkingBenchDefaultTxOp>(
+        auto bench_tx = make_operator<ops::DaqiriBenchDefaultTxOp>(
             "bench_tx",
             from_config("bench_tx"),
             make_condition<BooleanCondition>("is_alive", true));
