@@ -1,52 +1,63 @@
 {
-  "$schema": "http://json-schema.org/draft-04/schema#",
-  "$id": "holohub/workflow/v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:holohub:workflow:v1",
   "type": "object",
+  "required": [
+    "workflow"
+  ],
   "properties": {
     "workflow": {
       "type": "object",
       "properties": {
         "name": {
-          "$ref": "holohub/project/v1#/$defs/name"
+          "$ref": "urn:holohub:project:v1#/$defs/name"
         },
         "description": {
-          "$ref": "holohub/project/v1#/$defs/description"
+          "$ref": "urn:holohub:project:v1#/$defs/description"
         },
         "authors": {
-          "$refs": "holohub/project/v1#/$defs/authors"
+          "$ref": "urn:holohub:project:v1#/$defs/authors"
         },
         "version": {
-          "$ref": "holohub/project/v1#/$defs/version"
+          "$ref": "urn:holohub:project:v1#/$defs/version"
         },
         "changelog": {
-          "$ref": "holohub/project/v1#/$defs/changelog"
+          "$ref": "urn:holohub:project:v1#/$defs/changelog"
         },
         "language": {
-          "$ref": "holohub/project/v1#/$defs/language"
+          "$ref": "urn:holohub:project:v1#/$defs/language"
         },
         "platforms": {
-          "$ref": "holohub/project/v1#/$defs/platforms"
+          "$ref": "urn:holohub:project:v1#/$defs/platforms"
         },
         "tags": {
-          "$ref": "holohub/project/v1#/$defs/tags"
+          "$ref": "urn:holohub:project:v1#/$defs/tags"
         },
         "holoscan_sdk": {
-          "$ref": "holohub/project/v1#/$defs/sdk_version"
+          "$ref": "urn:holohub:project:v1#/$defs/sdk_version"
         },
         "holoscan_sensor_bridge": {
-          "$ref": "holohub/project/v1#/$defs/sdk_version"
+          "$ref": "urn:holohub:project:v1#/$defs/sdk_version"
         },
         "ranking": {
-          "$ref": "holohub/project/v1#/$defs/ranking"
+          "$ref": "urn:holohub:project:v1#/$defs/ranking"
         },
         "requirements": {
-          "$ref": "holohub/project/v1#/$defs/requirements"
+          "$ref": "urn:holohub:project:v1#/$defs/requirements"
         },
         "dockerfile": {
           "type": "string"
         },
         "run": {
-          "$ref": "holohub/project/v1#/$defs/run_command"
+          "$ref": "urn:holohub:project:v1#/$defs/run_command"
+        },
+        "modes": {
+          "$ref": "urn:holohub:project:v1#/$defs/modes"
+        },
+        "default_mode": {
+          "type": "string",
+          "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$",
+          "description": "Name of the default mode to use when none is specified. Only needed when there are multiple modes."
         }
       },
       "required": [
@@ -59,31 +70,40 @@
         "holoscan_sdk",
         "ranking",
         "requirements"
-      ]
-    },
-    "$ref": "holohub/operator/v1#/properties/operator",
-    "$ref": "holohub/gxf_extension/v1#/properties/gxf_extension"
-  },
-  "oneOf": [
-    {
+      ],
+      "allOf": [
+        {
+          "not": {
+            "allOf": [
+              {
+                "required": [
+                  "run"
+                ]
+              },
+              {
+                "required": [
+                  "modes"
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "if": {
         "required": [
-            "application"
-        ]
-    },
-    {
+          "modes"
+        ],
+        "properties": {
+          "modes": {
+            "minProperties": 2
+          }
+        }
+      },
+      "then": {
         "required": [
-            "operator"
+          "default_mode"
         ]
-    },
-    {
-      "required": [
-          "gxf_extension"
-      ]
-    },
-    {
-      "required": [
-          "workflow"
-      ]
+      }
     }
-  ]
+  }
 }

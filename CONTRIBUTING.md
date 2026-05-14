@@ -176,6 +176,22 @@ Schemas are available for different contribution types:
 - [Operators](./utilities/metadata/operator.schema.json)
 - [Tutorials](./utilities/metadata/tutorial.schema.json)
 
+#### Metadata schema versioning
+
+All metadata schemas target **JSON Schema Draft 2020-12** and identify themselves with URN-style `$id` values (`urn:holohub:<entity>:v<n>`), e.g. `urn:holohub:project:v1`. URN form is used because Draft 2020-12 follows RFC 3986 URI resolution rules; bare relative identifiers like `holohub/project/v1` would be merged with the validating schema's base URI and fail to resolve as cross-schema `$ref` targets.
+
+Versioning policy for the schemas:
+
+| Change type | `$id` action | Existing metadata files |
+|---|---|---|
+| Draft bump or semantics-preserving rewrite | Keep `v<n>` | Unchanged |
+| Loosening (new optional fields, widened enums) | Keep `v<n>` | Unchanged |
+| Tightening (new required fields, narrowed enums) | Bump to `v<n+1>`; keep the previous schema file alongside for a deprecation window | Migrated on each file's own cadence |
+
+Validation runs in pre-commit via two hooks: `check-metaschema` validates each `*.schema.json` against the Draft 2020-12 meta-schema, and `holohub-metadata-validate` runs `python3 -m utilities.metadata.metadata_validator` against every `metadata.json` in the corpus. Run them locally with `pre-commit run --all-files`. The validator picks the schema by inspecting the top-level envelope key (`application`, `operator`, `workflow`, etc.) so an operator definition nested under `applications/<app>/operators/<op>/metadata.json` is validated against the operator schema rather than the application schema.
+
+A future-facing option (no consumer changes required yet): a metadata file may set `"$schema": "urn:holohub:application:v1"` at the top level to pin a specific schema version. The validator does not require this today, but it allows files to opt into a particular `v<n>` when multiple versions coexist.
+
 #### Example metadata.json Structure
 
 ```json

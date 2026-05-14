@@ -16,23 +16,25 @@ import unittest
 from pathlib import Path
 
 import jsonschema
-from jsonschema import Draft4Validator
+from jsonschema import Draft202012Validator
 from referencing import Registry
-from referencing.jsonschema import DRAFT4
+from referencing.jsonschema import DRAFT202012
 
 THIS_DIR = Path(__file__).resolve().parent
 SCHEMA_DIR = THIS_DIR.parent  # utilities/metadata/
 FIXTURE_DIR = THIS_DIR / "fixtures"
 
 
-def _make_module_validator() -> Draft4Validator:
-    """Build a Draft4 validator for module.schema.json with project.schema.json
+def _make_module_validator() -> Draft202012Validator:
+    """Build a Draft 2020-12 validator for module.schema.json with project.schema.json
     registered as a referenceable resource (the module schema $refs
     holohub/project/v1#/$defs/...)."""
     base_schema = json.loads((SCHEMA_DIR / "project.schema.json").read_text())
     module_schema = json.loads((SCHEMA_DIR / "module.schema.json").read_text())
-    registry = Registry().with_resource(base_schema["$id"], DRAFT4.create_resource(base_schema))
-    return Draft4Validator(module_schema, registry=registry)
+    registry = Registry().with_resource(
+        base_schema["$id"], DRAFT202012.create_resource(base_schema)
+    )
+    return Draft202012Validator(module_schema, registry=registry)
 
 
 class TestModuleSchemaFixtures(unittest.TestCase):
