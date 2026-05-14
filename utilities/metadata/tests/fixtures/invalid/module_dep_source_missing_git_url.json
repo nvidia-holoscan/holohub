@@ -1,6 +1,7 @@
 {
     "module": {
         "name": "dep_source_missing_git_url",
+        "description": "Module with a dependency source missing the required git_url field.",
         "authors": [{ "name": "NVIDIA", "affiliation": "NVIDIA" }],
         "version": "0.1.0",
         "language": ["Python"],

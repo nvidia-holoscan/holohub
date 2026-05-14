@@ -1,6 +1,7 @@
 {
     "module": {
         "name": "dep_missing_name",
+        "description": "Module with a dependency missing the required name field.",
         "authors": [{ "name": "NVIDIA", "affiliation": "NVIDIA" }],
         "version": "0.1.0",
         "language": ["Python"],

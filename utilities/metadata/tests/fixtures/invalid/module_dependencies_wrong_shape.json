@@ -1,6 +1,7 @@
 {
     "module": {
         "name": "dependencies_wrong_shape",
+        "description": "Module where dependencies is an object instead of the required array.",
         "authors": [{ "name": "NVIDIA", "affiliation": "NVIDIA" }],
         "version": "0.1.0",
         "language": ["Python"],

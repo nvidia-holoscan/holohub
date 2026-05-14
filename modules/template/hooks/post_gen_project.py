@@ -115,7 +115,7 @@ if _holohub_root:
             shutil.copytree(_src_dir, _dst_dir)
 
 # Make the module CLI wrapper executable.
-wrapper = f"./{MODULE_SLUG}"
+wrapper = "./holohub"
 if os.path.isfile(wrapper):
     os.chmod(wrapper, 0o755)
 
@@ -151,10 +151,10 @@ else:
     print(f"  operators/{OPERATOR_SLUG}/{OPERATOR_SLUG}.py\n")
 
 print("Build and run:")
-print(f"  ./{MODULE_SLUG} run-container")
+print(f"  ./holohub run-container")
 print("  # Inside the container:")
-print(f"  ./{MODULE_SLUG} build {pipeline}")
-print(f"  ./{MODULE_SLUG} run   {pipeline} --language python\n")
+print(f"  ./holohub build {pipeline}")
+print(f"  ./holohub run   {pipeline} --language python\n")
 
 if git_ok:
     print("Git repository initialised. Push to a remote when ready:")

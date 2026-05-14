@@ -1,5 +1,6 @@
 {
     "module": {
+        "description": "Module missing the required name field.",
         "authors": [{ "name": "NVIDIA", "affiliation": "NVIDIA" }],
         "version": "0.1.0",
         "language": ["Python"],

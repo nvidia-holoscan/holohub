@@ -1,6 +1,7 @@
 {
     "module": {
         "name": "dep_provides_operators_wrong_type",
+        "description": "Module with a dependency where provides_operators is a string instead of an array.",
         "authors": [{ "name": "NVIDIA", "affiliation": "NVIDIA" }],
         "version": "0.1.0",
         "language": ["Python"],

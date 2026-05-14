@@ -1,6 +1,7 @@
 {
     "module": {
         "name": "missing_holoscan_sdk",
+        "description": "Module missing the required holoscan_sdk field.",
         "authors": [{ "name": "NVIDIA", "affiliation": "NVIDIA" }],
         "version": "0.1.0",
         "language": ["Python"],

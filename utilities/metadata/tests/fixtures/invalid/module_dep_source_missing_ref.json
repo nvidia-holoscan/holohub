@@ -1,6 +1,7 @@
 {
     "module": {
         "name": "dep_source_missing_ref",
+        "description": "Module with a dependency source missing the required ref field.",
         "authors": [{ "name": "NVIDIA", "affiliation": "NVIDIA" }],
         "version": "0.1.0",
         "language": ["Python"],

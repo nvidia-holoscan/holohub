@@ -1,6 +1,7 @@
 {
     "module": {
         "name": "dep_source_extra_field",
+        "description": "Module with a dependency source that contains a disallowed extra field.",
         "authors": [{ "name": "NVIDIA", "affiliation": "NVIDIA" }],
         "version": "0.1.0",
         "language": ["Python"],
