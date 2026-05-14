@@ -123,6 +123,12 @@ You can then install `holoscan-networking`:
     ./holohub install holoscan-networking   # Installed in ./install
     ```
 
+    The HoloHub networking container builds DAQIRI from
+    [`NVIDIA/daqiri`](https://github.com/NVIDIA/daqiri), installs it as the
+    `daqiri` system package in the image, and exposes it from `/opt/daqiri`.
+    To use a specific DAQIRI revision, pass a Docker build argument such as
+    `--build-args "--build-arg DAQIRI_REF=<tag-or-sha>"`.
+
     If you'd like to generate the debian package from source and install it to ensure all dependencies are then present on your system, you can run:
 
     ```bash

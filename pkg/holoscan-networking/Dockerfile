@@ -19,6 +19,14 @@
 ARG HOLOSCAN_DEB_SRC="remote" # or "local"
 ARG HOLOSCAN_DEB_REMOTE_VERSION=4.3.0 # only used if HOLOSCAN_DEB_SRC is "remote"
 ARG HOLOSCAN_DEB_LOCAL_PATH="./holoscan.deb" # only used if HOLOSCAN_DEB_SRC is "local"
+ARG DAQIRI_REPO="https://github.com/NVIDIA/daqiri.git"
+ARG DAQIRI_REF="main"
+ARG DAQIRI_MGR="dpdk socket rdma"
+ARG DAQIRI_BUILD_PYTHON=ON
+ARG DAQIRI_BUILD_EXAMPLES=OFF
+ARG DAQIRI_CUDA_ARCHITECTURES="80;89;90"
+ARG BUILD_SHARED_LIBS=ON
+ARG DAQIRI_INSTALL_PREFIX=/opt/daqiri
 
 # ============================================================
 # base: Base layer
@@ -194,14 +202,75 @@ RUN curl -fsSL https://fast.dpdk.org/rel/dpdk-${DPDK_VERSION}.tar.xz -o /tmp/dpd
 # ==============================================================
 FROM dpdk AS rdma
 
+# ==============================================================
+# daqiri-package: build DAQIRI using the same manager stack as
+# NVIDIA/daqiri's Dockerfile, then wrap the install tree in a deb.
+# ==============================================================
+FROM rdma AS daqiri-package
+
+ARG DAQIRI_REPO
+ARG DAQIRI_REF
+ARG DAQIRI_MGR
+ARG DAQIRI_BUILD_PYTHON
+ARG DAQIRI_BUILD_EXAMPLES
+ARG DAQIRI_CUDA_ARCHITECTURES
+ARG BUILD_SHARED_LIBS
+ARG DAQIRI_INSTALL_PREFIX
+
+ENV pybind11_DIR=/usr/local/lib/python3.12/dist-packages/pybind11/share/cmake/pybind11
+
+RUN git clone "${DAQIRI_REPO}" /tmp/daqiri-src \
+    && cd /tmp/daqiri-src \
+    && git checkout "${DAQIRI_REF}" \
+    && git submodule update --init --recursive \
+    && sed -i "s/^set(CMAKE_CUDA_ARCHITECTURES .*/set(CMAKE_CUDA_ARCHITECTURES \"${DAQIRI_CUDA_ARCHITECTURES}\")/" src/CMakeLists.txt \
+    && DAQIRI_VERSION="$(sed -n 's/^project(daqiri VERSION \([^ ]*\).*$/\1/p' CMakeLists.txt)" \
+    && test -n "${DAQIRI_VERSION}" \
+    && cmake -S /tmp/daqiri-src -B /tmp/daqiri-build \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX="${DAQIRI_INSTALL_PREFIX}" \
+        -DCMAKE_CUDA_ARCHITECTURES="${DAQIRI_CUDA_ARCHITECTURES}" \
+        -DBUILD_SHARED_LIBS="${BUILD_SHARED_LIBS}" \
+        -DDAQIRI_BUILD_EXAMPLES="${DAQIRI_BUILD_EXAMPLES}" \
+        -DDAQIRI_BUILD_PYTHON="${DAQIRI_BUILD_PYTHON}" \
+        -DDAQIRI_MGR="${DAQIRI_MGR}" \
+    && cmake --build /tmp/daqiri-build -j "$(nproc)" \
+    && DESTDIR=/tmp/daqiri-package-root cmake --install /tmp/daqiri-build \
+    && mkdir -p /tmp/daqiri-package-root/DEBIAN \
+    && { \
+        echo "Package: daqiri"; \
+        echo "Version: ${DAQIRI_VERSION}"; \
+        echo "Section: libs"; \
+        echo "Priority: optional"; \
+        echo "Architecture: $(dpkg --print-architecture)"; \
+        echo "Maintainer: NVIDIA <holoscan-support@nvidia.com>"; \
+        echo "Description: Data Acquisition for Integrated Real-time Instruments"; \
+        echo " DAQIRI networking runtime, development files, and optional Python bindings."; \
+      } > /tmp/daqiri-package-root/DEBIAN/control \
+    && dpkg-deb --build /tmp/daqiri-package-root /tmp/daqiri.deb \
+    && rm -rf /tmp/daqiri-src /tmp/daqiri-build /tmp/daqiri-package-root
+
 # ==============================
-# Default stage: dpdk
-# If no target is specified, the dpdk stage will be built by default.
-# This provides upstream DPDK support without DOCA dependencies.
+# Default stage: dpdk with DAQIRI
+# If no target is specified, this stage will be built by default.
 # ==============================
-FROM dpdk
+FROM dpdk AS runtime
+
+ARG DAQIRI_INSTALL_PREFIX
+
+COPY --from=daqiri-package /tmp/daqiri.deb /tmp/daqiri.deb
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends /tmp/daqiri.deb \
+    && rm -f /tmp/daqiri.deb \
+    && rm -rf /var/lib/apt/lists/* \
+    && ldconfig
 
 # DAQIRI's Python bindings use pybind11's CMake package. The package is
 # installed with pip above, so expose that package directory to CMake.
 ENV pybind11_DIR=/usr/local/lib/python3.12/dist-packages/pybind11/share/cmake/pybind11
-ENV CMAKE_PREFIX_PATH=/usr/local/lib/python3.12/dist-packages/pybind11/share/cmake/pybind11
+ENV DAQIRI_ROOT=${DAQIRI_INSTALL_PREFIX}
+ENV CMAKE_PREFIX_PATH=${DAQIRI_INSTALL_PREFIX}:/usr/local/lib/python3.12/dist-packages/pybind11/share/cmake/pybind11
+ENV LD_LIBRARY_PATH=${DAQIRI_INSTALL_PREFIX}/lib:${LD_LIBRARY_PATH}
+ENV PYTHONPATH=${DAQIRI_INSTALL_PREFIX}/lib/python
+
+FROM runtime

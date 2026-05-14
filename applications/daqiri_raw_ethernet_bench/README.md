@@ -32,6 +32,11 @@ The transmitter uses `bench_tx` settings:
 ## Requirements
 
 This application requires DAQIRI and a system configured for DAQIRI DPDK raw packet IO.
+The HoloHub networking container builds DAQIRI from
+[`NVIDIA/daqiri`](https://github.com/NVIDIA/daqiri), installs it as the `daqiri`
+system package in the image, and exposes it from `/opt/daqiri`. To use a specific
+DAQIRI revision, pass a Docker build argument such as
+`--build-args "--build-arg DAQIRI_REF=<tag-or-sha>"`.
 
 ## Build Instructions
 

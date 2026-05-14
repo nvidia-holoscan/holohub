@@ -12,6 +12,14 @@ settings do not need to be changed.
 
 Please refer to DAQIRI documentation for more configuration information.
 
+## Requirements
+
+The HoloHub networking container builds DAQIRI from
+[`NVIDIA/daqiri`](https://github.com/NVIDIA/daqiri), installs it as the `daqiri`
+system package in the image, and exposes it from `/opt/daqiri`. To use a specific
+DAQIRI revision, pass a Docker build argument such as
+`--build-args "--build-arg DAQIRI_REF=<tag-or-sha>"`.
+
 ## Quick Start
 
 Use the following to build and run the application:
