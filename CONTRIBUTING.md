@@ -183,7 +183,7 @@ All metadata schemas target **JSON Schema Draft 2020-12** and identify themselve
 Versioning policy for the schemas:
 
 | Change type | `$id` action | Existing metadata files |
-|---|---|---|
+| --- | --- | --- |
 | Draft bump or semantics-preserving rewrite | Keep `v<n>` | Unchanged |
 | Loosening (new optional fields, widened enums) | Keep `v<n>` | Unchanged |
 | Tightening (new required fields, narrowed enums) | Bump to `v<n+1>`; keep the previous schema file alongside for a deprecation window | Migrated on each file's own cadence |
