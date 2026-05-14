@@ -151,7 +151,9 @@ KNOWN_ENVELOPES = (
 def validate_json(json_data, directory):
     with open(BASE_SCHEMA_PATH) as file:
         base_schema = json.load(file)
-    registry = Registry().with_resource(base_schema["$id"], DRAFT202012.create_resource(base_schema))
+    registry = Registry().with_resource(
+        base_schema["$id"], DRAFT202012.create_resource(base_schema)
+    )
 
     # Pick the schema by envelope key when present (e.g. an operator metadata.json
     # nested under applications/ uses operator.schema.json, not the schema of its
