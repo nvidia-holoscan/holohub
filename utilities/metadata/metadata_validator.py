@@ -19,15 +19,16 @@ import sys
 from pathlib import Path
 
 import jsonschema
-from jsonschema import Draft4Validator
+from jsonschema import Draft202012Validator
 from referencing import Registry
-from referencing.jsonschema import DRAFT4
+from referencing.jsonschema import DRAFT202012
 
 try:
     from utilities.metadata.utils import (
         BASE_SCHEMA_PATH,
         DEFAULT_INCLUDE_PATHS,
         METADATA_DIRECTORY_CONFIG,
+        SCHEMA_DIR,
         get_schema_path,
         iter_metadata_paths,
     )
@@ -37,6 +38,7 @@ except ModuleNotFoundError:
         BASE_SCHEMA_PATH,
         DEFAULT_INCLUDE_PATHS,
         METADATA_DIRECTORY_CONFIG,
+        SCHEMA_DIR,
         get_schema_path,
         iter_metadata_paths,
     )
@@ -134,18 +136,41 @@ def check_name_matches_readme(metadata_path, json_data):
     return True, "Name matches README.md title"
 
 
+KNOWN_ENVELOPES = (
+    "application",
+    "operator",
+    "workflow",
+    "tutorial",
+    "benchmark",
+    "gxf_extension",
+    "module",
+    "package",
+)
+
+
 def validate_json(json_data, directory):
     with open(BASE_SCHEMA_PATH) as file:
         base_schema = json.load(file)
-    registry = Registry().with_resource(base_schema["$id"], DRAFT4.create_resource(base_schema))
+    registry = Registry().with_resource(
+        base_schema["$id"], DRAFT202012.create_resource(base_schema)
+    )
 
-    schema_path = get_schema_path(directory)
+    # Pick the schema by envelope key when present (e.g. an operator metadata.json
+    # nested under applications/ uses operator.schema.json, not the schema of its
+    # containing directory). Fall back to directory-based lookup otherwise.
+    schema_path = None
+    if isinstance(json_data, dict):
+        envelopes = [k for k in KNOWN_ENVELOPES if k in json_data]
+        if len(envelopes) == 1:
+            schema_path = SCHEMA_DIR / f"{envelopes[0]}.schema.json"
+    if schema_path is None:
+        schema_path = get_schema_path(directory)
     with open(schema_path, "r") as file:
         try:
             execute_api_schema = json.load(file)
         except json.decoder.JSONDecodeError as err:
             return False, err
-    validator = Draft4Validator(execute_api_schema, registry=registry)
+    validator = Draft202012Validator(execute_api_schema, registry=registry)
 
     try:
         validator.validate(json_data)

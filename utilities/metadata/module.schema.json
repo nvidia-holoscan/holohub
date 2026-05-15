@@ -1,29 +1,47 @@
 {
-  "$schema": "http://json-schema.org/draft-04/schema#",
-  "$id": "holoscan/module/v2",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:holohub:module:v2",
   "type": "object",
   "$defs": {
     "namespace": {
       "type": "object",
       "properties": {
-        "cpp":    { "type": "string" },
-        "python": { "type": "string" }
+        "cpp": {
+          "type": "string"
+        },
+        "python": {
+          "type": "string"
+        }
       },
       "additionalProperties": false
     },
     "binary_packages": {
       "type": "object",
       "properties": {
-        "debian": { "type": "string" },
-        "pypi":   { "type": "string" }
+        "debian": {
+          "type": "string"
+        },
+        "pypi": {
+          "type": "string"
+        }
       },
       "additionalProperties": false
     },
     "testing_block": {
       "type": "object",
       "properties": {
-        "cpp":    { "type": "string", "enum": ["ctest"] },
-        "python": { "type": "string", "enum": ["pytest"] }
+        "cpp": {
+          "type": "string",
+          "enum": [
+            "ctest"
+          ]
+        },
+        "python": {
+          "type": "string",
+          "enum": [
+            "pytest"
+          ]
+        }
       },
       "additionalProperties": false
     },
@@ -31,68 +49,131 @@
       "type": "object",
       "description": "Source location for cmake-source resolution. Presence of this block signals that the HoloHub CLI will emit a FetchContent_Declare entry for this dependency and the HoloHub root CMakeLists.txt will FetchContent_MakeAvailable it at configure time when the dependency's operators are enabled. Other dependency kinds (binary packages, Python packages, etc.) are managed by their own tooling in the module's Dockerfile or setup scripts, not via this block.",
       "properties": {
-        "git_url": { "type": "string" },
-        "ref":     {
+        "git_url": {
+          "type": "string"
+        },
+        "ref": {
           "type": "string",
           "description": "Git revision: commit SHA, tag, or branch. Commit SHAs are recommended for reproducibility; the resolver warns when ref looks like a moving target."
         }
       },
-      "required": ["git_url", "ref"],
+      "required": [
+        "git_url",
+        "ref"
+      ],
       "additionalProperties": false
     },
     "module_dependency": {
       "type": "object",
       "properties": {
-        "name":    { "type": "string" },
-        "version": { "type": "string" },
-        "source":  { "$ref": "#/$defs/dependency_source" },
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/dependency_source"
+        },
         "provides_operators": {
           "type": "array",
-          "items": { "type": "string" },
-          "description": "Operators this dependency supplies to the consumer. The CLI resolver fetches this module only when at least one of these operators is in the set being built — letting consumers declare many module dependencies without paying the fetch cost for unused ones. The resolver validates this list against the module's own metadata.json:module.operators after fetch and warns on drift."
+          "items": {
+            "type": "string"
+          },
+          "description": "Operators this dependency supplies to the consumer. The CLI resolver fetches this module only when at least one of these operators is in the set being built \u2014 letting consumers declare many module dependencies without paying the fetch cost for unused ones. The resolver validates this list against the module's own metadata.json:module.operators after fetch and warns on drift."
         }
       },
-      "required": ["name"],
+      "required": [
+        "name"
+      ],
       "additionalProperties": false
     }
   },
   "properties": {
-    "$schema": { "type": "string" },
+    "$schema": {
+      "type": "string"
+    },
     "module": {
       "type": "object",
       "properties": {
-        "name":              { "$ref": "holohub/project/v1#/$defs/name" },
-        "description":       { "$ref": "holohub/project/v1#/$defs/description" },
-        "authors":           { "$ref": "holohub/project/v1#/$defs/authors" },
-        "version":           { "$ref": "holohub/project/v1#/$defs/version" },
-        "license":           { "type": "string" },
-        "language":          { "$ref": "holohub/project/v1#/$defs/multi_language" },
-        "namespace":         { "$ref": "#/$defs/namespace" },
-        "platforms":         { "$ref": "holohub/project/v1#/$defs/platforms" },
-        "tags":              { "$ref": "holohub/project/v1#/$defs/tags" },
-        "holoscan_sdk":      { "$ref": "holohub/project/v1#/$defs/sdk_version" },
-        "source_repository": { "type": "string" },
-        "ranking":           { "$ref": "holohub/project/v1#/$defs/ranking" },
-        "requirements":      { "$ref": "holohub/project/v1#/$defs/requirements" },
-        "binary_packages":   { "$ref": "#/$defs/binary_packages" },
-        "testing":           { "$ref": "#/$defs/testing_block" },
-        "dockerfile":        { "type": "string" },
+        "name": {
+          "$ref": "urn:holohub:project:v1#/$defs/name"
+        },
+        "description": {
+          "$ref": "urn:holohub:project:v1#/$defs/description"
+        },
+        "authors": {
+          "$ref": "urn:holohub:project:v1#/$defs/authors"
+        },
+        "version": {
+          "$ref": "urn:holohub:project:v1#/$defs/version"
+        },
+        "license": {
+          "type": "string"
+        },
+        "language": {
+          "$ref": "urn:holohub:project:v1#/$defs/multi_language"
+        },
+        "namespace": {
+          "$ref": "#/$defs/namespace"
+        },
+        "platforms": {
+          "$ref": "urn:holohub:project:v1#/$defs/platforms"
+        },
+        "tags": {
+          "$ref": "urn:holohub:project:v1#/$defs/tags"
+        },
+        "holoscan_sdk": {
+          "$ref": "urn:holohub:project:v1#/$defs/sdk_version"
+        },
+        "source_repository": {
+          "type": "string"
+        },
+        "ranking": {
+          "$ref": "urn:holohub:project:v1#/$defs/ranking"
+        },
+        "requirements": {
+          "$ref": "urn:holohub:project:v1#/$defs/requirements"
+        },
+        "binary_packages": {
+          "$ref": "#/$defs/binary_packages"
+        },
+        "testing": {
+          "$ref": "#/$defs/testing_block"
+        },
+        "dockerfile": {
+          "type": "string"
+        },
         "subprojects": {
           "type": "object",
           "properties": {
-            "operators":    { "type": "array", "items": { "type": "string" } },
-            "applications": { "type": "array", "items": { "type": "string" } }
+            "operators": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "applications": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           },
           "additionalProperties": false
         },
         "operators": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "Operators this module supplies. Authoritative self-advertisement; consumers may mirror these in their dependencies[].provides_operators to enable lazy fetch. The resolver compares the two lists after fetch and warns on drift."
         },
         "dependencies": {
           "type": "array",
-          "items": { "$ref": "#/$defs/module_dependency" }
+          "items": {
+            "$ref": "#/$defs/module_dependency"
+          }
         }
       },
       "required": [
@@ -107,5 +188,7 @@
       ]
     }
   },
-  "required": ["module"]
+  "required": [
+    "module"
+  ]
 }

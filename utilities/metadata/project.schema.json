@@ -1,6 +1,6 @@
 {
-  "$schema": "http://json-schema.org/draft-04/schema#",
-  "$id": "holohub/project/v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:holohub:project:v1",
   "type": "object",
   "$defs": {
     "name": {
@@ -11,27 +11,25 @@
     },
     "authors": {
       "type": "array",
-      "items": [
-        {
-          "type": "object",
-          "properties": {
-            "name": {
-              "type": "string"
-            },
-            "affiliation": {
-              "type": "string"
-            }
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
           },
-          "required": [
-            "name",
-            "affiliation"
-          ]
-        }
-      ]
+          "affiliation": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "affiliation"
+        ]
+      }
     },
     "version": {
       "type": "string",
-      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(\\.(0|[1-9].\\d*))*"
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(\\.(0|[1-9]\\d*))*$"
     },
     "changelog": {
       "$id": "changelog",
@@ -60,31 +58,25 @@
     },
     "platforms": {
       "type": "array",
-      "items": [
-        {
-          "type": "string",
-          "enum": [
-            "x86_64",
-            "aarch64"
-          ]
-        }
-      ]
+      "items": {
+        "type": "string",
+        "enum": [
+          "x86_64",
+          "aarch64"
+        ]
+      }
     },
     "tags": {
       "type": "array",
-      "items": [
-        {
-          "type": "string"
-        }
-      ]
+      "items": {
+        "type": "string"
+      }
     },
     "version_list": {
       "type": "array",
-      "items": [
-        {
-          "$ref": "#/$defs/version"
-        }
-      ]
+      "items": {
+        "$ref": "#/$defs/version"
+      }
     },
     "sdk_version": {
       "type": "object",
@@ -199,7 +191,6 @@
       },
       "description": "Run command configuration"
     },
-
     "build_configuration": {
       "type": "object",
       "properties": {
@@ -269,7 +260,10 @@
           "description": "Environment variables to set for this mode"
         }
       },
-      "required": ["description", "run"]
+      "required": [
+        "description",
+        "run"
+      ]
     },
     "modes": {
       "type": "object",

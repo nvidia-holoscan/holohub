@@ -1,43 +1,57 @@
 {
-  "$schema": "http://json-schema.org/draft-04/schema#",
-  "$id": "holohub/application/v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:holohub:application:v1",
   "type": "object",
+  "required": [
+    "application"
+  ],
   "properties": {
     "application": {
       "type": "object",
       "properties": {
         "name": {
-          "$ref": "holohub/project/v1#/$defs/name"
+          "$ref": "urn:holohub:project:v1#/$defs/name"
         },
         "description": {
-          "$ref": "holohub/project/v1#/$defs/description"
+          "$ref": "urn:holohub:project:v1#/$defs/description"
         },
         "authors": {
-          "$ref": "holohub/project/v1#/$defs/authors"
+          "$ref": "urn:holohub:project:v1#/$defs/authors"
         },
         "version": {
-          "$ref": "holohub/project/v1#/$defs/version"
+          "$ref": "urn:holohub:project:v1#/$defs/version"
         },
         "changelog": {
-          "$ref": "holohub/project/v1#/$defs/changelog"
+          "$ref": "urn:holohub:project:v1#/$defs/changelog"
         },
         "platforms": {
-          "$ref": "holohub/project/v1#/$defs/platforms"
+          "$ref": "urn:holohub:project:v1#/$defs/platforms"
         },
         "tags": {
-          "$ref": "holohub/project/v1#/$defs/tags"
+          "$ref": "urn:holohub:project:v1#/$defs/tags"
         },
         "holoscan_sdk": {
-          "$ref": "holohub/project/v1#/$defs/sdk_version"
+          "$ref": "urn:holohub:project:v1#/$defs/sdk_version"
         },
         "ranking": {
-          "$ref": "holohub/project/v1#/$defs/ranking"
+          "$ref": "urn:holohub:project:v1#/$defs/ranking"
         },
         "requirements": {
-          "$ref": "holohub/project/v1#/$defs/requirements"
+          "$ref": "urn:holohub:project:v1#/$defs/requirements"
         },
         "dockerfile": {
           "type": "string"
+        },
+        "run": {
+          "$ref": "urn:holohub:project:v1#/$defs/run_command"
+        },
+        "modes": {
+          "$ref": "urn:holohub:project:v1#/$defs/modes"
+        },
+        "default_mode": {
+          "type": "string",
+          "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$",
+          "description": "Name of the default mode to use when none is specified. Only needed when there are multiple modes."
         }
       },
       "required": [
@@ -51,105 +65,42 @@
         "ranking",
         "requirements"
       ],
-      "oneOf": [
-        {
-          "properties": {
-            "run": {
-              "$ref": "holohub/project/v1#/$defs/run_command"
-            }
-          },
-          "required": ["run"],
-          "not": {
-            "properties": {
-              "modes": {
-                "type": "object"
-              }
-            },
-            "required": ["modes"]
-          }
-        },
-        {
-          "properties": {
-            "modes": {
-              "$ref": "holohub/project/v1#/$defs/modes"
-            },
-            "default_mode": {
-              "type": "string",
-              "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$",
-              "description": "Name of the default mode to use when none is specified. Only needed when there are multiple modes."
-            }
-          },
-          "required": ["modes"],
-          "anyOf": [
-            {
-              "properties": {
-                "modes": {
-                  "type": "object",
-                  "maxProperties": 1
-                }
-              }
-            },
-            {
-              "properties": {
-                "modes": {
-                  "type": "object",
-                  "minProperties": 2
-                }
-              },
-              "required": ["default_mode"]
-            }
-          ],
-          "not": {
-            "properties": {
-              "run": {
-                "type": "object"
-              }
-            },
-            "required": ["run"]
-          }
-        },
+      "allOf": [
         {
           "not": {
-            "anyOf": [
+            "allOf": [
               {
-                "properties": {
-                  "run": {
-                    "type": "object"
-                  }
-                },
-                "required": ["run"]
+                "required": [
+                  "run"
+                ]
               },
               {
-                "properties": {
-                  "modes": {
-                    "type": "object"
-                  }
-                },
-                "required": ["modes"]
+                "required": [
+                  "modes"
+                ]
               }
             ]
           }
         }
-      ]
-    },
-    "$ref": "holohub/operator/v1#/properties/operator",
-    "$ref": "holohub/gxf_extension/v1#/properties/gxf_extension"
-  },
-  "oneOf": [
-    {
+      ],
+      "if": {
         "required": [
-            "application"
-        ]
-    },
-    {
+          "modes"
+        ],
+        "properties": {
+          "modes": {
+            "minProperties": 2
+          }
+        }
+      },
+      "then": {
         "required": [
-            "operator"
+          "default_mode"
         ]
-    },
-    {
-      "required": [
-          "gxf_extension"
-      ]
+      },
+      "dependentRequired": {
+        "default_mode": ["modes"]
+      }
     }
-  ]
+  }
 }
