@@ -47,6 +47,7 @@
     },
     "dependency_source": {
       "type": "object",
+      "description": "Source location for cmake-source resolution. Presence of this block signals that the HoloHub CLI will emit a FetchContent_Declare entry for this dependency and the HoloHub root CMakeLists.txt will FetchContent_MakeAvailable it at configure time when the dependency's operators are enabled. Other dependency kinds (binary packages, Python packages, etc.) are managed by their own tooling in the module's Dockerfile or setup scripts, not via this block.",
       "properties": {
         "git_url": {
           "type": "string"
