@@ -58,7 +58,7 @@ RUN INDEX_URL=""; \
     else \
         echo "Error: Unsupported GPU_TYPE (${GPU_TYPE}) or CUDA_MAJOR (${CUDA_MAJOR})" && exit 1; \
     fi \
-    && TORCH_VERSION=$(python3 -c "import torch; print(torch.__version__.split('+')[0])") \
+    && TORCH_VERSION=$(python3 -c "import torch, re; print(re.match(r'[\d.]+', torch.__version__).group())") \
     && echo "Detected PyTorch version: ${TORCH_VERSION}" \
     && if [ "${TORCH_VERSION}" = "2.8.0" ]; then \
         TORCHVISION_VERSION="0.23.0"; \
