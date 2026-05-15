@@ -1,0 +1,16 @@
+{
+    "module": {
+        "name": "module_advertises_operators",
+        "description": "Module that advertises its operators via the operators field.",
+        "authors": [{ "name": "NVIDIA", "affiliation": "NVIDIA" }],
+        "version": "1.2.3",
+        "language": ["Python", "C++"],
+        "platforms": ["x86_64", "aarch64"],
+        "tags": ["operators"],
+        "holoscan_sdk": {
+            "minimum_required_version": "4.0.0",
+            "tested_versions": ["4.2.0"]
+        },
+        "operators": ["foo_op", "bar_op"]
+    }
+}

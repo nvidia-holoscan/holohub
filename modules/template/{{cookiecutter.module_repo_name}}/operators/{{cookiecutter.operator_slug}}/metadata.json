@@ -1,0 +1,24 @@
+{
+    "operator": {
+        "name": "{{ cookiecutter.operator_slug.split('_')|map('capitalize')|join('') }}",
+        "authors": [
+            {
+                "name": "{{ cookiecutter.full_name }}",
+                "affiliation": "{{ cookiecutter.affiliation }}"
+            }
+        ],
+        "language": {% if cookiecutter.language == "cpp" %}["C++", "Python"]{% else %}["Python"]{% endif %},
+        "version": "{{ cookiecutter.version }}",
+        "changelog": {
+            "{{ cookiecutter.version }}": "TODO: describe what this operator does"
+        },
+        "holoscan_sdk": {
+            "minimum_required_version": "{{ cookiecutter.holoscan_version }}",
+            "tested_versions": ["{{ cookiecutter.holoscan_version }}"]
+        },
+        "platforms": ["x86_64", "aarch64"],
+        "tags": ["Development"],
+        "ranking": 3,
+        "requirements": {}
+    }
+}

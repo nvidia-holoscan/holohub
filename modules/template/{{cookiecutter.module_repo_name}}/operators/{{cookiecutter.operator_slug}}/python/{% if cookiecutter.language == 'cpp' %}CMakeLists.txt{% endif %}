@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: Copyright (c) {% now 'utc', '%Y' %} {{ cookiecutter.full_name }}{% if cookiecutter.affiliation %} / {{ cookiecutter.affiliation }}{% endif %}. All rights reserved.
+# SPDX-License-Identifier: {{ cookiecutter._license }}
+{%- set op_class = cookiecutter.operator_slug.split('_')|map('capitalize')|join('') %}
+
+# pybind11_add_holohub_module:
+#   - Fetches pybind11 at the version pinned to Holoscan SDK (so the same
+#     FetchContent_Declare entry is shared if this module is consumed as a
+#     dependency in HoloHub or another module).
+#   - Auto-links holoscan::core and holoscan::pybind11 (ABI-aligned with HSDK 3.3+).
+#   - Generates ${HOLOHUB_PYTHON_MODULE_OUT_DIR}/{{ cookiecutter.operator_slug }}/__init__.py
+#     with helpful import-error diagnostics for ABI mismatches.
+include(pybind11_add_holohub_module)
+pybind11_add_holohub_module(
+    CPP_CMAKE_TARGET   {{ cookiecutter.operator_slug }}
+    CLASS_NAME         {{ op_class }}
+    SOURCES            _{{ cookiecutter.operator_slug }}_bindings.cpp
+)
+
+target_include_directories({{ cookiecutter.operator_slug }}_python PRIVATE
+    ${PROJECT_SOURCE_DIR}/operators)

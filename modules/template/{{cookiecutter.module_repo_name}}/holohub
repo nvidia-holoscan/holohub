@@ -1,0 +1,122 @@
+#!/usr/bin/env bash
+# SPDX-FileCopyrightText: Copyright (c) {% now 'utc', '%Y' %} {{ cookiecutter.full_name }}{% if cookiecutter.affiliation %} / {{ cookiecutter.affiliation }}{% endif %}. All rights reserved.
+# SPDX-License-Identifier: {{ cookiecutter._license }}
+#
+# {{ cookiecutter.project_name }} CLI wrapper.
+# Delegates to the HoloHub CLI with module-specific defaults.
+# On first run, downloads the CLI tools via sparse-checkout into .holohub/.
+#
+# Usage:
+#   ./holohub run-container
+#   ./holohub build {{ cookiecutter.module_slug }}_pipeline
+#   ./holohub run   {{ cookiecutter.module_slug }}_pipeline --language python
+#   ./holohub --help
+#
+# Environment variables:
+#   CLI_REPO_URL      HoloHub git URL (default: public GitHub mirror)
+#   CLI_PINNED_COMMIT Git commit SHA to pin the CLI to
+#   CLI_FORCE_UPDATE  Set to "1" to force re-download even if SHA matches
+
+set -e
+set -o pipefail
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
+# ==============================================================================
+# CLI bootstrap settings
+# ==============================================================================
+
+CLI_DIR="${CLI_DIR:-${SCRIPT_DIR}/.holohub}"
+CLI_REPO_URL="${CLI_REPO_URL:-https://github.com/nvidia-holoscan/holohub.git}"
+# TODO: pin this to a specific HoloHub commit SHA for reproducibility.
+# Update CLI_PINNED_COMMIT to upgrade the CLI tools used by this module.
+CLI_PINNED_COMMIT="${CLI_PINNED_COMMIT:-main}"
+CLI_COMMIT_FILE="${CLI_DIR}/.commit_hash"
+
+# ==============================================================================
+# CLI download (sparse-checkout, minimal bandwidth)
+# ==============================================================================
+
+download_cli() {
+    echo " > Downloading HoloHub CLI tools to ${CLI_DIR}..."
+    command -v git >/dev/null || { echo "Error: git is required" >&2; exit 1; }
+
+    local tmp_dir
+    tmp_dir="$(mktemp -d "${SCRIPT_DIR}/.tmp-holohub-XXXXXX")"
+    trap 'rm -rf "${tmp_dir}"' EXIT
+
+    mkdir -p "${CLI_DIR}"
+
+    git clone --no-checkout --filter=blob:none "${CLI_REPO_URL}" "${tmp_dir}/holohub" || \
+        { echo "Error: failed to clone HoloHub repository" >&2; exit 1; }
+
+    cd "${tmp_dir}/holohub"
+    git sparse-checkout init --cone
+    git sparse-checkout set utilities/cli utilities/metadata utilities/setup utilities/testing
+    git fetch --progress origin "${CLI_PINNED_COMMIT}"
+    git -c advice.detachedHead=false checkout "${CLI_PINNED_COMMIT}"
+
+    local commit_hash
+    commit_hash="$(git rev-parse HEAD)"
+
+    rm -rf "${CLI_DIR}/utilities"
+    mv "${tmp_dir}/holohub/utilities" "${CLI_DIR}/utilities"
+    cd "${SCRIPT_DIR}"
+    rm -rf "${tmp_dir}"
+    trap - EXIT
+
+    echo "${commit_hash}" > "${CLI_COMMIT_FILE}"
+    echo " > HoloHub CLI downloaded (${commit_hash:0:9})"
+}
+
+CLI_INSTALLED_COMMIT="$(cat "${CLI_COMMIT_FILE}" 2>/dev/null || true)"
+if [[ "${CLI_FORCE_UPDATE}" == "1" ]] || \
+   [[ ! -d "${CLI_DIR}/utilities/cli" ]] || \
+   [[ "${CLI_INSTALLED_COMMIT}" != "${CLI_PINNED_COMMIT}" && "${CLI_PINNED_COMMIT}" != "main" ]]; then
+    if [[ -n "${CLI_INSTALLED_COMMIT}" && "${CLI_INSTALLED_COMMIT}" != "${CLI_PINNED_COMMIT}" ]]; then
+        echo " > CLI version mismatch (installed: ${CLI_INSTALLED_COMMIT:0:9}, expected: ${CLI_PINNED_COMMIT:0:9}), re-downloading..."
+    fi
+    rm -rf "${CLI_DIR}/utilities"
+    download_cli || { echo "Error: failed to download HoloHub CLI tools" >&2; exit 1; }
+fi
+
+# ==============================================================================
+# Module identity
+# ==============================================================================
+
+# HOLOHUB_ROOT: the CLI uses this as the project root for cmake -S and container paths.
+export HOLOHUB_ROOT="${HOLOHUB_ROOT:-${SCRIPT_DIR}}"
+# HOLOHUB_CMD_NAME: shown in help output and error messages.
+export HOLOHUB_CMD_NAME="${HOLOHUB_CMD_NAME:-./$(basename "${BASH_SOURCE[0]}")}"
+# HOLOHUB_REPO_PREFIX: base for naming build dirs, images, etc.
+export HOLOHUB_REPO_PREFIX="${HOLOHUB_REPO_PREFIX:-{{ cookiecutter.module_slug }}}"
+# HOLOHUB_CONTAINER_PREFIX: Docker image name prefix.
+export HOLOHUB_CONTAINER_PREFIX="${HOLOHUB_CONTAINER_PREFIX:-{{ cookiecutter.module_slug.replace('_', '-') }}}"
+# HOLOHUB_WORKSPACE_NAME: directory name inside the container at /workspace/.
+export HOLOHUB_WORKSPACE_NAME="${HOLOHUB_WORKSPACE_NAME:-{{ cookiecutter.module_slug }}}"
+# HOLOHUB_HOSTNAME_PREFIX: container hostname prefix (useful in VSCode Dev Containers).
+export HOLOHUB_HOSTNAME_PREFIX="${HOLOHUB_HOSTNAME_PREFIX:-{{ cookiecutter.module_slug.replace('_', '-') }}}"
+
+# ==============================================================================
+# Paths
+# ==============================================================================
+
+export HOLOHUB_DEFAULT_DOCKERFILE="${HOLOHUB_DEFAULT_DOCKERFILE:-${SCRIPT_DIR}/Dockerfile}"
+export HOLOHUB_SEARCH_PATH="${HOLOHUB_SEARCH_PATH:-${SCRIPT_DIR}/applications,${SCRIPT_DIR}/operators}"
+export HOLOHUB_BUILD_PARENT_DIR="${HOLOHUB_BUILD_PARENT_DIR:-${SCRIPT_DIR}/build}"
+export HOLOHUB_DATA_DIR="${HOLOHUB_DATA_DIR:-${SCRIPT_DIR}/data}"
+export HOLOHUB_SETUP_SCRIPTS_DIR="${HOLOHUB_SETUP_SCRIPTS_DIR:-${CLI_DIR}/utilities/setup}"
+
+# ==============================================================================
+# Build defaults
+# ==============================================================================
+
+export CMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE:-Release}"
+
+# ==============================================================================
+# Run
+# ==============================================================================
+
+# exec replaces the shell so SIGINT/SIGTERM/SIGHUP reach the Python CLI directly.
+PYTHONPATH="${CLI_DIR}${PYTHONPATH:+:${PYTHONPATH}}" \
+    exec python3 "${CLI_DIR}/utilities/cli/holohub.py" "$@"

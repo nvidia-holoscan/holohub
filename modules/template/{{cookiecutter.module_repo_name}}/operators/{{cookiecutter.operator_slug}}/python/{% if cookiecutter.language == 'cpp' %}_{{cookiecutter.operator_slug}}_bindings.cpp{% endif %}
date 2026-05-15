@@ -1,0 +1,85 @@
+// SPDX-FileCopyrightText: Copyright (c) {% now 'utc', '%Y' %} {{ cookiecutter.full_name }}{% if cookiecutter.affiliation %} / {{ cookiecutter.affiliation }}{% endif %}. All rights reserved.
+// SPDX-License-Identifier: {{ cookiecutter._license }}
+{%- set op_class = cookiecutter.operator_slug.split('_')|map('capitalize')|join('') %}
+
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+
+#include <holoscan/core/condition.hpp>
+#include <holoscan/core/fragment.hpp>
+#include <holoscan/core/operator.hpp>
+#include <holoscan/core/operator_spec.hpp>
+#include <holoscan/core/resource.hpp>
+
+#include <memory>
+#include <string>
+
+#include <{{ cookiecutter.operator_slug }}/{{ cookiecutter.operator_slug }}.hpp>
+
+namespace py = pybind11;
+
+namespace holoscan::{{ cookiecutter.module_slug }} {
+
+// Forward optional Condition / Resource positional args from py::args onto the
+// operator. Takes a raw Operator* — calling shared_from_this() inside the
+// constructor doesn't work because the object isn't yet owned by a shared_ptr.
+static void add_conditions_and_resources(holoscan::Operator* op, const py::args& args) {
+  for (const auto& item : args) {
+    auto obj = py::cast<py::object>(item);
+    try {
+      op->add_arg(obj.cast<std::shared_ptr<holoscan::Condition>>());
+      continue;
+    } catch (const py::cast_error&) {}
+    try {
+      op->add_arg(obj.cast<std::shared_ptr<holoscan::Resource>>());
+    } catch (const py::cast_error&) {
+      HOLOSCAN_LOG_WARN(
+          "Operator '{}': positional arg of type '{}' is neither a Condition nor a Resource — "
+          "add_arg skipped.",
+          op->name(),
+          py::str(obj.get_type()).cast<std::string>());
+    }
+  }
+}
+
+class Py{{ op_class }} : public {{ op_class }} {
+ public:
+  using {{ op_class }}::{{ op_class }};
+
+  Py{{ op_class }}(holoscan::Fragment* fragment, const py::args& args,
+                  // TODO: add keyword parameters here, e.g.:
+                  // int my_param = 1,
+                  const std::string& name = "{{ cookiecutter.operator_slug }}")
+      : {{ op_class }}() {
+    name_ = name;
+    fragment_ = fragment;
+    spec_ = std::make_shared<holoscan::OperatorSpec>(fragment);
+    // TODO: forward keyword parameters to args_, e.g.:
+    // this->add_arg(holoscan::Arg("my_param") = my_param);
+    setup(*spec_);
+    add_conditions_and_resources(this, args);
+  }
+};
+
+}  // namespace holoscan::{{ cookiecutter.module_slug }}
+
+PYBIND11_MODULE(_{{ cookiecutter.operator_slug }}, m) {
+  using namespace holoscan::{{ cookiecutter.module_slug }};
+
+  m.doc() = "{{ op_class }} Python bindings";
+
+  py::class_<{{ op_class }}, Py{{ op_class }}, holoscan::Operator, std::shared_ptr<{{ op_class }}>>(
+      m, "{{ op_class }}",
+      "Construct {{ op_class }}.\n\n"
+      // TODO: expand the docstring to document ports and parameters.
+      "Parameters\n----------\n"
+      "fragment : holoscan.core.Fragment\n"
+      "    The fragment this operator belongs to.\n"
+      "*args\n    Optional Condition or Resource objects.\n"
+      "name : str, optional\n"
+      "    Operator name (default '{{ cookiecutter.operator_slug }}').\n")
+      .def(py::init<holoscan::Fragment*, const py::args&, const std::string&>(),
+           py::arg("fragment"),
+           py::arg("name") = "{{ cookiecutter.operator_slug }}")
+      .def("setup", &{{ op_class }}::setup, py::arg("spec"));
+}

@@ -23,9 +23,17 @@ repos:
       - id: check-merge-conflict
       - id: trailing-whitespace
       - id: check-yaml
-        exclude: 'doc/website/mkdocs\.yml|applications/video_streaming/video_streaming_server/cpp/video_streaming_server_demo\.yaml'
+        exclude: 'doc/website/mkdocs\.yml|applications/video_streaming/video_streaming_server/cpp/video_streaming_server_demo\.yaml|modules/template/\{\{cookiecutter'
       - id: end-of-file-fixer
       - id: mixed-line-ending
+
+  # JSON Schema: validate metadata schemas against the Draft 2020-12 meta-schema
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 0.30.0
+    hooks:
+      - id: check-metaschema
+        name: check metadata schemas against JSON Schema 2020-12 meta-schema
+        files: ^utilities/metadata/.*\.schema\.json$
 
   # Python: ruff
   - repo: https://github.com/astral-sh/ruff-pre-commit
@@ -33,6 +41,7 @@ repos:
     hooks:
       - id: ruff
         args: [--fix, --ignore, E712]
+        exclude: 'modules/template/\{\{cookiecutter'
 
   # Python: isort
   - repo: https://github.com/PyCQA/isort
@@ -55,6 +64,7 @@ repos:
             | cmake/pybind11/
             | ^\.local/
             | \.ipynb$
+            | modules/template/\{\{cookiecutter
           )
 
   # Spelling: codespell
@@ -85,6 +95,15 @@ repos:
 
   - repo: local
     hooks:
+      - id: holohub-metadata-validate
+        name: validate metadata.json files against schemas
+        entry: python3 -m utilities.metadata.metadata_validator
+        language: python
+        additional_dependencies: ["jsonschema>=4.26.0", "referencing"]
+        files: '(^|/)metadata\.json$'
+        exclude: 'modules/template/\{\{cookiecutter|^\.local/'
+        pass_filenames: false
+
       - id: cmakelint
         name: cmakelint
         entry: cmakelint
@@ -100,6 +119,7 @@ repos:
             | ^data[^/]*/
             | ^tmp/
             | (^|/)\.[^/]+/
+            | modules/template/\{\{cookiecutter
           )
 
   # Copyright header check (NVIDIA SPDX)
