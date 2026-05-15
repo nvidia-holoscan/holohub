@@ -28,7 +28,7 @@ FIXTURE_DIR = THIS_DIR / "fixtures"
 def _make_module_validator() -> Draft202012Validator:
     """Build a Draft 2020-12 validator for module.schema.json with project.schema.json
     registered as a referenceable resource (the module schema $refs
-    holohub/project/v1#/$defs/...)."""
+    urn:holohub:project:v1#/$defs/...)."""
     base_schema = json.loads((SCHEMA_DIR / "project.schema.json").read_text())
     module_schema = json.loads((SCHEMA_DIR / "module.schema.json").read_text())
     registry = Registry().with_resource(

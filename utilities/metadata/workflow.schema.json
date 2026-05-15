@@ -103,6 +103,9 @@
         "required": [
           "default_mode"
         ]
+      },
+      "dependentRequired": {
+        "default_mode": ["modes"]
       }
     }
   }
