@@ -1,5 +1,12 @@
 # cuDisp
 
+> [!IMPORTANT]
+> **cuDisp is an experimental proof of concept built for demo purposes.** It is not an official NVIDIA release and is published here only to accompany a sample application.
+>
+> - **No support commitments.** Issues and pull requests are reviewed on a best-effort basis only.
+> - **No backward-compatibility guarantees.** The API, ABI, build, and behavior may change or be removed at any time without notice.
+> - **Not a standalone library.** cuDisp is not packaged, distributed, or recommended for use outside the accompanying sample.
+
 cuDisp is a display library that integrates with the Linux DRM stack and CUDA. It provides swapchain creation, buffer acquisition, and present (page-flip) from host or GPU, with optional GPU-driven present via a notify path.
 
 **IGX version:** IGX SW 1.1.2
