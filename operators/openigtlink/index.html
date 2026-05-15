@@ -19392,10 +19392,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#openigtlinkrxop" class="md-nav__link">
+  <a href="#openigtlinktxop" class="md-nav__link">
     <span class="md-ellipsis">
       
-        OpenIGTLinkRxOp
+        OpenIGTLinkTxOp
       
     </span>
   </a>
@@ -19403,10 +19403,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#openigtlinktxop" class="md-nav__link">
+  <a href="#openigtlinkrxop" class="md-nav__link">
     <span class="md-ellipsis">
       
-        OpenIGTLinkTxOp
+        OpenIGTLinkRxOp
       
     </span>
   </a>
@@ -19552,64 +19552,9 @@
 </ul>
 <h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
 <h3 id="python">Python<a class="headerlink" href="#python" title="Permanent link">#</a></h3>
-<h4 id="openigtlinkrxop"><code>OpenIGTLinkRxOp</code><a class="headerlink" href="#openigtlinkrxop" title="Permanent link">#</a></h4>
-<p>Operator class to send data using the OpenIGTLink protocol.</p>
-<h5 id="constructor-parameters">Constructor Parameters<a class="headerlink" href="#constructor-parameters" title="Permanent link">#</a></h5>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Type</th>
-<th>Required</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>fragment</code></td>
-<td><code>holoscan.core.Fragment</code></td>
-<td>Required</td>
-<td>The fragment that the operator belongs to.</td>
-</tr>
-<tr>
-<td><code>allocator</code></td>
-<td><code>holoscan.resources.Allocator</code></td>
-<td>Required</td>
-<td>Memory allocator to use for the output.</td>
-</tr>
-<tr>
-<td><code>port</code></td>
-<td><code>integer</code></td>
-<td>Optional</td>
-<td>Port number of server.</td>
-</tr>
-<tr>
-<td><code>out_tensor_name</code></td>
-<td><code>str</code></td>
-<td>Optional</td>
-<td>Name of output tensor.</td>
-</tr>
-<tr>
-<td><code>flip_width_height</code></td>
-<td><code>bool</code></td>
-<td>Optional</td>
-<td>Flip width and height (necessary for receiving from 3D Slicer).</td>
-</tr>
-<tr>
-<td><code>name</code></td>
-<td><code>str</code></td>
-<td>Optional</td>
-<td>The name of the operator.</td>
-</tr>
-</tbody>
-</table>
-<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
-<ul>
-<li><strong><code>setup</code></strong>: Define the operator specification.</li>
-</ul>
 <h4 id="openigtlinktxop"><code>OpenIGTLinkTxOp</code><a class="headerlink" href="#openigtlinktxop" title="Permanent link">#</a></h4>
 <p>Operator class to transmit data using the OpenIGTLink protocol.</p>
-<h5 id="constructor-parameters_1">Constructor Parameters<a class="headerlink" href="#constructor-parameters_1" title="Permanent link">#</a></h5>
+<h5 id="constructor-parameters">Constructor Parameters<a class="headerlink" href="#constructor-parameters" title="Permanent link">#</a></h5>
 <table>
 <thead>
 <tr>
@@ -19649,6 +19594,61 @@
 <td><code>integer</code></td>
 <td>Optional</td>
 <td>Port number of server.</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code>str</code></td>
+<td>Optional</td>
+<td>The name of the operator.</td>
+</tr>
+</tbody>
+</table>
+<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<ul>
+<li><strong><code>setup</code></strong>: Define the operator specification.</li>
+</ul>
+<h4 id="openigtlinkrxop"><code>OpenIGTLinkRxOp</code><a class="headerlink" href="#openigtlinkrxop" title="Permanent link">#</a></h4>
+<p>Operator class to send data using the OpenIGTLink protocol.</p>
+<h5 id="constructor-parameters_1">Constructor Parameters<a class="headerlink" href="#constructor-parameters_1" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>fragment</code></td>
+<td><code>holoscan.core.Fragment</code></td>
+<td>Required</td>
+<td>The fragment that the operator belongs to.</td>
+</tr>
+<tr>
+<td><code>allocator</code></td>
+<td><code>holoscan.resources.Allocator</code></td>
+<td>Required</td>
+<td>Memory allocator to use for the output.</td>
+</tr>
+<tr>
+<td><code>port</code></td>
+<td><code>integer</code></td>
+<td>Optional</td>
+<td>Port number of server.</td>
+</tr>
+<tr>
+<td><code>out_tensor_name</code></td>
+<td><code>str</code></td>
+<td>Optional</td>
+<td>Name of output tensor.</td>
+</tr>
+<tr>
+<td><code>flip_width_height</code></td>
+<td><code>bool</code></td>
+<td>Optional</td>
+<td>Flip width and height (necessary for receiving from 3D Slicer).</td>
 </tr>
 <tr>
 <td><code>name</code></td>
