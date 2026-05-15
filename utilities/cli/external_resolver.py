@@ -23,7 +23,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
-
 _SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 
 
@@ -113,6 +112,7 @@ def parse_module_dependencies(metadata_path: Path) -> list[ModuleDep]:
                 )
             if not _ref_is_immutable(ref):
                 import sys as _sys
+
                 print(
                     f"WARNING: dependency '{name}' pinned to ref '{ref}', which "
                     "is not a 40-char commit SHA. Tags and branches are mutable; "

@@ -69,23 +69,31 @@ class TestWriteManifest(unittest.TestCase):
     # ── holohub_declare_external_module emission ────────────────────────
 
     def test_emits_declare_function_call(self):
-        text = self._write([
-            ModuleDep(name="mymod", git_url="/tmp/x", ref="0" * 40),
-        ])
+        text = self._write(
+            [
+                ModuleDep(name="mymod", git_url="/tmp/x", ref="0" * 40),
+            ]
+        )
         self.assertIn("holohub_declare_external_module(mymod", text)
 
     def test_emits_git_repository_and_tag(self):
-        text = self._write([
-            ModuleDep(name="mymod", git_url="https://example.com/foo.git", ref="abc" + "0" * 37),
-        ])
+        text = self._write(
+            [
+                ModuleDep(
+                    name="mymod", git_url="https://example.com/foo.git", ref="abc" + "0" * 37
+                ),
+            ]
+        )
         self.assertIn("holohub_declare_external_module(mymod", text)
         self.assertIn("GIT_REPOSITORY  https://example.com/foo.git", text)
         self.assertIn("GIT_TAG         " + "abc" + "0" * 37, text)
 
     def test_provider_id_sanitised_in_declare(self):
-        text = self._write([
-            ModuleDep(name="holoscan-example-utils", git_url="/x", ref="0" * 40),
-        ])
+        text = self._write(
+            [
+                ModuleDep(name="holoscan-example-utils", git_url="/x", ref="0" * 40),
+            ]
+        )
         # Declared name uses the provider_id (underscores), not the original.
         self.assertIn("holohub_declare_external_module(holoscan_example_utils", text)
         self.assertNotIn("holohub_declare_external_module(holoscan-example-utils", text)
@@ -93,13 +101,16 @@ class TestWriteManifest(unittest.TestCase):
     # ── PROVIDES_OPERATORS forwarding ───────────────────────────────────
 
     def test_emits_provides_operators_in_function_call(self):
-        text = self._write([
-            ModuleDep(
-                name="bigmod",
-                git_url="/x", ref="0" * 40,
-                provides_operators=["bigmod_signal_op", "bigmod_render_op"],
-            ),
-        ])
+        text = self._write(
+            [
+                ModuleDep(
+                    name="bigmod",
+                    git_url="/x",
+                    ref="0" * 40,
+                    provides_operators=["bigmod_signal_op", "bigmod_render_op"],
+                ),
+            ]
+        )
         # PROVIDES_OPERATORS are forwarded inside holohub_declare_external_module;
         # the function sets HOLOHUB_EXT_OP_<op>_PROVIDER as normal variables.
         # No raw set() calls for PROVIDER appear in the manifest.
@@ -114,13 +125,15 @@ class TestWriteManifest(unittest.TestCase):
     # ── Local override redirection ──────────────────────────────────────
 
     def test_local_override_emits_source_dir_var(self):
-        text = self._write([
-            ModuleDep(
-                name="mymod",
-                override_path=Path("/abs/path/to/mymod"),
-                provides_operators=["mymod_op"],
-            ),
-        ])
+        text = self._write(
+            [
+                ModuleDep(
+                    name="mymod",
+                    override_path=Path("/abs/path/to/mymod"),
+                    provides_operators=["mymod_op"],
+                ),
+            ]
+        )
         # FETCHCONTENT_SOURCE_DIR_<UPPER> (cache var) goes BEFORE the function
         # call so it's visible to readers; CMake honors it at MakeAvailable time.
         idx_src = text.find("FETCHCONTENT_SOURCE_DIR_MYMOD")
@@ -133,9 +146,11 @@ class TestWriteManifest(unittest.TestCase):
 
     def test_local_override_only_no_source_block(self):
         # Override-only: SOURCE_DIR forwarded to FetchContent_Declare inside the function.
-        text = self._write([
-            ModuleDep(name="mymod", override_path=Path("/abs/local")),
-        ])
+        text = self._write(
+            [
+                ModuleDep(name="mymod", override_path=Path("/abs/local")),
+            ]
+        )
         self.assertIn("holohub_declare_external_module(mymod", text)
         self.assertIn('SOURCE_DIR  "/abs/local"', text)
 
@@ -164,7 +179,9 @@ class TestWriteManifest(unittest.TestCase):
     def test_writing_twice_produces_same_text(self):
         deps = [
             ModuleDep(
-                name="mymod", git_url="/x", ref="0" * 40,
+                name="mymod",
+                git_url="/x",
+                ref="0" * 40,
                 provides_operators=["mymod_op"],
             ),
         ]
@@ -185,13 +202,16 @@ class TestWriteManifest(unittest.TestCase):
         # holohub_declare_external_module (PARENT_SCOPE → normal variable, not cache).
         # The manifest must not emit them as raw set() calls — the contract is
         # enforced by the function definition in HoloHubConfigHelpers.cmake.
-        text = self._write([
-            ModuleDep(
-                name="mymod",
-                git_url="/x", ref="0" * 40,
-                provides_operators=["mymod_op"],
-            ),
-        ])
+        text = self._write(
+            [
+                ModuleDep(
+                    name="mymod",
+                    git_url="/x",
+                    ref="0" * 40,
+                    provides_operators=["mymod_op"],
+                ),
+            ]
+        )
         self.assertIn("PROVIDES_OPERATORS mymod_op", text)
         self.assertNotRegex(text, r"set\(HOLOHUB_EXT_OP_")
 
