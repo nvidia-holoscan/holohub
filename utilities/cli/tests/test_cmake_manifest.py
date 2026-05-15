@@ -85,8 +85,8 @@ class TestWriteManifest(unittest.TestCase):
             ]
         )
         self.assertIn("holohub_declare_external_module(mymod", text)
-        self.assertIn("GIT_REPOSITORY  https://example.com/foo.git", text)
-        self.assertIn("GIT_TAG         " + "abc" + "0" * 37, text)
+        self.assertIn('GIT_REPOSITORY  "https://example.com/foo.git"', text)
+        self.assertIn('GIT_TAG         "' + "abc" + "0" * 37 + '"', text)
 
     def test_provider_id_sanitised_in_declare(self):
         text = self._write(

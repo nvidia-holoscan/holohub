@@ -80,6 +80,8 @@ def parse_module_dependencies(metadata_path: Path) -> list[ModuleDep]:
         metadata = _read_metadata(metadata_path)
     except FileNotFoundError:
         return []
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Malformed JSON in {metadata_path}: {e}") from e
     raw = _module_dependencies_raw(metadata)
     out: list[ModuleDep] = []
     for entry in raw:

@@ -114,8 +114,8 @@ add_subdirectory(gxf_extensions)
 
 # ── Resolve external operators that ended up enabled ──────────────────
 #
-# Walk the cache for HOLOHUB_EXT_OP_<op>_PROVIDER entries (set by the
-# manifest above). For each operator whose option is ON in the cache,
+# Walk normal variables for HOLOHUB_EXT_OP_<op>_PROVIDER entries (set by the
+# manifest above). For each operator whose OP_<x> option is ON,
 # collect its providing module. Then FetchContent_MakeAvailable each unique
 # module exactly once — that fetches sources lazily and add_subdirectory's
 # the module's top-level CMakeLists. The module's per-operator gating
@@ -127,7 +127,7 @@ set(_holohub_ext_modules_needed "")
 foreach(_var IN LISTS _holohub_all_vars)
   if(_var MATCHES "^HOLOHUB_EXT_OP_(.+)_PROVIDER$")
     set(_op_name "${CMAKE_MATCH_1}")
-    if(${OP_${_op_name}})
+    if(OP_${_op_name})
       list(APPEND _holohub_ext_modules_needed "${${_var}}")
     endif()
   endif()

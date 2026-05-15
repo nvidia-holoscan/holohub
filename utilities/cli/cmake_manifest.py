@@ -69,9 +69,17 @@ def write_external_operators_manifest(
         "",
     ]
     seen_op_provider: dict[str, str] = {}
+    seen_provider_ids: dict[str, str] = {}
 
     for dep in deps:
         provider = _provider_id(dep.name)
+        if (prior_name := seen_provider_ids.get(provider)) and prior_name != dep.name:
+            print(
+                f"WARNING: modules '{prior_name}' and '{dep.name}' both map to "
+                f"provider ID '{provider}'. The latter will overwrite the former.",
+                file=sys.stderr,
+            )
+        seen_provider_ids[provider] = dep.name
         provider_upper = provider.upper()
         ref_note = f", ref {dep.ref}" if dep.ref else ""
         origin = "local-override" if dep.override_path else "fetch"
@@ -94,8 +102,8 @@ def write_external_operators_manifest(
         # directory scope).
         call_parts = [f"holohub_declare_external_module({provider}"]
         if dep.git_url and dep.ref:
-            call_parts.append(f"    GIT_REPOSITORY  {dep.git_url}")
-            call_parts.append(f"    GIT_TAG         {dep.ref}")
+            call_parts.append(f'    GIT_REPOSITORY  "{dep.git_url}"')
+            call_parts.append(f'    GIT_TAG         "{dep.ref}"')
         elif override_str is not None:
             call_parts.append(f'    SOURCE_DIR  "{override_str}"')
 
