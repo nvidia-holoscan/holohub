@@ -1855,7 +1855,16 @@ class HoloHubCLI:
 
         if not args.scripts:
             holohub_cli_util.install_packages_if_missing(
-                ["wget", "xvfb", "git", "unzip", "ffmpeg", "ninja-build", "libv4l-dev"],
+                [
+                    "wget",
+                    "xvfb",
+                    "git",
+                    "unzip",
+                    "ffmpeg",
+                    "ninja-build",
+                    "libv4l-dev",
+                    "libatomic1",
+                ],
                 dry_run=args.dryrun,
             )
 
