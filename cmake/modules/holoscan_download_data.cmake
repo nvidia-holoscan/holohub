@@ -72,6 +72,7 @@ function(holoscan_download_data dataname)
       /opt/nvidia/holoscan
       /opt/nvidia/holoscan/bin
     NO_DEFAULT_PATH
+    REQUIRED
   )
   cmake_path(GET DOWNLOAD_NGC_DATA PARENT_PATH DOWNLOAD_NGC_DATA_WORKDIR)
 
