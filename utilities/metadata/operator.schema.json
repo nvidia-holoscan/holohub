@@ -3,6 +3,7 @@
   "$id": "urn:holohub:operator:v1",
   "type": "object",
   "properties": {
+    "$schema": { "type": "string" },
     "operator": {
       "type": "object",
       "properties": {

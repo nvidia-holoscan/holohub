@@ -1,5 +1,5 @@
 {
-  "$schema": "holoscan/module/v2",
+  "$schema": "urn:holohub:module:v2",
   "module": {
     "name": "holoscan-{{ cookiecutter.module_slug.replace('_', '-') }}",
     "version": "{{ cookiecutter.version }}",

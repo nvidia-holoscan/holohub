@@ -1,4 +1,5 @@
 {
+    "$schema": "urn:holohub:operator:v1",
     "operator": {
         "name": "{{ cookiecutter.operator_slug.split('_')|map('capitalize')|join('') }}",
         "authors": [
