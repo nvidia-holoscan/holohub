@@ -70,9 +70,13 @@ RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
 # supported, in order of precedence:
 #   1. Local checkout exposed via `--build-context holoscan-cli-src=<path>`.
 #      The host CLI passes this automatically when HOLOSCAN_CLI_SOURCE is set.
-#   2. The HOLOSCAN_CLI_INSTALL_SPEC build arg, e.g.
+#   2. The HOLOSCAN_CLI_INSTALL_SPEC build arg, optionally combined with
+#      HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS for index URLs / pre-release flags.
+#      Examples:
 #        --build-arg HOLOSCAN_CLI_INSTALL_SPEC=holoscan-cli==4.3.0
 #        --build-arg HOLOSCAN_CLI_INSTALL_SPEC=git+https://github.com/nvidia-holoscan/holoscan-cli.git@main
+#        --build-arg HOLOSCAN_CLI_INSTALL_SPEC=holoscan-cli==4.3.0a26027723520 \
+#        --build-arg "HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS=--pre --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/"
 #   3. Default value `holoscan-cli` (the published PyPI release).
 # Provides the `holoscan` console script used by the in-container recursion
 # (`holoscan build/run/install <project> --local`). The local-source path
@@ -80,6 +84,7 @@ RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
 # are read-only and pip's PEP 517 build writes transient artifacts into the
 # source tree (e.g. poetry-dynamic-versioning version metadata).
 ARG HOLOSCAN_CLI_INSTALL_SPEC=holoscan-cli
+ARG HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS=
 RUN --mount=type=bind,from=holoscan-cli-src,target=/tmp/holoscan-cli-src \
     if [ -f /tmp/holoscan-cli-src/pyproject.toml ]; then \
         echo "Installing consolidated holoscan-cli from local source build-context"; \
@@ -87,8 +92,8 @@ RUN --mount=type=bind,from=holoscan-cli-src,target=/tmp/holoscan-cli-src \
         python3 -m pip install --no-cache-dir /tmp/holoscan-cli-src-writable; \
         rm -rf /tmp/holoscan-cli-src-writable; \
     else \
-        echo "Installing holoscan-cli from spec: ${HOLOSCAN_CLI_INSTALL_SPEC}"; \
-        python3 -m pip install --no-cache-dir "${HOLOSCAN_CLI_INSTALL_SPEC}"; \
+        echo "Installing holoscan-cli from spec: ${HOLOSCAN_CLI_INSTALL_SPEC} (extra flags: ${HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS:-none})"; \
+        python3 -m pip install --no-cache-dir ${HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS} "${HOLOSCAN_CLI_INSTALL_SPEC}"; \
     fi
 
 # Fail the build fast if the installed `holoscan-cli` is pre-consolidation
