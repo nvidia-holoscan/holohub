@@ -79,6 +79,7 @@
         },
         "date": {
           "type": "string",
+          "format": "date",
           "description": "ISO 8601 date of the test run (e.g. '2026-05-01')."
         },
         "holoscan_sdk_version": {
@@ -215,6 +216,7 @@
         },
         "homepage": {
           "type": "string",
+          "format": "uri",
           "description": "URL of the module's primary landing page or repository."
         },
         "source_repository": {
