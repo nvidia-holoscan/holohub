@@ -29,6 +29,7 @@
 #include <arpa/inet.h>
 
 #include "advanced_network/dpdk_log.h"
+#include "advanced_network/eal_utils.h"
 #include "adv_network_dpdk_mgr.h"
 #include "holoscan/holoscan.hpp"
 
@@ -224,13 +225,8 @@ void DpdkMgr::setup_accurate_send_scheduling_mask() {
 }
 
 
-std::string DpdkMgr::generate_random_string(int len) {
-  const char tokens[] = "abcdefghijklmnopqrstuvwxyz";
-  std::string tmp;
-
-  for (int i = 0; i < len; i++) { tmp += tokens[rand() % (sizeof(tokens) - 1)]; }
-
-  return tmp;
+std::string DpdkMgr::generate_eal_file_prefix() {
+  return holoscan::advanced_network::make_eal_file_prefix("dpdk");
 }
 
 // HWS doesn't allow zero queues on an interface, so we make some dummy interfaces here for
@@ -362,7 +358,7 @@ void DpdkMgr::initialize() {
 
   strncpy(_argv[arg++], "operator", max_arg_size - 1);
   strncpy(_argv[arg++],
-          (std::string("--file-prefix=") + generate_random_string(10)).c_str(),
+          (std::string("--file-prefix=") + generate_eal_file_prefix()).c_str(),
           max_arg_size - 1);
   strncpy(_argv[arg++], "-l", max_arg_size - 1);
   strncpy(_argv[arg++], cores.c_str(), max_arg_size - 1);

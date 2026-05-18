@@ -1,0 +1,20 @@
+{
+    "module": {
+        "name": "dependencies_wrong_shape",
+        "description": "Module where dependencies is an object instead of the required array.",
+        "authors": [{ "name": "NVIDIA", "affiliation": "NVIDIA" }],
+        "version": "0.1.0",
+        "language": ["Python"],
+        "platforms": ["x86_64"],
+        "tags": ["consumer"],
+        "holoscan_sdk": {
+            "minimum_required_version": "4.0.0",
+            "tested_versions": ["4.2.0"]
+        },
+        "dependencies": {
+            "modules": [
+                { "name": "upstream" }
+            ]
+        }
+    }
+}

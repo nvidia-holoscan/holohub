@@ -1,0 +1,93 @@
+# SPDX-FileCopyrightText: Copyright (c) {% now 'utc', '%Y' %} {{ cookiecutter.full_name }}{% if cookiecutter.affiliation %} / {{ cookiecutter.affiliation }}{% endif %}. All rights reserved.
+# SPDX-License-Identifier: {{ cookiecutter._license }}
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install ruff
+      - name: Python lint
+        run: ruff check .
+{% if cookiecutter.language == 'cpp' %}
+      - name: Install clang-format
+        run: sudo apt-get update && sudo apt-get install -y clang-format
+      - name: C++ format check
+        run: |
+          find operators applications tests \
+               -name '*.cpp' -o -name '*.hpp' \
+            | xargs clang-format --dry-run --Werror
+{% endif %}
+
+  build-only:
+    name: CMake configure (CPU, no GPU required)
+    # Verifies the CMake graph and Python packaging without a GPU runner.
+    # holoscan is installed from PyPI (CPU wheel) solely to satisfy find_package(holoscan).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install holoscan (CPU wheel) + CMake
+        run: |
+          pip install holoscan cmake ninja
+      - name: CMake configure
+        run: |
+          cmake -S . -B build \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -D{{ cookiecutter.module_slug | upper }}_BUILD_TESTING=OFF \
+            -DBUILD_ALL=ON
+
+  build-and-test:
+    name: Build and Test (Holoscan {{ cookiecutter.holoscan_version }})
+    # Requires a self-hosted GPU runner and the Holoscan container image.
+    # To set up a self-hosted runner see:
+    #   https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/about-self-hosted-runners
+    # TODO: update the runner label and container image for your CI environment.
+    runs-on: [self-hosted, linux, x86_64, gpu]
+
+    container:
+      image: nvcr.io/nvidia/clara-holoscan/holoscan:v{{ cookiecutter.holoscan_version }}-cuda12-dgpu
+      options: --gpus all
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: |
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -D{{ cookiecutter.module_slug | upper }}_BUILD_TESTING=ON \
+            -DBUILD_ALL=ON
+
+      - name: Build
+        run: cmake --build build -j"$(nproc)"
+{% if cookiecutter.language == 'cpp' %}
+      - name: C++ tests (CTest)
+        run: ctest --test-dir build --output-on-failure -L unit
+{% endif %}
+      - name: Python tests (pytest)
+        run: |
+          {{ cookiecutter.module_slug | upper }}_BUILD_DIR=build \
+          PYTHONPATH=build/python \
+          python -m pytest tests/python/ -v --tb=short
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: build/Testing/

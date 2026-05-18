@@ -132,6 +132,7 @@ def gather_metadata(repo_paths: list[str], exclude_paths: list[str] = None) -> l
         "application",
         "benchmark",
         "gxf_extension",
+        "module",
         "package",
         "operator",
         "tutorial",

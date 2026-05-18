@@ -1,0 +1,26 @@
+// SPDX-FileCopyrightText: Copyright (c) {% now 'utc', '%Y' %} {{ cookiecutter.full_name }}{% if cookiecutter.affiliation %} / {{ cookiecutter.affiliation }}{% endif %}. All rights reserved.
+// SPDX-License-Identifier: {{ cookiecutter._license }}
+{%- set op_class = cookiecutter.operator_slug.split('_')|map('capitalize')|join('') %}
+
+#pragma once
+
+#include <holoscan/holoscan.hpp>
+
+namespace holoscan::{{ cookiecutter.module_slug }} {
+
+// TODO: rename {{ op_class }} and update port/parameter declarations.
+class {{ op_class }} : public holoscan::Operator {
+ public:
+  HOLOSCAN_OPERATOR_FORWARD_ARGS({{ op_class }})
+
+  {{ op_class }}() = default;
+
+  void setup(OperatorSpec& spec) override;
+  void compute(InputContext& op_input, OutputContext& op_output, ExecutionContext& /*context*/) override;
+
+ private:
+  // TODO: declare parameters, e.g.:
+  // Parameter<int> my_param_;
+};
+
+}  // namespace holoscan::{{ cookiecutter.module_slug }}

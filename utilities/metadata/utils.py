@@ -46,6 +46,11 @@ METADATA_DIRECTORY_CONFIG = {
         "metadata_is_required": True,
         "schema": "workflow",
     },
+    "modules": {
+        "ignore_patterns": ["template"],
+        "metadata_is_required": True,
+        "schema": "module",
+    },
 }
 
 SCHEMA_DIR = Path(__file__).resolve().parent
@@ -105,12 +110,22 @@ def iter_metadata_paths(
     """Yield filtered metadata.json paths."""
     excludes = [pattern for pattern in (exclude_patterns or []) if pattern]
 
+    def _matches_segment(path: str, patterns: Sequence[str]) -> bool:
+        # Pattern must appear as a complete (slash-bordered) path segment, so
+        # ignore_pattern "template" matches "applications/template/foo" but
+        # not "holoscan-module-template/foo". Multi-segment patterns like
+        # "applications/holoviz/template" still work.
+        norm = "/" + path.replace(os.sep, "/").strip("/") + "/"
+        return any(
+            ("/" + pattern.replace(os.sep, "/").strip("/") + "/") in norm for pattern in patterns
+        )
+
     for repo_path in repo_paths:
         for root, _, files in os.walk(repo_path):
             if "metadata.json" not in files:
                 continue
             file_path = os.path.join(root, "metadata.json")
-            if excludes and any(pattern in file_path for pattern in excludes):
+            if excludes and _matches_segment(file_path, excludes):
                 continue
 
             directory_config: dict = {}
@@ -120,7 +135,7 @@ def iter_metadata_paths(
                     break
 
             ignore_patterns = directory_config.get("ignore_patterns", [])
-            if ignore_patterns and any(pattern in file_path for pattern in ignore_patterns):
+            if ignore_patterns and _matches_segment(file_path, ignore_patterns):
                 continue
 
             yield file_path

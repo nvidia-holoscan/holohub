@@ -1,0 +1,48 @@
+# SPDX-FileCopyrightText: Copyright (c) {% now 'utc', '%Y' %} {{ cookiecutter.full_name }}{% if cookiecutter.affiliation %} / {{ cookiecutter.affiliation }}{% endif %}. All rights reserved.
+# SPDX-License-Identifier: {{ cookiecutter._license }}
+{%- set op_class = cookiecutter.operator_slug.split('_')|map('capitalize')|join('') %}
+
+"""{{ op_class }} — pure Python Holoscan operator."""
+
+import logging
+
+from holoscan.core import Operator, OperatorSpec
+
+logger = logging.getLogger(__name__)
+
+
+class {{ op_class }}(Operator):
+    """TODO: describe what this operator does.
+
+    Ports
+    -----
+    in : TODO
+        TODO
+    out : TODO
+        TODO
+
+    Parameters
+    ----------
+    fragment : holoscan.core.Fragment
+        The fragment (or Application) this operator belongs to.
+    *args
+        Optional positional conditions/resources.
+    name : str, optional
+        Operator name (default ``"{{ cookiecutter.operator_slug }}"``).
+    """
+
+    def __init__(self, fragment, *args, name: str = "{{ cookiecutter.operator_slug }}", **kwargs):
+        super().__init__(fragment, *args, name=name, **kwargs)
+
+    def setup(self, spec: OperatorSpec) -> None:
+        # TODO: declare ports, e.g.:
+        # spec.input("in")
+        # spec.output("out")
+        pass
+
+    def compute(self, op_input, op_output, context) -> None:
+        # TODO: implement compute logic, e.g.:
+        # value = op_input.receive("in")
+        # logger.info("received: %s", value)
+        # op_output.emit(value, "out")
+        pass

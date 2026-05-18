@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: Copyright (c) {% now 'utc', '%Y' %} {{ cookiecutter.full_name }}{% if cookiecutter.affiliation %} / {{ cookiecutter.affiliation }}{% endif %}. All rights reserved.
+# SPDX-License-Identifier: {{ cookiecutter._license }}
+
+find_package(GTest REQUIRED)
+
+add_executable(test_operators test_operators.cpp)
+
+target_link_libraries(test_operators PRIVATE
+    {{ cookiecutter.operator_slug }}
+    holoscan::core
+    GTest::gtest_main)
+
+target_include_directories(test_operators PRIVATE
+    ${PROJECT_SOURCE_DIR}/operators)
+
+include(GoogleTest)
+gtest_discover_tests(test_operators PROPERTIES LABELS "unit")
