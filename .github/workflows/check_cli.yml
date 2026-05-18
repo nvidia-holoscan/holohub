@@ -25,16 +25,25 @@ jobs:
 
       - name: Checkout Repository
         uses: actions/checkout@v4
-      - name: Run Python tests
+
+      # Install the consolidated holoscan-cli from TestPyPI until the
+      # release is promoted to public PyPI. The wheel ships every CLI
+      # module HoloHub used to vendor under utilities/cli/, so HoloHub's
+      # CI no longer needs to invoke those module paths directly.
+      - name: Install consolidated holoscan-cli (dev build)
         run: |
-          python -m unittest utilities.cli.tests.test_cli
-          python -m unittest utilities.cli.tests.test_container
-          python -m unittest utilities.cli.tests.test_util
-          python -m unittest utilities.cli.tests.test_system_check
-          python -m unittest utilities.cli.tests.test_status
-          ./holohub setup --scripts template
-          python -m unittest utilities.cli.tests.test_cli
-          python -m unittest utilities.cli.tests.test_create_module
+          python -m pip install --upgrade pip
+          python -m pip install --pre \
+              --index-url https://test.pypi.org/simple/ \
+              --extra-index-url https://pypi.org/simple/ \
+              holoscan-cli pytest pytest-mock
+
+      # Verify the wrapper + consolidated CLI contract on HoloHub's project
+      # tree. The unittest-based suites (test_cli, test_container, ...)
+      # used to live here; they now ship inside the holoscan-cli package
+      # and are exercised by its own pytest matrix.
+      - name: Run wrapper consolidation test
+        run: python -m pytest -v --noconftest utilities/cli/tests/test_holoscan_cli_consolidation.py
 
   check-cli-ctest:
     runs-on: ubuntu-22.04

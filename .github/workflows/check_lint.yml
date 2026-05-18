@@ -17,7 +17,20 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Install Dependencies
+      # Pre-install the consolidated holoscan-cli from TestPyPI so the
+      # ./holohub bootstrap doesn't reach public PyPI for a stale 4.2.0
+      # build that predates the ``lint`` subcommand. Revert this step to
+      # ``sudo ./holohub lint --install-dependencies`` once the
+      # consolidated release lands on public PyPI.
+      - name: Install consolidated holoscan-cli (dev build)
+        run: |
+          python -m pip install --upgrade pip
+          sudo python -m pip install --pre \
+              --index-url https://test.pypi.org/simple/ \
+              --extra-index-url https://pypi.org/simple/ \
+              holoscan-cli
+
+      - name: Install lint hook dependencies
         run: sudo ./holohub lint --install-dependencies
 
       - name: Run linter
