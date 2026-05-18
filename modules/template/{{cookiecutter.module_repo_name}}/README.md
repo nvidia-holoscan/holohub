@@ -14,10 +14,10 @@ A **Holoscan Module** — a self-contained, redistributable library that extends
 
 ```bash
 # 1. Run the Python demo application
-./{{ cookiecutter.module_slug }} run {{ cookiecutter.module_slug }}_demo --language python
+./holohub run {{ cookiecutter.module_slug }}_pipeline --language python
 {% if cookiecutter.language == 'cpp' %}
 # 2. Run the C++ demo application
-./{{ cookiecutter.module_slug }} run {{ cookiecutter.module_slug }}_demo
+./holohub run {{ cookiecutter.module_slug }}_pipeline
 {% endif %}
 ```
 
