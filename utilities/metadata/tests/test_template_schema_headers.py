@@ -49,6 +49,14 @@ class TestStaticTemplateFiles(unittest.TestCase):
                 data = json.loads(full_path.read_text())
                 validator = _make_validator(schema_name)
                 validator.validate(data)
+                schema_id = json.loads(
+                    (SCHEMA_DIR / f"{schema_name}.schema.json").read_text()
+                )["$id"]
+                self.assertEqual(
+                    data.get("$schema"),
+                    schema_id,
+                    f"$schema in {rel_path} does not match schema $id {schema_id!r}",
+                )
 
 
 if __name__ == "__main__":
