@@ -1257,12 +1257,17 @@ class HoloHubCLI:
             return
 
         try:
+            import sys as _sys
             import sysconfig as _sysconfig
-            site_path = _sysconfig.get_path("purelib")
+            import site as _site
+            if _sys.prefix != _sys.base_prefix:
+                site_path = _sysconfig.get_path("purelib")
+            else:
+                site_path = _site.getusersitepackages()
             if not site_path:
                 return
             site_dir = Path(site_path)
-        except (ImportError, KeyError):
+        except (ImportError, KeyError, AttributeError):
             return
         helper_dst = site_dir / helper_src.name
 
@@ -2230,12 +2235,17 @@ class HoloHubCLI:
         depending on an external module (the module was pulled in via
         external_modules.cmake → add_subdirectory). Each unique slug found
         across `build/*/holoscan_<slug>_dev.py` is installed."""
+        import sys as _sys
         import sysconfig as _sysconfig
+        import site as _site
         import shutil as _shutil
 
         dryrun = getattr(args, "dryrun", False)
 
-        site_path = _sysconfig.get_path("purelib")
+        if _sys.prefix != _sys.base_prefix:
+            site_path = _sysconfig.get_path("purelib")
+        else:
+            site_path = _site.getusersitepackages()
         if not site_path:
             holohub_cli_util.fatal("Could not determine site-packages directory.")
         site_dir = Path(site_path)
