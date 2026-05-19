@@ -65,16 +65,27 @@ function(holoscan_download_data dataname)
     list(APPEND extra_data_options --model)
   endif()
 
+  find_program(DOWNLOAD_NGC_DATA
+    NAMES download_ngc_data
+    PATHS
+      ${CMAKE_SOURCE_DIR}/utilities
+      /opt/nvidia/holoscan
+      /opt/nvidia/holoscan/bin
+    NO_DEFAULT_PATH
+    REQUIRED
+  )
+  cmake_path(GET DOWNLOAD_NGC_DATA PARENT_PATH DOWNLOAD_NGC_DATA_WORKDIR)
+
   # Using a custom_command attached to a custom target allows to run only the custom command
   # if the stamp is not generated
   add_custom_command(OUTPUT "${DATA_DOWNLOAD_DIR}/${dataname}/${DATA_DOWNLOAD_NAME}.stamp"
-     COMMAND ${CMAKE_SOURCE_DIR}/utilities/download_ngc_data
+     COMMAND ${DOWNLOAD_NGC_DATA}
      --url ${DATA_URL}
      --dataset_name ${dataname}
      --download_dir ${DATA_DOWNLOAD_DIR}
      --download_name ${DATA_DOWNLOAD_NAME}
      ${extra_data_options}
-     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/utilities"
+     WORKING_DIRECTORY "${DOWNLOAD_NGC_DATA_WORKDIR}"
   )
 
   # If the target should be run all the time
