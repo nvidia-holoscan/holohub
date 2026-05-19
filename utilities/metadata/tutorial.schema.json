@@ -3,6 +3,7 @@
   "$id": "urn:holohub:tutorial:v1",
   "type": "object",
   "properties": {
+    "$schema": { "type": "string" },
     "tutorial": {
       "type": "object",
       "properties": {
