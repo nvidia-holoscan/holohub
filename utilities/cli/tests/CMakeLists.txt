@@ -543,7 +543,7 @@ set_tests_properties(test_holohub_install_dev_no_staged_hooks PROPERTIES
 add_test(
     NAME test_holohub_install_dev_missing_build_dir
     COMMAND sh -c "\"${CMAKE_SOURCE_DIR}/holohub\" install --dev \
-        --build-dir /tmp/holohub-test-nonexistent-$$ 2>&1 || true"
+        --build-dir \"${CMAKE_BINARY_DIR}/test_install_dev_missing\" 2>&1 || true"
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 set_tests_properties(test_holohub_install_dev_missing_build_dir PROPERTIES
