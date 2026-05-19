@@ -2393,9 +2393,7 @@ class HoloHubCLI:
                             p.unlink(missing_ok=True)
                         except OSError:
                             pass
-                    holohub_cli_util.fatal(
-                        f"Failed to install dev hook for '{slug}': {exc}"
-                    )
+                    holohub_cli_util.fatal(f"Failed to install dev hook for '{slug}': {exc}")
                 print(f"Installed {pth_dst}")
                 print(f"          {helper_dst}")
                 print(f"  → wiring `import holoscan.{slug}` to {build_dir}")
