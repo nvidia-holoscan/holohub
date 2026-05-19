@@ -38,6 +38,7 @@
 		],
 		"tags": ["Streaming", "GStreamer", "Visualization", "Holoviz", "Video"],
 		"ranking": 2,
+		"dockerfile": "operators/gstreamer/Dockerfile",
 		"description": "Bridge GStreamer pipelines into Holoscan for visualization with Holoviz. Supports CPU and GPU memory paths, multiple video formats (RGBA, I420, NV12), and dynamic pipelines with automatic format detection. Can display from files (MP4, etc.), cameras (V4L2), streams (RTSP), test patterns, and more.",
 		"run": {
 		"command": "applications/gstreamer/gst_to_holo/gst-to-holo",

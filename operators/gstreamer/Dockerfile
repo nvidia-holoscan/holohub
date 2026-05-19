@@ -70,7 +70,7 @@ RUN chmod +x /tmp/scripts/holohub
 RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
 
 # Install GStreamer development packages and pkg-config
-COPY applications/gstreamer/install_deps.sh /tmp/install_deps.sh
+COPY operators/gstreamer/install_deps.sh /tmp/install_deps.sh
 RUN /tmp/install_deps.sh
 
 # Enable autocomplete

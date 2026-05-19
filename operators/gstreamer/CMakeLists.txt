@@ -122,7 +122,16 @@ if(HOLOHUB_BUILD_PYTHON)
 endif()
 
 # Install library
-install(TARGETS holoscan_gstreamer_bridge DESTINATION lib)
+include(GNUInstallDirs)
+install(TARGETS holoscan_gstreamer_bridge
+    EXPORT holoscan-gstreamer-targets
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+# Write the holoscan-gstreamer-targets.cmake file
+install(EXPORT holoscan-gstreamer-targets
+    NAMESPACE holoscan::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/holoscan-gstreamer
+)
 
 # Install headers
 install(FILES
@@ -155,12 +164,13 @@ install(FILES
   gst_wait_group.hpp
   DESTINATION include/holoscan/operators/gstreamer)
 
-# Export the library for use by other CMake projects
+# Export build-tree targets for use without installation
 export(TARGETS holoscan_gstreamer_bridge
+       NAMESPACE holoscan::
        FILE "${CMAKE_CURRENT_BINARY_DIR}/holoscan_gstreamer_bridge-targets.cmake")
 
 # Print some information
-message(STATUS "Holoscan GStreamer Sink Library")
+message(STATUS "Holoscan GStreamer Bridge Library")
 message(STATUS "GStreamer include dirs: ${GSTREAMER_INCLUDE_DIRS}")
 message(STATUS "GStreamer libraries: ${GSTREAMER_LIBRARIES}")
 message(STATUS "GStreamer library dirs: ${GSTREAMER_LIBRARY_DIRS}")
