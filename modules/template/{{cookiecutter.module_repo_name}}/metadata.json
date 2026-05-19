@@ -23,9 +23,15 @@
     "platforms": ["x86_64", "aarch64"],
     "tags": ["TODO: add tags"],
     "source_repository": "https://github.com/TODO/holoscan-{{ cookiecutter.module_slug.replace('_', '-') }}",
+    "operators": ["{{ cookiecutter.operator_slug }}"],
+    "dockerfile": "Dockerfile",
     "binary_packages": {
       "debian": "holoscan-{{ cookiecutter.module_slug.replace('_', '-') }}",
-      "pypi": "holoscan-{{ cookiecutter.module_slug.replace('_', '-') }}"
+      "pypi": "holoscan-{{ cookiecutter.module_slug.replace('_', '-') }}",
+      "install_commands": ["pip install holoscan-{{ cookiecutter.module_slug.replace('_', '-') }}"]
+    },
+    "documentation": {
+      "readme": "README.md"
     },
     "testing": {
       {% if cookiecutter.language == "cpp" %}"cpp": "ctest",
