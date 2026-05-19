@@ -15,7 +15,7 @@ distributing this Holoscan Module.
 ├── Dockerfile                      # Dev container image
 ├── CMakeLists.txt                  # Root CMake — orchestrates operators/applications/tests
 ├── pyproject.toml                  # Python packaging metadata (scikit-build-core)
-├── metadata.json                   # Module-level metadata (schema: holoscan/module/v2)
+├── metadata.json                   # Module-level metadata (schema: urn:holohub:module:v2)
 ├── operators/
 │   └── {{ cookiecutter.operator_slug }}/
 │       ├── {{ cookiecutter.operator_slug }}.{% if cookiecutter.language == 'cpp' %}cpp / .hpp{% else %}py{% endif %}  # Operator implementation
@@ -69,9 +69,11 @@ Run Python tests:
 
 ```bash
 {{ cookiecutter.module_slug | upper }}_BUILD_DIR=build \
-PYTHONPATH=build/python \
+PYTHONPATH=build/python:$PYTHONPATH \
 pytest tests/python/ -v
 ```
+
+`PYTHONPATH` is **prepended**, not replaced — if the holoscan SDK is on `PYTHONPATH` in your shell, the form above keeps it visible. Replacing the variable (a bare `PYTHONPATH=build/python`) silently drops the SDK, the module-level `importorskip("holoscan")` fires, and pytest exits with code 5 (no tests collected).
 
 ---
 

@@ -10,7 +10,13 @@ add_test(
     COMMAND ${Python3_EXECUTABLE} -m pytest ${PROJECT_SOURCE_DIR}/tests/python/ -v --tb=short
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
+# PYTHONPATH is *prepended* (note the `:$ENV{PYTHONPATH}`) so an ambient
+# holoscan SDK install on the runner's PYTHONPATH stays visible. A bare
+# assignment would silently drop the SDK, the module-level
+# `pytest.importorskip("holoscan")` would fire, pytest would collect zero
+# items and exit 5, and CTest would mark the run "Skipped" with no obvious
+# cause. SKIP_RETURN_CODE 5 below is the safety net for the env-broken case.
 set_tests_properties(pytest PROPERTIES
-    ENVIRONMENT "PYTHONPATH=${{'{'}}{{ cookiecutter.module_slug | upper }}_PYTHON_ROOT};{{ cookiecutter.module_slug | upper }}_BUILD_DIR=${CMAKE_BINARY_DIR}"
+    ENVIRONMENT "PYTHONPATH=${{'{'}}{{ cookiecutter.module_slug | upper }}_PYTHON_ROOT}:$ENV{PYTHONPATH};{{ cookiecutter.module_slug | upper }}_BUILD_DIR=${CMAKE_BINARY_DIR}"
     SKIP_RETURN_CODE 5
     LABELS "python")
