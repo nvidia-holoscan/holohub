@@ -2307,7 +2307,10 @@ class HoloHubCLI:
                         if dryrun:
                             print(f"Would remove {p}")
                         else:
-                            p.unlink()
+                            try:
+                                p.unlink()
+                            except OSError as exc:
+                                holohub_cli_util.fatal(f"Failed to remove {p}: {exc}")
                             print(f"Removed {p}")
                             removed_any = True
                 if not removed_any and not dryrun:
@@ -2369,7 +2372,10 @@ class HoloHubCLI:
             )
 
         if not dryrun:
-            site_dir.mkdir(parents=True, exist_ok=True)
+            try:
+                site_dir.mkdir(parents=True, exist_ok=True)
+            except OSError as exc:
+                holohub_cli_util.fatal(f"Cannot create site-packages directory {site_dir}: {exc}")
         wrapper_name = Path(self.script_name).name
 
         # Install path: copy each staged pair into site-packages.
