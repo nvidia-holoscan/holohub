@@ -83,7 +83,7 @@ jobs:
       - name: Python tests (pytest)
         run: |
           {{ cookiecutter.module_slug | upper }}_BUILD_DIR=build \
-          PYTHONPATH=build/python:$PYTHONPATH \
+          PYTHONPATH=build/python${PYTHONPATH:+:$PYTHONPATH} \
           python -m pytest tests/python/ -v --tb=short
 
       - uses: actions/upload-artifact@v4
