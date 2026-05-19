@@ -1,7 +1,7 @@
 # cuDisp
 
 > [!IMPORTANT]
-> **cuDisp is an experimental proof of concept built for demo purposes.** It is not an official NVIDIA release and is published here only to accompany a sample application.
+> **cuDisp is an experimental proof of concept built for demo purposes.** It is published here only to accompany a sample application.
 >
 > - **No support commitments.** Issues and pull requests are reviewed on a best-effort basis only.
 > - **No backward-compatibility guarantees.** The API, ABI, build, and behavior may change or be removed at any time without notice.
