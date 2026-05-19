@@ -22,6 +22,6 @@ try:
     if build_holoscan_path not in holoscan.__path__:
         holoscan.__path__.insert(0, build_holoscan_path)
 except ImportError:
-    # holoscan not importable (e.g. CUDA not available outside the dev container).
+    # holoscan not importable (e.g. CUDA not available outside the development container).
     # Individual tests use pytest.importorskip("holoscan") to skip gracefully.
     pass

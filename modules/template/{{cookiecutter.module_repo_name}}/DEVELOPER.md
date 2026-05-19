@@ -11,8 +11,8 @@ distributing this Holoscan Module.
 
 ```
 {{ cookiecutter.module_repo_name }}/
-├── holohub                         # CLI wrapper (delegates to HoloHub CLI)
-├── Dockerfile                      # Dev container image
+├── holohub                         # CLI wrapper (delegates to holoscan-cli)
+├── Dockerfile                      # Development container image
 ├── CMakeLists.txt                  # Root CMake — orchestrates operators/applications/tests
 ├── pyproject.toml                  # Python packaging metadata (scikit-build-core)
 ├── metadata.json                   # Module-level metadata (schema: holoscan/module/v2)
@@ -34,19 +34,20 @@ distributing this Holoscan Module.
 
 ## `holohub` wrapper commands
 
-The `holohub` script at the module root wraps the HoloHub CLI with module-specific defaults.
-On first run it downloads the CLI tools via sparse-checkout into `.holohub/` (internet required;
-subsequent runs use the cached copy).
+The `holohub` script at the module root wraps the `holoscan-cli` package with module-specific
+defaults. On first run it installs `holoscan-cli` via pip if it isn't already importable
+(internet required); subsequent runs reuse the installed copy.
 
 | Command | What it does |
 |---|---|
-| `./holohub run-container` | Build and start the dev container |
+| `./holohub run-container` | Build and start the development container |
 | `./holohub build {{ cookiecutter.module_slug }}_pipeline` | CMake configure + build inside the container |
 | `./holohub run {{ cookiecutter.module_slug }}_pipeline` | Run the example pipeline |
 | `./holohub test` | Run CTest (C++ unit tests) and pytest |
 | `./holohub install --dev` | Install a `.pth` hook so `import holoscan.{{ cookiecutter.module_slug }}` works in any shell |
 
-Set `CLI_FORCE_UPDATE=1` to re-download the CLI tools (e.g. after updating `CLI_PINNED_COMMIT`).
+Set `HOLOSCAN_CLI_VERSION` to pin the installed `holoscan-cli` (e.g. `holoscan-cli==4.3.0`),
+or `HOLOSCAN_CLI_SOURCE` to a local checkout for development.
 
 ---
 

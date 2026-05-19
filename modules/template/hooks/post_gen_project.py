@@ -52,12 +52,14 @@ if LANGUAGE == "python":
 # Remove any directories that became empty (from Jinja2 conditional filenames).
 remove_empty_dirs()
 
-# Locate holohub-internal so we can copy in companion files. The cookiecutter
-# runs this hook from a temp file, so __file__ is unreliable. The HoloHub CLI
-# sets HOLOHUB_ROOT before invoking cookiecutter; standalone cookiecutter use
-# falls back to a sibling-directory search.
+# Locate the HoloHub clone so we can copy in companion CMake helpers. The
+# cookiecutter runs this hook from a temp file, so __file__ is unreliable.
+# The consolidated holoscan-cli sets HOLOSCAN_CLI_ROOT to the HoloHub root
+# before invoking cookiecutter (legacy HOLOHUB_ROOT is honored too for users
+# still on the pre-consolidation CLI); standalone cookiecutter use falls back
+# to a sibling-directory search.
 _holohub_root = None
-_env_root = os.environ.get("HOLOHUB_ROOT")
+_env_root = os.environ.get("HOLOSCAN_CLI_ROOT") or os.environ.get("HOLOHUB_ROOT")
 _candidates = (
     pathlib.Path.cwd().parent / "holohub-internal",
     pathlib.Path.cwd().parent.parent / "holohub-internal",
@@ -76,10 +78,11 @@ if _holohub_root is None:
     _candidate_list = ", ".join(str(c) for c in _candidates)
     warnings.warn(
         f"HoloHub root not found. CMake helpers were not copied into cmake/.\n"
-        f"  HOLOHUB_ROOT env var: {_env_root!r}\n"
+        f"  HOLOSCAN_CLI_ROOT env var: {os.environ.get('HOLOSCAN_CLI_ROOT')!r}\n"
+        f"  HOLOHUB_ROOT env var:      {os.environ.get('HOLOHUB_ROOT')!r}\n"
         f"  cwd: {pathlib.Path.cwd()}\n"
         f"  Candidates checked: {_candidate_list}\n"
-        f"To fix: set HOLOHUB_ROOT=/path/to/holohub before running cookiecutter,\n"
+        f"To fix: set HOLOSCAN_CLI_ROOT=/path/to/holohub before running cookiecutter,\n"
         f"  or rename your HoloHub clone to 'holohub' or 'holohub-internal' as a\n"
         f"  sibling of the generated module directory.",
         stacklevel=1,

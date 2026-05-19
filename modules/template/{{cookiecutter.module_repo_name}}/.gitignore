@@ -2,9 +2,6 @@
 build/
 .cmake/
 
-# HoloHub CLI tools (auto-downloaded by the holohub wrapper on first run)
-.holohub/
-
 # Python packaging artifacts
 dist/
 *.egg-info/
@@ -12,6 +9,5 @@ __pycache__/
 *.py[cod]
 
 # Editor / IDE
-.vscode/
 .idea/
 *.swp
