@@ -65,7 +65,7 @@
           "items": {
             "type": "string"
           },
-          "description": "Relative paths to images, GIFs, or other assets the documentation builder must fetch for webpage rendering."
+          "description": "Relative paths to images, GIFs, or other assets the documentation builder must fetch for webpage rendering. Assumed relative to the project root."
         }
       },
       "additionalProperties": false
