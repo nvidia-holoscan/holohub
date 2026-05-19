@@ -58,7 +58,7 @@ class DaqiriSocketPingTxOp : public Operator {
     const auto value = index_ < NUM_MSGS ? index_ : -1;
     std::memcpy(payload, &value, sizeof(value));
     daqiri::set_packet_lengths(msg, 0, {static_cast<int>(sizeof(value))});
-    msg->rdma_hdr.conn_id = conn_id_;
+    daqiri::set_connection_id(msg, conn_id_);
 
     while (daqiri::send_tx_burst(msg) != daqiri::Status::SUCCESS) {
       std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -118,6 +118,12 @@ class DaqiriSocketPingRxOp : public Operator {
         burst == nullptr) {
       std::this_thread::sleep_for(std::chrono::milliseconds(10));
       return;
+    }
+
+    const auto burst_conn_id = daqiri::get_connection_id(burst);
+    if (burst_conn_id != 0 && burst_conn_id != conn_id_) {
+      HOLOSCAN_LOG_WARN(
+          "Received burst for connection {} while reading connection {}", burst_conn_id, conn_id_);
     }
 
     const auto num_packets = daqiri::get_num_packets(burst);

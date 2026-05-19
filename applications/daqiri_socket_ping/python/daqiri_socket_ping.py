@@ -61,7 +61,7 @@ class DaqiriSocketPingTxOp(Operator):
             raise RuntimeError(f"copy_buffer_to_segment_packet failed: {status}")
 
         daqiri.set_packet_lengths(burst, 0, [len(payload)])
-        burst.rdma_conn_id = self.conn_id
+        daqiri.set_connection_id(burst, self.conn_id)
 
         while daqiri.send_tx_burst(burst) != daqiri.Status.SUCCESS:
             time.sleep(0.01)
@@ -110,6 +110,14 @@ class DaqiriSocketPingRxOp(Operator):
         if status != daqiri.Status.SUCCESS or burst is None:
             time.sleep(0.01)
             return
+
+        burst_conn_id = daqiri.get_connection_id(burst)
+        if burst_conn_id not in (0, self.conn_id):
+            logger.warning(
+                "Received burst for connection %d while reading connection %d",
+                burst_conn_id,
+                self.conn_id,
+            )
 
         for pkt_idx in range(daqiri.get_num_packets(burst)):
             status, payload = daqiri.get_packet_bytes(burst, pkt_idx, 4)
