@@ -412,6 +412,12 @@ class HoloHubCLI:
             ),
         )
         install.add_argument(
+            "--site-dir",
+            type=Path,
+            default=None,
+            help=argparse.SUPPRESS,
+        )
+        install.add_argument(
             "--build-type",
             help="Build type (debug, release, rel-debug). "
             "If not specified, uses CMAKE_BUILD_TYPE environment variable or defaults to 'release'",
@@ -1241,19 +1247,18 @@ class HoloHubCLI:
 
     @staticmethod
     def _maybe_print_dev_hook_hint(build_dir: Path) -> None:
-        """If `build_dir` contains a staged dev-hook helper, compare against
-        the user-site copy and emit a one-line follow-up hint when the user
-        hasn't run `install --dev` (or the install is stale)."""
+        """If `build_dir` contains staged dev-hook helpers, compare each against
+        the installed site-packages copy and emit a hint when missing or stale.
+
+        Staleness is detected by comparing both the `.py` helper content and the
+        `.pth` content (which encodes the build path), so a rebuild to a new
+        output directory is correctly reported even when the helper is unchanged.
+        All staged slugs are checked, not just the first."""
         try:
             staged = sorted(Path(build_dir).glob("holoscan_*_dev.py"))
         except OSError:
             return
         if not staged:
-            return
-        helper_src = staged[0]
-        # Filename: holoscan_<slug>_dev.py
-        slug = helper_src.stem.removeprefix("holoscan_").removesuffix("_dev")
-        if not slug:
             return
 
         try:
@@ -1270,38 +1275,60 @@ class HoloHubCLI:
             site_dir = Path(site_path)
         except (ImportError, KeyError, AttributeError):
             return
-        helper_dst = site_dir / helper_src.name
 
-        try:
-            staged_text = helper_src.read_text()
-        except OSError:
-            return
-
-        if helper_dst.exists():
-            try:
-                if helper_dst.read_text() == staged_text:
-                    return  # already in sync, nothing to say
-                kind = "stale"
-            except OSError:
-                kind = "stale"
-        else:
-            kind = "missing"
-
-        # Pick a cwd-appropriate command. If the user is inside a HoloHub
-        # clone (./holohub script present), the wrapper for the external
-        # module isn't reachable from here — suggest the HoloHub CLI form.
+        # Pick a cwd-appropriate command once, reuse for all slugs.
         cwd = Path.cwd()
-        if (cwd / "utilities" / "cli" / "holohub.py").is_file():
-            cmd = "./holohub install --dev"
-        else:
-            cmd = f"./{slug} install --dev"
-        if kind == "missing":
-            print(f"\nTo make `import holoscan.{slug}` work in any shell, run:\n" f"    {cmd}")
-        else:
-            print(
-                f"\nYour installed dev hook for `holoscan.{slug}` points at a "
-                f"different build. Refresh with:\n    {cmd}"
-            )
+        cmd = (
+            "./holohub install --dev"
+            if (cwd / "utilities" / "cli" / "holohub.py").is_file()
+            else None  # filled per-slug below
+        )
+
+        for helper_src in staged:
+            slug = helper_src.stem.removeprefix("holoscan_").removesuffix("_dev")
+            if not slug:
+                continue
+
+            kebab = slug.replace("_", "-")
+            pth_src = helper_src.parent / f"holoscan-{kebab}-dev.pth"
+            helper_dst = site_dir / helper_src.name
+            pth_dst = site_dir / pth_src.name
+
+            try:
+                helper_staged = helper_src.read_text()
+            except OSError:
+                continue
+
+            pth_staged: str | None = None
+            if pth_src.exists():
+                try:
+                    pth_staged = pth_src.read_text()
+                except OSError:
+                    pass
+
+            if helper_dst.exists() and pth_dst.exists():
+                try:
+                    helper_match = helper_dst.read_text() == helper_staged
+                    pth_match = pth_staged is None or pth_dst.read_text() == pth_staged
+                    if helper_match and pth_match:
+                        continue  # in sync, nothing to say
+                    kind = "stale"
+                except OSError:
+                    kind = "stale"
+            else:
+                kind = "missing"
+
+            slug_cmd = cmd if cmd is not None else f"./{slug} install --dev"
+            if kind == "missing":
+                print(
+                    f"\nTo make `import holoscan.{slug}` work in any shell, run:\n"
+                    f"    {slug_cmd}"
+                )
+            else:
+                print(
+                    f"\nYour installed dev hook for `holoscan.{slug}` points at a "
+                    f"different build. Refresh with:\n    {slug_cmd}"
+                )
 
     def handle_build(self, args: argparse.Namespace) -> None:
         """Handle build command"""
@@ -2240,13 +2267,17 @@ class HoloHubCLI:
 
         dryrun = getattr(args, "dryrun", False)
 
-        if _sys.prefix != _sys.base_prefix:
-            site_path = _sysconfig.get_path("purelib")
+        site_dir_override = getattr(args, "site_dir", None)
+        if site_dir_override is not None:
+            site_dir = site_dir_override.resolve()
         else:
-            site_path = _site.getusersitepackages()
-        if not site_path:
-            holohub_cli_util.fatal("Could not determine site-packages directory.")
-        site_dir = Path(site_path)
+            if _sys.prefix != _sys.base_prefix:
+                site_path = _sysconfig.get_path("purelib")
+            else:
+                site_path = _site.getusersitepackages()
+            if not site_path:
+                holohub_cli_util.fatal("Could not determine site-packages directory.")
+            site_dir = Path(site_path)
 
         # Uninstall: enumerate installed hooks from site-packages; no build tree needed.
         if args.uninstall:
@@ -2254,8 +2285,14 @@ class HoloHubCLI:
                 slugs = [args.project.replace("-", "_").removeprefix("holoscan_")]
             else:
                 slugs = sorted(
-                    p.stem.removeprefix("holoscan-").removesuffix("-dev").replace("-", "_")
-                    for p in site_dir.glob("holoscan-*-dev.pth")
+                    {
+                        p.stem.removeprefix("holoscan-").removesuffix("-dev").replace("-", "_")
+                        for p in site_dir.glob("holoscan-*-dev.pth")
+                    }
+                    | {
+                        p.stem.removeprefix("holoscan_").removesuffix("_dev")
+                        for p in site_dir.glob("holoscan_*_dev.py")
+                    }
                 )
             if not slugs:
                 print("No installed dev hooks found.")
@@ -2347,8 +2384,18 @@ class HoloHubCLI:
                 print(f"Would install {pth_dst} from {build_dir}")
                 print(f"Would install {helper_dst} from {build_dir}")
             else:
-                _shutil.copy2(build_dir / helper_name, helper_dst)
-                _shutil.copy2(build_dir / pth_name, pth_dst)
+                try:
+                    _shutil.copy2(build_dir / pth_name, pth_dst)
+                    _shutil.copy2(build_dir / helper_name, helper_dst)
+                except OSError as exc:
+                    for p in (pth_dst, helper_dst):
+                        try:
+                            p.unlink(missing_ok=True)
+                        except OSError:
+                            pass
+                    holohub_cli_util.fatal(
+                        f"Failed to install dev hook for '{slug}': {exc}"
+                    )
                 print(f"Installed {pth_dst}")
                 print(f"          {helper_dst}")
                 print(f"  → wiring `import holoscan.{slug}` to {build_dir}")
