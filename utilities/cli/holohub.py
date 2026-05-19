@@ -1257,9 +1257,10 @@ class HoloHubCLI:
             return
 
         try:
+            import site as _site
             import sys as _sys
             import sysconfig as _sysconfig
-            import site as _site
+
             if _sys.prefix != _sys.base_prefix:
                 site_path = _sysconfig.get_path("purelib")
             else:
@@ -1295,10 +1296,7 @@ class HoloHubCLI:
         else:
             cmd = f"./{slug} install --dev"
         if kind == "missing":
-            print(
-                f"\nTo make `import holoscan.{slug}` work in any shell, run:\n"
-                f"    {cmd}"
-            )
+            print(f"\nTo make `import holoscan.{slug}` work in any shell, run:\n" f"    {cmd}")
         else:
             print(
                 f"\nYour installed dev hook for `holoscan.{slug}` points at a "
@@ -2235,10 +2233,10 @@ class HoloHubCLI:
         depending on an external module (the module was pulled in via
         external_modules.cmake → add_subdirectory). Each unique slug found
         across `build/*/holoscan_<slug>_dev.py` is installed."""
+        import shutil as _shutil
+        import site as _site
         import sys as _sys
         import sysconfig as _sysconfig
-        import site as _site
-        import shutil as _shutil
 
         dryrun = getattr(args, "dryrun", False)
 
@@ -2317,7 +2315,7 @@ class HoloHubCLI:
         if args.project:
             target = args.project.replace("-", "_")
             if target.startswith("holoscan_"):
-                target = target[len("holoscan_"):]
+                target = target[len("holoscan_") :]
             if target in by_slug:
                 by_slug = {target: by_slug[target]}
             else:
@@ -2362,14 +2360,11 @@ class HoloHubCLI:
                 sole = next(iter(by_slug))
                 print(
                     "Verify with: "
-                    f"python -c \"import holoscan.{sole}; "
-                    f"print(holoscan.{sole}.__file__)\""
+                    f'python -c "import holoscan.{sole}; '
+                    f'print(holoscan.{sole}.__file__)"'
                 )
             else:
-                print(
-                    "Verify with: "
-                    "python -c \"import holoscan; print(holoscan.__path__)\""
-                )
+                print("Verify with: " 'python -c "import holoscan; print(holoscan.__path__)"')
             print(f"To remove:  ./{wrapper_name} install --dev --uninstall")
 
     def _collect_cache_dirs(self, patterns: list[str], default_dir=None) -> list:
