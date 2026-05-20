@@ -133,6 +133,25 @@ install(EXPORT holoscan-gstreamer-targets
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/holoscan-gstreamer
 )
 
+# Generate holoscan-gstreamer-config.cmake and version file so that downstream
+# projects can locate the package via find_package(holoscan-gstreamer).
+include(CMakePackageConfigHelpers)
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/holoscan-gstreamer-config.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/cmake/holoscan-gstreamer-config.cmake"
+    INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/holoscan-gstreamer"
+)
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/cmake/holoscan-gstreamer-config-version.cmake"
+    VERSION 1.0.0
+    COMPATIBILITY SameMajorVersion
+)
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/cmake/holoscan-gstreamer-config.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/cmake/holoscan-gstreamer-config-version.cmake"
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/holoscan-gstreamer"
+)
+
 # Install headers
 install(FILES
   gst/allocator.hpp
@@ -164,10 +183,35 @@ install(FILES
   gst_wait_group.hpp
   DESTINATION include/holoscan/operators/gstreamer)
 
-# Export build-tree targets for use without installation
+# Export build-tree targets; use the same base name as the install EXPORT so
+# the build-tree config.cmake below can include it with a single path.
 export(TARGETS holoscan_gstreamer_bridge
        NAMESPACE holoscan::
-       FILE "${CMAKE_CURRENT_BINARY_DIR}/holoscan_gstreamer_bridge-targets.cmake")
+       FILE "${CMAKE_CURRENT_BINARY_DIR}/holoscan-gstreamer-targets.cmake")
+
+# Build-tree config: allows find_package(holoscan-gstreamer) without cmake --install.
+# Set holoscan-gstreamer_DIR to CMAKE_CURRENT_BINARY_DIR of this project to use it.
+file(GENERATE
+    OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/holoscan-gstreamer-config.cmake"
+    CONTENT "include(\"${CMAKE_CURRENT_BINARY_DIR}/holoscan-gstreamer-targets.cmake\")\n"
+)
+
+# CTest: verify find_package(holoscan-gstreamer) works from the build tree
+if(BUILD_TESTING)
+    enable_testing()
+    configure_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/cmake/test_find_package.cmake.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/tests/cmake/test_find_package/CMakeLists.txt"
+        @ONLY
+    )
+    add_test(
+        NAME holoscan_gstreamer_find_package
+        COMMAND "${CMAKE_COMMAND}"
+            -S "${CMAKE_CURRENT_BINARY_DIR}/tests/cmake/test_find_package"
+            -B "${CMAKE_CURRENT_BINARY_DIR}/tests/cmake/test_find_package/build"
+            --no-warn-unused-cli
+    )
+endif()
 
 # Print some information
 message(STATUS "Holoscan GStreamer Bridge Library")
