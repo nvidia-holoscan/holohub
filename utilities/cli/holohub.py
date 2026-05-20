@@ -1746,7 +1746,7 @@ class HoloHubCLI:
                     language = ", ".join(language)
                 language_str = f"({language})" if language else ""
                 if project_type == "module":
-                    operators = meta.get("operators", [])
+                    operators = meta.get("operator_names", [])
                     ops_str = f" [{', '.join(operators)}]" if operators else ""
                     print(f'{project["project_name"]} {language_str}{ops_str}')
                 else:

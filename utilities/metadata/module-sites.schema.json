@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:holohub:module-sites:v1",
+  "type": "object",
+  "required": ["modules"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "modules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "nvidia_quality_score"],
+        "if": { "required": ["url"] },
+        "then": { "required": ["ref"] },
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "url": { "type": "string", "format": "uri" },
+          "ref": { "type": "string" },
+          "source_url": { "type": "string", "format": "uri" },
+          "nvidia_quality_score": { "type": "integer", "minimum": 1, "maximum": 5 }
+        }
+      }
+    }
+  }
+}

@@ -32,7 +32,8 @@ function autoInitializeFilters() {
         'operators': 'All Operators',
         'benchmarks': 'All Benchmarks',
         'tutorials': 'All Tutorials',
-        'workflows': 'All Workflows'
+        'workflows': 'All Workflows',
+        'modules': 'All Modules'
     };
 
     var allTitle = pageTitles[pageType] || 'All';

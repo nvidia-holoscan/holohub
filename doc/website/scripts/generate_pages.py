@@ -1195,6 +1195,7 @@ nav:
 - operators
 - tutorials
 - benchmarks
+- modules
 """
     with mkdocs_gen_files.open(".nav.yml", "w") as nav_file:
         nav_file.write(nav_content)

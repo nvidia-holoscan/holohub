@@ -1,0 +1,14 @@
+{
+  "$schema": "../utilities/metadata/module-sites.schema.json",
+  "modules": [
+    {
+      "name": "holoscan-gstreamer",
+      "nvidia_quality_score": 3
+    },
+    {
+      "name": "holoscan-sensor-bridge",
+      "source_url": "https://github.com/nvidia-holoscan/holoscan-sensor-bridge",
+      "nvidia_quality_score": 4
+    }
+  ]
+}
