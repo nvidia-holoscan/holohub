@@ -2,6 +2,8 @@
 
 A **Holoscan Module** is a library project that extends the Holoscan SDK API.
 
+> **See also:** [Tutorial — Create a Holoscan Module](../tutorials/holoscan-modules/create-a-module/README.md) for an end-to-end walkthrough from scaffold to published binary packages.
+
 ## Creating a New External Module
 
 Run the following command to initialize a new module adhering to HoloHub conventions
