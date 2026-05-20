@@ -18,8 +18,7 @@ requires-python = ">=3.10"
 
 # NOTE: holoscan SDK is not declared as a runtime dependency here because the
 # wheel cannot guarantee binary compatibility across CUDA variants (cu12/cu13).
-# See IMPLEMENTATION_PLAN.md open question #1. Document the install command in
-# the README.
+# Document the install command in the README.
 
 [tool.scikit-build]
 cmake.version = ">=3.24"
@@ -38,6 +37,18 @@ wheel.packages = []
 [tool.ruff]
 line-length = 100
 target-version = "py310"
+# The post-gen hook copies cmake/pybind11/ into this tree from the HoloHub
+# clone; .holohub/ is the on-demand CLI download; build*/, dist/ are CMake/
+# wheel outputs; .local/, .cache/, .cupy/ are dev-container HOME junk.
+exclude = [
+    "build*",
+    "dist",
+    ".cache",
+    ".holohub",
+    ".local",
+    ".cupy",
+    "cmake/pybind11",
+]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "W", "UP"]
