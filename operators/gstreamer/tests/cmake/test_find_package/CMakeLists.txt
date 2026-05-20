@@ -24,3 +24,12 @@ message(STATUS
     "PASS: find_package(holoscan-gstreamer) with "
     "holoscan-gstreamer_DIR=${holoscan-gstreamer_DIR} OK; "
     "target holoscan::holoscan_gstreamer_bridge is available")
+
+# Build a trivial executable that includes a holoscan-gstreamer header and links
+# against the imported target.  find_dependency(holoscan) was already called by
+# the config file above, so all transitive targets (holoscan::core, yaml-cpp,
+# CCCL, …) are defined here.  A separate cmake --build ctest step compiles and
+# links this target, catching a wrong INSTALL_INTERFACE include path or a broken
+# IMPORTED_LOCATION at build time rather than configure time.
+add_executable(check_includes check_includes.cpp)
+target_link_libraries(check_includes PRIVATE holoscan::holoscan_gstreamer_bridge)

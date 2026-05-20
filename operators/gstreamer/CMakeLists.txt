@@ -16,6 +16,10 @@
 cmake_minimum_required(VERSION 3.20)
 project(holoscan_gstreamer_bridge)
 
+# Must precede target declaration so CMAKE_INSTALL_INCLUDEDIR is available for
+# the INSTALL_INTERFACE generator expression in target_include_directories().
+include(GNUInstallDirs)
+
 # Find required packages
 find_package(PkgConfig REQUIRED)
 
@@ -64,7 +68,8 @@ set_target_properties(holoscan_gstreamer_bridge PROPERTIES
 target_include_directories(holoscan_gstreamer_bridge
     PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    $<INSTALL_INTERFACE:include>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/holoscan/operators/gstreamer>
     ${GSTREAMER_INCLUDE_DIRS}
     ${GSTREAMER_BASE_INCLUDE_DIRS}
     ${GSTREAMER_VIDEO_INCLUDE_DIRS}
@@ -122,7 +127,6 @@ if(HOLOHUB_BUILD_PYTHON)
 endif()
 
 # Install library
-include(GNUInstallDirs)
 install(TARGETS holoscan_gstreamer_bridge
     EXPORT holoscan-gstreamer-targets
     DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -155,7 +159,23 @@ install(FILES
     COMPONENT gstreamer
 )
 
-# Install headers
+# Install headers. gst/ headers go into the gst/ subdestination so that the
+# relative #include "gst/buffer.hpp" paths inside installed root headers resolve
+# correctly; install(FILES) strips path components, so the destination must
+# include the subdirectory explicitly.
+install(FILES
+  gst_sink_bridge.hpp
+  gst_sink_resource.hpp
+  gst_sink_op.hpp
+  gst_src_bridge.hpp
+  gst_src_op.hpp
+  gst_src_resource.hpp
+  gst_video_recorder_op.hpp
+  gst_pipeline_bus_monitor.hpp
+  gst_wait_group.hpp
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/holoscan/operators/gstreamer
+  COMPONENT gstreamer)
+
 install(FILES
   gst/allocator.hpp
   gst/app_sink.hpp
@@ -175,16 +195,8 @@ install(FILES
   gst/pipeline.hpp
   gst/sample.hpp
   gst/video_info.hpp
-  gst_sink_bridge.hpp
-  gst_sink_resource.hpp
-  gst_sink_op.hpp
-  gst_src_bridge.hpp
-  gst_src_op.hpp
-  gst_src_resource.hpp
-  gst_video_recorder_op.hpp
-  gst_pipeline_bus_monitor.hpp
-  gst_wait_group.hpp
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/holoscan/operators/gstreamer
+  gst/wrapper_base.hpp
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/holoscan/operators/gstreamer/gst
   COMPONENT gstreamer)
 
 # CTest: install the gstreamer component into a temp prefix, then verify
@@ -207,19 +219,31 @@ if(BUILD_TESTING)
         FIXTURES_SETUP holoscan_gstreamer_pkg_fixture
     )
 
-    # Consumer: configure a minimal cmake project against the installed tree.
-    # holoscan-gstreamer_DIR is injected via -D; CMAKE_INSTALL_LIBDIR is evaluated
-    # at configure time so the path is always correct regardless of distro layout.
+    set(_gst_test_build "${CMAKE_CURRENT_BINARY_DIR}/tests/cmake/test_find_package/build")
+
+    # Configure: run find_package(holoscan-gstreamer) against the installed tree
+    # and generate the check_includes build system.
     add_test(
         NAME holoscan_gstreamer_find_package
         COMMAND "${CMAKE_COMMAND}"
             -S "${CMAKE_CURRENT_SOURCE_DIR}/tests/cmake/test_find_package"
-            -B "${CMAKE_CURRENT_BINARY_DIR}/tests/cmake/test_find_package/build"
+            -B "${_gst_test_build}"
             "-Dholoscan-gstreamer_DIR=${_gst_test_prefix}/${CMAKE_INSTALL_LIBDIR}/cmake/holoscan-gstreamer"
             --no-warn-unused-cli
     )
     set_tests_properties(holoscan_gstreamer_find_package PROPERTIES
         FIXTURES_REQUIRED holoscan_gstreamer_pkg_fixture
+        FIXTURES_SETUP    holoscan_gstreamer_configure_fixture
+    )
+
+    # Build: compile and link check_includes against holoscan::holoscan_gstreamer_bridge,
+    # verifying both the installed include path and the imported library location.
+    add_test(
+        NAME holoscan_gstreamer_build
+        COMMAND "${CMAKE_COMMAND}" --build "${_gst_test_build}"
+    )
+    set_tests_properties(holoscan_gstreamer_build PROPERTIES
+        FIXTURES_REQUIRED holoscan_gstreamer_configure_fixture
     )
 endif()
 
