@@ -2,7 +2,7 @@
   "$schema": "holoscan/module/v2",
   "module": {
     "name": "holoscan-gstreamer",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "description": "GStreamer bridge operators for video recording and streaming in Holoscan applications",
     "authors": [
       {
@@ -26,7 +26,7 @@
       "tested_versions": ["4.2.0"]
     },
     "platforms": ["x86_64", "aarch64"],
-    "tags": ["GStreamer", "Video", "Recording", "Multimedia", "Streaming", "CUDA"],
+    "tags": ["Video", "GStreamer", "Recording", "Multimedia", "Streaming", "CUDA"],
     "requirements": {
       "system_packages": [
         "libgstreamer1.0-dev",

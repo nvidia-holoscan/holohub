@@ -2311,7 +2311,6 @@ class HoloHubCLI:
                 wheel_env["PYTHONSAFEPATH"] = "1"
                 wheel_cmd = [
                     sys.executable,
-                    "-P",
                     "-m",
                     "build",
                     "--wheel",
@@ -2362,6 +2361,8 @@ class HoloHubCLI:
                 build_cmd += f" --language {args.language}"
             if args.dryrun:
                 build_cmd += " --dryrun"
+            if getattr(args, "verbose", False):
+                build_cmd += " --verbose"
             docker_opts = (getattr(args, "docker_opts", None) or "").strip()
             docker_opts_extra, extra_args = holohub_cli_util.get_entrypoint_command_args(
                 getattr(args, "img", None) or container.image_name,
