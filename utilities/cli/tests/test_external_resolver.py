@@ -316,6 +316,124 @@ class TestParseModuleDependencies(unittest.TestCase):
         self.assertEqual(deps[0].override_path, override_dir.resolve())
         self.assertIsNone(deps[0].git_url)
 
+    # ── In-tree module detection (holohub_root) ─────────────────────────
+
+    def _make_in_tree_module(self, holohub_root: Path, name: str) -> Path:
+        """Create a minimal modules/<name>/metadata.json under holohub_root."""
+        module_dir = holohub_root / "modules" / name
+        module_dir.mkdir(parents=True, exist_ok=True)
+        (module_dir / "metadata.json").write_text(
+            '{"$schema": "holoscan/module/v2", "module": {"name": "' + name + '"}}'
+        )
+        return module_dir
+
+    def test_in_tree_module_recognized(self):
+        holohub_root = self._tmpdir / "holohub"
+        holohub_root.mkdir()
+        self._make_in_tree_module(holohub_root, "holoscan-gstreamer")
+
+        meta = _write_metadata(
+            self._tmpdir,
+            {
+                "application": {
+                    "dependencies": {
+                        "modules": [
+                            {
+                                "name": "holoscan-gstreamer",
+                                "provides_operators": ["gstreamer"],
+                            }
+                        ]
+                    }
+                }
+            },
+        )
+        deps = parse_module_dependencies(meta, holohub_root=holohub_root)
+        self.assertEqual(len(deps), 1)
+        self.assertTrue(deps[0].is_internal)
+        self.assertEqual(deps[0].name, "holoscan-gstreamer")
+        self.assertEqual(deps[0].provides_operators, ["gstreamer"])
+        self.assertEqual(deps[0].override_path, holohub_root / "modules" / "holoscan-gstreamer")
+
+    def test_in_tree_module_no_error_for_missing_source(self):
+        holohub_root = self._tmpdir / "holohub"
+        holohub_root.mkdir()
+        self._make_in_tree_module(holohub_root, "holoscan-gstreamer")
+
+        meta = _write_metadata(
+            self._tmpdir,
+            {
+                "application": {
+                    "dependencies": {
+                        "modules": [{"name": "holoscan-gstreamer"}]
+                    }
+                }
+            },
+        )
+        # Should not raise even though there is no source block.
+        deps = parse_module_dependencies(meta, holohub_root=holohub_root)
+        self.assertEqual(len(deps), 1)
+        self.assertTrue(deps[0].is_internal)
+
+    def test_missing_module_still_raises_with_holohub_root(self):
+        # holohub_root provided but modules/<name>/ does not exist → still raises.
+        holohub_root = self._tmpdir / "holohub"
+        holohub_root.mkdir()
+        # Do NOT create modules/unknown-module/
+
+        meta = _write_metadata(
+            self._tmpdir,
+            {
+                "application": {
+                    "dependencies": {
+                        "modules": [{"name": "unknown-module"}]
+                    }
+                }
+            },
+        )
+        with self.assertRaises(ValueError) as cm:
+            parse_module_dependencies(meta, holohub_root=holohub_root)
+        self.assertIn("missing source.git_url or source.ref", str(cm.exception))
+
+    def test_local_override_takes_precedence_over_in_tree(self):
+        # HOLOHUB_LOCAL_* should win even when the module also exists in-tree.
+        holohub_root = self._tmpdir / "holohub"
+        holohub_root.mkdir()
+        self._make_in_tree_module(holohub_root, "holoscan-gstreamer")
+
+        override_dir = self._tmpdir / "local_gstreamer"
+        override_dir.mkdir()
+        (override_dir / "metadata.json").write_text("{}")
+
+        meta = _write_metadata(
+            self._tmpdir,
+            {
+                "application": {
+                    "dependencies": {
+                        "modules": [{"name": "holoscan-gstreamer"}]
+                    }
+                }
+            },
+        )
+        with patch.dict(os.environ, {"HOLOHUB_LOCAL_HOLOSCAN_GSTREAMER": str(override_dir)}):
+            deps = parse_module_dependencies(meta, holohub_root=holohub_root)
+        self.assertFalse(deps[0].is_internal)
+        self.assertEqual(deps[0].override_path, override_dir.resolve())
+
+    def test_no_holohub_root_still_raises_on_missing_source(self):
+        # Without holohub_root, missing-source behavior is unchanged.
+        meta = _write_metadata(
+            self._tmpdir,
+            {
+                "application": {
+                    "dependencies": {
+                        "modules": [{"name": "holoscan-gstreamer"}]
+                    }
+                }
+            },
+        )
+        with self.assertRaises(ValueError):
+            parse_module_dependencies(meta)  # holohub_root defaults to None
+
 
 if __name__ == "__main__":
     unittest.main()

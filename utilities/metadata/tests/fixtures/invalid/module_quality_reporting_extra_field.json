@@ -1,0 +1,19 @@
+{
+    "module": {
+        "name": "module_quality_reporting_extra_field",
+        "description": "quality_reporting block with an unknown field should fail additionalProperties check.",
+        "authors": [{ "name": "NVIDIA", "affiliation": "NVIDIA" }],
+        "version": "1.0.0",
+        "language": ["Python"],
+        "platforms": ["x86_64"],
+        "tags": ["example"],
+        "holoscan_sdk": {
+            "minimum_required_version": "4.0.0",
+            "tested_versions": ["4.0.0"]
+        },
+        "quality_reporting": {
+            "quality_metric": 3,
+            "unexpected_field": true
+        }
+    }
+}

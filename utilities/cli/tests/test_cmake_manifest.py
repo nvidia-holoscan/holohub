@@ -215,6 +215,52 @@ class TestWriteManifest(unittest.TestCase):
         self.assertIn("PROVIDES_OPERATORS mymod_op", text)
         self.assertNotRegex(text, r"set\(HOLOHUB_EXT_OP_")
 
+    # ── In-tree module handling ─────────────────────────────────────────
+
+    def test_in_tree_dep_emits_no_fetchcontent(self):
+        text = self._write(
+            [
+                ModuleDep(
+                    name="holoscan-gstreamer",
+                    provides_operators=["gstreamer"],
+                    is_internal=True,
+                    override_path=Path("/workspace/holohub/modules/holoscan-gstreamer"),
+                ),
+            ]
+        )
+        # No function call for the in-tree dep (header comment mentions the
+        # function name generally, so check for the call form with parenthesis).
+        self.assertNotRegex(text, r"holohub_declare_external_module\s*\(")
+        self.assertNotRegex(text, r"FetchContent_Declare\s*\(")
+        self.assertNotIn("FETCHCONTENT_SOURCE_DIR", text)
+        self.assertNotIn("GIT_REPOSITORY", text)
+        # Should contain an explanatory comment.
+        self.assertIn("holoscan-gstreamer", text)
+        self.assertIn("in-tree", text)
+
+    def test_in_tree_dep_mixed_with_external(self):
+        # A manifest with one in-tree and one external dep: only the external
+        # gets a holohub_declare_external_module call.
+        text = self._write(
+            [
+                ModuleDep(
+                    name="holoscan-gstreamer",
+                    provides_operators=["gstreamer"],
+                    is_internal=True,
+                    override_path=Path("/workspace/holohub/modules/holoscan-gstreamer"),
+                ),
+                ModuleDep(
+                    name="holoscan-deltacast",
+                    git_url="https://example.com/holoscan-deltacast.git",
+                    ref="0" * 40,
+                    provides_operators=["deltacast_videomaster"],
+                ),
+            ]
+        )
+        self.assertNotIn("holohub_declare_external_module(holoscan_gstreamer", text)
+        self.assertIn("holohub_declare_external_module(holoscan_deltacast", text)
+        self.assertIn("GIT_REPOSITORY", text)
+
 
 if __name__ == "__main__":
     unittest.main()
