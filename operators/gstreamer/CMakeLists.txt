@@ -184,7 +184,7 @@ install(FILES
   gst_video_recorder_op.hpp
   gst_pipeline_bus_monitor.hpp
   gst_wait_group.hpp
-  DESTINATION include/holoscan/operators/gstreamer
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/holoscan/operators/gstreamer
   COMPONENT gstreamer)
 
 # CTest: install the gstreamer component into a temp prefix, then verify
