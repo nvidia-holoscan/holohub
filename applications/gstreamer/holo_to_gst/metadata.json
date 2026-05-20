@@ -38,6 +38,7 @@
 		],
 		"tags": ["Streaming", "Video", "GStreamer", "Source", "Camera", "V4L2"],
 		"ranking": 2,
+		"dockerfile": "operators/gstreamer/Dockerfile",
 		"description": "Push Holoscan video data into GStreamer pipelines. Supports V4L2 cameras and pattern generators. Bridge data from Holoscan to GStreamer for encoding, streaming, or processing.",
 		"default_mode": "help",
 		"modes": {
