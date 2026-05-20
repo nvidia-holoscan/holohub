@@ -502,3 +502,92 @@ add_test(
 set_property(TEST test_holohub_run_container_extra_scripts_xvfb PROPERTY
     PASS_REGULAR_EXPRESSION "SCRIPT=utilities/setup/xvfb.sh"
 )
+
+# ───── install --dev: dev-hook installer ─────
+# Coverage for `./holohub install --dev`, which copies the .pth + helper
+# that a Holoscan-Module build stages into the user's Python user-site so
+# `import holoscan.<module>` resolves to the live build tree.
+
+# `--dev` is wired into the install command's argparse: surface it in
+# --help to catch accidental removal. COLUMNS=200 keeps argparse from
+# wrapping the usage line — the regex is single-line (cmsys's `.` does
+# not match newline).
+add_test(
+    NAME test_holohub_install_dev_help_advertises_flags
+    COMMAND sh -c "COLUMNS=200 \"${CMAKE_SOURCE_DIR}/holohub\" install --help"
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_tests_properties(test_holohub_install_dev_help_advertises_flags PROPERTIES
+    PASS_REGULAR_EXPRESSION "--dev.*--uninstall.*--build-dir"
+)
+
+# `install --dev` against an empty build dir must hit the
+# no-staged-hooks fatal path (and not crash with a stack trace from
+# elsewhere). Use --build-dir to avoid touching whatever the user has
+# in their default build dir at test time.
+add_test(
+    NAME test_holohub_install_dev_no_staged_hooks
+    COMMAND sh -c "rm -rf \"${CMAKE_BINARY_DIR}/test_install_dev_empty\" && \
+        mkdir -p \"${CMAKE_BINARY_DIR}/test_install_dev_empty\" && \
+        \"${CMAKE_SOURCE_DIR}/holohub\" install --dev \
+            --build-dir \"${CMAKE_BINARY_DIR}/test_install_dev_empty\" 2>&1 || true"
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_tests_properties(test_holohub_install_dev_no_staged_hooks PROPERTIES
+    PASS_REGULAR_EXPRESSION "No staged dev hooks .holoscan_.*_dev.py."
+    FAIL_REGULAR_EXPRESSION "Traceback"
+)
+
+# `install --dev --build-dir <missing-path>` must hit the "is not a
+# directory" fatal path before any user-site work.
+add_test(
+    NAME test_holohub_install_dev_missing_build_dir
+    COMMAND sh -c "\"${CMAKE_SOURCE_DIR}/holohub\" install --dev \
+        --build-dir \"${CMAKE_BINARY_DIR}/test_install_dev_missing\" 2>&1 || true"
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_tests_properties(test_holohub_install_dev_missing_build_dir PROPERTIES
+    PASS_REGULAR_EXPRESSION "is not a directory"
+    FAIL_REGULAR_EXPRESSION "Traceback"
+)
+
+# `--uninstall` without `--dev` must be rejected — the regular install
+# path doesn't own user-site files.
+add_test(
+    NAME test_holohub_install_uninstall_requires_dev
+    COMMAND sh -c "\"${CMAKE_SOURCE_DIR}/holohub\" install some_project \
+        --uninstall --dryrun 2>&1 || true"
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_tests_properties(test_holohub_install_uninstall_requires_dev PROPERTIES
+    PASS_REGULAR_EXPRESSION "--uninstall is only valid with --dev"
+    FAIL_REGULAR_EXPRESSION "Traceback"
+)
+
+# Round-trip: stage a fake hook pair into a temp build dir, install into a
+# sandboxed site dir via --site-dir, verify the files land, then uninstall
+# and confirm removal is reported. Uses --site-dir to avoid touching the
+# real Python environment.
+add_test(
+    NAME test_holohub_install_dev_round_trip
+    COMMAND sh -c "rm -rf \
+            \"${CMAKE_BINARY_DIR}/test_rt_build\" \
+            \"${CMAKE_BINARY_DIR}/test_rt_site\" && \
+        mkdir -p \
+            \"${CMAKE_BINARY_DIR}/test_rt_build\" \
+            \"${CMAKE_BINARY_DIR}/test_rt_site\" && \
+        printf 'pass\n' > \
+            \"${CMAKE_BINARY_DIR}/test_rt_build/holoscan_mymod_dev.py\" && \
+        printf 'holoscan_mymod_dev\n' > \
+            \"${CMAKE_BINARY_DIR}/test_rt_build/holoscan-mymod-dev.pth\" && \
+        \"${CMAKE_SOURCE_DIR}/holohub\" install --dev \
+            --build-dir \"${CMAKE_BINARY_DIR}/test_rt_build\" \
+            --site-dir \"${CMAKE_BINARY_DIR}/test_rt_site\" && \
+        \"${CMAKE_SOURCE_DIR}/holohub\" install --dev --uninstall \
+            --site-dir \"${CMAKE_BINARY_DIR}/test_rt_site\" 2>&1"
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_tests_properties(test_holohub_install_dev_round_trip PROPERTIES
+    PASS_REGULAR_EXPRESSION "Removed.*holoscan"
+    FAIL_REGULAR_EXPRESSION "Traceback"
+)
