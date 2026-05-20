@@ -361,13 +361,7 @@ class TestParseModuleDependencies(unittest.TestCase):
 
         meta = _write_metadata(
             self._tmpdir,
-            {
-                "application": {
-                    "dependencies": {
-                        "modules": [{"name": "holoscan-gstreamer"}]
-                    }
-                }
-            },
+            {"application": {"dependencies": {"modules": [{"name": "holoscan-gstreamer"}]}}},
         )
         # Should not raise even though there is no source block.
         deps = parse_module_dependencies(meta, holohub_root=holohub_root)
@@ -382,13 +376,7 @@ class TestParseModuleDependencies(unittest.TestCase):
 
         meta = _write_metadata(
             self._tmpdir,
-            {
-                "application": {
-                    "dependencies": {
-                        "modules": [{"name": "unknown-module"}]
-                    }
-                }
-            },
+            {"application": {"dependencies": {"modules": [{"name": "unknown-module"}]}}},
         )
         with self.assertRaises(ValueError) as cm:
             parse_module_dependencies(meta, holohub_root=holohub_root)
@@ -406,13 +394,7 @@ class TestParseModuleDependencies(unittest.TestCase):
 
         meta = _write_metadata(
             self._tmpdir,
-            {
-                "application": {
-                    "dependencies": {
-                        "modules": [{"name": "holoscan-gstreamer"}]
-                    }
-                }
-            },
+            {"application": {"dependencies": {"modules": [{"name": "holoscan-gstreamer"}]}}},
         )
         with patch.dict(os.environ, {"HOLOHUB_LOCAL_HOLOSCAN_GSTREAMER": str(override_dir)}):
             deps = parse_module_dependencies(meta, holohub_root=holohub_root)
@@ -423,13 +405,7 @@ class TestParseModuleDependencies(unittest.TestCase):
         # Without holohub_root, missing-source behavior is unchanged.
         meta = _write_metadata(
             self._tmpdir,
-            {
-                "application": {
-                    "dependencies": {
-                        "modules": [{"name": "holoscan-gstreamer"}]
-                    }
-                }
-            },
+            {"application": {"dependencies": {"modules": [{"name": "holoscan-gstreamer"}]}}},
         )
         with self.assertRaises(ValueError):
             parse_module_dependencies(meta)  # holohub_root defaults to None

@@ -69,4 +69,3 @@ add_holohub_operator(vtk_renderer)
 add_holohub_operator(yuan_qcap DEPENDS EXTENSIONS yuan_qcap)
 add_holohub_operator(ehr_query_llm)
 add_holohub_operator(xr)
-

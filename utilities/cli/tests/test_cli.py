@@ -249,7 +249,7 @@ class TestHoloHubCLI(unittest.TestCase):
         printed = " ".join(str(c[0][0]) for c in mock_print.call_args_list if c[0])
         self.assertIn("MODULES", printed)
         self.assertIn("test-module-fixture", printed)
-        self.assertIn("C++, Python", printed)   # array joined, not raw list repr
+        self.assertIn("C++, Python", printed)  # array joined, not raw list repr
         self.assertIn("[fixture_op]", printed)  # operators suffix
 
     def test_did_you_mean_suggestion(self):
@@ -1579,7 +1579,9 @@ class TestHandlePackage(unittest.TestCase):
         mock_find_project.return_value = self.mock_module_data
         mock_run_command.return_value = MagicMock()
         mock_exists.return_value = True
-        cpack_cfg = Path("/build/test_module_fixture/package/pkg/CPackConfig-test-module-fixture.cmake")
+        cpack_cfg = Path(
+            "/build/test_module_fixture/package/pkg/CPackConfig-test-module-fixture.cmake"
+        )
         mock_glob.return_value = [cpack_cfg]
 
         args = self.cli.parser.parse_args(
@@ -1658,7 +1660,9 @@ class TestHandlePackage(unittest.TestCase):
 
         for call in mock_run_command.call_args_list:
             _, kwargs = call
-            self.assertTrue(kwargs.get("dry_run"), "Expected dry_run=True for all run_command calls")
+            self.assertTrue(
+                kwargs.get("dry_run"), "Expected dry_run=True for all run_command calls"
+            )
 
 
 class TestRunCommand(unittest.TestCase):

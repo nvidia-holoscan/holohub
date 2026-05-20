@@ -31,7 +31,7 @@ An in-tree module uses a **descriptor-only** layout: the operator sources stay i
 descriptor directory under `modules/<module-name>/` holds the module-level metadata
 and packaging files.
 
-```
+```text
 modules/
 └── holoscan-gstreamer/          ← module descriptor (this directory)
     ├── metadata.json            ← module schema v2: identity, namespace, operators list

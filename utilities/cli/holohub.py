@@ -2163,9 +2163,7 @@ class HoloHubCLI:
         if any(r.status == "FAIL" for r in results):
             sys.exit(1)
 
-    def _resolve_module_project(
-        self, project_arg: Optional[str], language: Optional[str]
-    ) -> dict:
+    def _resolve_module_project(self, project_arg: Optional[str], language: Optional[str]) -> dict:
         """Resolve a module project for `./holohub package`.
 
         If cwd is itself a Holoscan Module monorepo (./metadata.json has a 'module' key),
@@ -2189,7 +2187,7 @@ class HoloHubCLI:
                 def _normalize(s: str) -> str:
                     s = s.lower().replace("-", "_")
                     if s.startswith("holoscan_"):
-                        s = s[len("holoscan_"):]
+                        s = s[len("holoscan_") :]
                     return s
 
                 if project_arg and _normalize(project_arg) not in {
@@ -2254,8 +2252,10 @@ class HoloHubCLI:
 
                 cmake_args = [
                     "cmake",
-                    "-B", str(build_dir),
-                    "-S", str(HoloHubCLI.HOLOHUB_ROOT),
+                    "-B",
+                    str(build_dir),
+                    "-S",
+                    str(HoloHubCLI.HOLOHUB_ROOT),
                     "--no-warn-unused-cli",
                     f"-DPython3_EXECUTABLE={sys.executable}",
                     f"-DPython3_ROOT_DIR={os.path.dirname(os.path.dirname(sys.executable))}",
@@ -2269,8 +2269,13 @@ class HoloHubCLI:
                 holohub_cli_util.run_command(cmake_args, dry_run=dryrun, env=build_env)
 
                 build_cmd = [
-                    "cmake", "--build", str(build_dir), "--config", build_type,
-                    "-j", str(os.cpu_count()),
+                    "cmake",
+                    "--build",
+                    str(build_dir),
+                    "--config",
+                    build_type,
+                    "-j",
+                    str(os.cpu_count()),
                 ]
                 holohub_cli_util.run_command(build_cmd, dry_run=dryrun, env=build_env)
 
@@ -2283,7 +2288,7 @@ class HoloHubCLI:
                 if not cpack_configs and dryrun:
                     bare = project_name.replace("_", "-")
                     if bare.startswith("holoscan-"):
-                        bare = bare[len("holoscan-"):]
+                        bare = bare[len("holoscan-") :]
                     cpack_configs = [pkg_config_dir / f"CPackConfig-holoscan-{bare}.cmake"]
                 for cpack_config in cpack_configs:
                     for gen in cpack_generators:
@@ -2305,10 +2310,13 @@ class HoloHubCLI:
                 wheel_env = build_env.copy()
                 wheel_env["PYTHONSAFEPATH"] = "1"
                 wheel_cmd = [
-                    sys.executable, "-P",
-                    "-m", "build",
+                    sys.executable,
+                    "-P",
+                    "-m",
+                    "build",
                     "--wheel",
-                    "--outdir", str(dist_dir),
+                    "--outdir",
+                    str(dist_dir),
                     str(source_folder),
                 ]
                 holohub_cli_util.run_command(
