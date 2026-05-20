@@ -126,11 +126,13 @@ include(GNUInstallDirs)
 install(TARGETS holoscan_gstreamer_bridge
     EXPORT holoscan-gstreamer-targets
     DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    COMPONENT gstreamer
 )
 # Write the holoscan-gstreamer-targets.cmake file
 install(EXPORT holoscan-gstreamer-targets
     NAMESPACE holoscan::
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/holoscan-gstreamer
+    COMPONENT gstreamer
 )
 
 # Generate holoscan-gstreamer-config.cmake and version file so that downstream
@@ -150,6 +152,7 @@ install(FILES
     "${CMAKE_CURRENT_BINARY_DIR}/cmake/holoscan-gstreamer-config.cmake"
     "${CMAKE_CURRENT_BINARY_DIR}/cmake/holoscan-gstreamer-config-version.cmake"
     DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/holoscan-gstreamer"
+    COMPONENT gstreamer
 )
 
 # Install headers
@@ -181,35 +184,42 @@ install(FILES
   gst_video_recorder_op.hpp
   gst_pipeline_bus_monitor.hpp
   gst_wait_group.hpp
-  DESTINATION include/holoscan/operators/gstreamer)
+  DESTINATION include/holoscan/operators/gstreamer
+  COMPONENT gstreamer)
 
-# Export build-tree targets; use the same base name as the install EXPORT so
-# the build-tree config.cmake below can include it with a single path.
-export(TARGETS holoscan_gstreamer_bridge
-       NAMESPACE holoscan::
-       FILE "${CMAKE_CURRENT_BINARY_DIR}/holoscan-gstreamer-targets.cmake")
-
-# Build-tree config: allows find_package(holoscan-gstreamer) without cmake --install.
-# Set holoscan-gstreamer_DIR to CMAKE_CURRENT_BINARY_DIR of this project to use it.
-file(GENERATE
-    OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/holoscan-gstreamer-config.cmake"
-    CONTENT "include(\"${CMAKE_CURRENT_BINARY_DIR}/holoscan-gstreamer-targets.cmake\")\n"
-)
-
-# CTest: verify find_package(holoscan-gstreamer) works from the build tree
+# CTest: install the gstreamer component into a temp prefix, then verify
+# find_package(holoscan-gstreamer) resolves correctly against the install tree.
 if(BUILD_TESTING)
     enable_testing()
-    configure_file(
-        "${CMAKE_CURRENT_SOURCE_DIR}/tests/cmake/test_find_package.cmake.in"
-        "${CMAKE_CURRENT_BINARY_DIR}/tests/cmake/test_find_package/CMakeLists.txt"
-        @ONLY
+
+    set(_gst_test_prefix "${CMAKE_CURRENT_BINARY_DIR}/tests/cmake/install_prefix")
+
+    # Fixture: cmake --install with --component gstreamer so only this operator's
+    # artifacts land in the temp prefix (safe in standalone and superbuild contexts).
+    add_test(
+        NAME holoscan_gstreamer_install
+        COMMAND "${CMAKE_COMMAND}"
+            --install "${CMAKE_BINARY_DIR}"
+            --component gstreamer
+            --prefix   "${_gst_test_prefix}"
     )
+    set_tests_properties(holoscan_gstreamer_install PROPERTIES
+        FIXTURES_SETUP holoscan_gstreamer_pkg_fixture
+    )
+
+    # Consumer: configure a minimal cmake project against the installed tree.
+    # holoscan-gstreamer_DIR is injected via -D; CMAKE_INSTALL_LIBDIR is evaluated
+    # at configure time so the path is always correct regardless of distro layout.
     add_test(
         NAME holoscan_gstreamer_find_package
         COMMAND "${CMAKE_COMMAND}"
-            -S "${CMAKE_CURRENT_BINARY_DIR}/tests/cmake/test_find_package"
+            -S "${CMAKE_CURRENT_SOURCE_DIR}/tests/cmake/test_find_package"
             -B "${CMAKE_CURRENT_BINARY_DIR}/tests/cmake/test_find_package/build"
+            "-Dholoscan-gstreamer_DIR=${_gst_test_prefix}/${CMAKE_INSTALL_LIBDIR}/cmake/holoscan-gstreamer"
             --no-warn-unused-cli
+    )
+    set_tests_properties(holoscan_gstreamer_find_package PROPERTIES
+        FIXTURES_REQUIRED holoscan_gstreamer_pkg_fixture
     )
 endif()
 
