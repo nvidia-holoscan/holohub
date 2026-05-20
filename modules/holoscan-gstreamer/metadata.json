@@ -1,0 +1,54 @@
+{
+  "$schema": "holoscan/module/v2",
+  "module": {
+    "name": "holoscan-gstreamer",
+    "version": "0.1.0",
+    "description": "GStreamer bridge operators for video recording and streaming in Holoscan applications",
+    "authors": [
+      {
+        "name": "Holoscan Team",
+        "affiliation": "NVIDIA"
+      }
+    ],
+    "license": "Apache-2.0",
+    "language": ["C++", "Python"],
+    "namespace": {
+      "cpp": "holoscan::gstreamer",
+      "python": "holoscan.gstreamer"
+    },
+    "operators": ["gstreamer"],
+    "subprojects": {
+      "operators": ["gstreamer"],
+      "applications": ["gst_to_holo", "holo_to_gst", "gst_video_recorder"]
+    },
+    "holoscan_sdk": {
+      "minimum_required_version": "4.2.0",
+      "tested_versions": ["4.2.0"]
+    },
+    "platforms": ["x86_64", "aarch64"],
+    "tags": ["GStreamer", "Video", "Recording", "Multimedia", "Streaming", "CUDA"],
+    "requirements": {
+      "system_packages": [
+        "libgstreamer1.0-dev",
+        "libgstreamer-plugins-base1.0-dev",
+        "libgstreamer-plugins-bad1.0-dev",
+        "gstreamer1.0-plugins-good",
+        "gstreamer1.0-plugins-bad",
+        "gstreamer1.0-libav",
+        "gstreamer1.0-tools"
+      ]
+    },
+    "binary_packages": {
+      "pypi": "holoscan-gstreamer",
+      "install_commands": ["pip install holoscan-gstreamer"]
+    },
+    "dockerfile": "operators/gstreamer/Dockerfile",
+    "documentation": {
+      "readme": "../../operators/gstreamer/README.md"
+    },
+    "testing": {
+      "cpp": "ctest",
+      "python": "pytest"
+    }
+  }
+}

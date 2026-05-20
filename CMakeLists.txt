@@ -116,6 +116,9 @@ include(${CMAKE_BINARY_DIR}/external_operators_manifest.cmake OPTIONAL)
 # Build packaging
 add_subdirectory(pkg)
 
+# Build modules
+add_subdirectory(modules)
+
 # Build the workflows
 add_subdirectory(workflows)
 

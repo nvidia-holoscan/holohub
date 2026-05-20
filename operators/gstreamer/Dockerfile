@@ -73,8 +73,19 @@ RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
 COPY operators/gstreamer/install_deps.sh /tmp/install_deps.sh
 RUN /tmp/install_deps.sh
 
-# Install Python test dependencies
-RUN python3 -m pip install pytest
+# Build tooling for C++ development and Python binding compilation
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y \
+        clang-format \
+        pybind11-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Python tooling: pytest for tests, build + scikit-build-core for wheel packaging
+RUN python3 -m pip install --no-cache-dir \
+        pytest \
+        pytest-timeout \
+        build \
+        scikit-build-core
 
 # Enable autocomplete
 RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
