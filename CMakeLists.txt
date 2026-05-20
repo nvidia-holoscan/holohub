@@ -61,8 +61,27 @@ if(HOLOHUB_BUILD_PYTHON)
   if(NOT CMAKE_INSTALL_LIBDIR)
     set(CMAKE_INSTALL_LIBDIR lib)
   endif()
-  set(HOLOHUB_PYTHON_MODULE_OUT_DIR ${CMAKE_BINARY_DIR}/python/${CMAKE_INSTALL_LIBDIR}/holohub)
+  if(DEFINED SKBUILD)
+    # When scikit-build-core drives the build it sets SKBUILD. Use a flat
+    # output path so the wheel installs the holohub package directly into
+    # site-packages rather than three directories deep (python/lib/holohub).
+    set(HOLOHUB_PYTHON_MODULE_OUT_DIR ${CMAKE_BINARY_DIR}/holohub)
+  else()
+    set(HOLOHUB_PYTHON_MODULE_OUT_DIR ${CMAKE_BINARY_DIR}/python/${CMAKE_INSTALL_LIBDIR}/holohub)
+  endif()
   file(MAKE_DIRECTORY ${HOLOHUB_PYTHON_MODULE_OUT_DIR})
+  if(DEFINED SKBUILD)
+    set(_holohub_py_dest ".")
+  else()
+    set(_holohub_py_dest "python/lib")
+  endif()
+  install(
+      DIRECTORY "${HOLOHUB_PYTHON_MODULE_OUT_DIR}"
+      DESTINATION "${_holohub_py_dest}"
+      FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+      DIRECTORY_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+      PATTERN "__pycache__" EXCLUDE
+  )
 
   # Find the Python interpreter
   find_package(Python COMPONENTS Interpreter)

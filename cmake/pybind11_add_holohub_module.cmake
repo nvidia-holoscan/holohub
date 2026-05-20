@@ -69,7 +69,8 @@ function(pybind11_add_holohub_module)
     )
     list(APPEND _rpath
         "\$ORIGIN/${install_lib_relative_path}" # in our install tree (same layout as src)
-        "\$ORIGIN/../lib" # in our python wheel"
+        "\$ORIGIN/../../lib" # in our python wheel (module at holohub/<pkg>/_mod.so → lib/ is two levels up)
+        "\$ORIGIN/../lib"    # legacy fallback for one-level-deep layouts
     )
     list(JOIN _rpath ":" _rpath)
     set_property(TARGET ${target_name}

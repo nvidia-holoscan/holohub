@@ -25,8 +25,11 @@
 # - add_holohub_application(): Build applications with operator/extension dependencies
 # - add_holohub_operator(): Build operators with extension dependencies
 # - add_holohub_extension(): Build extensions
-# - holohub_declare_external_module(): Declare an external Holoscan Module and register
-#   its operators with HoloHub's lazy-fetch post-step
+#
+# Holoscan Modules (in-tree and external):
+# - add_holohub_module(): Enable an in-tree Holoscan Module subproject (MODULE_ option)
+# - holohub_declare_external_module(): Declare an external Holoscan Module fetched via
+#   FetchContent and register its operators with HoloHub's lazy-fetch post-step
 #
 # Global Variables:
 # - BUILD_ALL: Global flag to enable/disable all components (default: OFF)
@@ -61,7 +64,11 @@
 #     APPLICATIONS my_application
 #   )
 function(add_holohub_package NAME)
-  set(pkgname "PKG_${NAME}")
+  # Normalize hyphens to underscores for the CMake cache variable so that
+  # -DPKG_holoscan_gstreamer=ON (CLI convention) matches the option regardless
+  # of whether the caller spelled the name with hyphens or underscores.
+  string(REPLACE "-" "_" _pkg_slug "${NAME}")
+  set(pkgname "PKG_${_pkg_slug}")
   option(${pkgname} "Build the ${NAME} package" ${BUILD_ALL})
 
   message(DEBUG "${pkgname} = ${${pkgname}}")
@@ -77,6 +84,52 @@ function(add_holohub_package NAME)
   message(DEBUG "${pkgname} exts = ${DEPS_EXTENSIONS}")
   message(DEBUG "${pkgname} ops = ${DEPS_OPERATORS}")
   message(DEBUG "${pkgname} apps = ${DEPS_APPLICATIONS}")
+  foreach(dep IN LISTS DEPS_EXTENSIONS)
+    set("EXT_${dep}" ON CACHE BOOL "Build the ${dep} GXF extension" FORCE)
+  endforeach()
+  foreach(dep IN LISTS DEPS_OPERATORS)
+    set("OP_${dep}" ON CACHE BOOL "Build the ${dep} holoscan operator" FORCE)
+  endforeach()
+  foreach(dep IN LISTS DEPS_APPLICATIONS)
+    set("APP_${dep}" ON CACHE BOOL "Build the ${dep} application" FORCE)
+  endforeach()
+endfunction()
+
+# =====================================================
+# Helper function to enable an in-tree Holoscan Module
+# =====================================================
+# Enables a Holoscan Module subproject and force-enables its operator/application
+# dependencies. The module's own CMakeLists.txt is responsible for its configuration
+# behavior (packaging, data downloads, external module declarations, cache variables, etc.).
+#
+# Parameters:
+#   NAME: Module name — hyphens are normalized to underscores for the cache variable,
+#         but the original name is used for add_subdirectory to match the directory.
+#
+# Keyword Arguments:
+#   OPERATORS:    Holoscan operators this module depends on
+#   APPLICATIONS: Applications this module depends on
+#   EXTENSIONS:   GXF extensions this module depends on
+#
+# Creates:
+#   MODULE_${NAME}: CMake option to enable/disable this module (default: ${BUILD_ALL})
+#
+# Example:
+#   add_holohub_module(holoscan-gstreamer OPERATORS gstreamer)
+#
+function(add_holohub_module NAME)
+  string(REPLACE "-" "_" _mod_slug "${NAME}")
+  set(modname "MODULE_${_mod_slug}")
+  option(${modname} "Enable the ${NAME} Holoscan Module" ${BUILD_ALL})
+
+  message(DEBUG "${modname} = ${${modname}}")
+
+  if(NOT ${modname})
+    return()
+  endif()
+  add_subdirectory(${NAME})
+
+  cmake_parse_arguments(DEPS "" "" "EXTENSIONS;OPERATORS;APPLICATIONS" ${ARGN})
   foreach(dep IN LISTS DEPS_EXTENSIONS)
     set("EXT_${dep}" ON CACHE BOOL "Build the ${dep} GXF extension" FORCE)
   endforeach()
