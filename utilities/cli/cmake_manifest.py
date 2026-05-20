@@ -72,6 +72,18 @@ def write_external_operators_manifest(
     seen_provider_ids: dict[str, str] = {}
 
     for dep in deps:
+        if dep.is_internal:
+            # In-tree modules have their operators built by HoloHub's normal
+            # operators/CMakeLists.txt when OP_<name>=ON. No FetchContent needed.
+            lines.append(f"# {dep.name} (in-tree: {dep.override_path})")
+            if dep.provides_operators:
+                lines.append(
+                    f"# Operators {dep.provides_operators} are built by HoloHub's "
+                    "operators/CMakeLists.txt when the corresponding OP_* flags are ON."
+                )
+            lines.append("")
+            continue
+
         provider = _provider_id(dep.name)
         if (prior_name := seen_provider_ids.get(provider)) and prior_name != dep.name:
             print(

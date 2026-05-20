@@ -448,6 +448,42 @@ class HoloHubCLI:
         )
         install.set_defaults(func=self.handle_install)
 
+        # Add package command
+        package = subparsers.add_parser(
+            "package",
+            help="Build a distribution package (.deb / wheel) for a module",
+            parents=[container_build_argparse, container_run_argparse],
+        )
+        self.subparsers["package"] = package
+        package.add_argument(
+            "project",
+            type=str,
+            nargs="?",
+            default=None,
+            help="Module name to package (default: read ./metadata.json from cwd)",
+        )
+        package.add_argument(
+            "--local", action="store_true", help="Run packaging locally instead of in container"
+        )
+        package.add_argument(
+            "--build-type",
+            type=str,
+            default=None,
+            choices=["debug", "release", "rel-debug"],
+            help="Build type (default: release)",
+        )
+        package.add_argument(
+            "--pkg-generator",
+            type=str,
+            default="DEB",
+            dest="pkg_generator",
+            help="Comma-separated package generators: DEB, WHEEL (default: DEB)",
+        )
+        package.add_argument("--language", choices=["cpp", "python"], default=None)
+        package.add_argument("--verbose", action="store_true")
+        package.add_argument("--dryrun", action="store_true", default=False)
+        package.set_defaults(func=self.handle_package)
+
         # Add test command
         test = subparsers.add_parser(
             "test", help="Test a project", parents=[container_build_argparse]
@@ -537,8 +573,11 @@ class HoloHubCLI:
     def _collect_metadata(self) -> None:
         """Create an unstructured database of metadata for all projects"""
 
-        EXCLUDE_PATHS = ["applications/holoviz/template", "applications/template"]
-        # Known exceptions, such as template files that do not represent a standalone project
+        EXCLUDE_PATHS = [
+            "applications/holoviz/template",
+            "applications/template",
+            "modules/template",  # cookiecutter template — not a real module
+        ]
 
         app_paths = holohub_cli_util.get_component_search_paths(self.HOLOHUB_ROOT)
         self.projects = metadata_util.gather_metadata(app_paths, exclude_paths=EXCLUDE_PATHS)
@@ -1114,8 +1153,21 @@ class HoloHubCLI:
             f"-DCMAKE_BUILD_TYPE={build_type}",
             f"-DCMAKE_PREFIX_PATH={HoloHubCLI.DEFAULT_SDK_DIR}/lib",
             f"-DHOLOHUB_DATA_DIR:PATH={HoloHubCLI.DEFAULT_DATA_DIR}",
-            f"-D{proj_prefix}_{project_name}=ON",
         ]
+        if project_type == "module":
+            subprojects = project_data.get("metadata", {}).get("subprojects", {})
+            ops = subprojects.get("operators", [])
+            apps = subprojects.get("applications", [])
+            parts = ([f"operators: {ops}"] if ops else []) + (
+                [f"applications: {apps}"] if apps else []
+            )
+            print(f"Building module '{project_name}': enabling {', '.join(parts)}")
+            for op in ops:
+                cmake_args.append(f"-DOP_{op}=ON")
+            for app in apps:
+                cmake_args.append(f"-DAPP_{app}=ON")
+        else:
+            cmake_args.append(f"-D{proj_prefix}_{project_name}=ON")
         # Add benchmark-specific CMake flags
         if benchmark:
             cmake_args.append(
@@ -1696,6 +1748,7 @@ class HoloHubCLI:
             "application",
             "benchmark",
             "gxf_extension",
+            "module",
             "package",
             "operator",
             "tutorial",
@@ -1710,9 +1763,17 @@ class HoloHubCLI:
                 continue
             print(f"\n{Color.white(f'== {project_type.upper()}S =================', bold=True)}\n")
             for project in sorted(grouped_metadata[project_type], key=lambda x: x["project_name"]):
-                language = project.get("metadata", {}).get("language", "")
-                language = f"({language})" if language else ""
-                print(f'{project["project_name"]} {language}')
+                meta = project.get("metadata", {})
+                language = meta.get("language", "")
+                if isinstance(language, list):
+                    language = ", ".join(language)
+                language_str = f"({language})" if language else ""
+                if project_type == "module":
+                    operators = meta.get("operators", [])
+                    ops_str = f" [{', '.join(operators)}]" if operators else ""
+                    print(f'{project["project_name"]} {language_str}{ops_str}')
+                else:
+                    print(f'{project["project_name"]} {language_str}')
 
         print(f"\n{Color.white('=================================', bold=True)}\n")
 
@@ -2101,6 +2162,217 @@ class HoloHubCLI:
         # Exit 1 only on FAIL; warnings are informational
         if any(r.status == "FAIL" for r in results):
             sys.exit(1)
+
+    def _resolve_module_project(
+        self, project_arg: Optional[str], language: Optional[str]
+    ) -> dict:
+        """Resolve a module project for `./holohub package`.
+
+        If cwd is itself a Holoscan Module monorepo (./metadata.json has a 'module' key),
+        package that module — irrespective of a project arg. Falls back to the HoloHub-tree
+        lookup when cwd is not a module root.
+        """
+        import json as _json
+
+        cwd = Path.cwd()
+        cwd_meta = cwd / "metadata.json"
+
+        if cwd_meta.exists():
+            try:
+                data = _json.loads(cwd_meta.read_text())
+            except (ValueError, OSError):
+                data = None
+            if isinstance(data, dict) and "module" in data:
+                module = data["module"]
+                module_name = module.get("name", cwd.name)
+
+                def _normalize(s: str) -> str:
+                    s = s.lower().replace("-", "_")
+                    if s.startswith("holoscan_"):
+                        s = s[len("holoscan_"):]
+                    return s
+
+                if project_arg and _normalize(project_arg) not in {
+                    _normalize(module_name),
+                    _normalize(cwd.name),
+                }:
+                    holohub_cli_util.warn(
+                        f"Packaging module '{module_name}' from {cwd}; "
+                        f"ignoring project argument '{project_arg}'."
+                    )
+                return {
+                    "project_type": "module",
+                    "project_name": module_name,
+                    "source_folder": str(cwd),
+                    "metadata": module,
+                }
+
+        if project_arg:
+            project_data = self.find_project(project_arg, language=language)
+            project_type = project_data.get("project_type", "application")
+            if project_type != "module":
+                holohub_cli_util.fatal(
+                    f"'./holohub package' only supports modules; "
+                    f"'{project_arg}' is type '{project_type}'"
+                )
+            return project_data
+
+        holohub_cli_util.fatal(
+            "No project specified and no ./metadata.json found in the current "
+            "working directory. Run from a module project root, or pass a "
+            "project name as the first argument."
+        )
+
+    def handle_package(self, args: argparse.Namespace) -> None:
+        """Handle package command — configure the module and run CPack and/or build a wheel."""
+        is_local_mode = args.local or os.environ.get("HOLOHUB_BUILD_LOCAL")
+
+        if is_local_mode:
+            project_data = self._resolve_module_project(
+                args.project, language=getattr(args, "language", None)
+            )
+
+            dryrun = args.dryrun
+            generators = [
+                g.strip().upper()
+                for g in getattr(args, "pkg_generator", "DEB").split(",")
+                if g.strip()
+            ]
+            build_type = holohub_cli_util.get_buildtype_str(getattr(args, "build_type", None))
+            build_env = os.environ.copy()
+
+            source_folder = Path(project_data["source_folder"])
+            project_name = project_data["project_name"]
+            pkg_slug = project_name.replace("-", "_")
+
+            cpack_generators = [g for g in generators if g != "WHEEL"]
+            want_wheel = "WHEEL" in generators
+
+            if cpack_generators:
+                build_dir = HoloHubCLI.DEFAULT_BUILD_PARENT_DIR / pkg_slug / "package"
+                build_dir.mkdir(parents=True, exist_ok=True)
+
+                cmake_args = [
+                    "cmake",
+                    "-B", str(build_dir),
+                    "-S", str(HoloHubCLI.HOLOHUB_ROOT),
+                    "--no-warn-unused-cli",
+                    f"-DPython3_EXECUTABLE={sys.executable}",
+                    f"-DPython3_ROOT_DIR={os.path.dirname(os.path.dirname(sys.executable))}",
+                    f"-DCMAKE_BUILD_TYPE={build_type}",
+                    f"-DCMAKE_PREFIX_PATH={HoloHubCLI.DEFAULT_SDK_DIR}/lib",
+                    "-DBUILD_ALL=OFF",
+                    f"-DMODULE_{pkg_slug}=ON",
+                ]
+                if shutil.which("ninja"):
+                    cmake_args.extend(["-G", "Ninja"])
+                holohub_cli_util.run_command(cmake_args, dry_run=dryrun, env=build_env)
+
+                build_cmd = [
+                    "cmake", "--build", str(build_dir), "--config", build_type,
+                    "-j", str(os.cpu_count()),
+                ]
+                holohub_cli_util.run_command(build_cmd, dry_run=dryrun, env=build_env)
+
+                pkg_config_dir = build_dir / "pkg"
+                cpack_configs = (
+                    list(pkg_config_dir.glob("CPackConfig-*.cmake"))
+                    if pkg_config_dir.exists()
+                    else []
+                )
+                if not cpack_configs and dryrun:
+                    bare = project_name.replace("_", "-")
+                    if bare.startswith("holoscan-"):
+                        bare = bare[len("holoscan-"):]
+                    cpack_configs = [pkg_config_dir / f"CPackConfig-holoscan-{bare}.cmake"]
+                for cpack_config in cpack_configs:
+                    for gen in cpack_generators:
+                        holohub_cli_util.run_command(
+                            ["cpack", "--config", str(cpack_config), "-G", gen],
+                            dry_run=dryrun,
+                            env=build_env,
+                        )
+
+            if want_wheel:
+                pyproject = source_folder / "pyproject.toml"
+                if not pyproject.exists():
+                    holohub_cli_util.fatal(
+                        f"Cannot build wheel: {pyproject} not found. The module "
+                        "needs a pyproject.toml with a [build-system] block "
+                        "(e.g. scikit-build-core)."
+                    )
+                dist_dir = HoloHubCLI.DEFAULT_BUILD_PARENT_DIR / "dist"
+                wheel_env = build_env.copy()
+                wheel_env["PYTHONSAFEPATH"] = "1"
+                wheel_cmd = [
+                    sys.executable, "-P",
+                    "-m", "build",
+                    "--wheel",
+                    "--outdir", str(dist_dir),
+                    str(source_folder),
+                ]
+                holohub_cli_util.run_command(
+                    wheel_cmd,
+                    dry_run=dryrun,
+                    env=wheel_env,
+                    cwd=str(source_folder.parent),
+                )
+                if not dryrun:
+                    try:
+                        display_dir = dist_dir.relative_to(HoloHubCLI.HOLOHUB_ROOT)
+                    except ValueError:
+                        display_dir = dist_dir
+                    print(f"\n{Color.green('Wheel output directory:')} {display_dir}")
+        else:
+            # Pass the project name so _make_project_container can resolve the
+            # module's source_folder and pick up its Dockerfile. Fall back to
+            # None (→ HoloHub root Dockerfile) when running from an external
+            # module's cwd without a project arg.
+            container = self._make_project_container(
+                project_name=args.project,
+                language=getattr(args, "language", None),
+            )
+            container.dryrun = args.dryrun
+            container.verbose = getattr(args, "verbose", False)
+            skip_docker_build, _ = holohub_cli_util.check_skip_builds(args)
+            if not skip_docker_build:
+                container.build(
+                    docker_file=getattr(args, "docker_file", None),
+                    base_img=getattr(args, "base_img", None),
+                    img=getattr(args, "img", None),
+                    no_cache=getattr(args, "no_cache", False),
+                )
+            build_cmd = f"{self.script_name} package"
+            if args.project:
+                build_cmd += f" {args.project}"
+            build_cmd += " --local"
+            if getattr(args, "build_type", None):
+                build_cmd += f" --build-type {args.build_type}"
+            if getattr(args, "pkg_generator", None):
+                build_cmd += f" --pkg-generator {args.pkg_generator}"
+            if getattr(args, "language", None):
+                build_cmd += f" --language {args.language}"
+            if args.dryrun:
+                build_cmd += " --dryrun"
+            docker_opts = (getattr(args, "docker_opts", None) or "").strip()
+            docker_opts_extra, extra_args = holohub_cli_util.get_entrypoint_command_args(
+                getattr(args, "img", None) or container.image_name,
+                build_cmd,
+                docker_opts,
+                dry_run=args.dryrun,
+            )
+            if docker_opts_extra:
+                docker_opts = (docker_opts + " " + docker_opts_extra).strip()
+            container.run(
+                img=getattr(args, "img", None),
+                local_sdk_root=getattr(args, "local_sdk_root", None),
+                enable_x11=getattr(args, "enable_x11", True),
+                ssh_x11=getattr(args, "ssh_x11", False),
+                use_tini=getattr(args, "init", False),
+                as_root=getattr(args, "as_root", False),
+                docker_opts=docker_opts,
+                extra_args=extra_args,
+            )
 
     def handle_install(self, args: argparse.Namespace) -> None:
         """Handle install command"""
