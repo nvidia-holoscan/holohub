@@ -5,6 +5,15 @@ build/
 # HoloHub CLI tools (auto-downloaded by the holohub wrapper on first run)
 .holohub/
 
+# Container HOME-mapped junk (dev container sets HOME=/workspace/{{ cookiecutter.module_slug }})
+.local/
+.cupy/
+.cache/
+.bash_history
+.python_history
+.ngc/
+.nv/
+
 # Python packaging artifacts
 dist/
 *.egg-info/
