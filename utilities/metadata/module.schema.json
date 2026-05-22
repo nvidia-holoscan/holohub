@@ -23,6 +23,13 @@
         },
         "pypi": {
           "type": "string"
+        },
+        "install_commands": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Recommended shell commands to install this module's binary packages."
         }
       },
       "additionalProperties": false
@@ -41,6 +48,80 @@
           "enum": [
             "pytest"
           ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "documentation_block": {
+      "type": "object",
+      "description": "Paths used by the Holoscan documentation builder to locate this module's README and media assets.",
+      "properties": {
+        "readme": {
+          "type": "string",
+          "description": "Relative path from this metadata.json to the module README. Defaults to README.md in the same directory when absent."
+        },
+        "assets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Relative paths to images, GIFs, or other assets the documentation builder must fetch for webpage rendering. Assumed relative to the project root."
+        }
+      },
+      "additionalProperties": false
+    },
+    "quality_test_record": {
+      "type": "object",
+      "description": "A single test-result snapshot, typically populated by CI for one HSDK version and platform combination.",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string",
+          "format": "date",
+          "description": "ISO 8601 date of the test run (e.g. '2026-05-01')."
+        },
+        "holoscan_sdk_version": {
+          "type": "string"
+        },
+        "platforms": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "tests_passing": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "tests_failing": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "code_coverage_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        }
+      },
+      "additionalProperties": false
+    },
+    "quality_reporting_block": {
+      "type": "object",
+      "properties": {
+        "testing": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/quality_test_record"
+          },
+          "description": "Test-result records, one per HSDK version or test run. Populated by CI."
+        },
+        "quality_metric": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 5,
+          "description": "Self-reported quality score on a 0–5 scale."
         }
       },
       "additionalProperties": false
@@ -80,7 +161,7 @@
           "items": {
             "type": "string"
           },
-          "description": "Operators this dependency supplies to the consumer. The CLI resolver fetches this module only when at least one of these operators is in the set being built \u2014 letting consumers declare many module dependencies without paying the fetch cost for unused ones. The resolver validates this list against the module's own metadata.json:module.operators after fetch and warns on drift."
+          "description": "Operators this dependency supplies to the consumer. The CLI resolver fetches this module only when at least one of these operators is in the set being built — letting consumers declare many module dependencies without paying the fetch cost for unused ones. The resolver validates this list against the module's own metadata.json:module.operators after fetch and warns on drift."
         }
       },
       "required": [
@@ -126,6 +207,18 @@
         "holoscan_sdk": {
           "$ref": "urn:holohub:project:v1#/$defs/sdk_version"
         },
+        "sensor_hardware": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Sensor or capture hardware this module supports (e.g. 'AJA KONA', 'Deltacast VideoMaster')."
+        },
+        "homepage": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL of the module's primary landing page or repository."
+        },
         "source_repository": {
           "type": "string"
         },
@@ -141,8 +234,14 @@
         "testing": {
           "$ref": "#/$defs/testing_block"
         },
+        "quality_reporting": {
+          "$ref": "#/$defs/quality_reporting_block"
+        },
         "dockerfile": {
           "type": "string"
+        },
+        "documentation": {
+          "$ref": "#/$defs/documentation_block"
         },
         "subprojects": {
           "type": "object",

@@ -62,6 +62,10 @@ export CMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE:-Release}"
 
 PYTHON_BIN="${HOLOHUB_PYTHON_BIN:-python3}"
 
+if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
+    export PYTHONPATH="${HOLOSCAN_CLI_SOURCE%/}/src${PYTHONPATH:+:${PYTHONPATH}}"
+fi
+
 if ! "${PYTHON_BIN}" -c 'import holoscan_cli' &>/dev/null; then
     spec="${HOLOSCAN_CLI_SOURCE:-${HOLOSCAN_CLI_VERSION:-holoscan-cli}}"
     echo "[{{ cookiecutter.module_slug }}] installing ${spec}" >&2

@@ -7,7 +7,7 @@
     "affiliation": "Your Organization",
     "language": "cpp",
     "version": "0.1.0",
-    "holoscan_version": "4.0.0",
+    "holoscan_version": "4.2.0",
     "description": "A Holoscan Module extending the Holoscan SDK.",
     "_license": "Apache-2.0",
     "contact_email": "your.email@example.com",

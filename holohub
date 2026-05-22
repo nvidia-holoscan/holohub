@@ -38,6 +38,10 @@ export HOLOSCAN_CLI_ROOT="${SCRIPT_DIR}"
 
 PYTHON_BIN="${HOLOHUB_PYTHON_BIN:-python3}"
 
+if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
+    export PYTHONPATH="${HOLOSCAN_CLI_SOURCE%/}/src${PYTHONPATH:+:${PYTHONPATH}}"
+fi
+
 if ! "${PYTHON_BIN}" -c 'import holoscan_cli' &>/dev/null; then
     spec="${HOLOSCAN_CLI_SOURCE:-${HOLOSCAN_CLI_VERSION:-holoscan-cli}}"
     echo "[holohub] installing ${spec}" >&2

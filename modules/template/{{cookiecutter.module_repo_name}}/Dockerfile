@@ -16,7 +16,7 @@
 # Manual build (without the CLI):
 #   docker build -t holoscan-{{ cookiecutter.module_slug.replace('_', '-') }} .
 
-ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v{{ cookiecutter.holoscan_version }}-cuda12-dgpu
+ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v{{ cookiecutter.holoscan_version }}-cuda13-dgpu
 FROM ${BASE_IMAGE}
 
 ARG DEBIAN_FRONTEND=noninteractive
@@ -30,5 +30,5 @@ ARG DEBIAN_FRONTEND=noninteractive
     && rm -rf /var/lib/apt/lists/*
 {% endif %}
 # Python tooling: pytest-timeout for tests, build + scikit-build-core for
-# `./{{ cookiecutter.module_slug }} package --pkg-generator WHEEL` (drives `python -m build`).
+# `./holohub package --pkg-generator WHEEL` (drives `python -m build`).
 RUN pip install --no-cache-dir pytest-timeout build scikit-build-core
