@@ -61,20 +61,3 @@ Open and edit the [Dockerfile](../../../h264/Dockerfile) and uncomment line 66:
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/aarch64-linux-gnu/tegra/
 ```
 
-## Dev Container
-
-To start the VS Code Dev Container, run the following command from the root directory of Holohub:
-
-```bash
-./holohub vscode h264
-```
-
-### VS Code Launch Profiles
-
-#### C++ (launch profile)
-
-Use the **(gdb) ucx_h264_endoscopy_tool_tracking/cpp (all fragments)** launch profile to run and debug the C++ application.
-
-#### Python (launch profile)
-
-Use the **(pythoncpp) ucx_h264_endoscopy_tool_tracking/python (all fragments)** launch profile to run and debug the Python application.

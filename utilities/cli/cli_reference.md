@@ -49,7 +49,6 @@ Run the CLI from the repository root:
 | [install](#install)                         | Install a built project                                                    |
 | [test](#test)                               | Run tests for a project                                                    |
 | [clear-cache](#clear-cache)                 | Clear cache folders (build, data, install)                                 |
-| [vscode](#vscode)                           | Launch VS Code in Dev Container                                            |
 | [autocompletion_list](#autocompletion-list) | List targets for autocompletion (used internally)                          |
 
 ---
@@ -60,7 +59,7 @@ Many commands inherit **container build** and/or **container run** options. They
 
 ### Container Build Options
 
-Used by: `build-container`, `run-container`, `build`, `run`, `install`, `test`, `vscode`.
+Used by: `build-container`, `run-container`, `build`, `run`, `install`, `test`.
 
 | Option                   | Description                                                                                                                                      |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -634,40 +633,6 @@ If none of `--build`, `--data`, `--install` are given, all are cleared. Use `--d
 ```bash
 ./holohub clear-cache
 ./holohub clear-cache --build
-```
-
----
-
-### VSCode
-
-Launch VS Code in a Dev Container for the given project.
-
-**Usage:**
-
-```bash
-./holohub vscode [project] [options]
-```
-
-**Arguments:**
-
-| Argument  | Description                                 |
-| --------- | ------------------------------------------- |
-| `project` | (Optional) Project to open in Dev Container |
-
-**Options:** All [container build](#container-build-options) options, plus:
-
-| Option                 | Description                          |
-| ---------------------- | ------------------------------------ |
-| `--language`           | `cpp` or `python`                    |
-| `--docker-opts <opts>` | Extra options for Docker launch      |
-| `--no-docker-build`    | Skip building the container          |
-| `--verbose`            | Print variables passed to docker run |
-| `--dryrun`             | Print commands without executing     |
-
-**Examples:**
-
-```bash
-./holohub vscode myapp --language cpp
 ```
 
 ---

@@ -70,19 +70,3 @@ Note: The first build will take **~1.5 hours** if you're on ARM64. This is large
   sudo ln -s libv4l2.so.0.0.0.0  libv4l2.so.0.0.999999
   ```
 
-## Dev Container
-
-To start the the Dev Container, run the following command from the root directory of Holohub:
-
-```bash
-./holohub vscode florence-2-vision
-```
-
-This command will build and configure a Dev Container using a [Dockerfile](./Dockerfile) that is ready to run the application.
-
-### VS Code Launch Profiles
-
-There are two launch profiles configured for this application:
-
-1. **(debugpy) florence-2-vision/python**: Launch florence-2-vision using a launch profile that enables debugging of Python code.
-2. **(pythoncpp) florence-2-vision/python**: Launch florence-2-vision using a launch profile that enables debugging of Python and C++ code.
