@@ -12,9 +12,9 @@
     "_license": "Apache-2.0",
     "contact_email": "your.email@example.com",
     "__prompts__": {
-        "project_name": "Module name (e.g. 'My Sensor')",
-        "module_slug": "Module slug — snake_case identifier used for Python import and C++ namespace (e.g. 'my_sensor')",
-        "module_repo_name": "Repository folder name — kebab-case, prefixed 'holoscan-' (e.g. 'holoscan-my-sensor')",
+        "project_name": "Human-readable module name (e.g. 'My Sensor'). See modules/README.md for the full naming system.",
+        "module_slug": "snake_case identifier — auto-derived from project_name. Used for Python import path and C++ namespace (e.g. 'my_sensor').",
+        "module_repo_name": "kebab-case repo/package name — auto-derived, prefixed 'holoscan-' (e.g. 'holoscan-my-sensor'). Used for PyPI and Debian packages.",
         "operator_slug": "Initial operator name in snake_case (e.g. 'my_sensor_op'). CamelCase class name is derived.",
         "full_name": "Author name",
         "affiliation": "Author organization",
