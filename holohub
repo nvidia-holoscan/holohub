@@ -48,6 +48,174 @@ if ! "${PYTHON_BIN}" -c 'import holoscan_cli' &>/dev/null; then
     "${PYTHON_BIN}" -m pip install "${spec}"
 fi
 
+# Container builds share a prepared Holohub base image carrying python/pip,
+# consolidated holoscan-cli, and `holohub setup`. Project Dockerfiles consume
+# it through the generic BASE_IMAGE build arg that holoscan-cli already passes.
+_holohub_has_arg() {
+    local needle="$1"
+    shift || true
+    local arg
+    for arg in "$@"; do
+        if [[ "${arg}" == "--" ]]; then
+            return 1
+        fi
+        if [[ "${arg}" == "${needle}" || "${arg}" == "${needle}="* ]]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+_holohub_cuda_arg() {
+    local expect_value=0
+    local arg
+    for arg in "$@"; do
+        if [[ "${arg}" == "--" ]]; then
+            return 1
+        fi
+        if [[ "${expect_value}" == "1" ]]; then
+            printf '%s\n' "${arg}"
+            return 0
+        fi
+        case "${arg}" in
+            --cuda)
+                expect_value=1
+                ;;
+            --cuda=*)
+                printf '%s\n' "${arg#--cuda=}"
+                return 0
+                ;;
+        esac
+    done
+    return 1
+}
+
+_holohub_needs_prepared_base() {
+    if [[ "${HOLOHUB_DISABLE_PREPARED_BASE:-0}" == "1" ]]; then
+        return 1
+    fi
+    if [[ -n "${HOLOSCAN_CLI_BASE_IMAGE_FORMAT:-}" && -z "${HOLOHUB_PREPARED_BASE_IMAGE_FORMAT:-}" ]]; then
+        return 1
+    fi
+
+    local command="${1:-}"
+    case "${command}" in
+        build|run|install|package|test|build-container|run-container)
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+
+    if _holohub_has_arg "--local" "$@" || \
+       _holohub_has_arg "--no-docker-build" "$@" || \
+       _holohub_has_arg "--base-img" "$@"; then
+        return 1
+    fi
+    return 0
+}
+
+_holohub_configure_prepared_base() {
+    local cuda_override
+    cuda_override="$(_holohub_cuda_arg "$@" || true)"
+
+    local prepared_env
+    prepared_env="$("${PYTHON_BIN}" - "${cuda_override}" <<'PY'
+import os
+import shlex
+import sys
+
+from holoscan_cli.utils.sdk import (
+    DEFAULT_BASE_SDK_VERSION,
+    get_cuda_tag,
+    get_default_cuda_version,
+    get_host_gpu,
+)
+
+cuda_override = sys.argv[1] or None
+sdk_version = os.environ.get("HOLOSCAN_CLI_BASE_SDK_VERSION", DEFAULT_BASE_SDK_VERSION)
+cuda_version = cuda_override or os.environ.get("HOLOSCAN_CLI_CUDA_VERSION") or get_default_cuda_version()
+cuda_tag = get_cuda_tag(cuda_version, sdk_version)
+gpu_type = get_host_gpu()
+
+base_image_name = os.environ.get(
+    "HOLOSCAN_CLI_BASE_IMAGE", "nvcr.io/nvidia/clara-holoscan/holoscan"
+)
+base_image_format = os.environ.get(
+    "HOLOHUB_PREPARED_BASE_FROM_FORMAT", "{base_image}:v{sdk_version}-{cuda_tag}"
+)
+base_image = os.environ.get("HOLOHUB_PREPARED_BASE_FROM") or base_image_format.format(
+    base_image=base_image_name,
+    sdk_version=sdk_version,
+    cuda_tag=cuda_tag,
+)
+
+container_prefix = os.environ.get(
+    "HOLOSCAN_CLI_CONTAINER_PREFIX",
+    os.environ.get("HOLOSCAN_CLI_REPO_PREFIX", "holohub"),
+)
+prepared_format = os.environ.get(
+    "HOLOHUB_PREPARED_BASE_IMAGE_FORMAT",
+    f"{container_prefix}:base-v{{sdk_version}}-{{cuda_tag}}",
+)
+prepared_image = os.environ.get("HOLOHUB_PREPARED_BASE_IMAGE") or prepared_format.format(
+    base_image=base_image_name,
+    sdk_version=sdk_version,
+    cuda_tag=cuda_tag,
+)
+delegated_format = os.environ.get("HOLOHUB_PREPARED_BASE_IMAGE") or prepared_format
+
+for key, value in {
+    "base_image": base_image,
+    "prepared_image": prepared_image,
+    "delegated_format": delegated_format,
+    "sdk_version": sdk_version,
+    "gpu_type": gpu_type,
+}.items():
+    print(f"{key}={shlex.quote(value)}")
+PY
+)"
+    eval "${prepared_env}"
+
+    export HOLOSCAN_CLI_BASE_IMAGE_FORMAT="${delegated_format}"
+
+    if _holohub_has_arg "--dryrun" "$@"; then
+        echo "[holohub] would build prepared base ${prepared_image} from ${base_image}" >&2
+        return 0
+    fi
+
+    local docker_exe="${HOLOSCAN_CLI_DOCKER_EXE:-docker}"
+    local build_cmd=(
+        "${docker_exe}" build
+        --build-arg "BUILDKIT_INLINE_CACHE=1"
+        --build-arg "BASE_IMAGE=${base_image}"
+        --build-arg "GPU_TYPE=${gpu_type}"
+        --build-arg "BASE_SDK_VERSION=${sdk_version}"
+        --network=host
+    )
+
+    if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
+        build_cmd+=(--build-context "holoscan-cli-src=${HOLOSCAN_CLI_SOURCE}")
+    fi
+    if [[ -n "${HOLOSCAN_CLI_INSTALL_SPEC:-}" ]]; then
+        build_cmd+=(--build-arg "HOLOSCAN_CLI_INSTALL_SPEC=${HOLOSCAN_CLI_INSTALL_SPEC}")
+    elif [[ -n "${HOLOSCAN_CLI_VERSION:-}" && -z "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
+        build_cmd+=(--build-arg "HOLOSCAN_CLI_INSTALL_SPEC=${HOLOSCAN_CLI_VERSION}")
+    fi
+    if [[ -n "${HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS:-}" ]]; then
+        build_cmd+=(--build-arg "HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS=${HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS}")
+    fi
+
+    DOCKER_BUILDKIT=1 "${build_cmd[@]}" \
+        -f "${SCRIPT_DIR}/utilities/docker/Dockerfile.holohub-base" \
+        -t "${prepared_image}" \
+        "${SCRIPT_DIR}"
+}
+
+if _holohub_needs_prepared_base "$@"; then
+    _holohub_configure_prepared_base "$@"
+fi
+
 if command -v holoscan >/dev/null 2>&1; then
     exec holoscan "$@"
 fi
