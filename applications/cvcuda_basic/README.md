@@ -66,4 +66,3 @@ or using the run script
 ```bash
 ./holohub run cvcuda_basic --language=cpp --local
 ```
-

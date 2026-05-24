@@ -60,4 +60,3 @@ flowchart LR
 ```
 
 `ClassicalComputeOp` sends the quantum kernel and Hamiltonian to `QuantumComputeOp`, which computes the energy and parameter and sends the result to `PrintOp`.
-

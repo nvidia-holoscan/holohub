@@ -69,4 +69,3 @@ Note: The first build will take **~1.5 hours** if you're on ARM64. This is large
   sudo rm libv4l2.so.0.0.999999
   sudo ln -s libv4l2.so.0.0.0.0  libv4l2.so.0.0.999999
   ```
-

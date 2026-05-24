@@ -38,4 +38,3 @@ For using different configuration files, use the `--run-args` argument.
 ```bash
 ./holohub run basic_networking_ping --run-args basic_networking_ping_rx.yaml
 ```
-

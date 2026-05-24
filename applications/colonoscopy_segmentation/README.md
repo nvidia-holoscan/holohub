@@ -75,4 +75,3 @@ options:
   --contours, --no-contours
                         Show segmentation contours instead of mask (default: False)
 ```
-

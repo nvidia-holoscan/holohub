@@ -57,4 +57,3 @@ Open and edit the [Dockerfile](../Dockerfile) and uncomment line 66:
 # Uncomment the following line for aarch64 support
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/aarch64-linux-gnu/tegra/
 ```
-

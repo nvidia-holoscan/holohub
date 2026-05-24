@@ -66,4 +66,3 @@ The recording of the output can be enabled by setting `record_output` flag in
 the config file
 `<build_dir>/applications/h264/endoscopy_tool_tracking/h264_endoscopy_tool_tracking.yaml`
 to `true`.
-
