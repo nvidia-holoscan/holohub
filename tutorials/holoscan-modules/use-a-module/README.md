@@ -179,9 +179,9 @@ Those metadata details are used by the HoloHub CLI in the next section.
 ./holohub build my_app
 ```
 
-
 **How it works:** When you run `./holohub build`, two layers of tooling run to
 resolve and lazily fetch any necessary external module sources.
+
 1. The HoloHub CLI scans all `metadata.json` files in the repository to build a metadata database. It reads the `dependencies.modules[]` declarations from your subproject's metadata.
 2. For each external module dependency, the CLI writes a `holohub_declare_external_module(...)` entry into a generated CMake manifest file. This function defines a `FetchContent_Declare`
 entry for each source URL and tag, along with a HoloHub variable detail to note what
@@ -337,7 +337,7 @@ single import is enough.
 ## 7. Path D — Source-Level Embedding in a Fully External Project
 
 Projects that rely directly on CMake without HoloHub CLI tooling can leverage
-CMake's [`FetchContent`]((https://cmake.org/cmake/help/latest/module/FetchContent.html) function to fetch and build open source Holoscan Modules
+CMake's [`FetchContent`]((<https://cmake.org/cmake/help/latest/module/FetchContent.html>) function to fetch and build open source Holoscan Modules
 directly.
 
 ```cmake
