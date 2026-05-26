@@ -34,7 +34,6 @@ from .util import (
     DEFAULT_BASE_SDK_VERSION,
     build_holohub_path_mapping,
     check_nvidia_ctk,
-    docker_args_to_devcontainer_format,
     fatal,
     find_hsdk_build_rel_dir,
     get_arch_gpu_str,
@@ -1112,24 +1111,3 @@ class HoloHubContainer:
             "-e",
             "HOLOSCAN_TESTS_DATA_PATH=/workspace/holoscan-sdk/tests/data",
         ]
-
-    def get_devcontainer_args(self, docker_opts: str = "") -> str:
-        """Get all devcontainer-formatted arguments as JSON array string"""
-        docker_args = []
-        docker_args.extend(self.get_device_mounts())
-        docker_args.extend(self.group_args())
-        docker_args.extend(self.ucx_args())
-        docker_args.extend(self.get_device_cgroup_args())
-        docker_args.extend(self.get_nvidia_runtime_args())
-        if HoloHubContainer.DEFAULT_DOCKER_RUN_ARGS:
-            docker_args.extend(shlex.split(HoloHubContainer.DEFAULT_DOCKER_RUN_ARGS))
-        if docker_opts:
-            docker_args.extend(shlex.split(docker_opts))
-        project_name = self.get_project_name()
-        hostname = (
-            f"{self.HOSTNAME_PREFIX}-{project_name}" if project_name else self.HOSTNAME_PREFIX
-        )
-        docker_args.extend(["--hostname", hostname])
-
-        devcontainer_options = docker_args_to_devcontainer_format(docker_args)
-        return ",\n        ".join(f'"{opt}"' for opt in devcontainer_options)
