@@ -62,3 +62,46 @@ recognizes in-tree modules: a dependency with no `source` block is looked up in
 `modules/<name>/metadata.json`. If found, the dep is marked `is_internal=True` and
 the CMake manifest emits a comment instead of a FetchContent_Declare — the operators
 are already present in HoloHub's tree and are built when `OP_<name>=ON`.
+
+## Naming Conventions
+
+The template derives four related names from a single human-readable input. Review
+this before running the command to avoid confusion during the prompts.
+
+### The three-tier system
+
+| Name | Format | Used for |
+| --- | --- | --- |
+| `project_name` | Free text, title case | Display name, README title |
+| `module_slug` | `snake_case` (underscores) | Python import path, C++ namespace, file/dir names inside the module, CMake variable prefixes |
+| `module_repo_name` | `holoscan-<slug>` (hyphens) | Repository directory name, PyPI package name, Debian package name |
+| `operator_slug` | `snake_case` + `_op` | Operator source file name; class name is TitleCase (`MySensorOp`) |
+
+### Example: "My Sensor"
+
+```text
+project_name     → "My Sensor"
+module_slug      → my_sensor           (underscores: used in Python/C++ code)
+module_repo_name → holoscan-my-sensor  (hyphens: used in package/repo names)
+operator_slug    → my_sensor_op        (class: MySensorOp)
+```
+
+### Why two formats?
+
+Python identifiers and C++ namespaces cannot contain hyphens, so `module_slug` uses
+underscores. Package registries (PyPI, apt) and repository directory names follow the
+opposite convention. The template enforces both so that
+`from holoscan.my_sensor import MySensorOp` and `pip install holoscan-my-sensor` both
+work without manual adjustment.
+
+### Transformation rules
+
+```text
+module_slug      = project_name.lower().replace(' ', '_').replace('-', '_')
+module_repo_name = "holoscan-" + module_slug.replace('_', '-')
+operator_slug    = module_slug + "_op"
+```
+
+The template computes `module_slug`, `module_repo_name`, and `operator_slug`
+automatically from `project_name`. You can accept the defaults or override any of them
+at the prompts.
