@@ -123,40 +123,6 @@ incoming_responses->output: 683
 replayer->output: 683
 ```
 
-## Development Environment
-
-### Dev Container
-
-To start the Dev Container, run the following command from the root directory of Holohub:
-
-```bash
-./holohub vscode
-```
-
-### VS Code Launch Profiles
-
-#### C++ (launch profiles)
-
-The following launch profiles are available:
-
-- **(compound) grpc_endoscopy_tool_tracking/cpp (cloud & edge)**: Launch both the gRPC server and the client.
-- **(gdb) grpc_endoscopy_tool_tracking/cpp (cloud)**: Launch the gRPC server.
-- **(gdb) grpc_endoscopy_tool_tracking/cpp (edge)**: Launch the gRPC client.
-
-#### Python (launch profiles)
-
-The following launch profiles are available:
-
-- **(compound) grpc_endoscopy_tool_tracking/python (cloud & edge)**: Launch both the gRPC server and the client.
-- **(pythoncpp) grpc_endoscopy_tool_tracking/python (cloud)**: Launch the gRPC server with `pythoncpp`.
-- **(pythoncpp) grpc_endoscopy_tool_tracking/python (edge)**: Launch the gRPC client with `pythoncpp`.
-- **(debugpy) grpc_endoscopy_tool_tracking/python (cloud)**: Launch the gRPC server with `debugpy`.
-- **(debugpy) grpc_endoscopy_tool_tracking/python (edge)**:Launch the gRPC client with `debugpy`.
-
-> [!NOTE]
-> The `compound` profile uses the `debugpy` extension due to a limitation that prevents launching
-> the cloud and the edge apps together using `pythoncpp`.
-
 ## Limitations & Known Issues
 
 ### C++ (limitations)
@@ -170,11 +136,7 @@ The following launch profiles are available:
    - Can only serve one request at a time
    - Subsequent calls receive `grpc::StatusCode::RESOURCE_EXHAUSTED` status
 
-3. Debugging Issues:
-   - When using the compound profile, the server may need additional startup time
-   - If needed, adjust the sleep value in [tasks.json](../../../../.vscode/tasks.json) under `Build grpc_endoscopy_tool_tracking (delay 3s)`
-
-4. Expected Exit Behavior:
+3. Expected Exit Behavior:
    - The client will exit with the following expected error when the video completes:
 
      ```bash
