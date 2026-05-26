@@ -95,6 +95,26 @@ Where:
 - `--docker-file`  is the path to the container's Dockerfile;
 - `--img` defines the fully qualified image name.
 
+#### Minimal Dockerfile: installing `holoscan-cli`
+
+The HoloHub default container layers application support on top of the
+prepared base image at `utilities/docker/Dockerfile.holohub-base`. That base
+image exposes several knobs (local checkout, install spec, extra pip flags) to
+support development against an unreleased `holoscan-cli`; when writing a brand
+new Dockerfile you usually do not need any of that.
+
+The smallest fragment that gives a custom Dockerfile the `holoscan` command is:
+
+```dockerfile
+FROM nvcr.io/nvidia/clara-holoscan/holoscan:v<sdk-version>-<gpu-type>
+RUN pip install holoscan-cli
+```
+
+Pin a release when you want reproducible builds (`pip install holoscan-cli==<version>`).
+The flexible install logic in `utilities/docker/Dockerfile.holohub-base`
+(local checkout via build-context, pre-release index URLs, etc.) is only
+needed when iterating on the CLI itself, not when consuming it.
+
 ### Build with Verbose Output
 
 To print the values for base image, Dockerfile, GPU type, and output image name, use ```--verbose```.

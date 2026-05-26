@@ -42,10 +42,22 @@ if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
     export PYTHONPATH="${HOLOSCAN_CLI_SOURCE%/}/src${PYTHONPATH:+:${PYTHONPATH}}"
 fi
 
-if ! "${PYTHON_BIN}" -c 'import holoscan_cli' &>/dev/null; then
+# Require a *consolidated* holoscan-cli (exposes PROJECT_COMMANDS). Older
+# releases import cleanly but lack the source-project dispatch table this
+# wrapper depends on, so reinstall/upgrade when the feature check fails.
+_holohub_cli_has_consolidated_dispatch() {
+    "${PYTHON_BIN}" - <<'PY' &>/dev/null
+from holoscan_cli.__main__ import PROJECT_COMMANDS
+
+required = {"build", "run", "list", "install"}
+assert required <= set(PROJECT_COMMANDS), f"missing: {required - set(PROJECT_COMMANDS)}"
+PY
+}
+
+if ! _holohub_cli_has_consolidated_dispatch; then
     spec="${HOLOSCAN_CLI_SOURCE:-${HOLOSCAN_CLI_VERSION:-holoscan-cli}}"
-    echo "[holohub] installing ${spec}" >&2
-    "${PYTHON_BIN}" -m pip install "${spec}"
+    echo "[holohub] installing/upgrading ${spec}" >&2
+    "${PYTHON_BIN}" -m pip install --upgrade "${spec}"
 fi
 
 # Container builds share a prepared Holohub base image carrying python/pip,

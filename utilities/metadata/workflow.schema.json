@@ -27,6 +27,11 @@
         "language": {
           "$ref": "urn:holohub:project:v1#/$defs/language"
         },
+        "dependencies": {
+          "type": "object",
+          "description": "Optional grouping of workflow-level dependencies (pip packages, third-party assets, external repos, etc.). The inner shape is intentionally permissive so workflows can record any extra context they need.",
+          "additionalProperties": true
+        },
         "platforms": {
           "$ref": "urn:holohub:project:v1#/$defs/platforms"
         },

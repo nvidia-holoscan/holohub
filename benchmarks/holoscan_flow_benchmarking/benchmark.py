@@ -33,8 +33,21 @@ from patch_python_sources import patch_directory, restore_backups
 script_dir = os.path.dirname(os.path.abspath(__file__))
 holohub_root = os.path.abspath(os.path.join(script_dir, os.pardir, os.pardir))
 
-from holoscan_cli.cli import HoloscanCLI  # noqa: E402
-from holoscan_cli.utils.holohub import build_holohub_path_mapping, resolve_path_prefix  # noqa: E402
+try:
+    from holoscan_cli.cli import HoloscanCLI  # noqa: E402
+    from holoscan_cli.utils.holohub import (  # noqa: E402
+        build_holohub_path_mapping,
+        resolve_path_prefix,
+    )
+except ImportError as exc:
+    sys.exit(
+        f"{exc}\n"
+        "The benchmarking tool now reads project metadata via the consolidated\n"
+        "`holoscan-cli` package. Install it before running outside the HoloHub\n"
+        "container, e.g. `pip install holoscan-cli` (see\n"
+        "https://github.com/nvidia-holoscan/holoscan-cli for pinned/pre-release\n"
+        "specs)."
+    )
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(format="%(asctime)s %(levelname)s: %(message)s", level=logging.DEBUG)

@@ -169,7 +169,16 @@ if(BUILD_TESTING AND BUILD_HOLOHUB_TESTING)
   enable_testing()
   # The HoloHub CLI implementation is now the standalone ``holoscan-cli``
   # package; its unit tests live in that repository. The only HoloHub-side
-  # CLI test still in this tree is the consolidation smoke test, which is
-  # invoked directly via ``pytest utilities/cli/tests/test_holoscan_cli_consolidation.py``
-  # against the installed holoscan-cli.
+  # CLI test still in this tree is the consolidation smoke test, which
+  # exercises the wrapper -> install -> delegate path against the installed
+  # holoscan-cli.
+  find_package(Python3 COMPONENTS Interpreter)
+  if(Python3_Interpreter_FOUND)
+    add_test(
+      NAME holoscan_cli_consolidation
+      COMMAND ${Python3_EXECUTABLE} -m pytest -q
+              ${CMAKE_CURRENT_SOURCE_DIR}/utilities/cli/tests/test_holoscan_cli_consolidation.py
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+  endif()
 endif()

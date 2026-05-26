@@ -25,6 +25,14 @@
         "changelog": {
           "$ref": "urn:holohub:project:v1#/$defs/changelog"
         },
+        "language": {
+          "$ref": "urn:holohub:project:v1#/$defs/multi_language"
+        },
+        "dependencies": {
+          "type": "object",
+          "description": "Optional grouping of application-level dependencies (pip packages, third-party assets, external repos, etc.). The inner shape is intentionally permissive so apps can record any extra context they need.",
+          "additionalProperties": true
+        },
         "platforms": {
           "$ref": "urn:holohub:project:v1#/$defs/platforms"
         },

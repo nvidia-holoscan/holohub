@@ -3,6 +3,28 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
+# ----------------------------------------------------------------------------
+# HoloHub prepared base image.
+#
+# This image stacks a python+pip layer and the consolidated `holoscan-cli`
+# onto the Holoscan SDK runtime, then runs `holohub setup` so downstream
+# Dockerfiles (`Dockerfile`, `operators/*/Dockerfile`, `applications/*/Dockerfile`)
+# can `FROM ${BASE_IMAGE}` without re-doing this provisioning.
+#
+# If you are writing a *new* custom Dockerfile and just want the `holoscan`
+# CLI available inside it, you do not need anything in this file — the
+# minimal recipe is documented in doc/developer.md ("Minimal Dockerfile:
+# installing holoscan-cli"):
+#
+#     FROM nvcr.io/nvidia/clara-holoscan/holoscan:v<sdk-version>-<gpu-type>
+#     RUN pip install holoscan-cli
+#
+# The extra knobs below (local checkout via build-context, pre-release index
+# URLs) exist to let HoloHub iterate on an unreleased holoscan-cli without
+# republishing to PyPI; they are not part of the recommended path for new
+# consumers.
+# ----------------------------------------------------------------------------
+
 ARG GPU_TYPE
 ARG BASE_SDK_VERSION
 ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v${BASE_SDK_VERSION}-${GPU_TYPE}
@@ -43,13 +65,17 @@ RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
         curl -sS https://bootstrap.pypa.io/get-pip.py | ${PYTHON_VERSION} \
     ; fi
 
-# Install the consolidated Holoscan Platform CLI. Three install sources are
-# supported, in order of precedence:
-#   1. Local checkout exposed via `--build-context holoscan-cli-src=<path>`.
-#      The host CLI passes this automatically when HOLOSCAN_CLI_SOURCE is set.
-#   2. The HOLOSCAN_CLI_INSTALL_SPEC build arg, optionally combined with
-#      HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS for index URLs / pre-release flags.
-#   3. Default value `holoscan-cli` (the published PyPI release).
+# Install the consolidated `holoscan-cli`.
+#
+# Default behavior is the same as `RUN pip install holoscan-cli` against PyPI.
+# The two extra knobs below are escape hatches used only when iterating on the
+# CLI itself; they do not need to be set for normal builds:
+#   * `--build-context holoscan-cli-src=<path>` mounts a local checkout and
+#     wins over everything else. The host wrapper passes this automatically
+#     when HOLOSCAN_CLI_SOURCE is set.
+#   * HOLOSCAN_CLI_INSTALL_SPEC / HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS replace
+#     the pip install spec (e.g. `holoscan-cli==4.3.0`) and add flags such as
+#     `--index-url https://test.pypi.org/simple --pre` for pre-release builds.
 ARG HOLOSCAN_CLI_INSTALL_SPEC=holoscan-cli
 ARG HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS=
 RUN --mount=type=bind,from=holoscan-cli-src,target=/tmp/holoscan-cli-src \
