@@ -34,27 +34,6 @@ You can use the following command to get more information on command line parame
 ./holohub run volume_rendering --language [cpp|python] --run-args="--usages"
 ```
 
-## Dev Container
-
-To start the the Dev Container, run the following command from the root directory of Holohub:
-
-```bash
-./holohub vscode volume_rendering
-```
-
-### VS Code Launch Profiles
-
-#### C++
-
-Use the **(gdb) volume_rendering/cpp** launch profile to run and debug the C++ application.
-
-#### Python
-
-There are a couple of launch profiles configured for this application:
-
-1. **(debugpy) python_rendering/python**: Launch the Volume Rendering application with the ability to debug Python code.
-2. **(pythoncpp) python_rendering/python**: Launch the Volume Rendering application with the ability to debug both Python and C++ code.
-
 ### Command Line Arguments
 
 ```text

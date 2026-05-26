@@ -75,27 +75,6 @@ Arguments:
 - `--build-with` : instructs the script to build the application with the `vtk_renderer` operator
 - `--docker-file`: instructs the script to use the `operators/vtk_renderer/Dockerfile` that includes VTK libraries
 
-## Dev Container
-
-To start the the Dev Container, run the following command from the root directory of Holohub:
-
-```bash
-./holohub vscode
-```
-
-### VS Code Launch Profiles
-
-#### C++
-
-Use the `(gdb) endoscopy_tool_tracking/cpp` launch profile to start and debug the application.
-
-#### Python
-
-There are a two launch profiles configured for this application:
-
-1. **(debugpy) endoscopy_tool_tracking/python**: This launch profile enables debugging of Python code.
-2. **(pythoncpp) endoscopy_tool_tracking/python**: This launch profile enables debugging of Python and C++ code.
-
 ## Containerize the application
 
 To containerize the application using [Holoscan CLI](https://docs.nvidia.com/holoscan/sdk-user-guide/cli/cli.html), first build the application using `./holohub install endoscopy_tool_tracking`, run the `package-app.sh` script in the [cpp](./cpp/package-app.sh) or the [python](./python/package-app.sh) directory and then follow the generated output to package and run the application.
