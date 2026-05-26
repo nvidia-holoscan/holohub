@@ -250,9 +250,8 @@ target_link_libraries(my_app PRIVATE holoscan::my_sensor_op)
 
 If you are building a Holoscan Module that itself depends on another Module, use the
 `module.dependencies[]` array in your module's `metadata.json` — it follows the same
-schema as the `application.dependencies.modules[]` shown in §4.2 above. The full schema
-reference, the `HOLOHUB_LOCAL_*` override, and the SHA-pinning discipline are covered in
-[Create a Holoscan Module, §3.6](../create-a-module/README.md#36-declare-dependencies-on-other-modules-optional).
+schema as the `application.dependencies.modules[]` shown in §4.2 above. Refer to the "Create a Holoscan Module" tutorial for the full schema
+reference, the `HOLOHUB_LOCAL_*` override, and the SHA-pinning discipline.
 
 ## 5. Path B — External C++ Project (Binary Install)
 
