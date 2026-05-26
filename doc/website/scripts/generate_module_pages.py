@@ -25,11 +25,16 @@ fragments to overrides/_pages/ via direct file I/O (same pattern as generate_fea
 import json
 import logging
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
 
 import mkdocs_gen_files
+
+_GIT = shutil.which("git")
+if _GIT is None:
+    raise RuntimeError("git executable not found in PATH")
 
 _scripts_dir = str(Path(__file__).resolve().parent)
 if _scripts_dir not in sys.path:
@@ -67,7 +72,7 @@ QUALITY_SCORE_COLORS = {
 
 def get_holohub_root() -> Path:
     result = subprocess.run(
-        ["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True, check=True
+        [_GIT, "rev-parse", "--show-toplevel"], capture_output=True, text=True, check=True
     )
     return Path(result.stdout.strip())
 
@@ -98,7 +103,7 @@ def resolve_module_metadata(entry: dict, holohub_root: Path) -> tuple[dict, Path
     """
     name = entry["name"]
     url = entry.get("url")
-    ref = entry.get("ref")
+    ref = entry.get("ref", "main")
 
     if not url:
         # In-tree module
@@ -151,8 +156,14 @@ def resolve_readme(metadata_module: dict, module_root: Path) -> str:
     doc_block = metadata_module.get("documentation", {})
     readme_rel = doc_block.get("readme") if doc_block else None
 
+    module_root_resolved = module_root.resolve()
     if readme_rel:
         readme_path = (module_root / readme_rel).resolve()
+        if not readme_path.is_relative_to(module_root_resolved):
+            logger.warning(
+                f"README path escapes module root for module '{metadata_module.get('name')}': {readme_rel}"
+            )
+            return f"# {metadata_module.get('name', 'Module')}\n\n*No README available.*\n"
     else:
         readme_path = module_root / "README.md"
 
@@ -188,7 +199,7 @@ def _rewrite_image_url(raw_url: str, module_root: Path, source_url: str, ref: st
             resolved = (module_root / raw_url).resolve()
             holohub_root = Path(
                 subprocess.run(
-                    ["git", "rev-parse", "--show-toplevel"],
+                    [_GIT, "rev-parse", "--show-toplevel"],
                     capture_output=True,
                     text=True,
                     check=True,
@@ -443,8 +454,9 @@ def write_modules_nav_html(tag_counts: dict, total_count: int, overrides_pages_d
     ]
     for tag, count in sorted(tag_counts.items()):
         safe_tag = tag.lower().replace(" ", "-")
+        escaped_tag = tag.replace("\\", "\\\\").replace("'", "\\'")
         lines.append(
-            f'<a href="#{safe_tag}" onclick="filterByTag(\'{tag}\'); return true;" {nav_style}>'
+            f'<a href="#{safe_tag}" onclick="filterByTag(\'{escaped_tag}\'); return true;" {nav_style}>'
             f"{tag} ({count})</a>"
         )
 
