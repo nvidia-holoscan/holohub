@@ -22,6 +22,7 @@ Writes per-module detail .md pages via mkdocs_gen_files, and writes the card/nav
 fragments to overrides/_pages/ via direct file I/O (same pattern as generate_featured_apps.py).
 """
 
+import html
 import json
 import logging
 import re
@@ -353,16 +354,21 @@ def generate_module_card(entry: dict, metadata_module: dict) -> str:
     name = entry["name"]
     url = entry.get("url")
     score = entry.get("nvidia_quality_score", 0)
-    version = metadata_module.get("version", "")
-    description = metadata_module.get("description", "")
-    operators = metadata_module.get("operator_names", [])
-    platforms = metadata_module.get("platforms", [])
+    version = html.escape(str(metadata_module.get("version", "") or ""))
+    description = html.escape(str(metadata_module.get("description", "")))
+    operators = [html.escape(str(op)) for op in metadata_module.get("operator_names", [])]
+    platforms = [html.escape(str(p)) for p in metadata_module.get("platforms", [])]
     language = metadata_module.get("language", [])
-    license_str = metadata_module.get("license", "")
-    tags = metadata_module.get("tags", [])
+    if isinstance(language, str):
+        language = [language]
+    language = [html.escape(str(lang)) for lang in language]
+    license_str = html.escape(str(metadata_module.get("license", "") or ""))
+    tags = [html.escape(str(t)) for t in metadata_module.get("tags", [])]
 
-    # First tag drives sidebar filter
+    # First tag drives sidebar filter; detail_url uses raw name (module slug)
     primary_tag = tags[0] if tags else "Other"
+    detail_url = f"{name}/"
+    name = html.escape(name)
 
     source_badge_color = "#5f9300" if not url else "#0077b6"
     source_badge_label = "In-Tree" if not url else "External"
@@ -387,15 +393,13 @@ def generate_module_card(entry: dict, metadata_module: dict) -> str:
         for lang in language
     )
 
-    quality_label = QUALITY_SCORE_LABELS.get(score, str(score))
+    quality_label = html.escape(QUALITY_SCORE_LABELS.get(score, str(score)))
     quality_color = QUALITY_SCORE_COLORS.get(score, "#888888")
     quality_badge_html = (
         f'<span style="background:{quality_color};color:white;padding:0.15rem 0.4rem;'
         f'border-radius:0.2rem;font-size:0.6rem;font-weight:600;" '
         f'title="NVIDIA quality score: {score}/5">{quality_label}</span>'
     )
-
-    detail_url = f"{name}/"
 
     return f"""<div class="col-xl-4 col-lg-6 col-sm-12 mb-1 feature-box">
   <span class="md-tag" style="display:none;">{primary_tag}</span>
@@ -455,9 +459,10 @@ def write_modules_nav_html(tag_counts: dict, total_count: int, overrides_pages_d
     for tag, count in sorted(tag_counts.items()):
         safe_tag = tag.lower().replace(" ", "-")
         escaped_tag = tag.replace("\\", "\\\\").replace("'", "\\'")
+        html_tag = html.escape(tag)
         lines.append(
             f'<a href="#{safe_tag}" onclick="filterByTag(\'{escaped_tag}\'); return true;" {nav_style}>'
-            f"{tag} ({count})</a>"
+            f"{html_tag} ({count})</a>"
         )
 
     with out_path.open("w", encoding="utf-8") as f:
