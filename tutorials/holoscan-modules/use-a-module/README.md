@@ -31,9 +31,8 @@ The primary form of a Module is an **External Module** — a standalone git repo
 its own operators, applications, tests, packaging, and CI. Consumers fetch its sources at
 build time or install a published binary package.
 
-In this tutorial we use the fictional `holoscan-my-sensor` external Module from the
-[Create a Holoscan Module](../create-a-module/README.md) tutorial as the running
-worked example, so every command can be copied verbatim.
+In this tutorial we use a fictional `holoscan-my-sensor` external Module as the running
+worked example.
 
 > For in-tree Module usage (modules that live inside the HoloHub monorepo rather than as
 > standalone repositories), see
@@ -106,10 +105,10 @@ Pick the path that matches your project, then jump to the corresponding section.
 | Your project is… | Use… |
 | --- | --- |
 | A HoloHub application, operator, workflow, or benchmark | [Path A (§4)](#4-path-a--consume-from-a-holohub-subproject-primary) |
+| Another Holoscan Module declaring a transitive dependency | [Path A (§4.7)](#47-module-to-module-transitive-dependencies) |
 | A standalone C++ application using a module binary package | [Path B (§5)](#5-path-b--external-c-project-binary-install) |
 | A pure-Python application or notebook | [Path C (§6)](#6-path-c--external-python-project-pip-install) |
 | A standalone C++ project using module sources | [Path D (§7)](#7-path-d--source-level-embedding-in-a-fully-external-project) |
-| Another Holoscan Module declaring a transitive dependency | [§4.7](#47-module-to-module-transitive-dependencies) |
 | A HoloHub subproject driven directly from CMake (no `./holohub` CLI) | [Appendix A](#appendix-a-embed-directly-in-holohub-cmake-handling) |
 | A HoloHub subproject depending on a module within the HoloHub monorepo | [Appendix B](#appendix-b-in-tree-module-dependencies-holohub-subproject) |
 
@@ -360,7 +359,7 @@ and best practices. A binary install (Paths B and C) is usually a simpler choice
 | Goal | Where or what |
 | --- | --- |
 | Declare a Module dep (HoloHub app) | `metadata.json:application.dependencies.modules[]` |
-| Declare a transitive dep (Module → Module) | `metadata.json:module.dependencies[]` (see create-a-module §3.6) |
+| Declare a transitive dep (Module → Module) | `metadata.json:module.dependencies[]` |
 | External Module reference | Include `source.{git_url, ref}` (40-char SHA) and `provides_operators` |
 | Local override | `HOLOHUB_LOCAL_<UPPER_NAME>=<path>` env var |
 | Build a HoloHub subproject with deps | `./holohub build <app>` |
@@ -400,9 +399,7 @@ and best practices. A binary install (Paths B and C) is usually a simpler choice
 
 ## 10. Next Steps
 
-- Read the companion [Create a Holoscan Module](../create-a-module/README.md)
-  tutorial if you also want to publish a Module of your own.
-- For the full CLI reference, see `utilities/cli/cli_reference.md`.
+For the full CLI reference, see `utilities/cli/cli_reference.md`.
 
 Happy holocoding!
 
