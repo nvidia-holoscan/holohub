@@ -29,6 +29,7 @@ without cloning your source or understanding your build system.
 
 Each Holoscan Module typically covers a set of components that are related by some domain or
 hardware context. For example:
+
 - a `holoscan-<my-camera>` module may distribute a set of operators
 with logic specific to a certain class of cameras;
 - a `holoscan-image-reconstruction` module may distribute a set of resources and operators
@@ -118,6 +119,7 @@ and leverage the project as a dependency.
 
 Navigate to your HoloHub clone, then run the following CLI command to install the minimum template generation dependencies in your
 local Python environment:
+
 ```bash
 ./holohub setup --scripts template
 ```
@@ -170,6 +172,7 @@ The CLI will further derive some names using these rules:
 ```
 
 You will see the following output indicating success:
+
 ```text
 Holoscan Module 'my_sensor' created successfully!
 
@@ -187,7 +190,7 @@ Git repository initialised. Push to a remote when ready:
   git push -u origin main
 
 Register your module at https://nvidia-holoscan.github.io/ when ready.
-Successfully created new project: holoscan-my-sensor 
+Successfully created new project: holoscan-my-sensor
 Directory: /home/myuser/holoscan-my-sensor
 
 Possible next steps:
@@ -374,7 +377,6 @@ array to your `metadata.json`:
 Note: `ref` should be a 40-character commit SHA. The resolver accepts tags and branches but
   emits a warning — they are mutable and break reproducibility.
 
-
 ### 3.8 Package: Debian and Wheel
 
 Now that we've implemented and tested our module, it's time to package and share it outside
@@ -395,6 +397,7 @@ Wheel output directory: build/dist
 ```
 
 Important notes:
+
 - `WHEEL` invokes `python -m build --wheel` against `pyproject.toml`. Output goes to
   `build/dist/`.
 - `DEB` runs CMake + CPack via the `holohub_configure_deb()` helper baked into the
@@ -538,7 +541,7 @@ for parameters, including package dependency handling.
 For advanced cases such as various target platforms and development stacks, dynamically update
 the Debian metadata before passing it to this call.
 
-### 4.6. **Build and package** from the HoloHub root:
+### 4.6. **Build and package** from the HoloHub root
 
 Use the HoloHub CLI to run build and packaging operations:
 
@@ -572,12 +575,14 @@ Fast lookup for repeat use:
 ### **`import holoscan.<my_module>` fails outside the build tree.**
 
 Possible reasons include:
+
 - The Python build output location is not visible to the Python system path (see `PYTHONPATH`)
 - `holoscan<=4.2`: The Holoscan SDK wheel does not support importing from paths other than the
 Python wheel installation directory
 
 Run the following command to install a `.pth` file in your current Python directory that will point
 at your module build location and also patch the Holoscan SDK import search paths.
+
 ```bash
 ./holohub install --dev
 ```
@@ -594,6 +599,7 @@ Zero tests were collected because `holoscan` is not importable in the current en
 CTest treats this as *Skipped* via `SKIP_RETURN_CODE 5`.
 
 ### **The resolver warns about a dependency `ref`.** Pin to a 40-character commit SHA for
+
   reproducibility. Tags and branches work but are mutable.
 
 ## 7. Next Steps
