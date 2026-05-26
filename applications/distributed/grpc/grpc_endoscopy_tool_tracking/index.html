@@ -19422,73 +19422,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#development-environment" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Development Environment
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Development Environment">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#dev-container" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Dev Container
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#vs-code-launch-profiles" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        VS Code Launch Profiles
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="VS Code Launch Profiles">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#c-launch-profiles" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        C++ (launch profiles)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#python-launch-profiles" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Python (launch profiles)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#limitations-known-issues" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -19845,33 +19778,6 @@ Number<span class="w"> </span>of<span class="w"> </span><span class="nb">source<
 incoming_responses-&gt;output:<span class="w"> </span><span class="m">683</span>
 replayer-&gt;output:<span class="w"> </span><span class="m">683</span>
 </code></pre></div>
-<h2 id="development-environment">Development Environment<a class="headerlink" href="#development-environment" title="Permanent link">#</a></h2>
-<h3 id="dev-container">Dev Container<a class="headerlink" href="#dev-container" title="Permanent link">#</a></h3>
-<p>To start the Dev Container, run the following command from the root directory of Holohub:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>vscode
-</code></pre></div>
-<h3 id="vs-code-launch-profiles">VS Code Launch Profiles<a class="headerlink" href="#vs-code-launch-profiles" title="Permanent link">#</a></h3>
-<h4 id="c-launch-profiles">C++ (launch profiles)<a class="headerlink" href="#c-launch-profiles" title="Permanent link">#</a></h4>
-<p>The following launch profiles are available:</p>
-<ul>
-<li><strong>(compound) grpc_endoscopy_tool_tracking/cpp (cloud &amp; edge)</strong>: Launch both the gRPC server and the client.</li>
-<li><strong>(gdb) grpc_endoscopy_tool_tracking/cpp (cloud)</strong>: Launch the gRPC server.</li>
-<li><strong>(gdb) grpc_endoscopy_tool_tracking/cpp (edge)</strong>: Launch the gRPC client.</li>
-</ul>
-<h4 id="python-launch-profiles">Python (launch profiles)<a class="headerlink" href="#python-launch-profiles" title="Permanent link">#</a></h4>
-<p>The following launch profiles are available:</p>
-<ul>
-<li><strong>(compound) grpc_endoscopy_tool_tracking/python (cloud &amp; edge)</strong>: Launch both the gRPC server and the client.</li>
-<li><strong>(pythoncpp) grpc_endoscopy_tool_tracking/python (cloud)</strong>: Launch the gRPC server with <code>pythoncpp</code>.</li>
-<li><strong>(pythoncpp) grpc_endoscopy_tool_tracking/python (edge)</strong>: Launch the gRPC client with <code>pythoncpp</code>.</li>
-<li><strong>(debugpy) grpc_endoscopy_tool_tracking/python (cloud)</strong>: Launch the gRPC server with <code>debugpy</code>.</li>
-<li><strong>(debugpy) grpc_endoscopy_tool_tracking/python (edge)</strong>:Launch the gRPC client with <code>debugpy</code>.</li>
-</ul>
-<blockquote>
-<p>[!NOTE]
-The <code>compound</code> profile uses the <code>debugpy</code> extension due to a limitation that prevents launching
-the cloud and the edge apps together using <code>pythoncpp</code>.</p>
-</blockquote>
 <h2 id="limitations-known-issues">Limitations &amp; Known Issues<a class="headerlink" href="#limitations-known-issues" title="Permanent link">#</a></h2>
 <h3 id="c-limitations">C++ (limitations)<a class="headerlink" href="#c-limitations" title="Permanent link">#</a></h3>
 <ol>
@@ -19887,13 +19793,6 @@ the cloud and the edge apps together using <code>pythoncpp</code>.</p>
 <li>Can only serve one request at a time</li>
 <li>
 <p>Subsequent calls receive <code>grpc::StatusCode::RESOURCE_EXHAUSTED</code> status</p>
-</li>
-<li>
-<p>Debugging Issues:</p>
-</li>
-<li>When using the compound profile, the server may need additional startup time</li>
-<li>
-<p>If needed, adjust the sleep value in <a href="https://github.com/nvidia-holoscan/holohub/blob/main/.vscode/tasks.json">tasks.json</a> under <code>Build grpc_endoscopy_tool_tracking (delay 3s)</code></p>
 </li>
 <li>
 <p>Expected Exit Behavior:</p>

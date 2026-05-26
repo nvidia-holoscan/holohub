@@ -19433,34 +19433,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#dev-container" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Dev Container
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Dev Container">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#vs-code-launch-profiles" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        VS Code Launch Profiles
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -19687,16 +19659,6 @@ Suggest follow-up steps.
 <p>The LLM currently used in this application is <a href="https://huggingface.co/TheBloke/Mistral-7B-OpenOrca-GGUF">Mistral-7B-OpenOrca-GGUF</a>, which is a quantized <a href="https://mistral.ai/news/announcing-mistral-7b/">Mistal 7B model</a> that is finetuned on the <a href="https://huggingface.co/datasets/Open-Orca/OpenOrca">OpenOrca dataset</a>. However, any model in the GGUF file format will work as long as it can fit within your device's VRAM constraints.</p>
 <p>The inference engine used to run the LLM is <a href="https://github.com/abetlen/llama-cpp-python">llama-cpp-python</a>, which is a Python binding for <a href="https://github.com/ggerganov/llama.cpp">llama.cpp</a>. The reason for this is that the underlying llama.cpp library is hardware agnostic, dependency free, and it runs <strong>quantized</strong> LLMs with very high throughput.</p>
 <p>The RivaStreamingOp is a Holoscan SDK adaptation of the <a href="https://github.com/nvidia-riva/python-clients/blob/main/scripts/asr/transcribe_mic.py">transcribe_mic.py</a> script that is part of the <a href="https://github.com/nvidia-riva/python-clients/tree/main">Riva python-clients</a> repository.</p>
-<h2 id="dev-container">Dev Container<a class="headerlink" href="#dev-container" title="Permanent link">#</a></h2>
-<p>To start the the Dev Container, run the following command from the root directory of Holohub:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>vscode<span class="w"> </span>asr_to_llm
-</code></pre></div>
-<h3 id="vs-code-launch-profiles">VS Code Launch Profiles<a class="headerlink" href="#vs-code-launch-profiles" title="Permanent link">#</a></h3>
-<p>There are two launch profiles configured for this application:</p>
-<ol>
-<li><strong>(debugpy) asr_to_llm/python</strong>: Launch asr_to_llm using a launch profile that enables debugging of Python code.</li>
-<li><strong>(pythoncpp) asr_to_llm/python</strong>: Launch asr_to_llm using a launch profile that enables debugging of Python and C++ code.</li>
-</ol>
 
 
 

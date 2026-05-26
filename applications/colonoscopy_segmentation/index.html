@@ -19422,34 +19422,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#vs-code-dev-container" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        VS Code Dev Container
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="VS Code Dev Container">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#vs-code-launch-profiles" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        VS Code Launch Profiles
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -19644,17 +19616,6 @@ options:
 <span class="w">  </span>--contours,<span class="w"> </span>--no-contours
 <span class="w">                        </span>Show<span class="w"> </span>segmentation<span class="w"> </span>contours<span class="w"> </span>instead<span class="w"> </span>of<span class="w"> </span>mask<span class="w"> </span><span class="o">(</span>default:<span class="w"> </span>False<span class="o">)</span>
 </code></pre></div>
-<h2 id="vs-code-dev-container">VS Code Dev Container<a class="headerlink" href="#vs-code-dev-container" title="Permanent link">#</a></h2>
-<p>To start the the Dev Container, run the following command from the root directory of Holohub:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>vscode
-</code></pre></div>
-<h3 id="vs-code-launch-profiles">VS Code Launch Profiles<a class="headerlink" href="#vs-code-launch-profiles" title="Permanent link">#</a></h3>
-<p>There are two launch profiles configured for this application:</p>
-<ol>
-<li><strong>(debugpy) colonoscopy_segmentation/python</strong>: Launch colonoscopy_segmentation using a launch profile that enables debugging of Python code.</li>
-<li><strong>(pythoncpp) colonoscopy_segmentation/python</strong>: Launch colonoscopy_segmentation using a launch profile that enables debugging of Python and C++ code.</li>
-</ol>
-<p>Note: the launch profile starts the application with Video Replayer. To adjust the arguments of the application, open <a href="https://github.com/nvidia-holoscan/holohub/blob/main/.vscode/launch.json">launch.json</a>, find the launch profile named <code>(debugpy) colonoscopy_segmentation/python</code>, and adjust the <code>args</code> field as needed.</p>
 
 
 

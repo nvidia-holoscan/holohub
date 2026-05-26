@@ -19350,56 +19350,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#dev-container" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Dev Container
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#vs-code-launch-profiles" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        VS Code Launch Profiles
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="VS Code Launch Profiles">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#c" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        C++
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#python" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Python
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -19550,33 +19500,6 @@ UDP port likely need to be configured. All other settings do not need to be chan
 <p>For using different configuration files, use the <code>--run-args</code> argument.</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>basic_networking_ping<span class="w"> </span>--run-args<span class="w"> </span>basic_networking_ping_rx.yaml
 </code></pre></div>
-<h2 id="dev-container">Dev Container<a class="headerlink" href="#dev-container" title="Permanent link">#</a></h2>
-<p>To start the the Dev Container, run the following command from the root directory of Holohub:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>vscode
-</code></pre></div>
-<h2 id="vs-code-launch-profiles">VS Code Launch Profiles<a class="headerlink" href="#vs-code-launch-profiles" title="Permanent link">#</a></h2>
-<h3 id="c">C++<a class="headerlink" href="#c" title="Permanent link">#</a></h3>
-<p>There are three launch profiles configured for this application:</p>
-<ol>
-<li><strong>(gdb) basic_networking_ping/cpp RX</strong>: Launch Basic Networking Ping with the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/basic_networking_ping/basic_networking_ping_rx.yaml">RX configurations</a>.</li>
-<li><strong>(gdb) basic_networking_ping/cpp TX</strong>: Launch Basic Networking Ping with the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/basic_networking_ping/basic_networking_ping_tx.yaml">TX configurations</a>.</li>
-<li><strong>(compound) basic_networking_ping/cpp TX &amp; RX</strong>: Launch both 1 and 2 in parallel.
-   This launch profile launches the receiver followed by the transmitter.</li>
-</ol>
-<h3 id="python">Python<a class="headerlink" href="#python" title="Permanent link">#</a></h3>
-<p>There are several launch profiles configured for this application:</p>
-<ol>
-<li><strong>(debugpy) basic_networking_ping/python RX</strong>: Launch Basic Networking Ping with the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/basic_networking_ping/basic_networking_ping_rx.yaml">RX configurations</a>.
-   This launch profile enables debugging of Python code.</li>
-<li><strong>(debugpy) basic_networking_ping/python TX</strong>: Launch Basic Networking Ping with the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/basic_networking_ping/basic_networking_ping_tx.yaml">TX configurations</a>.
-   This launch profile enables debugging of Python code.</li>
-<li><strong>(pythoncpp) basic_networking_ping/python TX</strong>: Launch Basic Networking Ping with the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/basic_networking_ping/basic_networking_ping_rx.yaml">RX configurations</a>.
-   This launch profile enables debugging of Python and C++ code.</li>
-<li><strong>(pythoncpp) basic_networking_ping/python TX</strong>: Launch Basic Networking Ping with the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/basic_networking_ping/basic_networking_ping_tx.yaml">TX configurations</a>.
-   This launch profile enables debugging of Python and C++ code.</li>
-<li><strong>(compound) basic_networking_ping/python TX &amp; RX</strong>: Launch both 1 and 2 in parallel.
-   This launch profile launches the receiver followed by the transmitter.</li>
-</ol>
 
 
 

@@ -19343,56 +19343,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#dev-container" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Dev Container
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#vs-code-launch-profiles" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        VS Code Launch Profiles
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="VS Code Launch Profiles">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#c" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        C++
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#python" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Python
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -19616,33 +19566,6 @@ Refer to the <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_c
 <li>In the second branch, the frames go through the <a href="https://docs.nvidia.com/clara-holoscan/sdk-user-guide/holoscan_operators_extensions.html#operators">Format Converter</a> in the <strong>Inference Fragment</strong> to convert the data type of the image from <code>uint8</code> to <code>float32</code> before it is fed to the tool tracking model (with <a href="https://docs.nvidia.com/clara-holoscan/sdk-user-guide/holoscan_operators_extensions.html#operators">Custom TensorRT Inference</a>).
   The result is then ingested by the <a href="https://docs.nvidia.com/clara-holoscan/sdk-user-guide/holoscan_operators_extensions.html#operators">Tool Tracking Postprocessor</a> which extracts the masks, points, and text from the inference output, before <a href="https://docs.nvidia.com/clara-holoscan/sdk-user-guide/holoscan_operators_extensions.html#operators">Holoviz</a> renders them as overlays in the <strong>Visualization Fragment</strong>.</li>
 </ul>
-<h2 id="dev-container">Dev Container<a class="headerlink" href="#dev-container" title="Permanent link">#</a></h2>
-<p>To start the the Dev Container, run the following command from the root directory of Holohub:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>vscode
-</code></pre></div>
-<h2 id="vs-code-launch-profiles">VS Code Launch Profiles<a class="headerlink" href="#vs-code-launch-profiles" title="Permanent link">#</a></h2>
-<h3 id="c">C++<a class="headerlink" href="#c" title="Permanent link">#</a></h3>
-<p>There are several launch profiles configured for the C++ version of this application:</p>
-<ol>
-<li><strong>(gdb) ucx_endoscopy_tool_tracking/cpp (all fragments)</strong>: Launches all fragments in a single process in debug mode.</li>
-<li><strong>(gdb) ucx_endoscopy_tool_tracking/cpp - video_in fragment</strong>: Starts the <code>video_in</code> fragment in debug mode.</li>
-<li><strong>(gdb) ucx_endoscopy_tool_tracking/cpp - inference fragment</strong>: Starts the <code>inference</code> fragment in debug mode.</li>
-<li><strong>(gdb) ucx_endoscopy_tool_tracking/cpp - viz fragment</strong>: Starts the <code>viz</code> fragment in debug mode.</li>
-<li><strong>(compound) ucx_endoscopy_tool_tracking/cpp</strong>: Starts #2, #3, #4 in sequence.</li>
-</ol>
-<h3 id="python">Python<a class="headerlink" href="#python" title="Permanent link">#</a></h3>
-<p>There are several launch profiles configured for this application:</p>
-<ol>
-<li><strong>(debugpy) ucx_endoscopy_tool_tracking/python (all fragments)</strong>: Launches all fragments in a single process in debug mode.</li>
-<li><strong>(debugpy) ucx_endoscopy_tool_tracking/python - video_in fragment)</strong>: Launches all fragments in a single process in debug mode.</li>
-<li><strong>(pythoncpp) ucx_endoscopy_tool_tracking/python - video_in fragment</strong>: Starts the <code>video_in</code> fragment in debug mode.</li>
-<li><strong>(debugpy) ucx_endoscopy_tool_tracking/python - inference fragment</strong>: Starts the <code>video_in</code> fragment in debug mode.</li>
-<li><strong>(pythoncpp) ucx_endoscopy_tool_tracking/python - inference fragment</strong>: Starts the <code>inference</code> fragment in debug mode.</li>
-<li><strong>(debugpy) ucx_endoscopy_tool_tracking/python - viz fragment</strong>: Starts the <code>inference</code> fragment in debug mode.</li>
-<li><strong>(pythoncpp) ucx_endoscopy_tool_tracking/python - viz fragment</strong>: Starts the <code>viz</code> fragment in debug mode.</li>
-<li><strong>(compound) ucx_endoscopy_tool_tracking/python</strong>: Starts #2, #4, #6 in sequence.</li>
-</ol>
-<p>Note: Launch profiles prefixed with <code>debugpy</code> enables debugging of Python code only. Use <code>pythoncpp</code> to debug both C++ and Python code.</p>
 
 
 
