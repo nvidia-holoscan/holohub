@@ -216,6 +216,7 @@ def get_component_search_paths(base_dir: Optional[Path] = None) -> tuple[Path, .
         "applications",
         "benchmarks",
         "gxf_extensions",
+        "modules",
         "operators",
         "pkg",
         "tutorials",

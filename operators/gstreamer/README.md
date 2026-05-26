@@ -118,12 +118,12 @@ For a complete working example demonstrating how to use `GstVideoRecorderOp` in 
 
 **System Packages:**
 
-A Dockerfile with all dependencies pre-installed is provided at [`applications/gstreamer/Dockerfile`](../../applications/gstreamer/Dockerfile) for containerized builds.
+A Dockerfile with all dependencies pre-installed is provided at [`operators/gstreamer/Dockerfile`](Dockerfile) for containerized builds.
 
 For local development, install all required dependencies using the provided script:
 
 ```bash
-./applications/gstreamer/gst_video_recorder/install_deps.sh
+./operators/gstreamer/install_deps.sh
 ```
 
 **Optional (for CUDA support):**

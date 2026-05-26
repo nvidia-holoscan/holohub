@@ -61,8 +61,27 @@ if(HOLOHUB_BUILD_PYTHON)
   if(NOT CMAKE_INSTALL_LIBDIR)
     set(CMAKE_INSTALL_LIBDIR lib)
   endif()
-  set(HOLOHUB_PYTHON_MODULE_OUT_DIR ${CMAKE_BINARY_DIR}/python/${CMAKE_INSTALL_LIBDIR}/holohub)
+  if(DEFINED SKBUILD)
+    # When scikit-build-core drives the build it sets SKBUILD. Use a flat
+    # output path so the wheel installs the holohub package directly into
+    # site-packages rather than three directories deep (python/lib/holohub).
+    set(HOLOHUB_PYTHON_MODULE_OUT_DIR ${CMAKE_BINARY_DIR}/holohub)
+  else()
+    set(HOLOHUB_PYTHON_MODULE_OUT_DIR ${CMAKE_BINARY_DIR}/python/${CMAKE_INSTALL_LIBDIR}/holohub)
+  endif()
   file(MAKE_DIRECTORY ${HOLOHUB_PYTHON_MODULE_OUT_DIR})
+  if(DEFINED SKBUILD)
+    set(_holohub_py_dest ".")
+  else()
+    set(_holohub_py_dest "python/lib")
+  endif()
+  install(
+      DIRECTORY "${HOLOHUB_PYTHON_MODULE_OUT_DIR}"
+      DESTINATION "${_holohub_py_dest}"
+      FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+      DIRECTORY_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+      PATTERN "__pycache__" EXCLUDE
+  )
 
   # Find the Python interpreter
   find_package(Python COMPONENTS Interpreter)
@@ -83,8 +102,22 @@ if(NOT CMAKE_CUDA_ARCHITECTURES)
   set(CMAKE_CUDA_ARCHITECTURES "native")
 endif()
 
+# External Holoscan Module manifest.
+#
+# The HoloHub CLI writes ${CMAKE_BINARY_DIR}/external_operators_manifest.cmake
+# before configure runs. The manifest is data-only — FetchContent_Declare
+# entries (lazy; nothing fetches yet) and HOLOHUB_EXT_OP_<op>_PROVIDER
+# variables that map operator names to providing modules. The end-of-file
+# block below scans those after the rest of the tree has registered which
+# OP_<op>=ON, and FetchContent_MakeAvailable's only the modules whose
+# operators ended up enabled.
+include(${CMAKE_BINARY_DIR}/external_operators_manifest.cmake OPTIONAL)
+
 # Build packaging
 add_subdirectory(pkg)
+
+# Build modules
+add_subdirectory(modules)
 
 # Build the workflows
 add_subdirectory(workflows)
@@ -100,6 +133,36 @@ add_subdirectory(operators)
 
 # Build the extensions
 add_subdirectory(gxf_extensions)
+
+# ── Resolve external operators that ended up enabled ──────────────────
+#
+# Walk normal variables for HOLOHUB_EXT_OP_<op>_PROVIDER entries (set by the
+# manifest above). For each operator whose OP_<x> option is ON,
+# collect its providing module. Then FetchContent_MakeAvailable each unique
+# module exactly once — that fetches sources lazily and add_subdirectory's
+# the module's top-level CMakeLists. The module's per-operator gating
+# (PROJECT_IS_TOP_LEVEL=FALSE → BUILD_ALL=OFF, plus the cache-FORCE'd
+# OP_<op>=ON values from add_holohub_application(... DEPENDS OPERATORS …))
+# means only the requested operators in the fetched module actually build.
+get_cmake_property(_holohub_all_vars VARIABLES)
+set(_holohub_ext_modules_needed "")
+foreach(_var IN LISTS _holohub_all_vars)
+  if(_var MATCHES "^HOLOHUB_EXT_OP_(.+)_PROVIDER$")
+    set(_op_name "${CMAKE_MATCH_1}")
+    if(OP_${_op_name})
+      list(APPEND _holohub_ext_modules_needed "${${_var}}")
+    endif()
+  endif()
+endforeach()
+
+if(_holohub_ext_modules_needed)
+  list(REMOVE_DUPLICATES _holohub_ext_modules_needed)
+  include(FetchContent)
+  foreach(_provider IN LISTS _holohub_ext_modules_needed)
+    message(STATUS "Fetching external Holoscan Module: ${_provider}")
+    FetchContent_MakeAvailable(${_provider})
+  endforeach()
+endif()
 
 option(BUILD_HOLOHUB_TESTING OFF)
 if(BUILD_TESTING AND BUILD_HOLOHUB_TESTING)

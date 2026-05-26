@@ -1,4 +1,5 @@
 {
+	"$schema": "urn:holohub:application:v1",
 	"application": {
 		"name": "{{ cookiecutter.project_name }}",
 		"authors": [

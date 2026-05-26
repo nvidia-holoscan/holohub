@@ -27,6 +27,14 @@ repos:
       - id: end-of-file-fixer
       - id: mixed-line-ending
 
+  # JSON Schema: validate metadata schemas against the Draft 2020-12 meta-schema
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 0.30.0
+    hooks:
+      - id: check-metaschema
+        name: check metadata schemas against JSON Schema 2020-12 meta-schema
+        files: ^utilities/metadata/.*\.schema\.json$
+
   # Python: ruff
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.12
@@ -87,6 +95,15 @@ repos:
 
   - repo: local
     hooks:
+      - id: holohub-metadata-validate
+        name: validate metadata.json files against schemas
+        entry: python3 -m utilities.metadata.metadata_validator
+        language: python
+        additional_dependencies: ["jsonschema>=4.26.0", "referencing"]
+        files: '(^|/)metadata\.json$'
+        exclude: 'modules/template/\{\{cookiecutter|^\.local/'
+        pass_filenames: false
+
       - id: cmakelint
         name: cmakelint
         entry: cmakelint

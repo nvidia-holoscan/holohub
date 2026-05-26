@@ -1,0 +1,56 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+[build-system]
+requires = ["scikit-build-core>=0.10"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "holoscan-gstreamer"
+version = "1.0.0"
+description = "GStreamer bridge operators for video recording and streaming in Holoscan applications"
+readme = "../../operators/gstreamer/README.md"
+license = { text = "Apache-2.0" }
+authors = [
+    { name = "NVIDIA Corporation" },
+]
+requires-python = ">=3.10"
+
+# NOTE: holoscan SDK is not declared as a runtime dependency here because the
+# wheel cannot guarantee binary compatibility across CUDA variants (cu12/cu13).
+# Install holoscan separately before using this wheel.
+
+# NOTE: GStreamer system packages are required at build time and runtime.
+# Install them before building or using this wheel:
+#   sudo apt-get install libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
+#       libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-good \
+#       gstreamer1.0-plugins-bad gstreamer1.0-libav gstreamer1.0-tools
+
+[tool.scikit-build]
+cmake.version = ">=3.20"
+# Point at HoloHub root so the wheel build uses HoloHub's existing CMake
+# infrastructure with only the gstreamer operator enabled.
+cmake.source-dir = "../.."
+cmake.build-type = "Release"
+# Build only what the wheel needs.
+cmake.args = [
+    "-DBUILD_ALL=OFF",
+    "-DMODULE_holoscan_gstreamer=ON",
+    "-DHOLOHUB_BUILD_PYTHON=ON",
+]
+wheel.packages = []
+
+# TODO: The Python bindings are currently installed under the holohub.* namespace
+# (holohub.holoscan_gstreamer_bridge). A follow-on task should migrate the Python
+# package to the holoscan.gstreamer namespace declared in this module's metadata.json.
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP"]
+ignore = ["E501", "UP007"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["holoscan"]

@@ -15,15 +15,18 @@
  * limitations under the License.
  */
 
+#include <atomic>
 #include <ifaddrs.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <mqueue.h>
+#include <unistd.h>
 #include <rte_ring.h>
 #include <rte_mempool.h>
 #include <rte_errno.h>
 #include <rte_mbuf.h>
 #include "advanced_network/dpdk_log.h"
+#include "advanced_network/eal_utils.h"
 #include "adv_network_rdma_mgr.h"
 
 /* The ordering of most RDMA/CM setup follows the ordering specified here:
@@ -1358,13 +1361,8 @@ void RdmaMgr::free_tx_burst(BurstParams* burst) {
   rte_mempool_put(tx_meta, burst);
 }
 
-std::string RdmaMgr::generate_random_string(int len) {
-  const char tokens[] = "abcdefghijklmnopqrstuvwxyz";
-  std::string tmp;
-
-  for (int i = 0; i < len; i++) { tmp += tokens[rand() % (sizeof(tokens) - 1)]; }
-
-  return tmp;
+std::string RdmaMgr::generate_eal_file_prefix() {
+  return holoscan::advanced_network::make_eal_file_prefix("rdma");
 }
 
 void RdmaMgr::initialize() {
@@ -1441,7 +1439,7 @@ void RdmaMgr::initialize() {
 
   strncpy(_argv[arg++], "adv_net_operator", max_arg_size - 1);
   strncpy(_argv[arg++],
-          (std::string("--file-prefix=") + generate_random_string(10)).c_str(),
+          (std::string("--file-prefix=") + generate_eal_file_prefix()).c_str(),
           max_arg_size - 1);
   strncpy(_argv[arg++], "-l", max_arg_size - 1);
   strncpy(_argv[arg++], cores.c_str(), max_arg_size - 1);

@@ -8,6 +8,7 @@
 			}
 		],
 		"version": "1.1",
+		"language": ["C++", "Python"],
 		"changelog": {
 			"1.0": "Initial Release",
 			"1.1": "Modernize CUDA Stream handling API usage and 'receivers' input port definition"

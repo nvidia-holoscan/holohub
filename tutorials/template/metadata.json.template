@@ -1,4 +1,5 @@
 {
+	"$schema": "urn:holohub:tutorial:v1",
 	"tutorial": {
 		"name": "My Tutorial",
 		"description": "Demonstrates how to use Holoscan in a certain fashion.",
@@ -20,8 +21,8 @@
 			]
 		},
 		"platforms": [
-			"amd64",
-			"arm64"
+			"x86_64",
+			"aarch64"
 		],
 		"tags": [
 			"Sensor",
@@ -29,6 +30,6 @@
             "Tutorial"
 		],
 		"ranking": 1,
-		"dependencies": {}
+		"requirements": {}
 	}
 }
