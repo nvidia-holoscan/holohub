@@ -385,7 +385,7 @@ of this repository.
 Run the following command to generate Debian and Python packages:
 
 ```bash
-./holohub package holoscan-my-sensor --pkg-generator <DEB,WHEEL>
+./holohub package holoscan-my-sensor --pkg-generator DEB,WHEEL
 ...
 CPack: Create package
 CPack: - package: /workspace/holohub/holoscan-my-sensor_0.1.0_arm64.deb generated.
@@ -411,7 +411,7 @@ Important notes:
 
 The Debian and wheel packages are now available for distribution. The Holoscan Module
 template infrastructure does not cover the actual distribution of artifacts. We suggest
-[PyPI](pypi.org) for Python wheel publishing.
+[PyPI](https://pypi.org/) for Python wheel publishing.
 
 ### 3.9 CI/CD: What Ships Out of the Box
 
