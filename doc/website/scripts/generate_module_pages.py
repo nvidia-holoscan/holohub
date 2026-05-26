@@ -89,9 +89,7 @@ def load_module_sites(holohub_root: Path) -> list[dict]:
 # ---------------------------------------------------------------------------
 
 
-def resolve_module_metadata(
-    entry: dict, holohub_root: Path
-) -> tuple[dict, Path, object] | None:
+def resolve_module_metadata(entry: dict, holohub_root: Path) -> tuple[dict, Path, object] | None:
     """Return (full_metadata_dict, module_root, tmp_dir_or_None).
 
     module_root is the directory that contains metadata.json.
@@ -204,9 +202,7 @@ def _rewrite_image_url(raw_url: str, module_root: Path, source_url: str, ref: st
         # External: rewrite relative to repo root via raw URL
         clean_url = source_url.rstrip("/")
         # Convert github.com/org/repo to raw.githubusercontent.com/org/repo
-        raw_base = re.sub(
-            r"^https://github\.com/", "https://raw.githubusercontent.com/", clean_url
-        )
+        raw_base = re.sub(r"^https://github\.com/", "https://raw.githubusercontent.com/", clean_url)
         return f"{raw_base}/{ref}/{raw_url.lstrip('/')}"
 
 
@@ -232,9 +228,9 @@ def patch_readme_images(readme_text: str, module_root: Path, source_url: str, re
 def build_metadata_header(metadata_module: dict, entry: dict) -> str:
     """Generate the octicons metadata block for a module detail page."""
     authors = metadata_module.get("authors", [])
-    authors_str = ", ".join(
-        f'{a.get("name", "")} ({a.get("affiliation", "")})' for a in authors
-    ) or None
+    authors_str = (
+        ", ".join(f'{a.get("name", "")} ({a.get("affiliation", "")})' for a in authors) or None
+    )
 
     platforms = metadata_module.get("platforms", [])
     platforms_str = ", ".join(platforms) if platforms else None
@@ -316,7 +312,13 @@ def generate_detail_page(
     # Insert metadata header after the first H1
     first_newline = readme_body.find("\n")
     if first_newline != -1:
-        readme_body = readme_body[: first_newline + 1] + "\n" + metadata_header + "\n" + readme_body[first_newline + 1 :]
+        readme_body = (
+            readme_body[: first_newline + 1]
+            + "\n"
+            + metadata_header
+            + "\n"
+            + readme_body[first_newline + 1 :]
+        )
     else:
         readme_body = readme_body + "\n\n" + metadata_header
 
@@ -356,14 +358,14 @@ def generate_module_card(entry: dict, metadata_module: dict) -> str:
 
     operator_badges = "".join(
         f'<span style="display:inline-block;background:var(--md-code-bg-color);'
-        f'color:var(--md-code-fg-color);padding:0.1rem 0.4rem;border-radius:0.2rem;'
+        f"color:var(--md-code-fg-color);padding:0.1rem 0.4rem;border-radius:0.2rem;"
         f'font-size:0.6rem;margin:0.1rem;">{op}</span>'
         for op in operators
     )
 
     platform_pills = "".join(
         f'<span style="display:inline-block;background:var(--md-default-fg-color--lightest);'
-        f'color:var(--md-default-fg-color);padding:0.1rem 0.4rem;border-radius:0.2rem;'
+        f"color:var(--md-default-fg-color);padding:0.1rem 0.4rem;border-radius:0.2rem;"
         f'font-size:0.6rem;margin:0.1rem;">{p}</span>'
         for p in platforms
     )
@@ -485,9 +487,8 @@ def main() -> None:
             # Determine source URL for links and image patching.
             # source_url in module-sites.json overrides the default for in-tree modules
             # that represent external projects (decouples linking from cloning).
-            source_url = (
-                entry.get("source_url")
-                or (url.rstrip("/") if url else f"{HOLOHUB_GITHUB_BASE}/tree/main/modules/{name}")
+            source_url = entry.get("source_url") or (
+                url.rstrip("/") if url else f"{HOLOHUB_GITHUB_BASE}/tree/main/modules/{name}"
             )
 
             readme_text = resolve_readme(metadata_module, module_root)

@@ -32,7 +32,7 @@ This module is a good fit for robotics, broadcast, medical imaging, and industri
 ## What's included
 
 | Component | Description |
-|-----------|-------------|
+| ----------- | ------------- |
 | `GstVideoRecorderOp` | Holoscan operator that encodes incoming video tensors to file using a configurable GStreamer pipeline. Available in C++ and Python. |
 | `GstSrcBridge` / `GstSinkBridge` | Framework-agnostic C++ bridge objects for pushing and pulling tensor data to/from GStreamer `appsrc`/`appsink` elements. Usable outside Holoscan. |
 | C++ RAII wrappers | Type-safe wrappers for core GStreamer types (`Pipeline`, `Element`, `Bus`, `Caps`, `Buffer`, `Allocator`). |
@@ -95,7 +95,7 @@ For a complete, runnable example see the [gst_video_recorder](https://github.com
 ## Sample applications
 
 | Application | Description |
-|-------------|-------------|
+| ------------- | ------------- |
 | [gst_video_recorder](https://github.com/nvidia-holoscan/holohub/tree/main/applications/gstreamer/gst_video_recorder/) | Records V4L2 camera or synthetic video to H.264/H.265 MP4/MKV using `GstVideoRecorderOp` |
 | [gst_to_holo](https://github.com/nvidia-holoscan/holohub/tree/main/applications/gstreamer/gst_to_holo/) | Injects a GStreamer source into a Holoscan pipeline |
 | [holo_to_gst](https://github.com/nvidia-holoscan/holohub/tree/main/applications/gstreamer/holo_to_gst/) | Exports Holoscan pipeline output to a GStreamer sink |
