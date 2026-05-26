@@ -106,11 +106,11 @@ Pick the path that matches your project, then jump to the corresponding section.
 | Your project is… | Use… |
 | --- | --- |
 | A HoloHub application, operator, workflow, or benchmark | [Path A (§4)](#4-path-a--consume-from-a-holohub-subproject-primary) |
-| A standalone C++ application using a module binary package | [Path B (§5)](#5-path-b--external-cc-project-binary-install) |
+| A standalone C++ application using a module binary package | [Path B (§5)](#5-path-b--external-c-project-binary-install) |
 | A pure-Python application or notebook | [Path C (§6)](#6-path-c--external-python-project-pip-install) |
 | A standalone C++ project using module sources | [Path D (§7)](#7-path-d--source-level-embedding-in-a-fully-external-project) |
 | Another Holoscan Module declaring a transitive dependency | [§4.7](#47-module-to-module-transitive-dependencies) |
-| A HoloHub subproject driven directly from CMake (no `./holohub` CLI) | [Appendix A](#appendix-a-path-d--source-level-embedding-inside-a-holohub-tree-cmake-direct) |
+| A HoloHub subproject driven directly from CMake (no `./holohub` CLI) | [Appendix A](#appendix-a-embed-directly-in-holohub-cmake-handling) |
 | A HoloHub subproject depending on a module within the HoloHub monorepo | [Appendix B](#appendix-b-in-tree-module-dependencies-holohub-subproject) |
 
 ## 4. Path A — Consume from a HoloHub Subproject (Primary)
@@ -186,7 +186,7 @@ resolve and lazily fetch any necessary external module sources.
 2. For each external module dependency, the CLI writes a `holohub_declare_external_module(...)` entry into a generated CMake manifest file. This function defines a `FetchContent_Declare`
 entry for each source URL and tag, along with a HoloHub variable detail to note what
 resources the external module provides.
-3. CMake includes the manifest during configuration. If any resources from outside of HoloHub
+3. CMake includes the manifest during configuration. If any resources from outside HoloHub
 are requested, the CMake build uses `FetchContent_MakeAvailable` to lazily clone each declared module's source repository. Only modules whose operators are actually enabled in the build are fetched.
 
 The resolver handles `FetchContent` plumbing automatically — you do not write
@@ -257,7 +257,7 @@ reference, the `HOLOHUB_LOCAL_*` override, and the SHA-pinning discipline are co
 
 ## 5. Path B — External C++ Project (Binary Install)
 
-Projects that live outside of HoloHub can easily consume external module binaries
+Projects that live outside HoloHub can easily consume external module binaries
 like any other binary package.
 
 ### 5.1 Install the binary
@@ -337,7 +337,7 @@ single import is enough.
 ## 7. Path D — Source-Level Embedding in a Fully External Project
 
 Projects that rely directly on CMake without HoloHub CLI tooling can leverage
-CMake's [`FetchContent`]((<https://cmake.org/cmake/help/latest/module/FetchContent.html>) function to fetch and build open source Holoscan Modules
+CMake's [`FetchContent`](<https://cmake.org/cmake/help/latest/module/FetchContent.html>) function to fetch and build open-source Holoscan Modules
 directly.
 
 ```cmake
@@ -388,7 +388,7 @@ and best practices. A binary install (Paths B and C) is usually a simpler choice
 - **The operator is not built even though you declared it.** Under FetchContent +
   `PROJECT_IS_TOP_LEVEL` defaults, the Module's `BUILD_ALL` is `OFF`, so only the
   operators marked with `OP_<op>=ON` get built. In a HoloHub tree (Path A or
-  [Appendix A](#appendix-a-path-d--source-level-embedding-inside-a-holohub-tree-cmake-direct)),
+  [Appendix A](#appendix-a-embed-directly-in-holohub-cmake-handling)),
   list the operator in `add_holohub_application(... DEPENDS OPERATORS …)` — the
   helper sets the flag for you. In a fully external CMake build (Path D), pass
   `-DOP_<op>=ON` on the configure line or `set(...)` it before
@@ -410,7 +410,7 @@ Happy holocoding!
 
 ## Appendix A: Embed directly in HoloHub CMake handling
 
-For developers working inside a HoloHub subproject who want to declare a Module
+For developers working inside a HoloHub subproject who need to declare a Module
 dependency from CMake directly, bypassing the `./holohub` CLI / `metadata.json` flow
 of Path A. This approach is documented for advanced edge cases only; most users should favor
 Path A with HoloHub CLI tooling when contributing to HoloHub.
