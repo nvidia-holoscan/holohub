@@ -33,7 +33,11 @@ def _run_holoscan_cli(*args: str) -> subprocess.CompletedProcess:
         stderr=subprocess.PIPE,
         check=False,
     )
-    if result.returncode != 0 and "ModuleNotFoundError" in result.stderr and "holoscan_cli" in result.stderr:
+    if (
+        result.returncode != 0
+        and "ModuleNotFoundError" in result.stderr
+        and "holoscan_cli" in result.stderr
+    ):
         pytest.skip("holoscan_cli is not installed; set HOLOSCAN_CLI_SOURCE to a checkout")
     return result
 
@@ -67,7 +71,11 @@ def _run_holohub_wrapper(*args: str) -> subprocess.CompletedProcess:
         stderr=subprocess.PIPE,
         check=False,
     )
-    if result.returncode != 0 and "ModuleNotFoundError" in result.stderr and "holoscan_cli" in result.stderr:
+    if (
+        result.returncode != 0
+        and "ModuleNotFoundError" in result.stderr
+        and "holoscan_cli" in result.stderr
+    ):
         pytest.skip("holoscan_cli is not installed; set HOLOSCAN_CLI_SOURCE to a checkout")
     return result
 
