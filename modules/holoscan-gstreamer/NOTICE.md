@@ -124,12 +124,12 @@ holoscan-gstreamer binaries and are not part of the GStreamer ecosystem.
                  GPU memory management. Provided by the holoscan-cuda-13
                  package dependency.
    License     : NVIDIA Software License Agreement (proprietary)
-   Source      : <https://developer.nvidia.com/cuda-toolkit>
+   Source      : <https://developer.nvidia.com/cuda/toolkit>
 
 -------------------------------------------------------------------------------
 Full license texts for open-source components:
   Apache-2.0  : <https://www.apache.org/licenses/LICENSE-2.0>
-  BSD-3-Clause: <https://opensource.org/licenses/BSD-3-Clause>
-  MIT         : <https://opensource.org/licenses/MIT>
+  BSD-3-Clause: <https://opensource.org/license/BSD-3-Clause>
+  MIT         : <https://opensource.org/license/MIT>
   LGPL-2.1   : <https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html>
   GPL-2.0    : <https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>
