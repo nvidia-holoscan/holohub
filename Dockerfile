@@ -92,6 +92,11 @@ RUN holoscan version \
 RUN [ -f /etc/bash_completion.d/holohub_autocomplete ] \
     || (/tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*)
 
+# 6. Mirror the default data path from the prepared-base layer so apps that
+#    read `HOLOSCAN_INPUT_PATH` see the same value whether or not callers
+#    skipped the prepared base via `--base-img`.
+ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data
+
 # --------------------------------------------------------------------------
 #
 # Set up common packages for advanced development with

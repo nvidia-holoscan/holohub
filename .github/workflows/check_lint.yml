@@ -36,15 +36,27 @@ jobs:
       # resolve its transitive deps from public PyPI. Prevents dependency-
       # confusion risk where TestPyPI builds of common packages could
       # shadow the PyPI versions.
+      # Use a single interpreter across non-sudo / sudo / ./holohub bootstrap.
+      # On GitHub-hosted ubuntu-22.04 the runner exposes `python` only via a
+      # PATH shim that sudo strips (sudo's secure_path doesn't include the
+      # hostedtoolcache dirs); meanwhile the wrapper exec's `python3`. Resolve
+      # the absolute interpreter path once and reuse it everywhere so the
+      # pinned wheel lands in the same site-packages the wrapper imports from.
+      - name: Resolve Python interpreter
+        id: pybin
+        run: echo "path=$(command -v python3)" >> "${GITHUB_OUTPUT}"
+
       - name: Install consolidated holoscan-cli (pinned dev build)
+        env:
+          PYBIN: ${{ steps.pybin.outputs.path }}
         run: |
-          python -m pip install --upgrade pip
-          sudo --preserve-env=HOLOSCAN_CLI_SPEC,HOLOSCAN_CLI_INDEX_URL \
-              python -m pip install --pre --no-deps \
+          "${PYBIN}" -m pip install --upgrade pip
+          sudo --preserve-env=HOLOSCAN_CLI_SPEC,HOLOSCAN_CLI_INDEX_URL,PYBIN \
+              "${PYBIN}" -m pip install --pre --no-deps \
                   --index-url "${HOLOSCAN_CLI_INDEX_URL}" \
                   "${HOLOSCAN_CLI_SPEC}"
-          sudo --preserve-env=HOLOSCAN_CLI_SPEC \
-              python -m pip install \
+          sudo --preserve-env=HOLOSCAN_CLI_SPEC,PYBIN \
+              "${PYBIN}" -m pip install \
                   --index-url https://pypi.org/simple/ \
                   "${HOLOSCAN_CLI_SPEC}"
 
