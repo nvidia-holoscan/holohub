@@ -88,3 +88,40 @@ jobs:
         run: |
           cd build
           ctest --verbose
+
+  # Exercise the same consolidation smoke test against a *source checkout*
+  # of holoscan-cli (https://github.com/nvidia-holoscan/holoscan-cli) rather
+  # than the pinned TestPyPI wheel. This catches breakage when an in-flight
+  # holoscan-cli change lands ahead of a new release.
+  check-cli-source:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Checkout HoloHub
+        uses: actions/checkout@v4
+
+      # Full history so poetry-dynamic-versioning can derive a version from
+      # git tags when building the source checkout.
+      - name: Checkout holoscan-cli source
+        uses: actions/checkout@v4
+        with:
+          repository: nvidia-holoscan/holoscan-cli
+          path: holoscan-cli-src
+          fetch-depth: 0
+
+      - name: Install holoscan-cli from source
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest pytest-mock ./holoscan-cli-src
+
+      # ``HOLOSCAN_CLI_SOURCE`` mirrors the developer workflow documented in
+      # the ``holohub`` wrapper: PYTHONPATH gets ``<source>/src`` prepended so
+      # the *checkout* is imported, not the installed copy.
+      - name: Run wrapper consolidation test against source checkout
+        env:
+          HOLOSCAN_CLI_SOURCE: ${{ github.workspace }}/holoscan-cli-src
+        run: python -m pytest -v --noconftest utilities/cli/tests/test_holoscan_cli_consolidation.py
