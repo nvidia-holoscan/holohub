@@ -338,6 +338,15 @@ _holohub_extend_default_build_args() {
     if [[ -n "${HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS:-}" ]]; then
         extra+=" --build-arg $(_holohub_shquote "HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS=${HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS}")"
     fi
+    # Propagate a local holoscan-cli checkout as a buildx build-context so the
+    # project Dockerfile's `--mount=type=bind,from=holoscan-cli-src` install
+    # branch can pick it up on the `--base-img` path (the prepared-base path
+    # in `_holohub_configure_prepared_base` already does this for its own
+    # docker build). Without this, `HOLOSCAN_CLI_SOURCE` silently falls back
+    # to PyPI inside the container while the host runs the local checkout.
+    if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
+        extra+=" --build-context $(_holohub_shquote "holoscan-cli-src=${HOLOSCAN_CLI_SOURCE}")"
+    fi
     if [[ -z "${extra}" ]]; then
         return 0
     fi

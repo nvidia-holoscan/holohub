@@ -9,11 +9,17 @@ The Python implementation that used to live under this directory
 one of its downstream consumers alongside Isaac OS and the I4H Workflows
 repos.
 
+For the canonical command, option, and environment-variable reference, run
+`holoscan --help` (or `holoscan env-info` for the full env-var surface), or
+visit the [holoscan-cli](https://github.com/nvidia-holoscan/holoscan-cli)
+repository — that is now the single source of truth and stays current as
+the CLI evolves. The historical `cli_reference.md` in this directory
+documents the pre-consolidation CLI and is no longer authoritative.
+
 This directory keeps the user-facing CLI documentation:
 
 | Document                                | Description                                                                                                                  |
 | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| [CLI Reference](cli_reference.md)       | Complete command reference: all commands, options, modes, environment variables, and examples.                               |
 | [CLI Developer Guide](cli_dev_guide.md) | Workflow tips, implementation invariants, and extension guide. For the canonical source layout, see the holoscan-cli repo.   |
 
 ## Quick Start

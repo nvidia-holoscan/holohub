@@ -19,6 +19,12 @@ ARG GPU_TYPE
 ARG BASE_SDK_VERSION
 ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v${BASE_SDK_VERSION}-${GPU_TYPE}
 
+# Default-empty source stage for the consolidated holoscan-cli. The host
+# wrapper passes `--build-context holoscan-cli-src=$HOLOSCAN_CLI_SOURCE`
+# whenever it's set; mirroring the root Dockerfile and Dockerfile.holohub-base
+# keeps local-source iteration working for `--base-img` builds of this image.
+FROM scratch AS holoscan-cli-src
+
 ############################################################
 # Prerequisites: normalize the base image into one that can run
 # the consolidated HoloHub CLI. See the root Dockerfile for the
@@ -50,23 +56,35 @@ RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
         curl -sS https://bootstrap.pypa.io/get-pip.py | ${PYTHON_VERSION}; \
     fi
 
-# When the install spec is a `git+` URL, pip needs `git` to clone it.
-# SDK base images ship `git`; raw images (ubuntu:22.04, cuda:*-base) don't.
-RUN case "${HOLOSCAN_CLI_INSTALL_SPEC}" in \
-        git+*) \
-            if ! command -v git >/dev/null 2>&1; then \
-                apt-get update \
-                && apt-get install --no-install-recommends -y git \
-                && rm -rf /var/lib/apt/lists/*; \
-            fi ;; \
-    esac
+# Ensure `git` is available before bootstrapping holoscan-cli. Pip needs
+# it for `git+` install specs and the local-source build path also needs
+# it (poetry-dynamic-versioning -> dunamai reads the version from VCS).
+# SDK bases ship `git`; raw bases (ubuntu:22.04, cuda:*-base) don't.
+RUN if ! python3 -c "from holoscan_cli.__main__ import PROJECT_COMMANDS; assert {'build','run','list','install'} <= set(PROJECT_COMMANDS)" >/dev/null 2>&1 \
+        && ! command -v git >/dev/null 2>&1; then \
+        apt-get update \
+        && apt-get install --no-install-recommends -y git \
+        && rm -rf /var/lib/apt/lists/*; \
+    fi
 
 # Probe for the *post-consolidation* CLI (PROJECT_COMMANDS dispatch table)
 # rather than just `command -v holoscan` — the legacy packaging-only
 # `holoscan` in older Holoscan SDK images imports cleanly but doesn't
 # provide the source-project commands this stage relies on.
-RUN if ! python3 -c "from holoscan_cli.__main__ import PROJECT_COMMANDS; assert {'build','run','list','install'} <= set(PROJECT_COMMANDS)" >/dev/null 2>&1; then \
-        python3 -m pip install --upgrade ${HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS} "${HOLOSCAN_CLI_INSTALL_SPEC}"; \
+#
+# When the `holoscan-cli-src` build-context is non-empty (the wrapper sets it
+# from `HOLOSCAN_CLI_SOURCE`), install from the checkout in preference to
+# `HOLOSCAN_CLI_INSTALL_SPEC` so in-container and host CLIs stay in lockstep.
+RUN --mount=type=bind,from=holoscan-cli-src,target=/tmp/holoscan-cli-src \
+    if ! python3 -c "from holoscan_cli.__main__ import PROJECT_COMMANDS; assert {'build','run','list','install'} <= set(PROJECT_COMMANDS)" >/dev/null 2>&1; then \
+        if [ -f /tmp/holoscan-cli-src/pyproject.toml ]; then \
+            echo "Installing consolidated holoscan-cli from local source build-context"; \
+            cp -a /tmp/holoscan-cli-src /tmp/holoscan-cli-src-writable; \
+            python3 -m pip install --no-cache-dir /tmp/holoscan-cli-src-writable; \
+            rm -rf /tmp/holoscan-cli-src-writable; \
+        else \
+            python3 -m pip install --upgrade ${HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS} "${HOLOSCAN_CLI_INSTALL_SPEC}"; \
+        fi; \
     fi
 
 ############################################################
