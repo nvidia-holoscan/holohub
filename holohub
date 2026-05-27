@@ -298,6 +298,51 @@ _holohub_dryrun_probe_or_exit() {
     fi
 }
 
+# Propagate the host's holoscan-cli install spec to every `docker build` the
+# CLI runs so the in-container `pip install holoscan-cli` resolves to the
+# same consolidated build the host bootstrapped. Without this, `--base-img`
+# invocations bypass `_holohub_configure_prepared_base` (which is the only
+# place that injects `--build-arg HOLOSCAN_CLI_INSTALL_SPEC` for the
+# prepared-base layer) and the project Dockerfile silently falls back to
+# PyPI's legacy `holoscan-cli==4.2.0` — that release predates the
+# consolidated `PROJECT_COMMANDS` dispatch and rejects `--language` /
+# `--local`, breaking `holoscan run` inside the resulting container.
+#
+# holoscan-cli concatenates `HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS` onto
+# every `docker build` it invokes (and shlex-splits it), so we just extend
+# that env var. Single-quote the `KEY=VALUE` so values with spaces (e.g.
+# `HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS=--pre --index-url ...`) survive the
+# split. Existing entries in the env var are preserved.
+_holohub_shquote() {
+    printf "'%s'" "${1//\'/\'\\\'\'}"
+}
+
+_holohub_extend_default_build_args() {
+    local extra=""
+    local spec=""
+    if [[ -n "${HOLOSCAN_CLI_INSTALL_SPEC:-}" ]]; then
+        spec="${HOLOSCAN_CLI_INSTALL_SPEC}"
+    elif [[ -n "${HOLOSCAN_CLI_VERSION:-}" && -z "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
+        spec="$(_holohub_normalize_cli_spec "${HOLOSCAN_CLI_VERSION}")"
+    fi
+    if [[ -n "${spec}" ]]; then
+        extra+=" --build-arg $(_holohub_shquote "HOLOSCAN_CLI_INSTALL_SPEC=${spec}")"
+    fi
+    if [[ -n "${HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS:-}" ]]; then
+        extra+=" --build-arg $(_holohub_shquote "HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS=${HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS}")"
+    fi
+    if [[ -z "${extra}" ]]; then
+        return 0
+    fi
+    if [[ -n "${HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS:-}" ]]; then
+        export HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS="${HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS}${extra}"
+    else
+        export HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS="${extra# }"
+    fi
+}
+
+_holohub_extend_default_build_args
+
 if _holohub_needs_prepared_base "$@"; then
     _holohub_dryrun_probe_or_exit "$@"
     _holohub_configure_prepared_base "$@"
