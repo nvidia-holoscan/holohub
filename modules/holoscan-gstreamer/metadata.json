@@ -16,7 +16,7 @@
       "cpp": "holoscan::gstreamer",
       "python": "holoscan.gstreamer"
     },
-    "operators": ["gstreamer"],
+    "operator_names": ["GstVideoRecorderOp"],
     "subprojects": {
       "operators": ["gstreamer"],
       "applications": ["gst_to_holo", "holo_to_gst", "gst_video_recorder"]
@@ -38,13 +38,10 @@
         "gstreamer1.0-tools"
       ]
     },
-    "binary_packages": {
-      "pypi": "holoscan-gstreamer",
-      "install_commands": ["pip install holoscan-gstreamer"]
-    },
+    "binary_packages": {},
     "dockerfile": "operators/gstreamer/Dockerfile",
     "documentation": {
-      "readme": "../../operators/gstreamer/README.md"
+      "readme": "README.md"
     },
     "testing": {
       "cpp": "ctest",

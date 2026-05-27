@@ -11,6 +11,6 @@
             "minimum_required_version": "4.0.0",
             "tested_versions": ["4.2.0"]
         },
-        "operators": ["foo_op", "bar_op"]
+        "operator_names": ["foo_op", "bar_op"]
     }
 }

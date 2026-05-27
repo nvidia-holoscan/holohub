@@ -1,0 +1,9 @@
+{
+  "$schema": "../utilities/metadata/module-sites.schema.json",
+  "modules": [
+    {
+      "name": "holoscan-gstreamer",
+      "nvidia_quality_score": 3
+    }
+  ]
+}
