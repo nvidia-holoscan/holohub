@@ -45,6 +45,17 @@ RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
         curl -sS https://bootstrap.pypa.io/get-pip.py | ${PYTHON_VERSION}; \
     fi
 
+# When the install spec is a `git+` URL, pip needs `git` to clone it.
+# SDK base images ship `git`; raw images (ubuntu:22.04, cuda:*-base) don't.
+RUN case "${HOLOSCAN_CLI_INSTALL_SPEC}" in \
+        git+*) \
+            if ! command -v git >/dev/null 2>&1; then \
+                apt-get update \
+                && apt-get install --no-install-recommends -y git \
+                && rm -rf /var/lib/apt/lists/*; \
+            fi ;; \
+    esac
+
 # Probe for the *post-consolidation* CLI (PROJECT_COMMANDS dispatch table)
 # rather than just `command -v holoscan` — the legacy packaging-only
 # `holoscan` in older Holoscan SDK images imports cleanly but doesn't

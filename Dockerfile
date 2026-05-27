@@ -56,7 +56,19 @@ RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
         curl -sS https://bootstrap.pypa.io/get-pip.py | ${PYTHON_VERSION}; \
     fi
 
-# 2. Ensure the consolidated `holoscan` CLI exists. Skip the pip install
+# 2. When the install spec is a `git+` URL, pip needs `git` to clone it.
+#    SDK base images ship `git`, but raw images (ubuntu:22.04, cuda:*-base)
+#    don't — the conditional keeps prepared/SDK builds a no-op.
+RUN case "${HOLOSCAN_CLI_INSTALL_SPEC}" in \
+        git+*) \
+            if ! command -v git >/dev/null 2>&1; then \
+                apt-get update \
+                && apt-get install --no-install-recommends -y git \
+                && rm -rf /var/lib/apt/lists/*; \
+            fi ;; \
+    esac
+
+# 3. Ensure the consolidated `holoscan` CLI exists. Skip the pip install
 #    only when the base already ships a *post-consolidation* CLI — the
 #    legacy packaging-only `holoscan` that older Holoscan SDK images
 #    bundle imports cleanly but lacks the source-project dispatch table,
@@ -74,17 +86,17 @@ FROM holohub-cli-prerequisites AS holohub-cli
 
 ARG CMAKE_BUILD_TYPE=Release
 
-# 3. Stage /tmp/scripts/holohub so the in-tree wrapper is callable inside
+# 4. Stage /tmp/scripts/holohub so the in-tree wrapper is callable inside
 #    the container regardless of base.
 RUN mkdir -p /tmp/scripts
 COPY holohub /tmp/scripts/
 RUN chmod +x /tmp/scripts/holohub
 
-# 4. Smoke-test: both the CLI and the wrapper are present and usable.
+# 5. Smoke-test: both the CLI and the wrapper are present and usable.
 RUN holoscan version \
     && test -x /tmp/scripts/holohub
 
-# 5. Run HoloHub setup when this image is built from a raw base. The prepared
+# 6. Run HoloHub setup when this image is built from a raw base. The prepared
 #    base layer (utilities/docker/Dockerfile.holohub-base) already runs setup
 #    and drops the autocomplete marker; reuse that marker as the guard so the
 #    standard path stays a no-op while `--base-img` (which bypasses the
@@ -92,7 +104,7 @@ RUN holoscan version \
 RUN [ -f /etc/bash_completion.d/holohub_autocomplete ] \
     || (/tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*)
 
-# 6. Mirror the default data path from the prepared-base layer so apps that
+# 7. Mirror the default data path from the prepared-base layer so apps that
 #    read `HOLOSCAN_INPUT_PATH` see the same value whether or not callers
 #    skipped the prepared base via `--base-img`.
 ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data
