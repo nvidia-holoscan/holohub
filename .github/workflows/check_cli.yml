@@ -86,7 +86,11 @@ jobs:
       # cookiecutter is required by the registered `holohub_create_module`
       # ctest (utilities/cli/tests/test_create_module.py); without it the
       # whole test class is silently skipped and the template
-      # changes don't actually get exercised.
+      # changes don't actually get exercised. The same test exercises
+      # `holohub create`, which validates the generated metadata via
+      # holoscan-cli's optional `[create]` extras (jsonschema, referencing);
+      # installing those alongside cookiecutter keeps `validate_generated_metadata`
+      # from aborting the scaffold with a [FATAL] message.
       - name: Install consolidated holoscan-cli (pinned dev build)
         run: |
           python -m pip install --upgrade pip
@@ -95,7 +99,8 @@ jobs:
               "${HOLOSCAN_CLI_SPEC}"
           python -m pip install \
               --index-url https://pypi.org/simple/ \
-              "${HOLOSCAN_CLI_SPEC}" pytest pytest-mock cookiecutter
+              "${HOLOSCAN_CLI_SPEC}" pytest pytest-mock cookiecutter \
+              jsonschema referencing
 
       - name: Configure CMake with testing enabled
         run: |
