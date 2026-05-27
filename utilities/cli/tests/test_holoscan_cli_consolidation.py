@@ -55,9 +55,7 @@ def test_unified_cli_dryruns_holohub_project_run():
     # explicitly so the smoke succeeds rather than asking the user to
     # disambiguate (the latter behavior is covered by the CTest entry
     # `test_holohub_run_multi_language_project`).
-    result = _run_holoscan_cli(
-        "run", "endoscopy_tool_tracking", "--language", "python", "--dryrun"
-    )
+    result = _run_holoscan_cli("run", "endoscopy_tool_tracking", "--language", "python", "--dryrun")
     output = result.stdout + result.stderr
 
     assert result.returncode == 0, output
