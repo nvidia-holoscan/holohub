@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.13"
       - run: pip install ruff
       - name: Python lint
         run: ruff check .
@@ -40,7 +40,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.13"
       - name: Install holoscan (CPU wheel) + CMake
         run: |
           pip install holoscan cmake ninja
@@ -61,7 +61,7 @@ jobs:
     runs-on: [self-hosted, linux, x86_64, gpu]
 
     container:
-      image: nvcr.io/nvidia/clara-holoscan/holoscan:v{{ cookiecutter.holoscan_version }}-cuda12-dgpu
+      image: nvcr.io/nvidia/clara-holoscan/holoscan:v{{ cookiecutter.holoscan_version }}-cuda13-dgpu
       options: --gpus all
 
     steps:
@@ -83,7 +83,7 @@ jobs:
       - name: Python tests (pytest)
         run: |
           {{ cookiecutter.module_slug | upper }}_BUILD_DIR=build \
-          PYTHONPATH=build/python \
+          PYTHONPATH=build/python${PYTHONPATH:+:$PYTHONPATH} \
           python -m pytest tests/python/ -v --tb=short
 
       - uses: actions/upload-artifact@v4

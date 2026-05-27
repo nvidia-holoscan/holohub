@@ -1,0 +1,39 @@
+{
+    "module": {
+        "name": "module_with_documentation_and_quality",
+        "description": "Fixture covering documentation, sensor_hardware, homepage, quality_reporting, and install_commands.",
+        "authors": [{ "name": "NVIDIA", "affiliation": "NVIDIA" }],
+        "version": "1.0.0",
+        "language": ["C++"],
+        "platforms": ["x86_64"],
+        "tags": ["example"],
+        "holoscan_sdk": {
+            "minimum_required_version": "4.0.0",
+            "tested_versions": ["4.0.0"]
+        },
+        "sensor_hardware": ["AJA KONA HDMI"],
+        "homepage": "https://example.invalid/my-module",
+        "binary_packages": {
+            "pypi": "holoscan-example",
+            "install_commands": ["pip install holoscan-example"]
+        },
+        "documentation": {
+            "readme": "README.md",
+            "assets": ["docs/diagram.png"]
+        },
+        "quality_reporting": {
+            "testing": [
+                {
+                    "description": "Unit tests on x86_64",
+                    "date": "2026-05-01",
+                    "holoscan_sdk_version": "4.0.0",
+                    "platforms": ["x86_64"],
+                    "tests_passing": 12,
+                    "tests_failing": 0,
+                    "code_coverage_pct": 87.5
+                }
+            ],
+            "quality_metric": 4
+        }
+    }
+}

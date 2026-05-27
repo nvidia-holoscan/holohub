@@ -57,24 +57,3 @@ Open and edit the [Dockerfile](../Dockerfile) and uncomment line 66:
 # Uncomment the following line for aarch64 support
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/aarch64-linux-gnu/tegra/
 ```
-
-## Dev Container
-
-To start the the Dev Container, run the following command from the root directory of Holohub:
-
-```bash
-./holohub vscode h264
-```
-
-### VS Code Launch Profiles
-
-#### C++ (launch profile)
-
-Use the **(gdb) h264_video_decode/cpp** launch profile to run and debug the C++ application.
-
-#### Python (launch profiles)
-
-There are a couple of launch profiles configured for this application:
-
-1. **(debugpy) h264_video_decode/python**: Launch the h.264 Video Decode application with the ability to debug Python code.
-2. **(pythoncpp) h264_video_decode/python**: Launch the h.264 Video Decode application with the ability to debug both Python and C++ code.

@@ -84,6 +84,7 @@ int main() { holoscan::make_application<MyApp>()->run(); }
 | Requirement | Version |
 |---|---|
 | Holoscan SDK | ≥ {{ cookiecutter.holoscan_version }} |
+| CUDA Toolkit | 13.x (matches the Holoscan SDK CUDA pin; the dev `Dockerfile` uses `cuda13-dgpu`) |
 | CMake | ≥ 3.24 |
 {%- if cookiecutter.language == 'cpp' %}
 | C++ compiler | C++17 (GCC 11+) |
@@ -117,8 +118,24 @@ ctest --test-dir build --output-on-failure -L unit
 
 ```bash
 # Python (pytest)
-PYTHONPATH=build/python {{ cookiecutter.module_slug | upper }}_BUILD_DIR=build pytest tests/python/ -v
+PYTHONPATH=build/python${PYTHONPATH:+:$PYTHONPATH} {{ cookiecutter.module_slug | upper }}_BUILD_DIR=build pytest tests/python/ -v
 ```
+
+`PYTHONPATH` is **prepended** (with `${PYTHONPATH:+:$PYTHONPATH}`) so that an
+ambient holoscan SDK install stays visible. A bare `PYTHONPATH=build/python`
+would replace the variable and hide the SDK from pytest. A bare
+`PYTHONPATH=build/python:$PYTHONPATH` looks safe but, when `$PYTHONPATH` is
+unset (typical on a fresh shell or CI runner), it expands to a trailing colon
+that Python reads as an empty path entry — equivalent to `.`, which silently
+adds the test CWD to `sys.path` and lets a local file shadow installed
+packages.
+
+The pytest suite currently covers importability and build-smoke only; full
+live-pipeline coverage is a TODO and may require real hardware. CTest is
+configured with `SKIP_RETURN_CODE 5` on the pytest entry — if a CTest run
+reports "Skipped" unexpectedly, the most common cause is that the holoscan
+SDK is not importable in the test environment (pytest collects zero items
+and exits 5).
 
 ---
 

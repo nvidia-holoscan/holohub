@@ -228,6 +228,30 @@ class TestHoloHubCLI(unittest.TestCase):
         self.assertEqual(args.command, "list")
         self.assertEqual(len(vars(args)), 2)  # command and func
 
+    @patch("builtins.print")
+    def test_list_shows_module_section(self, mock_print):
+        """MODULE entries appear under == MODULES == with language array and operators."""
+        # Use a synthetic module name unrelated to any real module so failures
+        # are not mistaken for holoscan-gstreamer regressions.
+        self.cli.projects = [
+            {
+                "project_type": "module",
+                "project_name": "test-module-fixture",
+                "metadata": {
+                    "language": ["C++", "Python"],
+                    "operators": ["fixture_op"],
+                },
+            }
+        ]
+        args = self.cli.parser.parse_args(["list"])
+        args.func(args)
+
+        printed = " ".join(str(c[0][0]) for c in mock_print.call_args_list if c[0])
+        self.assertIn("MODULES", printed)
+        self.assertIn("test-module-fixture", printed)
+        self.assertIn("C++, Python", printed)  # array joined, not raw list repr
+        self.assertIn("[fixture_op]", printed)  # operators suffix
+
     def test_did_you_mean_suggestion(self):
         """Test the 'did you mean' suggestion functionality"""
         # Test with a misspelled project name
@@ -906,49 +930,6 @@ exec {holohub_script} "$@"
                 self.assertIn("--benchmark", command_string)
                 self.assertIn("./holohub build test_app --local", command_string)
 
-    @patch("utilities.cli.holohub.HoloHubCLI.find_project")
-    @patch("utilities.cli.holohub.HoloHubContainer")
-    @patch("pathlib.Path.mkdir")
-    @patch("pathlib.Path.exists")
-    @patch("builtins.print")
-    def test_vscode_command(
-        self,
-        mock_print,
-        mock_exists,
-        mock_mkdir,
-        mock_container_class,
-        mock_find_project,
-    ):
-        """Test the vscode command for generating devcontainer configuration"""
-        mock_find_project.return_value = self.mock_project_data
-        mock_container = MagicMock()
-        mock_container_class.return_value = mock_container
-        mock_container.get_devcontainer_args.return_value = (
-            '"--device", "/dev/video0", "--runtime", "nvidia"'
-        )
-        mock_container.image_name = "holohub:test_project"
-        mock_exists.return_value = True
-        mock_mkdir.return_value = None
-
-        args = self.cli.parser.parse_args("vscode test_project --dryrun".split())
-        self.assertEqual(args.command, "vscode")
-        self.assertEqual(args.project, "test_project")
-
-        args.func(args)
-        mock_find_project.assert_called_with(project_name="test_project", language=None)
-        mock_container_class.assert_called_with(
-            project_metadata=self.mock_project_data, language=None
-        )
-        mock_container.get_devcontainer_args.assert_called()
-
-        print_calls = [call[0][0] for call in mock_print.call_args_list if call[0]]
-        printed_output = " ".join(print_calls)
-        self.assertIn("devcontainer.json", printed_output.lower())
-        self.assertIn(".devcontainer", printed_output.lower())
-        self.assertIn("holohub-dev-container-test_project:dev", printed_output)
-        self.assertIn("vscode://vscode-remote/dev-container", printed_output)
-        mock_mkdir.assert_not_called()
-
     def test_modes_functionality(self):
         """Test mode resolution and configuration application"""
         project_data = {
@@ -1529,6 +1510,116 @@ exec {holohub_script} "$@"
         workdir = "<holohub_bin>/output"
         result = replace_placeholders(workdir, path_mapping, env_mapping)
         self.assertEqual(result, "/workspace/holohub/build/test_app/output")
+
+
+class TestHandlePackage(unittest.TestCase):
+    """Tests for handle_package — DEB and WHEEL packaging paths."""
+
+    def setUp(self):
+        self.cli = HoloHubCLI()
+        self.mock_module_data = {
+            "project_name": "test-module-fixture",
+            "project_type": "module",
+            "source_folder": Path(os.getcwd()) / "modules" / "test-module-fixture",
+            "metadata": {"language": ["C++", "Python"]},
+        }
+
+    @patch("utilities.cli.holohub.HoloHubCLI.find_project")
+    @patch("utilities.cli.util.run_command")
+    @patch("pathlib.Path.mkdir")
+    @patch("pathlib.Path.glob")
+    @patch("pathlib.Path.exists")
+    def test_package_deb_emits_module_cmake_flag(
+        self, mock_exists, mock_glob, mock_mkdir, mock_run_command, mock_find_project
+    ):
+        """DEB path passes -DMODULE_<slug>=ON and -DBUILD_ALL=OFF against the HoloHub root."""
+        mock_find_project.return_value = self.mock_module_data
+        mock_run_command.return_value = MagicMock()
+        mock_exists.return_value = True
+        cpack_cfg = Path(
+            "/build/test_module_fixture/package/pkg/CPackConfig-test-module-fixture.cmake"
+        )
+        mock_glob.return_value = [cpack_cfg]
+
+        args = self.cli.parser.parse_args(
+            ["package", "test-module-fixture", "--local", "--pkg-generator", "DEB"]
+        )
+        args.func(args)
+
+        cmake_args_str = " ".join(mock_run_command.call_args_list[0][0][0])
+        self.assertIn("-DMODULE_test_module_fixture=ON", cmake_args_str)
+        self.assertIn("-DBUILD_ALL=OFF", cmake_args_str)
+        self.assertIn(str(HoloHubCLI.HOLOHUB_ROOT), cmake_args_str)
+        self.assertNotIn("-DPKG_", cmake_args_str)
+
+        cpack_args = mock_run_command.call_args_list[2][0][0]
+        self.assertEqual(cpack_args[0], "cpack")
+        self.assertIn("-G", cpack_args)
+        self.assertIn("DEB", cpack_args)
+
+    @patch("utilities.cli.holohub.HoloHubCLI.find_project")
+    @patch("utilities.cli.util.run_command")
+    @patch("pathlib.Path.mkdir")
+    @patch("pathlib.Path.exists")
+    def test_package_wheel_invokes_python_build(
+        self, mock_exists, mock_mkdir, mock_run_command, mock_find_project
+    ):
+        """WHEEL path calls `python -m build --wheel` with outdir under build/dist/."""
+        mock_find_project.return_value = self.mock_module_data
+        mock_run_command.return_value = MagicMock()
+        mock_exists.return_value = True  # pyproject.toml exists
+
+        args = self.cli.parser.parse_args(
+            ["package", "test-module-fixture", "--local", "--pkg-generator", "WHEEL"]
+        )
+        args.func(args)
+
+        self.assertEqual(mock_run_command.call_count, 1)
+        wheel_args = mock_run_command.call_args_list[0][0][0]
+        wheel_str = " ".join(str(a) for a in wheel_args)
+        self.assertIn("-m", wheel_str)
+        self.assertIn("build", wheel_str)
+        self.assertIn("--wheel", wheel_str)
+        self.assertIn("--outdir", wheel_str)
+        self.assertIn("dist", wheel_str)
+
+    @patch("utilities.cli.holohub.HoloHubCLI.find_project")
+    def test_resolve_module_project_rejects_non_module(self, mock_find_project):
+        """_resolve_module_project raises SystemExit when the project is not a module."""
+        mock_find_project.return_value = {
+            "project_name": "gst_to_holo",
+            "project_type": "application",
+            "source_folder": Path(os.getcwd()) / "applications" / "gst_to_holo",
+            "metadata": {"language": "cpp"},
+        }
+        with self.assertRaises(SystemExit):
+            self.cli._resolve_module_project("gst_to_holo", language=None)
+
+    @patch("utilities.cli.holohub.HoloHubCLI.find_project")
+    @patch("utilities.cli.util.run_command")
+    @patch("pathlib.Path.mkdir")
+    @patch("pathlib.Path.glob")
+    @patch("pathlib.Path.exists")
+    def test_package_deb_dryrun_passes_dry_run_flag(
+        self, mock_exists, mock_glob, mock_mkdir, mock_run_command, mock_find_project
+    ):
+        """DEB dryrun passes dry_run=True to every run_command call."""
+        mock_find_project.return_value = self.mock_module_data
+        mock_run_command.return_value = MagicMock()
+        mock_exists.return_value = True
+        cpack_cfg = Path("/build/pkg/CPackConfig-test-module-fixture.cmake")
+        mock_glob.return_value = [cpack_cfg]
+
+        args = self.cli.parser.parse_args(
+            ["package", "test-module-fixture", "--local", "--pkg-generator", "DEB", "--dryrun"]
+        )
+        args.func(args)
+
+        for call in mock_run_command.call_args_list:
+            _, kwargs = call
+            self.assertTrue(
+                kwargs.get("dry_run"), "Expected dry_run=True for all run_command calls"
+            )
 
 
 class TestRunCommand(unittest.TestCase):

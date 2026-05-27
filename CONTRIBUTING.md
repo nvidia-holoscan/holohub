@@ -357,6 +357,9 @@ For an operator named "Adaptive Thresholding":
 | README Title | Title Case + "Operator" | "Adaptive Thresholding Operator" |
 | Unit Test | "test_" + directory name | `test_adaptive_thresholding.py` |
 
+For **Holoscan Modules** (standalone library packages), a different three-tier naming
+system applies — see [Module Naming Conventions](./modules/README.md#naming-conventions).
+
 ### Build System Integration
 
 All contributions that include code need to be integrated with HoloHub's build system using CMake. Edit the appropriate `CMakeLists.txt` to add your contribution:
