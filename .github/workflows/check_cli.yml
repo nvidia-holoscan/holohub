@@ -38,12 +38,20 @@ jobs:
       # release is promoted to public PyPI. The wheel ships every CLI
       # module HoloHub used to vendor under utilities/cli/, so HoloHub's
       # CI no longer needs to invoke those module paths directly.
+      #
+      # Two-step install scopes TestPyPI to *only* the pinned holoscan-cli
+      # wheel: first pull the wheel from TestPyPI with --no-deps, then
+      # resolve its transitive deps + the CI test tools from public PyPI.
+      # That avoids dependency-confusion risk where TestPyPI mirrors of
+      # common packages could shadow PyPI ones.
       - name: Install consolidated holoscan-cli (pinned dev build)
         run: |
           python -m pip install --upgrade pip
-          python -m pip install --pre \
+          python -m pip install --pre --no-deps \
               --index-url "${HOLOSCAN_CLI_INDEX_URL}" \
-              --extra-index-url https://pypi.org/simple/ \
+              "${HOLOSCAN_CLI_SPEC}"
+          python -m pip install \
+              --index-url https://pypi.org/simple/ \
               "${HOLOSCAN_CLI_SPEC}" pytest pytest-mock
 
       # Verify the wrapper + consolidated CLI contract on HoloHub's project
@@ -71,13 +79,17 @@ jobs:
 
       # ctest invokes `python -m pytest` on the consolidation smoke test;
       # match the python-job install so the test actually runs rather than
-      # erroring with "No module named pytest".
+      # erroring with "No module named pytest". Same two-step split as the
+      # check-cli-py matrix so TestPyPI is scoped to the holoscan-cli wheel
+      # only and CI test tools come from public PyPI.
       - name: Install consolidated holoscan-cli (pinned dev build)
         run: |
           python -m pip install --upgrade pip
-          python -m pip install --pre \
+          python -m pip install --pre --no-deps \
               --index-url "${HOLOSCAN_CLI_INDEX_URL}" \
-              --extra-index-url https://pypi.org/simple/ \
+              "${HOLOSCAN_CLI_SPEC}"
+          python -m pip install \
+              --index-url https://pypi.org/simple/ \
               "${HOLOSCAN_CLI_SPEC}" pytest pytest-mock
 
       - name: Configure CMake with testing enabled

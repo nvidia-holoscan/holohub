@@ -168,20 +168,44 @@ option(BUILD_HOLOHUB_TESTING OFF)
 if(BUILD_TESTING AND BUILD_HOLOHUB_TESTING)
   enable_testing()
   # The HoloHub CLI implementation is now the standalone ``holoscan-cli``
-  # package; its unit tests live in that repository. The only HoloHub-side
-  # CLI test still in this tree is the consolidation smoke test, which
-  # exercises the wrapper -> install -> delegate path against the installed
-  # holoscan-cli.
+  # package; its unit tests live in that repository. The HoloHub-side tests
+  # still wired into CTest are:
+  #   1. ``holoscan_cli_consolidation`` - smoke test that the wrapper ->
+  #      install -> delegate path works against the installed holoscan-cli.
+  #   2. ``holohub_create_module`` - smoke test for ``./holohub create``
+  #      against the in-tree cookiecutter module template.
+  # Both are pytest-based, so we probe for both ``python`` and ``pytest``
+  # before registering: a vanilla configure without pytest would otherwise
+  # appear to "have tests" but fail every ctest run with ``No module named
+  # pytest``.
   find_package(Python3 COMPONENTS Interpreter)
   if(Python3_Interpreter_FOUND)
-    # ``--noconftest`` skips the repo-root conftest.py (which imports cupy
-    # and holoscan); the consolidation smoke test does not use any of those
-    # fixtures.
-    add_test(
-      NAME holoscan_cli_consolidation
-      COMMAND ${Python3_EXECUTABLE} -m pytest -q --noconftest
-              ${CMAKE_CURRENT_SOURCE_DIR}/utilities/cli/tests/test_holoscan_cli_consolidation.py
-      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    execute_process(
+      COMMAND ${Python3_EXECUTABLE} -c "import pytest"
+      RESULT_VARIABLE _pytest_probe
+      OUTPUT_QUIET ERROR_QUIET
     )
+    if(_pytest_probe EQUAL 0)
+      # ``--noconftest`` skips the repo-root conftest.py (which imports
+      # cupy and holoscan); these smoke tests do not use any of those
+      # fixtures.
+      add_test(
+        NAME holoscan_cli_consolidation
+        COMMAND ${Python3_EXECUTABLE} -m pytest -q --noconftest
+                ${CMAKE_CURRENT_SOURCE_DIR}/utilities/cli/tests/test_holoscan_cli_consolidation.py
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      )
+      add_test(
+        NAME holohub_create_module
+        COMMAND ${Python3_EXECUTABLE} -m pytest -q --noconftest
+                ${CMAKE_CURRENT_SOURCE_DIR}/utilities/cli/tests/test_create_module.py
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      )
+    else()
+      message(STATUS
+        "BUILD_HOLOHUB_TESTING is ON but Python pytest is not importable; "
+        "skipping HoloHub-side CTest registrations. Install pytest into the "
+        "Python interpreter at ${Python3_EXECUTABLE} to enable them.")
+    endif()
   endif()
 endif()

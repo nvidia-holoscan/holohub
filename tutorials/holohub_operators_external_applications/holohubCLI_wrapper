@@ -33,9 +33,15 @@
 # ENVIRONMENT VARIABLES:
 #   HOLOSCAN_CLI_SOURCE   Path to a local holoscan-cli checkout (used during
 #                         prototype iteration). Wins over HOLOSCAN_CLI_VERSION.
-#   HOLOSCAN_CLI_VERSION  Pip install spec. Examples:
+#   HOLOSCAN_CLI_VERSION  Pip install spec for holoscan-cli. Bare versions
+#                         and operator-prefixed values are normalized to
+#                         include the package name. Examples:
 #                           HOLOSCAN_CLI_VERSION=4.3.0
+#                             -> pip install holoscan-cli==4.3.0
 #                           HOLOSCAN_CLI_VERSION=">=4.3"
+#                             -> pip install holoscan-cli>=4.3
+#                           HOLOSCAN_CLI_VERSION=holoscan-cli==4.3.0
+#                             -> passed through unchanged
 #                         Defaults to ``holoscan-cli`` (latest on PyPI).
 #   HOLOSCAN_CLI_PYTHON_BIN  Override the Python interpreter used to install
 #                            and invoke the CLI (default: ``python3``).
@@ -59,13 +65,29 @@ assert required <= set(PROJECT_COMMANDS), f"missing: {required - set(PROJECT_COM
 PY
 }
 
+_holohub_normalize_cli_spec() {
+    local raw="$1"
+    case "${raw}" in
+        holoscan-cli|holoscan-cli[\<\>=\!~]*|holoscan_cli|holoscan_cli[\<\>=\!~]*)
+            printf '%s' "${raw}" ;;
+        *://*|/*|./*|.|git+*|file:*)
+            printf '%s' "${raw}" ;;
+        [\<\>=\!~]*)
+            printf 'holoscan-cli%s' "${raw}" ;;
+        [0-9]*)
+            printf 'holoscan-cli==%s' "${raw}" ;;
+        *)
+            printf '%s' "${raw}" ;;
+    esac
+}
+
 _install_holoscan_cli() {
     local spec
     if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
         spec="${HOLOSCAN_CLI_SOURCE}"
         echo "[holohubCLI_wrapper] installing holoscan-cli from local source: ${spec}" >&2
     else
-        spec="${HOLOSCAN_CLI_VERSION:-holoscan-cli}"
+        spec="$(_holohub_normalize_cli_spec "${HOLOSCAN_CLI_VERSION:-holoscan-cli}")"
         echo "[holohubCLI_wrapper] installing ${spec}" >&2
     fi
     "${PYTHON_BIN}" -m pip install --quiet --upgrade "${spec}"

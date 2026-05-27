@@ -30,13 +30,22 @@ jobs:
       # build that predates the ``lint`` subcommand. Revert this step to
       # ``sudo ./holohub lint --install-dependencies`` once the
       # consolidated release lands on public PyPI.
+      #
+      # Two-step install scopes TestPyPI to *only* the pinned holoscan-cli
+      # wheel: first pull the wheel from TestPyPI with --no-deps, then
+      # resolve its transitive deps from public PyPI. Prevents dependency-
+      # confusion risk where TestPyPI builds of common packages could
+      # shadow the PyPI versions.
       - name: Install consolidated holoscan-cli (pinned dev build)
         run: |
           python -m pip install --upgrade pip
           sudo --preserve-env=HOLOSCAN_CLI_SPEC,HOLOSCAN_CLI_INDEX_URL \
-              python -m pip install --pre \
+              python -m pip install --pre --no-deps \
                   --index-url "${HOLOSCAN_CLI_INDEX_URL}" \
-                  --extra-index-url https://pypi.org/simple/ \
+                  "${HOLOSCAN_CLI_SPEC}"
+          sudo --preserve-env=HOLOSCAN_CLI_SPEC \
+              python -m pip install \
+                  --index-url https://pypi.org/simple/ \
                   "${HOLOSCAN_CLI_SPEC}"
 
       - name: Install lint hook dependencies
