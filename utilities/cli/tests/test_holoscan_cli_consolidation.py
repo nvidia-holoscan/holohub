@@ -33,9 +33,13 @@ def _run_holoscan_cli(*args: str) -> subprocess.CompletedProcess:
         stderr=subprocess.PIPE,
         check=False,
     )
+    # `python -m holoscan_cli` reports the missing package as
+    # `No module named holoscan_cli` (not a ModuleNotFoundError traceback)
+    # and the wrapper bootstrap can surface the same string via pip's
+    # output, so match on that phrase rather than the exception name.
     if (
         result.returncode != 0
-        and "ModuleNotFoundError" in result.stderr
+        and "No module named" in result.stderr
         and "holoscan_cli" in result.stderr
     ):
         pytest.skip("holoscan_cli is not installed; set HOLOSCAN_CLI_SOURCE to a checkout")
@@ -75,9 +79,13 @@ def _run_holohub_wrapper(*args: str) -> subprocess.CompletedProcess:
         stderr=subprocess.PIPE,
         check=False,
     )
+    # `python -m holoscan_cli` reports the missing package as
+    # `No module named holoscan_cli` (not a ModuleNotFoundError traceback)
+    # and the wrapper bootstrap can surface the same string via pip's
+    # output, so match on that phrase rather than the exception name.
     if (
         result.returncode != 0
-        and "ModuleNotFoundError" in result.stderr
+        and "No module named" in result.stderr
         and "holoscan_cli" in result.stderr
     ):
         pytest.skip("holoscan_cli is not installed; set HOLOSCAN_CLI_SOURCE to a checkout")

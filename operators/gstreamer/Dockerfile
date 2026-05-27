@@ -29,6 +29,11 @@ FROM ${BASE_IMAGE} AS holohub-cli-prerequisites
 ARG DEBIAN_FRONTEND=noninteractive
 ARG PYTHON_VERSION=python3
 ARG HOLOSCAN_CLI_INSTALL_SPEC=holoscan-cli
+# Extra pip flags injected via HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS by the
+# host wrapper (e.g. `--pre --index-url https://test.pypi.org/simple/` while
+# the consolidated CLI release is on TestPyPI). Empty by default — same
+# contract as utilities/docker/Dockerfile.holohub-base.
+ARG HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS=
 
 # Do NOT apt-install ${PYTHON_VERSION}-pip on Ubuntu 24.04+: that pip is
 # debian-managed and missing the RECORD file, so a transitive
@@ -61,7 +66,7 @@ RUN case "${HOLOSCAN_CLI_INSTALL_SPEC}" in \
 # `holoscan` in older Holoscan SDK images imports cleanly but doesn't
 # provide the source-project commands this stage relies on.
 RUN if ! python3 -c "from holoscan_cli.__main__ import PROJECT_COMMANDS; assert {'build','run','list','install'} <= set(PROJECT_COMMANDS)" >/dev/null 2>&1; then \
-        python3 -m pip install --upgrade "${HOLOSCAN_CLI_INSTALL_SPEC}"; \
+        python3 -m pip install --upgrade ${HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS} "${HOLOSCAN_CLI_INSTALL_SPEC}"; \
     fi
 
 ############################################################
@@ -71,8 +76,12 @@ FROM holohub-cli-prerequisites AS holohub-cli
 
 ARG CMAKE_BUILD_TYPE=Release
 
-RUN mkdir -p /tmp/scripts
+# Stage the wrapper + utilities/ helpers `holohub setup` consumes (e.g.
+# utilities/setup/*.sh, utilities/requirements.*.txt) so the raw-base
+# fallback below has them when it runs `/tmp/scripts/holohub setup`.
+RUN mkdir -p /tmp/scripts/utilities
 COPY holohub /tmp/scripts/
+COPY utilities /tmp/scripts/utilities/
 RUN chmod +x /tmp/scripts/holohub
 
 # --------------------------------------------------------------------------

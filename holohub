@@ -279,9 +279,10 @@ PY
 # rejects the args here, surface the same error and exit immediately rather
 # than building a base image only to discard it.
 #
-# Skip the probe when the user already passed `--dryrun` (the real
-# invocation will print that output) or when `HOLOHUB_DISABLE_DRYRUN_PROBE=1`
-# is set to opt out of the extra CLI startup.
+# Skip the probe when the user already passed `--dryrun`, when args contain
+# a `--` terminator (the appended flag would be consumed as part of the
+# forwarded command), or when `HOLOHUB_DISABLE_DRYRUN_PROBE=1` is set to
+# opt out of the extra CLI startup.
 _holohub_dryrun_probe_or_exit() {
     if [[ "${HOLOHUB_DISABLE_DRYRUN_PROBE:-0}" == "1" ]]; then
         return 0
@@ -289,6 +290,12 @@ _holohub_dryrun_probe_or_exit() {
     if _holohub_has_arg "--dryrun" "$@"; then
         return 0
     fi
+    local arg
+    for arg in "$@"; do
+        if [[ "${arg}" == "--" ]]; then
+            return 0
+        fi
+    done
     local rc=0
     local output
     output="$("${PYTHON_BIN}" -m holoscan_cli "$@" --dryrun 2>&1)" || rc=$?

@@ -37,6 +37,11 @@ FROM ${BASE_IMAGE} AS holohub-cli-prerequisites
 ARG DEBIAN_FRONTEND=noninteractive
 ARG PYTHON_VERSION=python3
 ARG HOLOSCAN_CLI_INSTALL_SPEC=holoscan-cli
+# Extra pip flags injected via HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS by the
+# host wrapper (e.g. `--pre --index-url https://test.pypi.org/simple/` while
+# the consolidated CLI release is on TestPyPI). Empty by default — same
+# contract as utilities/docker/Dockerfile.holohub-base.
+ARG HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS=
 
 # 1. Ensure python3 + pip exist.
 #
@@ -76,7 +81,7 @@ RUN case "${HOLOSCAN_CLI_INSTALL_SPEC}" in \
 #    CLI. Probe `PROJECT_COMMANDS` instead, matching the same check used
 #    by utilities/docker/Dockerfile.holohub-base.
 RUN if ! python3 -c "from holoscan_cli.__main__ import PROJECT_COMMANDS; assert {'build','run','list','install'} <= set(PROJECT_COMMANDS)" >/dev/null 2>&1; then \
-        python3 -m pip install --upgrade "${HOLOSCAN_CLI_INSTALL_SPEC}"; \
+        python3 -m pip install --upgrade ${HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS} "${HOLOSCAN_CLI_INSTALL_SPEC}"; \
     fi
 
 ############################################################
@@ -86,10 +91,12 @@ FROM holohub-cli-prerequisites AS holohub-cli
 
 ARG CMAKE_BUILD_TYPE=Release
 
-# 4. Stage /tmp/scripts/holohub so the in-tree wrapper is callable inside
-#    the container regardless of base.
-RUN mkdir -p /tmp/scripts
+# 4. Stage /tmp/scripts/holohub plus the utilities/ helpers `holohub setup`
+#    consumes (e.g. utilities/setup/*.sh, utilities/requirements.*.txt) so
+#    the in-tree wrapper is callable inside the container regardless of base.
+RUN mkdir -p /tmp/scripts/utilities
 COPY holohub /tmp/scripts/
+COPY utilities /tmp/scripts/utilities/
 RUN chmod +x /tmp/scripts/holohub
 
 # 5. Smoke-test: both the CLI and the wrapper are present and usable.
