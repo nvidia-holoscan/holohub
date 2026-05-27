@@ -82,6 +82,11 @@ jobs:
       # erroring with "No module named pytest". Same two-step split as the
       # check-cli-py matrix so TestPyPI is scoped to the holoscan-cli wheel
       # only and CI test tools come from public PyPI.
+      #
+      # cookiecutter is required by the registered `holohub_create_module`
+      # ctest (utilities/cli/tests/test_create_module.py); without it the
+      # whole test class is silently skipped and the template
+      # changes don't actually get exercised.
       - name: Install consolidated holoscan-cli (pinned dev build)
         run: |
           python -m pip install --upgrade pip
@@ -90,7 +95,7 @@ jobs:
               "${HOLOSCAN_CLI_SPEC}"
           python -m pip install \
               --index-url https://pypi.org/simple/ \
-              "${HOLOSCAN_CLI_SPEC}" pytest pytest-mock
+              "${HOLOSCAN_CLI_SPEC}" pytest pytest-mock cookiecutter
 
       - name: Configure CMake with testing enabled
         run: |

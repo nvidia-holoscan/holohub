@@ -56,6 +56,15 @@ set -euo pipefail
 
 PYTHON_BIN="${HOLOSCAN_CLI_PYTHON_BIN:-python3}"
 
+# When the user points at a local holoscan-cli checkout, the source-tree
+# version must win over any system-installed copy — both the dispatch
+# probe below and the final `python -m holoscan_cli` invocation. Prepend
+# `<source>/src` to PYTHONPATH so import resolution picks up the
+# checkout first. Mirrors the repo-root `./holohub` wrapper's behavior.
+if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
+    export PYTHONPATH="${HOLOSCAN_CLI_SOURCE%/}/src${PYTHONPATH:+:${PYTHONPATH}}"
+fi
+
 _holoscan_cli_has_source_project_dispatch() {
     "${PYTHON_BIN}" - <<'PY' >/dev/null 2>&1
 from holoscan_cli.__main__ import PROJECT_COMMANDS
