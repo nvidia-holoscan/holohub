@@ -261,12 +261,12 @@
           },
           "additionalProperties": false
         },
-        "operators": {
+        "operator_names": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Operators this module supplies. Authoritative self-advertisement; consumers may mirror these in their dependencies[].provides_operators to enable lazy fetch. The resolver compares the two lists after fetch and warns on drift."
+          "description": "Operator class names this module supplies (e.g. GstVideoRecorderOp). Cosmetic/display field — does not drive CMake flags. For build-system gating use subprojects.operators."
         },
         "dependencies": {
           "type": "array",

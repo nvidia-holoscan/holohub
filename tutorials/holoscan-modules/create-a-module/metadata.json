@@ -1,0 +1,36 @@
+{
+	"$schema": "urn:holohub:tutorial:v1",
+	"tutorial": {
+		"name": "Create a Holoscan Module",
+		"description": "End-to-end walkthrough for scaffolding, building, testing, packaging, and publishing a new Holoscan Module. Covers external (standalone) modules as the primary path and HoloHub-hosted descriptor modules as a secondary path.",
+		"authors": [
+			{
+				"name": "Holoscan Team",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "Python",
+		"version": "0.1.0",
+		"changelog": {
+			"0.1.0": "Initial release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "4.2.0",
+			"tested_versions": [
+				"4.2.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": [
+			"Development",
+			"Packaging",
+			"Tutorial",
+			"Developer Experience"
+		],
+		"ranking": 1,
+		"requirements": {}
+	}
+}
