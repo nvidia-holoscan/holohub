@@ -126,20 +126,3 @@ cd <HOLOHUB_SOURCE_DIR>
 ```bash
 ./holohub run endoscopy_depth_estimation
 ```
-
-## Dev Container
-
-To start the the Dev Container, run the following command from the root directory of Holohub:
-
-```bash
-./holohub vscode endoscopy_depth_estimation
-```
-
-This command will build and configure a Dev Container using a [Dockerfile](./Dockerfile) that is ready to run the application.
-
-### VS Code Launch Profiles
-
-There are two launch profiles configured for this application:
-
-1. **(debugpy) endoscopy_depth_estimation/python**: Launch endoscopy_depth_estimation using a launch profile that enables debugging of Python code.
-2. **(pythoncpp) endoscopy_depth_estimation/python**: Launch endoscopy_depth_estimation using a launch profile that enables debugging of Python and C++ code.

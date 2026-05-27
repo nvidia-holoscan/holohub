@@ -61,29 +61,10 @@ Open and edit the [Dockerfile](../../../h264//Dockerfile) and uncomment line 66:
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/aarch64-linux-gnu/tegra/
 ```
 
-## Dev Container
-
-To start the the Dev Container, run the following command from the root directory of Holohub:
-
-```bash
-./holohub vscode h264
-```
-
-### VS Code Launch Profiles
-
-#### C++ (launch profile)
-
-The following launch profiles are available:
-
-- **(compound) grpc_h264_endoscopy_tool_tracking/cpp (cloud & edge)**: Launch both the gRPC server and the client.
-- **(gdb) grpc_h264_endoscopy_tool_tracking/cpp (cloud)**: Launch the gRPC server.
-- **(gdb) grpc_h264_endoscopy_tool_tracking/cpp (edge)**: Launch the gRPC client.
-
 ## Limitations & Known Issues
 
 - The connection between the server and the client is controlled by `rpc_timeout`. If no data is received or sent within the configured time, it assumes the call has been completed and hangs up. The `rpc_timeout` value can be configured in the [endoscopy_tool_tracking.yaml](./cpp/endoscopy_tool_tracking.yaml) file with a default of 5 seconds. Increasing this value may help on a slow network.
 - The server can serve one request at any given time. Any subsequent call receives a `grpc::StatusCode::RESOURCE_EXHAUSTED` status.
-- When debugging using the compound profile, the server may not be ready to serve, resulting in errors with the client application. When this happens, open [tasks.json](../../../../.vscode/tasks.json), find `Build grpc_h264_endoscopy_tool_tracking (delay 3s)`, and adjust the `command` field with a higher sleep value.
 - The client is expected to exit with the following error. It is how the client application terminates when it completes streaming and displays the entire video.
 
   ```bash
