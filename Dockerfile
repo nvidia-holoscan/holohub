@@ -22,11 +22,54 @@
 ARG GPU_TYPE
 ARG BASE_SDK_VERSION
 ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v${BASE_SDK_VERSION}-${GPU_TYPE}
-FROM ${BASE_IMAGE} AS holohub-cli
+
+############################################################
+# Prerequisites: normalize the base image into one that can run
+# the consolidated HoloHub CLI.
+#
+# BASE_IMAGE can be an SDK image (ships python + holoscan), a CUDA
+# base image (ships nothing Python-related), or a plain Ubuntu image.
+# Each conditional below is a no-op when the base already provides
+# the requirement, so SDK builds stay cheap.
+############################################################
+FROM ${BASE_IMAGE} AS holohub-cli-prerequisites
 
 ARG DEBIAN_FRONTEND=noninteractive
+ARG PYTHON_VERSION=python3
+ARG HOLOSCAN_CLI_INSTALL_SPEC=holoscan-cli
+
+# 1. Ensure python3 + pip exist.
+RUN if ! command -v python3 >/dev/null 2>&1; then \
+        apt-get update \
+        && apt-get install --no-install-recommends -y \
+            ${PYTHON_VERSION} ${PYTHON_VERSION}-pip curl ca-certificates \
+        && rm -rf /var/lib/apt/lists/*; \
+    fi
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
+RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
+        curl -sS https://bootstrap.pypa.io/get-pip.py | ${PYTHON_VERSION}; \
+    fi
+
+# 2. Ensure the consolidated `holoscan` CLI exists. Skip the pip install
+#    when the base already ships it (SDK images) to avoid network access.
+RUN if ! command -v holoscan >/dev/null 2>&1; then \
+        python3 -m pip install --upgrade "${HOLOSCAN_CLI_INSTALL_SPEC}"; \
+    fi
+
+############################################################
+# HoloHub CLI: stage the in-tree wrapper and smoke-test.
+############################################################
+FROM holohub-cli-prerequisites AS holohub-cli
+
 ARG CMAKE_BUILD_TYPE=Release
 
+# 3. Stage /tmp/scripts/holohub so the in-tree wrapper is callable inside
+#    the container regardless of base.
+RUN mkdir -p /tmp/scripts
+COPY holohub /tmp/scripts/
+RUN chmod +x /tmp/scripts/holohub
+
+# 4. Smoke-test: both the CLI and the wrapper are present and usable.
 RUN holoscan version \
     && test -x /tmp/scripts/holohub
 
