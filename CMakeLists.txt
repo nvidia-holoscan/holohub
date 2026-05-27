@@ -174,9 +174,12 @@ if(BUILD_TESTING AND BUILD_HOLOHUB_TESTING)
   # holoscan-cli.
   find_package(Python3 COMPONENTS Interpreter)
   if(Python3_Interpreter_FOUND)
+    # ``--noconftest`` skips the repo-root conftest.py (which imports cupy
+    # and holoscan); the consolidation smoke test does not use any of those
+    # fixtures.
     add_test(
       NAME holoscan_cli_consolidation
-      COMMAND ${Python3_EXECUTABLE} -m pytest -q
+      COMMAND ${Python3_EXECUTABLE} -m pytest -q --noconftest
               ${CMAKE_CURRENT_SOURCE_DIR}/utilities/cli/tests/test_holoscan_cli_consolidation.py
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )
