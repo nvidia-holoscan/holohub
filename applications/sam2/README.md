@@ -82,13 +82,7 @@ Then, from the Holohub main directory run the following command:
 ./holohub run sam2
 ```
 
-Alternatively build and run:
-
-```bash
-./holohub vscode sam2
-```
-
-Run the application in debug mode from vscode, or execute it by
+Alternatively, execute it by
 
 ```sh
 python applications/sam2/segment_one_thing.py
