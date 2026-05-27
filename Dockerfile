@@ -39,10 +39,16 @@ ARG PYTHON_VERSION=python3
 ARG HOLOSCAN_CLI_INSTALL_SPEC=holoscan-cli
 
 # 1. Ensure python3 + pip exist.
+#
+# Do NOT apt-install ${PYTHON_VERSION}-pip on Ubuntu 24.04+: that pip is
+# debian-managed and missing the RECORD file, so when ``holoscan-cli``
+# transitively requests ``pip>25.1.0`` the upgrade aborts with
+# ``Cannot uninstall pip 24.0, RECORD file not found``. Install pip via
+# get-pip.py instead — it lands under /usr/local and is freely upgradeable.
 RUN if ! command -v python3 >/dev/null 2>&1; then \
         apt-get update \
         && apt-get install --no-install-recommends -y \
-            ${PYTHON_VERSION} ${PYTHON_VERSION}-pip curl ca-certificates \
+            ${PYTHON_VERSION} curl ca-certificates \
         && rm -rf /var/lib/apt/lists/*; \
     fi
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
