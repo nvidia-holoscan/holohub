@@ -99,7 +99,7 @@ def parse_metadata_file(metadata_path: Path) -> dict:
     """Parse metadata.json file and extract relevant information."""
     with metadata_path.open("r") as f:
         data = json.load(f)
-    component_type = list(data.keys())[0]
+    component_type = next(k for k in data.keys() if not k.startswith("$"))
     metadata = data[component_type]
     return metadata, component_type
 
