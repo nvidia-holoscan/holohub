@@ -115,16 +115,9 @@ if ! _holohub_cli_has_consolidated_dispatch; then
 fi
 
 # exec replaces the shell so SIGINT/SIGTERM/SIGHUP reach the CLI directly.
-# Prefer the installed `holoscan` binary when it's the consolidated CLI, but
-# fall through to `python -m holoscan_cli` if PATH resolves to the legacy
-# packaging-only `holoscan` shipped with the Holoscan SDK Python package
-# (whose subcommand set is just package/run/version/nics).
-_holohub_holoscan_is_consolidated() {
-    "${1}" --help 2>/dev/null | grep -qE '^\s*list\s'
-}
-
-holoscan_bin="$(command -v holoscan 2>/dev/null || true)"
-if [[ -n "${holoscan_bin}" ]] && _holohub_holoscan_is_consolidated "${holoscan_bin}"; then
-    exec "${holoscan_bin}" "$@"
-fi
+# Always go through `python -m holoscan_cli` so the interpreter that
+# bootstrapped/imported the CLI above is the one that runs it. A
+# `holoscan` console script on PATH might resolve to a different
+# interpreter or bypass `HOLOSCAN_CLI_SOURCE` / `HOLOSCAN_CLI_VERSION`
+# that we just pinned — `-m` removes that surface entirely.
 exec "${PYTHON_BIN}" -m holoscan_cli "$@"
