@@ -54,6 +54,16 @@
 
 set -euo pipefail
 
+# Export the wrapper's own directory as the source-project root so that
+# invoking this script from any working directory still operates on the
+# external project this wrapper ships with. Mirrors the repo-root
+# `./holohub` wrapper — `python -m holoscan_cli` otherwise falls back to
+# the caller's cwd, which scans/builds the wrong tree when users copy
+# this wrapper into their own project and invoke it from elsewhere.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
+export HOLOSCAN_CLI_CMD_NAME="${BASH_SOURCE[0]}"
+export HOLOSCAN_CLI_ROOT="${SCRIPT_DIR}"
+
 PYTHON_BIN="${HOLOSCAN_CLI_PYTHON_BIN:-python3}"
 
 # When the user points at a local holoscan-cli checkout, the source-tree
