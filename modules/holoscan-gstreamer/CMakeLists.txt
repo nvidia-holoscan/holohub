@@ -37,4 +37,8 @@ holohub_configure_deb(
     DEPENDS     "${_deb_depends_str}"
 )
 
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/NOTICE.md"
+    DESTINATION "share/doc/holoscan-gstreamer"
+)
+
 # Wheel packaging: see pyproject.toml
