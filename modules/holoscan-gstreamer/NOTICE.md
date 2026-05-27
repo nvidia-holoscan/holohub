@@ -28,7 +28,7 @@ use of those libraries independently of this package.
 
 2. GStreamer Good Plugins (gst-plugins-good)
    Description : GStreamer plugins with good licensing and code quality;
-                 provides h264parse, qtdemux, rtspsrc, udpsrc/udpsink,
+                 provides qtdemux, rtspsrc, udpsrc/udpsink,
                  rtph264pay/rtph264depay
    License     : GNU Lesser General Public License v2.1 (LGPL-2.1)
    Source      : <https://gitlab.freedesktop.org/gstreamer/gstreamer>
@@ -37,20 +37,21 @@ use of those libraries independently of this package.
 
 3. GStreamer Bad Plugins (gst-plugins-bad)
    Description : GStreamer plugins without guaranteed API/ABI stability or
-                 complete documentation; provides h265parse, CUDA elements
-                 (cudaconvert, cudadownload), and the nvcodec plugin
+                 complete documentation; provides h264parse, h265parse, CUDA
+                 elements (cudaconvert, cudadownload), and the nvcodec plugin
                  (nvh264enc, nvh265enc, nvh264dec)
    License     : GNU Lesser General Public License v2.1 (LGPL-2.1)
    Source      : <https://gitlab.freedesktop.org/gstreamer/gstreamer>
                  (subprojects/gst-plugins-bad/)
    apt package : gstreamer1.0-plugins-bad
 
-4. GStreamer Ugly Plugins (gst-plugins-ugly)
-   Description : GStreamer plugins that may have distribution restrictions;
-                 provides additional codec elements
+4. GStreamer Ugly Plugins (gst-plugins-ugly)  [optional]
+   Description : Provides x264enc and x265enc for CPU-based H.264/H.265
+                 encoding. Not an automatic dependency of this package; must
+                 be installed separately to use those encoders.
    License     : GNU Lesser General Public License v2.1 (LGPL-2.1)
-                 Note: the x264enc element links libx264 (GPL-2.0-or-later);
-                 use of that element makes the resulting binary subject to
+                 Note: x264enc links libx264 (GPL-2.0-or-later); use of that
+                 element makes the resulting pipeline subject to
                  GPL-2.0-or-later terms.
    Source      : <https://gitlab.freedesktop.org/gstreamer/gstreamer>
                  (subprojects/gst-plugins-ugly/)
@@ -112,18 +113,18 @@ holoscan-gstreamer binaries and are not part of the GStreamer ecosystem.
    Source      : <https://github.com/fmtlib/fmt>
 
 4. Holoscan SDK (NVIDIA)
-    Description : NVIDIA Holoscan sensor processing framework. Provides the
-                  operator base class, tensor types, GXF runtime, and logging
-                  macros used throughout this package. Dynamically linked.
-    License     : NVIDIA Holoscan SDK License Agreement (proprietary)
-    Source      : <https://github.com/nvidia-holoscan/holoscan-sdk>
+   Description : NVIDIA Holoscan sensor processing framework. Provides the
+                 operator base class, tensor types, GXF runtime, and logging
+                 macros used throughout this package. Dynamically linked.
+   License     : NVIDIA Holoscan SDK License Agreement (proprietary)
+   Source      : <https://github.com/nvidia-holoscan/holoscan-sdk>
 
 5. NVIDIA CUDA Toolkit (CUDA Runtime)
-    Description : cuda_runtime_api.h is included and libcudart is linked for
-                  GPU memory management. Provided by the holoscan-cuda-13
-                  package dependency.
-    License     : NVIDIA Software License Agreement (proprietary)
-    Source      : <https://developer.nvidia.com/cuda-toolkit>
+   Description : cuda_runtime_api.h is included and libcudart is linked for
+                 GPU memory management. Provided by the holoscan-cuda-13
+                 package dependency.
+   License     : NVIDIA Software License Agreement (proprietary)
+   Source      : <https://developer.nvidia.com/cuda-toolkit>
 
 -------------------------------------------------------------------------------
 Full license texts for open-source components:
