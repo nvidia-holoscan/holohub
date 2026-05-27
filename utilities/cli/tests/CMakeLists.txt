@@ -59,16 +59,21 @@ set_tests_properties(test_holohub_autocompletion_list PROPERTIES
   PASS_REGULAR_EXPRESSION "ultrasound_segmentation.*build.*run.*list"
 )
 
-# ``HOLOHUB_PATH_PREFIX`` env var propagation through ``run-container``.
-# Pre-consolidation ``test_holohub_path_prefix_env``.
+# ``HOLOSCAN_CLI_PATH_PREFIX`` env var propagation through ``run-container``.
+# (The consolidated CLI renamed ``HOLOHUB_PATH_PREFIX`` to
+# ``HOLOSCAN_CLI_PATH_PREFIX``; CTest's regex engine is line-oriented and
+# can't bridge ``docker run`` and the ``-e HOLOSCAN_CLI_PATH_PREFIX=…``
+# arg across the dryrun pretty-printer's newlines, so the assertion targets
+# the env-passing line specifically.) Pre-consolidation
+# ``test_holohub_path_prefix_env``.
 add_test(
   NAME test_holohub_path_prefix_env
   COMMAND ${CMAKE_SOURCE_DIR}/holohub run-container --dryrun
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 set_tests_properties(test_holohub_path_prefix_env PROPERTIES
-  ENVIRONMENT "HOLOHUB_PATH_PREFIX=custom_prefix_"
-  PASS_REGULAR_EXPRESSION "docker run.*HOLOHUB_PATH_PREFIX=custom_prefix_"
+  ENVIRONMENT "HOLOSCAN_CLI_PATH_PREFIX=custom_prefix_"
+  PASS_REGULAR_EXPRESSION "HOLOSCAN_CLI_PATH_PREFIX=custom_prefix_"
 )
 
 # Multi-language project detection: ``endoscopy_tool_tracking`` ships both
