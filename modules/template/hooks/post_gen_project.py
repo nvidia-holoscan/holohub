@@ -139,6 +139,9 @@ try:
     subprocess.run(["git", "add", "."], check=True, capture_output=True)
     git_ok = True
 except (subprocess.CalledProcessError, FileNotFoundError):
+    # Git isn't required to use the scaffold — silently skip init when git
+    # is missing or refuses. The next-steps message below still prints the
+    # manual git commands the user can run.
     pass
 
 # ── Next-steps message ────────────────────────────────────────────────────────
