@@ -72,6 +72,14 @@ RUN chmod +x /tmp/scripts/holohub
 RUN holoscan version \
     && test -x /tmp/scripts/holohub
 
+# Run HoloHub setup when this image is built from a raw base. The prepared
+# base layer (utilities/docker/Dockerfile.holohub-base) already runs setup
+# and drops the autocomplete marker; reuse that marker as the guard so the
+# standard path stays a no-op while `--base-img` (which bypasses the
+# prepared layer) still picks up recommended packages and autocomplete.
+RUN [ -f /etc/bash_completion.d/holohub_autocomplete ] \
+    || (/tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*)
+
 # Install GStreamer development packages and pkg-config
 COPY operators/gstreamer/install_deps.sh /tmp/install_deps.sh
 RUN /tmp/install_deps.sh
@@ -90,8 +98,11 @@ RUN python3 -m pip install --no-cache-dir \
         build \
         scikit-build-core
 
-# Enable autocomplete
-RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
+# Enable autocomplete if the prepared-base layer (or external setup) installed
+# it — raw `--base-img` builds skip the prepared base entirely, so guard the
+# source on file existence to avoid spamming "No such file or directory" into
+# every interactive shell.
+RUN echo "[ -f /etc/bash_completion.d/holohub_autocomplete ] && . /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
 
 # Set default Holohub data directory
 ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data

@@ -272,7 +272,34 @@ PY
         "${SCRIPT_DIR}"
 }
 
+# Cheap host-side validation probe. The prepared-base Docker build below
+# can take several minutes, so before kicking it off we ask the CLI itself
+# whether the invocation is well-formed (e.g. multi-language project
+# disambiguation, missing metadata.json, bad/unknown flags). If the CLI
+# rejects the args here, surface the same error and exit immediately rather
+# than building a base image only to discard it.
+#
+# Skip the probe when the user already passed `--dryrun` (the real
+# invocation will print that output) or when `HOLOHUB_DISABLE_DRYRUN_PROBE=1`
+# is set to opt out of the extra CLI startup.
+_holohub_dryrun_probe_or_exit() {
+    if [[ "${HOLOHUB_DISABLE_DRYRUN_PROBE:-0}" == "1" ]]; then
+        return 0
+    fi
+    if _holohub_has_arg "--dryrun" "$@"; then
+        return 0
+    fi
+    local rc=0
+    local output
+    output="$("${PYTHON_BIN}" -m holoscan_cli "$@" --dryrun 2>&1)" || rc=$?
+    if [[ ${rc} -ne 0 ]]; then
+        printf '%s\n' "${output}" >&2
+        exit ${rc}
+    fi
+}
+
 if _holohub_needs_prepared_base "$@"; then
+    _holohub_dryrun_probe_or_exit "$@"
     _holohub_configure_prepared_base "$@"
 fi
 
