@@ -581,6 +581,14 @@
          <lastmod>2026-05-27</lastmod>
     </url>
     <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/modules/</loc>
+         <lastmod>2026-05-27</lastmod>
+    </url>
+    <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/modules/holoscan-gstreamer/</loc>
+         <lastmod>2026-05-27</lastmod>
+    </url>
+    <url>
          <loc>https://nvidia-holoscan.github.io/holohub/operators/</loc>
          <lastmod>2026-05-27</lastmod>
     </url>
