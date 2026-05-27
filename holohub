@@ -160,6 +160,16 @@ _holohub_needs_prepared_base() {
        _holohub_has_arg "--base-img" "$@"; then
         return 1
     fi
+
+    # `holohub install --dev` is a host-only operation: it copies a staged
+    # .pth hook + helper module into the user's Python user-site so an
+    # in-tree Holoscan-Module build is importable as `holoscan.<module>`.
+    # Building a prepared Docker base before that is wasted work and
+    # races the local copy.
+    if [[ "${command}" == "install" ]] && _holohub_has_arg "--dev" "$@"; then
+        return 1
+    fi
+
     return 0
 }
 

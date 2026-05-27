@@ -57,8 +57,13 @@ RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
     fi
 
 # 2. Ensure the consolidated `holoscan` CLI exists. Skip the pip install
-#    when the base already ships it (SDK images) to avoid network access.
-RUN if ! command -v holoscan >/dev/null 2>&1; then \
+#    only when the base already ships a *post-consolidation* CLI — the
+#    legacy packaging-only `holoscan` that older Holoscan SDK images
+#    bundle imports cleanly but lacks the source-project dispatch table,
+#    so a bare `command -v holoscan` check would leave us with the wrong
+#    CLI. Probe `PROJECT_COMMANDS` instead, matching the same check used
+#    by utilities/docker/Dockerfile.holohub-base.
+RUN if ! python3 -c "from holoscan_cli.__main__ import PROJECT_COMMANDS; assert {'build','run','list','install'} <= set(PROJECT_COMMANDS)" >/dev/null 2>&1; then \
         python3 -m pip install --upgrade "${HOLOSCAN_CLI_INSTALL_SPEC}"; \
     fi
 

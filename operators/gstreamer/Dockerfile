@@ -45,7 +45,11 @@ RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
         curl -sS https://bootstrap.pypa.io/get-pip.py | ${PYTHON_VERSION}; \
     fi
 
-RUN if ! command -v holoscan >/dev/null 2>&1; then \
+# Probe for the *post-consolidation* CLI (PROJECT_COMMANDS dispatch table)
+# rather than just `command -v holoscan` — the legacy packaging-only
+# `holoscan` in older Holoscan SDK images imports cleanly but doesn't
+# provide the source-project commands this stage relies on.
+RUN if ! python3 -c "from holoscan_cli.__main__ import PROJECT_COMMANDS; assert {'build','run','list','install'} <= set(PROJECT_COMMANDS)" >/dev/null 2>&1; then \
         python3 -m pip install --upgrade "${HOLOSCAN_CLI_INSTALL_SPEC}"; \
     fi
 

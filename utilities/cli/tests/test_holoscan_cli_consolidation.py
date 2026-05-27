@@ -51,7 +51,13 @@ def test_unified_cli_lists_holohub_projects():
 
 
 def test_unified_cli_dryruns_holohub_project_run():
-    result = _run_holoscan_cli("run", "endoscopy_tool_tracking", "--dryrun")
+    # `endoscopy_tool_tracking` ships both cpp and python; pass --language
+    # explicitly so the smoke succeeds rather than asking the user to
+    # disambiguate (the latter behavior is covered by the CTest entry
+    # `test_holohub_run_multi_language_project`).
+    result = _run_holoscan_cli(
+        "run", "endoscopy_tool_tracking", "--language", "python", "--dryrun"
+    )
     output = result.stdout + result.stderr
 
     assert result.returncode == 0, output
@@ -91,7 +97,10 @@ def test_wrapper_delegates_list_to_holoscan_cli():
 
 def test_wrapper_dryruns_project_run_through_consolidated_cli():
     """./holohub run renders an in-container `holoscan run` recursion."""
-    result = _run_holohub_wrapper("run", "endoscopy_tool_tracking", "--dryrun")
+    # Same multi-language note as `test_unified_cli_dryruns_holohub_project_run`.
+    result = _run_holohub_wrapper(
+        "run", "endoscopy_tool_tracking", "--language", "python", "--dryrun"
+    )
     output = result.stdout + result.stderr
 
     assert result.returncode == 0, output

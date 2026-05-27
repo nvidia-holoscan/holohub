@@ -199,33 +199,40 @@ Everything after `--` is joined into a single string and executed via `bash -c`,
 
 ## Extending the CLI
 
-1. Add parser entry in `_create_parser()` with `func=self.handle_<cmd>`.
-2. Implement `handle_<cmd>()` using `run_command()`, honoring `args.dryrun`.
-3. Wire config through `get_effective_build_config`/`get_effective_run_config`.
-4. Add command to `handle_autocompletion_list()`.
-5. Add tests under `utilities/cli/tests/` — mock `subprocess.run` and hardware detection; must pass on CPU-only nodes.
-6. Lazy-import heavy modules inside handlers.
+The CLI implementation now lives in the standalone
+[`holoscan-cli`](https://github.com/nvidia-holoscan/holoscan-cli) package.
+To add or modify a subcommand, parser entry, mode-resolution rule, or
+container-build behavior, open a PR there — the changes flow to HoloHub
+on the next `holoscan-cli` release. The contribution workflow is documented
+in [holoscan-cli/CONTRIBUTING.md](https://github.com/nvidia-holoscan/holoscan-cli/blob/main/CONTRIBUTING.md).
+
+The HoloHub-side tests that exercise the CLI against this repo's
+project tree live under [`utilities/cli/tests/`](tests/) and are
+registered in [`utilities/cli/tests/CMakeLists.txt`](tests/CMakeLists.txt).
+Add a new `add_test(COMMAND ${CMAKE_SOURCE_DIR}/holohub <subcmd> ...)`
+entry there if your change needs an integration test against the real
+HoloHub layout (real `metadata.json`, real applications, etc.). Pure
+CLI-internal unit tests belong in the holoscan-cli repo under
+`tests/unit/`.
 
 ## Running CLI Tests
 
-Tests mock all hardware and Docker calls —no GPU or Docker required. CI runs them across Python 3.10–3.13. Module paths below assume the working directory contains the `utilities/` package directly (the repo root in HoloHub). Downstream repos that vendor the CLI under a subdirectory (e.g. `tools/`) should set `PYTHONPATH` to the parent of `utilities/`:
+CLI-internal unit tests run from the upstream `holoscan-cli` checkout:
 
 ```bash
-# HoloHub (utilities/ at repo root):
-python -m unittest utilities.cli.tests.test_cli
-python -m unittest utilities.cli.tests.test_container
-python -m unittest utilities.cli.tests.test_util
-
-# Downstream repos where utilities/ lives under tools/:
-PYTHONPATH=tools python -m unittest utilities.cli.tests.test_cli
-PYTHONPATH=tools python -m unittest utilities.cli.tests.test_container
-PYTHONPATH=tools python -m unittest utilities.cli.tests.test_util
+git clone https://github.com/nvidia-holoscan/holoscan-cli.git
+cd holoscan-cli
+python -m pytest tests/unit/
 ```
 
-If a container image is available, prefer running inside it for a clean environment:
+The HoloHub-integration smoke tests run via CTest from this repo:
 
 ```bash
-./holohub run-container --no-docker-build -- python -m unittest utilities.cli.tests.test_cli
-./holohub run-container --no-docker-build -- python -m unittest utilities.cli.tests.test_container
-./holohub run-container --no-docker-build -- python -m unittest utilities.cli.tests.test_util
+cmake -B build -DBUILD_TESTING=ON -DBUILD_HOLOHUB_TESTING=ON .
+ctest --test-dir build -V
 ```
+
+This registers ~10 black-box `add_test(COMMAND ./holohub <subcmd>)`
+checks (project listing, autocompletion, mode resolution, env-var
+forwarding, generated-project smoke) plus the pytest-based
+`holoscan_cli_consolidation` and `holohub_create_module` smokes.
