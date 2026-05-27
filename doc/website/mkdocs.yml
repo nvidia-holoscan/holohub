@@ -1,4 +1,4 @@
-site_name: NVIDIA Holoscan Reference Applications
+site_name: NVIDIA Holoscan Ecosystem
 site_url: https://nvidia-holoscan.github.io/holohub
 repo_url: https://github.com/nvidia-holoscan/holohub
 repo_name: nvidia-holoscan/holohub
@@ -61,6 +61,7 @@ plugins:
       scripts:
         - scripts/generate_featured_apps.py
         - scripts/generate_pages.py
+        - scripts/generate_module_pages.py
   - macros
   - tags
   - mermaid2:
@@ -94,6 +95,7 @@ watch:
   - ../../tutorials
   - ../../benchmarks
   - ../../workflows
+  - ../../modules
   - overrides/assets
   - overrides/pages
   - scripts
