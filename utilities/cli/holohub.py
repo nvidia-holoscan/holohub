@@ -2242,8 +2242,15 @@ class HoloHubCLI:
                     f"-DPython3_ROOT_DIR={os.path.dirname(os.path.dirname(sys.executable))}",
                     f"-DCMAKE_BUILD_TYPE={build_type}",
                     f"-DCMAKE_PREFIX_PATH={HoloHubCLI.DEFAULT_SDK_DIR}/lib",
+                    # BUILD_ALL=OFF keeps unrelated subprojects out of this
+                    # package. PKG_<slug>=ON activates the target package's
+                    # add_holohub_package() cascade, which FORCEs the
+                    # OP_/APP_/EXT_ deps it declares to ON. This works
+                    # identically for in-tree HoloHub packages (pkg/<name>/)
+                    # and standalone module repos that also follow the
+                    # pkg/<name>/ convention.
                     "-DBUILD_ALL=OFF",
-                    f"-DMODULE_{pkg_slug}=ON",
+                    f"-DPKG_{pkg_slug}=ON",
                 ]
                 if shutil.which("ninja"):
                     cmake_args.extend(["-G", "Ninja"])

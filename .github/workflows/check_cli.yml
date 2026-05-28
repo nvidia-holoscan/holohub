@@ -25,6 +25,12 @@ jobs:
 
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Install cmake and dpkg tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y cmake dpkg
+
       - name: Run Python tests
         run: |
           python -m unittest utilities.cli.tests.test_cli
@@ -35,6 +41,8 @@ jobs:
           ./holohub setup --scripts template
           python -m unittest utilities.cli.tests.test_cli
           python -m unittest utilities.cli.tests.test_create_module
+          python -m unittest utilities.cli.tests.test_module_template_pkg
+          python -m unittest utilities.cli.tests.test_module_package_integration
 
   check-cli-ctest:
     runs-on: ubuntu-22.04
