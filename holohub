@@ -16,25 +16,15 @@
 # limitations under the License.
 #
 # HoloHub source-project entry point. Delegates to the standalone
-# `holoscan-cli` package (https://github.com/nvidia-holoscan/holoscan-cli).
+# `holoscan-cli` package (https://github.com/nvidia-holoscan/holoscan-cli),
+# pinned to a specific TestPyPI build during the consolidation rollout so
+# every invocation gets the same CLI regardless of what's cached locally.
 #
-# Configuration:
-#   HOLOSCAN_CLI_*       Environment variables consumed by the CLI; see the
-#                        holoscan-cli docs (`holoscan env-info`) for the full
-#                        surface.
-#
-# Bootstrap (install on first run):
-#   HOLOSCAN_CLI_SOURCE  Local holoscan-cli checkout. Takes precedence.
-#   HOLOSCAN_CLI_VERSION Pip install spec for holoscan-cli. Defaults to
-#                        `holoscan-cli` (latest on PyPI). Bare versions and
-#                        operator-prefixed values are normalized to include
-#                        the package name. Accepted forms:
-#                          `4.3.0`               -> `holoscan-cli==4.3.0`
-#                          `>=4.3`               -> `holoscan-cli>=4.3`
-#                          `holoscan-cli==4.3.0` -> passed through
-#                          `git+https://github.com/nvidia-holoscan/holoscan-cli.git@main`
-#                                                -> passed through (URL/VCS)
-#   HOLOHUB_PYTHON_BIN   Override the Python interpreter (default: python3).
+# Optional overrides (rarely needed):
+#   HOLOSCAN_CLI_SOURCE              Local checkout — wins over the pin.
+#   HOLOSCAN_CLI_VERSION             Pip install spec.
+#   HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS Extra pip flags.
+#   HOLOHUB_PYTHON_BIN               Python interpreter (default: python3).
 
 set -euo pipefail
 
@@ -44,329 +34,37 @@ export HOLOSCAN_CLI_ROOT="${SCRIPT_DIR}"
 
 PYTHON_BIN="${HOLOHUB_PYTHON_BIN:-python3}"
 
+# Pinned consolidated holoscan-cli during the rollout. Env vars take
+# precedence so users can opt into a different version without editing.
+export HOLOSCAN_CLI_VERSION="${HOLOSCAN_CLI_VERSION:-holoscan-cli==4.3.0a26390596878}"
+export HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS="${HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS:---index-url https://test.pypi.org/simple/}"
+
+# A local holoscan-cli checkout takes precedence over the pinned install.
 if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
     export PYTHONPATH="${HOLOSCAN_CLI_SOURCE%/}/src${PYTHONPATH:+:${PYTHONPATH}}"
 fi
 
-# Accept either a full pip requirement (``holoscan-cli==4.3.0``,
-# ``git+https://...``, local path) or a shorthand (``4.3.0``, ``>=4.3``). Bare
-# version operators and bare numeric versions get the package name prepended;
-# anything else is passed through to pip unchanged.
-_holohub_normalize_cli_spec() {
-    local raw="$1"
-    case "${raw}" in
-        holoscan-cli|holoscan-cli[\<\>=\!~]*|holoscan_cli|holoscan_cli[\<\>=\!~]*)
-            printf '%s' "${raw}" ;;
-        *://*|/*|./*|.|git+*|file:*)
-            printf '%s' "${raw}" ;;
-        [\<\>=\!~]*)
-            printf 'holoscan-cli%s' "${raw}" ;;
-        [0-9]*)
-            printf 'holoscan-cli==%s' "${raw}" ;;
-        *)
-            printf '%s' "${raw}" ;;
-    esac
-}
-
-# Require a *consolidated* holoscan-cli (exposes PROJECT_COMMANDS). Older
-# releases import cleanly but lack the source-project dispatch table this
-# wrapper depends on, so reinstall/upgrade when the feature check fails.
-_holohub_cli_has_consolidated_dispatch() {
-    "${PYTHON_BIN}" - <<'PY' &>/dev/null
-from holoscan_cli.__main__ import PROJECT_COMMANDS
-
-required = {"build", "run", "list", "install"}
-assert required <= set(PROJECT_COMMANDS), f"missing: {required - set(PROJECT_COMMANDS)}"
-PY
-}
-
-if ! _holohub_cli_has_consolidated_dispatch; then
-    if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
-        spec="${HOLOSCAN_CLI_SOURCE}"
-    else
-        spec="$(_holohub_normalize_cli_spec "${HOLOSCAN_CLI_VERSION:-holoscan-cli}")"
-    fi
-    echo "[holohub] installing/upgrading ${spec}" >&2
-    "${PYTHON_BIN}" -m pip install --upgrade "${spec}"
+# Bootstrap if the consolidated CLI isn't importable. No spec normalization,
+# dispatch probes, argument peeking, prepared-base orchestration, or dryrun
+# probes — the pin removes the need for any of that.
+if ! "${PYTHON_BIN}" -c "import holoscan_cli.__main__" &>/dev/null; then
+    spec="${HOLOSCAN_CLI_SOURCE:-${HOLOSCAN_CLI_VERSION}}"
+    echo "[holohub] installing ${spec}" >&2
+    # shellcheck disable=SC2086  # extra-flags must word-split for pip
+    "${PYTHON_BIN}" -m pip install --upgrade ${HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS} "${spec}"
 fi
 
-# Container builds share a prepared Holohub base image carrying python/pip,
-# consolidated holoscan-cli, and `holohub setup`. Project Dockerfiles consume
-# it through the generic BASE_IMAGE build arg that holoscan-cli already passes.
-_holohub_has_arg() {
-    local needle="$1"
-    shift || true
-    local arg
-    for arg in "$@"; do
-        if [[ "${arg}" == "--" ]]; then
-            return 1
-        fi
-        if [[ "${arg}" == "${needle}" || "${arg}" == "${needle}="* ]]; then
-            return 0
-        fi
-    done
-    return 1
-}
-
-_holohub_cuda_arg() {
-    local expect_value=0
-    local arg
-    for arg in "$@"; do
-        if [[ "${arg}" == "--" ]]; then
-            return 1
-        fi
-        if [[ "${expect_value}" == "1" ]]; then
-            printf '%s\n' "${arg}"
-            return 0
-        fi
-        case "${arg}" in
-            --cuda)
-                expect_value=1
-                ;;
-            --cuda=*)
-                printf '%s\n' "${arg#--cuda=}"
-                return 0
-                ;;
-        esac
-    done
-    return 1
-}
-
-_holohub_needs_prepared_base() {
-    if [[ "${HOLOHUB_DISABLE_PREPARED_BASE:-0}" == "1" ]]; then
-        return 1
-    fi
-    if [[ -n "${HOLOSCAN_CLI_BASE_IMAGE_FORMAT:-}" && -z "${HOLOHUB_PREPARED_BASE_IMAGE_FORMAT:-}" ]]; then
-        return 1
-    fi
-
-    local command="${1:-}"
-    case "${command}" in
-        build|run|install|package|test|build-container|run-container)
-            ;;
-        *)
-            return 1
-            ;;
-    esac
-
-    # Help-only invocations never reach the Docker layer; don't trigger the
-    # prepared-base build just so the CLI can print its usage string.
-    if _holohub_has_arg "--help" "$@" || _holohub_has_arg "-h" "$@"; then
-        return 1
-    fi
-
-    if _holohub_has_arg "--local" "$@" || \
-       _holohub_has_arg "--no-docker-build" "$@" || \
-       _holohub_has_arg "--base-img" "$@"; then
-        return 1
-    fi
-
-    # `holohub install --dev` is a host-only operation: it copies a staged
-    # .pth hook + helper module into the user's Python user-site so an
-    # in-tree Holoscan-Module build is importable as `holoscan.<module>`.
-    # Building a prepared Docker base before that is wasted work and
-    # races the local copy.
-    if [[ "${command}" == "install" ]] && _holohub_has_arg "--dev" "$@"; then
-        return 1
-    fi
-
-    return 0
-}
-
-_holohub_configure_prepared_base() {
-    local cuda_override
-    cuda_override="$(_holohub_cuda_arg "$@" || true)"
-
-    local prepared_env
-    prepared_env="$("${PYTHON_BIN}" - "${cuda_override}" <<'PY'
-import os
-import shlex
-import sys
-
-from holoscan_cli.utils.sdk import (
-    DEFAULT_BASE_SDK_VERSION,
-    get_cuda_tag,
-    get_default_cuda_version,
-    get_host_gpu,
-)
-
-cuda_override = sys.argv[1] or None
-sdk_version = os.environ.get("HOLOSCAN_CLI_BASE_SDK_VERSION", DEFAULT_BASE_SDK_VERSION)
-cuda_version = cuda_override or os.environ.get("HOLOSCAN_CLI_CUDA_VERSION") or get_default_cuda_version()
-cuda_tag = get_cuda_tag(cuda_version, sdk_version)
-gpu_type = get_host_gpu()
-
-base_image_name = os.environ.get(
-    "HOLOSCAN_CLI_BASE_IMAGE", "nvcr.io/nvidia/clara-holoscan/holoscan"
-)
-base_image_format = os.environ.get(
-    "HOLOHUB_PREPARED_BASE_FROM_FORMAT", "{base_image}:v{sdk_version}-{cuda_tag}"
-)
-base_image = os.environ.get("HOLOHUB_PREPARED_BASE_FROM") or base_image_format.format(
-    base_image=base_image_name,
-    sdk_version=sdk_version,
-    cuda_tag=cuda_tag,
-)
-
-container_prefix = os.environ.get(
-    "HOLOSCAN_CLI_CONTAINER_PREFIX",
-    os.environ.get("HOLOSCAN_CLI_REPO_PREFIX", "holohub"),
-)
-prepared_format = os.environ.get(
-    "HOLOHUB_PREPARED_BASE_IMAGE_FORMAT",
-    f"{container_prefix}:base-v{{sdk_version}}-{{cuda_tag}}",
-)
-prepared_image = os.environ.get("HOLOHUB_PREPARED_BASE_IMAGE") or prepared_format.format(
-    base_image=base_image_name,
-    sdk_version=sdk_version,
-    cuda_tag=cuda_tag,
-)
-delegated_format = os.environ.get("HOLOHUB_PREPARED_BASE_IMAGE") or prepared_format
-
-for key, value in {
-    "base_image": base_image,
-    "prepared_image": prepared_image,
-    "delegated_format": delegated_format,
-    "sdk_version": sdk_version,
-    "gpu_type": gpu_type,
-}.items():
-    print(f"{key}={shlex.quote(value)}")
-PY
-)"
-    eval "${prepared_env}"
-
-    export HOLOSCAN_CLI_BASE_IMAGE_FORMAT="${delegated_format}"
-
-    if _holohub_has_arg "--dryrun" "$@"; then
-        echo "[holohub] would build prepared base ${prepared_image} from ${base_image}" >&2
-        return 0
-    fi
-
-    local docker_exe="${HOLOSCAN_CLI_DOCKER_EXE:-docker}"
-    local build_cmd=(
-        "${docker_exe}" build
-        --build-arg "BUILDKIT_INLINE_CACHE=1"
-        --build-arg "BASE_IMAGE=${base_image}"
-        --build-arg "GPU_TYPE=${gpu_type}"
-        --build-arg "BASE_SDK_VERSION=${sdk_version}"
-        --network=host
-    )
-
-    if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
-        build_cmd+=(--build-context "holoscan-cli-src=${HOLOSCAN_CLI_SOURCE}")
-    fi
-    if [[ -n "${HOLOSCAN_CLI_INSTALL_SPEC:-}" ]]; then
-        build_cmd+=(--build-arg "HOLOSCAN_CLI_INSTALL_SPEC=${HOLOSCAN_CLI_INSTALL_SPEC}")
-    elif [[ -n "${HOLOSCAN_CLI_VERSION:-}" && -z "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
-        # Normalize bare values (`4.3.0`, `>=4.3`) so pip inside the prepared
-        # base image receives a valid requirement string.
-        build_cmd+=(--build-arg "HOLOSCAN_CLI_INSTALL_SPEC=$(_holohub_normalize_cli_spec "${HOLOSCAN_CLI_VERSION}")")
-    fi
-    if [[ -n "${HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS:-}" ]]; then
-        build_cmd+=(--build-arg "HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS=${HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS}")
-    fi
-
-    DOCKER_BUILDKIT=1 "${build_cmd[@]}" \
-        -f "${SCRIPT_DIR}/utilities/docker/Dockerfile.holohub-base" \
-        -t "${prepared_image}" \
-        "${SCRIPT_DIR}"
-}
-
-# Cheap host-side validation probe. The prepared-base Docker build below
-# can take several minutes, so before kicking it off we ask the CLI itself
-# whether the invocation is well-formed (e.g. multi-language project
-# disambiguation, missing metadata.json, bad/unknown flags). If the CLI
-# rejects the args here, surface the same error and exit immediately rather
-# than building a base image only to discard it.
-#
-# Skip the probe when the user already passed `--dryrun`, when args contain
-# a `--` terminator (the appended flag would be consumed as part of the
-# forwarded command), or when `HOLOHUB_DISABLE_DRYRUN_PROBE=1` is set to
-# opt out of the extra CLI startup.
-_holohub_dryrun_probe_or_exit() {
-    if [[ "${HOLOHUB_DISABLE_DRYRUN_PROBE:-0}" == "1" ]]; then
-        return 0
-    fi
-    if _holohub_has_arg "--dryrun" "$@"; then
-        return 0
-    fi
-    local arg
-    for arg in "$@"; do
-        if [[ "${arg}" == "--" ]]; then
-            return 0
-        fi
-    done
-    local rc=0
-    local output
-    output="$("${PYTHON_BIN}" -m holoscan_cli "$@" --dryrun 2>&1)" || rc=$?
-    if [[ ${rc} -ne 0 ]]; then
-        printf '%s\n' "${output}" >&2
-        exit ${rc}
-    fi
-}
-
-# Propagate the host's holoscan-cli install spec to every `docker build` the
-# CLI runs so the in-container `pip install holoscan-cli` resolves to the
-# same consolidated build the host bootstrapped. Without this, `--base-img`
-# invocations bypass `_holohub_configure_prepared_base` (which is the only
-# place that injects `--build-arg HOLOSCAN_CLI_INSTALL_SPEC` for the
-# prepared-base layer) and the project Dockerfile silently falls back to
-# PyPI's legacy `holoscan-cli==4.2.0` — that release predates the
-# consolidated `PROJECT_COMMANDS` dispatch and rejects `--language` /
-# `--local`, breaking `holoscan run` inside the resulting container.
-#
-# holoscan-cli concatenates `HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS` onto
-# every `docker build` it invokes (and shlex-splits it), so we just extend
-# that env var. Single-quote the `KEY=VALUE` so values with spaces (e.g.
-# `HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS=--pre --index-url ...`) survive the
-# split. Existing entries in the env var are preserved.
-_holohub_shquote() {
-    printf "'%s'" "${1//\'/\'\\\'\'}"
-}
-
-_holohub_extend_default_build_args() {
-    local extra=""
-    local spec=""
-    if [[ -n "${HOLOSCAN_CLI_INSTALL_SPEC:-}" ]]; then
-        spec="${HOLOSCAN_CLI_INSTALL_SPEC}"
-    elif [[ -n "${HOLOSCAN_CLI_VERSION:-}" && -z "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
-        spec="$(_holohub_normalize_cli_spec "${HOLOSCAN_CLI_VERSION}")"
-    fi
-    if [[ -n "${spec}" ]]; then
-        extra+=" --build-arg $(_holohub_shquote "HOLOSCAN_CLI_INSTALL_SPEC=${spec}")"
-    fi
-    if [[ -n "${HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS:-}" ]]; then
-        extra+=" --build-arg $(_holohub_shquote "HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS=${HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS}")"
-    fi
-    # Propagate a local holoscan-cli checkout as a buildx build-context so the
-    # project Dockerfile's `--mount=type=bind,from=holoscan-cli-src` install
-    # branch can pick it up on the `--base-img` path (the prepared-base path
-    # in `_holohub_configure_prepared_base` already does this for its own
-    # docker build). Without this, `HOLOSCAN_CLI_SOURCE` silently falls back
-    # to PyPI inside the container while the host runs the local checkout.
-    if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
-        extra+=" --build-context $(_holohub_shquote "holoscan-cli-src=${HOLOSCAN_CLI_SOURCE}")"
-    fi
-    if [[ -z "${extra}" ]]; then
-        return 0
-    fi
-    if [[ -n "${HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS:-}" ]]; then
-        export HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS="${HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS}${extra}"
-    else
-        export HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS="${extra# }"
-    fi
-}
-
-_holohub_extend_default_build_args
-
-if _holohub_needs_prepared_base "$@"; then
-    _holohub_dryrun_probe_or_exit "$@"
-    _holohub_configure_prepared_base "$@"
+# Forward the pinned spec + extra flags as `--build-arg`s on every project
+# `docker build` so the in-container CLI matches the host CLI. holoscan-cli's
+# container/core.py shlex-splits HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS onto
+# the docker build command; single-quote the KEY=VALUE pair so values with
+# spaces (extra flags, paths) survive the split.
+_q() { printf "'%s'" "${1//\'/\'\\\'\'}"; }
+extras=" --build-arg $(_q "HOLOSCAN_CLI_INSTALL_SPEC=${HOLOSCAN_CLI_VERSION}")"
+extras+=" --build-arg $(_q "HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS=${HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS}")"
+if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
+    extras+=" --build-context $(_q "holoscan-cli-src=${HOLOSCAN_CLI_SOURCE}")"
 fi
+export HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS="${HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS:-}${extras}"
 
-# Always exec the CLI via `python -m holoscan_cli` so we keep using the
-# same interpreter the bootstrap above prepared. A `holoscan` console
-# script on PATH might be installed against a *different* interpreter,
-# point at a stale version, or bypass `HOLOSCAN_CLI_SOURCE` / `HOLOSCAN_CLI_VERSION`
-# that we just pinned — `-m` removes that surface entirely.
 exec "${PYTHON_BIN}" -m holoscan_cli "$@"

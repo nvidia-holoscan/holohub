@@ -4,8 +4,8 @@
 #
 # {{ cookiecutter.project_name }} CLI wrapper.
 # Delegates to the standalone `holoscan-cli` package with module-specific
-# defaults baked in. On first run, installs holoscan-cli via pip if it isn't
-# already importable.
+# defaults baked in, pinned to the same TestPyPI build as the HoloHub
+# repo wrapper so every invocation gets a known-good CLI.
 #
 # Usage:
 #   ./holohub run-container
@@ -13,18 +13,11 @@
 #   ./holohub run   {{ cookiecutter.module_slug }}_pipeline --language python
 #   ./holohub --help
 #
-# Bootstrap (install on first run):
-#   HOLOSCAN_CLI_SOURCE  Local holoscan-cli checkout. Takes precedence.
-#   HOLOSCAN_CLI_VERSION Pip install spec for holoscan-cli. Defaults to
-#                        `holoscan-cli` (latest on PyPI). Bare versions and
-#                        operator-prefixed values are normalized to include
-#                        the package name. Accepted forms:
-#                          `4.3.0`               -> `holoscan-cli==4.3.0`
-#                          `>=4.3`               -> `holoscan-cli>=4.3`
-#                          `holoscan-cli==4.3.0` -> passed through
-#                          `git+https://github.com/nvidia-holoscan/holoscan-cli.git@main`
-#                                                -> passed through (URL/VCS)
-#   HOLOHUB_PYTHON_BIN   Override the Python interpreter (default: python3).
+# Optional overrides (rarely needed):
+#   HOLOSCAN_CLI_SOURCE              Local checkout — wins over the pin.
+#   HOLOSCAN_CLI_VERSION             Pip install spec.
+#   HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS Extra pip flags.
+#   HOLOHUB_PYTHON_BIN               Python interpreter (default: python3).
 
 set -euo pipefail
 
@@ -63,61 +56,30 @@ export HOLOSCAN_CLI_DATA_DIR="${HOLOSCAN_CLI_DATA_DIR:-${SCRIPT_DIR}/data}"
 export CMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE:-Release}"
 
 # ==============================================================================
-# Bootstrap holoscan-cli + exec
+# Pinned holoscan-cli + bootstrap + exec
 # ==============================================================================
 
 PYTHON_BIN="${HOLOHUB_PYTHON_BIN:-python3}"
+
+# Pinned consolidated holoscan-cli (matches the HoloHub root wrapper).
+export HOLOSCAN_CLI_VERSION="${HOLOSCAN_CLI_VERSION:-holoscan-cli==4.3.0a26390596878}"
+export HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS="${HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS:---index-url https://test.pypi.org/simple/}"
 
 if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
     export PYTHONPATH="${HOLOSCAN_CLI_SOURCE%/}/src${PYTHONPATH:+:${PYTHONPATH}}"
 fi
 
-# Accept either a full pip requirement (``holoscan-cli==4.3.0``,
-# ``git+https://...``, local path) or a shorthand (``4.3.0``, ``>=4.3``). Bare
-# version operators and bare numeric versions get the package name prepended;
-# anything else is passed through to pip unchanged.
-_holohub_normalize_cli_spec() {
-    local raw="$1"
-    case "${raw}" in
-        holoscan-cli|holoscan-cli[\<\>=\!~]*|holoscan_cli|holoscan_cli[\<\>=\!~]*)
-            printf '%s' "${raw}" ;;
-        *://*|/*|./*|.|git+*|file:*)
-            printf '%s' "${raw}" ;;
-        [\<\>=\!~]*)
-            printf 'holoscan-cli%s' "${raw}" ;;
-        [0-9]*)
-            printf 'holoscan-cli==%s' "${raw}" ;;
-        *)
-            printf '%s' "${raw}" ;;
-    esac
-}
-
-# Require a *consolidated* holoscan-cli (exposes PROJECT_COMMANDS). Older
-# releases import cleanly but lack the source-project dispatch table this
-# wrapper depends on, so reinstall/upgrade when the feature check fails.
-_holohub_cli_has_consolidated_dispatch() {
-    "${PYTHON_BIN}" - <<'PY' &>/dev/null
-from holoscan_cli.__main__ import PROJECT_COMMANDS
-
-required = {"build", "run", "list", "install"}
-assert required <= set(PROJECT_COMMANDS), f"missing: {required - set(PROJECT_COMMANDS)}"
-PY
-}
-
-if ! _holohub_cli_has_consolidated_dispatch; then
-    if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
-        spec="${HOLOSCAN_CLI_SOURCE}"
-    else
-        spec="$(_holohub_normalize_cli_spec "${HOLOSCAN_CLI_VERSION:-holoscan-cli}")"
-    fi
-    echo "[{{ cookiecutter.module_slug }}] installing/upgrading ${spec}" >&2
-    "${PYTHON_BIN}" -m pip install --upgrade "${spec}"
+# Bootstrap if the consolidated CLI isn't importable. No spec normalization
+# or dispatch probes — the pin removes the need for them.
+if ! "${PYTHON_BIN}" -c "import holoscan_cli.__main__" &>/dev/null; then
+    spec="${HOLOSCAN_CLI_SOURCE:-${HOLOSCAN_CLI_VERSION}}"
+    echo "[{{ cookiecutter.module_slug }}] installing ${spec}" >&2
+    # shellcheck disable=SC2086  # extra-flags must word-split for pip
+    "${PYTHON_BIN}" -m pip install --upgrade ${HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS} "${spec}"
 fi
 
 # exec replaces the shell so SIGINT/SIGTERM/SIGHUP reach the CLI directly.
 # Always go through `python -m holoscan_cli` so the interpreter that
-# bootstrapped/imported the CLI above is the one that runs it. A
-# `holoscan` console script on PATH might resolve to a different
-# interpreter or bypass `HOLOSCAN_CLI_SOURCE` / `HOLOSCAN_CLI_VERSION`
-# that we just pinned — `-m` removes that surface entirely.
+# bootstrapped the CLI above is the one that runs it — a `holoscan` console
+# script on PATH might resolve to a different interpreter.
 exec "${PYTHON_BIN}" -m holoscan_cli "$@"
