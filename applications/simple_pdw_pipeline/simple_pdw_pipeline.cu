@@ -137,7 +137,7 @@ class DaqiriSocketTxOp : public holoscan::Operator {
     auto* payload = reinterpret_cast<uint8_t*>(daqiri::get_packet_ptr(msg, 0));
     std::memcpy(payload, packet->data, packet->len);
     daqiri::set_packet_lengths(msg, 0, {static_cast<int>(packet->len)});
-    msg->rdma_hdr.conn_id = conn_id_;
+    daqiri::set_connection_id(msg, conn_id_);
     if (daqiri::send_tx_burst(msg) != daqiri::Status::SUCCESS) {
       HOLOSCAN_LOG_WARN("Unable to send DAQIRI TX packet");
     }

@@ -105,6 +105,9 @@ class DaqiriRawEthernetBenchDefaultTxOp : public Operator {
     format_eth_addr(eth_dst_, eth_dst_addr_.get());
     inet_pton(AF_INET, ip_src_addr_.get().c_str(), &ip_src_);
     inet_pton(AF_INET, ip_dst_addr_.get().c_str(), &ip_dst_);
+    // DAQIRI expects host order when setting IPv4 headers.
+    ip_src_ = ntohl(ip_src_);
+    ip_dst_ = ntohl(ip_dst_);
 
     if (gpu_direct_.get()) {
       for (int n = 0; n < num_concurrent; n++) {
@@ -148,9 +151,6 @@ class DaqiriRawEthernetBenchDefaultTxOp : public Operator {
       cudaMemset(gds_header_, 0, header_size_.get());
 
       populate_dummy_headers(pkt);
-      // DAQIRI expects host order when setting
-      ip_src_ = ntohl(ip_src_);
-      ip_dst_ = ntohl(ip_dst_);
 
       // Copy the pre-made header to GPU
       cudaMemcpy(gds_header_, reinterpret_cast<void*>(&pkt), sizeof(pkt), cudaMemcpyDefault);

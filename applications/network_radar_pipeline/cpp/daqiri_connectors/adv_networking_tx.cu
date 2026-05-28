@@ -23,7 +23,6 @@ namespace holoscan::ops {
 
 void AdvConnectorOpTx::setup(OperatorSpec& spec) {
   spec.input<std::shared_ptr<RFChannel>>("rf_in");
-  spec.output<std::shared_ptr<BurstParams>>("burst_out");
 
   // Advanced network operator parameters
   spec.param<NetworkConfig>(cfg_,
@@ -299,7 +298,7 @@ void copy_headers(uint8_t** gpu_bufs, void* header, uint16_t hdr_size, uint32_t 
   copy_headers<<<num_pkts, 32, 0, stream>>>(gpu_bufs, header, hdr_size);
 }
 
-void AdvConnectorOpTx::compute(InputContext& op_input, OutputContext& op_output,
+void AdvConnectorOpTx::compute(InputContext& op_input, OutputContext&,
                                ExecutionContext& context) {
   // Check if GPU send is falling behind
   if (gpu_direct_ && (cudaEventQuery(events_[cur_idx]) != cudaSuccess)) {
