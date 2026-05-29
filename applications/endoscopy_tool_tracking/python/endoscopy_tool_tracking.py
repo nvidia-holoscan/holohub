@@ -123,17 +123,16 @@ class EndoscopyApp(Application):
 
             width = deltacast_kwargs["width"]
             height = deltacast_kwargs["height"]
-            rdma = deltacast_kwargs["rdma"]
-            is_overlay_enabled = deltacast_kwargs["enable_overlay"]
+            rdma = deltacast_kwargs.get("rdma", False)
+            is_overlay_enabled = deltacast_kwargs.get("enable_overlay", False)
 
             source_block_size = width * height * 4 * 4
             source_num_blocks = 3 if rdma else 4
 
-            videomaster = lazy_import("holohub.videomaster")
+            videomaster = lazy_import("holoscan.deltacast")
             source = videomaster.VideoMasterSourceOp(
                 self,
                 name="deltacast",
-                pool=UnboundedAllocator(self, name="pool"),
                 rdma=rdma,
                 board=deltacast_kwargs["board"],
                 input=deltacast_kwargs["input"],
