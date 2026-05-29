@@ -1,7 +1,7 @@
 # HoloHub CLI Reference Guide
 
-> ⚠️ **Legacy — pre-consolidation.** This file documents the in-tree
-> `./holohub` CLI as it existed before the `holoscan-cli` consolidation,
+> ⚠️ **Legacy.** This file documents the in-tree `./holohub` CLI as it
+> existed before `holoscan-cli` superseded it,
 > including legacy `HOLOHUB_*` environment-variable names. For the
 > authoritative current reference run `holoscan --help` / `holoscan env-info`,
 > or see the [holoscan-cli](https://github.com/nvidia-holoscan/holoscan-cli)

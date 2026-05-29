@@ -5,7 +5,7 @@ The `./holohub` command is provided by the standalone
 which HoloHub installs (or detects) the first time the wrapper is invoked.
 The Python implementation that used to live under this directory
 (`holohub.py`, `container.py`, `util.py`, `status.py`, `system_check.py`,
-`version_check.py`) has moved to the consolidated package; HoloHub is now
+`version_check.py`) has moved to the holoscan-cli package; HoloHub is now
 one of its downstream consumers alongside Isaac OS and the I4H Workflows
 repos.
 
@@ -14,7 +14,7 @@ For the canonical command, option, and environment-variable reference, run
 visit the [holoscan-cli](https://github.com/nvidia-holoscan/holoscan-cli)
 repository — that is now the single source of truth and stays current as
 the CLI evolves. The historical `cli_reference.md` in this directory
-documents the pre-consolidation CLI and is no longer authoritative.
+documents the old in-tree CLI and is no longer authoritative.
 
 This directory keeps the user-facing CLI documentation:
 
@@ -54,7 +54,7 @@ The legacy `HOLOHUB_*` env-var spellings are still honored for one release
 with a one-line deprecation warning; this wrapper sets the new names
 proactively so the warning never fires.
 
-## Consolidation smoke test
+## holoscan-cli smoke test
 
 ```bash
 HOLOSCAN_CLI_SOURCE=/path/to/holoscan-cli \

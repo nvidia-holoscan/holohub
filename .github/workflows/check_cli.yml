@@ -34,7 +34,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # Install the pinned consolidated holoscan-cli from TestPyPI until the
+      # Install the pinned holoscan-cli from TestPyPI until the
       # release is promoted to public PyPI.
       #
       # Two-step install scopes TestPyPI to *only* the pinned holoscan-cli
@@ -42,7 +42,7 @@ jobs:
       # resolve its transitive deps + the CI test tools from public PyPI.
       # That avoids dependency-confusion risk where TestPyPI mirrors of
       # common packages could shadow PyPI ones.
-      - name: Install consolidated holoscan-cli (pinned dev build)
+      - name: Install holoscan-cli (pinned dev build)
         run: |
           python -m pip install --upgrade pip
           python -m pip install --pre --no-deps \
@@ -52,7 +52,7 @@ jobs:
               --index-url https://pypi.org/simple/ \
               "${HOLOSCAN_CLI_SPEC}" pytest pytest-mock
 
-      # Verify the wrapper + consolidated CLI contract on HoloHub's project tree.
+      # Verify the wrapper + holoscan-cli contract on HoloHub's project tree.
       - name: Run wrapper consolidation test
         run: python -m pytest -v --noconftest utilities/cli/tests/test_holoscan_cli_consolidation.py
 
@@ -72,7 +72,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y cmake
 
-      # ctest invokes `python -m pytest` on the consolidation smoke test;
+      # ctest invokes `python -m pytest` on the smoke test;
       # match the python-job install so the test actually runs rather than
       # erroring with "No module named pytest". Same two-step split as the
       # check-cli-py matrix so TestPyPI is scoped to the holoscan-cli wheel
@@ -86,7 +86,7 @@ jobs:
       # holoscan-cli's optional `[create]` extras (jsonschema, referencing);
       # installing those alongside cookiecutter keeps `validate_generated_metadata`
       # from aborting the scaffold with a [FATAL] message.
-      - name: Install consolidated holoscan-cli (pinned dev build)
+      - name: Install holoscan-cli (pinned dev build)
         run: |
           python -m pip install --upgrade pip
           python -m pip install --pre --no-deps \
@@ -106,7 +106,7 @@ jobs:
           cd build
           ctest --verbose
 
-  # Exercise the same consolidation smoke test against a *source checkout*
+  # Exercise the same smoke test against a *source checkout*
   # of holoscan-cli (https://github.com/nvidia-holoscan/holoscan-cli) rather
   # than the pinned TestPyPI wheel. This catches breakage when an in-flight
   # holoscan-cli change lands ahead of a new release.

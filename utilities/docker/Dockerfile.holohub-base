@@ -4,9 +4,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # ----------------------------------------------------------------------------
-# HoloHub prepared base image: stacks python+pip and the consolidated
-# `holoscan-cli` onto the Holoscan SDK runtime and runs `holohub setup`, so
-# downstream Dockerfiles can `FROM ${BASE_IMAGE}` without re-provisioning.
+# HoloHub prepared base image: stacks python+pip and `holoscan-cli` onto the
+# Holoscan SDK runtime and runs `holohub setup`, so downstream Dockerfiles can
+# `FROM ${BASE_IMAGE}` without re-provisioning.
 #
 # Writing a new custom Dockerfile? You don't need this file — just
 # `RUN pip install holoscan-cli` (see doc/developer.md). The build-context and
@@ -18,7 +18,7 @@ ARG BASE_SDK_VERSION
 ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v${BASE_SDK_VERSION}-${GPU_TYPE}
 FROM ${BASE_IMAGE} AS base
 
-# Default-empty source stage for the consolidated holoscan-cli. Override with a
+# Default-empty source stage for holoscan-cli. Override with a
 # real checkout via:
 #   docker buildx build --build-context holoscan-cli-src=/path/to/holoscan-cli ...
 FROM scratch AS holoscan-cli-src
@@ -53,7 +53,7 @@ RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
         curl -sS https://bootstrap.pypa.io/get-pip.py | ${PYTHON_VERSION} \
     ; fi
 
-# Install the consolidated `holoscan-cli`. Two-step (matches CI): the wheel from
+# Install `holoscan-cli`. Two-step (matches CI): the wheel from
 # TestPyPI (--no-deps), then deps from PyPI so a TestPyPI mirror can't shadow a
 # PyPI dep. Escape hatches for iterating on the CLI itself:
 #   * `--build-context holoscan-cli-src=<path>` installs a local checkout (wins).
@@ -70,7 +70,7 @@ RUN if ! command -v git >/dev/null 2>&1; then \
 
 RUN --mount=type=bind,from=holoscan-cli-src,target=/tmp/holoscan-cli-src \
     if [ -f /tmp/holoscan-cli-src/pyproject.toml ]; then \
-        echo "Installing consolidated holoscan-cli from local source build-context"; \
+        echo "Installing holoscan-cli from local source build-context"; \
         cp -a /tmp/holoscan-cli-src /tmp/holoscan-cli-src-writable; \
         python3 -m pip install --no-cache-dir /tmp/holoscan-cli-src-writable; \
         rm -rf /tmp/holoscan-cli-src-writable; \
@@ -84,7 +84,7 @@ RUN --mount=type=bind,from=holoscan-cli-src,target=/tmp/holoscan-cli-src \
 
 RUN holoscan version \
     && holoscan --help 2>/dev/null | grep -qw build \
-    || (echo "ERROR: consolidated holoscan-cli missing source-project commands (got legacy holoscan-cli <= 4.2.0?)" >&2; exit 1)
+    || (echo "ERROR: holoscan-cli missing source-project commands (got legacy holoscan-cli <= 4.2.0?)" >&2; exit 1)
 
 RUN mkdir -p /tmp/scripts
 COPY holohub /tmp/scripts/

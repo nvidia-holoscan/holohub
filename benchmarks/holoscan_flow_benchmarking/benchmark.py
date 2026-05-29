@@ -42,8 +42,8 @@ try:
 except ImportError as exc:
     sys.exit(
         f"{exc}\n"
-        "The benchmarking tool now reads project metadata via the consolidated\n"
-        "`holoscan-cli` package. Install it before running outside the HoloHub\n"
+        "The benchmarking tool now reads project metadata via the `holoscan-cli`\n"
+        "package. Install it before running outside the HoloHub\n"
         "container, e.g. `pip install holoscan-cli` (see\n"
         "https://github.com/nvidia-holoscan/holoscan-cli for pinned/pre-release\n"
         "specs)."

@@ -54,10 +54,9 @@ remove_empty_dirs()
 
 # Locate the HoloHub clone so we can copy in companion CMake helpers. The
 # cookiecutter runs this hook from a temp file, so __file__ is unreliable.
-# The consolidated holoscan-cli sets HOLOSCAN_CLI_ROOT to the HoloHub root
-# before invoking cookiecutter (legacy HOLOHUB_ROOT is honored too for users
-# still on the pre-consolidation CLI); standalone cookiecutter use falls back
-# to a sibling-directory search.
+# holoscan-cli sets HOLOSCAN_CLI_ROOT to the HoloHub root before invoking
+# cookiecutter (legacy HOLOHUB_ROOT is honored too); standalone cookiecutter
+# use falls back to a sibling-directory search.
 _holohub_root = None
 _env_root = os.environ.get("HOLOSCAN_CLI_ROOT") or os.environ.get("HOLOHUB_ROOT")
 _candidates = (
