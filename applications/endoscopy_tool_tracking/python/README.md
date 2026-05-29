@@ -66,7 +66,7 @@ the working directory.
         --run-args="-s=deltacast"
     ```
 
-    See also: https://github.com/deltacasttv/holoscan-modules
+    See also: <https://github.com/deltacasttv/holoscan-modules>
 
 - Using a YUAN card
 

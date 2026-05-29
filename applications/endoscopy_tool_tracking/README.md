@@ -79,7 +79,6 @@ Build and run with the HoloHub CLI:
 
 This selects the `deltacast` project mode defined in the application's `metadata.json`, which sets `-DOP_deltacast_videomaster=ON` and causes CMake to fetch and build the `holoscan-deltacast` module via FetchContent.
 
-
 ### Using VTK for rendering
 
 The tool tracking application can use the [VTK](https://vtk.org/) library to

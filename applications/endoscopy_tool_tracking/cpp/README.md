@@ -9,6 +9,7 @@ The provided applications are configured to either use capture cards for input s
 Follow the [setup instructions from the user guide](https://docs.nvidia.com/holoscan/sdk-user-guide/aja_setup.html) to use the AJA capture card.
 
 To use the **Deltacast VideoMaster** capture card:
+
 - Install a DELTACAST.TV SDI or HDMI VideoMaster card in your system.
 - Obtain the VideoMaster SDK from [DELTACAST.TV](https://www.deltacast.tv/) and follow their installation instructions.
 - Holoscan SDK â‰¥ 4.2.0 is required.
@@ -37,35 +38,35 @@ To build with Deltacast VideoMaster support (requires a Deltacast card and SDK â
 
 In your `build` directory, run the commands of your choice:
 
-* Using a pre-recorded video
+- Using a pre-recorded video
 
     ```bash
     sed -i -e 's#^source:.*#source: replayer#' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
     applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking --data <data_dir>/endoscopy
     ```
 
-* Using a vtk_renderer instead of holoviz
+- Using a vtk_renderer instead of holoviz
 
     ```bash
     sed -i -e 's#^visualizer:.*#visualizer: "vtk"#' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
     applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking --data <data_dir>/endoscopy
     ```
 
-* Using a holoviz instead of vtk_renderer
+- Using a holoviz instead of vtk_renderer
 
     ```bash
     sed -i -e 's#^visualizer:.*#visualizer: "holoviz"#' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
     applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking --data <data_dir>/endoscopy
     ```
 
-* Using an AJA card
+- Using an AJA card
 
     ```bash
     sed -i -e 's#^source:.*#source: aja#' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
     applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking
     ```
 
-* Using a Deltacast card
+- Using a Deltacast card
 
     ```bash
     sed -i -e '/^#.*deltacast_videomaster/s/^#//' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
@@ -73,7 +74,7 @@ In your `build` directory, run the commands of your choice:
     applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking
     ```
 
-* Using a Yuan card
+- Using a Yuan card
 
     ```bash
     sed -i -e '/^#.*yuan_qcap/s/^#//' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
@@ -81,13 +82,13 @@ In your `build` directory, run the commands of your choice:
     applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking
     ```
 
-* Using an AJA card with hardware keying overlay (Only specific cards support this feature)
+- Using an AJA card with hardware keying overlay (Only specific cards support this feature)
 
     ```bash
     ./holohub run endoscopy_tool_tracking --language=cpp --run-args=-capplications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking_aja_overlay.yaml
     ```
 
-* Using the Slang shader operator for post-processing
+- Using the Slang shader operator for post-processing
 
     ```bash
     sed -i -e 's#^postprocessor:.*#postprocessor: slang_shader#' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
