@@ -251,5 +251,79 @@ class TestModuleListWithRootSearchPath(unittest.TestCase):
         )
 
 
+@unittest.skipIf(not _cookiecutter_available(), "cookiecutter not installed")
+class TestPackageCommandPassesGateFlags(unittest.TestCase):
+    """`./holohub package --local` must pass both -DMODULE_<slug>=ON and -DPKG_<slug>=ON.
+
+    MODULE_<slug> gates in-tree modules (modules/CMakeLists.txt's add_holohub_module);
+    PKG_<slug> gates the pkg/<name>/ cascade (add_holohub_package). Both flags must
+    appear in the cmake invocation so the command works for in-tree and standalone
+    module repos without context-sniffing.
+    """
+
+    _PKG_SLUG = _MODULE_REPO_NAME.replace("-", "_")
+
+    @classmethod
+    def setUpClass(cls):
+        cls._tmp = tempfile.TemporaryDirectory()
+        result = _create_module(_PROJECT_NAME, "python", Path(cls._tmp.name))
+        if result.returncode != 0:
+            cls._tmp.cleanup()
+            raise unittest.SkipTest(
+                f"holohub create failed:\nstdout: {result.stdout}\nstderr: {result.stderr}"
+            )
+        cls.module_dir = Path(cls._tmp.name) / _MODULE_REPO_NAME
+        cls.module_holohub = cls.module_dir / "holohub"
+
+        # CLI_DIR routes the generated wrapper at this local CLI clone (skips
+        # GitHub fetch and any stale .holohub/ cache).
+        env = {**os.environ, "CLI_DIR": str(HOLOHUB_ROOT)}
+        cls.dryrun = subprocess.run(
+            [
+                str(cls.module_holohub),
+                "package",
+                _MODULE_REPO_NAME,
+                "--local",
+                "--pkg-generator",
+                "DEB",
+                "--dryrun",
+            ],
+            cwd=str(cls.module_dir),
+            env=env,
+            capture_output=True,
+            text=True,
+        )
+
+    @classmethod
+    def tearDownClass(cls):
+        if hasattr(cls, "_tmp"):
+            cls._tmp.cleanup()
+
+    def test_dryrun_exits_zero(self):
+        self.assertEqual(
+            self.dryrun.returncode,
+            0,
+            f"holohub package --dryrun failed:\nstdout: {self.dryrun.stdout}\n"
+            f"stderr: {self.dryrun.stderr}",
+        )
+
+    def test_dryrun_passes_module_flag(self):
+        """Regression test for in-tree gstreamer-style packaging: MODULE_<slug>=ON enters
+        modules/<name>/ when modules/CMakeLists.txt uses add_holohub_module()."""
+        self.assertIn(
+            f"-DMODULE_{self._PKG_SLUG}=ON",
+            self.dryrun.stdout,
+            f"Expected -DMODULE_{self._PKG_SLUG}=ON in cmake invocation",
+        )
+
+    def test_dryrun_passes_pkg_flag(self):
+        """PKG_<slug>=ON activates the add_holohub_package() OP/APP/EXT cascade."""
+        self.assertIn(
+            f"-DPKG_{self._PKG_SLUG}=ON",
+            self.dryrun.stdout,
+            f"Expected -DPKG_{self._PKG_SLUG}=ON in cmake invocation",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

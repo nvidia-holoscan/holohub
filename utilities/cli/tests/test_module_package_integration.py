@@ -313,6 +313,17 @@ class TestModulePackageIntegration(unittest.TestCase):
         cache = self._cache()
         self.assertRegex(cache, rf"PKG_{_PKG_SLUG}:BOOL=ON")
 
+    def test_module_option_on_in_cache(self):
+        """MODULE_<slug>=ON must reach cmake even for external modules where it is a no-op.
+        Catches a regression where handle_package would forget to pass -DMODULE_<slug>=ON
+        and silently fail to enter the modules/<name>/ subdir in the in-tree case."""
+        cache = self._cache()
+        self.assertRegex(
+            cache,
+            rf"MODULE_{_PKG_SLUG}(:UNINITIALIZED|:BOOL)=ON",
+            f"MODULE_{_PKG_SLUG} not passed to cmake; in-tree gating would break.",
+        )
+
     def test_operator_force_cascaded_in_cache(self):
         """add_holohub_package() must FORCE OP_<op>=ON before operators/ is processed."""
         cache = self._cache()
