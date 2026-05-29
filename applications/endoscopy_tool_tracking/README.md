@@ -44,6 +44,42 @@ The pipeline is similar to the one using the recorded video, with the exceptions
 
 For AJA cards that support Hardware Keying, you can use the `endoscopy_tool_tracking_aja_overlay.yaml` config file to overlay the segmentation results on the input video on the AJA card FPGA. The overlay layer is sent from [Holoviz](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_operators_extensions.html#operators) back to the [AJA Source](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_operators_extensions.html#operators) operator which handles the alpha blending and outputs it to a port of the the AJA card. The blended image is also sent back to the [Holoviz](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_operators_extensions.html#operators) operator (instead of the input video only) for rendering the same image buffer.
 
+### Deltacast VideoMaster input
+
+The application supports live video capture using a [DELTACAST.TV VideoMaster](https://www.deltacast.tv/) SDI or HDMI capture card via the `holoscan-deltacast` external module. When built with Deltacast support, `VideoMasterSourceOp` replaces the replayer as the video source. The pipeline captures frames from the card, passes them through the same format conversion and LSTM inference stages, and renders the tool tracking overlay with Holoviz. An optional `VideoMasterTransmitterOp` is also instantiated and loops the annotated output back to the card's output port, enabling on-card compositing.
+
+The key pipeline differences from the replayer mode are:
+
+- the input source is `VideoMasterSourceOp` (pixel format `RGBA8888`, configurable resolution and frame rate via the `deltacast` section of the YAML config — defaults to 1920×1080 @ 25 fps)
+- a dedicated `FormatConverterOp` (`format_converter_deltacast`) converts `RGBA8888` → `float32`, reorders channels from BGR to RGB, and resizes to 854×480 before LSTM inference
+- when an output port is connected, `VideoMasterTransmitterOp` receives the Holoviz overlay, which is converted back to `RGBA8888` with channel reordering before output
+
+#### Requirements
+
+- **Hardware**: a DELTACAST.TV VideoMaster SDI or HDMI capture card installed in the host system
+- **Deltacast SDK**: the VideoMaster SDK from DELTACAST.TV must be installed. Contact [DELTACAST.TV](https://www.deltacast.tv/) for access. The `holoscan-deltacast` module provides a mock SDK for development builds without a card.
+- **Holoscan SDK** ≥ 4.2.0
+- The `holoscan-deltacast` module is fetched automatically by the HoloHub CLI at build time; no manual checkout is required.
+
+#### Build and Run with Deltacast support
+
+```bash
+# Switch the source to the Deltacast card
+sed -i -e 's#^source:.*#source: deltacast#' \
+    applications/endoscopy_tool_tracking/<cpp/python>/endoscopy_tool_tracking.yaml
+```
+
+Card selection, signal format, and output port are configured in the `deltacast` section of `endoscopy_tool_tracking.yaml`.
+
+Build and run with the HoloHub CLI:
+
+```bash
+./holohub run endoscopy_tool_tracking deltacast
+```
+
+This selects the `deltacast` project mode defined in the application's `metadata.json`, which sets `-DOP_deltacast_videomaster=ON` and causes CMake to fetch and build the `holoscan-deltacast` module via FetchContent.
+
+
 ### Using VTK for rendering
 
 The tool tracking application can use the [VTK](https://vtk.org/) library to

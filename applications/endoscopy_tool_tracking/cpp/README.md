@@ -8,7 +8,11 @@ The provided applications are configured to either use capture cards for input s
 
 Follow the [setup instructions from the user guide](https://docs.nvidia.com/holoscan/sdk-user-guide/aja_setup.html) to use the AJA capture card.
 
-Refer to the Deltacast documentation to use the Deltacast VideoMaster capture card.
+To use the **Deltacast VideoMaster** capture card:
+- Install a DELTACAST.TV SDI or HDMI VideoMaster card in your system.
+- Obtain the VideoMaster SDK from [DELTACAST.TV](https://www.deltacast.tv/) and follow their installation instructions.
+- Holoscan SDK ≥ 4.2.0 is required.
+- The `holoscan-deltacast` operator module is fetched automatically when building with Deltacast support; no manual checkout is needed. See the [Deltacast VideoMaster input](../README.md#deltacast-videomaster-input) section of the application README for full details.
 
 Refer to the Yuan documentation to use the Yuan QCap capture card.
 
@@ -22,7 +26,12 @@ If you want to manually convert the video data, please refer to the instructions
 ### Build Instructions
 
 Please refer to the top level Holohub README.md file for information on how to build this application.
-In order to build with the Deltacast VideoMaster operator use ```./holohub build endoscopy_tool_tracking --build-with deltacast_videomaster```
+
+To build with Deltacast VideoMaster support (requires a Deltacast card and SDK — see [Requirements](#requirements)):
+
+```bash
+./holohub build endoscopy_tool_tracking --mode deltacast
+```
 
 ### Run Instructions
 

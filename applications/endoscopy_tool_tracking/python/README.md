@@ -55,6 +55,19 @@ the working directory.
     ./holohub run endoscopy_tool_tracking python --run-args=-s=aja
     ```
 
+- Using a Deltacast card
+
+    Update [endoscopy_tool_tracking.yaml](./endoscopy_tool_tracking.yaml) with your target framerate, then:
+
+    ```bash
+    ./holohub run endoscopy_tool_tracking \
+        --language=python \
+        --build-with=deltacast_videomaster \
+        --run-args="-s=deltacast"
+    ```
+
+    See also: https://github.com/deltacasttv/holoscan-modules
+
 - Using a YUAN card
 
     ```bash
