@@ -60,23 +60,23 @@ RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
 # it for `git+` install specs and the local-source build path also needs
 # it (poetry-dynamic-versioning -> dunamai reads the version from VCS).
 # SDK bases ship `git`; raw bases (ubuntu:22.04, cuda:*-base) don't.
-RUN if ! python3 -c "from holoscan_cli.__main__ import PROJECT_COMMANDS; assert {'build','run','list','install'} <= set(PROJECT_COMMANDS)" >/dev/null 2>&1 \
+RUN if ! holoscan --help 2>/dev/null | grep -qw build \
         && ! command -v git >/dev/null 2>&1; then \
         apt-get update \
         && apt-get install --no-install-recommends -y git \
         && rm -rf /var/lib/apt/lists/*; \
     fi
 
-# Probe for the *post-consolidation* CLI (PROJECT_COMMANDS dispatch table)
-# rather than just `command -v holoscan` — the legacy packaging-only
-# `holoscan` in older Holoscan SDK images imports cleanly but doesn't
-# provide the source-project commands this stage relies on.
+# Probe the public `holoscan --help` surface for a source-project subcommand
+# (`build`) rather than just `command -v holoscan` — the legacy packaging-only
+# `holoscan` (holoscan-cli <= 4.2.0) in older Holoscan SDK images stays on
+# PATH but doesn't register the source-project commands this stage relies on.
 #
 # When the `holoscan-cli-src` build-context is non-empty (the wrapper sets it
 # from `HOLOSCAN_CLI_SOURCE`), install from the checkout in preference to
 # `HOLOSCAN_CLI_INSTALL_SPEC` so in-container and host CLIs stay in lockstep.
 RUN --mount=type=bind,from=holoscan-cli-src,target=/tmp/holoscan-cli-src \
-    if ! python3 -c "from holoscan_cli.__main__ import PROJECT_COMMANDS; assert {'build','run','list','install'} <= set(PROJECT_COMMANDS)" >/dev/null 2>&1; then \
+    if ! holoscan --help 2>/dev/null | grep -qw build; then \
         if [ -f /tmp/holoscan-cli-src/pyproject.toml ]; then \
             echo "Installing consolidated holoscan-cli from local source build-context"; \
             cp -a /tmp/holoscan-cli-src /tmp/holoscan-cli-src-writable; \

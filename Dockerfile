@@ -76,7 +76,7 @@ RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
 #    SDK base images already ship `git`, so this stays a no-op for the
 #    standard prepared-base path; only raw bases (ubuntu:22.04, cuda:*-base)
 #    actually trigger the install.
-RUN if ! python3 -c "from holoscan_cli.__main__ import PROJECT_COMMANDS; assert {'build','run','list','install'} <= set(PROJECT_COMMANDS)" >/dev/null 2>&1 \
+RUN if ! holoscan --help 2>/dev/null | grep -qw build \
         && ! command -v git >/dev/null 2>&1; then \
         apt-get update \
         && apt-get install --no-install-recommends -y git \
@@ -85,18 +85,20 @@ RUN if ! python3 -c "from holoscan_cli.__main__ import PROJECT_COMMANDS; assert 
 
 # 3. Ensure the consolidated `holoscan` CLI exists. Skip the pip install
 #    only when the base already ships a *post-consolidation* CLI — the
-#    legacy packaging-only `holoscan` that older Holoscan SDK images
-#    bundle imports cleanly but lacks the source-project dispatch table,
-#    so a bare `command -v holoscan` check would leave us with the wrong
-#    CLI. Probe `PROJECT_COMMANDS` instead, matching the same check used
-#    by utilities/docker/Dockerfile.holohub-base.
+#    legacy packaging-only `holoscan` (holoscan-cli <= 4.2.0) that older
+#    Holoscan SDK images bundle stays on PATH and still answers `holoscan
+#    version`, so neither `command -v holoscan` nor a version probe can
+#    tell it apart. Grep the public `holoscan --help` surface for a
+#    source-project subcommand (`build`) that only the consolidated CLI
+#    registers, matching the check used by
+#    utilities/docker/Dockerfile.holohub-base.
 #
 #    When the `holoscan-cli-src` build-context is non-empty (the wrapper
 #    sets it from `HOLOSCAN_CLI_SOURCE`), install from that checkout in
 #    preference to `HOLOSCAN_CLI_INSTALL_SPEC` so in-container and host
 #    CLIs stay in lockstep.
 RUN --mount=type=bind,from=holoscan-cli-src,target=/tmp/holoscan-cli-src \
-    if ! python3 -c "from holoscan_cli.__main__ import PROJECT_COMMANDS; assert {'build','run','list','install'} <= set(PROJECT_COMMANDS)" >/dev/null 2>&1; then \
+    if ! holoscan --help 2>/dev/null | grep -qw build; then \
         if [ -f /tmp/holoscan-cli-src/pyproject.toml ]; then \
             echo "Installing consolidated holoscan-cli from local source build-context"; \
             cp -a /tmp/holoscan-cli-src /tmp/holoscan-cli-src-writable; \

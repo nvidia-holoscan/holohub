@@ -9,7 +9,7 @@
 				"affiliation": "{{ cookiecutter.affiliation }}"
 			}
 		],
-		"language": "{% if cookiecutter.language == 'cpp' %}C++{% elif cookiecutter.language == 'python' %}Python{% elif cookiecutter.language == 'gxf' %}GXF{% else %}{{ cookiecutter.language }}{% endif %}",
+		"language": "{{ cookiecutter.language }}",
 		"version": "{{ cookiecutter.version }}",
 		"changelog": {
 			"{{ cookiecutter.version }}": "Initial Release"

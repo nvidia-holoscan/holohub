@@ -2,6 +2,9 @@
 build/
 .cmake/
 
+# HoloHub CLI tools (auto-downloaded by the holohub wrapper on first run)
+.holohub/
+
 # Container HOME-mapped junk (dev container sets HOME=/workspace/{{ cookiecutter.module_slug }})
 .local/
 .cupy/
@@ -18,6 +21,6 @@ __pycache__/
 *.py[cod]
 
 # Editor / IDE
-.idea/
 .vscode/
+.idea/
 *.swp

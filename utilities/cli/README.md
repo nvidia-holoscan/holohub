@@ -35,10 +35,9 @@ This directory keeps the user-facing CLI documentation:
 
 The `./holohub` script at the repo root does three things in order:
 
-1. Imports `holoscan_cli` and checks that the installed version exposes the
-   source-project dispatch table (`PROJECT_COMMANDS`). Pre-consolidation
-   releases (e.g. `holoscan-cli==4.0.0`) import cleanly but do not satisfy
-   this check.
+1. Checks that `holoscan_cli` is importable. The right version comes from the
+   pinned install spec (below), so the wrapper just bootstraps when nothing is
+   installed rather than probing the command surface itself.
 2. If the check fails, `pip install`s the package. The install spec is
    chosen in this precedence order:
 

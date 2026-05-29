@@ -102,7 +102,8 @@ RUN --mount=type=bind,from=holoscan-cli-src,target=/tmp/holoscan-cli-src \
     fi
 
 RUN holoscan version \
-    && python3 -c "from holoscan_cli.__main__ import PROJECT_COMMANDS; assert {'build','run','list','install'} <= set(PROJECT_COMMANDS), f'consolidated CLI missing commands: {set(PROJECT_COMMANDS)}'"
+    && holoscan --help 2>/dev/null | grep -qw build \
+    || (echo "ERROR: consolidated holoscan-cli missing source-project commands (got legacy holoscan-cli <= 4.2.0?)" >&2; exit 1)
 
 RUN mkdir -p /tmp/scripts
 COPY holohub /tmp/scripts/

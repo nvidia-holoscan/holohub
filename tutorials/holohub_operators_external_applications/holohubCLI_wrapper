@@ -76,12 +76,11 @@ if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
 fi
 
 _holoscan_cli_has_source_project_dispatch() {
-    "${PYTHON_BIN}" - <<'PY' >/dev/null 2>&1
-from holoscan_cli.__main__ import PROJECT_COMMANDS
-
-required = {"build", "run", "list", "install"}
-assert required <= set(PROJECT_COMMANDS), f"missing: {required - set(PROJECT_COMMANDS)}"
-PY
+    # Probe the public `holoscan --help` surface (via the same interpreter so a
+    # HOLOSCAN_CLI_SOURCE checkout on PYTHONPATH wins) for a source-project
+    # subcommand only the consolidated CLI registers. Avoids importing the
+    # holoscan_cli.__main__ internals.
+    "${PYTHON_BIN}" -m holoscan_cli --help 2>/dev/null | grep -qw build
 }
 
 _holohub_normalize_cli_spec() {
