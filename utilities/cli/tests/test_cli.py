@@ -584,6 +584,7 @@ class TestHoloHubCLI(unittest.TestCase):
             command_string = kwargs["extra_args"][1]
             self.assertIn(f'--build-with "{operators}"', command_string)
 
+    @patch("utilities.cli.holohub.write_external_operators_manifest")
     @patch("utilities.cli.holohub.HoloHubCLI.find_project")
     @patch("utilities.cli.util.run_command")
     @patch("pathlib.Path.mkdir")
@@ -592,6 +593,7 @@ class TestHoloHubCLI(unittest.TestCase):
         mock_mkdir,
         mock_run_command,
         mock_find_project,
+        mock_write_manifest,
     ):
         """Test that build_project_locally correctly adds the HOLOHUB_BUILD_OPERATORS CMake parameter"""
         # Set up mocks
@@ -678,6 +680,7 @@ exec {holohub_script} "$@"
                 elif "HOLOHUB_CMD_NAME" in os.environ:
                     del os.environ["HOLOHUB_CMD_NAME"]
 
+    @patch("utilities.cli.holohub.write_external_operators_manifest")
     @patch("utilities.cli.holohub.HoloHubCLI.find_project")
     @patch("utilities.cli.util.run_command")
     @patch("pathlib.Path.mkdir")
@@ -690,6 +693,7 @@ exec {holohub_script} "$@"
         mock_mkdir,
         mock_run_command,
         mock_find_project,
+        mock_write_manifest,
     ):
         """Test package build functionality including PKG prefix and cpack execution"""
         # Mock package data
@@ -799,6 +803,7 @@ exec {holohub_script} "$@"
             command_string = kwargs["extra_args"][1]
             self.assertIn("--parallel 4", command_string)
 
+    @patch("utilities.cli.holohub.write_external_operators_manifest")
     @patch("utilities.cli.holohub.HoloHubCLI.find_project")
     @patch("utilities.cli.util.run_command")
     @patch("pathlib.Path.mkdir")
@@ -807,6 +812,7 @@ exec {holohub_script} "$@"
         mock_mkdir,
         mock_run_command,
         mock_find_project,
+        mock_write_manifest,
     ):
         """Test that --configure-args are properly passed to CMake (single and multiple)"""
         mock_find_project.return_value = self.mock_project_data
@@ -857,6 +863,7 @@ exec {holohub_script} "$@"
                 args.configure_args, f"configure_args should be None for {command} command"
             )
 
+    @patch("utilities.cli.holohub.write_external_operators_manifest")
     @patch("utilities.cli.holohub.HoloHubCLI.find_project")
     @patch("utilities.cli.util.run_command")
     @patch("pathlib.Path.mkdir")
@@ -869,6 +876,7 @@ exec {holohub_script} "$@"
         mock_mkdir,
         mock_run_command,
         mock_find_project,
+        mock_write_manifest,
     ):
         """Test benchmark functionality including patch/restore scripts and CMake flags"""
 
@@ -1524,13 +1532,14 @@ class TestHandlePackage(unittest.TestCase):
             "metadata": {"language": ["C++", "Python"]},
         }
 
+    @patch("utilities.cli.holohub.write_external_operators_manifest")
     @patch("utilities.cli.holohub.HoloHubCLI.find_project")
     @patch("utilities.cli.util.run_command")
     @patch("pathlib.Path.mkdir")
     @patch("pathlib.Path.glob")
     @patch("pathlib.Path.exists")
     def test_package_deb_emits_module_cmake_flag(
-        self, mock_exists, mock_glob, mock_mkdir, mock_run_command, mock_find_project
+        self, mock_exists, mock_glob, mock_mkdir, mock_run_command, mock_find_project, mock_write_manifest
     ):
         """DEB path passes -DMODULE_<slug>=ON and -DBUILD_ALL=OFF against the HoloHub root."""
         mock_find_project.return_value = self.mock_module_data
@@ -1557,12 +1566,13 @@ class TestHandlePackage(unittest.TestCase):
         self.assertIn("-G", cpack_args)
         self.assertIn("DEB", cpack_args)
 
+    @patch("utilities.cli.holohub.write_external_operators_manifest")
     @patch("utilities.cli.holohub.HoloHubCLI.find_project")
     @patch("utilities.cli.util.run_command")
     @patch("pathlib.Path.mkdir")
     @patch("pathlib.Path.exists")
     def test_package_wheel_invokes_python_build(
-        self, mock_exists, mock_mkdir, mock_run_command, mock_find_project
+        self, mock_exists, mock_mkdir, mock_run_command, mock_find_project, mock_write_manifest
     ):
         """WHEEL path calls `python -m build --wheel` with outdir under build/dist/."""
         mock_find_project.return_value = self.mock_module_data
@@ -1595,13 +1605,14 @@ class TestHandlePackage(unittest.TestCase):
         with self.assertRaises(SystemExit):
             self.cli._resolve_module_project("gst_to_holo", language=None)
 
+    @patch("utilities.cli.holohub.write_external_operators_manifest")
     @patch("utilities.cli.holohub.HoloHubCLI.find_project")
     @patch("utilities.cli.util.run_command")
     @patch("pathlib.Path.mkdir")
     @patch("pathlib.Path.glob")
     @patch("pathlib.Path.exists")
     def test_package_deb_dryrun_passes_dry_run_flag(
-        self, mock_exists, mock_glob, mock_mkdir, mock_run_command, mock_find_project
+        self, mock_exists, mock_glob, mock_mkdir, mock_run_command, mock_find_project, mock_write_manifest
     ):
         """DEB dryrun passes dry_run=True to every run_command call."""
         mock_find_project.return_value = self.mock_module_data
