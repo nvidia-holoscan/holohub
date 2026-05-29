@@ -44,7 +44,9 @@ from typing import List, Optional
 
 import utilities.cli.util as holohub_cli_util
 import utilities.metadata.gather_metadata as metadata_util
+from utilities.cli.cmake_manifest import write_external_operators_manifest
 from utilities.cli.container import HoloHubContainer
+from utilities.cli.external_resolver import parse_module_dependencies
 from utilities.cli.util import Color
 from utilities.metadata.utils import get_schema_path, list_normalized_languages, normalize_language
 
@@ -1102,6 +1104,13 @@ class HoloHubCLI:
         build_type = holohub_cli_util.get_buildtype_str(build_type)
         build_dir = HoloHubCLI.DEFAULT_BUILD_PARENT_DIR / project_name
         build_dir.mkdir(parents=True, exist_ok=True)
+
+        # Write external_operators_manifest.cmake before cmake configure so that
+        # CMakeLists.txt:include(…OPTIONAL) picks it up and FetchContent_MakeAvailable
+        # is called for any external modules whose operators end up enabled.
+        metadata_path = Path(project_data.get("source_folder", "")) / "metadata.json"
+        ext_deps = parse_module_dependencies(metadata_path, holohub_root=HoloHubCLI.HOLOHUB_ROOT)
+        write_external_operators_manifest(ext_deps, build_dir / "external_operators_manifest.cmake")
 
         # Prepare environment with extra env vars
         build_env = os.environ.copy()
