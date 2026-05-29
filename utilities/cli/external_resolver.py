@@ -19,6 +19,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
@@ -142,13 +143,11 @@ def parse_module_dependencies(
                     f"at modules/{name}/metadata.json for in-tree modules."
                 )
             if not _ref_is_immutable(ref):
-                import sys as _sys
-
                 print(
                     f"WARNING: dependency '{name}' pinned to ref '{ref}', which "
                     "is not a 40-char commit SHA. Tags and branches are mutable; "
                     "consider pinning to an immutable SHA for reproducible builds.",
-                    file=_sys.stderr,
+                    file=sys.stderr,
                 )
 
         out.append(
@@ -161,3 +160,126 @@ def parse_module_dependencies(
             )
         )
     return out
+
+
+def parse_module_sites(
+    sites_path: Path,
+    holohub_root: Optional[Path] = None,
+) -> list[ModuleDep]:
+    """Parse modules/module-sites.json into ModuleDep records.
+
+    External entries (url + ref present) become fetchable deps with no
+    provides_operators — those come from the consumer's metadata.json and are
+    layered on by merge_deps().  In-tree entries (no url) resolve to
+    is_internal=True when holohub_root/modules/<name>/metadata.json exists;
+    entries with neither a url nor an in-tree path are silently skipped.
+
+    Honors HOLOHUB_LOCAL_<NAME> overrides with the same semantics as
+    parse_module_dependencies.  A missing sites_path is treated as no module
+    sites rather than an error.
+    """
+    try:
+        with sites_path.open() as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        return []
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Malformed JSON in {sites_path}: {e}") from e
+
+    out: list[ModuleDep] = []
+    for entry in data.get("modules") or []:
+        name = entry.get("name")
+        if not name:
+            continue
+
+        override = os.environ.get(_override_env_name(name))
+        override_path: Optional[Path] = None
+        if override:
+            p = Path(override).expanduser().resolve()
+            if not (p / "metadata.json").exists():
+                raise FileNotFoundError(
+                    f"{_override_env_name(name)}={override} does not contain a "
+                    "metadata.json — point it at the root of a Holoscan Module "
+                    "project."
+                )
+            override_path = p
+
+        url = entry.get("url")
+        ref = entry.get("ref")
+
+        provides = list(entry.get("provides_operators") or [])
+
+        if url and ref:
+            if not _ref_is_immutable(ref):
+                print(
+                    f"WARNING: module-sites entry '{name}' pinned to ref '{ref}', which "
+                    "is not a 40-char commit SHA. Tags and branches are mutable; "
+                    "consider pinning to an immutable SHA for reproducible builds.",
+                    file=sys.stderr,
+                )
+            out.append(
+                ModuleDep(
+                    name=name, git_url=url, ref=ref, provides_operators=provides,
+                    override_path=override_path,
+                )
+            )
+        elif override_path is not None:
+            # No canonical url but a local override is active — treat as external.
+            out.append(ModuleDep(name=name, provides_operators=provides, override_path=override_path))
+        elif holohub_root is not None:
+            in_tree_path = holohub_root / "modules" / name
+            if (in_tree_path / "metadata.json").exists():
+                out.append(
+                    ModuleDep(
+                        name=name, provides_operators=provides, override_path=in_tree_path,
+                        is_internal=True,
+                    )
+                )
+            # else: not external and not in-tree — skip
+
+    return out
+
+
+def merge_deps(
+    sites_deps: list[ModuleDep],
+    project_deps: list[ModuleDep],
+) -> list[ModuleDep]:
+    """Merge module-sites deps with project-specific deps.
+
+    Sites supply canonical git coordinates; project deps contribute
+    provides_operators and override_path (local checkout).  For a module
+    present in both lists the merged record takes the site's git_url/ref and
+    is_internal classification, but the project dep's provides_operators and
+    override_path.  Modules only in project_deps are appended after all site
+    entries (preserving sites order first).
+    """
+    project_by_name = {d.name: d for d in project_deps}
+    seen: set[str] = set()
+    result: list[ModuleDep] = []
+
+    for sd in sites_deps:
+        pd = project_by_name.get(sd.name)
+        if pd is not None:
+            # Sites owns the canonical git coords and is_internal classification.
+            # Sites also owns provides_operators (authoritative module metadata);
+            # project ops are used only as a fallback when sites has none.
+            ops = sd.provides_operators if sd.provides_operators else pd.provides_operators
+            result.append(
+                ModuleDep(
+                    name=sd.name,
+                    git_url=sd.git_url,
+                    ref=sd.ref,
+                    provides_operators=ops,
+                    override_path=pd.override_path,
+                    is_internal=sd.is_internal,
+                )
+            )
+        else:
+            result.append(sd)
+        seen.add(sd.name)
+
+    for pd in project_deps:
+        if pd.name not in seen:
+            result.append(pd)
+
+    return result

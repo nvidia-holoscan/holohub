@@ -18,6 +18,11 @@
           "url": { "type": "string", "format": "uri" },
           "ref": { "type": "string" },
           "source_url": { "type": "string", "format": "uri" },
+          "provides_operators": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "CMake operator names (OP_<name>=ON) this module makes available when fetched."
+          },
           "nvidia_quality_score": { "type": "integer", "minimum": 1, "maximum": 5 }
         }
       }

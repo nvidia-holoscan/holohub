@@ -46,7 +46,7 @@ import utilities.cli.util as holohub_cli_util
 import utilities.metadata.gather_metadata as metadata_util
 from utilities.cli.cmake_manifest import write_external_operators_manifest
 from utilities.cli.container import HoloHubContainer
-from utilities.cli.external_resolver import parse_module_dependencies
+from utilities.cli.external_resolver import merge_deps, parse_module_dependencies, parse_module_sites
 from utilities.cli.util import Color
 from utilities.metadata.utils import get_schema_path, list_normalized_languages, normalize_language
 
@@ -1109,7 +1109,12 @@ class HoloHubCLI:
         # CMakeLists.txt:include(…OPTIONAL) picks it up and FetchContent_MakeAvailable
         # is called for any external modules whose operators end up enabled.
         metadata_path = Path(project_data.get("source_folder", "")) / "metadata.json"
-        ext_deps = parse_module_dependencies(metadata_path, holohub_root=HoloHubCLI.HOLOHUB_ROOT)
+        sites_deps = parse_module_sites(
+            HoloHubCLI.HOLOHUB_ROOT / "modules" / "module-sites.json",
+            holohub_root=HoloHubCLI.HOLOHUB_ROOT,
+        )
+        project_deps = parse_module_dependencies(metadata_path, holohub_root=HoloHubCLI.HOLOHUB_ROOT)
+        ext_deps = merge_deps(sites_deps, project_deps)
         write_external_operators_manifest(ext_deps, build_dir / "external_operators_manifest.cmake")
 
         # Prepare environment with extra env vars
