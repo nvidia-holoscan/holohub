@@ -585,6 +585,10 @@
          <lastmod>2026-05-29</lastmod>
     </url>
     <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/modules/holoscan-deltacast/</loc>
+         <lastmod>2026-05-29</lastmod>
+    </url>
+    <url>
          <loc>https://nvidia-holoscan.github.io/holohub/modules/holoscan-gstreamer/</loc>
          <lastmod>2026-05-29</lastmod>
     </url>
