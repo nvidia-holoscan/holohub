@@ -44,15 +44,10 @@ RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
         curl -sS https://bootstrap.pypa.io/get-pip.py | ${PYTHON_VERSION}; \
     fi
 
-# Ensure the consolidated `holoscan` CLI exists. Probe the public `holoscan
-# --help` surface for a source-project subcommand (`build`) rather than just
-# `command -v holoscan` — the legacy packaging-only `holoscan` (holoscan-cli
-# <= 4.2.0) in older Holoscan SDK images stays on PATH but doesn't register
-# the source-project commands this stage relies on.
-#
-# Hard-pinned to the consolidated holoscan-cli build on TestPyPI for the
-# consolidation rollout (matches the ./holohub wrapper pin). Plain pip only —
-# `git+` specs and local-source installs are intentionally unsupported.
+# Ensure the consolidated `holoscan` CLI exists. The legacy packaging-only CLI
+# (holoscan-cli <= 4.2.0) is also on PATH, so probe `holoscan --help` for a
+# source-project command (`build`) only the consolidated CLI has. Hard-pinned
+# to the TestPyPI build during rollout (matches the ./holohub wrapper).
 RUN if ! holoscan --help 2>/dev/null | grep -qw build; then \
         python3 -m pip install --upgrade \
             --index-url https://test.pypi.org/simple/ \
@@ -66,27 +61,19 @@ FROM holohub-cli-prerequisites AS holohub-cli
 
 ARG CMAKE_BUILD_TYPE=Release
 
-# Stage the wrapper + utilities/ helpers `holohub setup` consumes (e.g.
-# utilities/setup/*.sh, utilities/requirements.*.txt) so the raw-base
-# fallback below has them when it runs `/tmp/scripts/holohub setup`.
+# Stage the `holohub` wrapper + utilities/ helpers `holohub setup` needs, so
+# the raw-base `holohub setup` fallback below can run.
 RUN mkdir -p /tmp/scripts/utilities
 COPY holohub /tmp/scripts/
 COPY utilities /tmp/scripts/utilities/
 RUN chmod +x /tmp/scripts/holohub
 
-# --------------------------------------------------------------------------
-#
-# Set up GStreamer-specific dependencies
-#
-# --------------------------------------------------------------------------
+# Smoke-test: CLI + wrapper present and usable.
 RUN holoscan version \
     && test -x /tmp/scripts/holohub
 
-# Run HoloHub setup when this image is built from a raw base. The prepared
-# base layer (utilities/docker/Dockerfile.holohub-base) already runs setup
-# and drops the autocomplete marker; reuse that marker as the guard so the
-# standard path stays a no-op while `--base-img` (which bypasses the
-# prepared layer) still picks up recommended packages and autocomplete.
+# Run `holohub setup` only on raw-base builds. The prepared base already ran
+# it and left the autocomplete marker, so guard on that marker.
 RUN [ -f /etc/bash_completion.d/holohub_autocomplete ] \
     || (/tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*)
 
@@ -108,10 +95,8 @@ RUN python3 -m pip install --no-cache-dir \
         build \
         scikit-build-core
 
-# Enable autocomplete if the prepared-base layer (or external setup) installed
-# it — raw `--base-img` builds skip the prepared base entirely, so guard the
-# source on file existence to avoid spamming "No such file or directory" into
-# every interactive shell.
+# Source autocomplete only if present (raw `--base-img` builds skip the
+# prepared base), to avoid "No such file or directory" in every shell.
 RUN echo "[ -f /etc/bash_completion.d/holohub_autocomplete ] && . /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
 
 # Set default Holohub data directory

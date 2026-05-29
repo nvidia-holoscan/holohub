@@ -78,8 +78,7 @@ if ! "${PYTHON_BIN}" -c "import holoscan_cli.__main__" &>/dev/null; then
     "${PYTHON_BIN}" -m pip install --upgrade ${HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS} "${spec}"
 fi
 
-# exec replaces the shell so SIGINT/SIGTERM/SIGHUP reach the CLI directly.
-# Always go through `python -m holoscan_cli` so the interpreter that
-# bootstrapped the CLI above is the one that runs it — a `holoscan` console
-# script on PATH might resolve to a different interpreter.
+# exec so signals reach the CLI directly; `python -m` so the same interpreter
+# that bootstrapped the CLI above runs it (a `holoscan` console script on PATH
+# may resolve elsewhere).
 exec "${PYTHON_BIN}" -m holoscan_cli "$@"

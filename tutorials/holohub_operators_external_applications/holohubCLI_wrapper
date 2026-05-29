@@ -16,70 +16,44 @@
 # limitations under the License.
 
 # ==============================================================================
-# HoloHub CLI Wrapper — external-application example
+# HoloHub CLI wrapper — external-application example
 # ==============================================================================
+# Minimal wrapper that installs (if needed) and delegates to the standalone
+# `holoscan-cli` package. Copy it into an external project to drive
+# HoloHub-style build/run from there.
 #
-# DESCRIPTION:
-#   Minimal wrapper that delegates to the packaged ``holoscan-cli`` published
-#   on PyPI. Previous revisions of this script sparse-checked-out HoloHub's
-#   ``utilities/cli/`` to run an inline copy of the CLI; the CLI now lives in
-#   the standalone ``holoscan-cli`` package and HoloHub itself is one of its
-#   downstream consumers, so external apps wanting a wrapper only need to
-#   install the package and invoke it.
+# Env vars:
+#   HOLOSCAN_CLI_SOURCE      Local holoscan-cli checkout; wins over _VERSION.
+#   HOLOSCAN_CLI_VERSION     Pip spec (bare versions/operators normalized to
+#                            `holoscan-cli`). Default: `holoscan-cli` (PyPI).
+#   HOLOSCAN_CLI_PYTHON_BIN  Python interpreter (default: python3).
 #
-# USAGE:
-#   ./holohubCLI_wrapper [CLI_OPTIONS]
-#
-# ENVIRONMENT VARIABLES:
-#   HOLOSCAN_CLI_SOURCE   Path to a local holoscan-cli checkout (used during
-#                         prototype iteration). Wins over HOLOSCAN_CLI_VERSION.
-#   HOLOSCAN_CLI_VERSION  Pip install spec for holoscan-cli. Bare versions
-#                         and operator-prefixed values are normalized to
-#                         include the package name. Examples:
-#                           HOLOSCAN_CLI_VERSION=4.3.0
-#                             -> pip install holoscan-cli==4.3.0
-#                           HOLOSCAN_CLI_VERSION=">=4.3"
-#                             -> pip install holoscan-cli>=4.3
-#                           HOLOSCAN_CLI_VERSION=holoscan-cli==4.3.0
-#                             -> passed through unchanged
-#                         Defaults to ``holoscan-cli`` (latest on PyPI).
-#   HOLOSCAN_CLI_PYTHON_BIN  Override the Python interpreter used to install
-#                            and invoke the CLI (default: ``python3``).
-#
-# EXAMPLES:
+# Examples:
 #   ./holohubCLI_wrapper --help
 #   HOLOSCAN_CLI_VERSION=">=4.3" ./holohubCLI_wrapper list
-#   HOLOSCAN_CLI_SOURCE=$HOME/src/holoscan-cli ./holohubCLI_wrapper run my_app
 # ==============================================================================
 
 set -euo pipefail
 
-# Export the wrapper's own directory as the source-project root so that
-# invoking this script from any working directory still operates on the
-# external project this wrapper ships with. Mirrors the repo-root
-# `./holohub` wrapper — `python -m holoscan_cli` otherwise falls back to
-# the caller's cwd, which scans/builds the wrong tree when users copy
-# this wrapper into their own project and invoke it from elsewhere.
+# Pin the source-project root to this script's directory so it works from any
+# cwd (otherwise `python -m holoscan_cli` scans the caller's cwd and builds the
+# wrong tree). Mirrors the repo-root `./holohub` wrapper.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 export HOLOSCAN_CLI_CMD_NAME="${BASH_SOURCE[0]}"
 export HOLOSCAN_CLI_ROOT="${SCRIPT_DIR}"
 
 PYTHON_BIN="${HOLOSCAN_CLI_PYTHON_BIN:-python3}"
 
-# When the user points at a local holoscan-cli checkout, the source-tree
-# version must win over any system-installed copy — both the dispatch
-# probe below and the final `python -m holoscan_cli` invocation. Prepend
-# `<source>/src` to PYTHONPATH so import resolution picks up the
-# checkout first. Mirrors the repo-root `./holohub` wrapper's behavior.
+# Make a HOLOSCAN_CLI_SOURCE checkout win over any system-installed copy by
+# prepending `<source>/src` to PYTHONPATH. Mirrors the repo-root wrapper.
 if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
     export PYTHONPATH="${HOLOSCAN_CLI_SOURCE%/}/src${PYTHONPATH:+:${PYTHONPATH}}"
 fi
 
 _holoscan_cli_has_source_project_dispatch() {
-    # Probe the public `holoscan --help` surface (via the same interpreter so a
-    # HOLOSCAN_CLI_SOURCE checkout on PYTHONPATH wins) for a source-project
-    # subcommand only the consolidated CLI registers. Avoids importing the
-    # holoscan_cli.__main__ internals.
+    # Probe the public `holoscan --help` surface (same interpreter, so a
+    # PYTHONPATH checkout wins) for a source-project command only the
+    # consolidated CLI has.
     "${PYTHON_BIN}" -m holoscan_cli --help 2>/dev/null | grep -qw build
 }
 

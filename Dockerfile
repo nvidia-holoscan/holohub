@@ -24,26 +24,19 @@ ARG BASE_SDK_VERSION
 ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v${BASE_SDK_VERSION}-${GPU_TYPE}
 
 ############################################################
-# Prerequisites: normalize the base image into one that can run
-# the consolidated HoloHub CLI.
-#
-# BASE_IMAGE can be an SDK image (ships python + holoscan), a CUDA
-# base image (ships nothing Python-related), or a plain Ubuntu image.
-# Each conditional below is a no-op when the base already provides
-# the requirement, so SDK builds stay cheap.
+# Prerequisites: normalize the base image (SDK / CUDA / plain Ubuntu) into
+# one that can run the consolidated HoloHub CLI. Each step is a no-op when
+# the base already provides the requirement.
 ############################################################
 FROM ${BASE_IMAGE} AS holohub-cli-prerequisites
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG PYTHON_VERSION=python3
 
-# 1. Ensure python3 + pip exist.
-#
-# Do NOT apt-install ${PYTHON_VERSION}-pip on Ubuntu 24.04+: that pip is
-# debian-managed and missing the RECORD file, so when ``holoscan-cli``
-# transitively requests ``pip>25.1.0`` the upgrade aborts with
-# ``Cannot uninstall pip 24.0, RECORD file not found``. Install pip via
-# get-pip.py instead — it lands under /usr/local and is freely upgradeable.
+# 1. Ensure python3 + pip exist. Install pip via get-pip.py, NOT apt
+#    `${PYTHON_VERSION}-pip`: the debian-managed pip lacks a RECORD file, so a
+#    transitive `pip>25.1.0` upgrade from holoscan-cli aborts with
+#    "Cannot uninstall pip 24.0, RECORD file not found".
 RUN if ! command -v python3 >/dev/null 2>&1; then \
         apt-get update \
         && apt-get install --no-install-recommends -y \
@@ -55,20 +48,12 @@ RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
         curl -sS https://bootstrap.pypa.io/get-pip.py | ${PYTHON_VERSION}; \
     fi
 
-# 2. Ensure the consolidated `holoscan` CLI exists. Skip the pip install
-#    only when the base already ships a *post-consolidation* CLI — the
-#    legacy packaging-only `holoscan` (holoscan-cli <= 4.2.0) that older
-#    Holoscan SDK images bundle stays on PATH and still answers `holoscan
-#    version`, so neither `command -v holoscan` nor a version probe can
-#    tell it apart. Grep the public `holoscan --help` surface for a
-#    source-project subcommand (`build`) that only the consolidated CLI
-#    registers.
-#
-#    Hard-pinned to the consolidated holoscan-cli build on TestPyPI for the
-#    consolidation rollout (matches the ./holohub wrapper pin). Plain pip
-#    only — `git+` specs and local-source installs are intentionally
-#    unsupported. Switch to a bare `pip install holoscan-cli` once the
-#    consolidated CLI ships on PyPI.
+# 2. Ensure the consolidated `holoscan` CLI exists. The legacy packaging-only
+#    CLI (holoscan-cli <= 4.2.0) is also on PATH and answers `holoscan
+#    version`, so probe `holoscan --help` for a source-project command
+#    (`build`) only the consolidated CLI has. Hard-pinned to the TestPyPI
+#    build during rollout (matches the ./holohub wrapper); switch to a bare
+#    `pip install holoscan-cli` once it ships on PyPI.
 RUN if ! holoscan --help 2>/dev/null | grep -qw build; then \
         python3 -m pip install --upgrade \
             --index-url https://test.pypi.org/simple/ \
@@ -82,9 +67,8 @@ FROM holohub-cli-prerequisites AS holohub-cli
 
 ARG CMAKE_BUILD_TYPE=Release
 
-# 3. Stage /tmp/scripts/holohub plus the utilities/ helpers `holohub setup`
-#    consumes (e.g. utilities/setup/*.sh, utilities/requirements.*.txt) so
-#    the in-tree wrapper is callable inside the container regardless of base.
+# 3. Stage the in-tree `holohub` wrapper + the utilities/ helpers `holohub
+#    setup` needs, so the wrapper is callable inside the container.
 RUN mkdir -p /tmp/scripts/utilities
 COPY holohub /tmp/scripts/
 COPY utilities /tmp/scripts/utilities/
@@ -94,17 +78,14 @@ RUN chmod +x /tmp/scripts/holohub
 RUN holoscan version \
     && test -x /tmp/scripts/holohub
 
-# 5. Run HoloHub setup when this image is built from a raw base. The prepared
-#    base layer (utilities/docker/Dockerfile.holohub-base) already runs setup
-#    and drops the autocomplete marker; reuse that marker as the guard so the
-#    standard path stays a no-op while `--base-img` (which bypasses the
-#    prepared layer) still picks up recommended packages and autocomplete.
+# 5. Run `holohub setup` only on raw-base builds. The prepared base already
+#    ran it and left the autocomplete marker, so guard on that marker to keep
+#    the standard (prepared-base) path a no-op.
 RUN [ -f /etc/bash_completion.d/holohub_autocomplete ] \
     || (/tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*)
 
-# 6. Mirror the default data path from the prepared-base layer so apps that
-#    read `HOLOSCAN_INPUT_PATH` see the same value whether or not callers
-#    skipped the prepared base via `--base-img`.
+# 6. Mirror the prepared-base default data path so `--base-img` builds see the
+#    same HOLOSCAN_INPUT_PATH.
 ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data
 
 # --------------------------------------------------------------------------

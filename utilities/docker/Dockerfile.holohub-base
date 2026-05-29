@@ -4,25 +4,13 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # ----------------------------------------------------------------------------
-# HoloHub prepared base image.
+# HoloHub prepared base image: stacks python+pip and the consolidated
+# `holoscan-cli` onto the Holoscan SDK runtime and runs `holohub setup`, so
+# downstream Dockerfiles can `FROM ${BASE_IMAGE}` without re-provisioning.
 #
-# This image stacks a python+pip layer and the consolidated `holoscan-cli`
-# onto the Holoscan SDK runtime, then runs `holohub setup` so downstream
-# Dockerfiles (`Dockerfile`, `operators/*/Dockerfile`, `applications/*/Dockerfile`)
-# can `FROM ${BASE_IMAGE}` without re-doing this provisioning.
-#
-# If you are writing a *new* custom Dockerfile and just want the `holoscan`
-# CLI available inside it, you do not need anything in this file — the
-# minimal recipe is documented in doc/developer.md ("Minimal Dockerfile:
-# installing holoscan-cli"):
-#
-#     FROM nvcr.io/nvidia/clara-holoscan/holoscan:v<sdk-version>-<gpu-type>
-#     RUN pip install holoscan-cli
-#
-# The extra knobs below (local checkout via build-context, pre-release index
-# URLs) exist to let HoloHub iterate on an unreleased holoscan-cli without
-# republishing to PyPI; they are not part of the recommended path for new
-# consumers.
+# Writing a new custom Dockerfile? You don't need this file — just
+# `RUN pip install holoscan-cli` (see doc/developer.md). The build-context and
+# install-spec knobs below exist only to iterate on an unreleased holoscan-cli.
 # ----------------------------------------------------------------------------
 
 ARG GPU_TYPE
@@ -65,25 +53,16 @@ RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
         curl -sS https://bootstrap.pypa.io/get-pip.py | ${PYTHON_VERSION} \
     ; fi
 
-# Install the consolidated `holoscan-cli`.
-#
-# Default behavior is the same as `RUN pip install holoscan-cli` against PyPI.
-# The two extra knobs below are escape hatches used only when iterating on the
-# CLI itself; they do not need to be set for normal builds:
-#   * `--build-context holoscan-cli-src=<path>` mounts a local checkout and
-#     wins over everything else. The host wrapper passes this automatically
-#     when HOLOSCAN_CLI_SOURCE is set.
-#   * HOLOSCAN_CLI_INSTALL_SPEC / HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS replace
-#     the pip install spec (e.g. `holoscan-cli==4.3.0`) and add flags such as
-#     `--index-url https://test.pypi.org/simple --pre` for pre-release builds.
+# Install the consolidated `holoscan-cli` (default: `pip install holoscan-cli`).
+# Escape hatches for iterating on the CLI itself (unset for normal builds):
+#   * `--build-context holoscan-cli-src=<path>` installs a local checkout (wins).
+#   * HOLOSCAN_CLI_INSTALL_SPEC / _EXTRA_FLAGS override the spec / add flags
+#     (e.g. `--index-url https://test.pypi.org/simple --pre`).
 ARG HOLOSCAN_CLI_INSTALL_SPEC=holoscan-cli
 ARG HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS=
 
-# Ensure `git` is available before installing holoscan-cli. Both `git+`
-# install specs and local-source builds (poetry-dynamic-versioning ->
-# dunamai reads version from VCS metadata) need the binary. The default
-# SDK base image ships `git`; only barebones overrides of
-# `HOLOHUB_PREPARED_BASE_FROM` actually trigger the install.
+# `git` is needed for `git+` specs and local-source builds (dunamai reads the
+# version from VCS). SDK bases already ship it; only barebones bases install.
 RUN if ! command -v git >/dev/null 2>&1; then \
         apt-get update \
         && apt-get install --no-install-recommends -y git \
