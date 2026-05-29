@@ -53,13 +53,12 @@ RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
         curl -sS https://bootstrap.pypa.io/get-pip.py | ${PYTHON_VERSION} \
     ; fi
 
-# Install the consolidated `holoscan-cli` (default: `pip install holoscan-cli`).
-# Escape hatches for iterating on the CLI itself (unset for normal builds):
+# Install the consolidated `holoscan-cli`. Two-step (matches CI): the wheel from
+# TestPyPI (--no-deps), then deps from PyPI so a TestPyPI mirror can't shadow a
+# PyPI dep. Escape hatches for iterating on the CLI itself:
 #   * `--build-context holoscan-cli-src=<path>` installs a local checkout (wins).
-#   * HOLOSCAN_CLI_INSTALL_SPEC / _EXTRA_FLAGS override the spec / add flags
-#     (e.g. `--index-url https://test.pypi.org/simple --pre`).
+#   * HOLOSCAN_CLI_INSTALL_SPEC pins the version.
 ARG HOLOSCAN_CLI_INSTALL_SPEC=holoscan-cli
-ARG HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS=
 
 # `git` is needed for `git+` specs and local-source builds (dunamai reads the
 # version from VCS). SDK bases already ship it; only barebones bases install.
@@ -76,8 +75,11 @@ RUN --mount=type=bind,from=holoscan-cli-src,target=/tmp/holoscan-cli-src \
         python3 -m pip install --no-cache-dir /tmp/holoscan-cli-src-writable; \
         rm -rf /tmp/holoscan-cli-src-writable; \
     else \
-        echo "Installing holoscan-cli from spec: ${HOLOSCAN_CLI_INSTALL_SPEC} (extra flags: ${HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS:-none})"; \
-        python3 -m pip install --no-cache-dir ${HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS} "${HOLOSCAN_CLI_INSTALL_SPEC}"; \
+        echo "Installing holoscan-cli from spec: ${HOLOSCAN_CLI_INSTALL_SPEC}"; \
+        python3 -m pip install --no-cache-dir --pre --no-deps \
+            --index-url https://test.pypi.org/simple/ "${HOLOSCAN_CLI_INSTALL_SPEC}" \
+        && python3 -m pip install --no-cache-dir \
+            --index-url https://pypi.org/simple/ "${HOLOSCAN_CLI_INSTALL_SPEC}"; \
     fi
 
 RUN holoscan version \

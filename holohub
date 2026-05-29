@@ -21,10 +21,9 @@
 # every invocation gets the same CLI regardless of what's cached locally.
 #
 # Optional overrides (rarely needed):
-#   HOLOSCAN_CLI_SOURCE              Local checkout — wins over the pin.
-#   HOLOSCAN_CLI_VERSION             Pip install spec.
-#   HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS Extra pip flags.
-#   HOLOHUB_PYTHON_BIN               Python interpreter (default: python3).
+#   HOLOSCAN_CLI_SOURCE   Local checkout — wins over the pin.
+#   HOLOSCAN_CLI_VERSION  Pip install spec.
+#   HOLOHUB_PYTHON_BIN    Python interpreter (default: python3).
 
 set -euo pipefail
 
@@ -37,31 +36,34 @@ PYTHON_BIN="${HOLOHUB_PYTHON_BIN:-python3}"
 # Pinned consolidated holoscan-cli during the rollout. Env vars take
 # precedence so users can opt into a different version without editing.
 export HOLOSCAN_CLI_VERSION="${HOLOSCAN_CLI_VERSION:-holoscan-cli==4.3.0a26390596878}"
-export HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS="${HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS:---index-url https://test.pypi.org/simple/}"
 
 # A local holoscan-cli checkout takes precedence over the pinned install.
 if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
     export PYTHONPATH="${HOLOSCAN_CLI_SOURCE%/}/src${PYTHONPATH:+:${PYTHONPATH}}"
 fi
 
-# Bootstrap if the consolidated CLI isn't importable. No spec normalization,
-# dispatch probes, argument peeking, prepared-base orchestration, or dryrun
-# probes — the pin removes the need for any of that.
+# Bootstrap if the consolidated CLI isn't importable. Two-step install (matches
+# CI) keeps TestPyPI scoped to the holoscan-cli wheel so a TestPyPI mirror of a
+# common dep can't shadow the PyPI one.
 if ! "${PYTHON_BIN}" -c "import holoscan_cli.__main__" &>/dev/null; then
-    spec="${HOLOSCAN_CLI_SOURCE:-${HOLOSCAN_CLI_VERSION}}"
-    echo "[holohub] installing ${spec}" >&2
-    # shellcheck disable=SC2086  # extra-flags must word-split for pip
-    "${PYTHON_BIN}" -m pip install --upgrade ${HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS} "${spec}"
+    if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
+        echo "[holohub] installing holoscan-cli from ${HOLOSCAN_CLI_SOURCE}" >&2
+        "${PYTHON_BIN}" -m pip install --upgrade "${HOLOSCAN_CLI_SOURCE}"
+    else
+        echo "[holohub] installing ${HOLOSCAN_CLI_VERSION}" >&2
+        "${PYTHON_BIN}" -m pip install --pre --no-deps \
+            --index-url https://test.pypi.org/simple/ "${HOLOSCAN_CLI_VERSION}"
+        "${PYTHON_BIN}" -m pip install \
+            --index-url https://pypi.org/simple/ "${HOLOSCAN_CLI_VERSION}"
+    fi
 fi
 
-# Forward the pinned spec + extra flags as `--build-arg`s on every project
-# `docker build` so the in-container CLI matches the host CLI. holoscan-cli's
-# container/core.py shlex-splits HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS onto
-# the docker build command; single-quote the KEY=VALUE pair so values with
-# spaces (extra flags, paths) survive the split.
+# Forward the pinned spec (and any local source) as `--build-arg`s on every
+# project `docker build` so the in-container CLI matches the host. holoscan-cli
+# shlex-splits HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS, so single-quote each
+# KEY=VALUE to survive values with spaces.
 _q() { printf "'%s'" "${1//\'/\'\\\'\'}"; }
 extras=" --build-arg $(_q "HOLOSCAN_CLI_INSTALL_SPEC=${HOLOSCAN_CLI_VERSION}")"
-extras+=" --build-arg $(_q "HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS=${HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS}")"
 if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
     extras+=" --build-context $(_q "holoscan-cli-src=${HOLOSCAN_CLI_SOURCE}")"
 fi

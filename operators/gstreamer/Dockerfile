@@ -46,11 +46,14 @@ RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
 
 # Ensure the consolidated `holoscan` CLI exists. The legacy packaging-only CLI
 # (holoscan-cli <= 4.2.0) is also on PATH, so probe `holoscan --help` for a
-# source-project command (`build`) only the consolidated CLI has. Hard-pinned
-# to the TestPyPI build during rollout (matches the ./holohub wrapper).
+# source-project command (`build`) only the consolidated CLI has. Two-step
+# pinned install (matches CI): wheel from TestPyPI (--no-deps), deps from PyPI.
 RUN if ! holoscan --help 2>/dev/null | grep -qw build; then \
-        python3 -m pip install --upgrade \
+        python3 -m pip install --pre --no-deps \
             --index-url https://test.pypi.org/simple/ \
+            "holoscan-cli==4.3.0a26390596878" \
+        && python3 -m pip install \
+            --index-url https://pypi.org/simple/ \
             "holoscan-cli==4.3.0a26390596878"; \
     fi
 
