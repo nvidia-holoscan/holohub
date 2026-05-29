@@ -958,7 +958,10 @@ def parse_metadata_path(
     with metadata_path.open("r") as metadata_file:
         metadata = json.load(metadata_file)
 
-    project_type = list(metadata.keys())[0]
+    project_type = next((k for k in metadata.keys() if k != "$schema"), None)
+    if not project_type:
+        logger.error(f"Skipping {metadata_rel_path}: no valid project type found (only $schema)")
+        return
     metadata = metadata[project_type]
 
     # Check valid component type
