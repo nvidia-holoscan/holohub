@@ -19,12 +19,6 @@ ARG GPU_TYPE
 ARG BASE_SDK_VERSION
 ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v${BASE_SDK_VERSION}-${GPU_TYPE}
 
-# Default-empty source stage for the consolidated holoscan-cli. The host
-# wrapper passes `--build-context holoscan-cli-src=$HOLOSCAN_CLI_SOURCE`
-# whenever it's set; mirroring the root Dockerfile and Dockerfile.holohub-base
-# keeps local-source iteration working for `--base-img` builds of this image.
-FROM scratch AS holoscan-cli-src
-
 ############################################################
 # Prerequisites: normalize the base image into one that can run
 # the consolidated HoloHub CLI. See the root Dockerfile for the
@@ -34,12 +28,6 @@ FROM ${BASE_IMAGE} AS holohub-cli-prerequisites
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG PYTHON_VERSION=python3
-ARG HOLOSCAN_CLI_INSTALL_SPEC=holoscan-cli
-# Extra pip flags injected via HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS by the
-# host wrapper (e.g. `--pre --index-url https://test.pypi.org/simple/` while
-# the consolidated CLI release is on TestPyPI). Empty by default — same
-# contract as utilities/docker/Dockerfile.holohub-base.
-ARG HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS=
 
 # Do NOT apt-install ${PYTHON_VERSION}-pip on Ubuntu 24.04+: that pip is
 # debian-managed and missing the RECORD file, so a transitive
@@ -56,35 +44,19 @@ RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
         curl -sS https://bootstrap.pypa.io/get-pip.py | ${PYTHON_VERSION}; \
     fi
 
-# Ensure `git` is available before bootstrapping holoscan-cli. Pip needs
-# it for `git+` install specs and the local-source build path also needs
-# it (poetry-dynamic-versioning -> dunamai reads the version from VCS).
-# SDK bases ship `git`; raw bases (ubuntu:22.04, cuda:*-base) don't.
-RUN if ! holoscan --help 2>/dev/null | grep -qw build \
-        && ! command -v git >/dev/null 2>&1; then \
-        apt-get update \
-        && apt-get install --no-install-recommends -y git \
-        && rm -rf /var/lib/apt/lists/*; \
-    fi
-
-# Probe the public `holoscan --help` surface for a source-project subcommand
-# (`build`) rather than just `command -v holoscan` — the legacy packaging-only
-# `holoscan` (holoscan-cli <= 4.2.0) in older Holoscan SDK images stays on
-# PATH but doesn't register the source-project commands this stage relies on.
+# Ensure the consolidated `holoscan` CLI exists. Probe the public `holoscan
+# --help` surface for a source-project subcommand (`build`) rather than just
+# `command -v holoscan` — the legacy packaging-only `holoscan` (holoscan-cli
+# <= 4.2.0) in older Holoscan SDK images stays on PATH but doesn't register
+# the source-project commands this stage relies on.
 #
-# When the `holoscan-cli-src` build-context is non-empty (the wrapper sets it
-# from `HOLOSCAN_CLI_SOURCE`), install from the checkout in preference to
-# `HOLOSCAN_CLI_INSTALL_SPEC` so in-container and host CLIs stay in lockstep.
-RUN --mount=type=bind,from=holoscan-cli-src,target=/tmp/holoscan-cli-src \
-    if ! holoscan --help 2>/dev/null | grep -qw build; then \
-        if [ -f /tmp/holoscan-cli-src/pyproject.toml ]; then \
-            echo "Installing consolidated holoscan-cli from local source build-context"; \
-            cp -a /tmp/holoscan-cli-src /tmp/holoscan-cli-src-writable; \
-            python3 -m pip install --no-cache-dir /tmp/holoscan-cli-src-writable; \
-            rm -rf /tmp/holoscan-cli-src-writable; \
-        else \
-            python3 -m pip install --upgrade ${HOLOSCAN_CLI_INSTALL_EXTRA_FLAGS} "${HOLOSCAN_CLI_INSTALL_SPEC}"; \
-        fi; \
+# Hard-pinned to the consolidated holoscan-cli build on TestPyPI for the
+# consolidation rollout (matches the ./holohub wrapper pin). Plain pip only —
+# `git+` specs and local-source installs are intentionally unsupported.
+RUN if ! holoscan --help 2>/dev/null | grep -qw build; then \
+        python3 -m pip install --upgrade \
+            --index-url https://test.pypi.org/simple/ \
+            "holoscan-cli==4.3.0a26390596878"; \
     fi
 
 ############################################################
