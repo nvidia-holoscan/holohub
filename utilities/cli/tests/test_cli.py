@@ -1539,7 +1539,13 @@ class TestHandlePackage(unittest.TestCase):
     @patch("pathlib.Path.glob")
     @patch("pathlib.Path.exists")
     def test_package_deb_emits_module_cmake_flag(
-        self, mock_exists, mock_glob, mock_mkdir, mock_run_command, mock_find_project, mock_write_manifest
+        self,
+        mock_exists,
+        mock_glob,
+        mock_mkdir,
+        mock_run_command,
+        mock_find_project,
+        mock_write_manifest,
     ):
         """DEB path passes -DMODULE_<slug>=ON and -DBUILD_ALL=OFF against the HoloHub root."""
         mock_find_project.return_value = self.mock_module_data
@@ -1612,7 +1618,13 @@ class TestHandlePackage(unittest.TestCase):
     @patch("pathlib.Path.glob")
     @patch("pathlib.Path.exists")
     def test_package_deb_dryrun_passes_dry_run_flag(
-        self, mock_exists, mock_glob, mock_mkdir, mock_run_command, mock_find_project, mock_write_manifest
+        self,
+        mock_exists,
+        mock_glob,
+        mock_mkdir,
+        mock_run_command,
+        mock_find_project,
+        mock_write_manifest,
     ):
         """DEB dryrun passes dry_run=True to every run_command call."""
         mock_find_project.return_value = self.mock_module_data
