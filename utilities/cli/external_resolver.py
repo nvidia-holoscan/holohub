@@ -219,19 +219,26 @@ def parse_module_sites(
                 )
             out.append(
                 ModuleDep(
-                    name=name, git_url=url, ref=ref, provides_operators=provides,
+                    name=name,
+                    git_url=url,
+                    ref=ref,
+                    provides_operators=provides,
                     override_path=override_path,
                 )
             )
         elif override_path is not None:
             # No canonical url but a local override is active — treat as external.
-            out.append(ModuleDep(name=name, provides_operators=provides, override_path=override_path))
+            out.append(
+                ModuleDep(name=name, provides_operators=provides, override_path=override_path)
+            )
         elif holohub_root is not None:
             in_tree_path = holohub_root / "modules" / name
             if (in_tree_path / "metadata.json").exists():
                 out.append(
                     ModuleDep(
-                        name=name, provides_operators=provides, override_path=in_tree_path,
+                        name=name,
+                        provides_operators=provides,
+                        override_path=in_tree_path,
                         is_internal=True,
                     )
                 )

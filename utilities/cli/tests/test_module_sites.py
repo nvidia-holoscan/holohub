@@ -61,8 +61,17 @@ class TestParseModuleSites(unittest.TestCase):
     def test_external_entry_parsed(self):
         p = _write_sites(
             self._tmpdir,
-            {"modules": [{"name": "holoscan-deltacast", "url": "https://x.git", "ref": SHA,
-                          "provides_operators": ["deltacast_videomaster"], "nvidia_quality_score": 2}]},
+            {
+                "modules": [
+                    {
+                        "name": "holoscan-deltacast",
+                        "url": "https://x.git",
+                        "ref": SHA,
+                        "provides_operators": ["deltacast_videomaster"],
+                        "nvidia_quality_score": 2,
+                    }
+                ]
+            },
         )
         deps = parse_module_sites(p)
         self.assertEqual(len(deps), 1)
@@ -75,7 +84,11 @@ class TestParseModuleSites(unittest.TestCase):
     def test_external_entry_no_provides_operators(self):
         p = _write_sites(
             self._tmpdir,
-            {"modules": [{"name": "mymod", "url": "https://x.git", "ref": SHA, "nvidia_quality_score": 1}]},
+            {
+                "modules": [
+                    {"name": "mymod", "url": "https://x.git", "ref": SHA, "nvidia_quality_score": 1}
+                ]
+            },
         )
         deps = parse_module_sites(p)
         self.assertEqual(deps[0].provides_operators, [])
@@ -83,7 +96,16 @@ class TestParseModuleSites(unittest.TestCase):
     def test_mutable_ref_warns(self):
         p = _write_sites(
             self._tmpdir,
-            {"modules": [{"name": "mymod", "url": "https://x.git", "ref": "main", "nvidia_quality_score": 1}]},
+            {
+                "modules": [
+                    {
+                        "name": "mymod",
+                        "url": "https://x.git",
+                        "ref": "main",
+                        "nvidia_quality_score": 1,
+                    }
+                ]
+            },
         )
         buf = io.StringIO()
         with redirect_stderr(buf):
@@ -94,7 +116,11 @@ class TestParseModuleSites(unittest.TestCase):
     def test_immutable_sha_no_warn(self):
         p = _write_sites(
             self._tmpdir,
-            {"modules": [{"name": "mymod", "url": "https://x.git", "ref": SHA, "nvidia_quality_score": 1}]},
+            {
+                "modules": [
+                    {"name": "mymod", "url": "https://x.git", "ref": SHA, "nvidia_quality_score": 1}
+                ]
+            },
         )
         buf = io.StringIO()
         with redirect_stderr(buf):
@@ -154,7 +180,11 @@ class TestParseModuleSites(unittest.TestCase):
         (override_dir / "metadata.json").write_text("{}")
         p = _write_sites(
             self._tmpdir,
-            {"modules": [{"name": "mymod", "url": "https://x.git", "ref": SHA, "nvidia_quality_score": 1}]},
+            {
+                "modules": [
+                    {"name": "mymod", "url": "https://x.git", "ref": SHA, "nvidia_quality_score": 1}
+                ]
+            },
         )
         with patch.dict(os.environ, {"HOLOHUB_LOCAL_MYMOD": str(override_dir)}):
             deps = parse_module_sites(p)
@@ -181,7 +211,11 @@ class TestParseModuleSites(unittest.TestCase):
         bad_dir.mkdir()
         p = _write_sites(
             self._tmpdir,
-            {"modules": [{"name": "mymod", "url": "https://x.git", "ref": SHA, "nvidia_quality_score": 1}]},
+            {
+                "modules": [
+                    {"name": "mymod", "url": "https://x.git", "ref": SHA, "nvidia_quality_score": 1}
+                ]
+            },
         )
         with patch.dict(os.environ, {"HOLOHUB_LOCAL_MYMOD": str(bad_dir)}):
             with self.assertRaises(FileNotFoundError):
@@ -214,7 +248,11 @@ class TestMergeDeps(unittest.TestCase):
 
     def test_merged_takes_site_coords(self):
         sites = [ModuleDep(name="mod", git_url="https://canonical.git", ref=SHA)]
-        project = [ModuleDep(name="mod", git_url="https://fork.git", ref="a" * 40, provides_operators=["op"])]
+        project = [
+            ModuleDep(
+                name="mod", git_url="https://fork.git", ref="a" * 40, provides_operators=["op"]
+            )
+        ]
         result = merge_deps(sites, project)
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0].git_url, "https://canonical.git")
