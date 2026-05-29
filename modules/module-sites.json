@@ -1,0 +1,16 @@
+{
+  "$schema": "../utilities/metadata/module-sites.schema.json",
+  "modules": [
+    {
+      "name": "holoscan-gstreamer",
+      "nvidia_quality_score": 3
+    },
+    {
+      "name": "holoscan-deltacast",
+      "url": "https://github.com/deltacasttv/holoscan-modules",
+      "ref": "36deda4f925dfb7aaa69df70459246f154f4dcdd",
+      "source_url": "https://github.com/deltacasttv/holoscan-modules",
+      "nvidia_quality_score": 2
+    }
+  ]
+}
