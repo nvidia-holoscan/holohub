@@ -23,7 +23,7 @@ set -euo pipefail
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 # ==============================================================================
-# Module identity — defaults consumed by the consolidated holoscan-cli
+# Module identity — defaults consumed by holoscan-cli
 # ==============================================================================
 
 # HOLOSCAN_CLI_ROOT: the CLI uses this as the project root for cmake -S and container paths.
@@ -60,17 +60,18 @@ export CMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE:-Release}"
 
 PYTHON_BIN="${HOLOHUB_PYTHON_BIN:-python3}"
 
-# Pinned consolidated holoscan-cli (matches the HoloHub root wrapper).
+# Pinned holoscan-cli build (matches the HoloHub root wrapper).
 export HOLOSCAN_CLI_VERSION="${HOLOSCAN_CLI_VERSION:-holoscan-cli==4.3.0a26390596878}"
 
 if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
     export PYTHONPATH="${HOLOSCAN_CLI_SOURCE%/}/src${PYTHONPATH:+:${PYTHONPATH}}"
 fi
 
-# Bootstrap if the consolidated CLI isn't importable. Two-step install (matches
-# CI) keeps TestPyPI scoped to the holoscan-cli wheel so mirrored deps can't
-# shadow PyPI ones.
-if ! "${PYTHON_BIN}" -c "import holoscan_cli.__main__" &>/dev/null; then
+# Install holoscan-cli unless a source-project-capable one is already present.
+# Probe the command surface (not just importability) so a stale legacy
+# holoscan-cli (<= 4.2.0) doesn't satisfy the check. Two-step install keeps
+# TestPyPI scoped to the holoscan-cli wheel so mirrored deps can't shadow PyPI.
+if ! "${PYTHON_BIN}" -m holoscan_cli --help 2>/dev/null | grep -qw build; then
     if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
         echo "[{{ cookiecutter.module_slug }}] installing holoscan-cli from ${HOLOSCAN_CLI_SOURCE}" >&2
         "${PYTHON_BIN}" -m pip install --upgrade "${HOLOSCAN_CLI_SOURCE}"

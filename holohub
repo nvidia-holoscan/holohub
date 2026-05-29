@@ -17,8 +17,8 @@
 #
 # HoloHub source-project entry point. Delegates to the standalone
 # `holoscan-cli` package (https://github.com/nvidia-holoscan/holoscan-cli),
-# pinned to a specific TestPyPI build during the consolidation rollout so
-# every invocation gets the same CLI regardless of what's cached locally.
+# pinned to a specific TestPyPI build so every invocation gets the same CLI
+# regardless of what's cached locally.
 #
 # Optional overrides (rarely needed):
 #   HOLOSCAN_CLI_SOURCE   Local checkout — wins over the pin.
@@ -33,8 +33,8 @@ export HOLOSCAN_CLI_ROOT="${SCRIPT_DIR}"
 
 PYTHON_BIN="${HOLOHUB_PYTHON_BIN:-python3}"
 
-# Pinned consolidated holoscan-cli during the rollout. Env vars take
-# precedence so users can opt into a different version without editing.
+# Pinned holoscan-cli build. Env vars take precedence so users can opt into a
+# different version without editing.
 export HOLOSCAN_CLI_VERSION="${HOLOSCAN_CLI_VERSION:-holoscan-cli==4.3.0a26390596878}"
 
 # A local holoscan-cli checkout takes precedence over the pinned install.
@@ -42,10 +42,12 @@ if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
     export PYTHONPATH="${HOLOSCAN_CLI_SOURCE%/}/src${PYTHONPATH:+:${PYTHONPATH}}"
 fi
 
-# Bootstrap if the consolidated CLI isn't importable. Two-step install (matches
-# CI) keeps TestPyPI scoped to the holoscan-cli wheel so a TestPyPI mirror of a
-# common dep can't shadow the PyPI one.
-if ! "${PYTHON_BIN}" -c "import holoscan_cli.__main__" &>/dev/null; then
+# Install holoscan-cli unless a source-project-capable one is already present.
+# Probe the command surface (not just importability), so a stale legacy
+# holoscan-cli (<= 4.2.0, which lacks `build`/`list`) doesn't satisfy the check.
+# Two-step install keeps TestPyPI scoped to the holoscan-cli wheel so a TestPyPI
+# mirror of a common dep can't shadow the PyPI one.
+if ! "${PYTHON_BIN}" -m holoscan_cli --help 2>/dev/null | grep -qw build; then
     if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
         echo "[holohub] installing holoscan-cli from ${HOLOSCAN_CLI_SOURCE}" >&2
         "${PYTHON_BIN}" -m pip install --upgrade "${HOLOSCAN_CLI_SOURCE}"

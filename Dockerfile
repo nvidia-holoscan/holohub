@@ -25,8 +25,8 @@ ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v${BASE_SDK_VERSION}-${GPU
 
 ############################################################
 # Prerequisites: normalize the base image (SDK / CUDA / plain Ubuntu) into
-# one that can run the consolidated HoloHub CLI. Each step is a no-op when
-# the base already provides the requirement.
+# one that can run the HoloHub CLI. Each step is a no-op when the base
+# already provides the requirement.
 ############################################################
 FROM ${BASE_IMAGE} AS holohub-cli-prerequisites
 
@@ -41,26 +41,29 @@ RUN if ! command -v python3 >/dev/null 2>&1; then \
         apt-get update \
         && apt-get install --no-install-recommends -y \
             ${PYTHON_VERSION} curl ca-certificates \
-        && rm -rf /var/lib/apt/lists/*; \
+        && rm -rf /var/lib/apt/lists/* \
+        && if [ "${PYTHON_VERSION}" != "python3" ]; then \
+            update-alternatives --install /usr/bin/python3 python3 "/usr/bin/${PYTHON_VERSION}" 100; \
+        fi; \
     fi
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
 RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
         curl -sS https://bootstrap.pypa.io/get-pip.py | ${PYTHON_VERSION}; \
     fi
 
-# 2. Ensure the consolidated `holoscan` CLI exists. The legacy packaging-only
-#    CLI (holoscan-cli <= 4.2.0) is also on PATH, so probe `holoscan --help`
-#    for a source-project command (`build`) only the consolidated CLI has.
-#    Two-step pinned install (matches CI): the wheel from TestPyPI (--no-deps),
-#    then deps from PyPI so a TestPyPI mirror can't shadow a PyPI dep. Drop to
-#    a bare `pip install holoscan-cli` once it ships on PyPI.
+# 2. Ensure the `holoscan` CLI exists. The legacy packaging-only CLI
+#    (holoscan-cli <= 4.2.0) is also on PATH, so probe `holoscan --help` for a
+#    source-project command (`build`) only the new CLI has. Two-step install
+#    (matches CI): the wheel from TestPyPI (--no-deps), then deps from PyPI so a
+#    TestPyPI mirror can't shadow a PyPI dep. HOLOSCAN_CLI_INSTALL_SPEC (the
+#    wrapper forwards it as a build-arg) selects the version; default is the
+#    pinned build. Drop to a bare `pip install holoscan-cli` once it's on PyPI.
+ARG HOLOSCAN_CLI_INSTALL_SPEC=holoscan-cli==4.3.0a26390596878
 RUN if ! holoscan --help 2>/dev/null | grep -qw build; then \
         python3 -m pip install --pre --no-deps \
-            --index-url https://test.pypi.org/simple/ \
-            "holoscan-cli==4.3.0a26390596878" \
+            --index-url https://test.pypi.org/simple/ "${HOLOSCAN_CLI_INSTALL_SPEC}" \
         && python3 -m pip install \
-            --index-url https://pypi.org/simple/ \
-            "holoscan-cli==4.3.0a26390596878"; \
+            --index-url https://pypi.org/simple/ "${HOLOSCAN_CLI_INSTALL_SPEC}"; \
     fi
 
 ############################################################
