@@ -8,7 +8,7 @@
                 "affiliation": "NVIDIA"
             }
         ],
-        "language": "Python",
+        "language": "python",
         "version": "1.0.0",
         "changelog": {
             "1.0.0": "Initial release of Python video streaming server"

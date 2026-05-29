@@ -167,9 +167,7 @@ endif()
 option(BUILD_HOLOHUB_TESTING OFF)
 if(BUILD_TESTING AND BUILD_HOLOHUB_TESTING)
   enable_testing()
-  # CLI-side CTest entries live under utilities/cli/tests/CMakeLists.txt.
-  # That file registers two layers: direct ``add_test(COMMAND ./holohub ...)``
-  # black-box assertions against the real HoloHub tree (no pytest needed)
-  # and pytest-based smoke tests that gate on pytest availability.
+  # CLI-side CTest entries live under utilities/cli/tests/CMakeLists.txt
+  # (black-box `./holohub` assertions + pytest smoke tests).
   add_subdirectory(utilities/cli/tests)
 endif()
