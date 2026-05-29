@@ -19,6 +19,7 @@ into CMake FetchContent records without performing any network operations. This 
 the actual git checkout so the website generator can read remote README and metadata files.
 """
 
+import re
 import shutil
 import subprocess
 import tempfile
@@ -29,6 +30,9 @@ if _GIT is None:
     raise RuntimeError("git executable not found in PATH")
 
 
+_SHA_RE = re.compile(r"^[0-9a-f]{40}$", re.IGNORECASE)
+
+
 def clone_external_module(url: str, ref: str) -> tuple[Path, tempfile.TemporaryDirectory]:
     """Shallow-clone url@ref into a temp dir.
 
@@ -36,15 +40,36 @@ def clone_external_module(url: str, ref: str) -> tuple[Path, tempfile.TemporaryD
     Raises subprocess.CalledProcessError on failure — caller is responsible for
     catching and skipping the module gracefully.
 
-    NOTE: --branch only accepts branch names and annotated tags; full commit SHAs
-    cause a fatal error. Pin refs to branch names or tags in module-sites.json.
+    Accepts branch names, annotated tags, or full 40-character commit SHAs.
+    Commit SHAs are fetched via init+fetch+checkout rather than --branch, which
+    only accepts named refs.
     """
     tmp = tempfile.TemporaryDirectory(prefix="holohub_module_")
-    subprocess.run(
-        [_GIT, "clone", "--depth=1", "--branch", ref, url, tmp.name],
-        check=True,
-        capture_output=True,
-        text=True,
-        timeout=120,
-    )
-    return Path(tmp.name), tmp
+    clone_path = Path(tmp.name)
+
+    if _SHA_RE.match(ref):
+        # git clone --branch rejects bare SHAs; use init + fetch instead.
+        subprocess.run([_GIT, "init", str(clone_path)], check=True, capture_output=True, text=True)
+        subprocess.run(
+            [_GIT, "-C", str(clone_path), "fetch", "--depth=1", url, ref],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        subprocess.run(
+            [_GIT, "-C", str(clone_path), "checkout", "FETCH_HEAD"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    else:
+        subprocess.run(
+            [_GIT, "clone", "--depth=1", "--branch", ref, url, str(clone_path)],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+
+    return clone_path, tmp
