@@ -161,6 +161,7 @@ uint16_t get_packet_flow_id(BurstParams* burst, int idx);
  * @param burst Burst structure to populate
  * @return Status indicating status. Valid values are:
  *    SUCCESS: Packets allocated
+ *    INVALID_PARAMETER: Burst headers do not identify a valid TX queue/request
  *    NULL_PTR: Burst or packet pools uninitialized
  *    NO_FREE_BURST_BUFFERS: No burst buffers to allocate
  *    NO_FREE_CPU_PACKET_BUFFERS: Not enough CPU packet buffers available
