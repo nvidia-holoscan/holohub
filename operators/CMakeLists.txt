@@ -45,6 +45,7 @@ add_holohub_operator(lstm_tensor_rt_inference DEPENDS EXTENSIONS lstm_tensor_rt_
 add_holohub_operator(npp_filter)
 add_subdirectory(nvidia_video_codec)
 add_holohub_operator(openigtlink)
+add_holohub_operator(point_cloud_from_depth)
 add_holohub_operator(prohawk_video_processing)
 add_subdirectory(pva_radar)
 add_holohub_operator(qt_video)

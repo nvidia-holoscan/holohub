@@ -125,6 +125,8 @@ add_holohub_application(openigtlink_3dslicer DEPENDS OPERATORS openigtlink)
 
 add_holohub_application(pipeline_visualization)
 
+add_holohub_application(point_cloud_from_depth_demo DEPENDS OPERATORS point_cloud_from_depth)
+
 add_holohub_application(polyp_detection)
 
 add_holohub_application(pva_video_filter)
