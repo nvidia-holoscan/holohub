@@ -136,6 +136,9 @@ void DepthToPointCloudOp::compute(InputContext& op_input, OutputContext& op_outp
     // Tiny (16 B) config read; pixel data stays GPU-resident. The intrinsics tensor is
     // produced by an upstream operator on `stream`, so the copy must be ordered on that
     // same stream (a plain cudaMemcpy on the default stream would not wait for it).
+    // Known cost: this per-frame stream sync runs ONLY when the optional `intrinsics`
+    // port is connected; pipelines that pass static fx/fy/cx/cy via parameters (the common
+    // case) skip this branch entirely and incur no sync.
     CUDA_TRY(cudaMemcpyAsync(host, intr_tensor->data(), sizeof(host), cudaMemcpyDefault, stream));
     CUDA_TRY(cudaStreamSynchronize(stream));
     intr = CameraIntrinsics{host[0], host[1], host[2], host[3]};
@@ -147,13 +150,18 @@ void DepthToPointCloudOp::compute(InputContext& op_input, OutputContext& op_outp
   if (auto maybe_color = op_input.receive<gxf::Entity>("color")) {
     auto color_tensor = get_tensor(maybe_color.value(), color_tensor_name_.get());
     const auto& cshape = color_tensor->shape();
-    color_channels = cshape.size() >= 3 ? static_cast<int>(cshape[2]) : 3;
+    // Require an explicit channel dimension; a 2D [H, W] tensor is rejected rather than
+    // silently assumed to be 3-channel (which would read past the buffer in the kernel).
+    if (cshape.size() < 3) {
+      throw std::runtime_error(
+          "DepthToPointCloudOp: color tensor must be H x W x 3 (uchar3) or H x W x 4 (uchar4)");
+    }
+    color_channels = static_cast<int>(cshape[2]);
     if (color_channels != 3 && color_channels != 4) {
       throw std::runtime_error(
           "DepthToPointCloudOp: color tensor must be H x W x 3 (uchar3) or H x W x 4 (uchar4)");
     }
-    if (cshape.size() < 2 || static_cast<int>(cshape[0]) != height ||
-        static_cast<int>(cshape[1]) != width) {
+    if (static_cast<int>(cshape[0]) != height || static_cast<int>(cshape[1]) != width) {
       throw std::runtime_error(
           "DepthToPointCloudOp: color image dimensions must match the depth image");
     }
@@ -163,9 +171,18 @@ void DepthToPointCloudOp::compute(InputContext& op_input, OutputContext& op_outp
   // --- Allocate outputs ---
   auto allocator = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(
       context.context(), allocator_.get()->gxf_cid());
+  if (!allocator) {
+    throw std::runtime_error("DepthToPointCloudOp: failed to create allocator handle");
+  }
   auto out_message = nvidia::gxf::Entity::New(context.context());
+  if (!out_message) {
+    throw std::runtime_error("DepthToPointCloudOp: failed to create output entity");
+  }
 
   auto xyz_tensor = out_message.value().add<nvidia::gxf::Tensor>(output_tensor_name_.get().c_str());
+  if (!xyz_tensor) {
+    throw std::runtime_error("DepthToPointCloudOp: failed to add point_cloud tensor to message");
+  }
   xyz_tensor.value()->reshape<float>(nvidia::gxf::Shape{height, width, 3},
                                      nvidia::gxf::MemoryStorageType::kDevice, allocator.value());
   if (!xyz_tensor.value()->pointer()) {
@@ -176,6 +193,9 @@ void DepthToPointCloudOp::compute(InputContext& op_input, OutputContext& op_outp
   if (color_ptr != nullptr) {
     auto color_out =
         out_message.value().add<nvidia::gxf::Tensor>(output_color_tensor_name_.get().c_str());
+    if (!color_out) {
+      throw std::runtime_error("DepthToPointCloudOp: failed to add colors tensor to message");
+    }
     color_out.value()->reshape<uint8_t>(nvidia::gxf::Shape{height, width, 3},
                                         nvidia::gxf::MemoryStorageType::kDevice, allocator.value());
     if (!color_out.value()->pointer()) {

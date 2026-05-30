@@ -99,9 +99,10 @@ int main() {
     cudaMalloc(&d_depth, N * sizeof(uint16_t));
     cudaMalloc(&d_xyz, N * sizeof(float3));
     cudaMemcpy(d_depth, depth.data(), N * sizeof(uint16_t), cudaMemcpyHostToDevice);
-    launch_deproject(d_depth, DepthDType::kUint16, 0.001f, k, dmin, dmax, invalid, nullptr, 0,
-                     d_xyz, nullptr, W, H, 0);
-    cudaDeviceSynchronize();
+    cudaError_t err = launch_deproject(d_depth, DepthDType::kUint16, 0.001f, k, dmin, dmax, invalid,
+                                       nullptr, 0, d_xyz, nullptr, W, H, 0);
+    CHECK(err == cudaSuccess, "Case2 launch returned error");
+    CHECK(cudaDeviceSynchronize() == cudaSuccess, "Case2 sync returned error");
     std::vector<float3> out(N);
     cudaMemcpy(out.data(), d_xyz, N * sizeof(float3), cudaMemcpyDeviceToHost);
     const int u = 40, v = 30;
@@ -121,9 +122,10 @@ int main() {
     cudaMalloc(&d_depth, N * sizeof(float));
     cudaMalloc(&d_xyz, N * sizeof(float3));
     cudaMemcpy(d_depth, depth.data(), N * sizeof(float), cudaMemcpyHostToDevice);
-    launch_deproject(d_depth, DepthDType::kFloat32, 1.0f, k, dmin, dmax, invalid, nullptr, 0, d_xyz,
-                     nullptr, W, H, 0);
-    cudaDeviceSynchronize();
+    cudaError_t err = launch_deproject(d_depth, DepthDType::kFloat32, 1.0f, k, dmin, dmax, invalid,
+                                       nullptr, 0, d_xyz, nullptr, W, H, 0);
+    CHECK(err == cudaSuccess, "Case3 launch returned error");
+    CHECK(cudaDeviceSynchronize() == cudaSuccess, "Case3 sync returned error");
     std::vector<float3> out(N);
     cudaMemcpy(out.data(), d_xyz, N * sizeof(float3), cudaMemcpyDeviceToHost);
     CHECK(std::isnan(out[0].x), "Case3 depth beyond max not invalidated");
@@ -146,9 +148,10 @@ int main() {
     cudaMalloc(&d_outcolor, N * sizeof(uchar3));
     cudaMemcpy(d_depth, depth.data(), N * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(d_color, color.data(), N * sizeof(uchar3), cudaMemcpyHostToDevice);
-    launch_deproject(d_depth, DepthDType::kFloat32, 1.0f, k, dmin, dmax, invalid, d_color, 3, d_xyz,
-                     d_outcolor, W, H, 0);
-    cudaDeviceSynchronize();
+    cudaError_t err = launch_deproject(d_depth, DepthDType::kFloat32, 1.0f, k, dmin, dmax, invalid,
+                                       d_color, 3, d_xyz, d_outcolor, W, H, 0);
+    CHECK(err == cudaSuccess, "Case4 launch returned error");
+    CHECK(cudaDeviceSynchronize() == cudaSuccess, "Case4 sync returned error");
     std::vector<uchar3> outc(N);
     cudaMemcpy(outc.data(), d_outcolor, N * sizeof(uchar3), cudaMemcpyDeviceToHost);
     bool ok = true;

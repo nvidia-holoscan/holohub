@@ -33,7 +33,9 @@ __global__ void __launch_bounds__(256) deproject_kernel(
 
     const T raw = depth[i];
     const float z = static_cast<float>(raw) * depth_scale;
-    const bool valid = (raw != T(0)) && isfinite(z) && (z >= depth_min) && (z <= depth_max);
+    // Use a positive-depth check (rather than `raw != 0`) so that negative and NaN depths
+    // are uniformly rejected for both the uint16 and float32 paths.
+    const bool valid = (z > 0.0f) && isfinite(z) && (z >= depth_min) && (z <= depth_max);
 
     out_xyz[i] = valid ? make_float3((u - k.cx) * z / k.fx, (v - k.cy) * z / k.fy, z)
                        : make_float3(invalid_value, invalid_value, invalid_value);

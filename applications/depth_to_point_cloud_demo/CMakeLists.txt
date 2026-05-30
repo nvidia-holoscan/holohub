@@ -29,5 +29,5 @@ if(BUILD_TESTING)
   set_tests_properties(depth_to_point_cloud_demo_python_test
     PROPERTIES
       PASS_REGULAR_EXPRESSION "valid="
-      FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
+      FAIL_REGULAR_EXPRESSION "(^|[^a-z])Error;ERROR;Failed")
 endif()

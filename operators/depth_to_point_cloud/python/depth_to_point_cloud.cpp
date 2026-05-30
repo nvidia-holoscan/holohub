@@ -45,16 +45,16 @@ class PyDepthToPointCloudOp : public DepthToPointCloudOp {
   using DepthToPointCloudOp::DepthToPointCloudOp;
 
   PyDepthToPointCloudOp(Fragment* fragment, const py::args& args,
-                          std::shared_ptr<Allocator> allocator, float fx = 0.0f, float fy = 0.0f,
-                          float cx = 0.0f, float cy = 0.0f, float depth_scale = 0.001f,
-                          float depth_min = 0.0f, float depth_max = 100.0f,
-                          float invalid_value = std::numeric_limits<float>::quiet_NaN(),
-                          const std::string& depth_tensor_name = "",
-                          const std::string& color_tensor_name = "",
-                          const std::string& output_tensor_name = "point_cloud",
-                          const std::string& output_color_tensor_name = "colors",
-                          std::shared_ptr<holoscan::CudaStreamPool> cuda_stream_pool = nullptr,
-                          const std::string& name = "depth_to_point_cloud")
+                        std::shared_ptr<Allocator> allocator, float fx = 0.0f, float fy = 0.0f,
+                        float cx = 0.0f, float cy = 0.0f, float depth_scale = 0.001f,
+                        float depth_min = 0.0f, float depth_max = 100.0f,
+                        float invalid_value = std::numeric_limits<float>::quiet_NaN(),
+                        const std::string& depth_tensor_name = "",
+                        const std::string& color_tensor_name = "",
+                        const std::string& output_tensor_name = "point_cloud",
+                        const std::string& output_color_tensor_name = "colors",
+                        std::shared_ptr<holoscan::CudaStreamPool> cuda_stream_pool = nullptr,
+                        const std::string& name = "depth_to_point_cloud")
       : DepthToPointCloudOp(ArgList{Arg{"allocator", allocator},
                                       Arg{"fx", fx},
                                       Arg{"fy", fy},
