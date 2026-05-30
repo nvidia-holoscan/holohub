@@ -69,8 +69,10 @@ cudaError_t launch_deproject(const void* depth, DepthDType dtype, float depth_sc
   if (color != nullptr && out_color != nullptr) {
     if (color_channels == 4) {
       color4 = static_cast<const uchar4*>(color);
-    } else {
+    } else if (color_channels == 3) {
       color3 = static_cast<const uchar3*>(color);
+    } else {
+      return cudaErrorInvalidValue;  // only 3- or 4-channel uint8 color is supported
     }
   }
 
@@ -85,6 +87,8 @@ cudaError_t launch_deproject(const void* depth, DepthDType dtype, float depth_sc
           static_cast<const float*>(depth), depth_scale, intr, depth_min, depth_max, invalid_value,
           color3, color4, out_xyz, out_color, width, height);
       break;
+    default:
+      return cudaErrorInvalidValue;  // unknown depth dtype -> no kernel launched
   }
 
   return cudaPeekAtLastError();

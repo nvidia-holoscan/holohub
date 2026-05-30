@@ -24,7 +24,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Point Cloud", "Depth", "3D", "Robotics"],
+		"tags": ["Computer Vision and Perception", "Robotics", "Point Cloud", "Depth", "3D"],
 		"ranking": 3,
 		"requirements": {
 			"python-packages": [

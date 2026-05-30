@@ -39,6 +39,9 @@ static int g_failures = 0;
     }                                          \
   } while (0)
 
+// Check that a CUDA runtime call returns cudaSuccess (allocations, copies, syncs).
+#define CUDA_OK(call) CHECK((call) == cudaSuccess, #call " failed")
+
 // CPU golden deproject for a single pixel.
 static void golden(float z, int u, int v, CameraIntrinsics k, float dmin, float dmax, float invalid,
                    float& X, float& Y, float& Z) {
@@ -63,15 +66,15 @@ int main() {
     depth[10 * W + 20] = 0.0f;  // hole
     float* d_depth = nullptr;
     float3* d_xyz = nullptr;
-    cudaMalloc(&d_depth, N * sizeof(float));
-    cudaMalloc(&d_xyz, N * sizeof(float3));
-    cudaMemcpy(d_depth, depth.data(), N * sizeof(float), cudaMemcpyHostToDevice);
+    CUDA_OK(cudaMalloc(&d_depth, N * sizeof(float)));
+    CUDA_OK(cudaMalloc(&d_xyz, N * sizeof(float3)));
+    CUDA_OK(cudaMemcpy(d_depth, depth.data(), N * sizeof(float), cudaMemcpyHostToDevice));
     cudaError_t err = launch_deproject(d_depth, DepthDType::kFloat32, 1.0f, k, dmin, dmax, invalid,
                                        nullptr, 0, d_xyz, nullptr, W, H, 0);
     CHECK(err == cudaSuccess, "Case1 launch returned error");
-    cudaDeviceSynchronize();
+    CUDA_OK(cudaDeviceSynchronize());
     std::vector<float3> out(N);
-    cudaMemcpy(out.data(), d_xyz, N * sizeof(float3), cudaMemcpyDeviceToHost);
+    CUDA_OK(cudaMemcpy(out.data(), d_xyz, N * sizeof(float3), cudaMemcpyDeviceToHost));
     bool ok = true;
     for (int v = 0; v < H && ok; ++v) {
       for (int u = 0; u < W; ++u) {
@@ -96,15 +99,15 @@ int main() {
     std::vector<uint16_t> depth(N, 2000);  // 2000 mm -> 2.0 m
     uint16_t* d_depth = nullptr;
     float3* d_xyz = nullptr;
-    cudaMalloc(&d_depth, N * sizeof(uint16_t));
-    cudaMalloc(&d_xyz, N * sizeof(float3));
-    cudaMemcpy(d_depth, depth.data(), N * sizeof(uint16_t), cudaMemcpyHostToDevice);
+    CUDA_OK(cudaMalloc(&d_depth, N * sizeof(uint16_t)));
+    CUDA_OK(cudaMalloc(&d_xyz, N * sizeof(float3)));
+    CUDA_OK(cudaMemcpy(d_depth, depth.data(), N * sizeof(uint16_t), cudaMemcpyHostToDevice));
     cudaError_t err = launch_deproject(d_depth, DepthDType::kUint16, 0.001f, k, dmin, dmax, invalid,
                                        nullptr, 0, d_xyz, nullptr, W, H, 0);
     CHECK(err == cudaSuccess, "Case2 launch returned error");
-    CHECK(cudaDeviceSynchronize() == cudaSuccess, "Case2 sync returned error");
+    CUDA_OK(cudaDeviceSynchronize());
     std::vector<float3> out(N);
-    cudaMemcpy(out.data(), d_xyz, N * sizeof(float3), cudaMemcpyDeviceToHost);
+    CUDA_OK(cudaMemcpy(out.data(), d_xyz, N * sizeof(float3), cudaMemcpyDeviceToHost));
     const int u = 40, v = 30;
     float3 o = out[v * W + u];
     float gX = (u - k.cx) * 2.0f / k.fx, gY = (v - k.cy) * 2.0f / k.fy;
@@ -119,15 +122,15 @@ int main() {
     std::vector<float> depth(N, 50.0f);  // > dmax
     float* d_depth = nullptr;
     float3* d_xyz = nullptr;
-    cudaMalloc(&d_depth, N * sizeof(float));
-    cudaMalloc(&d_xyz, N * sizeof(float3));
-    cudaMemcpy(d_depth, depth.data(), N * sizeof(float), cudaMemcpyHostToDevice);
+    CUDA_OK(cudaMalloc(&d_depth, N * sizeof(float)));
+    CUDA_OK(cudaMalloc(&d_xyz, N * sizeof(float3)));
+    CUDA_OK(cudaMemcpy(d_depth, depth.data(), N * sizeof(float), cudaMemcpyHostToDevice));
     cudaError_t err = launch_deproject(d_depth, DepthDType::kFloat32, 1.0f, k, dmin, dmax, invalid,
                                        nullptr, 0, d_xyz, nullptr, W, H, 0);
     CHECK(err == cudaSuccess, "Case3 launch returned error");
-    CHECK(cudaDeviceSynchronize() == cudaSuccess, "Case3 sync returned error");
+    CUDA_OK(cudaDeviceSynchronize());
     std::vector<float3> out(N);
-    cudaMemcpy(out.data(), d_xyz, N * sizeof(float3), cudaMemcpyDeviceToHost);
+    CUDA_OK(cudaMemcpy(out.data(), d_xyz, N * sizeof(float3), cudaMemcpyDeviceToHost));
     CHECK(std::isnan(out[0].x), "Case3 depth beyond max not invalidated");
     cudaFree(d_depth);
     cudaFree(d_xyz);
@@ -142,18 +145,18 @@ int main() {
     float3* d_xyz = nullptr;
     uchar3* d_color = nullptr;
     uchar3* d_outcolor = nullptr;
-    cudaMalloc(&d_depth, N * sizeof(float));
-    cudaMalloc(&d_xyz, N * sizeof(float3));
-    cudaMalloc(&d_color, N * sizeof(uchar3));
-    cudaMalloc(&d_outcolor, N * sizeof(uchar3));
-    cudaMemcpy(d_depth, depth.data(), N * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_color, color.data(), N * sizeof(uchar3), cudaMemcpyHostToDevice);
+    CUDA_OK(cudaMalloc(&d_depth, N * sizeof(float)));
+    CUDA_OK(cudaMalloc(&d_xyz, N * sizeof(float3)));
+    CUDA_OK(cudaMalloc(&d_color, N * sizeof(uchar3)));
+    CUDA_OK(cudaMalloc(&d_outcolor, N * sizeof(uchar3)));
+    CUDA_OK(cudaMemcpy(d_depth, depth.data(), N * sizeof(float), cudaMemcpyHostToDevice));
+    CUDA_OK(cudaMemcpy(d_color, color.data(), N * sizeof(uchar3), cudaMemcpyHostToDevice));
     cudaError_t err = launch_deproject(d_depth, DepthDType::kFloat32, 1.0f, k, dmin, dmax, invalid,
                                        d_color, 3, d_xyz, d_outcolor, W, H, 0);
     CHECK(err == cudaSuccess, "Case4 launch returned error");
-    CHECK(cudaDeviceSynchronize() == cudaSuccess, "Case4 sync returned error");
+    CUDA_OK(cudaDeviceSynchronize());
     std::vector<uchar3> outc(N);
-    cudaMemcpy(outc.data(), d_outcolor, N * sizeof(uchar3), cudaMemcpyDeviceToHost);
+    CUDA_OK(cudaMemcpy(outc.data(), d_outcolor, N * sizeof(uchar3), cudaMemcpyDeviceToHost));
     bool ok = true;
     for (int i = 0; i < N; ++i) {
       if (outc[i].x != color[i].x || outc[i].y != color[i].y || outc[i].z != color[i].z) {

@@ -117,8 +117,11 @@ void DepthToPointCloudOp::compute(InputContext& op_input, OutputContext& op_outp
   auto depth_tensor = get_tensor(depth_message, depth_tensor_name_.get());
   const DepthDType depth_dtype = to_depth_dtype(depth_tensor->dtype());
   const auto& shape = depth_tensor->shape();
-  if (shape.size() < 2) {
-    throw std::runtime_error("DepthToPointCloudOp: depth tensor must be at least 2D [H, W]");
+  // Accept only [H, W] or [H, W, 1]; a higher-rank tensor (e.g. [H, W, 3]) would otherwise be
+  // silently reinterpreted as a single-channel depth buffer.
+  if (shape.size() < 2 || shape.size() > 3 ||
+      (shape.size() == 3 && static_cast<int>(shape[2]) != 1)) {
+    throw std::runtime_error("DepthToPointCloudOp: depth tensor must be [H, W] or [H, W, 1]");
   }
   const int height = static_cast<int>(shape[0]);
   const int width = static_cast<int>(shape[1]);
@@ -144,11 +147,26 @@ void DepthToPointCloudOp::compute(InputContext& op_input, OutputContext& op_outp
     intr = CameraIntrinsics{host[0], host[1], host[2], host[3]};
   }
 
+  // Focal lengths must be non-zero (they divide the deprojection); the defaults are 0.0, so a
+  // caller that neither sets the fx/fy params nor connects the intrinsics input is rejected here
+  // rather than dividing by zero in the kernel.
+  if (intr.fx <= 0.0f || intr.fy <= 0.0f) {
+    throw std::runtime_error(
+        "DepthToPointCloudOp: fx and fy must be positive (set the fx/fy parameters or connect the "
+        "intrinsics input)");
+  }
+
   // --- Optional color input ---
   const void* color_ptr = nullptr;
   int color_channels = 0;
   if (auto maybe_color = op_input.receive<gxf::Entity>("color")) {
     auto color_tensor = get_tensor(maybe_color.value(), color_tensor_name_.get());
+    // The kernel reinterprets the color buffer as uchar3/uchar4, so the element type must be
+    // uint8 (a float or other-width tensor would be misread byte-for-byte).
+    const DLDataType cdt = color_tensor->dtype();
+    if (cdt.code != kDLUInt || cdt.bits != 8) {
+      throw std::runtime_error("DepthToPointCloudOp: color tensor must be uint8");
+    }
     const auto& cshape = color_tensor->shape();
     // Require an explicit channel dimension; a 2D [H, W] tensor is rejected rather than
     // silently assumed to be 3-channel (which would read past the buffer in the kernel).

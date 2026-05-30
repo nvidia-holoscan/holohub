@@ -133,7 +133,9 @@ class DepthToPointCloudDemoApp(Application):
                 block_size=block_size,
                 num_blocks=out_blocks,
             ),
-            # Pinhole intrinsics for the synthetic camera (principal point at image center).
+            # Pinhole intrinsics for the synthetic camera: square pixels (fx == fy) with the
+            # principal point at the image center. A single focal length is used for both axes
+            # by design; the focal length is independent of the image aspect ratio.
             fx=float(self._width) * 0.8,
             fy=float(self._width) * 0.8,
             cx=(self._width - 1) / 2.0,
@@ -157,6 +159,14 @@ def main():
     parser.add_argument("--width", type=int, default=640)
     parser.add_argument("--height", type=int, default=480)
     args = parser.parse_args()
+
+    for name, value in (
+        ("--frames", args.frames),
+        ("--width", args.width),
+        ("--height", args.height),
+    ):
+        if value <= 0:
+            parser.error(f"{name} must be a positive integer (got {value})")
 
     app = DepthToPointCloudDemoApp(frames=args.frames, width=args.width, height=args.height)
     app.run()
