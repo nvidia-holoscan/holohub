@@ -30,7 +30,6 @@
 #include <holoscan/core/operator.hpp>
 #include <holoscan/core/operator_spec.hpp>
 #include <holoscan/core/resources/gxf/allocator.hpp>
-#include <holoscan/core/resources/gxf/cuda_stream_pool.hpp>
 
 using std::string_literals::operator""s;
 using pybind11::literals::operator""_a;
@@ -53,7 +52,6 @@ class PyDepthToPointCloudOp : public DepthToPointCloudOp {
                         const std::string& color_tensor_name = "",
                         const std::string& output_tensor_name = "point_cloud",
                         const std::string& output_color_tensor_name = "colors",
-                        std::shared_ptr<holoscan::CudaStreamPool> cuda_stream_pool = nullptr,
                         const std::string& name = "depth_to_point_cloud")
       : DepthToPointCloudOp(ArgList{Arg{"allocator", allocator},
                                       Arg{"fx", fx},
@@ -68,7 +66,6 @@ class PyDepthToPointCloudOp : public DepthToPointCloudOp {
                                       Arg{"color_tensor_name", color_tensor_name},
                                       Arg{"output_tensor_name", output_tensor_name},
                                       Arg{"output_color_tensor_name", output_color_tensor_name}}) {
-    if (cuda_stream_pool) { this->add_arg(Arg{"cuda_stream_pool", cuda_stream_pool}); }
     add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;
@@ -105,7 +102,6 @@ PYBIND11_MODULE(_depth_to_point_cloud, m) {
                     const std::string&,
                     const std::string&,
                     const std::string&,
-                    std::shared_ptr<holoscan::CudaStreamPool>,
                     const std::string&>(),
            "fragment"_a,
            "allocator"_a,
@@ -121,7 +117,6 @@ PYBIND11_MODULE(_depth_to_point_cloud, m) {
            "color_tensor_name"_a = ""s,
            "output_tensor_name"_a = "point_cloud"s,
            "output_color_tensor_name"_a = "colors"s,
-           "cuda_stream_pool"_a = py::none(),
            "name"_a = "depth_to_point_cloud"s)
       .def("setup", &DepthToPointCloudOp::setup, "spec"_a);
 }  // PYBIND11_MODULE

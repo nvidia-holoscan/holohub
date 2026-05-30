@@ -100,18 +100,16 @@ void DepthToPointCloudOp::setup(OperatorSpec& spec) {
   spec.param(output_color_tensor_name_, "output_color_tensor_name", "Output color tensor name",
              "Name of the emitted colors tensor.", std::string("colors"));
   spec.param(allocator_, "allocator", "Allocator", "Device allocator for output tensors.");
-
-  cuda_stream_handler_.define_params(spec);
 }
 
 void DepthToPointCloudOp::compute(InputContext& op_input, OutputContext& op_output,
                                     ExecutionContext& context) {
   auto depth_message = op_input.receive<gxf::Entity>("depth").value();
 
-  if (cuda_stream_handler_.from_message(context.context(), depth_message) != GXF_SUCCESS) {
-    throw std::runtime_error("DepthToPointCloudOp: failed to get CUDA stream from input");
-  }
-  const cudaStream_t stream = cuda_stream_handler_.get_cuda_stream(context.context());
+  // Acquire this operator's CUDA stream and synchronize the depth producer onto it (via events).
+  // The optional intrinsics/color producers are synchronized below when those ports are connected,
+  // so every input the kernel reads is correctly ordered even if it comes from a different stream.
+  const cudaStream_t stream = op_input.receive_cuda_stream("depth");
 
   // --- Depth tensor: dtype, dimensions, device pointer ---
   auto depth_tensor = get_tensor(depth_message, depth_tensor_name_.get());
@@ -129,6 +127,7 @@ void DepthToPointCloudOp::compute(InputContext& op_input, OutputContext& op_outp
   // --- Optional per-frame intrinsics override ---
   CameraIntrinsics intr{fx_.get(), fy_.get(), cx_.get(), cy_.get()};
   if (auto maybe_intr = op_input.receive<gxf::Entity>("intrinsics")) {
+    op_input.receive_cuda_stream("intrinsics");  // sync the intrinsics producer onto `stream`
     auto intr_tensor = get_tensor(maybe_intr.value(), std::string(""));
     const DLDataType idt = intr_tensor->dtype();
     if (intr_tensor->size() < 4 || idt.code != kDLFloat || idt.bits != 32) {
@@ -160,6 +159,7 @@ void DepthToPointCloudOp::compute(InputContext& op_input, OutputContext& op_outp
   const void* color_ptr = nullptr;
   int color_channels = 0;
   if (auto maybe_color = op_input.receive<gxf::Entity>("color")) {
+    op_input.receive_cuda_stream("color");  // sync the color producer onto `stream`
     auto color_tensor = get_tensor(maybe_color.value(), color_tensor_name_.get());
     // The kernel reinterprets the color buffer as uchar3/uchar4, so the element type must be
     // uint8 (a float or other-width tensor would be misread byte-for-byte).
@@ -236,10 +236,6 @@ void DepthToPointCloudOp::compute(InputContext& op_input, OutputContext& op_outp
                             width,
                             height,
                             stream));
-
-  if (cuda_stream_handler_.to_message(out_message) != GXF_SUCCESS) {
-    throw std::runtime_error("DepthToPointCloudOp: failed to add CUDA stream to output");
-  }
 
   auto result = gxf::Entity(std::move(out_message.value()));
   op_output.emit(result, "point_cloud");

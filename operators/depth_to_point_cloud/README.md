@@ -46,7 +46,6 @@ are written as `(invalid_value, invalid_value, invalid_value)` (default `NaN`), 
 | `output_tensor_name` | `"point_cloud"` | Name of the emitted XYZ tensor |
 | `output_color_tensor_name` | `"colors"` | Name of the emitted colors tensor |
 | `allocator` | — | Device allocator for the output tensors (e.g. `BlockMemoryPool`) |
-| `cuda_stream_pool` | `nullptr` | Optional `CudaStreamPool` |
 
 ## Usage
 
@@ -62,7 +61,6 @@ cloud = DepthToPointCloudOp(
     fx=fx, fy=fy, cx=cx, cy=cy,
     depth_scale=0.001,          # uint16 millimeters
     depth_min=0.1, depth_max=10.0,
-    cuda_stream_pool=CudaStreamPool(self, ...),
 )
 # depth_source -> cloud -> HolovizOp (3D points)
 ```

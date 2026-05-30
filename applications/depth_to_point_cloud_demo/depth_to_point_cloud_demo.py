@@ -27,7 +27,7 @@ import argparse
 import cupy as cp
 from holoscan.conditions import CountCondition
 from holoscan.core import Application, Operator, OperatorSpec
-from holoscan.resources import BlockMemoryPool, CudaStreamPool, MemoryStorageType
+from holoscan.resources import BlockMemoryPool, MemoryStorageType
 
 from holohub.depth_to_point_cloud import DepthToPointCloudOp
 
@@ -143,7 +143,6 @@ class DepthToPointCloudDemoApp(Application):
             depth_scale=1.0,  # synthetic depth is already in meters
             depth_min=0.1,
             depth_max=10.0,
-            cuda_stream_pool=CudaStreamPool(self, name="stream_pool", reserved_size=4),
         )
 
         sink = PointCloudStatsOp(self, name="stats")

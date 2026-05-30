@@ -22,7 +22,6 @@
 #include <string>
 
 #include "holoscan/core/operator.hpp"
-#include "holoscan/utils/cuda_stream_handler.hpp"
 
 namespace holoscan::ops {
 
@@ -60,7 +59,6 @@ namespace holoscan::ops {
  * - **output_tensor_name**: name of the emitted point-cloud tensor (default `"point_cloud"`).
  * - **output_color_tensor_name**: name of the emitted colors tensor (default `"colors"`).
  * - **allocator**: device `holoscan::Allocator` for the output tensors (e.g. BlockMemoryPool).
- * - **cuda_stream_pool**: optional `holoscan::CudaStreamPool` for stream allocation.
  */
 class DepthToPointCloudOp : public holoscan::Operator {
  public:
@@ -86,8 +84,6 @@ class DepthToPointCloudOp : public holoscan::Operator {
   Parameter<std::string> output_tensor_name_;
   Parameter<std::string> output_color_tensor_name_;
   Parameter<std::shared_ptr<Allocator>> allocator_;
-
-  CudaStreamHandler cuda_stream_handler_;
 };
 
 }  // namespace holoscan::ops
