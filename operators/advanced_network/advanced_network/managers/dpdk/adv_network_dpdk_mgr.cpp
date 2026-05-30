@@ -2353,7 +2353,7 @@ Status DpdkMgr::validate_tx_burst_request(BurstParams* burst) {
 
   const auto q_it = tx_dpdk_q_map_.find(key);
   if (q_it == tx_dpdk_q_map_.end()) {
-    HOLOSCAN_LOG_ERROR("get_tx_packet_burst: queue map lookup failed for port {} queue {}",
+    HOLOSCAN_LOG_ERROR("validate_tx_burst_request: queue map lookup failed for port {} queue {}",
                        burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
     return Status::INVALID_PARAMETER;
   }
@@ -2361,7 +2361,7 @@ Status DpdkMgr::validate_tx_burst_request(BurstParams* burst) {
 
   if (burst->hdr.hdr.num_segs <= 0 ||
       static_cast<size_t>(burst->hdr.hdr.num_segs) != q->pools.size()) {
-    HOLOSCAN_LOG_ERROR("get_tx_packet_burst: num_segs {} does not match pools size {} "
+    HOLOSCAN_LOG_ERROR("validate_tx_burst_request: num_segs {} does not match pools size {} "
                        "for port {} queue {}",
                        burst->hdr.hdr.num_segs, q->pools.size(),
                        burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
@@ -2372,24 +2372,12 @@ Status DpdkMgr::validate_tx_burst_request(BurstParams* burst) {
 }
 
 Status DpdkMgr::get_tx_packet_burst(BurstParams* burst) {
+  if (const auto status = validate_tx_burst_request(burst); status != Status::SUCCESS) {
+    return status;
+  }
+
   const uint32_t key = generate_queue_key(burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
-
-  const auto q_it = tx_dpdk_q_map_.find(key);
-  if (q_it == tx_dpdk_q_map_.end()) {
-    HOLOSCAN_LOG_ERROR("get_tx_packet_burst: queue map lookup failed for port {} queue {}",
-                       burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
-    return Status::INVALID_PARAMETER;
-  }
-  const auto& q = q_it->second;
-
-  if (burst->hdr.hdr.num_segs <= 0 ||
-      static_cast<size_t>(burst->hdr.hdr.num_segs) != q->pools.size()) {
-    HOLOSCAN_LOG_ERROR("get_tx_packet_burst: num_segs {} does not match pools size {} "
-                       "for port {} queue {}",
-                       burst->hdr.hdr.num_segs, q->pools.size(),
-                       burst->hdr.hdr.port_id, burst->hdr.hdr.q_id);
-    return Status::INVALID_PARAMETER;
-  }
+  const auto& q = tx_dpdk_q_map_.at(key);
 
   const auto burst_pool = tx_burst_buffers.find(key);
   if (burst_pool == tx_burst_buffers.end()) {

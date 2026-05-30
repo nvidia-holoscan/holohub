@@ -189,11 +189,13 @@ int get_port_id(const std::string& key) {
 
 Status get_tx_packet_burst(BurstParams* burst) {
   ASSERT_ANO_MGR_INITIALIZED();
-  if (const auto status = g_ano_mgr->validate_tx_burst_request(burst);
-      status != Status::SUCCESS) {
-    return status;
+  if (!g_ano_mgr->is_tx_burst_available(burst)) {
+    if (const auto status = g_ano_mgr->validate_tx_burst_request(burst);
+        status != Status::SUCCESS) {
+      return status;
+    }
+    return Status::NO_FREE_BURST_BUFFERS;
   }
-  if (!g_ano_mgr->is_tx_burst_available(burst)) return Status::NO_FREE_BURST_BUFFERS;
   return g_ano_mgr->get_tx_packet_burst(burst);
 }
 
