@@ -13,20 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-project(point_cloud_from_depth_demo NONE)
+project(depth_to_point_cloud_demo NONE)
 
-find_package(holoscan 3.5.0 REQUIRED CONFIG
+find_package(holoscan 4.0.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 if(BUILD_TESTING)
-  add_test(NAME point_cloud_from_depth_demo_python_test
-    COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/point_cloud_from_depth_demo.py --frames 10
+  add_test(NAME depth_to_point_cloud_demo_python_test
+    COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/depth_to_point_cloud_demo.py --frames 10
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-  set_property(TEST point_cloud_from_depth_demo_python_test PROPERTY ENVIRONMENT
+  set_property(TEST depth_to_point_cloud_demo_python_test PROPERTY ENVIRONMENT
                "PYTHONPATH=${GXF_LIB_DIR}/../python/lib:${CMAKE_BINARY_DIR}/python/lib")
 
-  set_tests_properties(point_cloud_from_depth_demo_python_test
+  set_tests_properties(depth_to_point_cloud_demo_python_test
     PROPERTIES
       PASS_REGULAR_EXPRESSION "valid="
       FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")

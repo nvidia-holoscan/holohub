@@ -1,0 +1,42 @@
+{
+	"$schema": "urn:holohub:application:v1",
+	"application": {
+		"name": "Depth to Point Cloud Demo",
+		"description": "Hardware-free demo of DepthToPointCloudOp: a synthetic GPU depth+RGB generator is deprojected into an organized point cloud and validated each frame.",
+		"authors": [
+			{
+				"name": "Nitheesh Kumar",
+				"affiliation": "Zobot Lab"
+			}
+		],
+		"language": "Python",
+		"version": "0.1.0",
+		"changelog": {
+			"0.1.0": "Initial release: synthetic depth generator -> DepthToPointCloudOp -> validation sink."
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "4.0.0",
+			"tested_versions": [
+				"4.3.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": ["Point Cloud", "Depth", "3D", "Robotics"],
+		"ranking": 3,
+		"requirements": {
+			"python-packages": [
+				{
+					"name": "cupy",
+					"version": "13.6.0"
+				}
+			]
+		},
+		"run": {
+			"command": "python3 <holohub_app_source>/depth_to_point_cloud_demo.py",
+			"workdir": "holohub_bin"
+		}
+	}
+}

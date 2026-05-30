@@ -1,4 +1,4 @@
-# Point Cloud From Depth Operator
+# Depth to Point Cloud Operator
 
 Deproject an organized depth image into an organized point cloud on the GPU. This is the
 "gateway to 3D" building block: it turns a depth image (from a depth camera, stereo matcher,
@@ -11,7 +11,7 @@ PCL/Open3D interop) can consume — all GPU-resident, zero-copy on the hot path.
 For each pixel `(u, v)` with metric depth `Z = raw_depth * depth_scale`, the output point in the
 **camera optical frame** (x-right, y-down, z-forward) is:
 
-```
+```text
 X = (u - cx) * Z / fx
 Y = (v - cy) * Z / fy
 Z = Z
@@ -28,7 +28,7 @@ are written as `(invalid_value, invalid_value, invalid_value)` (default `NaN`), 
 ## Ports
 
 | Port | Direction | Type | Notes |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `depth` | in | `Entity` w/ 2D tensor | `uint16` (scaled by `depth_scale`) or `float32` (meters at `depth_scale=1.0`), shape `[H, W]` or `[H, W, 1]`, device memory |
 | `intrinsics` | in (optional) | `Entity` w/ `float32[4]` | `[fx, fy, cx, cy]`; overrides the params for that frame |
 | `color` | in (optional) | `Entity` w/ `uint8` image | `[H, W, 3]` or `[H, W, 4]` aligned to depth; enables colored output |
@@ -37,7 +37,7 @@ are written as `(invalid_value, invalid_value, invalid_value)` (default `NaN`), 
 ## Parameters
 
 | Parameter | Default | Description |
-|---|---|---|
+| --- | --- | --- |
 | `fx`, `fy`, `cx`, `cy` | `0.0` | Pinhole intrinsics in pixels (used when `intrinsics` port is unconnected) |
 | `depth_scale` | `0.001` | Raw-depth → meters multiplier (`0.001` for uint16 mm; `1.0` for float32 m) |
 | `depth_min`, `depth_max` | `0.0`, `100.0` | Valid metric depth range (meters) |
@@ -53,9 +53,9 @@ are written as `(invalid_value, invalid_value, invalid_value)` (default `NaN`), 
 ### Python
 
 ```python
-from holohub.point_cloud_from_depth import PointCloudFromDepthOp
+from holohub.depth_to_point_cloud import DepthToPointCloudOp
 
-cloud = PointCloudFromDepthOp(
+cloud = DepthToPointCloudOp(
     self,
     name="point_cloud",
     allocator=BlockMemoryPool(self, ...),
@@ -70,7 +70,7 @@ cloud = PointCloudFromDepthOp(
 ### C++
 
 ```cpp
-auto cloud = make_operator<ops::PointCloudFromDepthOp>(
+auto cloud = make_operator<ops::DepthToPointCloudOp>(
     "point_cloud",
     Arg("allocator", make_resource<BlockMemoryPool>(...)),
     Arg("fx", fx), Arg("fy", fy), Arg("cx", cx), Arg("cy", cy),
@@ -87,11 +87,11 @@ out-of-range handling, and color passthrough against an analytic CPU reference:
 nvcc -O2 -arch=sm_<cc> -o test_deproject test/test_deproject.cu deproject.cu && ./test_deproject
 ```
 
-It is also registered with CTest (`point_cloud_from_depth_test`) when the project is built with
+It is also registered with CTest (`depth_to_point_cloud_test`) when the project is built with
 `BUILD_TESTING` enabled.
 
 ## Requirements
 
-- Holoscan SDK ≥ 3.5.0, CUDA. Platforms: `x86_64`, `aarch64` (Jetson). No third-party dependencies
+- Holoscan SDK ≥ 4.0.0, CUDA. Platforms: `x86_64`, `aarch64` (Jetson). No third-party dependencies
   beyond the CUDA runtime — the deprojection runs as a custom CUDA kernel (no VPI/PVA/VIC fixed-function
   block exists for depth deprojection, and it is not a library-shaped op).

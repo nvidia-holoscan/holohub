@@ -15,30 +15,30 @@
 
 cmake_minimum_required(VERSION 3.24)
 
-project(point_cloud_from_depth LANGUAGES CXX CUDA)
+project(depth_to_point_cloud LANGUAGES CXX CUDA)
 
-find_package(holoscan REQUIRED CONFIG
+find_package(holoscan 4.0.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-add_library(point_cloud_from_depth SHARED
-  point_cloud_from_depth.cpp
-  point_cloud_from_depth.hpp
+add_library(depth_to_point_cloud SHARED
+  depth_to_point_cloud.cpp
+  depth_to_point_cloud.hpp
   deproject.cu
   deproject.hpp
 )
 
-set_target_properties(point_cloud_from_depth
+set_target_properties(depth_to_point_cloud
   PROPERTIES
     # compile for the architecture of the current GPU
     CUDA_ARCHITECTURES "native"
 )
 
-target_link_libraries(point_cloud_from_depth
+target_link_libraries(depth_to_point_cloud
   PUBLIC
     holoscan::core
 )
 
-target_include_directories(point_cloud_from_depth
+target_include_directories(depth_to_point_cloud
   INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
@@ -51,4 +51,4 @@ if(BUILD_TESTING)
     add_subdirectory(test)
 endif()
 
-install(TARGETS point_cloud_from_depth)
+install(TARGETS depth_to_point_cloud)

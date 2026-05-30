@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#include "point_cloud_from_depth.hpp"
+#include "depth_to_point_cloud.hpp"
 
 #include <limits>
 #include <memory>
@@ -53,21 +53,21 @@ DepthDType to_depth_dtype(const DLDataType& dtype) {
   if (dtype.code == kDLFloat && dtype.bits == 32) { return DepthDType::kFloat32; }
   if (dtype.code == kDLUInt && dtype.bits == 16) { return DepthDType::kUint16; }
   throw std::runtime_error(
-      "PointCloudFromDepthOp: unsupported depth dtype (expected float32 or uint16)");
+      "DepthToPointCloudOp: unsupported depth dtype (expected float32 or uint16)");
 }
 
 // Fetch a tensor from an entity, by name if given, otherwise the first tensor.
 std::shared_ptr<Tensor> get_tensor(const holoscan::gxf::Entity& message, const std::string& name) {
   auto maybe = name.empty() ? message.get<Tensor>() : message.get<Tensor>(name.c_str());
   if (!maybe) {
-    throw std::runtime_error("PointCloudFromDepthOp: input tensor '" + name + "' not found");
+    throw std::runtime_error("DepthToPointCloudOp: input tensor '" + name + "' not found");
   }
   return maybe;
 }
 
 }  // namespace
 
-void PointCloudFromDepthOp::setup(OperatorSpec& spec) {
+void DepthToPointCloudOp::setup(OperatorSpec& spec) {
   auto& depth_in = spec.input<gxf::Entity>("depth");
   // Optional inputs must not block execution when unconnected.
   auto& intrinsics_in = spec.input<gxf::Entity>("intrinsics").condition(ConditionType::kNone);
@@ -104,12 +104,12 @@ void PointCloudFromDepthOp::setup(OperatorSpec& spec) {
   cuda_stream_handler_.define_params(spec);
 }
 
-void PointCloudFromDepthOp::compute(InputContext& op_input, OutputContext& op_output,
+void DepthToPointCloudOp::compute(InputContext& op_input, OutputContext& op_output,
                                     ExecutionContext& context) {
   auto depth_message = op_input.receive<gxf::Entity>("depth").value();
 
   if (cuda_stream_handler_.from_message(context.context(), depth_message) != GXF_SUCCESS) {
-    throw std::runtime_error("PointCloudFromDepthOp: failed to get CUDA stream from input");
+    throw std::runtime_error("DepthToPointCloudOp: failed to get CUDA stream from input");
   }
   const cudaStream_t stream = cuda_stream_handler_.get_cuda_stream(context.context());
 
@@ -118,7 +118,7 @@ void PointCloudFromDepthOp::compute(InputContext& op_input, OutputContext& op_ou
   const DepthDType depth_dtype = to_depth_dtype(depth_tensor->dtype());
   const auto& shape = depth_tensor->shape();
   if (shape.size() < 2) {
-    throw std::runtime_error("PointCloudFromDepthOp: depth tensor must be at least 2D [H, W]");
+    throw std::runtime_error("DepthToPointCloudOp: depth tensor must be at least 2D [H, W]");
   }
   const int height = static_cast<int>(shape[0]);
   const int width = static_cast<int>(shape[1]);
@@ -127,12 +127,17 @@ void PointCloudFromDepthOp::compute(InputContext& op_input, OutputContext& op_ou
   CameraIntrinsics intr{fx_.get(), fy_.get(), cx_.get(), cy_.get()};
   if (auto maybe_intr = op_input.receive<gxf::Entity>("intrinsics")) {
     auto intr_tensor = get_tensor(maybe_intr.value(), std::string(""));
-    if (intr_tensor->size() < 4) {
-      throw std::runtime_error("PointCloudFromDepthOp: intrinsics tensor must hold [fx, fy, cx, cy]");
+    const DLDataType idt = intr_tensor->dtype();
+    if (intr_tensor->size() < 4 || idt.code != kDLFloat || idt.bits != 32) {
+      throw std::runtime_error(
+          "DepthToPointCloudOp: intrinsics tensor must be float32 [fx, fy, cx, cy]");
     }
     float host[4];
-    // Tiny (16 B) config read; pixel data stays GPU-resident.
-    CUDA_TRY(cudaMemcpy(host, intr_tensor->data(), sizeof(host), cudaMemcpyDefault));
+    // Tiny (16 B) config read; pixel data stays GPU-resident. The intrinsics tensor is
+    // produced by an upstream operator on `stream`, so the copy must be ordered on that
+    // same stream (a plain cudaMemcpy on the default stream would not wait for it).
+    CUDA_TRY(cudaMemcpyAsync(host, intr_tensor->data(), sizeof(host), cudaMemcpyDefault, stream));
+    CUDA_TRY(cudaStreamSynchronize(stream));
     intr = CameraIntrinsics{host[0], host[1], host[2], host[3]};
   }
 
@@ -143,6 +148,15 @@ void PointCloudFromDepthOp::compute(InputContext& op_input, OutputContext& op_ou
     auto color_tensor = get_tensor(maybe_color.value(), color_tensor_name_.get());
     const auto& cshape = color_tensor->shape();
     color_channels = cshape.size() >= 3 ? static_cast<int>(cshape[2]) : 3;
+    if (color_channels != 3 && color_channels != 4) {
+      throw std::runtime_error(
+          "DepthToPointCloudOp: color tensor must be H x W x 3 (uchar3) or H x W x 4 (uchar4)");
+    }
+    if (cshape.size() < 2 || static_cast<int>(cshape[0]) != height ||
+        static_cast<int>(cshape[1]) != width) {
+      throw std::runtime_error(
+          "DepthToPointCloudOp: color image dimensions must match the depth image");
+    }
     color_ptr = color_tensor->data();
   }
 
@@ -155,7 +169,7 @@ void PointCloudFromDepthOp::compute(InputContext& op_input, OutputContext& op_ou
   xyz_tensor.value()->reshape<float>(nvidia::gxf::Shape{height, width, 3},
                                      nvidia::gxf::MemoryStorageType::kDevice, allocator.value());
   if (!xyz_tensor.value()->pointer()) {
-    throw std::runtime_error("PointCloudFromDepthOp: failed to allocate point_cloud tensor");
+    throw std::runtime_error("DepthToPointCloudOp: failed to allocate point_cloud tensor");
   }
 
   uchar3* out_color = nullptr;
@@ -165,7 +179,7 @@ void PointCloudFromDepthOp::compute(InputContext& op_input, OutputContext& op_ou
     color_out.value()->reshape<uint8_t>(nvidia::gxf::Shape{height, width, 3},
                                         nvidia::gxf::MemoryStorageType::kDevice, allocator.value());
     if (!color_out.value()->pointer()) {
-      throw std::runtime_error("PointCloudFromDepthOp: failed to allocate colors tensor");
+      throw std::runtime_error("DepthToPointCloudOp: failed to allocate colors tensor");
     }
     out_color = reinterpret_cast<uchar3*>(color_out.value()->pointer());
   }
@@ -186,7 +200,7 @@ void PointCloudFromDepthOp::compute(InputContext& op_input, OutputContext& op_ou
                             stream));
 
   if (cuda_stream_handler_.to_message(out_message) != GXF_SUCCESS) {
-    throw std::runtime_error("PointCloudFromDepthOp: failed to add CUDA stream to output");
+    throw std::runtime_error("DepthToPointCloudOp: failed to add CUDA stream to output");
   }
 
   auto result = gxf::Entity(std::move(out_message.value()));

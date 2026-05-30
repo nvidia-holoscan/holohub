@@ -15,14 +15,14 @@
 
 # Standalone golden-reference unit test for the deproject kernel. It depends only on
 # the CUDA runtime (no Holoscan SDK) and returns a non-zero exit code on failure.
-add_executable(point_cloud_from_depth_test
+add_executable(depth_to_point_cloud_test
   test_deproject.cu
   ${CMAKE_CURRENT_SOURCE_DIR}/../deproject.cu
 )
 
-set_target_properties(point_cloud_from_depth_test
+set_target_properties(depth_to_point_cloud_test
   PROPERTIES
     CUDA_ARCHITECTURES "native"
 )
 
-add_test(NAME point_cloud_from_depth_test COMMAND point_cloud_from_depth_test)
+add_test(NAME depth_to_point_cloud_test COMMAND depth_to_point_cloud_test)

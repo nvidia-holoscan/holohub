@@ -17,7 +17,7 @@
 
 #include "../../operator_util.hpp"
 
-#include <point_cloud_from_depth.hpp>
+#include <depth_to_point_cloud.hpp>
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -40,11 +40,11 @@ namespace py = pybind11;
 namespace holoscan::ops {
 
 /* Trampoline class providing a Pythonic kwarg-based constructor matching the C++ defaults. */
-class PyPointCloudFromDepthOp : public PointCloudFromDepthOp {
+class PyDepthToPointCloudOp : public DepthToPointCloudOp {
  public:
-  using PointCloudFromDepthOp::PointCloudFromDepthOp;
+  using DepthToPointCloudOp::DepthToPointCloudOp;
 
-  PyPointCloudFromDepthOp(Fragment* fragment, const py::args& args,
+  PyDepthToPointCloudOp(Fragment* fragment, const py::args& args,
                           std::shared_ptr<Allocator> allocator, float fx = 0.0f, float fy = 0.0f,
                           float cx = 0.0f, float cy = 0.0f, float depth_scale = 0.001f,
                           float depth_min = 0.0f, float depth_max = 100.0f,
@@ -54,8 +54,8 @@ class PyPointCloudFromDepthOp : public PointCloudFromDepthOp {
                           const std::string& output_tensor_name = "point_cloud",
                           const std::string& output_color_tensor_name = "colors",
                           std::shared_ptr<holoscan::CudaStreamPool> cuda_stream_pool = nullptr,
-                          const std::string& name = "point_cloud_from_depth")
-      : PointCloudFromDepthOp(ArgList{Arg{"allocator", allocator},
+                          const std::string& name = "depth_to_point_cloud")
+      : DepthToPointCloudOp(ArgList{Arg{"allocator", allocator},
                                       Arg{"fx", fx},
                                       Arg{"fy", fy},
                                       Arg{"cx", cx},
@@ -77,18 +77,18 @@ class PyPointCloudFromDepthOp : public PointCloudFromDepthOp {
   }
 };
 
-PYBIND11_MODULE(_point_cloud_from_depth, m) {
+PYBIND11_MODULE(_depth_to_point_cloud, m) {
   m.doc() = R"pbdoc(
-        PointCloudFromDepthOp Python Bindings
+        DepthToPointCloudOp Python Bindings
         -------------------------------------
-        .. currentmodule:: _point_cloud_from_depth
+        .. currentmodule:: _depth_to_point_cloud
     )pbdoc";
 
-  py::class_<PointCloudFromDepthOp,
-             PyPointCloudFromDepthOp,
+  py::class_<DepthToPointCloudOp,
+             PyDepthToPointCloudOp,
              Operator,
-             std::shared_ptr<PointCloudFromDepthOp>>(
-      m, "PointCloudFromDepthOp",
+             std::shared_ptr<DepthToPointCloudOp>>(
+      m, "DepthToPointCloudOp",
       "Deproject an organized depth image into an organized point cloud on the GPU.")
       .def(py::init<Fragment*,
                     const py::args&,
@@ -122,8 +122,8 @@ PYBIND11_MODULE(_point_cloud_from_depth, m) {
            "output_tensor_name"_a = "point_cloud"s,
            "output_color_tensor_name"_a = "colors"s,
            "cuda_stream_pool"_a = py::none(),
-           "name"_a = "point_cloud_from_depth"s)
-      .def("setup", &PointCloudFromDepthOp::setup, "spec"_a);
+           "name"_a = "depth_to_point_cloud"s)
+      .def("setup", &DepthToPointCloudOp::setup, "spec"_a);
 }  // PYBIND11_MODULE
 
 }  // namespace holoscan::ops

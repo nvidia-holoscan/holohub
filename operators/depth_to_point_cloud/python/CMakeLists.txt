@@ -15,7 +15,7 @@
 
 include(pybind11_add_holohub_module)
 pybind11_add_holohub_module(
-    CPP_CMAKE_TARGET point_cloud_from_depth
-    CLASS_NAME "PointCloudFromDepthOp"
-    SOURCES point_cloud_from_depth.cpp
+    CPP_CMAKE_TARGET depth_to_point_cloud
+    CLASS_NAME "DepthToPointCloudOp"
+    SOURCES depth_to_point_cloud.cpp
 )

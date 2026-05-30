@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef HOLOSCAN_OPERATORS_POINT_CLOUD_FROM_DEPTH_POINT_CLOUD_FROM_DEPTH_HPP
-#define HOLOSCAN_OPERATORS_POINT_CLOUD_FROM_DEPTH_POINT_CLOUD_FROM_DEPTH_HPP
+#ifndef HOLOSCAN_OPERATORS_DEPTH_TO_POINT_CLOUD_DEPTH_TO_POINT_CLOUD_HPP
+#define HOLOSCAN_OPERATORS_DEPTH_TO_POINT_CLOUD_DEPTH_TO_POINT_CLOUD_HPP
 
 #include <memory>
 #include <string>
@@ -62,11 +62,11 @@ namespace holoscan::ops {
  * - **allocator**: device `holoscan::Allocator` for the output tensors (e.g. BlockMemoryPool).
  * - **cuda_stream_pool**: optional `holoscan::CudaStreamPool` for stream allocation.
  */
-class PointCloudFromDepthOp : public holoscan::Operator {
+class DepthToPointCloudOp : public holoscan::Operator {
  public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS(PointCloudFromDepthOp)
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(DepthToPointCloudOp)
 
-  PointCloudFromDepthOp() = default;
+  DepthToPointCloudOp() = default;
 
   void setup(OperatorSpec& spec) override;
   void compute(InputContext& op_input, OutputContext& op_output,
@@ -92,4 +92,4 @@ class PointCloudFromDepthOp : public holoscan::Operator {
 
 }  // namespace holoscan::ops
 
-#endif /* HOLOSCAN_OPERATORS_POINT_CLOUD_FROM_DEPTH_POINT_CLOUD_FROM_DEPTH_HPP */
+#endif /* HOLOSCAN_OPERATORS_DEPTH_TO_POINT_CLOUD_DEPTH_TO_POINT_CLOUD_HPP */

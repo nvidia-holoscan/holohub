@@ -99,8 +99,8 @@ int main() {
     cudaMalloc(&d_depth, N * sizeof(uint16_t));
     cudaMalloc(&d_xyz, N * sizeof(float3));
     cudaMemcpy(d_depth, depth.data(), N * sizeof(uint16_t), cudaMemcpyHostToDevice);
-    launch_deproject(d_depth, DepthDType::kUint16, 0.001f, k, dmin, dmax, invalid, nullptr, 0, d_xyz,
-                     nullptr, W, H, 0);
+    launch_deproject(d_depth, DepthDType::kUint16, 0.001f, k, dmin, dmax, invalid, nullptr, 0,
+                     d_xyz, nullptr, W, H, 0);
     cudaDeviceSynchronize();
     std::vector<float3> out(N);
     cudaMemcpy(out.data(), d_xyz, N * sizeof(float3), cudaMemcpyDeviceToHost);

@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef HOLOSCAN_OPERATORS_POINT_CLOUD_FROM_DEPTH_DEPROJECT_HPP
-#define HOLOSCAN_OPERATORS_POINT_CLOUD_FROM_DEPTH_DEPROJECT_HPP
+#ifndef HOLOSCAN_OPERATORS_DEPTH_TO_POINT_CLOUD_DEPROJECT_HPP
+#define HOLOSCAN_OPERATORS_DEPTH_TO_POINT_CLOUD_DEPROJECT_HPP
 
 #include <cuda_runtime.h>
 
@@ -74,4 +74,4 @@ cudaError_t launch_deproject(const void* depth, DepthDType dtype, float depth_sc
 
 }  // namespace holoscan::ops
 
-#endif /* HOLOSCAN_OPERATORS_POINT_CLOUD_FROM_DEPTH_DEPROJECT_HPP */
+#endif /* HOLOSCAN_OPERATORS_DEPTH_TO_POINT_CLOUD_DEPROJECT_HPP */

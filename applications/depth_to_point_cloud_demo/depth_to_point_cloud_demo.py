@@ -13,11 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Demo for PointCloudFromDepthOp.
+"""Demo for DepthToPointCloudOp.
 
 Generates a synthetic organized depth image (a gently tilting plane) plus an aligned RGB
 image entirely on the GPU, deprojects it into an organized point cloud with
-PointCloudFromDepthOp, and validates the result. No camera or dataset is required, so the
+DepthToPointCloudOp, and validates the result. No camera or dataset is required, so the
 app runs in CI. See README.md for wiring a real Intel RealSense camera or adding Holoviz
 3D rendering.
 """
@@ -29,7 +29,7 @@ from holoscan.conditions import CountCondition
 from holoscan.core import Application, Operator, OperatorSpec
 from holoscan.resources import BlockMemoryPool, CudaStreamPool, MemoryStorageType
 
-from holohub.point_cloud_from_depth import PointCloudFromDepthOp
+from holohub.depth_to_point_cloud import DepthToPointCloudOp
 
 
 class SyntheticDepthGeneratorOp(Operator):
@@ -57,10 +57,7 @@ class SyntheticDepthGeneratorOp(Operator):
         # A tilted plane in meters: ~1.0 m near the top-left, increasing across the frame,
         # with a slow global oscillation so successive frames differ.
         depth = (
-            1.0
-            + 0.5 * (self._xs / self.width)
-            + 0.4 * (self._ys / self.height)
-            + 0.3 * cp.sin(t)
+            1.0 + 0.5 * (self._xs / self.width) + 0.4 * (self._ys / self.height) + 0.3 * cp.sin(t)
         ).astype(cp.float32)
 
         r = (255.0 * self._xs / self.width).astype(cp.uint8)
@@ -85,18 +82,27 @@ class PointCloudStatsOp(Operator):
         z = pc[..., 2]
         valid = ~cp.isnan(z)
         n_valid = int(valid.sum().get())
+
+        # The colored path is connected, so a colors tensor must accompany the cloud and
+        # share its H x W footprint (3 uint8 channels).
+        colors = cp.asarray(msg["colors"])  # HxWx3 uint8
+        if colors.shape[:2] != pc.shape[:2] or colors.shape[2] != 3:
+            raise RuntimeError(
+                f"colors shape {colors.shape} does not match cloud {pc.shape[:2]} x 3"
+            )
+
         if n_valid:
             zmin = float(z[valid].min().get())
             zmax = float(z[valid].max().get())
             print(
-                f"[point_cloud_from_depth_demo] points={pc.shape[0] * pc.shape[1]} "
-                f"valid={n_valid} z=[{zmin:.3f}, {zmax:.3f}] m"
+                f"[depth_to_point_cloud_demo] points={pc.shape[0] * pc.shape[1]} "
+                f"valid={n_valid} z=[{zmin:.3f}, {zmax:.3f}] m colors={tuple(colors.shape)}"
             )
         else:
-            print("[point_cloud_from_depth_demo] no valid points")
+            print("[depth_to_point_cloud_demo] no valid points")
 
 
-class PointCloudFromDepthDemoApp(Application):
+class DepthToPointCloudDemoApp(Application):
     def __init__(self, frames=100, width=640, height=480):
         super().__init__()
         self._frames = frames
@@ -112,10 +118,12 @@ class PointCloudFromDepthDemoApp(Application):
             height=self._height,
         )
 
-        # HxWx3 float32 point cloud + HxWx3 uint8 colors.
-        out_blocks = 2
+        # Two device tensors per frame (HxWx3 float32 point cloud + HxWx3 uint8 colors) drawn
+        # from this pool; size each block for the larger (float32 XYZ) output and keep enough
+        # blocks for both tensors plus one frame of pipelining headroom.
+        out_blocks = 4
         block_size = self._width * self._height * 3 * 4  # float32 XYZ is the larger output
-        cloud = PointCloudFromDepthOp(
+        cloud = DepthToPointCloudOp(
             self,
             name="point_cloud",
             allocator=BlockMemoryPool(
@@ -133,7 +141,7 @@ class PointCloudFromDepthDemoApp(Application):
             depth_scale=1.0,  # synthetic depth is already in meters
             depth_min=0.1,
             depth_max=10.0,
-            cuda_stream_pool=CudaStreamPool(self, name="stream_pool", num_streams=4),
+            cuda_stream_pool=CudaStreamPool(self, name="stream_pool", reserved_size=4),
         )
 
         sink = PointCloudStatsOp(self, name="stats")
@@ -144,13 +152,13 @@ class PointCloudFromDepthDemoApp(Application):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="PointCloudFromDepthOp synthetic demo")
+    parser = argparse.ArgumentParser(description="DepthToPointCloudOp synthetic demo")
     parser.add_argument("--frames", type=int, default=100, help="Number of frames to process")
     parser.add_argument("--width", type=int, default=640)
     parser.add_argument("--height", type=int, default=480)
     args = parser.parse_args()
 
-    app = PointCloudFromDepthDemoApp(frames=args.frames, width=args.width, height=args.height)
+    app = DepthToPointCloudDemoApp(frames=args.frames, width=args.width, height=args.height)
     app.run()
 
 
