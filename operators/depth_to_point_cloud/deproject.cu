@@ -60,9 +60,10 @@ cudaError_t launch_deproject(const void* depth, DepthDType dtype, float depth_sc
   if (n <= 0) { return cudaSuccess; }
 
   constexpr int kBlock = 256;
-  int grid = (n + kBlock - 1) / kBlock;
-  // Grid-stride loop handles any n; cap grid to keep launch configuration sane.
-  grid = grid < 65535 ? grid : 65535;
+  // One block per kBlock pixels. All targeted architectures allow up to 2^31-1 blocks in x,
+  // far beyond any image resolution, so no grid cap is needed; the grid-stride loop in the
+  // kernel still covers any n correctly.
+  const int grid = (n + kBlock - 1) / kBlock;
 
   const uchar3* color3 = nullptr;
   const uchar4* color4 = nullptr;
