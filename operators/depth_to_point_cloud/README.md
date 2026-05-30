@@ -32,7 +32,10 @@ are written as `(invalid_value, invalid_value, invalid_value)` (default `NaN`), 
 | `depth` | in | `Entity` w/ 2D tensor | `uint16` (scaled by `depth_scale`) or `float32` (meters at `depth_scale=1.0`), shape `[H, W]` or `[H, W, 1]`, device memory |
 | `intrinsics` | in (optional) | `Entity` w/ `float32[4]` | `[fx, fy, cx, cy]`; overrides the params for that frame |
 | `color` | in (optional) | `Entity` w/ `uint8` image | `[H, W, 3]` or `[H, W, 4]` aligned to depth; enables colored output |
-| `point_cloud` | out | `Entity` | `float32 [H, W, 3]` XYZ (and `uint8 [H, W, 3]` colors when `color` is connected) |
+| `point_cloud` | out | `Entity` | `float32 [H, W, 3]` XYZ (and `uint8 [H, W, 3]` RGB colors when `color` is connected) |
+
+The emitted `colors` tensor is always 3-channel RGB; a 4-channel (RGBA) `color` input is converted to
+RGB and its alpha channel is dropped.
 
 ## Parameters
 
@@ -82,7 +85,7 @@ runtime (no Holoscan SDK). It verifies the deprojection math (float32 and uint16
 out-of-range handling, and color passthrough against an analytic CPU reference:
 
 ```bash
-nvcc -O2 -arch=sm_<cc> -o test_deproject test/test_deproject.cu deproject.cu && ./test_deproject
+nvcc -O2 -arch=native -o test_deproject test/test_deproject.cu deproject.cu && ./test_deproject
 ```
 
 It is also registered with CTest (`depth_to_point_cloud_test`) when the project is built with

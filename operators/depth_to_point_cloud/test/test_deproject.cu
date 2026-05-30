@@ -17,7 +17,7 @@
 
 // Standalone golden-reference unit test for the deproject kernel. Compiles with
 // nvcc alone (no Holoscan SDK) so kernel correctness can be verified on any GPU:
-//   nvcc -O2 -o test_deproject test/test_deproject.cu deproject.cu && ./test_deproject
+//   nvcc -O2 -arch=native -o test_deproject test/test_deproject.cu deproject.cu && ./test_deproject
 
 #include <cuda_runtime.h>
 
