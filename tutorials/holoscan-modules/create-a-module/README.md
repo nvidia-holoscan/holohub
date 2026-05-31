@@ -145,7 +145,7 @@ or customize with your own:
 | `operator_slug` | `my_sensor_op` | Initial operator |
 | `language` | `cpp` or `python` | Implementation language |
 | `version` | `0.1.0` | Initial semver |
-| `holoscan_version` | `4.2.0` | Minimum SDK version |
+| `holoscan_version` | `4.3.0` | Minimum SDK version |
 | `full_name`, `affiliation`, `contact_email` | your details | Authorship and Debian metadata |
 
 The CLI will further derive some names using these rules:
