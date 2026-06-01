@@ -584,6 +584,8 @@ class TestHoloHubCLI(unittest.TestCase):
             command_string = kwargs["extra_args"][1]
             self.assertIn(f'--build-with "{operators}"', command_string)
 
+    @patch("utilities.cli.holohub.parse_module_sites", return_value=[])
+    @patch("utilities.cli.holohub.parse_module_dependencies", return_value=[])
     @patch("utilities.cli.holohub.write_external_operators_manifest")
     @patch("utilities.cli.holohub.HoloHubCLI.find_project")
     @patch("utilities.cli.util.run_command")
@@ -594,6 +596,8 @@ class TestHoloHubCLI(unittest.TestCase):
         mock_run_command,
         mock_find_project,
         mock_write_manifest,
+        mock_parse_deps,
+        mock_parse_sites,
     ):
         """Test that build_project_locally correctly adds the HOLOHUB_BUILD_OPERATORS CMake parameter"""
         # Set up mocks

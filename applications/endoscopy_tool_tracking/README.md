@@ -59,25 +59,34 @@ The key pipeline differences from the replayer mode are:
 - **Hardware**: a DELTACAST.TV VideoMaster SDI or HDMI capture card installed in the host system
 - **Deltacast SDK**: the VideoMaster SDK from DELTACAST.TV must be installed. Contact [DELTACAST.TV](https://www.deltacast.tv/) for access. The `holoscan-deltacast` module provides a mock SDK for development builds without a card.
 - **Holoscan SDK** ≥ 4.2.0
-- The `holoscan-deltacast` module is fetched automatically by the HoloHub CLI at build time; no manual checkout is required.
+- The `holoscan-deltacast` module is fetched automatically by the HoloHub CLI at build time; no manual checkout is required. See the Holoscan Deltacast external module repository for more details on Deltacast support for Holoscan-based development: <https://github.com/deltacasttv/holoscan-modules>
 
 #### Build and Run with Deltacast support
 
-```bash
-# Switch the source to the Deltacast card
-sed -i -e 's#^source:.*#source: deltacast#' \
-    applications/endoscopy_tool_tracking/<cpp/python>/endoscopy_tool_tracking.yaml
-```
+**Real VideoMaster SDK (requires DELTACAST.TV hardware and SDK):**
 
-Card selection, signal format, and output port are configured in the `deltacast` section of `endoscopy_tool_tracking.yaml`.
-
-Build and run with the HoloHub CLI:
+Set `VIDEOMASTER_SDK_DIR` to the VideoMaster SDK installation path, then run:
 
 ```bash
-./holohub run endoscopy_tool_tracking deltacast
+export VIDEOMASTER_SDK_DIR=/path/to/videomaster/sdk
+
+./holohub run endoscopy_tool_tracking deltacast[_mock] --language=[cpp/python]
 ```
 
-This selects the `deltacast` project mode defined in the application's `metadata.json`, which sets `-DOP_deltacast_videomaster=ON` and causes CMake to fetch and build the `holoscan-deltacast` module via FetchContent.
+**Mock SDK (development without real capture card or VideoMaster SDK):**
+
+```bash
+# C++
+./holohub run endoscopy_tool_tracking cpp deltacast_mock
+# Python
+./holohub run endoscopy_tool_tracking python deltacast_mock
+```
+
+The CLI automatically mounts `$VIDEOMASTER_SDK_DIR` into the container at the same path and passes `-DVIDEOMASTER_SDK_DIR=$VIDEOMASTER_SDK_DIR` and `-DVIDEOMASTER_USE_MOCK:BOOL=OFF` to CMake.
+
+Both modes use `endoscopy_tool_tracking_deltacast.yaml` (copied to the build directory automatically), which sets `source: deltacast` so the C++ application reads from the capture card rather than the replayer. The Python application is launched with `--source deltacast`.
+
+Card selection, signal format, and output port are configured in the `deltacast` section of `endoscopy_tool_tracking_deltacast.yaml`.
 
 ### Using VTK for rendering
 

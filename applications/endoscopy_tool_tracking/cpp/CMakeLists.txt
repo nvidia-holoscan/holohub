@@ -32,8 +32,6 @@ target_link_libraries(endoscopy_tool_tracking
   holoscan::ops::holoviz
   lstm_tensor_rt_inference
   tool_tracking_postprocessor
-  holoscan::videomaster # FIXME
-#  $<TARGET_NAME_IF_EXISTS:holoscan::videomaster>
 )
 
 target_link_libraries(endoscopy_tool_tracking PRIVATE $<TARGET_NAME_IF_EXISTS:holoscan::aja>)
@@ -52,9 +50,10 @@ endif()
 add_custom_target(endoscopy_tool_tracking_deps
   COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/endoscopy_tool_tracking.yaml" ${CMAKE_CURRENT_BINARY_DIR}
   COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/endoscopy_tool_tracking_aja_overlay.yaml" ${CMAKE_CURRENT_BINARY_DIR}
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/endoscopy_tool_tracking_deltacast.yaml" ${CMAKE_CURRENT_BINARY_DIR}
   COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/postprocessor.slang" ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS "endoscopy_tool_tracking.yaml" "endoscopy_tool_tracking_aja_overlay.yaml" "postprocessor.slang"
-  BYPRODUCTS "endoscopy_tool_tracking.yaml" "endoscopy_tool_tracking_aja_overlay.yaml" "postprocessor.slang"
+  DEPENDS "endoscopy_tool_tracking.yaml" "endoscopy_tool_tracking_aja_overlay.yaml" "endoscopy_tool_tracking_deltacast.yaml" "postprocessor.slang"
+  BYPRODUCTS "endoscopy_tool_tracking.yaml" "endoscopy_tool_tracking_aja_overlay.yaml" "endoscopy_tool_tracking_deltacast.yaml" "postprocessor.slang"
 )
 add_dependencies(endoscopy_tool_tracking endoscopy_tool_tracking_deps)
 

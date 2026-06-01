@@ -79,14 +79,16 @@ def _module_dependencies_raw(metadata: dict) -> list[dict]:
 def parse_module_dependencies(
     metadata_path: Path,
     holohub_root: Optional[Path] = None,
+    env: Optional[dict] = None,
 ) -> list[ModuleDep]:
     """Parse a metadata.json's module dependency list into ModuleDep records.
 
     Honors HOLOHUB_LOCAL_<NAME> env-var overrides by populating `override_path`.
-    When `holohub_root` is provided, dependencies with no `source` block are
-    checked against `holohub_root/modules/<name>/` — if a metadata.json exists
-    there, the dep is treated as an in-tree module (`is_internal=True`) rather
-    than raising an error.
+    Pass `env` to override the process environment for override lookups (defaults
+    to os.environ).  When `holohub_root` is provided, dependencies with no
+    `source` block are checked against `holohub_root/modules/<name>/` — if a
+    metadata.json exists there, the dep is treated as an in-tree module
+    (`is_internal=True`) rather than raising an error.
 
     Does not fetch anything. A missing metadata.json is treated as "no deps"
     rather than an error — unifies the file-doesn't-exist path with the
@@ -98,6 +100,7 @@ def parse_module_dependencies(
         return []
     except json.JSONDecodeError as e:
         raise ValueError(f"Malformed JSON in {metadata_path}: {e}") from e
+    _env = env if env is not None else os.environ
     raw = _module_dependencies_raw(metadata)
     out: list[ModuleDep] = []
     for entry in raw:
@@ -107,7 +110,7 @@ def parse_module_dependencies(
         source = entry.get("source") or {}
         provides = list(entry.get("provides_operators") or [])
 
-        override = os.environ.get(_override_env_name(name))
+        override = _env.get(_override_env_name(name))
         override_path: Optional[Path] = None
         if override:
             p = Path(override).expanduser().resolve()
@@ -165,18 +168,23 @@ def parse_module_dependencies(
 def parse_module_sites(
     sites_path: Path,
     holohub_root: Optional[Path] = None,
+    env: Optional[dict] = None,
 ) -> list[ModuleDep]:
     """Parse modules/module-sites.json into ModuleDep records.
 
-    External entries (url + ref present) become fetchable deps with no
-    provides_operators — those come from the consumer's metadata.json and are
-    layered on by merge_deps().  In-tree entries (no url) resolve to
+    External entries (url + ref present) become fetchable deps; `provides_operators`
+    is read directly from the site entry and is authoritative. Project metadata serves
+    only as a fallback via merge_deps().  In-tree entries (no url) resolve to
     is_internal=True when holohub_root/modules/<name>/metadata.json exists;
     entries with neither a url nor an in-tree path are silently skipped.
 
+    An entry with url but no ref (or ref but no url) raises ValueError — partial
+    source specs hide typos and should fail loudly.
+
     Honors HOLOHUB_LOCAL_<NAME> overrides with the same semantics as
-    parse_module_dependencies.  A missing sites_path is treated as no module
-    sites rather than an error.
+    parse_module_dependencies.  Pass `env` to override the process environment
+    for override lookups (defaults to os.environ).  A missing sites_path is
+    treated as no module sites rather than an error.
     """
     try:
         with sites_path.open() as f:
@@ -186,13 +194,14 @@ def parse_module_sites(
     except json.JSONDecodeError as e:
         raise ValueError(f"Malformed JSON in {sites_path}: {e}") from e
 
+    _env = env if env is not None else os.environ
     out: list[ModuleDep] = []
     for entry in data.get("modules") or []:
         name = entry.get("name")
         if not name:
             continue
 
-        override = os.environ.get(_override_env_name(name))
+        override = _env.get(_override_env_name(name))
         override_path: Optional[Path] = None
         if override:
             p = Path(override).expanduser().resolve()
@@ -208,6 +217,12 @@ def parse_module_sites(
         ref = entry.get("ref")
 
         provides = list(entry.get("provides_operators") or [])
+
+        if bool(url) != bool(ref):
+            raise ValueError(
+                f"module-sites entry '{name}' must declare both 'url' and 'ref' "
+                "together, or neither for an in-tree/local-only module."
+            )
 
         if url and ref:
             if not _ref_is_immutable(ref):
@@ -253,10 +268,11 @@ def merge_deps(
 ) -> list[ModuleDep]:
     """Merge module-sites deps with project-specific deps.
 
-    Sites supply canonical git coordinates; project deps contribute
-    provides_operators and override_path (local checkout).  For a module
-    present in both lists the merged record takes the site's git_url/ref and
-    is_internal classification, but the project dep's provides_operators and
+    Sites supply canonical git coordinates and own `provides_operators`
+    authoritatively; project deps provide `override_path` and serve as a
+    fallback source for `provides_operators` when the site entry has none.
+    For a module present in both lists the merged record takes the site's
+    git_url/ref and is_internal classification, but the project dep's
     override_path.  Modules only in project_deps are appended after all site
     entries (preserving sites order first).
     """
