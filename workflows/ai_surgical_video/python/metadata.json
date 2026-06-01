@@ -55,6 +55,7 @@
 				}
 			]
 		},
+		"dockerfile": "workflows/ai_surgical_video/Dockerfile",
 		"default_mode": "replayer",
 		"modes": {
 			"replayer": {
@@ -76,6 +77,42 @@
 				"run": {
 					"command": "python3 <holohub_app_source>/ai_surgical_video.py --source aja --config <holohub_app_source>/config.yaml --data <holohub_data_dir>",
 					"workdir": "holohub_bin"
+				}
+			},
+			"sensor_bridge": {
+				"description": "Use a Holoscan Sensor Bridge device for live camera input",
+				"build": {
+					"docker_build_args": ["--target", "holohub-cli"]
+				},
+				"run": {
+					"command": "python3 <holohub_app_source>/ai_surgical_video.py --source hsb --config <holohub_app_source>/config.yaml --data <holohub_data_dir>",
+					"workdir": "holohub_bin"
+				}
+			},
+			"sensor_bridge_source": {
+				"description": "Compile the Holoscan Sensor Bridge module from source, then use a Holsocan Sensor Bridge device for live camera input",
+				"build": {
+					"docker_build_args": ["--target", "holohub-hsb"],
+					"cmake_options": [
+						"-DOP_csi_to_bayer:BOOL=ON",
+						"-DOP_image_processor:BOOL=ON",
+						"-DOP_image_shift_to_uint8_operator:BOOL=ON",
+						"-DOP_roce_receiver:BOOL=ON"
+					]
+				},
+				"run": {
+					"command": "python3 <holohub_app_source>/ai_surgical_video.py --source hsb --config <holohub_app_source>/config.yaml --data <holohub_data_dir>",
+					"workdir": "holohub_bin",
+					"env": {
+						"PYTHONPATH": "<holohub_bin>/python/lib:<PYTHONPATH>"
+					},
+					"docker_run_args": [
+						"--privileged",
+						"--ipc=host",
+						"--ulimit", "memlock=-1",
+						"-v", "/sys/bus/pci/devices:/sys/bus/pci/devices",
+						"-v", "/sys/devices:/sys/devices"
+					]
 				}
 			}
 		}

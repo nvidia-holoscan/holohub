@@ -91,23 +91,25 @@ This single command will create and launch Holohub container, build the workflow
 
 ### Using Holoscan Sensor Bridge as I/O
 
-When using the workflow with `--source hsb`, it requires the Holoscan Sensor Bridge software to be installed. You can build a Holoscan Sensor Bridge container using the following commands:
+> [!NOTE]
+> Please review [Holoscan Sensor Bridge documentation](https://docs.nvidia.com/holoscan/sensor-bridge/1.0.0/introduction.html) to set up your device and host before proceeding.
 
-```sh
-git clone https://github.com/nvidia-holoscan/holoscan-sensor-bridge.git
-cd holoscan-sensor-bridge
-git checkout hsdk-3.0
-./docker/build.sh --dgpu # for discrete GPU
-./docker/build.sh --igpu # for integrated GPU
+**ConnectX / RoCE Support (From binary)**: Run the command below to build and launch with the binary distribution
+embedded in the Holoscan SDK development container:
+
+```bash
+./holohub run ai_surgical_video sensor_bridge
 ```
 
-This will build a docker image called `hololink-demo:2.0.0`.
+**ConnectX / RoCE Support (From source)**: Run the command below to build and launch the workflow with HSB input.
 
-Once you have built the Holoscan Sensor Bridge container, you can build the Holohub container and run the workflow using the following command:
-
-```sh
-./holohub run --base-img hololink-demo:2.0.0 --img holohub:link ai_surgical_video --run-args="--source hsb"
+```bash
+./holohub run ai_surgical_video sensor_bridge_source
 ```
+
+This single command will create and launch Holohub container, fetch Holoscan Sensor Bridge project sources, build the workflow with Sensor Bridge sources, and run the workflow with the default arguments set in the [config.yaml](./python/config.yaml) file and a replayer source.
+
+*Camera over Ethernet (FuSA, SIPL): Not supported in this workflow.*
 
 ## Advanced Usage
 

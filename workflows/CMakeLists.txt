@@ -17,4 +17,9 @@
 add_holohub_application(ai_surgical_video DEPENDS
                         OPERATORS orsi_format_converter
                                   orsi_segmentation_preprocessor
-                        OPTIONAL  aja_source)
+                        OPTIONAL  aja_source
+                                  csi_to_bayer
+                                  image_processor
+                                  image_shift_to_uint
+                                  roce_receiver
+                            )
