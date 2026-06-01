@@ -21,7 +21,6 @@ import pytest
 
 try:
     import cupy as cp  # type: ignore
-
     from ultra_post.app.holoscan_operators import FuncOp
     from ultra_post.filters.registry import FILTERS
 except Exception as exc:  # pragma: no cover - optional GPU/Holoscan dependency

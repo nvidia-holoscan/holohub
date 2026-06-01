@@ -21,7 +21,6 @@ import pytest
 
 try:
     import cupy as cp  # type: ignore
-
     from ultra_post.core.display import (
         DisplayCompressionSettings,
         compress_color,

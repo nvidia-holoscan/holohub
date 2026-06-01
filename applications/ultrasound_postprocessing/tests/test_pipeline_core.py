@@ -21,7 +21,6 @@ import pytest
 
 try:
     import cupy as cp  # type: ignore
-
     from ultra_post.core.pipeline import (
         Pipeline,
         create_node,
