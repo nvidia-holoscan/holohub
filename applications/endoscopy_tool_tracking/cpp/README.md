@@ -12,7 +12,7 @@ To use the **Deltacast VideoMaster** capture card:
 
 - Install a DELTACAST.TV SDI or HDMI VideoMaster card in your system.
 - Obtain the VideoMaster SDK from [DELTACAST.TV](https://www.deltacast.tv/) and follow their installation instructions.
-- Holoscan SDK ≥ 4.2.0 is required.
+- Holoscan SDK ≥ 4.3.0 is required.
 - The `holoscan-deltacast` operator module is fetched automatically when building with Deltacast support; no manual checkout is needed. See the [Deltacast VideoMaster input](../README.md#deltacast-videomaster-input) section of the application README for full details.
 
 Refer to the Yuan documentation to use the Yuan QCap capture card.
@@ -31,7 +31,7 @@ Please refer to the top level Holohub README.md file for information on how to b
 To build with Deltacast VideoMaster support (requires a Deltacast card and SDK — see [Requirements](#requirements)):
 
 ```bash
-./holohub build endoscopy_tool_tracking --mode deltacast
+./holohub build endoscopy_tool_tracking deltacast
 ```
 
 ### Run Instructions

@@ -58,7 +58,7 @@ The key pipeline differences from the replayer mode are:
 
 - **Hardware**: a DELTACAST.TV VideoMaster SDI or HDMI capture card installed in the host system
 - **Deltacast SDK**: the VideoMaster SDK from DELTACAST.TV must be installed. Contact [DELTACAST.TV](https://www.deltacast.tv/) for access. The `holoscan-deltacast` module provides a mock SDK for development builds without a card.
-- **Holoscan SDK** ≥ 4.2.0
+- **Holoscan SDK** ≥ 4.3.0
 - The `holoscan-deltacast` module is fetched automatically by the HoloHub CLI at build time; no manual checkout is required. See the Holoscan Deltacast external module repository for more details on Deltacast support for Holoscan-based development: <https://github.com/deltacasttv/holoscan-modules>
 
 #### Build and Run with Deltacast support
