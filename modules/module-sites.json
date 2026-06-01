@@ -9,7 +9,7 @@
       "name": "holoscan-deltacast",
       "url": "https://github.com/deltacasttv/holoscan-modules",
       "ref": "36deda4f925dfb7aaa69df70459246f154f4dcdd",
-      "source_url": "https://github.com/deltacasttv/holoscan-modules",
+      "provides_operators": ["deltacast_videomaster"],
       "nvidia_quality_score": 2
     }
   ]
