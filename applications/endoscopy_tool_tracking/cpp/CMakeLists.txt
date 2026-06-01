@@ -174,6 +174,11 @@ install(
 )
 
 install(
+  FILES endoscopy_tool_tracking_deltacast.yaml
+  DESTINATION bin/endoscopy_tool_tracking/cpp
+)
+
+install(
   FILES postprocessor.slang
   DESTINATION bin/endoscopy_tool_tracking/cpp
 )

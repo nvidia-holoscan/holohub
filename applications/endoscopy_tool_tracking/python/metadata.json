@@ -58,7 +58,7 @@
 			"deltacast": {
 				"description": "Run with a live Deltacast VideoMaster capture card using the real VideoMaster SDK. Set VIDEOMASTER_SDK_DIR to the SDK install path before running.",
 				"build": {
-					"cmake_options": ["-DHOLOHUB_BUILD_PYTHON=ON", "-DVIDEOMASTER_USE_MOCK:BOOL=OFF", "-DVIDEOMASTER_SDK_DIR=$VIDEOMASTER_SDK_DIR"]
+					"cmake_options": ["-DHOLOHUB_BUILD_PYTHON=ON", "-DOP_deltacast_videomaster=ON", "-DVIDEOMASTER_USE_MOCK:BOOL=OFF", "-DVIDEOMASTER_SDK_DIR=$VIDEOMASTER_SDK_DIR"]
 				},
 				"run": {
 					"command": "python3 <holohub_app_source>/endoscopy_tool_tracking.py --data <holohub_data_dir>/endoscopy --source deltacast --config <holohub_app_source>/endoscopy_tool_tracking_deltacast.yaml",
