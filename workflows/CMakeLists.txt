@@ -20,6 +20,6 @@ add_holohub_application(ai_surgical_video DEPENDS
                         OPTIONAL  aja_source
                                   csi_to_bayer
                                   image_processor
-                                  image_shift_to_uint
+                                  image_shift_to_uint8
                                   roce_receiver
                             )

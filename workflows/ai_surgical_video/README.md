@@ -92,7 +92,7 @@ This single command will create and launch Holohub container, build the workflow
 ### Using Holoscan Sensor Bridge as I/O
 
 > [!NOTE]
-> Please review [Holoscan Sensor Bridge documentation](https://docs.nvidia.com/holoscan/sensor-bridge/1.0.0/introduction.html) to set up your device and host before proceeding.
+> Please review [Holoscan Sensor Bridge documentation](https://docs.nvidia.com/holoscan/sensor-bridge/latest/introduction.html) to set up your device and host before proceeding.
 
 **ConnectX / RoCE Support (From binary)**: Run the command below to build and launch with the binary distribution
 embedded in the Holoscan SDK development container:
@@ -107,7 +107,7 @@ embedded in the Holoscan SDK development container:
 ./holohub run ai_surgical_video sensor_bridge_source
 ```
 
-This single command will create and launch Holohub container, fetch Holoscan Sensor Bridge project sources, build the workflow with Sensor Bridge sources, and run the workflow with the default arguments set in the [config.yaml](./python/config.yaml) file and a replayer source.
+This single command will create and launch the Holohub container, fetch Holoscan Sensor Bridge project sources, build the workflow with Sensor Bridge sources, and run the workflow with the default arguments set in the [config.yaml](./python/config.yaml) file and a Holoscan Sensor Bridge source.
 
 *Camera over Ethernet (FuSA, SIPL): Not supported in this workflow.*
 
