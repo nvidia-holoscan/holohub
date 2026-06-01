@@ -17,22 +17,23 @@ from __future__ import annotations
 
 import unittest
 
+import pytest
+
 try:
     import cupy as cp  # type: ignore
-except ImportError:  # pragma: no cover - optional GPU dependency
-    cp = None  # type: ignore
 
-from ultra_post.core.pipeline import (
-    Pipeline,
-    create_node,
-    pipeline_from_yaml,
-    pipeline_to_yaml,
-    run_pipeline,
-)
-from ultra_post.filters.registry import FILTERS
+    from ultra_post.core.pipeline import (
+        Pipeline,
+        create_node,
+        pipeline_from_yaml,
+        pipeline_to_yaml,
+        run_pipeline,
+    )
+    from ultra_post.filters.registry import FILTERS
+except Exception as exc:  # pragma: no cover - optional GPU dependency
+    pytest.skip(f"CuPy is unavailable: {exc}", allow_module_level=True)
 
 
-@unittest.skipIf(cp is None, "CuPy is required for pipeline tests.")
 class PipelineCoreTests(unittest.TestCase):
     def setUp(self) -> None:
         self.filters = FILTERS

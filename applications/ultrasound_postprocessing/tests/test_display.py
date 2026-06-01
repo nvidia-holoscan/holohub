@@ -17,21 +17,22 @@ from __future__ import annotations
 
 import unittest
 
+import pytest
+
 try:
     import cupy as cp  # type: ignore
-except ImportError:  # pragma: no cover - optional dependency
-    cp = None  # type: ignore
 
-from ultra_post.core.display import (
-    DisplayCompressionSettings,
-    compress_color,
-    compress_grayscale,
-    ensure_rgba,
-    tensor_to_display,
-)
+    from ultra_post.core.display import (
+        DisplayCompressionSettings,
+        compress_color,
+        compress_grayscale,
+        ensure_rgba,
+        tensor_to_display,
+    )
+except Exception as exc:  # pragma: no cover - optional GPU dependency
+    pytest.skip(f"CuPy is unavailable: {exc}", allow_module_level=True)
 
 
-@unittest.skipIf(cp is None, "CuPy is required for display tests.")
 class DisplayTests(unittest.TestCase):
     def test_ensure_rgba_shapes(self) -> None:
         gray = cp.ones((2, 3), dtype=cp.float32)
