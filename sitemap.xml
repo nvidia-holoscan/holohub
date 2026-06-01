@@ -65,14 +65,6 @@
          <lastmod>2026-06-01</lastmod>
     </url>
     <url>
-         <loc>https://nvidia-holoscan.github.io/holohub/applications/deltacast_receiver/</loc>
-         <lastmod>2026-06-01</lastmod>
-    </url>
-    <url>
-         <loc>https://nvidia-holoscan.github.io/holohub/applications/deltacast_transmitter/</loc>
-         <lastmod>2026-06-01</lastmod>
-    </url>
-    <url>
          <loc>https://nvidia-holoscan.github.io/holohub/applications/depth_anything_v2/</loc>
          <lastmod>2026-06-01</lastmod>
     </url>
@@ -646,10 +638,6 @@
     </url>
     <url>
          <loc>https://nvidia-holoscan.github.io/holohub/operators/deidentification/pixelator/</loc>
-         <lastmod>2026-06-01</lastmod>
-    </url>
-    <url>
-         <loc>https://nvidia-holoscan.github.io/holohub/operators/deltacast_videomaster/</loc>
          <lastmod>2026-06-01</lastmod>
     </url>
     <url>
