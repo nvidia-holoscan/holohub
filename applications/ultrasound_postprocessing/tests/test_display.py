@@ -17,10 +17,15 @@ from __future__ import annotations
 
 import unittest
 
+import pytest
+
 try:
+    # CuPy is a test-environment dependency (not the code under test); skip the
+    # module when it is unavailable. The ultra_post import below stays outside
+    # this guard so genuine import errors surface as failures, not skips.
     import cupy as cp  # type: ignore
-except ImportError:  # pragma: no cover - optional dependency
-    cp = None  # type: ignore
+except Exception as exc:  # pragma: no cover - optional GPU dependency
+    pytest.skip(f"CuPy is unavailable: {exc}", allow_module_level=True)
 
 from ultra_post.core.display import (
     DisplayCompressionSettings,
@@ -31,7 +36,6 @@ from ultra_post.core.display import (
 )
 
 
-@unittest.skipIf(cp is None, "CuPy is required for display tests.")
 class DisplayTests(unittest.TestCase):
     def test_ensure_rgba_shapes(self) -> None:
         gray = cp.ones((2, 3), dtype=cp.float32)
