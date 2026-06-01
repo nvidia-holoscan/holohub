@@ -54,7 +54,7 @@ The HolovizOp displays the processed video with overlaid AI results, including:
 ### Software
 
 - **Holoscan SDK `>= v3.0`**:
-  Holohub command takes care of this dependency when using Holohub container. However, you can install the Holoscan SDK via one of the methods specified in [the SDK user guide](https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html#development-software-stack).
+  Holohub command takes care of this dependency when using Holohub container. However, you can install the Holoscan SDK via one of the methods specified in [the SDK user guide](https://docs.nvidia.com/holoscan/sdk-user-guide/setup/sdk-installation).
 - **Holoscan Sensor Bridge `>= v2.0`**: Please see the [Quick start guide](#quick-start-guide) for building the Holoscan Sensor Bridge docker container.
 
 ### Models
