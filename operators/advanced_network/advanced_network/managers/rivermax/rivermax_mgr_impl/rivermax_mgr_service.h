@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,13 +20,11 @@
 
 #include <memory>
 #include <cstdint>
+#include <sstream>
 
 #include <holoscan/logger/logger.hpp>
 
 #include "rdk/rivermax_dev_kit.h"
-#include "rdk/apps/rmax_xstream_media_sender/rmax_xstream_media_sender.h"
-#include "rdk/apps/rmax_ipo_receiver/rmax_ipo_receiver.h"
-#include "rdk/apps/rmax_rtp_receiver/rmax_rtp_receiver.h"
 
 #include "adv_network_rivermax_mgr.h"
 #include "rivermax_mgr_impl/rivermax_config_manager.h"
@@ -34,11 +32,6 @@
 #include "rivermax_mgr_impl/packet_processor.h"
 
 namespace holoscan::advanced_network {
-
-using namespace rivermax::dev_kit::apps;
-using namespace rivermax::dev_kit::apps::rmax_xstream_media_sender;
-using namespace rivermax::dev_kit::apps::rmax_ipo_receiver;
-using namespace rivermax::dev_kit::apps::rmax_rtp_receiver;
 
 /**
  * @brief Base class for all Rivermax manager services.
@@ -112,7 +105,8 @@ class RivermaxManagerRxService : public RivermaxManagerService {
    * @param rx_bursts_out_queue Shared queue for outgoing received bursts.
    */
   RivermaxManagerRxService(uint32_t service_id,
-                           std::shared_ptr<AnoBurstsQueue> rx_bursts_out_queue);
+                           std::unordered_map<int,
+                               std::shared_ptr<AnoBurstsQueue>> rx_bursts_out_queue);
 
   /**
    * @brief Virtual destructor for the RivermaxManagerRxService class.
@@ -132,7 +126,7 @@ class RivermaxManagerRxService : public RivermaxManagerService {
    * @param burst Pointer to a pointer where the burst will be stored.
    * @return Status indicating the success or failure of the operation.
    */
-  virtual Status get_rx_burst(BurstParams** burst);
+  virtual Status get_rx_burst(BurstParams** burst, int stream_id);
 
   /**
    * @brief Prints service statistics.
@@ -140,6 +134,21 @@ class RivermaxManagerRxService : public RivermaxManagerService {
    * @param ss Stream to which statistics should be printed.
    */
   virtual void print_stats(std::stringstream& ss) const {}
+
+  /**
+   * @brief Gets the burst manager for this service.
+   *
+   * @return Shared pointer to the burst manager.
+   */
+  std::shared_ptr<RxBurstsManager> get_burst_manager() const { return rx_burst_manager_; }
+
+  /**
+   * @brief Applies the parsed burst pool configuration to the burst manager.
+   *
+   * This method configures the burst manager with the burst pool adaptive dropping
+   * settings that were parsed from the YAML configuration.
+   */
+  void apply_burst_pool_configuration();
 
   bool initialize() override;
   void run() override;
@@ -170,10 +179,17 @@ class RivermaxManagerRxService : public RivermaxManagerService {
   std::unique_ptr<RmaxReceiverBaseApp> rx_service_;         ///< The receiver service instance
   std::shared_ptr<RxBurstsManager> rx_burst_manager_;       ///< Manager for received bursts
   std::shared_ptr<RxPacketProcessor> rx_packet_processor_;  ///< Processor for received packets
-  std::shared_ptr<AnoBurstsQueue> rx_bursts_out_queue_;     ///< Output queue for received bursts
+  ///< Output queue for received bursts
+  std::unordered_map<int, std::shared_ptr<AnoBurstsQueue>> rx_bursts_out_queue_;
   bool send_packet_ext_info_ = false;                       ///< Flag for extended packet info
   int gpu_id_ = INVALID_GPU_ID;                             ///< GPU device ID
   size_t max_chunk_size_ = 0;  ///< Maximum chunk size for received data
+
+  // Burst pool adaptive dropping configuration (private)
+  bool burst_pool_adaptive_dropping_enabled_ = false;
+  uint32_t burst_pool_low_threshold_percent_ = 25;
+  uint32_t burst_pool_critical_threshold_percent_ = 10;
+  uint32_t burst_pool_recovery_threshold_percent_ = 50;
 };
 
 /**
@@ -193,7 +209,7 @@ class IPOReceiverService : public RivermaxManagerRxService {
   IPOReceiverService(
       uint32_t service_id,
       std::shared_ptr<RivermaxQueueToIPOReceiverSettingsBuilder> ipo_receiver_builder,
-      std::shared_ptr<AnoBurstsQueue> rx_bursts_out_queue);
+      std::unordered_map<int, std::shared_ptr<AnoBurstsQueue>> rx_bursts_out_queue);
 
   /**
    * @brief Virtual destructor for the IPOReceiverService class.
@@ -204,7 +220,7 @@ class IPOReceiverService : public RivermaxManagerRxService {
 
  protected:
   std::unique_ptr<RmaxReceiverBaseApp> create_service() override {
-    return std::make_unique<IPOReceiverApp>(ipo_receiver_builder_);
+    return std::make_unique<ANOIPOReceiverApp>(ipo_receiver_builder_);
   }
   bool configure_service() override;
 
@@ -230,7 +246,7 @@ class RTPReceiverService : public RivermaxManagerRxService {
   RTPReceiverService(
       uint32_t service_id,
       std::shared_ptr<RivermaxQueueToRTPReceiverSettingsBuilder> rtp_receiver_builder,
-      std::shared_ptr<AnoBurstsQueue> rx_bursts_out_queue);
+      std::unordered_map<int, std::shared_ptr<AnoBurstsQueue>> rx_bursts_out_queue);
 
   /**
    * @brief Virtual destructor for the RTPReceiverService class.
@@ -241,7 +257,7 @@ class RTPReceiverService : public RivermaxManagerRxService {
 
  protected:
   std::unique_ptr<RmaxReceiverBaseApp> create_service() override {
-    return std::make_unique<RTPReceiverApp>(rtp_receiver_builder_);
+    return std::make_unique<ANORTPReceiverApp>(rtp_receiver_builder_);
   }
   bool configure_service() override;
 
@@ -320,7 +336,7 @@ class RivermaxManagerTxService : public RivermaxManagerService {
    *
    * @return Unique pointer to the created service.
    */
-  virtual std::unique_ptr<MediaSenderApp> create_service() = 0;
+  virtual std::unique_ptr<ANOMediaSenderApp> create_service() = 0;
 
   /**
    * @brief Configures the service with service-specific settings.
@@ -350,7 +366,7 @@ class RivermaxManagerTxService : public RivermaxManagerService {
   BurstParams* prepare_burst_params(BurstParams* burst);
 
  protected:
-  std::unique_ptr<MediaSenderApp> tx_service_;  ///< The transmitter service instance
+  std::unique_ptr<ANOMediaSenderApp> tx_service_;  ///< The transmitter service instance
 };
 
 /**
@@ -376,8 +392,8 @@ class MediaSenderBaseService : public RivermaxManagerTxService {
   virtual ~MediaSenderBaseService() = default;
 
  protected:
-  std::unique_ptr<MediaSenderApp> create_service() override {
-    return std::make_unique<MediaSenderApp>(media_sender_builder_);
+  std::unique_ptr<ANOMediaSenderApp> create_service() override {
+    return std::make_unique<ANOMediaSenderApp>(media_sender_builder_);
   }
 
   bool configure_service() override;
@@ -507,7 +523,7 @@ class MediaSenderZeroCopyService : public MediaSenderBaseService {
 
  private:
   std::shared_ptr<BufferedMediaFrameProvider>
-      tx_media_frame_provider_;                   ///< Provider for buffered media frames
+      tx_media_frame_provider_;  ///< Provider for buffered media frames
   bool is_frame_in_process_ = false;
   mutable std::mutex mutex_;
 

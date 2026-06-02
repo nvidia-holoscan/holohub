@@ -107,7 +107,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN python3 -m pip install --no-cache-dir --break-system-packages \
         pytest \
         pyyaml \
-        scapy
+        scapy \
+        holoscan==${HOLOSCAN_DEB_REMOTE_VERSION} \
+    && SITE_PACKAGES=$(python3 -c "import site; print(site.getsitepackages()[0])") \
+    && chmod -R a+w ${SITE_PACKAGES}/holoscan-*.dist-info/ \
+    && chmod -R a+rw ${SITE_PACKAGES}/holoscan
 
 # ==============================================================
 # dpdk-deps: Build upstream DPDK from source
@@ -195,6 +199,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libdoca-sdk-eth-dev \
         libdoca-sdk-flow-dev \
         mlnx-ofed-kernel-utils \
+        ibverbs-utils \
+        python3-pyelftools \
+        python3-dev \
+        libvulkan1 \
     && rm -rf /var/lib/apt/lists/*
 
 RUN git clone https://github.com/NVIDIA/gdrcopy.git /opt/mellanox/gdrcopy \
@@ -206,13 +214,13 @@ ENV GDRCOPY_PATH_L=/opt/mellanox/gdrcopy/src
 # ==============================
 # Rivermax Target
 # This stage is only built when --target rivermax is specified. It installs and configures Rivermax SDK.
-# Note: Rivermax does not require DPDK - extends from base-deps directly.
+# Extends from dpdk since the shared ANO manager.cpp requires DPDK headers at compile time.
 # ==============================
-FROM base-deps AS rivermax
+FROM dpdk AS rivermax
 
 # Define Rivermax-specific build arguments and environment variables
-ARG RIVERMAX_VERSION=1.70.32
-ARG RIVERMAX_SDK_ZIP_PATH=./rivermax_ubuntu2404_${RIVERMAX_VERSION}.tar.gz
+ARG RIVERMAX_VERSION=1.71.4
+ARG RIVERMAX_SDK_ZIP_PATH=./rivermax_ubuntu2204_${RIVERMAX_VERSION}.tar.gz
 ARG MAXPROC=8
 
 
@@ -240,6 +248,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libglew-dev \
     cuda-nvml-dev-12-6 \
     cuda-nvtx-12-6 \
+    libvulkan1 \
+    xvfb \
+    x11vnc \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy and extract the Rivermax SDK

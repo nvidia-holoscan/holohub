@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +36,6 @@ RivermaxCommonRxQueueConfig::RivermaxCommonRxQueueConfig(const RivermaxCommonRxQ
       gpu_device_id(other.gpu_device_id),
       lock_gpu_clocks(other.lock_gpu_clocks),
       split_boundary(other.split_boundary),
-      num_of_threads(other.num_of_threads),
       print_parameters(other.print_parameters),
       sleep_between_operations_us(other.sleep_between_operations_us),
       allocator_type(other.allocator_type),
@@ -45,11 +44,18 @@ RivermaxCommonRxQueueConfig::RivermaxCommonRxQueueConfig(const RivermaxCommonRxQ
       send_packet_ext_info(other.send_packet_ext_info),
       stats_report_interval_ms(other.stats_report_interval_ms),
       cpu_cores(other.cpu_cores),
-      master_core(other.master_core) {}
+      master_core(other.master_core),
+      burst_pool_adaptive_dropping_enabled(other.burst_pool_adaptive_dropping_enabled),
+      burst_pool_low_threshold_percent(other.burst_pool_low_threshold_percent),
+      burst_pool_critical_threshold_percent(other.burst_pool_critical_threshold_percent),
+      burst_pool_recovery_threshold_percent(other.burst_pool_recovery_threshold_percent),
+      thread_settings(other.thread_settings) {}
 
 RivermaxCommonRxQueueConfig& RivermaxCommonRxQueueConfig::operator=(
     const RivermaxCommonRxQueueConfig& other) {
-  if (this == &other) { return *this; }
+  if (this == &other) {
+    return *this;
+  }
   BaseQueueConfig::operator=(other);
   max_packet_size = other.max_packet_size;
   max_chunk_size = other.max_chunk_size;
@@ -58,7 +64,6 @@ RivermaxCommonRxQueueConfig& RivermaxCommonRxQueueConfig::operator=(
   gpu_device_id = other.gpu_device_id;
   lock_gpu_clocks = other.lock_gpu_clocks;
   split_boundary = other.split_boundary;
-  num_of_threads = other.num_of_threads;
   print_parameters = other.print_parameters;
   sleep_between_operations_us = other.sleep_between_operations_us;
   allocator_type = other.allocator_type;
@@ -68,46 +73,39 @@ RivermaxCommonRxQueueConfig& RivermaxCommonRxQueueConfig::operator=(
   stats_report_interval_ms = other.stats_report_interval_ms;
   cpu_cores = other.cpu_cores;
   master_core = other.master_core;
+  burst_pool_adaptive_dropping_enabled = other.burst_pool_adaptive_dropping_enabled;
+  burst_pool_low_threshold_percent = other.burst_pool_low_threshold_percent;
+  burst_pool_critical_threshold_percent = other.burst_pool_critical_threshold_percent;
+  burst_pool_recovery_threshold_percent = other.burst_pool_recovery_threshold_percent;
+  thread_settings = other.thread_settings;
   return *this;
 }
 
 RivermaxIPOReceiverQueueConfig::RivermaxIPOReceiverQueueConfig(
     const RivermaxIPOReceiverQueueConfig& other)
     : RivermaxCommonRxQueueConfig(other),
-      local_ips(other.local_ips),
-      source_ips(other.source_ips),
-      destination_ips(other.destination_ips),
-      destination_ports(other.destination_ports),
       max_path_differential_us(other.max_path_differential_us) {}
 
 RivermaxIPOReceiverQueueConfig& RivermaxIPOReceiverQueueConfig::operator=(
     const RivermaxIPOReceiverQueueConfig& other) {
-  if (this == &other) { return *this; }
+  if (this == &other) {
+    return *this;
+  }
   RivermaxCommonRxQueueConfig::operator=(other);
-  local_ips = other.local_ips;
-  source_ips = other.source_ips;
-  destination_ips = other.destination_ips;
-  destination_ports = other.destination_ports;
   max_path_differential_us = other.max_path_differential_us;
   return *this;
 }
 
 RivermaxRTPReceiverQueueConfig::RivermaxRTPReceiverQueueConfig(
     const RivermaxRTPReceiverQueueConfig& other)
-    : RivermaxCommonRxQueueConfig(other),
-      local_ip(other.local_ip),
-      source_ip(other.source_ip),
-      destination_ip(other.destination_ip),
-      destination_port(other.destination_port) {}
+    : RivermaxCommonRxQueueConfig(other) {}
 
 RivermaxRTPReceiverQueueConfig& RivermaxRTPReceiverQueueConfig::operator=(
     const RivermaxRTPReceiverQueueConfig& other) {
-  if (this == &other) { return *this; }
+  if (this == &other) {
+    return *this;
+  }
   RivermaxCommonRxQueueConfig::operator=(other);
-  local_ip = other.local_ip;
-  source_ip = other.source_ip;
-  destination_ip = other.destination_ip;
-  destination_port = other.destination_port;
   return *this;
 }
 
@@ -117,9 +115,6 @@ RivermaxCommonTxQueueConfig::RivermaxCommonTxQueueConfig(const RivermaxCommonTxQ
       lock_gpu_clocks(other.lock_gpu_clocks),
       split_boundary(other.split_boundary),
       local_ip(other.local_ip),
-      destination_ip(other.destination_ip),
-      destination_port(other.destination_port),
-      num_of_threads(other.num_of_threads),
       print_parameters(other.print_parameters),
       sleep_between_operations(other.sleep_between_operations),
       allocator_type(other.allocator_type),
@@ -130,19 +125,19 @@ RivermaxCommonTxQueueConfig::RivermaxCommonTxQueueConfig(const RivermaxCommonTxQ
       stats_report_interval_ms(other.stats_report_interval_ms),
       cpu_cores(other.cpu_cores),
       master_core(other.master_core),
-      dummy_sender(other.dummy_sender) {}
+      dummy_sender(other.dummy_sender),
+      thread_settings(other.thread_settings) {}
 
 RivermaxCommonTxQueueConfig& RivermaxCommonTxQueueConfig::operator=(
     const RivermaxCommonTxQueueConfig& other) {
-  if (this == &other) { return *this; }
+  if (this == &other) {
+    return *this;
+  }
   gpu_direct = other.gpu_direct;
   gpu_device_id = other.gpu_device_id;
   lock_gpu_clocks = other.lock_gpu_clocks;
   split_boundary = other.split_boundary;
   local_ip = other.local_ip;
-  destination_ip = other.destination_ip;
-  destination_port = other.destination_port;
-  num_of_threads = other.num_of_threads;
   print_parameters = other.print_parameters;
   sleep_between_operations = other.sleep_between_operations;
   allocator_type = other.allocator_type;
@@ -154,6 +149,7 @@ RivermaxCommonTxQueueConfig& RivermaxCommonTxQueueConfig::operator=(
   cpu_cores = other.cpu_cores;
   master_core = other.master_core;
   dummy_sender = other.dummy_sender;
+  thread_settings = other.thread_settings;
   return *this;
 }
 
@@ -170,7 +166,9 @@ RivermaxMediaSenderQueueConfig::RivermaxMediaSenderQueueConfig(
 
 RivermaxMediaSenderQueueConfig& RivermaxMediaSenderQueueConfig::operator=(
     const RivermaxMediaSenderQueueConfig& other) {
-  if (this == &other) { return *this; }
+  if (this == &other) {
+    return *this;
+  }
   RivermaxCommonTxQueueConfig::operator=(other);
   video_format = other.video_format;
   bit_depth = other.bit_depth;
@@ -186,10 +184,16 @@ void RivermaxRTPReceiverQueueConfig::dump_parameters() const {
   if (this->print_parameters) {
     HOLOSCAN_LOG_INFO("Rivermax RX Queue Config:");
     HOLOSCAN_LOG_INFO("\tNetwork settings:");
-    HOLOSCAN_LOG_INFO("\t\tlocal_ip: {}", local_ip);
-    HOLOSCAN_LOG_INFO("\t\tsource_ip: {}", source_ip);
-    HOLOSCAN_LOG_INFO("\t\tdestination_ip: {}", destination_ip);
-    HOLOSCAN_LOG_INFO("\t\tdestination_port: {}", destination_port);
+    for (const auto& thread : thread_settings) {
+      HOLOSCAN_LOG_INFO("\t\tthread_id: {}", thread.thread_id);
+      for (const auto& stream : thread.stream_network_settings) {
+        HOLOSCAN_LOG_INFO("\t\t\tstream_id: {}", stream.stream_id);
+        HOLOSCAN_LOG_INFO("\t\t\t\tlocal_ip: {}", stream.local_ip);
+        HOLOSCAN_LOG_INFO("\t\t\t\tsource_ip: {}", stream.source_ip);
+        HOLOSCAN_LOG_INFO("\t\t\t\tdestination_ip: {}", stream.destination_ip);
+        HOLOSCAN_LOG_INFO("\t\t\t\tdestination_port: {}", stream.destination_port);
+      }
+    }
     HOLOSCAN_LOG_INFO("\tGPU settings:");
     HOLOSCAN_LOG_INFO("\t\tGPU ID: {}", gpu_device_id);
     HOLOSCAN_LOG_INFO("\t\tGPU Direct: {}", gpu_direct);
@@ -205,7 +209,6 @@ void RivermaxRTPReceiverQueueConfig::dump_parameters() const {
     HOLOSCAN_LOG_INFO("\tRMAX RTP settings:");
     HOLOSCAN_LOG_INFO("\t\text_seq_num: {}", ext_seq_num);
     HOLOSCAN_LOG_INFO("\t\tsleep_between_operations_us: {}", sleep_between_operations_us);
-    HOLOSCAN_LOG_INFO("\t\tnum_of_threads: {}", num_of_threads);
     HOLOSCAN_LOG_INFO("\t\tsend_packet_ext_info: {}", send_packet_ext_info);
     HOLOSCAN_LOG_INFO("\t\tstats_report_interval_ms: {}", stats_report_interval_ms);
   }
@@ -215,10 +218,16 @@ void RivermaxIPOReceiverQueueConfig::dump_parameters() const {
   if (this->print_parameters) {
     HOLOSCAN_LOG_INFO("Rivermax RX Queue Config:");
     HOLOSCAN_LOG_INFO("\tNetwork settings:");
-    HOLOSCAN_LOG_INFO("\t\tlocal_ips: {}", fmt::join(local_ips, ", "));
-    HOLOSCAN_LOG_INFO("\t\tsource_ips: {}", fmt::join(source_ips, ", "));
-    HOLOSCAN_LOG_INFO("\t\tdestination_ips: {}", fmt::join(destination_ips, ", "));
-    HOLOSCAN_LOG_INFO("\t\tdestination_ports: {}", fmt::join(destination_ports, ", "));
+    for (const auto& thread : thread_settings) {
+      HOLOSCAN_LOG_INFO("\t\tthread_id: {}", thread.thread_id);
+      for (const auto& stream : thread.stream_network_settings) {
+        HOLOSCAN_LOG_INFO("\t\t\tstream_id: {}", stream.stream_id);
+        HOLOSCAN_LOG_INFO("\t\t\t\tlocal_ips: {}", stream.local_ips);
+        HOLOSCAN_LOG_INFO("\t\t\t\tsource_ips: {}", stream.source_ips);
+        HOLOSCAN_LOG_INFO("\t\t\t\tdestination_ips: {}", stream.destination_ips);
+        HOLOSCAN_LOG_INFO("\t\t\t\tdestination_ports: {}", stream.destination_ports);
+      }
+    }
     HOLOSCAN_LOG_INFO("\tGPU settings:");
     HOLOSCAN_LOG_INFO("\t\tGPU ID: {}", gpu_device_id);
     HOLOSCAN_LOG_INFO("\t\tGPU Direct: {}", gpu_direct);
@@ -235,7 +244,6 @@ void RivermaxIPOReceiverQueueConfig::dump_parameters() const {
     HOLOSCAN_LOG_INFO("\t\text_seq_num: {}", ext_seq_num);
     HOLOSCAN_LOG_INFO("\t\tsleep_between_operations_us: {}", sleep_between_operations_us);
     HOLOSCAN_LOG_INFO("\t\tmax_path_differential_us: {}", max_path_differential_us);
-    HOLOSCAN_LOG_INFO("\t\tnum_of_threads: {}", num_of_threads);
     HOLOSCAN_LOG_INFO("\t\tsend_packet_ext_info: {}", send_packet_ext_info);
     HOLOSCAN_LOG_INFO("\t\tstats_report_interval_ms: {}", stats_report_interval_ms);
   }
@@ -245,36 +253,41 @@ void RivermaxMediaSenderQueueConfig::dump_parameters() const {
   if (this->print_parameters) {
     HOLOSCAN_LOG_INFO("Rivermax TX Queue Config:");
     HOLOSCAN_LOG_INFO("\tNetwork settings:");
-    HOLOSCAN_LOG_INFO("\t\tlocal_ip: {}", local_ip);
-    HOLOSCAN_LOG_INFO("\t\tdestination_ip: {}", destination_ip);
-    HOLOSCAN_LOG_INFO("\t\tdestination_port: {}", destination_port);
+    for (const auto& thread : thread_settings) {
+      HOLOSCAN_LOG_INFO("\t  thread_id: {}", thread.thread_id);
+      for (const auto& stream : thread.stream_network_settings) {
+        HOLOSCAN_LOG_INFO("\t    stream_id: {}", stream.stream_id);
+        HOLOSCAN_LOG_INFO("\t      local_ip: {}", stream.local_ip);
+        HOLOSCAN_LOG_INFO("\t      destination_ip: {}", stream.destination_ip);
+        HOLOSCAN_LOG_INFO("\t      destination_port: {}", stream.destination_port);
+      }
+    }
     HOLOSCAN_LOG_INFO("\tGPU settings:");
-    HOLOSCAN_LOG_INFO("\t\tGPU ID: {}", gpu_device_id);
-    HOLOSCAN_LOG_INFO("\t\tGPU Direct: {}", gpu_direct);
-    HOLOSCAN_LOG_INFO("\t\tlock_gpu_clocks: {}", lock_gpu_clocks);
+    HOLOSCAN_LOG_INFO("\t  GPU ID: {}", gpu_device_id);
+    HOLOSCAN_LOG_INFO("\t  GPU Direct: {}", gpu_direct);
+    HOLOSCAN_LOG_INFO("\t  lock_gpu_clocks: {}", lock_gpu_clocks);
     HOLOSCAN_LOG_INFO("\tMemory config settings:");
-    HOLOSCAN_LOG_INFO("\t\tallocator_type: {}", allocator_type);
-    HOLOSCAN_LOG_INFO("\t\tmemory_registration: {}", memory_registration);
-    HOLOSCAN_LOG_INFO("\t\tmemory_allocation: {}", memory_allocation);
-    HOLOSCAN_LOG_INFO("\t\tuse_internal_memory_pool: {}", use_internal_memory_pool);
+    HOLOSCAN_LOG_INFO("\t  allocator_type: {}", allocator_type);
+    HOLOSCAN_LOG_INFO("\t  memory_registration: {}", memory_registration);
+    HOLOSCAN_LOG_INFO("\t  memory_allocation: {}", memory_allocation);
+    HOLOSCAN_LOG_INFO("\t  use_internal_memory_pool: {}", use_internal_memory_pool);
     if (use_internal_memory_pool) {
-      HOLOSCAN_LOG_INFO("\t\tmemory_pool_location: {}", (int)memory_pool_location);
+      HOLOSCAN_LOG_INFO("\t  memory_pool_location: {}", (int)memory_pool_location);
     }
     HOLOSCAN_LOG_INFO("\tPacket settings:");
-    HOLOSCAN_LOG_INFO("\t\tsplit_boundary: {}", split_boundary);
-    HOLOSCAN_LOG_INFO("\t\tnum_of_packets_in_chunk: {}", num_of_packets_in_chunk);
+    HOLOSCAN_LOG_INFO("\t  split_boundary: {}", split_boundary);
+    HOLOSCAN_LOG_INFO("\t  num_of_packets_in_chunk: {}", num_of_packets_in_chunk);
     HOLOSCAN_LOG_INFO("\tSender settings:");
-    HOLOSCAN_LOG_INFO("\t\tdummy_sender: {}", dummy_sender);
-    HOLOSCAN_LOG_INFO("\t\tnum_of_threads: {}", num_of_threads);
-    HOLOSCAN_LOG_INFO("\t\tsend_packet_ext_info: {}", send_packet_ext_info);
-    HOLOSCAN_LOG_INFO("\t\tsleep_between_operations: {}", sleep_between_operations);
-    HOLOSCAN_LOG_INFO("\t\tstats_report_interval_ms: {}", stats_report_interval_ms);
+    HOLOSCAN_LOG_INFO("\t  dummy_sender: {}", dummy_sender);
+    HOLOSCAN_LOG_INFO("\t  send_packet_ext_info: {}", send_packet_ext_info);
+    HOLOSCAN_LOG_INFO("\t  sleep_between_operations: {}", sleep_between_operations);
+    HOLOSCAN_LOG_INFO("\t  stats_report_interval_ms: {}", stats_report_interval_ms);
     HOLOSCAN_LOG_INFO("\tVideo settings:");
-    HOLOSCAN_LOG_INFO("\t\tvideo_format: {}", video_format);
-    HOLOSCAN_LOG_INFO("\t\tbit_depth: {}", bit_depth);
-    HOLOSCAN_LOG_INFO("\t\tframe_width: {}", frame_width);
-    HOLOSCAN_LOG_INFO("\t\tframe_height: {}", frame_height);
-    HOLOSCAN_LOG_INFO("\t\tframe_rate: {}", frame_rate);
+    HOLOSCAN_LOG_INFO("\t  video_format: {}", video_format);
+    HOLOSCAN_LOG_INFO("\t  bit_depth: {}", bit_depth);
+    HOLOSCAN_LOG_INFO("\t  frame_width: {}", frame_width);
+    HOLOSCAN_LOG_INFO("\t  frame_height: {}", frame_height);
+    HOLOSCAN_LOG_INFO("\t  frame_rate: {}", frame_rate);
   }
 }
 
@@ -282,9 +295,40 @@ ReturnStatus RivermaxCommonRxQueueValidator::validate(
     const std::shared_ptr<RivermaxCommonRxQueueConfig>& settings) const {
   ReturnStatus rc = ValidatorUtils::validate_core(settings->master_core);
   if (rc != ReturnStatus::success) { return rc; }
-  bool res = ConfigManagerUtilities::validate_cores(settings->cpu_cores);
-  if (!res) { return ReturnStatus::failure; }
 
+  int cpu_cores = ConfigManagerUtilities::validate_cores(settings->cpu_cores);
+  if (cpu_cores < 0 || cpu_cores != settings->thread_settings.size()) {
+    HOLOSCAN_LOG_ERROR("Number of CPU cores must match number of threads");
+    return ReturnStatus::failure;
+  }
+
+  if (settings->split_boundary == 0 && settings->memory_registration) {
+    HOLOSCAN_LOG_ERROR("Memory registration is supported only in header-data split mode");
+    return ReturnStatus::failure;
+  }
+  if (settings->split_boundary == 0 && settings->gpu_direct) {
+    HOLOSCAN_LOG_ERROR("GPU Direct is supported only in header-data split mode");
+    return ReturnStatus::failure;
+  }
+
+  if (settings->sleep_between_operations_us < 0) {
+    HOLOSCAN_LOG_ERROR("Sleep between operations must be non-negative");
+    return ReturnStatus::failure;
+  }
+
+  if (settings->burst_pool_critical_threshold_percent >=
+      settings->burst_pool_low_threshold_percent ||
+      settings->burst_pool_low_threshold_percent >=
+      settings->burst_pool_recovery_threshold_percent ||
+      settings->burst_pool_recovery_threshold_percent > 100) {
+  HOLOSCAN_LOG_ERROR(
+    "Invalid burst pool thresholds (critical={}, low={}, recovery={}). "
+    "Must satisfy: 0 <= critical < low < recovery <= 100",
+    settings->burst_pool_critical_threshold_percent,
+    settings->burst_pool_low_threshold_percent,
+    settings->burst_pool_recovery_threshold_percent);
+  return ReturnStatus::failure;
+  }
   return ReturnStatus::success;
 }
 
@@ -292,38 +336,65 @@ ReturnStatus RivermaxIPOReceiverQueueValidator::validate(
     const std::shared_ptr<RivermaxIPOReceiverQueueConfig>& settings) const {
   auto validator = std::make_shared<RivermaxCommonRxQueueValidator>();
   ReturnStatus rc = validator->validate(settings);
-  if (rc != ReturnStatus::success) { return rc; }
-
-  if (settings->source_ips.empty()) {
-    HOLOSCAN_LOG_ERROR("Source IP addresses are not set for RTP stream");
-    return ReturnStatus::failure;
-  }
-  if (settings->destination_ips.size() != settings->source_ips.size()) {
-    HOLOSCAN_LOG_ERROR(
-        "Must be the same number of destination multicast IPs as number of source IPs");
-    return ReturnStatus::failure;
-  }
-  if (settings->local_ips.size() != settings->source_ips.size()) {
-    HOLOSCAN_LOG_ERROR("Must be the same number of NIC addresses as number of source IPs");
-    return ReturnStatus::failure;
-  }
-  if (settings->destination_ports.size() != settings->source_ips.size()) {
-    HOLOSCAN_LOG_ERROR("Must be the same number of destination ports as number of source IPs");
-    return ReturnStatus::failure;
-  }
-  if (settings->split_boundary == 0 && settings->memory_registration) {
-    HOLOSCAN_LOG_ERROR("Memory registration is supported only in header-data split mode");
-    return ReturnStatus::failure;
+  if (rc != ReturnStatus::success) {
+    return rc;
   }
 
-  rc = ValidatorUtils::validate_ip4_address(settings->source_ips);
-  if (rc != ReturnStatus::success) { return rc; }
-  rc = ValidatorUtils::validate_ip4_address(settings->local_ips);
-  if (rc != ReturnStatus::success) { return rc; }
-  rc = ValidatorUtils::validate_ip4_address(settings->destination_ips);
-  if (rc != ReturnStatus::success) { return rc; }
-  rc = ValidatorUtils::validate_ip4_port(settings->destination_ports);
-  if (rc != ReturnStatus::success) { return rc; }
+  int thread_id = 0;
+  int stream_id = 0;
+  for (const auto& thread : settings->thread_settings) {
+    if (thread.thread_id != thread_id) {
+      HOLOSCAN_LOG_ERROR("Thread ID must be sequential starting from 0");
+      return ReturnStatus::failure;
+    }
+    if (thread.stream_network_settings.empty()) {
+      HOLOSCAN_LOG_ERROR("No stream network settings provided for thread ID {}", thread.thread_id);
+      return ReturnStatus::failure;
+    }
+    thread_id++;
+    for (const auto& stream : thread.stream_network_settings) {
+      // if (stream.stream_id != stream_id) {
+      //   HOLOSCAN_LOG_ERROR("Stream ID must be sequential starting from 0");
+      //   return ReturnStatus::failure;
+      // }
+      stream_id++;
+      if (stream.source_ips.empty()) {
+        HOLOSCAN_LOG_ERROR(
+            "Source IPs are not set for stream in thread ID {}", thread.thread_id);
+        return ReturnStatus::failure;
+      }
+      rc = ValidatorUtils::validate_ip4_address(stream.source_ips);
+      if (rc != ReturnStatus::success) { return rc; }
+      if (stream.destination_ips.size() != stream.source_ips.size()) {
+        HOLOSCAN_LOG_ERROR(
+            "Must be the same number of destination multicast IPs as number of source IPs "
+            "for stream in thread ID {}",
+            thread.thread_id);
+        return ReturnStatus::failure;
+      }
+      rc = ValidatorUtils::validate_ip4_address(stream.destination_ips);
+      if (rc != ReturnStatus::success) { return rc; }
+      if (stream.local_ips.size() != stream.source_ips.size()) {
+        HOLOSCAN_LOG_ERROR(
+            "Must be the same number of NIC addresses as number of source IPs for stream in "
+            "thread ID {}",
+            thread.thread_id);
+        return ReturnStatus::failure;
+      }
+      rc = ValidatorUtils::validate_ip4_address(stream.local_ips);
+      if (rc != ReturnStatus::success) { return rc; }
+      if (stream.destination_ports.size() != stream.source_ips.size()) {
+        HOLOSCAN_LOG_ERROR(
+            "Must be the same number of destination ports as number of source IPs for stream in "
+            "thread ID {}",
+            thread.thread_id);
+        return ReturnStatus::failure;
+      }
+      rc = ValidatorUtils::validate_ip4_port(stream.destination_ports);
+      if (rc != ReturnStatus::success) { return rc; }
+    }
+  }
+
   return ReturnStatus::success;
 }
 
@@ -331,20 +402,37 @@ ReturnStatus RivermaxRTPReceiverQueueValidator::validate(
     const std::shared_ptr<RivermaxRTPReceiverQueueConfig>& settings) const {
   auto validator = std::make_shared<RivermaxCommonRxQueueValidator>();
   ReturnStatus rc = validator->validate(settings);
-  if (rc != ReturnStatus::success) { return rc; }
-  if (settings->split_boundary == 0 && settings->gpu_direct) {
-    HOLOSCAN_LOG_ERROR("GPU Direct is supported only in header-data split mode");
-    return ReturnStatus::failure;
-  }
 
-  rc = ValidatorUtils::validate_ip4_address(settings->source_ip);
   if (rc != ReturnStatus::success) { return rc; }
-  rc = ValidatorUtils::validate_ip4_address(settings->local_ip);
-  if (rc != ReturnStatus::success) { return rc; }
-  rc = ValidatorUtils::validate_ip4_address(settings->destination_ip);
-  if (rc != ReturnStatus::success) { return rc; }
-  rc = ValidatorUtils::validate_ip4_port(settings->destination_port);
-  if (rc != ReturnStatus::success) { return rc; }
+
+  int thread_id = 0;
+  int stream_id = 0;
+  for (const auto& thread : settings->thread_settings) {
+    if (thread.thread_id != thread_id) {
+      HOLOSCAN_LOG_ERROR("Thread ID must be sequential starting from 0");
+      return ReturnStatus::failure;
+    }
+    thread_id++;
+    if (thread.stream_network_settings.empty()) {
+      HOLOSCAN_LOG_ERROR("No stream network settings provided for thread ID {}", thread.thread_id);
+      return ReturnStatus::failure;
+    }
+    for (const auto& stream : thread.stream_network_settings) {
+      if (stream.stream_id != stream_id) {
+        HOLOSCAN_LOG_ERROR("Stream ID must be sequential starting from 0");
+        return ReturnStatus::failure;
+      }
+      stream_id++;
+      rc = ValidatorUtils::validate_ip4_address(stream.source_ip);
+      if (rc != ReturnStatus::success) { return rc; }
+      rc = ValidatorUtils::validate_ip4_address(stream.destination_ip);
+      if (rc != ReturnStatus::success) { return rc; }
+      rc = ValidatorUtils::validate_ip4_address(stream.local_ip);
+      if (rc != ReturnStatus::success) { return rc; }
+      rc = ValidatorUtils::validate_ip4_port(stream.destination_port);
+      if (rc != ReturnStatus::success) { return rc; }
+    }
+  }
   return ReturnStatus::success;
 }
 
@@ -352,14 +440,28 @@ ReturnStatus RivermaxCommonTxQueueValidator::validate(
     const std::shared_ptr<RivermaxCommonTxQueueConfig>& settings) const {
   ReturnStatus rc = ValidatorUtils::validate_core(settings->master_core);
   if (rc != ReturnStatus::success) { return rc; }
-  bool res = ConfigManagerUtilities::validate_cores(settings->cpu_cores);
-  if (!res) { return ReturnStatus::failure; }
-  rc = ValidatorUtils::validate_ip4_address(settings->local_ip);
-  if (rc != ReturnStatus::success) { return rc; }
-  rc = ValidatorUtils::validate_ip4_address(settings->destination_ip);
-  if (rc != ReturnStatus::success) { return rc; }
-  rc = ValidatorUtils::validate_ip4_port(settings->destination_port);
-  if (rc != ReturnStatus::success) { return rc; }
+  int thread_id = 0;
+  int stream_id = 0;
+  for (const auto& thread : settings->thread_settings) {
+    thread_id++;
+    if (thread.stream_network_settings.empty()) {
+      HOLOSCAN_LOG_ERROR("No stream network settings provided for thread ID {}", thread.thread_id);
+      return ReturnStatus::failure;
+    }
+    for (const auto& stream : thread.stream_network_settings) {
+      // if (stream.stream_id != stream_id) {
+      //   HOLOSCAN_LOG_ERROR("Stream ID must be sequential starting from 0");
+      //   return ReturnStatus::failure;
+      // }
+      // stream_id++;
+      rc = ValidatorUtils::validate_ip4_address(stream.destination_ip);
+      if (rc != ReturnStatus::success) { return rc; }
+      rc = ValidatorUtils::validate_ip4_address(stream.local_ip);
+      if (rc != ReturnStatus::success) { return rc; }
+      rc = ValidatorUtils::validate_ip4_port(stream.destination_port);
+      if (rc != ReturnStatus::success) { return rc; }
+    }
+  }
   if (!settings->memory_allocation && settings->memory_registration) {
     HOLOSCAN_LOG_ERROR(
         "Register memory option is supported only with application memory allocation");
@@ -377,18 +479,18 @@ ReturnStatus RivermaxMediaSenderQueueValidator::validate(
     const std::shared_ptr<RivermaxMediaSenderQueueConfig>& settings) const {
   auto validator = std::make_shared<RivermaxCommonTxQueueValidator>();
   ReturnStatus rc = validator->validate(settings);
-  if (rc != ReturnStatus::success) { return rc; }
+  if (rc != ReturnStatus::success) {
+    return rc;
+  }
 
   return ReturnStatus::success;
 }
 
 ReturnStatus RivermaxQueueToIPOReceiverSettingsBuilder::convert_settings(
     const std::shared_ptr<RivermaxIPOReceiverQueueConfig>& source_settings,
-    std::shared_ptr<IPOReceiverSettings>& target_settings) {
-  target_settings->local_ips = source_settings->local_ips;
-  target_settings->source_ips = source_settings->source_ips;
-  target_settings->destination_ips = source_settings->destination_ips;
-  target_settings->destination_ports = source_settings->destination_ports;
+    std::shared_ptr<ANOIPOReceiverSettings>& target_settings) {
+  target_settings->thread_settings = source_settings->thread_settings;
+  target_settings->num_of_threads = target_settings->thread_settings.size();
 
   if (source_settings->gpu_direct) {
     target_settings->gpu_id = source_settings->gpu_device_id;
@@ -410,13 +512,12 @@ ReturnStatus RivermaxQueueToIPOReceiverSettingsBuilder::convert_settings(
     return ReturnStatus::failure;
   }
 
-  target_settings->num_of_threads = source_settings->num_of_threads;
   target_settings->print_parameters = source_settings->print_parameters;
   target_settings->sleep_between_operations_us = source_settings->sleep_between_operations_us;
   target_settings->packet_payload_size = source_settings->max_packet_size;
   target_settings->packet_app_header_size = source_settings->split_boundary;
-  (target_settings->packet_app_header_size == 0) ? target_settings->header_data_split = false :
-    target_settings->header_data_split = true;
+  (target_settings->packet_app_header_size == 0) ? target_settings->header_data_split = false
+                                                 : target_settings->header_data_split = true;
 
   target_settings->num_of_packets_in_chunk =
       std::pow(2, std::ceil(std::log2(source_settings->packets_buffers_size)));
@@ -432,6 +533,13 @@ ReturnStatus RivermaxQueueToIPOReceiverSettingsBuilder::convert_settings(
   target_settings->max_packets_in_rx_chunk = source_settings->max_chunk_size;
 
   send_packet_ext_info_ = source_settings->send_packet_ext_info;
+
+  // Copy burst pool configuration
+  burst_pool_adaptive_dropping_enabled_ = source_settings->burst_pool_adaptive_dropping_enabled;
+  burst_pool_low_threshold_percent_ = source_settings->burst_pool_low_threshold_percent;
+  burst_pool_critical_threshold_percent_ = source_settings->burst_pool_critical_threshold_percent;
+  burst_pool_recovery_threshold_percent_ = source_settings->burst_pool_recovery_threshold_percent;
+
   settings_built_ = true;
   built_settings_ = *target_settings;
 
@@ -440,11 +548,9 @@ ReturnStatus RivermaxQueueToIPOReceiverSettingsBuilder::convert_settings(
 
 ReturnStatus RivermaxQueueToRTPReceiverSettingsBuilder::convert_settings(
     const std::shared_ptr<RivermaxRTPReceiverQueueConfig>& source_settings,
-    std::shared_ptr<RTPReceiverSettings>& target_settings) {
-  target_settings->local_ip = source_settings->local_ip;
-  target_settings->source_ip = source_settings->source_ip;
-  target_settings->destination_ip = source_settings->destination_ip;
-  target_settings->destination_port = source_settings->destination_port;
+    std::shared_ptr<ANORTPReceiverSettings>& target_settings) {
+  target_settings->thread_settings = source_settings->thread_settings;
+  target_settings->num_of_threads = target_settings->thread_settings.size();
 
   if (source_settings->gpu_direct) {
     target_settings->gpu_id = source_settings->gpu_device_id;
@@ -466,13 +572,12 @@ ReturnStatus RivermaxQueueToRTPReceiverSettingsBuilder::convert_settings(
     return ReturnStatus::failure;
   }
 
-  target_settings->num_of_threads = source_settings->num_of_threads;
   target_settings->print_parameters = source_settings->print_parameters;
   target_settings->sleep_between_operations_us = source_settings->sleep_between_operations_us;
   target_settings->packet_payload_size = source_settings->max_packet_size;
   target_settings->packet_app_header_size = source_settings->split_boundary;
-  (target_settings->packet_app_header_size == 0) ? target_settings->header_data_split = false :
-    target_settings->header_data_split = true;
+  (target_settings->packet_app_header_size == 0) ? target_settings->header_data_split = false
+                                                 : target_settings->header_data_split = true;
 
   target_settings->num_of_packets_in_chunk =
       std::pow(2, std::ceil(std::log2(source_settings->packets_buffers_size)));
@@ -483,6 +588,12 @@ ReturnStatus RivermaxQueueToRTPReceiverSettingsBuilder::convert_settings(
   max_chunk_size_ = source_settings->max_chunk_size;
   send_packet_ext_info_ = source_settings->send_packet_ext_info;
 
+  // Copy burst pool configuration
+  burst_pool_adaptive_dropping_enabled_ = source_settings->burst_pool_adaptive_dropping_enabled;
+  burst_pool_low_threshold_percent_ = source_settings->burst_pool_low_threshold_percent;
+  burst_pool_critical_threshold_percent_ = source_settings->burst_pool_critical_threshold_percent;
+  burst_pool_recovery_threshold_percent_ = source_settings->burst_pool_recovery_threshold_percent;
+
   settings_built_ = true;
   built_settings_ = *target_settings;
 
@@ -491,10 +602,13 @@ ReturnStatus RivermaxQueueToRTPReceiverSettingsBuilder::convert_settings(
 
 ReturnStatus RivermaxQueueToMediaSenderSettingsBuilder::convert_settings(
     const std::shared_ptr<RivermaxMediaSenderQueueConfig>& source_settings,
-    std::shared_ptr<MediaSenderSettings>& target_settings) {
-  target_settings->local_ip = source_settings->local_ip;
-  target_settings->destination_ip = source_settings->destination_ip;
-  target_settings->destination_port = source_settings->destination_port;
+    std::shared_ptr<ANOMediaSenderSettings>& target_settings) {
+  target_settings->thread_settings = source_settings->thread_settings;
+  target_settings->num_of_threads = target_settings->thread_settings.size();
+  // Same local IP for all streams of the first thread
+  // Next - This will be taken from the adv_network settings `address`
+  target_settings->local_ip =
+      source_settings->thread_settings[0].stream_network_settings[0].local_ip;
 
   if (source_settings->gpu_direct) {
     target_settings->gpu_id = source_settings->gpu_device_id;
@@ -516,12 +630,11 @@ ReturnStatus RivermaxQueueToMediaSenderSettingsBuilder::convert_settings(
     return ReturnStatus::failure;
   }
 
-  target_settings->num_of_threads = source_settings->num_of_threads;
   target_settings->print_parameters = source_settings->print_parameters;
   target_settings->sleep_between_operations = source_settings->sleep_between_operations;
   target_settings->packet_app_header_size = source_settings->split_boundary;
-  (target_settings->packet_app_header_size == 0) ? target_settings->header_data_split = false :
-    target_settings->header_data_split = true;
+  (target_settings->packet_app_header_size == 0) ? target_settings->header_data_split = false
+                                                 : target_settings->header_data_split = true;
 
   target_settings->stats_report_interval_ms = source_settings->stats_report_interval_ms;
   target_settings->register_memory = source_settings->memory_registration;
