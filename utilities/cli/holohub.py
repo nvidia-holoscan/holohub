@@ -2267,8 +2267,19 @@ class HoloHubCLI:
                     f"-DPython3_ROOT_DIR={os.path.dirname(os.path.dirname(sys.executable))}",
                     f"-DCMAKE_BUILD_TYPE={build_type}",
                     f"-DCMAKE_PREFIX_PATH={HoloHubCLI.DEFAULT_SDK_DIR}/lib",
+                    # BUILD_ALL=OFF keeps unrelated subprojects out of this
+                    # package. MODULE_<slug>=ON enters the module subdir when
+                    # this is an in-tree HoloHub build whose modules/CMakeLists.txt
+                    # uses add_holohub_module() (otherwise the module is gated
+                    # off by BUILD_ALL=OFF). PKG_<slug>=ON then activates the
+                    # target package's add_holohub_package() cascade, which
+                    # FORCEs the OP_/APP_/EXT_ deps it declares to ON. For
+                    # standalone module repos (where add_holohub_module() never
+                    # runs because the module is the top-level project), the
+                    # MODULE_<slug>=ON is a harmless unused cache entry.
                     "-DBUILD_ALL=OFF",
                     f"-DMODULE_{pkg_slug}=ON",
+                    f"-DPKG_{pkg_slug}=ON",
                 ]
                 if shutil.which("ninja"):
                     cmake_args.extend(["-G", "Ninja"])

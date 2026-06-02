@@ -1567,9 +1567,9 @@ class TestHandlePackage(unittest.TestCase):
 
         cmake_args_str = " ".join(mock_run_command.call_args_list[0][0][0])
         self.assertIn("-DMODULE_test_module_fixture=ON", cmake_args_str)
+        self.assertIn("-DPKG_test_module_fixture=ON", cmake_args_str)
         self.assertIn("-DBUILD_ALL=OFF", cmake_args_str)
         self.assertIn(str(HoloHubCLI.HOLOHUB_ROOT), cmake_args_str)
-        self.assertNotIn("-DPKG_", cmake_args_str)
 
         cpack_args = mock_run_command.call_args_list[2][0][0]
         self.assertEqual(cpack_args[0], "cpack")
