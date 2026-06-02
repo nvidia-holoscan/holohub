@@ -17,10 +17,15 @@ from __future__ import annotations
 
 import unittest
 
+import pytest
+
 try:
+    # CuPy is a test-environment dependency (not the code under test); skip the
+    # module when it is unavailable. The ultra_post imports below stay outside
+    # this guard so genuine import errors surface as failures, not skips.
     import cupy as cp  # type: ignore
-except ImportError:  # pragma: no cover - optional GPU dependency
-    cp = None  # type: ignore
+except Exception as exc:  # pragma: no cover - optional GPU dependency
+    pytest.skip(f"CuPy is unavailable: {exc}", allow_module_level=True)
 
 from ultra_post.core.pipeline import (
     Pipeline,
@@ -32,7 +37,6 @@ from ultra_post.core.pipeline import (
 from ultra_post.filters.registry import FILTERS
 
 
-@unittest.skipIf(cp is None, "CuPy is required for pipeline tests.")
 class PipelineCoreTests(unittest.TestCase):
     def setUp(self) -> None:
         self.filters = FILTERS

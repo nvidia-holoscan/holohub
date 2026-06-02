@@ -55,6 +55,29 @@ the working directory.
     ./holohub run endoscopy_tool_tracking python --run-args=-s=aja
     ```
 
+- Using a Deltacast card
+
+1. For Deltacast hardware: contact DELTACAST.TV for Deltacast VideoMaster SDK access. Install the SDK and set the path in your host environment.
+
+```bash
+export DELTACAST_SDK_DIR=/path/to/deltacast-sdk
+```
+
+1. Update [endoscopy_tool_tracking.yaml](./endoscopy_tool_tracking.yaml) with your target framerate
+2. Build and run the containerized application from presets.
+
+```bash
+./holohub run endoscopy_tool_tracking deltacast --language=python
+```
+
+**For developers without Deltacast capture card hardware**: Use the mock VideoMaster SDK for CPU-based development.
+
+```bash
+./holohub run endoscopy_tool_tracking deltacast_mock --language=python
+```
+
+See the Holoscan Deltacast external module repository for more details: <https://github.com/deltacasttv/holoscan-modules>
+
 - Using a YUAN card
 
     ```bash

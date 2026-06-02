@@ -44,7 +44,13 @@ from typing import List, Optional
 
 import utilities.cli.util as holohub_cli_util
 import utilities.metadata.gather_metadata as metadata_util
+from utilities.cli.cmake_manifest import write_external_operators_manifest
 from utilities.cli.container import HoloHubContainer
+from utilities.cli.external_resolver import (
+    merge_deps,
+    parse_module_dependencies,
+    parse_module_sites,
+)
 from utilities.cli.util import Color
 from utilities.metadata.utils import get_schema_path, list_normalized_languages, normalize_language
 
@@ -1103,10 +1109,10 @@ class HoloHubCLI:
         build_dir = HoloHubCLI.DEFAULT_BUILD_PARENT_DIR / project_name
         build_dir.mkdir(parents=True, exist_ok=True)
 
-        # Prepare environment with extra env vars
+        # Prepare environment with extra env vars first so that HOLOHUB_LOCAL_*
+        # overrides from the mode's env block are visible to the module resolvers.
         build_env = os.environ.copy()
         if extra_env:
-            # Build path mapping
             path_mapping = holohub_cli_util.build_holohub_path_mapping(
                 holohub_root=self.HOLOHUB_ROOT,
                 project_data=project_data,
@@ -1116,6 +1122,25 @@ class HoloHubCLI:
                 verbose=dryrun,
             )
             holohub_cli_util.update_env(build_env, extra_env, path_mapping, verbose=dryrun)
+
+        # Write external_operators_manifest.cmake before cmake configure so that
+        # CMakeLists.txt:include(…OPTIONAL) picks it up and FetchContent_MakeAvailable
+        # is called for any external modules whose operators end up enabled.
+        metadata_path = Path(project_data.get("source_folder", "")) / "metadata.json"
+        sites_deps = parse_module_sites(
+            HoloHubCLI.HOLOHUB_ROOT / "modules" / "module-sites.json",
+            holohub_root=HoloHubCLI.HOLOHUB_ROOT,
+            env=build_env,
+        )
+        project_deps = parse_module_dependencies(
+            metadata_path, holohub_root=HoloHubCLI.HOLOHUB_ROOT, env=build_env
+        )
+        ext_deps = merge_deps(sites_deps, project_deps)
+        manifest_path = build_dir / "external_operators_manifest.cmake"
+        if dryrun:
+            holohub_cli_util.info(f"[dryrun] Would write {manifest_path}")
+        else:
+            write_external_operators_manifest(ext_deps, manifest_path)
 
         proj_prefix = holohub_cli_util.determine_project_prefix(project_type)
         cmake_args = [
@@ -1204,7 +1229,7 @@ class HoloHubCLI:
             )
 
         if configure_args:
-            cmake_args.extend(configure_args)
+            cmake_args.extend(os.path.expandvars(arg) for arg in configure_args)
 
         holohub_cli_util.run_command(cmake_args, dry_run=dryrun, env=build_env)
 
@@ -2242,8 +2267,19 @@ class HoloHubCLI:
                     f"-DPython3_ROOT_DIR={os.path.dirname(os.path.dirname(sys.executable))}",
                     f"-DCMAKE_BUILD_TYPE={build_type}",
                     f"-DCMAKE_PREFIX_PATH={HoloHubCLI.DEFAULT_SDK_DIR}/lib",
+                    # BUILD_ALL=OFF keeps unrelated subprojects out of this
+                    # package. MODULE_<slug>=ON enters the module subdir when
+                    # this is an in-tree HoloHub build whose modules/CMakeLists.txt
+                    # uses add_holohub_module() (otherwise the module is gated
+                    # off by BUILD_ALL=OFF). PKG_<slug>=ON then activates the
+                    # target package's add_holohub_package() cascade, which
+                    # FORCEs the OP_/APP_/EXT_ deps it declares to ON. For
+                    # standalone module repos (where add_holohub_module() never
+                    # runs because the module is the top-level project), the
+                    # MODULE_<slug>=ON is a harmless unused cache entry.
                     "-DBUILD_ALL=OFF",
                     f"-DMODULE_{pkg_slug}=ON",
+                    f"-DPKG_{pkg_slug}=ON",
                 ]
                 if shutil.which("ninja"):
                     cmake_args.extend(["-G", "Ninja"])

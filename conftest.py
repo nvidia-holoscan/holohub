@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,20 +15,18 @@
 
 import os
 
-import cupy as cp
 import numpy as np
 import pytest
-from holoscan.core import Application, Fragment
 
 
 @pytest.fixture
 def app():
-    return Application()
+    return pytest.importorskip("holoscan.core").Application()
 
 
 @pytest.fixture
 def fragment():
-    return Fragment()
+    return pytest.importorskip("holoscan.core").Fragment()
 
 
 @pytest.fixture
@@ -44,9 +42,14 @@ def config_file():
 
 @pytest.fixture
 def mock_image():
-    def _factory(shape, dtype=cp.uint8, backend="cupy", seed=None):
+    def _factory(shape, dtype="uint8", backend="cupy", seed=None):
         if backend == "cupy":
-            xp = cp
+            try:
+                # CuPy can be installed yet unimportable (no GPU/driver, ABI
+                # mismatch), so skip on any import failure, not just ImportError.
+                import cupy as xp
+            except Exception as exc:
+                pytest.skip(f"CuPy is unavailable in this test environment: {exc}")
         elif backend == "numpy":
             xp = np
         else:
@@ -56,7 +59,9 @@ def mock_image():
         if dtype.kind in "ui":
             img = rng.integers(0, 256, size=shape, dtype=dtype, endpoint=False)
         elif dtype.kind == "f":
-            img = rng.uniform(0.0, 1.0, size=shape, dtype=dtype)
+            img = rng.uniform(0.0, 1.0, size=shape)
+            if img.dtype != dtype:
+                img = img.astype(dtype, copy=False)
         else:
             raise ValueError(f"{dtype=} unsupported")
         return img
