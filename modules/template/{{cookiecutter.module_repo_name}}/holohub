@@ -102,7 +102,13 @@ export HOLOHUB_HOSTNAME_PREFIX="${HOLOHUB_HOSTNAME_PREFIX:-{{ cookiecutter.modul
 # ==============================================================================
 
 export HOLOHUB_DEFAULT_DOCKERFILE="${HOLOHUB_DEFAULT_DOCKERFILE:-${SCRIPT_DIR}/Dockerfile}"
-export HOLOHUB_SEARCH_PATH="${HOLOHUB_SEARCH_PATH:-${SCRIPT_DIR}/applications,${SCRIPT_DIR}/operators}"
+# Recursive walk from SCRIPT_DIR — picks up the top-level metadata.json
+# (project_type=module) along with operators/<x>/metadata.json and
+# applications/<y>/metadata.json. The narrower default
+# `applications,operators` skipped the module's own descriptor, so
+# `./holohub list` showed no MODULES section and `./holohub package
+# <name>` couldn't find the module by name.
+export HOLOHUB_SEARCH_PATH="${HOLOHUB_SEARCH_PATH:-${SCRIPT_DIR}}"
 export HOLOHUB_BUILD_PARENT_DIR="${HOLOHUB_BUILD_PARENT_DIR:-${SCRIPT_DIR}/build}"
 export HOLOHUB_DATA_DIR="${HOLOHUB_DATA_DIR:-${SCRIPT_DIR}/data}"
 export HOLOHUB_SETUP_SCRIPTS_DIR="${HOLOHUB_SETUP_SCRIPTS_DIR:-${CLI_DIR}/utilities/setup}"
