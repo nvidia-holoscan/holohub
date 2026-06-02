@@ -18,6 +18,11 @@
           "url": { "type": "string", "format": "uri" },
           "ref": { "type": "string" },
           "source_url": { "type": "string", "format": "uri" },
+          "provides_operators": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Raw operator names (e.g. \"deltacast_videomaster\") this module makes available when fetched. Do NOT include the OP_ prefix or =ON suffix."
+          },
           "nvidia_quality_score": { "type": "integer", "minimum": 1, "maximum": 5 }
         }
       }
