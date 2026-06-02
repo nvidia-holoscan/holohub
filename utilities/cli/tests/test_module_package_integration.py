@@ -35,6 +35,7 @@ HOLOHUB_SEARCH_PATH fix is exercised by step 2 (list shows MODULES section) and 
 """
 
 import os
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -91,8 +92,6 @@ def _run(
 
 def _ensure_cmake_helper(cmake_dir: Path, src: Path) -> None:
     """Copy *src* into *cmake_dir* if it isn't already there (post-gen hook fallback)."""
-    import shutil
-
     dst = cmake_dir / src.name
     if not dst.exists() and src.exists():
         shutil.copy2(src, dst)
@@ -106,6 +105,7 @@ def _ensure_cmake_helper(cmake_dir: Path, src: Path) -> None:
 @unittest.skipIf(not _cookiecutter_available(), "cookiecutter not installed")
 @unittest.skipIf(not _tool_available("cmake"), "cmake not available")
 @unittest.skipIf(not _tool_available("cpack"), "cpack not available")
+@unittest.skipIf(not _tool_available("dpkg-deb"), "dpkg-deb not available")
 class TestModulePackageIntegration(unittest.TestCase):
     """End-to-end: create module → holohub build → holohub package → inspect .deb."""
 

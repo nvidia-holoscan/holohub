@@ -43,12 +43,14 @@ def _cookiecutter_available() -> bool:
         return False
 
 
-def _run(cmd: list, *, env: dict | None = None) -> subprocess.CompletedProcess:
-    return subprocess.run(
+def _run(
+    cmd: list, *, env: dict | None = None, cwd: Path = HOLOHUB_ROOT
+) -> subprocess.CompletedProcess:
+    return subprocess.run(  # noqa: S603 - test invokes trusted repo-local scripts only
         cmd,
         capture_output=True,
         text=True,
-        cwd=str(HOLOHUB_ROOT),
+        cwd=str(cwd),
         env=env or os.environ.copy(),
     )
 
@@ -278,7 +280,7 @@ class TestPackageCommandPassesGateFlags(unittest.TestCase):
         # CLI_DIR routes the generated wrapper at this local CLI clone (skips
         # GitHub fetch and any stale .holohub/ cache).
         env = {**os.environ, "CLI_DIR": str(HOLOHUB_ROOT)}
-        cls.dryrun = subprocess.run(
+        cls.dryrun = _run(
             [
                 str(cls.module_holohub),
                 "package",
@@ -288,10 +290,8 @@ class TestPackageCommandPassesGateFlags(unittest.TestCase):
                 "DEB",
                 "--dryrun",
             ],
-            cwd=str(cls.module_dir),
+            cwd=cls.module_dir,
             env=env,
-            capture_output=True,
-            text=True,
         )
 
     @classmethod

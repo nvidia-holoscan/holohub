@@ -41,7 +41,7 @@ if(NOT DEFINED BUILD_ALL)
     if(PROJECT_IS_TOP_LEVEL)
         set(BUILD_ALL ON CACHE BOOL "Build all operators, applications, and packages by default")
     else()
-        set(BUILD_ALL OFF CACHE BOOL "Build all operators, applications, and packages by default")
+        set(BUILD_ALL OFF)
     endif()
 endif()
 
