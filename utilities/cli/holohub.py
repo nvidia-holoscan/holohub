@@ -483,7 +483,7 @@ class HoloHubCLI:
             type=str,
             default="DEB",
             dest="pkg_generator",
-            help="Comma-separated package generators: DEB, WHEEL (default: DEB)",
+            help="Comma-separated package generators: DEB, TGZ, WHEEL (default: DEB)",
         )
         package.add_argument("--language", choices=["cpp", "python"], default=None)
         package.add_argument("--verbose", action="store_true")
@@ -2300,18 +2300,40 @@ class HoloHubCLI:
                 holohub_cli_util.run_command(build_cmd, dry_run=dryrun, env=build_env)
 
                 pkg_config_dir = build_dir / "pkg"
-                cpack_configs = (
+                all_cpack_configs = (
                     list(pkg_config_dir.glob("CPackConfig-*.cmake"))
                     if pkg_config_dir.exists()
                     else []
                 )
-                if not cpack_configs and dryrun:
+                if not all_cpack_configs and dryrun:
                     bare = project_name.replace("_", "-")
                     if bare.startswith("holoscan-"):
                         bare = bare[len("holoscan-") :]
-                    cpack_configs = [pkg_config_dir / f"CPackConfig-holoscan-{bare}.cmake"]
-                for cpack_config in cpack_configs:
-                    for gen in cpack_generators:
+                    base_name = f"CPackConfig-holoscan-{bare}"
+                    all_cpack_configs = [pkg_config_dir / f"{base_name}.cmake"]
+                    # Also synthesize generator-specific configs so dry-run routing matches reality.
+                    all_cpack_configs += [
+                        pkg_config_dir / f"{base_name}-{g}.cmake" for g in cpack_generators
+                    ]
+
+                # Separate generator-specific configs (e.g. CPackConfig-*-TGZ.cmake)
+                # from the base config so each generator uses the right one.
+                _KNOWN_GEN_SUFFIXES = ("TGZ", "DEB", "RPM", "ZIP")
+                gen_specific_configs: dict = {}
+                base_configs = []
+                for c in all_cpack_configs:
+                    stem_upper = c.stem.upper()
+                    matched = next(
+                        (g for g in _KNOWN_GEN_SUFFIXES if stem_upper.endswith(f"-{g}")), None
+                    )
+                    if matched:
+                        gen_specific_configs.setdefault(matched, []).append(c)
+                    else:
+                        base_configs.append(c)
+
+                for gen in cpack_generators:
+                    configs_for_gen = gen_specific_configs.get(gen) or base_configs
+                    for cpack_config in configs_for_gen:
                         holohub_cli_util.run_command(
                             ["cpack", "--config", str(cpack_config), "-G", gen],
                             dry_run=dryrun,

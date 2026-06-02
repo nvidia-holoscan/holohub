@@ -129,14 +129,14 @@ endif()
 # Install library
 install(TARGETS holoscan_gstreamer_bridge
     EXPORT holoscan-gstreamer-targets
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    COMPONENT gstreamer
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/${CUDAToolkit_VERSION_MAJOR}
+    COMPONENT holoscan-gstreamer
 )
 # Write the holoscan-gstreamer-targets.cmake file
 install(EXPORT holoscan-gstreamer-targets
     NAMESPACE holoscan::
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/holoscan-gstreamer
-    COMPONENT gstreamer
+    COMPONENT holoscan-gstreamer
 )
 
 # Generate holoscan-gstreamer-config.cmake and version file so that downstream
@@ -156,7 +156,7 @@ install(FILES
     "${CMAKE_CURRENT_BINARY_DIR}/cmake/holoscan-gstreamer-config.cmake"
     "${CMAKE_CURRENT_BINARY_DIR}/cmake/holoscan-gstreamer-config-version.cmake"
     DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/holoscan-gstreamer"
-    COMPONENT gstreamer
+    COMPONENT holoscan-gstreamer
 )
 
 # Install headers. gst/ headers go into the gst/ subdestination so that the
@@ -174,7 +174,7 @@ install(FILES
   gst_pipeline_bus_monitor.hpp
   gst_wait_group.hpp
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/holoscan/operators/gstreamer
-  COMPONENT gstreamer)
+  COMPONENT holoscan-gstreamer)
 
 install(FILES
   gst/allocator.hpp
@@ -197,7 +197,7 @@ install(FILES
   gst/video_info.hpp
   gst/wrapper_base.hpp
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/holoscan/operators/gstreamer/gst
-  COMPONENT gstreamer)
+  COMPONENT holoscan-gstreamer)
 
 # CTest: install the gstreamer component into a temp prefix, then verify
 # find_package(holoscan-gstreamer) resolves correctly against the install tree.
