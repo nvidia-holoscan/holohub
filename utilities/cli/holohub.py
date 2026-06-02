@@ -487,6 +487,9 @@ class HoloHubCLI:
         )
         package.add_argument("--language", choices=["cpp", "python"], default=None)
         package.add_argument("--verbose", action="store_true")
+        package.add_argument(
+            "--no-docker-build", action="store_true", help="Skip building the container"
+        )
         package.add_argument("--dryrun", action="store_true", default=False)
         package.set_defaults(func=self.handle_package)
 
