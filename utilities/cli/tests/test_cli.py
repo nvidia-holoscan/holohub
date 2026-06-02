@@ -1675,9 +1675,7 @@ class TestHandlePackage(unittest.TestCase):
 
         mock_container.reset_mock()
         mock_check_skip_builds.return_value = (False, False)
-        args = self.cli.parser.parse_args(
-            ["package", "test-module-fixture", "--cuda", "13"]
-        )
+        args = self.cli.parser.parse_args(["package", "test-module-fixture", "--cuda", "13"])
         args.func(args)
         mock_container.build.assert_called_once_with(
             docker_file=None,
