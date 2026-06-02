@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
+#ifdef _WIN32
+#include <windows.h>
+#else
 #include <getopt.h>
+#endif
 
 #include <holoscan/holoscan.hpp>
 #include <holoscan/operators/format_converter/format_converter.hpp>
@@ -332,6 +336,20 @@ class App : public holoscan::Application {
 
 /** Helper function to parse the command line arguments */
 bool parse_arguments(int argc, char** argv, std::string& data_path, std::string& config_path) {
+#ifdef _WIN32
+  // Windows-compatible argument parsing
+  for (int i = 1; i < argc; i++) {
+    std::string arg = argv[i];
+    if ((arg == "-d" || arg == "--data") && i + 1 < argc) {
+      data_path = argv[++i];
+    } else if ((arg == "-c" || arg == "--config") && i + 1 < argc) {
+      config_path = argv[++i];
+    } else if (arg[0] == '-') {
+      holoscan::log_error("Unknown option '{}'", arg);
+      return false;
+    }
+  }
+#else
   static struct option long_options[] = {
       {"data", required_argument, 0, 'd'}, {"config", required_argument, 0, 'c'}, {0, 0, 0, 0}};
 
@@ -351,6 +369,7 @@ bool parse_arguments(int argc, char** argv, std::string& data_path, std::string&
         return false;
     }
   }
+#endif
 
   return true;
 }
@@ -369,7 +388,7 @@ int main(int argc, char** argv) {
     if (input_path != nullptr && input_path[0] != '\0') {
       data_directory = std::string(input_path);
     } else if (std::filesystem::is_directory(std::filesystem::current_path() / "data/endoscopy")) {
-      data_directory = std::string((std::filesystem::current_path() / "data/endoscopy").c_str());
+      data_directory = (std::filesystem::current_path() / "data/endoscopy").string();
     } else {
       HOLOSCAN_LOG_ERROR(
           "Input data not provided. Use --data or set HOLOSCAN_INPUT_PATH environment variable.");
@@ -377,18 +396,34 @@ int main(int argc, char** argv) {
     }
   }
 
-  std::string app_path(PATH_MAX, '\0');
+#ifdef _WIN32
+  constexpr size_t MAX_PATH_LENGTH = 32767; // Windows max path length
+#else
+  constexpr size_t MAX_PATH_LENGTH = PATH_MAX;
+#endif
+  std::string app_path(MAX_PATH_LENGTH, '\0');
+#ifdef _WIN32
+  // Windows: Get executable path
+  DWORD size = GetModuleFileNameA(NULL, app_path.data(), app_path.size());
+  if (size == 0) {
+    HOLOSCAN_LOG_ERROR("Failed to get the application path");
+    exit(-1);
+  }
+  app_path.resize(size);
+#else
+  // Linux: Use /proc/self/exe
   if (readlink("/proc/self/exe", app_path.data(), app_path.size() - 1) == -1) {
     HOLOSCAN_LOG_ERROR("Failed to get the application path");
     exit(-1);
   }
-  app_path = std::filesystem::canonical(app_path).parent_path();
+#endif
+  app_path = std::filesystem::canonical(app_path).parent_path().string();
 
   if (config_path.empty()) {
     // Get the input data environment variable
     auto config_file_path = std::getenv("HOLOSCAN_CONFIG_PATH");
     if (config_file_path == nullptr || config_file_path[0] == '\0') {
-      config_path = app_path / std::filesystem::path("endoscopy_tool_tracking.yaml");
+      config_path = (std::filesystem::path(app_path) / "endoscopy_tool_tracking.yaml").string();
     } else {
       config_path = config_file_path;
     }

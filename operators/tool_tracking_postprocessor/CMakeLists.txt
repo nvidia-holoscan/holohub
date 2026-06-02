@@ -32,6 +32,8 @@ set_target_properties(tool_tracking_postprocessor
     CUDA_SEPARABLE_COMPILATION ON
     # compile for the architecture of the current GPU
     CUDA_ARCHITECTURES "native"
+    # On Windows, export all symbols automatically for shared libraries
+    WINDOWS_EXPORT_ALL_SYMBOLS ON
   )
 
 target_link_libraries(tool_tracking_postprocessor
