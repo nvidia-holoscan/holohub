@@ -2368,7 +2368,13 @@ class HoloHubCLI:
                     base_img=getattr(args, "base_img", None),
                     img=getattr(args, "img", None),
                     no_cache=getattr(args, "no_cache", False),
+                    build_args=getattr(args, "build_args", None),
+                    cuda_version=getattr(args, "cuda", None),
+                    extra_scripts=getattr(args, "extra_scripts", []),
                 )
+            else:
+                if hasattr(args, "cuda") and args.cuda is not None:
+                    container.cuda_version = args.cuda
             build_cmd = f"{self.script_name} package"
             if args.project:
                 build_cmd += f" {args.project}"
