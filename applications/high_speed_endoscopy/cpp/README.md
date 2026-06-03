@@ -16,7 +16,7 @@ This application requires:
 Please refer to the top level Holohub README.md file for information on how to build this application.
 
 > ⚠️ At this time, camera controls are hardcoded within the `gxf_emergent_source` extension. To update them at the application level, the GXF extension, and the application need to be rebuilt.
-For more information on the controls, refer to the [EVT Camera Attributes Manual](https://emergentvisiontec.com/resources/?tab=umg)
+For more information on the controls, refer to the [EVT Camera Attributes Manual](https://emergentvisiontec.com/resources/)
 
 ### Run Instructions
 
