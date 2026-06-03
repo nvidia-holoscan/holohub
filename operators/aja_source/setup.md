@@ -283,7 +283,7 @@ sudo mokutil --disable-validation
 - Upon reboot press any key when you see the blue screen MOK Management
 - Select Change Secure Boot state
 - Enter the password your selected
-- Select Yes to disable Secure Book in shim-signed
+- Select Yes to disable Secure Boot in shim-signed
 - After reboot you can verify again that SecureBoot validation is disabled in shim.
 
 1. **Problem:** The `ntv2enumerateboards` command does not find any
