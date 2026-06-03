@@ -273,4 +273,4 @@ You can find additional information on Holoscan SDK at:
 - [Holoscan GitHub organization](https://github.com/nvidia-holoscan)
 - [Holoscan SDK repository](https://github.com/nvidia-holoscan/holoscan-sdk)
 - [Holoscan-GPT](https://chatgpt.com/g/g-M6hMJimGa-holochatgpt) (requires an OpenAI account)
-- [Holoscan Support Forum](https://forums.developer.nvidia.com/c/healthcare/holoscan-sdk/320/all)
+- [Holoscan Support Forum](https://forums.developer.nvidia.com/c/robotics-edge-computing/holoscan/757)
