@@ -234,7 +234,7 @@ This device has 0 Analog Output(s)
     2Kp47.95a, 2Kp48a
 ```
 
-2. To ensure that RDMA support has been compiled into the AJA driver and is
+1. To ensure that RDMA support has been compiled into the AJA driver and is
    functioning correctly, the `rdmawhacker` utility can be used (use
    `<ctrl-c>` to terminate):
 
@@ -279,14 +279,14 @@ SecureBoot validation is disabled in shim
 sudo mokutil --disable-validation
 ```
 
-   - Enter a temporary password and reboot the system.
-   - Upon reboot press any key when you see the blue screen MOK Management
-   - Select Change Secure Boot state
-   - Enter the password your selected
-   - Select Yes to disable Secure Book in shim-signed
-   - After reboot you can verify again that SecureBoot validation is disabled in shim.
+- Enter a temporary password and reboot the system.
+- Upon reboot press any key when you see the blue screen MOK Management
+- Select Change Secure Boot state
+- Enter the password your selected
+- Select Yes to disable Secure Book in shim-signed
+- After reboot you can verify again that SecureBoot validation is disabled in shim.
 
-2. **Problem:** The `ntv2enumerateboards` command does not find any
+1. **Problem:** The `ntv2enumerateboards` command does not find any
    devices.
 
    **Solutions:**
@@ -317,7 +317,7 @@ ib_core               211721  1 mlx5_ib
 nvidia              34655210  315 nvidia_modeset
 ```
 
-3. **Problem:** The `rdmawhacker` command outputs the following error:
+1. **Problem:** The `rdmawhacker` command outputs the following error:
 
 ```sh
 ## ERROR: GPU buffer lock failed
@@ -327,7 +327,7 @@ nvidia              34655210  315 nvidia_modeset
    Follow the instructions in [Building the AJA NTV2 Drivers](#building-the-aja-ntv2-drivers), making sure not to skip
    the `export AJA_RDMA=1` when building the drivers.
 
-4. **Problem:** Application logs show errors such as:
+1. **Problem:** Application logs show errors such as:
 
 ```sh
 ERROR gxf_extensions/aja/aja_source.cpp@80: Device 0 not found.
@@ -336,6 +336,6 @@ ERROR gxf_extensions/aja/aja_source.cpp@251: Failed to open device 0
 
    **Solutions:**
 
-   - Double check that you have installed the AJA ntv2 driver
-   - Load the driver after every reboot
-   - If running in a docker container, specify `--device /dev/ajantv20:/dev/ajantv20` in the `docker run` command
+- Double check that you have installed the AJA ntv2 driver
+- Load the driver after every reboot
+- If running in a docker container, specify `--device /dev/ajantv20:/dev/ajantv20` in the `docker run` command
