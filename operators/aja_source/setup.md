@@ -282,7 +282,7 @@ sudo mokutil --disable-validation
 - Enter a temporary password and reboot the system.
 - Upon reboot press any key when you see the blue screen MOK Management
 - Select Change Secure Boot state
-- Enter the password your selected
+- Enter the password you selected
 - Select Yes to disable Secure Boot in shim-signed
 - After reboot you can verify again that SecureBoot validation is disabled in shim.
 
