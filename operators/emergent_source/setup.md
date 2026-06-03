@@ -28,7 +28,7 @@ able to download Camera User's Manual.
 
 The Emergent SDK needs to be installed in order to compile and run the
 HoloHub applications with EVT camera. The latest tested version of the Emergent SDK is `eSDK 2.37.05 Linux Ubuntu 20.04.04 Kernel 5.10.65 JP 5.0 HP`
-and can be downloaded from [here](https://emergentvisiontec.com/resources/?tab=ss).
+and can be downloaded from the [EVT software downloads page](https://emergentvisiontec.com/resources/?tab=ss).
 The Emergent SDK comes with headers, libraries and examples. To install the SDK
 refer to the Software Installation section of EVT [Camera User's Manual](https://emergentvisiontec.com/resources/?tab=umg). Users need to log in to be
 able to download Camera User's Manual.
