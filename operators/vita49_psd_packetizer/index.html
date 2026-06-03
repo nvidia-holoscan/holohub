@@ -19660,7 +19660,7 @@ Ubuntu repos.</p>
 <p>If multiple channels are configured, the packetizer will use the base port
 in the configuration and add the channel index. So, with <code>base_dest_port: 4991</code>,
 channel <code>0</code> would send data to <code>4991</code>, but channel <code>1</code> would send data to <code>4992</code>.</p>
-<p>The zero-indexed <code>channel_number</code> key will be looked up in <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_app.html#dynamic-application-metadata"><code>metadata()</code></a>
+<p>The zero-indexed <code>channel_number</code> key will be looked up in <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/create-an-application#dynamic-application-metadata"><code>metadata()</code></a>
 on each <code>compute()</code> run. If no value is found, the default channel number is <code>0</code>.</p>
 <h2 id="example-usage">Example Usage<a class="headerlink" href="#example-usage" title="Permanent link">#</a></h2>
 <p>For an example of how to use this operator, see the

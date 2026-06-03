@@ -20012,7 +20012,7 @@
 <p class="admonition-title">Note</p>
 <p>This solution is designed for users who want to create a Holoscan application that will interface with an external system or sensor over Ethernet.</p>
 <ul>
-<li>For high performance communication with systems also running Holoscan, refer to the <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_distributed_app.html">Holoscan distributed application documentation</a> instead.</li>
+<li>For high performance communication with systems also running Holoscan, refer to the <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/create-a-distributed-application">Holoscan distributed application documentation</a> instead.</li>
 <li>For JESD-compliant sensor without Ethernet support, consider the <a href="https://docs.nvidia.com/holoscan/sensor-bridge/latest/introduction.html">Holoscan Sensor Bridge</a> for an FPGA-based interface to Holoscan.</li>
 </ul>
 </div>
@@ -21797,7 +21797,7 @@ sudo<span class="w"> </span>rm<span class="w"> </span>-rf<span class="w"> </span
 </div>
 </div>
 </div>
-<p>If you are not yet familiar with how Holoscan applications are constructed, please refer to the <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_core.html">Holoscan SDK documentation</a> first.</p>
+<p>If you are not yet familiar with how Holoscan applications are constructed, please refer to the <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/holoscan-core">Holoscan SDK documentation</a> first.</p>
 </div>
 <p class="annotate">Let's look at the <code>adv_networking_bench_default_tx_rx.yaml</code> file below. Click on the (1) icons below to expand explanations for each annotated line.</p>
 <ol>
@@ -21893,7 +21893,7 @@ sudo<span class="w"> </span>rm<span class="w"> </span>-rf<span class="w"> </span
 <span class="w">  </span><span class="nt">udp_dst_port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4096</span><span class="w">        </span><span class="c1"># UDP destination port</span>
 </code></pre></div>
 <ol>
-<li>The <code>scheduler</code> section is passed to the multi threaded scheduler we declare in the <code class="highlight"><span class="n">main</span><span class="p">()</span></code> function of this application. See the <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/components/schedulers.html">holoscan SDK documentation</a> and <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/api/cpp/classholoscan_1_1multithreadscheduler.html">API docs</a> for more details. This is related to the Holoscan core library and is not specific to Holoscan Networking.</li>
+<li>The <code>scheduler</code> section is passed to the multi threaded scheduler we declare in the <code class="highlight"><span class="n">main</span><span class="p">()</span></code> function of this application. See the <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/components/schedulers#multithreadscheduler">holoscan SDK documentation</a> for more details. This is related to the Holoscan core library and is not specific to Holoscan Networking.</li>
 <li>The <code>advanced_network</code> section is passed to the <code>advanced_network::adv_net_init</code> which is responsible for setting up the NIC. That function should be called in your <code class="highlight"><span class="n">Application</span><span class="o">::</span><span class="n">compose</span><span class="p">()</span></code> function.</li>
 <li><code>manager</code> is the backend networking library. default: <code>dpdk</code>. Other: <code>gpunetio</code> (DOCA GPUNet IO + DOCA Ethernet &amp; Flow). Coming soon: <code>rivermax</code>, <code>rdma</code>.</li>
 <li><code>master_core</code> is the ID of the CPU core used for setup. It does not need to be isolated, and is recommended to differ differ from the <code>cpu_core</code> fields below used for polling the NIC.</li>

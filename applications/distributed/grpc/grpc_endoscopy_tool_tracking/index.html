@@ -19876,7 +19876,7 @@
 <p>[!NOTE]
 The Python version of this application is only available in single-fragment mode with benchmarking turned on.</p>
 </blockquote>
-<p><a href="https://docs.nvidia.com/holoscan/sdk-user-guide/flow_tracking.html">Data Flow Tracking</a> can also be enabled by editing the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/distributed/grpc/grpc_endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml">endoscopy_tool_tracking.yaml</a> YAML file and changing <code>benchmarking</code> to <code>true</code>. This enables the built-in mechanism to profile the application and analyze the fine-grained timing properties and data flow between operators.</p>
+<p><a href="https://docs.nvidia.com/holoscan/sdk-user-guide/performance/flow-tracking">Data Flow Tracking</a> can also be enabled by editing the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/distributed/grpc/grpc_endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml">endoscopy_tool_tracking.yaml</a> YAML file and changing <code>benchmarking</code> to <code>true</code>. This enables the built-in mechanism to profile the application and analyze the fine-grained timing properties and data flow between operators.</p>
 <p>For example, on the server side, when a client disconnects, it will output the results for that session:</p>
 <div class="highlight"><pre><span></span><code>Data<span class="w"> </span>Flow<span class="w"> </span>Tracking<span class="w"> </span>Results:
 Total<span class="w"> </span>paths:<span class="w"> </span><span class="m">1</span>
@@ -19956,7 +19956,7 @@ replayer-&gt;output:<span class="w"> </span><span class="m">683</span>
 <h2 id="containerization">Containerization<a class="headerlink" href="#containerization" title="Permanent link">#</a></h2>
 <p>To containerize the application:</p>
 <ol>
-<li>Install <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_packager.html">Holoscan CLI</a></li>
+<li>Install <a href="https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/cli_packager">Holoscan CLI</a></li>
 <li>Build the application:</li>
 </ol>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>install<span class="w"> </span>grpc_endoscopy_tool_tracking
@@ -19967,7 +19967,7 @@ replayer-&gt;output:<span class="w"> </span><span class="m">683</span>
 <li>Python: <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/distributed/grpc/grpc_endoscopy_tool_tracking/python/package-app.sh">python/package-app.sh</a></li>
 <li>Follow the generated output instructions to package and run the application</li>
 </ol>
-<p>For more information about packaging Holoscan applications, refer to the <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_packager.html">Packaging Holoscan Applications</a> section in the <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/">Holoscan User Guide</a>.</p>
+<p>For more information about packaging Holoscan applications, refer to the <a href="https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/cli_packager">Packaging Holoscan Applications</a> section in the <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/introduction/getting-started">Holoscan User Guide</a>.</p>
 
 
 

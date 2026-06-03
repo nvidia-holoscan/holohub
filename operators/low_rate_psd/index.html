@@ -19689,7 +19689,7 @@
 <li>Collect the output signed 8-bit integer tensor representing the averaged PSD in dB.</li>
 </ol>
 <h2 id="multiple-channels">Multiple Channels<a class="headerlink" href="#multiple-channels" title="Permanent link">#</a></h2>
-<p>The operator supports processing multiple channels in parallel. The zero-indexed <code>channel_number</code> key is retrieved from <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_app.html#dynamic-application-metadata"><code>metadata()</code></a> on each <code>compute()</code> invocation. If <code>channel_number</code> is not provided, the default is <code>0</code> (single channel).</p>
+<p>The operator supports processing multiple channels in parallel. The zero-indexed <code>channel_number</code> key is retrieved from <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/create-an-application#dynamic-application-metadata"><code>metadata()</code></a> on each <code>compute()</code> invocation. If <code>channel_number</code> is not provided, the default is <code>0</code> (single channel).</p>
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">#</a></h2>
 <p>Configure the operator in your application (e.g., YAML config):</p>
 <div class="highlight"><pre><span></span><code><span class="nt">low_rate_psd</span><span class="p">:</span>

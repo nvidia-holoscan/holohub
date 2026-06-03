@@ -19677,16 +19677,16 @@
 <h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h2>
 <p>This application requires:</p>
 <ol>
-<li>an Emergent Vision Technologies camera (see <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/high_speed_endoscopy/cpp/%28%3Chttps%3A/docs.nvidia.com/holoscan/sdk-user-guide/emergent_setup.html%3E">setup instructions</a></li>
+<li>an Emergent Vision Technologies camera (see <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/setup/third-party-hardware-setup/emergent-setup">setup instructions</a>)</li>
 <li>a NVIDIA ConnectX SmartNIC with Rivermax SDK and drivers installed (see <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/README.md#prerequisites">prerequisites</a>)</li>
 <li>a display with high refresh rate to keep up with the camera's framerate</li>
-<li><a href="https://docs.nvidia.com/holoscan/sdk-user-guide/additional_setup.html">additional setups</a> to reduce latency</li>
+<li><a href="https://docs.nvidia.com/holoscan/sdk-user-guide/setup/additional-setup">additional setups</a> to reduce latency</li>
 </ol>
 <h3 id="build-instructions">Build Instructions<a class="headerlink" href="#build-instructions" title="Permanent link">#</a></h3>
 <p>Please refer to the top level Holohub README.md file for information on how to build this application.</p>
 <blockquote>
 <p>⚠️ At this time, camera controls are hardcoded within the <code>gxf_emergent_source</code> extension. To update them at the application level, the GXF extension, and the application need to be rebuilt.
-For more information on the controls, refer to the <a href="https://emergentvisiontec.com/resources/?tab=umg">EVT Camera Attributes Manual</a></p>
+For more information on the controls, refer to the <a href="https://emergentvisiontec.com/resources/">EVT Camera Attributes Manual</a></p>
 </blockquote>
 <h3 id="run-instructions">Run Instructions<a class="headerlink" href="#run-instructions" title="Permanent link">#</a></h3>
 <p>First, go in your <code>build</code> or <code>install</code> directory. Then, run the commands of your choice:</p>
