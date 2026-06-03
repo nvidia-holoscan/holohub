@@ -210,42 +210,42 @@ previous step, [Building and Installing the AJA NTV2 SDK](#building-and-installi
 1. To ensure that an AJA device has been installed correctly, the
    `ntv2enumerateboards` utility can be used:
 
-```sh
-$ ntv2enumerateboards
-AJA NTV2 SDK version 16.2.0 build 3 built on Wed Feb 02 21:58:01 UTC 2022
-1 AJA device(s) found:
-AJA device 0 is called 'KonaHDMI - 0'
+   ```sh
+   $ ntv2enumerateboards
+   AJA NTV2 SDK version 16.2.0 build 3 built on Wed Feb 02 21:58:01 UTC 2022
+   1 AJA device(s) found:
+   AJA device 0 is called 'KonaHDMI - 0'
 
-This device has a deviceID of 0x10767400
-This device has 0 SDI Input(s)
-This device has 0 SDI Output(s)
-This device has 4 HDMI Input(s)
-This device has 0 HDMI Output(s)
-This device has 0 Analog Input(s)
-This device has 0 Analog Output(s)
+   This device has a deviceID of 0x10767400
+   This device has 0 SDI Input(s)
+   This device has 0 SDI Output(s)
+   This device has 4 HDMI Input(s)
+   This device has 0 HDMI Output(s)
+   This device has 0 Analog Input(s)
+   This device has 0 Analog Output(s)
 
-47 video format(s):
-    1080i50, 1080i59.94, 1080i60, 720p59.94, 720p60, 1080p29.97, 1080p30,
-    1080p25, 1080p23.98, 1080p24, 2Kp23.98, 2Kp24, 720p50, 1080p50b,
-    1080p59.94b, 1080p60b, 1080p50a, 1080p59.94a, 1080p60a, 2Kp25, 525i59.94,
-    625i50, UHDp23.98, UHDp24, UHDp25, 4Kp23.98, 4Kp24, 4Kp25, UHDp29.97,
-    UHDp30, 4Kp29.97, 4Kp30, UHDp50, UHDp59.94, UHDp60, 4Kp50, 4Kp59.94,
-    4Kp60, 4Kp47.95, 4Kp48, 2Kp60a, 2Kp59.94a, 2Kp29.97, 2Kp30, 2Kp50a,
-    2Kp47.95a, 2Kp48a
-```
+   47 video format(s):
+       1080i50, 1080i59.94, 1080i60, 720p59.94, 720p60, 1080p29.97, 1080p30,
+       1080p25, 1080p23.98, 1080p24, 2Kp23.98, 2Kp24, 720p50, 1080p50b,
+       1080p59.94b, 1080p60b, 1080p50a, 1080p59.94a, 1080p60a, 2Kp25, 525i59.94,
+       625i50, UHDp23.98, UHDp24, UHDp25, 4Kp23.98, 4Kp24, 4Kp25, UHDp29.97,
+       UHDp30, 4Kp29.97, 4Kp30, UHDp50, UHDp59.94, UHDp60, 4Kp50, 4Kp59.94,
+       4Kp60, 4Kp47.95, 4Kp48, 2Kp60a, 2Kp59.94a, 2Kp29.97, 2Kp30, 2Kp50a,
+       2Kp47.95a, 2Kp48a
+   ```
 
 1. To ensure that RDMA support has been compiled into the AJA driver and is
    functioning correctly, the `rdmawhacker` utility can be used (use
    `<ctrl-c>` to terminate):
 
-```sh
-$ rdmawhacker
+   ```sh
+   $ rdmawhacker
 
-DMA engine 1 WRITE 8388608 bytes  rate: 3975.63 MB/sec  496.95 xfers/sec
-Max rate: 4010.03 MB/sec
-Min rate: 3301.69 MB/sec
-Avg rate: 3923.94 MB/sec
-```
+   DMA engine 1 WRITE 8388608 bytes  rate: 3975.63 MB/sec  496.95 xfers/sec
+   Max rate: 4010.03 MB/sec
+   Min rate: 3301.69 MB/sec
+   Avg rate: 3923.94 MB/sec
+   ```
 
 ## Using AJA Devices in Containers
 
@@ -258,12 +258,12 @@ When using the HoloHub CLI, the development container automatically maps availab
 
 ## Troubleshooting
 
-1. **Problem:** The `sudo sh ${NTV2}/driver/bin/load_ajantv2` command returns
+**Problem 1:** The `sudo sh ${NTV2}/driver/bin/load_ajantv2` command returns
    an error.
 
    **Solutions:**
 
-   a. Make sure the AJA card is properly installed and powered (see 2.a below)
+   a. Make sure the AJA card is properly installed and powered (see Problem 2.a below)
 
    b. Check if SecureBoot validation is disabled:
 
@@ -286,7 +286,7 @@ sudo mokutil --disable-validation
 - Select Yes to disable Secure Boot in shim-signed
 - After reboot you can verify again that SecureBoot validation is disabled in shim.
 
-1. **Problem:** The `ntv2enumerateboards` command does not find any
+**Problem 2:** The `ntv2enumerateboards` command does not find any
    devices.
 
    **Solutions:**
@@ -317,7 +317,7 @@ ib_core               211721  1 mlx5_ib
 nvidia              34655210  315 nvidia_modeset
 ```
 
-1. **Problem:** The `rdmawhacker` command outputs the following error:
+**Problem 3:** The `rdmawhacker` command outputs the following error:
 
 ```sh
 ## ERROR: GPU buffer lock failed
@@ -327,7 +327,7 @@ nvidia              34655210  315 nvidia_modeset
    Follow the instructions in [Building the AJA NTV2 Drivers](#building-the-aja-ntv2-drivers), making sure not to skip
    the `export AJA_RDMA=1` when building the drivers.
 
-1. **Problem:** Application logs show errors such as:
+**Problem 4:** Application logs show errors such as:
 
 ```sh
 ERROR gxf_extensions/aja/aja_source.cpp@80: Device 0 not found.
