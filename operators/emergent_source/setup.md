@@ -5,7 +5,7 @@ Thanks to a collaboration with [Emergent Vision Technologies](https://emergentvi
 ## Installing EVT Hardware
 
 The EVT cameras can be connected to NVIDIA Developer Kits through a [Mellanox ConnectX SmartNIC](https://www.nvidia.com/en-us/networking/ethernet-adapters/), with the most simple connection method being a single cable between a camera and the devkit.
-For 25 GigE cameras that use the SFP28 interface, this can be achieved by using [SFP28](https://store.nvidia.com/en-us/networking/store/product/MCP2M00-A001E30N/NVIDIAMCP2M00A001E30NDACCableEthernet25GbESFP281m/) cable with [QSFP28 to SFP28 adaptor](https://store.nvidia.com/en-us/networking/store/product/MAM1Q00A-QSA28/NVIDIAMAM1Q00AQSA28CableAdapter100Gbsto25GbsQSFP28toSFP28/).
+For 25 GigE cameras that use the SFP28 interface, this can be achieved by using [SFP28](https://docs.nvidia.com/networking/display/MCP2M00A0xxEyyzSpec/Ordering+Information) cable with [QSFP28 to SFP28 adaptor](https://docs.nvidia.com/networking/display/MAM1Q00AQSA28DNMX).
 
 > **Note:**
 >
