@@ -49,6 +49,7 @@ class Manager {
   virtual uint32_t get_segment_packet_length(BurstParams* burst, int seg, int idx) = 0;
   virtual uint16_t get_packet_flow_id(BurstParams* burst, int idx) = 0;
   virtual void* get_packet_extra_info(BurstParams* burst, int idx) = 0;
+  virtual Status validate_tx_burst_request(BurstParams* burst) { return Status::SUCCESS; }
   virtual Status get_tx_packet_burst(BurstParams* burst) = 0;
   virtual Status set_eth_header(BurstParams* burst, int idx, char* dst_addr) = 0;
   virtual Status set_ipv4_header(BurstParams* burst, int idx, int ip_len, uint8_t proto,

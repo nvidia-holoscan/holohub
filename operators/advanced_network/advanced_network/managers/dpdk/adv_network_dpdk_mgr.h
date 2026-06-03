@@ -94,6 +94,7 @@ class DpdkMgr : public Manager {
   uint32_t get_packet_length(BurstParams* burst, int idx) override;
   uint16_t get_packet_flow_id(BurstParams* burst, int idx) override;
   void* get_packet_extra_info(BurstParams* burst, int idx) override;
+  Status validate_tx_burst_request(BurstParams* burst) override;
   Status get_tx_packet_burst(BurstParams* burst) override;
   Status set_eth_header(BurstParams* burst, int idx, char* dst_addr) override;
   Status set_ipv4_header(BurstParams* burst, int idx, int ip_len, uint8_t proto,
