@@ -6,7 +6,7 @@ The application showcases how high resolution cameras can be used to capture the
 
 This application requires:
 
-1. an Emergent Vision Technologies camera (see [setup instructions](https://docs.nvidia.com/holoscan/sdk-user-guide/setup/third-party-hardware-setup/emergent-setup))
+1. an Emergent Vision Technologies camera (see [setup instructions](../../../operators/emergent_source/setup.md))
 2. a NVIDIA ConnectX SmartNIC with Rivermax SDK and drivers installed (see [prerequisites](../../README.md#prerequisites))
 3. a display with high refresh rate to keep up with the camera's framerate
 4. [additional setups](https://docs.nvidia.com/holoscan/sdk-user-guide/setup/additional-setup) to reduce latency
