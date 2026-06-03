@@ -19717,10 +19717,10 @@
 <p>The high speed endoscopy application showcases how high resolution cameras can be used to capture the scene, post-processed on GPU, and displayed at high frame rate.</p>
 <p>This application requires:</p>
 <ol>
-<li>an Emergent Vision Technologies camera (see {ref}<code>setup instructions&lt;emergent-vision-tech&gt;</code>)</li>
+<li>an Emergent Vision Technologies camera (see <a href="https://github.com/nvidia-holoscan/holohub/blob/main/operators/emergent_source/setup.md">setup instructions</a>)</li>
 <li>an NVIDIA ConnectX SmartNIC with Rivermax SDK and drivers installed</li>
 <li>a display with high refresh rate to keep up with the camera's framerate</li>
-<li>{ref}<code>additional setups&lt;additional_setup&gt;</code> to reduce latency</li>
+<li><a href="https://docs.nvidia.com/holoscan/sdk-user-guide/setup/additional-setup">additional setups</a> to reduce latency</li>
 </ol>
 <blockquote>
 <p><strong>Tip</strong>
@@ -19773,7 +19773,7 @@ sudo<span class="w"> </span>./holohub<span class="w"> </span>run<span class="w">
 <li>
 <p><strong>Problem:</strong> The application fails to find the EVT camera.</p>
 <ul>
-<li>Make sure that the MLNX ConnectX SmartNIC is configured with the correct IP address. Follow section <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/setup/third-party-hardware-setup/emergent-setup#post-evt-software-installation-steps">Post EVT Software Installation Steps</a></li>
+<li>Make sure that the MLNX ConnectX SmartNIC is configured with the correct IP address. See <a href="https://github.com/nvidia-holoscan/holohub/blob/main/operators/emergent_source/setup.md#troubleshooting">EVT troubleshooting</a>.</li>
 </ul>
 </li>
 <li>
