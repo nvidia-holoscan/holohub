@@ -4,7 +4,7 @@ This operator provides support for Emergent Vision Technologies cameras as video
 
 ## Overview
 
-The `EmergentSourceOp` is designed to capture video streams from Emergent Vision Technologies cameras with high frame rates and resolution support. It leverages RDMA (Remote Direct Memory Access) capabilities for efficient data transfer and supports various camera parameters for optimal performance. Please refer to [Holoscan EVT Setup](https://docs.nvidia.com/holoscan/sdk-user-guide/emergent_setup.html) for more information.
+The `EmergentSourceOp` is designed to capture video streams from Emergent Vision Technologies cameras with high frame rates and resolution support. It leverages RDMA (Remote Direct Memory Access) capabilities for efficient data transfer and supports various camera parameters for optimal performance. Please refer to [Holoscan EVT Setup](https://docs.nvidia.com/holoscan/sdk-user-guide/setup/third-party-hardware-setup/emergent-setup) for more information.
 
 ## Features
 

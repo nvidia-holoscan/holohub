@@ -1,6 +1,6 @@
 # HSB RoCE Receiver Operator with DOCA GPUNetIO
 
-This [GPU-resident Holoscan operator](https://docs.nvidia.com/holoscan/sdk-user-guide/gpu_resident.html) receives messages over RoCE (RDMA over Converged Ethernet)
+This [GPU-resident Holoscan operator](https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/gpu-resident-execution) receives messages over RoCE (RDMA over Converged Ethernet)
 directly to GPU memory using NVIDIA DOCA GPUNetIO for GPU-side completion queue
 (CQ) polling. By performing CQ polling entirely on the GPU, this operator
 eliminates the CPU from the RDMA receive critical path, enabling fully

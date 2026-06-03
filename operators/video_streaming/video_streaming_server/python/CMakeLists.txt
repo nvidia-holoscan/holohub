@@ -42,7 +42,7 @@ except ImportError as e:
 - Holoscan SDK >= 3.3.0: make sure to link your bindings against 'holoscan::pybind11'.
 - Holoscan SDK < 3.3.0: use the same compiler version as your installation of the Holoscan SDK.
 
-See https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_operator_python_bindings.html#pybind11-abi-compatibility for details.
+See https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/python-operator-bindings#pybind11-abi-compatibility for details.
 \"\"\"
     if hasattr(e, \"add_note\"):
         e.add_note(note)

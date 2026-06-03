@@ -53,7 +53,7 @@ Refer to the [NVIDIA Video Codec documentation](https://docs.nvidia.com/video-te
 
 ## Benchmarks
 
-We collected latency benchmark results using Holoscan [Data Flow Tracking](https://docs.nvidia.com/holoscan/sdk-user-guide/flow_tracking.html) tools on the NVIDIA Video Codec sample application. The benchmark is conducted on x86_64 with AMD Ryzen 9 7950X, 128 GB system memory and NVIDIA ADA6000 GPU.
+We collected latency benchmark results using Holoscan [Data Flow Tracking](https://docs.nvidia.com/holoscan/sdk-user-guide/performance/flow-tracking) tools on the NVIDIA Video Codec sample application. The benchmark is conducted on x86_64 with AMD Ryzen 9 7950X, 128 GB system memory and NVIDIA ADA6000 GPU.
 
 **Encoder Configurations:**
 

@@ -6,7 +6,7 @@ Based on a LSTM (long-short term memory) stateful model, these applications demo
 
 The provided applications are configured to either use capture cards for input stream, or a pre-recorded endoscopy video (replayer).
 
-Follow the [AJA Video Systems setup guide](../../../operators/aja_source/setup.md) to use the AJA capture card.
+Follow the [AJA Video Systems setup guide](../../../../operators/aja_source/setup.md) to use the AJA capture card.
 
 To use the **Deltacast VideoMaster** capture card:
 

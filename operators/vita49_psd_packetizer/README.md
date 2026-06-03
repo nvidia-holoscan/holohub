@@ -33,7 +33,7 @@ If multiple channels are configured, the packetizer will use the base port
 in the configuration and add the channel index. So, with `base_dest_port: 4991`,
 channel `0` would send data to `4991`, but channel `1` would send data to `4992`.
 
-The zero-indexed `channel_number` key will be looked up in [`metadata()`](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_app.html#dynamic-application-metadata)
+The zero-indexed `channel_number` key will be looked up in [`metadata()`](https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/create-an-application#dynamic-application-metadata)
 on each `compute()` run. If no value is found, the default channel number is `0`.
 
 ## Example Usage

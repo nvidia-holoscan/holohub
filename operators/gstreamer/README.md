@@ -161,5 +161,5 @@ When `HOLOSCAN_GSTREAMER_CUDA_SUPPORT` is enabled (requires GStreamer 1.24+), th
 ## References
 
 - [GStreamer Documentation](https://gstreamer.freedesktop.org/documentation/)
-- [Holoscan SDK Documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/)
+- [Holoscan SDK Documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/introduction/getting-started)
 - [Application Example: gst_video_recorder](../../applications/gstreamer/gst_video_recorder/)

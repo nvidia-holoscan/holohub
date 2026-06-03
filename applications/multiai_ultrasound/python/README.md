@@ -15,7 +15,7 @@ The default configuration (`multiai_ultrasound.yaml`) runs on default GPU (GPU-0
 ## Requirements
 
 - Python 3.9+
-- The provided applications are configured to either use the AJA capture card for input stream, or a pre-recorded video of the echocardiogram (replayer). Follow the [AJA Video Systems setup guide](../../../operators/aja_source/setup.md) to use the AJA capture card.
+- The provided applications are configured to either use the AJA capture card for input stream, or a pre-recorded video of the echocardiogram (replayer). Follow the [AJA Video Systems setup guide](../../../../operators/aja_source/setup.md) to use the AJA capture card.
 
 ### Data
 

@@ -4,7 +4,7 @@ This directory contains applications designed to run in distributed environments
 
 ## UCX
 
-Applications designed using Holoscan SDK's [Multi-Fragment](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_distributed_app.html) feature. Fragments communicate via [UCX](https://openucx.org/) (Unified Communication X).
+Applications designed using Holoscan SDK's [Multi-Fragment](https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/create-a-distributed-application) feature. Fragments communicate via [UCX](https://openucx.org/) (Unified Communication X).
 
 - [ucx_endoscopy_tool_tracking](./ucx/ucx_endoscopy_tool_tracking/)
   A variation of the Endoscopy Tool Tracking application, separated into three fragments.

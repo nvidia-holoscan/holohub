@@ -38,7 +38,7 @@ If you prefer you can also install the dependencies manually, typically includin
 - libnvinfer-plugin-dev
 - libnvonnxparsers-dev
 
-Visit the [Holoscan SDK User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html) for the latest
+Visit the [Holoscan SDK User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/setup/sdk-installation) for the latest
 details on dependency versions and custom installation.
 
 *Note: the `./holohub` script setup installs the minimal set of dependencies required to run the sample applications. Other applications might require more dependencies. Please refer to the README of each application for more information.*

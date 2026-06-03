@@ -80,7 +80,7 @@ point is stored as `[t, x, y]` where `t = 0.0` (time index for the first frame),
 
 ## Requirements
 
-- [Holoscan SDK](https://docs.nvidia.com/holoscan/sdk-user-guide/overview.html)
+- [Holoscan SDK](https://docs.nvidia.com/holoscan/sdk-user-guide/introduction/overview)
 - CUDA Runtime
 - TensorRT (`nvinfer`, `nvinfer_plugin`)
 - ONNX Parser (`nvonnxparser`)

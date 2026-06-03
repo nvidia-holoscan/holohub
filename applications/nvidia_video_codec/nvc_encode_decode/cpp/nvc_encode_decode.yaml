@@ -15,7 +15,7 @@
 # limitations under the License.
 ---
 # Required fields for packaging the application
-# See https://docs.nvidia.com/holoscan/sdk-user-guide/cli/run_config.html#
+# See https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/cli_packager#
 application:
   title: Holohub - NVIDIA Video Codec - Encode and Decode (C++)
   version: 1.0

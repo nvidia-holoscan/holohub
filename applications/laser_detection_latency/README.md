@@ -35,7 +35,7 @@ The app is designed using [Logitech 4k Pro Webcam](https://www.logitech.com/en-u
 
 ### 2. EVT camera
 
-Visit [Holoscan SDK user guide](https://docs.nvidia.com/holoscan/sdk-user-guide/emergent_setup.html) to check the hardware requirements for EVT camera.
+Visit [Holoscan SDK user guide](https://docs.nvidia.com/holoscan/sdk-user-guide/setup/third-party-hardware-setup/emergent-setup) to check the hardware requirements for EVT camera.
 
 ### 3. Monitor
 
@@ -49,7 +49,7 @@ Please make sure to only buy laser pointers that are safe to use for viewing pur
 
 ### 1. Setup the EVT camera
 
-To setup the EVT camera, refer to [Holoscan SDK user guide](https://docs.nvidia.com/holoscan/sdk-user-guide/emergent_setup.html).
+To setup the EVT camera, refer to [Holoscan SDK user guide](https://docs.nvidia.com/holoscan/sdk-user-guide/setup/third-party-hardware-setup/emergent-setup).
 
 ### 2. Build Holohub app natively
 

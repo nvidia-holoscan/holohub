@@ -324,7 +324,7 @@ class App : public holoscan::Application {
     // The layer callback is executed after the Holoviz operator has finished drawing all layers. We
     // now can add our own layers after that.
     // For more information on Holoviz layers see
-    // https://docs.nvidia.com/holoscan/sdk-user-guide/visualization.html#layers.
+    // https://docs.nvidia.com/holoscan/sdk-user-guide/operators/visualization#layers.
 
     // Add a simple UI, Holoviz supports a `Dear ImGui` layer. For more information on `Dear ImGui`
     // check https://github.com/ocornut/imgui.

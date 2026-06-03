@@ -369,4 +369,4 @@ Example:
 - `gst_video_recorder` - Records video to files using GStreamer encoding
 - [GStreamer documentation](https://gstreamer.freedesktop.org/documentation/)
 - [Holoscan SDK documentation](https://docs.nvidia.com/holoscan/)
-- [Holoviz operator documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/visualization.html)
+- [Holoviz operator documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/operators/visualization)

@@ -12,7 +12,7 @@ quickly as the decoding can be performed. This application uses
 
 ## Requirements
 
-- NVIDIA GPU with display driver **>= 580** for CUDA 13 support. See [the Holoscan SDK User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html)
+- NVIDIA GPU with display driver **>= 580** for CUDA 13 support. See [the Holoscan SDK User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/setup/sdk-installation)
 for a list of all Holoscan SDK supported platforms.
   - Orin platforms (Jetpack 6.x, IGX OS 1.x) are not supported at this time.
 - This application is configured to use H.264 elementary stream from endoscopy

@@ -6,7 +6,7 @@ In this tutorial, we will walk through the process in two scenarios of creating 
 
 2. When we would want to connect and combine two previously independent applications into one application with two fragments. This corresponds to the use cases where we want to run time-critical task(s) on a node closest to the data stream, and non time-critical task(s) on another node that can have a bit more latency, for example saving the inbody video recording of the surgery to cloud can have a higher latency than the real-time visualization. For this purpose we choose the example of the [`endoscopy_tool_tracking`](../../applications/endoscopy_tool_tracking/) application and the [`endoscopy_out_of_body_detection`](../../applications/endoscopy_out_of_body_detection/) application.
 
-The SDK documentation on [Creating a Distributed Application](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_distributed_app.html) contains the necessary core concepts and description for distributed applications, please familiarize yourself with the documentation before proceeding to this tutorial.
+The SDK documentation on [Creating a Distributed Application](https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/create-a-distributed-application) contains the necessary core concepts and description for distributed applications, please familiarize yourself with the documentation before proceeding to this tutorial.
 
 Please also see two SDK examples [ping_distributed](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/ping_distributed) and [video_replayer_distributed](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/video_replayer_distributed) on simple examples of creating distributed applications.
 
@@ -32,7 +32,7 @@ from holoscan.core import Fragment
 
 ### Changes in scenario 1 - Changing the way command-line arguments are parsed
 
-As seen in the [documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_distributed_app.html#adding-user-defined-command-line-arguments), it is recommended to parse user-defined arguments from the `argv ((C++/Python))` method/property of the application. To parse in user-defined command line arguments (such as `--data`, `--source`, `--labelfile` in this app), let's make sure to avoid arguments that are unique to the multi-fragment applications, such as  `--driver`, `--worker`, `--address`, `--worker-address`, `--fragments` (see the [documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_distributed_app.html#adding-user-defined-command-line-arguments) for more details on using those arguments).
+As seen in the [documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/create-a-distributed-application#adding-user-defined-command-line-arguments), it is recommended to parse user-defined arguments from the `argv ((C++/Python))` method/property of the application. To parse in user-defined command line arguments (such as `--data`, `--source`, `--labelfile` in this app), let's make sure to avoid arguments that are unique to the multi-fragment applications, such as  `--driver`, `--worker`, `--address`, `--worker-address`, `--fragments` (see the [documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/create-a-distributed-application#adding-user-defined-command-line-arguments) for more details on using those arguments).
 
 In the [non-distributed application](../../applications/multiai_endoscopy/), we would have
 
@@ -263,7 +263,7 @@ python3 multi_ai.py --data /workspace/holohub/data/  --worker --address <node 1 
 
 ```
 
-For more details on the commandline arguments for multi fragment apps, see the [documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_distributed_app.html).
+For more details on the commandline arguments for multi fragment apps, see the [documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/create-a-distributed-application).
 
 To run the app we create in scenario 1, please see [Running the Applications](#running-the-applications).
 
@@ -491,15 +491,15 @@ python3 /workspace/holohub/applications/distributed_app/python/endoscopy_tool_tr
 python3 /workspace/holohub/applications/distributed_app/python/endoscopy_tool_tracking.py --source replayer --data /workspace/holohub/data --driver --worker --fragments fragment1,fragment2
 ```
 
-For more details on the commandline arguments for multi fragment apps, see the [documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_distributed_app.html).
+For more details on the commandline arguments for multi fragment apps, see the [documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/create-a-distributed-application).
 
 To run the app we create in scenario 2, please see [Running the Applications](#running-the-applications).
 
 ## Configuration
 
-You can run a distributed application across any combination of hardware that are compatible with the Holoscan SDK. Please see [SDK Installation Prerequisites](https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html#prerequisites) for a list of compatible hardware.
+You can run a distributed application across any combination of hardware that are compatible with the Holoscan SDK. Please see [SDK Installation Prerequisites](https://docs.nvidia.com/holoscan/sdk-user-guide/setup/sdk-installation#prerequisites) for a list of compatible hardware.
 
-If you would like the distributed application fragments to communicate through high speed ConnectX NICs, enable the ConnectX NIC for GPU Direct RDMA, for example the ConnectX-7 NIC on the IGX Orin Developer Kit, follow [these instructions](https://docs.nvidia.com/holoscan/sdk-user-guide/set_up_gpudirect_rdma.html). Enabling ConnectX NICs could bring significant speedup to your distributed app connection, for example, the RJ45 ports on IGX Orin Developer Kit supports 1GbE while the QSFP28 ports connected to ConnectX-7 support up to 100 GbE.
+If you would like the distributed application fragments to communicate through high speed ConnectX NICs, enable the ConnectX NIC for GPU Direct RDMA, for example the ConnectX-7 NIC on the IGX Orin Developer Kit, follow [these instructions](https://docs.nvidia.com/holoscan/sdk-user-guide/setup/additional-setup/enabling-gpu-direct-rdma). Enabling ConnectX NICs could bring significant speedup to your distributed app connection, for example, the RJ45 ports on IGX Orin Developer Kit supports 1GbE while the QSFP28 ports connected to ConnectX-7 support up to 100 GbE.
 
 If connecting together two IGX Orin Developer Kits with dGPU, follow the above instructions on each devkit to enable GPU Direct RDMA through ConnectX-7, and make the hardware connection through the QSFP28 ports on the back panel. A QSFP-QSFP cable should be included in your devkit box alongside power cables etc in the inner small box. Use either one of the two port on the devkit, and make sure to find out the logical name of the port as detailed in the instructions.
 

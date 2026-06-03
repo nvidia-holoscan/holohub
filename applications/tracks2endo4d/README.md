@@ -20,7 +20,7 @@ Tracks2Endo4D combines state-of-the-art point tracking with 3D reconstruction to
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
 | **TapNext**      | "Tracking Any Point" reformulated as next-token prediction for robust long-range point tracking                         | [GitHub](https://github.com/google-deepmind/tapnet)                         |
 | **TracksTo4D**   | NVIDIA Research's encoder-based method that infers 3D structure and camera motion from 2D tracks without 3D supervision | [Project Page](https://tracks-to-4d.github.io/)                             |
-| **Holoscan SDK** | NVIDIA's platform for building high-performance streaming AI applications                                               | [Documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/index.html) |
+| **Holoscan SDK** | NVIDIA's platform for building high-performance streaming AI applications                                               | [Documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/introduction/getting-started) |
 
 ## Requirements
 

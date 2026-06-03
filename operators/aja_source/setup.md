@@ -162,7 +162,7 @@ to be loaded, even if the application is being run from within a container.
 
 > **Note:**
 >
-> To enable RDMA with AJA, ensure the [NVIDIA GPUDirect RDMA kernel module is loaded](https://docs.nvidia.com/holoscan/sdk-user-guide/set_up_gpudirect_rdma.html#enabling-gpudirect-rdma) before the AJA NTV2 drivers.
+> To enable RDMA with AJA, ensure the [NVIDIA GPUDirect RDMA kernel module is loaded](https://docs.nvidia.com/holoscan/sdk-user-guide/setup/additional-setup/enabling-gpu-direct-rdma#enabling-gpudirect-rdma) before the AJA NTV2 drivers.
 
 The AJA drivers must be manually loaded every time the machine is rebooted using the
 **load_ajantv2** script:
