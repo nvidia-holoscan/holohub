@@ -1,5 +1,5 @@
 %YAML 1.2
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +15,7 @@
 # limitations under the License.
 ---
 # Required fields for packaging the application
-# See https://docs.nvidia.com/holoscan/sdk-user-guide/cli/run_config.html#
+# See https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/cli_packager#
 application:
   title: Holohub - NVIDIA Video Codec - Video Writer (C++)
   version: 1.0

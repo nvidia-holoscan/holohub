@@ -32,13 +32,13 @@ The following directories make up the core of this repo:
 - **Tutorials**: Visit [`tutorials`](./tutorials/) for extended walkthroughs and tips for the Holoscan platform.
 - **Benchmarks**: Visit [`benchmarks`](./benchmarks/) for performance benchmarks, tools, and examples to evaluate the performance of Holoscan applications.
 
-Visit the [Holoscan SDK User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/overview.html) to learn more about the NVIDIA Holoscan AI sensor processing platform. You can also chat with the [Holoscan-GPT](https://chatgpt.com/g/g-M6hMJimGa-holochatgpt) Large Language Model to learn about using Holoscan SDK, ask questions, and get code help. Holoscan-GPT requires an OpenAI account.
+Visit the [Holoscan SDK User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/introduction/overview) to learn more about the NVIDIA Holoscan AI sensor processing platform. You can also chat with the [Holoscan-GPT](https://chatgpt.com/g/g-M6hMJimGa-holochatgpt) Large Language Model to learn about using Holoscan SDK, ask questions, and get code help. Holoscan-GPT requires an OpenAI account.
 
 ## Prerequisites
 
 ### Supported Platforms
 
-You will need a platform supported by NVIDIA Holoscan SDK. Refer to the [Holoscan SDK User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html#prerequisites) for the latest requirements. In general, Holoscan supported platforms include:
+You will need a platform supported by NVIDIA Holoscan SDK. Refer to the [Holoscan SDK User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/setup/sdk-installation#prerequisites) for the latest requirements. In general, Holoscan supported platforms include:
 
 - An x64 PC with an Ubuntu operating system and an NVIDIA GPU; or
 - A supported NVIDIA ARM development kit.
@@ -273,4 +273,4 @@ You can find additional information on Holoscan SDK at:
 - [Holoscan GitHub organization](https://github.com/nvidia-holoscan)
 - [Holoscan SDK repository](https://github.com/nvidia-holoscan/holoscan-sdk)
 - [Holoscan-GPT](https://chatgpt.com/g/g-M6hMJimGa-holochatgpt) (requires an OpenAI account)
-- [Holoscan Support Forum](https://forums.developer.nvidia.com/c/healthcare/holoscan-sdk/320/all)
+- [Holoscan Support Forum](https://forums.developer.nvidia.com/c/robotics-edge-computing/holoscan/757)

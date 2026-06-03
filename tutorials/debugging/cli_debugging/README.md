@@ -59,14 +59,14 @@ with custom launch profiles, with HoloHub support coming soon.
 
 ### References
 
-To get started with debugging your Holoscan SDK application, visit the [Debugging](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_debugging.html) user guide section for common topics, including:
+To get started with debugging your Holoscan SDK application, visit the [Debugging](https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/debugging) user guide section for common topics, including:
 
 - Generating debug symbols with VSCode
 - Live debugging for C++ and Python applications
 - Inspecting application crashes
 - Profiling and code coverage
 
-Visit the [Logging](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_logging.html) user guide
+Visit the [Logging](https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/logging) user guide
 section for a thorough overview on how to set up Holoscan SDK logging in your C++ or Python application.
 
 ## Prerequisites
@@ -388,7 +388,7 @@ Refer to the [`debug_legacy.sh`](./debug_legacy.sh) script for more details.
 Just-in-time debugging is not well suited to problems that require real-time performance analysis. Logging is usually the better
 choice to debug performance related issues in your Holoscan application.
 
-The [Holoscan SDK User Guide Logging section](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_logging.html)
+The [Holoscan SDK User Guide Logging section](https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/logging)
 presents a detailed overview of how to get started with logging from your application.
 
 ### Logging from a C++ application

@@ -11,7 +11,7 @@ Full workflow including a generic visualization of segmentation results from a p
 ## Requirements
 
 - Python 3.8+
-- The provided applications are configured to either use the AJA capture card for input stream, or a pre-recorded video of the colonoscopy data (replayer). Follow the [setup instructions from the user guide](https://docs.nvidia.com/holoscan/sdk-user-guide/aja_setup.html) to use the AJA capture card.
+- The provided applications are configured to either use the AJA capture card for input stream, or a pre-recorded video of the colonoscopy data (replayer). Follow the [AJA Video Systems setup guide](../../operators/aja_source/setup.md) to use the AJA capture card.
 
 ## Data
 

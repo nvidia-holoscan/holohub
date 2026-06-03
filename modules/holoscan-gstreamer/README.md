@@ -1,6 +1,6 @@
 # Holoscan GStreamer Module
 
-The Holoscan GStreamer Module bridges [NVIDIA Holoscan SDK](https://docs.nvidia.com/holoscan/sdk-user-guide/) applications to the [GStreamer](https://gstreamer.freedesktop.org/) multimedia framework, giving Holoscan pipelines access to GStreamer's extensive ecosystem of video encoding, streaming, and media processing plugins.
+The Holoscan GStreamer Module bridges [NVIDIA Holoscan SDK](https://docs.nvidia.com/holoscan/sdk-user-guide/introduction/getting-started) applications to the [GStreamer](https://gstreamer.freedesktop.org/) multimedia framework, giving Holoscan pipelines access to GStreamer's extensive ecosystem of video encoding, streaming, and media processing plugins.
 
 ```mermaid
 flowchart LR

@@ -672,8 +672,8 @@ For examples, see existing test files like:
 
 **Holoscan SDK Documentation:**
 
-- [Debugging Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_debugging.html) - Common debugging scenarios, crashes, profiling
-- [Logging Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_logging.html) - Runtime logging setup
+- [Debugging Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/debugging) - Common debugging scenarios, crashes, profiling
+- [Logging Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/logging) - Runtime logging setup
 
 **Development Environment:**
 
@@ -690,7 +690,7 @@ For examples, see existing test files like:
 - **Code Coverage**: Tools for inspecting test coverage
 
 > **Note**: HoloHub doesn't provide a single debugging container due to the variety of methods across applications. Open an issue if you need additional debugging tools.
-> **Note**: Refer to [Holoscan SDK debugging documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_debugging.html) and [HoloHub debugging tutorials](https://github.com/nvidia-holoscan/holohub/tree/main/tutorials/debugging)
+> **Note**: Refer to [Holoscan SDK debugging documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/debugging) and [HoloHub debugging tutorials](https://github.com/nvidia-holoscan/holohub/tree/main/tutorials/debugging)
 
 ### Performance
 
@@ -700,7 +700,7 @@ Low latency is crucial for many HoloHub applications. Use these resources for pe
 
 - **HoloHub Benchmarks**: Projects in [`benchmarks/`](./benchmarks/) folder
 - **Flow Tracking**: [`holoscan_flow_benchmarking/`](./benchmarks/holoscan_flow_benchmarking/) for data flow analysis
-- **SDK Profiling**: General profiling tools in the [Holoscan SDK User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_debugging.html)
+- **SDK Profiling**: General profiling tools in the [Holoscan SDK User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/debugging)
 
 #### Performance Best Practices
 

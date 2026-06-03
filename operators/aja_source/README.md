@@ -2,6 +2,8 @@
 
 The AJA Source operator provides functionality to capture high-quality video streams from AJA capture cards and devices. It offers comprehensive support for both SDI (Serial Digital Interface) and HDMI (High-Definition Multimedia Interface) input sources, allowing for professional video capture in various formats and resolutions. The operator is designed to work seamlessly with AJA's hardware capabilities, including features like frame synchronization and format detection. Additionally, it provides an optional overlay channel capability that enables real-time mixing and compositing of multiple video streams, making it suitable for applications requiring picture-in-picture, graphics overlay, or other video mixing scenarios.
 
+Follow the [AJA Video Systems setup guide](setup.md) to install the AJA hardware, NTV2 drivers, and SDK before using this operator.
+
 ## Requirements
 
 - AJA capture card (e.g., KONA HDMI)

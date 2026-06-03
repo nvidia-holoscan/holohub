@@ -1,7 +1,7 @@
 # A Study using Asynchronous Lock-free Buffer with SCHED_DEADLINE
 
 This tutorial demonstrates the impact of using an
-[asynchronous lock-free buffer](https://docs.nvidia.com/holoscan/sdk-user-guide/api/cpp/classholoscan_1_1fragment.html#exhale-class-classholoscan-1-1fragment:~:text=Add%20a%20flow%20between%20two%20operators%20with%20a%20connector%20type.)
+[asynchronous lock-free buffer](https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/holoscan-core)
 with
 `SCHED_DEADLINE` scheduling policy in Linux on the message latency in a Holoscan
 SDK application and compares it with the default buffer.

@@ -2,7 +2,7 @@
 
 Minimal example to demonstrate the use of the aja source operator to capture device input and stream to holoviz operator.
 
-*Visit the [SDK User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/aja_setup.html) to setup the AJA Card.*
+*Follow the [AJA Video Systems setup guide](../../operators/aja_source/setup.md) to set up the AJA card.*
 
 ## Quick Start
 

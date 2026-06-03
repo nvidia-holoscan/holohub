@@ -1,7 +1,7 @@
 # IMX274 GPU-Resident Application
 
 This application demonstrates an end-to-end example of a [GPU-resident Holoscan
-SDK application](https://docs.nvidia.com/holoscan/sdk-user-guide/gpu_resident.html). It leverages Holoscan Sensor Bridge (HSB) to visualize IMX274
+SDK application](https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/gpu-resident-execution). It leverages Holoscan Sensor Bridge (HSB) to visualize IMX274
 camera stream to a connected monitor (G-SYNC enabled monitor is recommended).
 With the help of GPU-resident execution, CPU is kept out of the fast and
 latency-critical camera to display path, and the application achieves ultra-low

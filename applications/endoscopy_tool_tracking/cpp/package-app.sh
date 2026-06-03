@@ -1,5 +1,5 @@
 #!/bin/bash
-# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,4 +40,4 @@ echo -e "\nFor example:"
 echo -e "${YELLOW}holoscan package -c $APP_PATH/endoscopy_tool_tracking.yaml --platform ${PLATFORM}  -t holohub-endoscopy-tool-tracking-cpp --include onnx holoviz --add $INSTALL_DIR/lib/ $APP_PATH/endoscopy_tool_tracking${NOCOLOR}"
 echo -e "\nRun the application:"
 echo -e "${YELLOW}holoscan run -r \$(docker images | grep "holohub-endoscopy-tool-tracking-cpp" | awk '{print \$1\":\"\$2}') -i $GIT_ROOT/data/endoscopy${NOCOLOR}"
-echo -e "\n\nRefer to Packaging Holoscan Applications (https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_packager.html) in the User Guide for more information."
+echo -e "\n\nRefer to Packaging Holoscan Applications (https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/cli_packager) in the User Guide for more information."

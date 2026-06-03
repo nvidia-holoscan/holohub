@@ -79,7 +79,7 @@ sudo ./holohub run high_speed_endoscopy --local --language python
 ## Troubleshooting
 
 1. **Problem:** The application fails to find the EVT camera.
-    - Make sure that the MLNX ConnectX SmartNIC is configured with the correct IP address. Follow section [Post EVT Software Installation Steps](https://docs.nvidia.com/holoscan/sdk-user-guide/emergent_setup.html#post-evt-software-installation-steps)
+    - Make sure that the MLNX ConnectX SmartNIC is configured with the correct IP address. Follow section [Post EVT Software Installation Steps](https://docs.nvidia.com/holoscan/sdk-user-guide/setup/third-party-hardware-setup/emergent-setup#post-evt-software-installation-steps)
 
 2. **Problem:** The application fails to open the EVT camera.
     - Make sure that the application was run with `sudo` privileges.
