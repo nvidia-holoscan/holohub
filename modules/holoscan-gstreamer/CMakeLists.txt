@@ -28,13 +28,6 @@ set(_deb_depends
 )
 list(JOIN _deb_depends ", " _deb_depends_str)
 
-set(PACKAGE_POST_INIT_HOOK "
-if(NOT TARGET holoscan::ops::gstreamer_bridge)
-    add_library(holoscan::ops::gstreamer_bridge ALIAS holoscan::holoscan_gstreamer_bridge)
-endif()
-"
-)
-
 holohub_configure_deb(
     NAME        holoscan-gstreamer
     DESCRIPTION "GStreamer bridge operators for video recording and streaming in Holoscan applications"

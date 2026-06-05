@@ -21,7 +21,7 @@ find_package(holoscan REQUIRED CONFIG
 
 # Allow building with a Holoscan GStreamer binary package independent of
 # the HoloHub operator subdirectories
-option(REQUIRE_HOLOSCAN_GSTREAMER_PKG OFF)
+option(REQUIRE_HOLOSCAN_GSTREAMER_PKG "Require holoscan-gstreamer binary package (REQUIRED); default QUIET" OFF)
 if(REQUIRE_HOLOSCAN_GSTREAMER_PKG)
   set(FIND_ARGS "REQUIRED")
 else()
