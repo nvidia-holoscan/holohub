@@ -1,0 +1,115 @@
+# syntax=docker/dockerfile:1
+
+# SPDX-FileCopyrightText: Copyright (c) 2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+# ----------------------------------------------------------------------------
+# HoloHub prepared base image: stacks python+pip and `holoscan-cli` onto the
+# Holoscan SDK runtime and runs `holohub setup`, so downstream Dockerfiles can
+# `FROM ${BASE_IMAGE}` without re-provisioning.
+#
+# Writing a new custom Dockerfile? You don't need this file — just
+# `RUN pip install holoscan-cli` (see doc/developer.md). The build-context and
+# install-spec knobs below exist only to iterate on an unreleased holoscan-cli.
+# ----------------------------------------------------------------------------
+
+ARG GPU_TYPE
+ARG BASE_SDK_VERSION
+ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v${BASE_SDK_VERSION}-${GPU_TYPE}
+FROM ${BASE_IMAGE} AS base
+
+# Default-empty source stage for holoscan-cli. Override with a
+# real checkout via:
+#   docker buildx build --build-context holoscan-cli-src=/path/to/holoscan-cli ...
+FROM scratch AS holoscan-cli-src
+
+FROM base AS holohub-base
+
+ARG DEBIAN_FRONTEND=noninteractive
+ARG PYTHON_VERSION=python3
+
+# Install python3 if not present (needed for holohub CLI). Guard on
+# ${PYTHON_VERSION} (not bare python3) so a PYTHON_VERSION override on a base
+# that already ships python3 still installs the requested interpreter. Include
+# ca-certificates so the HTTPS get-pip.py bootstrap below has CA roots on
+# minimal bases.
+RUN if ! command -v "${PYTHON_VERSION}" >/dev/null 2>&1; then \
+        apt-get update \
+        && apt-get install --no-install-recommends -y \
+            software-properties-common curl ca-certificates gpg-agent \
+        && add-apt-repository ppa:deadsnakes/ppa \
+        && apt-get update \
+        && apt-get install --no-install-recommends -y \
+            ${PYTHON_VERSION} \
+        && apt purge -y \
+            python3-pip \
+            software-properties-common \
+        && apt-get autoremove --purge -y \
+        && rm -rf /var/lib/apt/lists/* \
+        && update-alternatives --install /usr/bin/python python /usr/bin/${PYTHON_VERSION} 100 \
+        && if [ "${PYTHON_VERSION}" != "python3" ]; then \
+            update-alternatives --install /usr/bin/python3 python3 /usr/bin/${PYTHON_VERSION} 100 \
+            ; fi \
+    ; fi
+
+# Ensure curl + CA roots exist for the get-pip.py bootstrap even when the base
+# already had python (so the block above was skipped) but lacks curl/CA certs.
+RUN if ! command -v curl >/dev/null 2>&1; then \
+        apt-get update \
+        && apt-get install --no-install-recommends -y curl ca-certificates \
+        && rm -rf /var/lib/apt/lists/*; \
+    fi
+
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
+RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
+        curl -sS https://bootstrap.pypa.io/get-pip.py | ${PYTHON_VERSION} \
+    ; fi
+
+# Install `holoscan-cli`. Two-step (matches CI): the wheel from
+# TestPyPI (--no-deps), then deps from PyPI so a TestPyPI mirror can't shadow a
+# PyPI dep. The default is pinned (matches the repo-root wrapper and CI) so a
+# standalone `docker build` of this base image is reproducible rather than
+# floating to whatever TestPyPI currently serves. Escape hatches for iterating
+# on the CLI itself:
+#   * `--build-context holoscan-cli-src=<path>` installs a local checkout (wins).
+#   * HOLOSCAN_CLI_INSTALL_SPEC overrides the pinned version.
+ARG HOLOSCAN_CLI_INSTALL_SPEC=holoscan-cli==4.3.0rc1
+
+# `git` is needed for `git+` specs and local-source builds (dunamai reads the
+# version from VCS). SDK bases already ship it; only barebones bases install.
+RUN if ! command -v git >/dev/null 2>&1; then \
+        apt-get update \
+        && apt-get install --no-install-recommends -y git \
+        && rm -rf /var/lib/apt/lists/*; \
+    fi
+
+RUN --mount=type=bind,from=holoscan-cli-src,target=/tmp/holoscan-cli-src \
+    if [ -f /tmp/holoscan-cli-src/pyproject.toml ]; then \
+        echo "Installing holoscan-cli from local source build-context"; \
+        cp -a /tmp/holoscan-cli-src /tmp/holoscan-cli-src-writable; \
+        python3 -m pip install --no-cache-dir /tmp/holoscan-cli-src-writable; \
+        rm -rf /tmp/holoscan-cli-src-writable; \
+    else \
+        echo "Installing holoscan-cli from spec: ${HOLOSCAN_CLI_INSTALL_SPEC}"; \
+        python3 -m pip install --no-cache-dir --pre --no-deps \
+            --index-url https://test.pypi.org/simple/ "${HOLOSCAN_CLI_INSTALL_SPEC}" \
+        && python3 -m pip install --no-cache-dir \
+            --index-url https://pypi.org/simple/ "${HOLOSCAN_CLI_INSTALL_SPEC}"; \
+    fi
+
+RUN holoscan version \
+    && holoscan --help 2>/dev/null | grep -qw build \
+    || (echo "ERROR: holoscan-cli missing source-project commands (got legacy holoscan-cli <= 4.2.0?)" >&2; exit 1)
+
+RUN mkdir -p /tmp/scripts
+COPY holohub /tmp/scripts/
+RUN mkdir -p /tmp/scripts/utilities
+COPY utilities /tmp/scripts/utilities/
+RUN chmod +x /tmp/scripts/holohub
+RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
+
+# Enable autocomplete
+RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
+
+# Set default Holohub data directory
+ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data
