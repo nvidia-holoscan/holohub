@@ -50,7 +50,7 @@ function(pybind11_add_holohub_module)
     )
 
     # Conditionally link to the ABI config target if it exists (for HSDK >= 3.3.0)
-    set(pybind11_abi_details_msg "See https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_operator_python_bindings.html#pybind11-abi-compatibility for details")
+    set(pybind11_abi_details_msg "See https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/python-operator-bindings#pybind11-abi-compatibility for details")
     if(TARGET holoscan::pybind11)
         message(STATUS "${target_name}: Linking against holoscan::pybind11 to disable strict ABI protection in pybind11. ${pybind11_abi_details_msg}")
         target_link_libraries(${target_name} PRIVATE holoscan::pybind11)

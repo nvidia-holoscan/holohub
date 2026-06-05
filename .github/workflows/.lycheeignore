@@ -21,6 +21,10 @@ file://.*/static/chat.css
 file://.*/static/favicon.ico
 file://.*/static/nvidia-logo.png
 
+# Links to MkDocs dynamically-generated pages (exist at build time via generate_pages.py, not on filesystem)
+file://.*holoscan-modules/create-a-module
+file://.*holoscan-modules/use-a-module
+
 # HTTP/2 protocol errors (server compatibility issues)
 https://www.analog.com/.*
 https://www.logitech.com/.*

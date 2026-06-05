@@ -117,5 +117,5 @@ python -m build --wheel
 ## Further reading
 
 - [HoloHub documentation](https://github.com/nvidia-holoscan/holohub)
-- [Holoscan SDK documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/)
+- [Holoscan SDK documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/introduction/getting-started)
 - [Holoscan Module ecosystem](https://nvidia-holoscan.github.io/)

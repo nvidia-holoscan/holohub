@@ -12,7 +12,7 @@ This application performs monitor registration using an [Emergent Vision Technol
 
 ## Setup Instructions
 
-1. Follow the [Holoscan SDK user guide](https://docs.nvidia.com/holoscan/sdk-user-guide/emergent_setup.html) to set up the EVT camera
+1. Follow the [Emergent Vision Technologies setup guide](../../../operators/emergent_source/setup.md) to set up the EVT camera
 2. Place the calibration image with April tags on the monitor
 3. Position the camera so it can see all four corners of the monitor
 4. Verify camera visibility using the high_speed_endoscopy app

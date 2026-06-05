@@ -1648,6 +1648,45 @@ class TestHandlePackage(unittest.TestCase):
                 kwargs.get("dry_run"), "Expected dry_run=True for all run_command calls"
             )
 
+    @patch("utilities.cli.util.check_nvidia_ctk")
+    @patch("utilities.cli.holohub.HoloHubCLI.find_project")
+    @patch("utilities.cli.holohub.HoloHubCLI._make_project_container")
+    @patch("utilities.cli.util.check_skip_builds")
+    def test_package_container_passes_cuda_version(
+        self,
+        mock_check_skip_builds,
+        mock_make_container,
+        mock_find_project,
+        mock_check_nvidia_ctk,
+    ):
+        """Container package path forwards --cuda to container.build like run-container."""
+        mock_check_nvidia_ctk.return_value = None
+        mock_find_project.return_value = self.mock_module_data
+        mock_container = MagicMock()
+        mock_make_container.return_value = mock_container
+
+        mock_check_skip_builds.return_value = (True, False)
+        args = self.cli.parser.parse_args(
+            ["package", "test-module-fixture", "--cuda", "13", "--no-docker-build"]
+        )
+        args.func(args)
+        mock_container.build.assert_not_called()
+        self.assertEqual(mock_container.cuda_version, "13")
+
+        mock_container.reset_mock()
+        mock_check_skip_builds.return_value = (False, False)
+        args = self.cli.parser.parse_args(["package", "test-module-fixture", "--cuda", "13"])
+        args.func(args)
+        mock_container.build.assert_called_once_with(
+            docker_file=None,
+            base_img=None,
+            img=None,
+            no_cache=False,
+            build_args=None,
+            cuda_version="13",
+            extra_scripts=None,
+        )
+
 
 class TestRunCommand(unittest.TestCase):
     """Test the run_command function with explicit shell parameter"""

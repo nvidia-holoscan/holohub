@@ -23,7 +23,7 @@ Run the following command to build and launch the application on a supported Hol
 ## Prerequisites
 
 - NVIDIA Holoscan SDK (version 0.5 or higher)
-- [A supported Holoscan platform or workstation with a CUDA-capable NVIDIA GPU](https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html)
+- [A supported Holoscan platform or workstation with a CUDA-capable NVIDIA GPU](https://docs.nvidia.com/holoscan/sdk-user-guide/setup/sdk-installation)
 - CMake build system
 - FFmpeg (for data conversion)
 

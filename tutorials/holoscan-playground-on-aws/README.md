@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Holoscan on AWS EC2 experience is an easy way for having a first try at the Holoscan SDK. The [Holoscan SDK documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html#prerequisites) lists out the hardware prerequisites. If you have a compatible hardware at hand, please get started with the SDK on your hardware. Otherwise, you could utilize an AWS EC2 instance to have a first look at the Holoscan SDK by following this guide.
+The Holoscan on AWS EC2 experience is an easy way for having a first try at the Holoscan SDK. The [Holoscan SDK documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/setup/sdk-installation#prerequisites) lists out the hardware prerequisites. If you have a compatible hardware at hand, please get started with the SDK on your hardware. Otherwise, you could utilize an AWS EC2 instance to have a first look at the Holoscan SDK by following this guide.
 
 We estimate the time needed to follow this guide is around 1 hour, after which you could feel free to explore more of the SDK examples and applications. Please note that for the g5.xlarge instance type utilized, [the cost](https://aws.amazon.com/ec2/pricing/on-demand/) is $1.006/hour.
 
@@ -140,7 +140,7 @@ Now we have enabled display forwarding from both EC2 bare metal and containerize
 
 ### Install Holoscan
 
-There are [several ways](https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html#development-software-stack) to install the Holoscan SDK. For the quickest way to get started, we will choose the Holoscan Docker container that already has all dependencies set up.
+There are [several ways](https://docs.nvidia.com/holoscan/sdk-user-guide/setup/sdk-installation#development-software-stack) to install the Holoscan SDK. For the quickest way to get started, we will choose the Holoscan Docker container that already has all dependencies set up.
 We run nvidia-smi in the EC2 instance to check that there are drivers installed:
 
 ![nvidia-smi](images/nvidia-smi.png)
@@ -211,7 +211,7 @@ Since we used the Debian package install, run the C++ tensor interopability exam
 /opt/nvidia/holoscan/examples/tensor_interop/cpp/tensor_interop
 ```
 
-Please refer to the [README](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/examples/tensor_interop/README.md) and the [source file](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/examples/tensor_interop/cpp/tensor_interop.cpp) to see how we can have interoperability between a native operator (`ProcessTensorOp`) and two wrapped GXF Codelets (`SendTensor` and `ReceiveTensor`). For the Holoscan documentation on tensor interop in the C++ API, please see [Interoperability between GXF and native C++ operators](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_operator.html#interoperability-between-gxf-and-native-c-operators).
+Please refer to the [README](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/examples/tensor_interop/README.md) and the [source file](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/examples/tensor_interop/cpp/tensor_interop.cpp) to see how we can have interoperability between a native operator (`ProcessTensorOp`) and two wrapped GXF Codelets (`SendTensor` and `ReceiveTensor`). For the Holoscan documentation on tensor interop in the C++ API, please see [Interoperability between GXF and native C++ operators](https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/create-an-operator#interoperability-between-gxf-and-native-c-operators).
 
 ##### The Python Tensor Interop example
 
@@ -257,7 +257,7 @@ self.add_flow(image_processing, visualizer, {("", "receivers")})
 
 Otherwise, with each `add_flow()`, the input and output port names need to be specified when multiple ports are present.
 
-For more information on tensor interop in Python API, please see the Holoscan documentation [Interoperability between wrapped and native Python operators](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_operator.html#interoperability-between-wrapped-and-native-python-operators).
+For more information on tensor interop in Python API, please see the Holoscan documentation [Interoperability between wrapped and native Python operators](https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/create-an-operator#interoperability-between-wrapped-and-native-python-operators).
 
 Now that we have seen an example of tensor interop for single tensors per port, let’s look at the next example where there are multiple tensors in the native operator’s output port.
 
@@ -297,7 +297,7 @@ We can also see that each tensor name is referenced by the `tensors` parameter i
 
 This is a great example and reference not only for passing different shapes to Holoviz, but also creating and passing multiple tensors within one message from a native Holoscan Python operator to the downstream operators.
 
-For more information on the Holoviz module, please see the [Holoscan documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/visualization.html#holoviz-operator).
+For more information on the Holoviz module, please see the [Holoscan documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/operators/visualization#holoviz-operator).
 
 Exit from the Docker container by ctrl+D.
 

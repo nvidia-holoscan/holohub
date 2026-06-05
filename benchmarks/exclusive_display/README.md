@@ -1,7 +1,7 @@
 # Exclusive Display Benchmark
 
 This document investigates the performance of the [exclusive
-display](https://docs.nvidia.com/holoscan/sdk-user-guide/enable_exclusive_display.html) feature in
+display](https://docs.nvidia.com/holoscan/sdk-user-guide/setup/additional-setup/enable-exclusive-display) feature in
 `holoviz` operator of Holoscan SDK.
 
 ## Introduction

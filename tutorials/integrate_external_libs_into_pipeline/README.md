@@ -48,8 +48,8 @@ The `Tensor` class is a wrapper around the `DLManagedTensorContext` struct, whic
 
 For more information on interoperability, refer to the following sections in the Holoscan SDK documentation:
 
-- [Interoperability between GXF and native C++ operators](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_operator.html#interoperability-between-gxf-and-native-c-operators)
-- [Interoperability between wrapped and native Python operators](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_operator.html#interoperability-between-wrapped-and-native-python-operators)
+- [Interoperability between GXF and native C++ operators](https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/create-an-operator#interoperability-between-gxf-and-native-c-operators)
+- [Interoperability between wrapped and native Python operators](https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/create-an-operator#interoperability-between-wrapped-and-native-python-operators)
 
 ### CUDA Array Interface/DLPack Support
 

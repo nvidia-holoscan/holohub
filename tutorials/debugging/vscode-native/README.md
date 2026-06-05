@@ -8,7 +8,7 @@ Whether you are a C++ or Python developer, you can use the tutorial as a referen
 
 ## Prerequisites
 
-- [Holoscan SDK Prerequisites](https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html#prerequisites)
+- [Holoscan SDK Prerequisites](https://docs.nvidia.com/holoscan/sdk-user-guide/setup/sdk-installation#prerequisites)
 - [Visual Studio Code](https://code.visualstudio.com/)
 - [Holohub](https://github.com/nvidia-holoscan/holohub/)
 
@@ -19,7 +19,7 @@ Whether you are a C++ or Python developer, you can use the tutorial as a referen
 
 ### C++ Prerequisites
 
-To build and debug your C++ applications natively, we must first install the redistribution of the Holoscan SDK. To install Holoscan SDK using a Debian package, refer to the Debian package installation section in the [Holoscan SDK documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html#instructions).
+To build and debug your C++ applications natively, we must first install the redistribution of the Holoscan SDK. To install Holoscan SDK using a Debian package, refer to the Debian package installation section in the [Holoscan SDK documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/setup/sdk-installation#instructions).
 
 - [CMake Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools) extension for VS Code
 - [CMake](https://cmake.org/cmake/help/latest/command/install.html) 3.24.0 or higher

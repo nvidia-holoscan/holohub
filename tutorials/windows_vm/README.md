@@ -66,7 +66,7 @@ x86_64 workstations.
 ### Software Pre-requisites
 
 Install the
-[NVIDIA Holoscan SDK](https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html) and the
+[NVIDIA Holoscan SDK](https://docs.nvidia.com/holoscan/sdk-user-guide/setup/sdk-installation) and the
 [NVIDIA GPU driver](https://www.nvidia.com/en-in/drivers/) on the host Ubuntu 22.04.
 
 #### Install KVM and QEMU

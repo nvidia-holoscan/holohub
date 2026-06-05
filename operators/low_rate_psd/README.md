@@ -31,7 +31,7 @@ For a practical example, see the [`psd_pipeline`](../../applications/psd_pipelin
 
 ## Multiple Channels
 
-The operator supports processing multiple channels in parallel. The zero-indexed `channel_number` key is retrieved from [`metadata()`](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_app.html#dynamic-application-metadata) on each `compute()` invocation. If `channel_number` is not provided, the default is `0` (single channel).
+The operator supports processing multiple channels in parallel. The zero-indexed `channel_number` key is retrieved from [`metadata()`](https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/create-an-application#dynamic-application-metadata) on each `compute()` invocation. If `channel_number` is not provided, the default is `0` (single channel).
 
 ## Configuration
 

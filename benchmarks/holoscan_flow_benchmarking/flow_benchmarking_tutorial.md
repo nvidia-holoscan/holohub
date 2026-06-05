@@ -20,7 +20,7 @@ latency and maximum (worst-case) end-to-end latency. For a developer, it
 is important to know these metrics, to understand how well their
 application is performing in terms of responsiveness and efficiency.
 Holoscan SDK allows [data flow
-tracking](https://docs.nvidia.com/holoscan/sdk-user-guide/flow_tracking.html) to precisely measure
+tracking](https://docs.nvidia.com/holoscan/sdk-user-guide/performance/flow-tracking) to precisely measure
 the end-to-end latency of Holoscan applications.
 The Holoscan flow benchmarking in Holohub leverages the data flow
 tracking of the Holoscan SDK.
@@ -304,7 +304,7 @@ save the outputs in different directories. The `-g <Corresponding GPU UUID>` par
 `CUDA_VISIBLE_DEVICES` environment variable to the corresponding GPU UUID. It is important to note
 that this option does not override the application-specific GPU settings in the code, for
 example, via the GPU assignment in [Inference
-operator](https://docs.nvidia.com/holoscan/sdk-user-guide/inference.html) (`device_map` option).
+operator](https://docs.nvidia.com/holoscan/sdk-user-guide/operators/inference) (`device_map` option).
 
 The results of the above experiment can be compared using the following
 command:
@@ -319,10 +319,10 @@ your metrics options> -g endoscopy_outputs_<GPU Name>/logger* "GPU1" -g endoscop
 It is also possible to compare different schedulers using Holoscan flow
 benchmarking. The following commands can be used to evaluate performance
 of the endoscopy tool tracking sample application under the [Greedy
-scheduler](https://docs.nvidia.com/holoscan/sdk-user-guide/components/schedulers.html#greedy-scheduler),
+scheduler](https://docs.nvidia.com/holoscan/sdk-user-guide/components/schedulers#greedy-scheduler),
 the [Multithread
-scheduler](https://docs.nvidia.com/holoscan/sdk-user-guide/components/schedulers.html#multithreadscheduler)
-and the [Event-based Scheduler](https://docs.nvidia.com/holoscan/sdk-user-guide/components/schedulers.html#event-based-scheduler):
+scheduler](https://docs.nvidia.com/holoscan/sdk-user-guide/components/schedulers#multithreadscheduler)
+and the [Event-based Scheduler](https://docs.nvidia.com/holoscan/sdk-user-guide/components/schedulers#event-based-scheduler):
 
 ```bash
 $ python benchmarks/holoscan_flow_benchmarking/benchmark.py -a

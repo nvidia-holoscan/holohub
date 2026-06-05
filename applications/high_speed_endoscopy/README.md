@@ -4,10 +4,10 @@ The high speed endoscopy application showcases how high resolution cameras can b
 
 This application requires:
 
-1. an Emergent Vision Technologies camera (see {ref}`setup instructions<emergent-vision-tech>`)
+1. an Emergent Vision Technologies camera (see [setup instructions](../../operators/emergent_source/setup.md))
 2. an NVIDIA ConnectX SmartNIC with Rivermax SDK and drivers installed
 3. a display with high refresh rate to keep up with the camera's framerate
-4. {ref}`additional setups<additional_setup>` to reduce latency
+4. [additional setups](https://docs.nvidia.com/holoscan/sdk-user-guide/setup/additional-setup) to reduce latency
 
 > **Tip**
 Tested on the Holoscan DevKits (ConnectX included) with:
@@ -79,7 +79,7 @@ sudo ./holohub run high_speed_endoscopy --local --language python
 ## Troubleshooting
 
 1. **Problem:** The application fails to find the EVT camera.
-    - Make sure that the MLNX ConnectX SmartNIC is configured with the correct IP address. Follow section [Post EVT Software Installation Steps](https://docs.nvidia.com/holoscan/sdk-user-guide/emergent_setup.html#post-evt-software-installation-steps)
+    - Make sure that the MLNX ConnectX SmartNIC is configured with the correct IP address. See [EVT troubleshooting](../../operators/emergent_source/setup.md#troubleshooting).
 
 2. **Problem:** The application fails to open the EVT camera.
     - Make sure that the application was run with `sudo` privileges.
