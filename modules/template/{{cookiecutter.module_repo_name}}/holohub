@@ -3,8 +3,9 @@
 # SPDX-License-Identifier: {{ cookiecutter._license }}
 #
 # {{ cookiecutter.project_name }} CLI wrapper.
-# Delegates to the HoloHub CLI with module-specific defaults.
-# On first run, downloads the CLI tools via sparse-checkout into .holohub/.
+# Delegates to the standalone `holoscan-cli` package with module-specific
+# defaults baked in, pinned to the same TestPyPI build as the HoloHub
+# repo wrapper so every invocation gets a known-good CLI.
 #
 # Usage:
 #   ./holohub run-container
@@ -12,106 +13,46 @@
 #   ./holohub run   {{ cookiecutter.module_slug }}_pipeline --language python
 #   ./holohub --help
 #
-# Environment variables:
-#   CLI_REPO_URL      HoloHub git URL (default: public GitHub mirror)
-#   CLI_PINNED_COMMIT Git commit SHA to pin the CLI to
-#   CLI_FORCE_UPDATE  Set to "1" to force re-download even if SHA matches
+# Optional overrides (rarely needed):
+#   HOLOSCAN_CLI_SOURCE   Local checkout — wins over the pin.
+#   HOLOSCAN_CLI_VERSION  Pip install spec.
+#   HOLOHUB_PYTHON_BIN    Python interpreter (default: python3).
 
-set -e
-set -o pipefail
+set -euo pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 # ==============================================================================
-# CLI bootstrap settings
+# Module identity — defaults consumed by holoscan-cli
 # ==============================================================================
 
-CLI_DIR="${CLI_DIR:-${SCRIPT_DIR}/.holohub}"
-CLI_REPO_URL="${CLI_REPO_URL:-https://github.com/nvidia-holoscan/holohub.git}"
-# TODO: pin this to a specific HoloHub commit SHA for reproducibility.
-# Update CLI_PINNED_COMMIT to upgrade the CLI tools used by this module.
-CLI_PINNED_COMMIT="${CLI_PINNED_COMMIT:-main}"
-CLI_COMMIT_FILE="${CLI_DIR}/.commit_hash"
-
-# ==============================================================================
-# CLI download (sparse-checkout, minimal bandwidth)
-# ==============================================================================
-
-download_cli() {
-    echo " > Downloading HoloHub CLI tools to ${CLI_DIR}..."
-    command -v git >/dev/null || { echo "Error: git is required" >&2; exit 1; }
-
-    local tmp_dir
-    tmp_dir="$(mktemp -d "${SCRIPT_DIR}/.tmp-holohub-XXXXXX")"
-    trap 'rm -rf "${tmp_dir}"' EXIT
-
-    mkdir -p "${CLI_DIR}"
-
-    git clone --no-checkout --filter=blob:none "${CLI_REPO_URL}" "${tmp_dir}/holohub" || \
-        { echo "Error: failed to clone HoloHub repository" >&2; exit 1; }
-
-    cd "${tmp_dir}/holohub"
-    git sparse-checkout init --cone
-    git sparse-checkout set utilities/cli utilities/metadata utilities/setup utilities/testing
-    git fetch --progress origin "${CLI_PINNED_COMMIT}"
-    git -c advice.detachedHead=false checkout "${CLI_PINNED_COMMIT}"
-
-    local commit_hash
-    commit_hash="$(git rev-parse HEAD)"
-
-    rm -rf "${CLI_DIR}/utilities"
-    mv "${tmp_dir}/holohub/utilities" "${CLI_DIR}/utilities"
-    cd "${SCRIPT_DIR}"
-    rm -rf "${tmp_dir}"
-    trap - EXIT
-
-    echo "${commit_hash}" > "${CLI_COMMIT_FILE}"
-    echo " > HoloHub CLI downloaded (${commit_hash:0:9})"
-}
-
-CLI_INSTALLED_COMMIT="$(cat "${CLI_COMMIT_FILE}" 2>/dev/null || true)"
-if [[ "${CLI_FORCE_UPDATE}" == "1" ]] || \
-   [[ ! -d "${CLI_DIR}/utilities/cli" ]] || \
-   [[ "${CLI_INSTALLED_COMMIT}" != "${CLI_PINNED_COMMIT}" && "${CLI_PINNED_COMMIT}" != "main" ]]; then
-    if [[ -n "${CLI_INSTALLED_COMMIT}" && "${CLI_INSTALLED_COMMIT}" != "${CLI_PINNED_COMMIT}" ]]; then
-        echo " > CLI version mismatch (installed: ${CLI_INSTALLED_COMMIT:0:9}, expected: ${CLI_PINNED_COMMIT:0:9}), re-downloading..."
-    fi
-    rm -rf "${CLI_DIR}/utilities"
-    download_cli || { echo "Error: failed to download HoloHub CLI tools" >&2; exit 1; }
-fi
-
-# ==============================================================================
-# Module identity
-# ==============================================================================
-
-# HOLOHUB_ROOT: the CLI uses this as the project root for cmake -S and container paths.
-export HOLOHUB_ROOT="${HOLOHUB_ROOT:-${SCRIPT_DIR}}"
-# HOLOHUB_CMD_NAME: shown in help output and error messages.
-export HOLOHUB_CMD_NAME="${HOLOHUB_CMD_NAME:-./$(basename "${BASH_SOURCE[0]}")}"
-# HOLOHUB_REPO_PREFIX: base for naming build dirs, images, etc.
-export HOLOHUB_REPO_PREFIX="${HOLOHUB_REPO_PREFIX:-{{ cookiecutter.module_slug }}}"
-# HOLOHUB_CONTAINER_PREFIX: Docker image name prefix.
-export HOLOHUB_CONTAINER_PREFIX="${HOLOHUB_CONTAINER_PREFIX:-{{ cookiecutter.module_slug.replace('_', '-') }}}"
-# HOLOHUB_WORKSPACE_NAME: directory name inside the container at /workspace/.
-export HOLOHUB_WORKSPACE_NAME="${HOLOHUB_WORKSPACE_NAME:-{{ cookiecutter.module_slug }}}"
-# HOLOHUB_HOSTNAME_PREFIX: container hostname prefix (useful in VSCode Dev Containers).
-export HOLOHUB_HOSTNAME_PREFIX="${HOLOHUB_HOSTNAME_PREFIX:-{{ cookiecutter.module_slug.replace('_', '-') }}}"
+# HOLOSCAN_CLI_ROOT: the CLI uses this as the project root for cmake -S and container paths.
+export HOLOSCAN_CLI_ROOT="${HOLOSCAN_CLI_ROOT:-${SCRIPT_DIR}}"
+# HOLOSCAN_CLI_CMD_NAME: shown in help output and error messages.
+export HOLOSCAN_CLI_CMD_NAME="${HOLOSCAN_CLI_CMD_NAME:-${BASH_SOURCE[0]}}"
+# HOLOSCAN_CLI_REPO_PREFIX: base for naming build dirs, images, etc.
+export HOLOSCAN_CLI_REPO_PREFIX="${HOLOSCAN_CLI_REPO_PREFIX:-{{ cookiecutter.module_slug }}}"
+# HOLOSCAN_CLI_CONTAINER_PREFIX: Docker image name prefix.
+export HOLOSCAN_CLI_CONTAINER_PREFIX="${HOLOSCAN_CLI_CONTAINER_PREFIX:-{{ cookiecutter.module_slug.replace('_', '-') }}}"
+# HOLOSCAN_CLI_WORKSPACE_NAME: directory name inside the container at /workspace/.
+export HOLOSCAN_CLI_WORKSPACE_NAME="${HOLOSCAN_CLI_WORKSPACE_NAME:-{{ cookiecutter.module_slug }}}"
+# HOLOSCAN_CLI_HOSTNAME_PREFIX: container hostname prefix.
+export HOLOSCAN_CLI_HOSTNAME_PREFIX="${HOLOSCAN_CLI_HOSTNAME_PREFIX:-{{ cookiecutter.module_slug.replace('_', '-') }}}"
 
 # ==============================================================================
 # Paths
 # ==============================================================================
 
-export HOLOHUB_DEFAULT_DOCKERFILE="${HOLOHUB_DEFAULT_DOCKERFILE:-${SCRIPT_DIR}/Dockerfile}"
+export HOLOSCAN_CLI_DEFAULT_DOCKERFILE="${HOLOSCAN_CLI_DEFAULT_DOCKERFILE:-${SCRIPT_DIR}/Dockerfile}"
 # Recursive walk from SCRIPT_DIR — picks up the top-level metadata.json
 # (project_type=module) along with operators/<x>/metadata.json and
 # applications/<y>/metadata.json. The narrower default
 # `applications,operators` skipped the module's own descriptor, so
 # `./holohub list` showed no MODULES section and `./holohub package
-# <name>` couldn't find the module by name.
-export HOLOHUB_SEARCH_PATH="${HOLOHUB_SEARCH_PATH:-${SCRIPT_DIR}}"
-export HOLOHUB_BUILD_PARENT_DIR="${HOLOHUB_BUILD_PARENT_DIR:-${SCRIPT_DIR}/build}"
-export HOLOHUB_DATA_DIR="${HOLOHUB_DATA_DIR:-${SCRIPT_DIR}/data}"
-export HOLOHUB_SETUP_SCRIPTS_DIR="${HOLOHUB_SETUP_SCRIPTS_DIR:-${CLI_DIR}/utilities/setup}"
+# <name>` couldn't find the module by name. (holohub#1582)
+export HOLOSCAN_CLI_SEARCH_PATH="${HOLOSCAN_CLI_SEARCH_PATH:-${SCRIPT_DIR}}"
+export HOLOSCAN_CLI_BUILD_PARENT_DIR="${HOLOSCAN_CLI_BUILD_PARENT_DIR:-${SCRIPT_DIR}/build}"
+export HOLOSCAN_CLI_DATA_DIR="${HOLOSCAN_CLI_DATA_DIR:-${SCRIPT_DIR}/data}"
 
 # ==============================================================================
 # Build defaults
@@ -120,9 +61,66 @@ export HOLOHUB_SETUP_SCRIPTS_DIR="${HOLOHUB_SETUP_SCRIPTS_DIR:-${CLI_DIR}/utilit
 export CMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE:-Release}"
 
 # ==============================================================================
-# Run
+# Pinned holoscan-cli + bootstrap + exec
 # ==============================================================================
 
-# exec replaces the shell so SIGINT/SIGTERM/SIGHUP reach the Python CLI directly.
-PYTHONPATH="${CLI_DIR}${PYTHONPATH:+:${PYTHONPATH}}" \
-    exec python3 "${CLI_DIR}/utilities/cli/holohub.py" "$@"
+PYTHON_BIN="${HOLOHUB_PYTHON_BIN:-python3}"
+
+# Normalize a HOLOSCAN_CLI_VERSION value into a pip-installable requirement.
+# Bare versions/comparators (`4.3.0`, `>=4.3`) are not valid `pip install`
+# arguments on their own, so prefix the distribution name; pass through full
+# specs, URLs, and local paths unchanged.
+_holohub_normalize_cli_spec() {
+    local raw="$1"
+    case "${raw}" in
+        holoscan-cli|holoscan-cli[\<\>=\!~]*|holoscan_cli|holoscan_cli[\<\>=\!~]*) printf '%s' "${raw}" ;;
+        *://*|/*|./*|.|git+*|file:*) printf '%s' "${raw}" ;;
+        [\<\>=\!~]*) printf 'holoscan-cli%s' "${raw}" ;;
+        [0-9]*) printf 'holoscan-cli==%s' "${raw}" ;;
+        *) printf '%s' "${raw}" ;;
+    esac
+}
+
+# Pinned holoscan-cli build (matches the HoloHub root wrapper).
+export HOLOSCAN_CLI_VERSION="$(_holohub_normalize_cli_spec "${HOLOSCAN_CLI_VERSION:-holoscan-cli==4.3.0rc1}")"
+
+# Default Holoscan SDK version for this module's container base image.
+# holoscan-cli decoupled the base image from its own version (holoscan-cli#177)
+# and no longer ships a built-in default, so it errors unless this is set (or
+# --base-img is passed). Defaults to the module's holoscan_version.
+export HOLOSCAN_CLI_BASE_SDK_VERSION="${HOLOSCAN_CLI_BASE_SDK_VERSION:-{{ cookiecutter.holoscan_version }}}"
+
+if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
+    export PYTHONPATH="${HOLOSCAN_CLI_SOURCE%/}/src${PYTHONPATH:+:${PYTHONPATH}}"
+fi
+
+# Install holoscan-cli unless a source-project-capable one is already present.
+# Probe the command surface (not just importability) so a stale legacy
+# holoscan-cli (<= 4.2.0) doesn't satisfy the check. Two-step install keeps
+# TestPyPI scoped to the holoscan-cli wheel so mirrored deps can't shadow PyPI.
+if ! "${PYTHON_BIN}" -m holoscan_cli --help 2>/dev/null | grep -qw build; then
+    # Bootstrap pip if the interpreter lacks it (minimal Python installs omit
+    # it). `pip install` below would otherwise fail with a confusing error.
+    if ! "${PYTHON_BIN}" -m pip --version >/dev/null 2>&1; then
+        "${PYTHON_BIN}" -m ensurepip --upgrade >/dev/null 2>&1 || {
+            echo "[{{ cookiecutter.module_slug }}] ${PYTHON_BIN} has no pip and ensurepip is unavailable;" \
+                 "install pip (or set HOLOHUB_PYTHON_BIN to an interpreter that has it) and retry" >&2
+            exit 1
+        }
+    fi
+    if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
+        echo "[{{ cookiecutter.module_slug }}] installing holoscan-cli from ${HOLOSCAN_CLI_SOURCE}" >&2
+        "${PYTHON_BIN}" -m pip install --upgrade "${HOLOSCAN_CLI_SOURCE}"
+    else
+        echo "[{{ cookiecutter.module_slug }}] installing ${HOLOSCAN_CLI_VERSION}" >&2
+        "${PYTHON_BIN}" -m pip install --pre --no-deps \
+            --index-url https://test.pypi.org/simple/ "${HOLOSCAN_CLI_VERSION}"
+        "${PYTHON_BIN}" -m pip install \
+            --index-url https://pypi.org/simple/ "${HOLOSCAN_CLI_VERSION}"
+    fi
+fi
+
+# exec so signals reach the CLI directly; `python -m` so the same interpreter
+# that bootstrapped the CLI above runs it (a `holoscan` console script on PATH
+# may resolve elsewhere).
+exec "${PYTHON_BIN}" -m holoscan_cli "$@"

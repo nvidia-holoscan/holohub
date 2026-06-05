@@ -63,7 +63,7 @@ See `modules/holoscan-gstreamer/` for a complete reference example.
 
 ### Dependency Resolution for In-Tree Modules
 
-The HoloHub CLI resolver (`utilities/cli/external_resolver.py`) automatically
+The `holoscan-cli` resolver automatically
 recognizes in-tree modules: a dependency with no `source` block is looked up in
 `modules/<name>/metadata.json`. If found, the dep is marked `is_internal=True` and
 the CMake manifest emits a comment instead of a FetchContent_Declare — the operators
