@@ -13,10 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+cmake_minimum_required(VERSION 3.24)
 project(holo_to_gst CXX)
 
 find_package(holoscan REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+
+# Allow building with a Holoscan GStreamer binary package independent of
+# the HoloHub operator subdirectories
+option(REQUIRE_HOLOSCAN_GSTREAMER_PKG "Require holoscan-gstreamer binary package (REQUIRED); default QUIET" OFF)
+if(REQUIRE_HOLOSCAN_GSTREAMER_PKG)
+  set(FIND_ARGS "REQUIRED")
+else()
+  set(FIND_ARGS "QUIET")
+endif()
+find_package(holoscan-gstreamer ${FIND_ARGS} CONFIG
+              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 add_executable(holo-to-gst
   ../common/pattern_generator.cpp
@@ -41,6 +53,7 @@ install(TARGETS holo-to-gst DESTINATION bin/holo_to_gst)
 
 # Add test
 if(BUILD_TESTING)
+  enable_testing()
   add_test(NAME holo_to_gst_test
            COMMAND $<TARGET_FILE:holo-to-gst> --count 100 --pipeline "cudadownload name=src ! fakesink sync=false"
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
