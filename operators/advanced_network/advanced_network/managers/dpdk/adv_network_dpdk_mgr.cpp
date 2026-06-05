@@ -502,8 +502,8 @@ void DpdkMgr::initialize() {
                             mr.adj_size_,
                             (void*)pool);
 
-          q_packet_size += mr.buf_size_;
         }
+        q_packet_size += mr.buf_size_;
       }
 
       max_pkt_size = std::max(max_pkt_size, q_packet_size);
