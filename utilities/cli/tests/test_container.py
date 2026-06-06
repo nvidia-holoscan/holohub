@@ -286,6 +286,61 @@ class TestHoloHubContainer(unittest.TestCase):
         """No display environment should skip display forwarding."""
         self.assertEqual(self.container.get_display_options(True, False), [])
 
+    def test_peer_creds_sufficient_returns_false_when_xset_missing(self):
+        """If xset is not on PATH, peer-creds probe must short-circuit to False."""
+        with patch("utilities.cli.container.shutil.which", return_value=None):
+            self.assertFalse(HoloHubContainer._peer_creds_sufficient(":0"))
+
+    def test_peer_creds_sufficient_true_when_probe_exits_zero(self):
+        """A successful no-cookie xset query means the server accepts us already."""
+        with (
+            patch("utilities.cli.container.shutil.which", return_value="/usr/bin/xset"),
+            patch("utilities.cli.container.subprocess.run") as mock_run,
+        ):
+            mock_run.return_value = subprocess.CompletedProcess(args=[], returncode=0)
+            self.assertTrue(HoloHubContainer._peer_creds_sufficient(":0"))
+            # Probe must override XAUTHORITY so the server cannot pick up a cached cookie.
+            self.assertEqual(mock_run.call_args.kwargs["env"]["XAUTHORITY"], "/dev/null")
+            self.assertEqual(mock_run.call_args.kwargs["timeout"], 2)
+
+    def test_peer_creds_sufficient_false_when_probe_exits_nonzero(self):
+        """Probe returning non-zero means cookie-based auth is still needed."""
+        with (
+            patch("utilities.cli.container.shutil.which", return_value="/usr/bin/xset"),
+            patch("utilities.cli.container.subprocess.run") as mock_run,
+        ):
+            mock_run.return_value = subprocess.CompletedProcess(args=[], returncode=1)
+            self.assertFalse(HoloHubContainer._peer_creds_sufficient(":0"))
+
+    def test_peer_creds_sufficient_false_on_timeout(self):
+        """A hung xset call must not propagate; treat it as probe failure."""
+        with (
+            patch("utilities.cli.container.shutil.which", return_value="/usr/bin/xset"),
+            patch(
+                "utilities.cli.container.subprocess.run",
+                side_effect=subprocess.TimeoutExpired(cmd="xset", timeout=2),
+            ),
+        ):
+            self.assertFalse(HoloHubContainer._peer_creds_sufficient(":0"))
+
+    @patch.dict(os.environ, {"DISPLAY": ":0"}, clear=True)
+    def test_get_display_options_native_x11_skips_xauth_when_peer_creds_ok(self):
+        """When the X server accepts no-cookie connections, skip xauth setup."""
+        with (
+            patch("utilities.cli.container.Path.is_dir", return_value=True),
+            patch(
+                "utilities.cli.container.HoloHubContainer._peer_creds_sufficient",
+                return_value=True,
+            ),
+            patch("utilities.cli.container.run_command") as mock_run,
+        ):
+            options = self.container.get_display_options(True, False)
+
+        self.assertIn("DISPLAY", options)
+        self.assertIn("/tmp/.X11-unix:/tmp/.X11-unix:ro", options)
+        self.assertFalse(any(opt.startswith("XAUTHORITY=") for opt in options))
+        mock_run.assert_not_called()
+
     @patch.dict(os.environ, {"DISPLAY": ":0"}, clear=True)
     def test_get_display_options_native_x11_uses_socket_and_xauth(self):
         """Native X11 should mount the UNIX socket and a generated Xauthority file."""
@@ -298,6 +353,10 @@ class TestHoloHubContainer(unittest.TestCase):
         with (
             patch("utilities.cli.container.Path.is_dir", return_value=True),
             patch("utilities.cli.container.shutil.which", return_value="/usr/bin/xauth"),
+            patch(
+                "utilities.cli.container.HoloHubContainer._peer_creds_sufficient",
+                return_value=False,
+            ),
             patch("utilities.cli.container.run_command", side_effect=fake_run_command) as mock_run,
         ):
             options = self.container.get_display_options(True, False)
@@ -323,6 +382,10 @@ class TestHoloHubContainer(unittest.TestCase):
         with (
             patch("utilities.cli.container.Path.is_dir", return_value=True),
             patch("utilities.cli.container.shutil.which", return_value=None),
+            patch(
+                "utilities.cli.container.HoloHubContainer._peer_creds_sufficient",
+                return_value=False,
+            ),
         ):
             options = self.container.get_display_options(True, True)
 
