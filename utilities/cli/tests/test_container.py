@@ -483,8 +483,8 @@ class TestHoloHubContainer(unittest.TestCase):
         mock_cuda_version.return_value = "13"
         self.assertEqual(get_host_gpu(), "dgpu")
 
-        # nvidia-smi unavailable for driver query: get_default_cuda_version defaults to "13" -> dgpu
-        mock_cuda_version.return_value = "13"
+        # Unexpected/unknown CUDA version defaults to dgpu (treated as non-igpu)
+        mock_cuda_version.return_value = None
         self.assertEqual(get_host_gpu(), "dgpu")
 
     @patch("utilities.cli.util.get_gpu_name")
