@@ -1485,6 +1485,71 @@ exec {holohub_script} "$@"
                 self.assertIn("CUSTOM_VAR", env)
                 self.assertIn("LOG_LEVEL", env)
 
+    @patch("utilities.cli.holohub.HoloHubCLI.find_project")
+    @patch("utilities.cli.holohub.HoloHubContainer")
+    @patch("utilities.cli.util.get_container_entrypoint")
+    @patch.dict(os.environ, {}, clear=True)
+    def test_mode_name_passed_to_container_run(
+        self,
+        mock_get_container_entrypoint,
+        mock_container_class,
+        mock_find_project,
+    ):
+        """Each handler forwards the resolved mode_name into HoloHubContainer.run()."""
+        project_data = {
+            "project_name": "test_project",
+            "source_folder": Path(os.getcwd()) / "applications" / "test_project",
+            "metadata": {
+                "language": "cpp",
+                "dockerfile": "<holohub_app_source>/Dockerfile",
+                "modes": {
+                    "standalone": {
+                        "description": "Standalone mode",
+                        "run": {"command": "./test_project"},
+                    },
+                },
+            },
+        }
+        mock_find_project.return_value = project_data
+        mock_container = MagicMock()
+        mock_container_class.return_value = mock_container
+        mock_container.image_name = "holohub:test_project"
+        mock_get_container_entrypoint.return_value = ["bash"]
+
+        cases = [
+            ("run-container test_project standalone", "standalone"),
+            ("run test_project standalone", "standalone"),
+            ("build test_project standalone", "standalone"),
+            ("install test_project standalone", "standalone"),
+            # Implicit single-mode resolution still resolves to the only mode.
+            ("run-container test_project", "standalone"),
+            ("run test_project", "standalone"),
+        ]
+        for cmdline, expected_mode in cases:
+            with self.subTest(cmdline=cmdline):
+                mock_container.run.reset_mock()
+                args = self.cli.parser.parse_args(cmdline.split())
+                args.func(args)
+                mock_container.run.assert_called_once()
+                self.assertEqual(
+                    mock_container.run.call_args[1].get("mode_name"),
+                    expected_mode,
+                    f"mode_name mismatch for `{cmdline}`",
+                )
+
+    @patch("utilities.cli.holohub.HoloHubContainer")
+    @patch.dict(os.environ, {}, clear=True)
+    def test_run_container_without_project_passes_no_mode(self, mock_container_class):
+        """``run-container`` with no project calls run() with mode_name=None."""
+        mock_container = MagicMock()
+        mock_container_class.return_value = mock_container
+        mock_container.image_name = "holohub:dev"
+
+        args = self.cli.parser.parse_args(["run-container"])
+        args.func(args)
+        mock_container.run.assert_called_once()
+        self.assertIsNone(mock_container.run.call_args[1].get("mode_name"))
+
     def test_placeholder_in_mode_command(self):
         """Test placeholder replacement in mode run commands"""
         from utilities.cli.util import replace_placeholders

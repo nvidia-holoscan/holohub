@@ -16,6 +16,7 @@
 
 import json
 import os
+import re
 import sys
 import tempfile
 import time
@@ -31,12 +32,14 @@ from utilities.cli.status import (
     GitInfo,
     ImageInfo,
     PlatformInfo,
+    RunningContainerInfo,
     collect_build_info,
     collect_docker_disk_usage,
     collect_folder_info,
     collect_git_info,
     collect_image_info,
     collect_platform_info,
+    collect_running_containers,
     format_status,
     format_status_json,
 )
@@ -52,6 +55,19 @@ def _status_args():
         [FolderInfo("/tmp/build", 512.0)],
         [FolderInfo("/tmp/data", 1024.0)],
         "Images: 5GB, Containers: 100MB",
+    ]
+
+
+def _running_containers():
+    return [
+        RunningContainerInfo(
+            container_id="abc123def456",
+            name="humble-puppy",
+            image="holohub:test_app",
+            app="test_app",
+            mode="replayer",
+            started="5 minutes ago",
+        )
     ]
 
 
@@ -110,17 +126,22 @@ class TestStatusCollectors(unittest.TestCase):
 
     @patch("utilities.cli.status.run_info_command")
     def test_collect_image_info(self, mock_run):
+        # docker container ls row references holohub:latest by image-ID img001;
+        # the second tag holohub:tagB shares the same ID so it must also be Running.
         mock_run.side_effect = lambda cmd: (
-            "holohub:latest\tabc123"
-            if "ps" in cmd
+            "abc123\thumble-puppy\tholohub:latest\timg001\t5 minutes ago\ttrue\t\t"
+            if "container" in cmd
             else (
-                "img001\tholohub:latest\t2 hours ago\nimg002\tother:v1\t1 day ago"
+                "img001\tholohub:latest\t2 hours ago\n"
+                "img001\tholohub:tagB\t2 hours ago\n"
+                "img002\tother:v1\t1 day ago"
                 if "images" in cmd
                 else None
             )
         )
         images = collect_image_info()
-        self.assertEqual((len(images), images[0].status), (1, "Running"))
+        statuses = {img.image: img.status for img in images}
+        self.assertEqual(statuses, {"holohub:latest": "Running", "holohub:tagB": "Running"})
         mock_run.return_value = None
         mock_run.side_effect = None
         self.assertEqual(collect_image_info(), [])
@@ -177,6 +198,46 @@ class TestStatusCollectors(unittest.TestCase):
         mock_run.return_value = None
         self.assertIsNone(collect_docker_disk_usage())
 
+    @patch("utilities.cli.status.run_info_command")
+    def test_collect_running_containers(self, mock_run):
+        """Filters CLI rows from a single `docker container ls`; non-CLI rows are dropped."""
+        mock_run.return_value = (
+            "abc123def456\thumble-puppy\tholohub:test_app\timg001\t5 minutes ago"
+            "\ttrue\ttest_app\treplayer\n"
+            # Bare run-container shell — has cli=true but no project/mode.
+            "fed987cba321\teager-fox\tholohub:dev\timg002\t10 seconds ago\ttrue\t\t\n"
+            # A non-CLI container — no holohub.cli label, must be excluded.
+            "999foreignxxx\tunrelated\tnginx:latest\timg003\t1 hour ago\t\t\t"
+        )
+        containers = collect_running_containers()
+        self.assertEqual(len(containers), 2)
+        self.assertEqual(
+            (containers[0].container_id, containers[0].app, containers[0].mode),
+            ("abc123def456", "test_app", "replayer"),
+        )
+        self.assertEqual(containers[0].image, "holohub:test_app")
+        self.assertEqual(containers[0].started, "5 minutes ago")
+        self.assertIsNone(containers[1].app)
+        self.assertIsNone(containers[1].mode)
+
+        invoked_cmd = mock_run.call_args[0][0]
+        self.assertIn("container", invoked_cmd)
+        self.assertIn("ls", invoked_cmd)
+
+        # CRLF and trailing whitespace must be stripped from parsed fields.
+        mock_run.return_value = (
+            "abc123def456\thumble-puppy\tholohub:test_app\timg001\t5 minutes ago"
+            "\ttrue\ttest_app\treplayer\r\n"
+        )
+        crlf = collect_running_containers()
+        self.assertEqual(crlf[0].mode, "replayer")
+        self.assertEqual(crlf[0].app, "test_app")
+
+        mock_run.return_value = None
+        self.assertEqual(collect_running_containers(), [])
+        mock_run.return_value = ""
+        self.assertEqual(collect_running_containers(), [])
+
 
 class TestStatusFormatting(unittest.TestCase):
     def test_format_status_text(self):
@@ -205,6 +266,20 @@ class TestStatusFormatting(unittest.TestCase):
         self.assertIn("Images:", output)
         self.assertIn("(none)", output)
 
+        # Strip ANSI color codes so the bold "Containers:" heading is matchable.
+        ansi = re.compile(r"\x1b\[[0-9;]*m")
+        output = ansi.sub(
+            "", format_status(*_status_args(), running_containers=_running_containers())
+        )
+        self.assertIn("\nContainers:\n", output)
+        self.assertIn("abc123def456", output)
+        self.assertIn("test_app", output)
+        self.assertIn("replayer", output)
+
+        # Empty list → no Containers heading (avoid redundant "(none)" line).
+        output = ansi.sub("", format_status(*_status_args(), running_containers=[]))
+        self.assertNotIn("\nContainers:\n", output)
+
     def test_format_status_json(self):
         data = json.loads(format_status_json(*_status_args()))
         self.assertEqual(data["platform"]["arch"], "x86_64")
@@ -213,10 +288,20 @@ class TestStatusFormatting(unittest.TestCase):
         self.assertEqual(len(data["images"]), 1)
         self.assertEqual(len(data["builds"]), 1)
         self.assertIn("docker_disk", data)
+        # `containers` is always present (empty list when none) so callers can rely on it.
+        self.assertEqual(data["containers"], [])
 
         args = _status_args()
         args[6] = None
         self.assertNotIn("docker_disk", json.loads(format_status_json(*args)))
+
+        data = json.loads(
+            format_status_json(*_status_args(), running_containers=_running_containers())
+        )
+        self.assertEqual(len(data["containers"]), 1)
+        self.assertEqual(data["containers"][0]["app"], "test_app")
+        self.assertEqual(data["containers"][0]["mode"], "replayer")
+        self.assertEqual(data["containers"][0]["container_id"], "abc123def456")
 
 
 if __name__ == "__main__":

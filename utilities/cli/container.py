@@ -32,6 +32,9 @@ from utilities.metadata.utils import list_normalized_languages
 
 from .util import (
     DEFAULT_BASE_SDK_VERSION,
+    LABEL_APP,
+    LABEL_CLI,
+    LABEL_MODE,
     build_holohub_path_mapping,
     check_nvidia_ctk,
     fatal,
@@ -642,6 +645,16 @@ class HoloHubContainer:
                     cmd.extend(["-t", f"{tag_name}-{script}", "-t", f"{tag_name}"])
                 run_command(cmd, dry_run=self.dryrun)
 
+    def get_label_args(self, mode_name: Optional[str] = None) -> List[str]:
+        """Build --label args identifying this container as a CLI launch."""
+        args = ["--label", f"{LABEL_CLI}=true"]
+        project_name = self.get_project_name()
+        if project_name:
+            args.extend(["--label", f"{LABEL_APP}={project_name}"])
+        if mode_name:
+            args.extend(["--label", f"{LABEL_MODE}={mode_name}"])
+        return args
+
     def run(
         self,
         img: Optional[str] = None,
@@ -657,6 +670,7 @@ class HoloHubContainer:
         add_volumes: List[str] = None,
         enable_mps: bool = False,
         extra_args: List[str] = None,
+        mode_name: Optional[str] = None,
     ) -> None:
         """Launch the container"""
 
@@ -709,6 +723,8 @@ class HoloHubContainer:
         # Default docker run arguments and caller-supplied docker_opts (parsed above).
         cmd.extend(default_run_args)
         cmd.extend(extra_run_args)
+
+        cmd.extend(self.get_label_args(mode_name))
 
         cmd.append(img)
         cmd.extend(extra_args)
