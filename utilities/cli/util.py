@@ -468,9 +468,12 @@ def get_host_gpu() -> str:
         )
         return "dgpu"
 
-    # Check for iGPU (Orin integrated GPU)
+    # Orin (nvgpu) appears on both JP6.x (integrated GPU stack, driver ~540)
+    # and JP7.x (SBSA-compatible dGPU stack, driver >= 580). Use CUDA/driver
+    # version to distinguish: JP6.x / IGX OS 1.x ship CUDA 12 (driver < 580);
+    # JP7.x / IGX OS 2.x ship CUDA 13 (driver >= 580).
     if "Orin (nvgpu)" in gpu_name:
-        return "igpu"
+        return "igpu" if get_default_cuda_version() == "12" else "dgpu"
     return "dgpu"
 
 
@@ -520,9 +523,9 @@ def get_cuda_tag(cuda_version: Optional[Union[str, int]] = None, sdk_version: st
     - SDK < 3.6.1: Old format (dgpu/igpu)
     - SDK == 3.6.1: only cuda13-dgpu available
     - SDK >= 3.7.0: Full CUDA support
-      - cuda13: CUDA 13 (x86_64, Jetson Thor)
+      - cuda13: CUDA 13 (x86_64, Jetson AGX Orin w/ JP7.x, Jetson AGX Thor w/ JP7.x)
       - cuda12-dgpu: CUDA 12 dGPU (x86_64, IGX Orin dGPU, Clara AGX dGPU, GH200)
-      - cuda12-igpu: CUDA 12 iGPU (Jetson Orin, IGX Orin iGPU, Clara AGX iGPU)
+      - cuda12-igpu: CUDA 12 iGPU (Jetson AGX Orin w/ JP6.x, IGX Orin iGPU w/ IGX OS 1.x, Clara AGX iGPU)
 
     Args:
         cuda_version: CUDA major version (e.g., 12, 13). If None, uses platform default.
