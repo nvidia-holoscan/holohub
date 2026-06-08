@@ -35,7 +35,7 @@ from holoscan.core import Application, Operator, OperatorSpec
 from holoscan.operators import FormatConverterOp, V4L2VideoCaptureOp
 from holoscan.resources import UnboundedAllocator
 
-from holohub.holoscan_gstreamer_bridge import GstVideoRecorderOp
+from holoscan.gstreamer import GstVideoRecorderOp
 
 
 def parse_pattern(value: str) -> int:

@@ -70,7 +70,7 @@ class PyGstVideoRecorderOp : public GstVideoRecorderOp {
   }
 };
 
-PYBIND11_MODULE(_holoscan_gstreamer_bridge, m) {
+PYBIND11_MODULE(_gstreamer, m) {
   m.doc() = R"pbdoc(
         Python bindings for the HoloHub GStreamer bridge
         ---------------------------------------

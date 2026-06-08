@@ -15,7 +15,7 @@
 
 from holoscan.core import Application
 
-from holohub.holoscan_gstreamer_bridge import GstVideoRecorderOp
+from holoscan.gstreamer import GstVideoRecorderOp
 
 
 class _TestApplication(Application):

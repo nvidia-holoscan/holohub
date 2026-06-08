@@ -42,3 +42,4 @@ install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/NOTICE.md"
 )
 
 # Wheel packaging: see pyproject.toml
+set(HOLOHUB_PYTHON_MODULE_OUT_DIR ${CMAKE_BINARY_DIR}/holoscan)

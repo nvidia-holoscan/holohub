@@ -16,6 +16,8 @@
 include(pybind11_add_holohub_module)
 pybind11_add_holohub_module(
     CPP_CMAKE_TARGET holoscan_gstreamer_bridge
+    PYTHON_NAMESPACE holoscan
+    PYTHON_MODULE_NAME gstreamer
     CLASS_NAME "GstVideoRecorderOp"
     SOURCES gst_video_recorder_op.cpp
 )
@@ -30,7 +32,7 @@ if(BUILD_TESTING)
   add_test(
     NAME holoscan_gstreamer_bridge_python_import_test
     COMMAND python3 -c
-            "from holohub.holoscan_gstreamer_bridge import GstVideoRecorderOp; assert GstVideoRecorderOp.__name__ == 'GstVideoRecorderOp'; assert GstVideoRecorderOp.__doc__"
+            "from holoscan.gstreamer import GstVideoRecorderOp; assert GstVideoRecorderOp.__name__ == 'GstVideoRecorderOp'; assert GstVideoRecorderOp.__doc__"
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   )
 
