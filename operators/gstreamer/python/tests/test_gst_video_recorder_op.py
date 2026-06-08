@@ -14,7 +14,6 @@
 # limitations under the License.
 
 from holoscan.core import Application
-
 from holoscan.gstreamer import GstVideoRecorderOp
 
 

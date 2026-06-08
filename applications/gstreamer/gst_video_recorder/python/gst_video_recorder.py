@@ -32,10 +32,9 @@ except ImportError as exc:
 
 from holoscan.conditions import CountCondition
 from holoscan.core import Application, Operator, OperatorSpec
+from holoscan.gstreamer import GstVideoRecorderOp
 from holoscan.operators import FormatConverterOp, V4L2VideoCaptureOp
 from holoscan.resources import UnboundedAllocator
-
-from holoscan.gstreamer import GstVideoRecorderOp
 
 
 def parse_pattern(value: str) -> int:
