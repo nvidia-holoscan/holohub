@@ -24,7 +24,7 @@ We combine two models from the single model applications [SSD Tool Detection](ht
 
 ## Requirements
 
-Ensure you have installed the Holoscan SDK via one of the methods specified in [the SDK user guide](https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html#development-software-stack).
+Ensure you have installed the Holoscan SDK via one of the methods specified in [the SDK user guide](https://docs.nvidia.com/holoscan/sdk-user-guide/setup/sdk-installation#development-software-stack).
 
 The directory specified by `--data` at app runtime is assumed to contain three subdirectories, corresponding to the three NGC resources specified in [Model](#model) and [Data](#data): `endoscopy`, `monai_tool_seg_model` and `ssd_model`.  These resources will be automatically downloaded to the holohub data directory when building the application.
 

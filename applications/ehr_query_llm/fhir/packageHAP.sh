@@ -1,5 +1,5 @@
 #!/bin/bash
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,4 +46,4 @@ IMAGE_FULL_NAME=$(docker images | grep "$IMAGE_TAG" | awk '{print $1":"$2}')
 echo -e "$IMAGE_FULL_NAME"
 echo -e "\nRun the application container with your own FHIR server URL, and if required, the OAUth2 URL and client info:"
 echo -e "${YELLOW}docker run -it --rm --net host $IMAGE_FULL_NAME --fhir_url <url> [--auth_url <url> --uid <id> --secret <token>] ${NOCOLOR}"
-echo -e "\n\nRefer to Packaging Holoscan Applications (https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_packager.html) in the User Guide for more information."
+echo -e "\n\nRefer to Packaging Holoscan Applications (https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/cli_packager) in the User Guide for more information."

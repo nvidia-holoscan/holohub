@@ -117,7 +117,7 @@ From the menu, pick one of the choices for the resources of interest.
 
 ## Packaging the Application for Distribution and Deployment
 
-With Holoscan CLI, applications built with Holoscan SDK can be packaged into a Holoscan Application Package (HAP), which is an [Open Container Initiative](https://opencontainers.org/) compliant image. An HAP is well suited to be distributed for deployment on hosting platforms, be it Docker Compose, Kubernetes, or otherwise. Please refer to [Packaging Holoscan Applications](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_packager.html) in the User Guide for more information.
+With Holoscan CLI, applications built with Holoscan SDK can be packaged into a Holoscan Application Package (HAP), which is an [Open Container Initiative](https://opencontainers.org/) compliant image. An HAP is well suited to be distributed for deployment on hosting platforms, be it Docker Compose, Kubernetes, or otherwise. Please refer to [Packaging Holoscan Applications](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/cli_packager) in the User Guide for more information.
 
 This example application provides all the necessary contents for HAP packaging. It is required to perform the packaging in a Python virtual environment, with the application's dependencies installed, before running the following script to reveal specific packaging commands.
 

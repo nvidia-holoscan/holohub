@@ -763,8 +763,9 @@ def main(args):
         _, cu_context = cuda_driver.cuDevicePrimaryCtxRetain(cu_device)
 
         # Get a handle to the data source
+        print("Looking for a Holoscan Sensor Bridge device...", flush=True)
         channel_metadata = hololink_module.Enumerator.find_channel(channel_ip=args.hololink)
-        logging.info(f"{channel_metadata=}")
+        logging.info(f"Found Holoscan Sensor Bridge device: {channel_metadata=}")
         hololink_channel = hololink_module.DataChannel(channel_metadata)
 
         # Now that we can communicate, create the camera controller

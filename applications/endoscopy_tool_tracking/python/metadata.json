@@ -24,7 +24,8 @@
 				"3.11.0",
 				"4.0.0",
 				"4.1.0",
-				"4.2.0"
+				"4.2.0",
+				"4.3.0"
 			]
 		},
 		"platforms": [
@@ -52,6 +53,27 @@
 					},
 				"run": {
 					"command": "python3 <holohub_app_source>/endoscopy_tool_tracking.py --data <holohub_data_dir>/endoscopy",
+					"workdir": "holohub_bin"
+				}
+			},
+			"deltacast": {
+				"description": "Run with a live Deltacast VideoMaster capture card using the real VideoMaster SDK. Set VIDEOMASTER_SDK_DIR to the SDK install path before running.",
+				"build": {
+					"cmake_options": ["-DHOLOHUB_BUILD_PYTHON=ON", "-DOP_deltacast_videomaster=ON", "-DVIDEOMASTER_USE_MOCK:BOOL=OFF", "-DVIDEOMASTER_SDK_DIR=$VIDEOMASTER_SDK_DIR"]
+				},
+				"run": {
+					"command": "python3 <holohub_app_source>/endoscopy_tool_tracking.py --data <holohub_data_dir>/endoscopy --source deltacast --config <holohub_app_source>/endoscopy_tool_tracking_deltacast.yaml",
+					"docker_run_args": "-v $VIDEOMASTER_SDK_DIR:/opt/deltacast/videomaster -e VIDEOMASTER_SDK_DIR=/opt/deltacast/videomaster",
+					"workdir": "holohub_bin"
+				}
+			},
+			"deltacast_mock": {
+				"description": "Run with a live Deltacast VideoMaster capture card using the bundled mock SDK (no real hardware or SDK required). Useful for development and CI.",
+				"build": {
+					"cmake_options": ["-DHOLOHUB_BUILD_PYTHON=ON", "-DOP_deltacast_videomaster=ON", "-DVIDEOMASTER_USE_MOCK:BOOL=ON"]
+				},
+				"run": {
+					"command": "python3 <holohub_app_source>/endoscopy_tool_tracking.py --data <holohub_data_dir>/endoscopy --source deltacast --config <holohub_app_source>/endoscopy_tool_tracking_deltacast.yaml",
 					"workdir": "holohub_bin"
 				}
 			}

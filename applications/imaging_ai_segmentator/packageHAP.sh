@@ -1,5 +1,5 @@
 #!/bin/bash
-# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,4 +38,4 @@ echo -e "${YELLOW}docker images | grep "holohub-imaging_ai_segmentator" | awk '{
 echo -e "\nRun the application container, after creating and cleaning output folder:"
 echo -e "${YELLOW}mkdir -p ./output && rm -rf ./output/* ${NOCOLOR}"
 echo -e "${YELLOW}holoscan run -r \$(docker images | grep "holohub-imaging_ai_segmentator" | awk '{print \$1\":\"\$2}') -i $GIT_ROOT/data/imaging_ai_segmentator/dicom -o ./output${NOCOLOR}"
-echo -e "\n\nRefer to Packaging Holoscan Applications (https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_packager.html) in the User Guide for more information."
+echo -e "\n\nRefer to Packaging Holoscan Applications (https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/cli_packager) in the User Guide for more information."

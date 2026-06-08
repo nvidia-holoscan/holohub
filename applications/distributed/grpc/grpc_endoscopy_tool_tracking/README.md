@@ -68,7 +68,7 @@ application:
 > [!NOTE]
 > The Python version of this application is only available in single-fragment mode with benchmarking turned on.
 
-[Data Flow Tracking](https://docs.nvidia.com/holoscan/sdk-user-guide/flow_tracking.html) can also be enabled by editing the [endoscopy_tool_tracking.yaml](./cpp/endoscopy_tool_tracking.yaml) YAML file and changing `benchmarking` to `true`. This enables the built-in mechanism to profile the application and analyze the fine-grained timing properties and data flow between operators.
+[Data Flow Tracking](https://docs.nvidia.com/holoscan/sdk-user-guide/performance/flow-tracking) can also be enabled by editing the [endoscopy_tool_tracking.yaml](./cpp/endoscopy_tool_tracking.yaml) YAML file and changing `benchmarking` to `true`. This enables the built-in mechanism to profile the application and analyze the fine-grained timing properties and data flow between operators.
 
 For example, on the server side, when a client disconnects, it will output the results for that session:
 
@@ -151,7 +151,7 @@ replayer->output: 683
 
 To containerize the application:
 
-1. Install [Holoscan CLI](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_packager.html)
+1. Install [Holoscan CLI](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/cli_packager)
 2. Build the application:
 
    ```bash
@@ -163,4 +163,4 @@ To containerize the application:
    - Python: [python/package-app.sh](./python/package-app.sh)
 4. Follow the generated output instructions to package and run the application
 
-For more information about packaging Holoscan applications, refer to the [Packaging Holoscan Applications](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_packager.html) section in the [Holoscan User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/).
+For more information about packaging Holoscan applications, refer to the [Packaging Holoscan Applications](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/cli_packager) section in the [Holoscan User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/introduction/getting-started).

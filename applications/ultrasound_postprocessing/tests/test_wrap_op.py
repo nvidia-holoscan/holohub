@@ -15,21 +15,24 @@
 
 from __future__ import annotations
 
-import importlib.util
 import unittest
 
+import pytest
+
 try:
+    # CuPy and the Holoscan SDK are test-environment dependencies (not the code
+    # under test); skip the module when either is unavailable. The ultra_post
+    # imports below stay outside this guard so genuine import errors surface as
+    # failures, not skips.
     import cupy as cp  # type: ignore
-except ImportError:  # pragma: no cover
-    cp = None  # type: ignore
+    import holoscan.core  # noqa: F401
+except Exception as exc:  # pragma: no cover - optional GPU/Holoscan dependency
+    pytest.skip(f"CuPy or the Holoscan SDK is unavailable: {exc}", allow_module_level=True)
 
 from ultra_post.app.holoscan_operators import FuncOp
 from ultra_post.filters.registry import FILTERS
 
-_HOLOSCAN_AVAILABLE = importlib.util.find_spec("holoscan") is not None
 
-
-@unittest.skipIf(cp is None or not _HOLOSCAN_AVAILABLE, "CuPy/Holoscan required for FuncOp test.")
 class FuncOpTests(unittest.TestCase):
     def test_func_op_gamma(self) -> None:
         from holoscan.core import Application, Operator

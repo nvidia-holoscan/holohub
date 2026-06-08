@@ -6,7 +6,7 @@ This tutorial demonstrates how to use the Advanced Network library (referred to 
 
     This solution is designed for users who want to create a Holoscan application that will interface with an external system or sensor over Ethernet.
 
-    - For high performance communication with systems also running Holoscan, refer to the [Holoscan distributed application documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_create_distributed_app.html) instead.
+    - For high performance communication with systems also running Holoscan, refer to the [Holoscan distributed application documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/create-a-distributed-application) instead.
     - For JESD-compliant sensor without Ethernet support, consider the [Holoscan Sensor Bridge](https://docs.nvidia.com/holoscan/sensor-bridge/latest/introduction.html) for an FPGA-based interface to Holoscan.
 
 ## Prerequisites
@@ -1994,7 +1994,7 @@ This section will guide you through building your own application using the `adv
         ./applications/adv_networking_bench/cpp/main.cpp
         ```
 
-    If you are not yet familiar with how Holoscan applications are constructed, please refer to the [Holoscan SDK documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_core.html) first.
+    If you are not yet familiar with how Holoscan applications are constructed, please refer to the [Holoscan SDK documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/holoscan-core) first.
 
 Let's look at the `adv_networking_bench_default_tx_rx.yaml` file below. Click on the (1) icons below to expand explanations for each annotated line.
 { .annotate }
@@ -2092,7 +2092,7 @@ bench_tx: # (31)!
   udp_dst_port: 4096        # UDP destination port
 ```
 
-1. The `scheduler` section is passed to the multi threaded scheduler we declare in the `#!cpp main()` function of this application. See the [holoscan SDK documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/components/schedulers.html) and [API docs](https://docs.nvidia.com/holoscan/sdk-user-guide/api/cpp/classholoscan_1_1multithreadscheduler.html) for more details. This is related to the Holoscan core library and is not specific to Holoscan Networking.
+1. The `scheduler` section is passed to the multi threaded scheduler we declare in the `#!cpp main()` function of this application. See the [holoscan SDK documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/components/schedulers#multithreadscheduler) for more details. This is related to the Holoscan core library and is not specific to Holoscan Networking.
 2. The `advanced_network` section is passed to the `advanced_network::adv_net_init` which is responsible for setting up the NIC. That function should be called in your `#!cpp Application::compose()` function.
 3. `manager` is the backend networking library. default: `dpdk`. Other: `gpunetio` (DOCA GPUNet IO + DOCA Ethernet & Flow). Coming soon: `rivermax`, `rdma`.
 4. `master_core` is the ID of the CPU core used for setup. It does not need to be isolated, and is recommended to differ differ from the `cpu_core` fields below used for polling the NIC.

@@ -6,18 +6,21 @@ cmake_minimum_required(VERSION 3.24)
 project(holoscan_{{ cookiecutter.module_slug }}
     VERSION {{ cookiecutter.version }}
     DESCRIPTION "{{ cookiecutter.description }}"
-    LANGUAGES CXX
+    LANGUAGES {% if cookiecutter.language == 'cpp' %}CXX{% else %}NONE{% endif %}
 )
 
+{% if cookiecutter.language == 'cpp' %}
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+{% endif %}
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # ---------------------------------------------------------------------------
 # Dependencies
 # ---------------------------------------------------------------------------
-
+{% if cookiecutter.language == 'cpp' %}
 find_package(holoscan REQUIRED COMPONENTS core)
+{% endif %}
 
 # ---------------------------------------------------------------------------
 # Build options
@@ -38,7 +41,7 @@ if(NOT DEFINED BUILD_ALL)
     if(PROJECT_IS_TOP_LEVEL)
         set(BUILD_ALL ON CACHE BOOL "Build all operators, applications, and packages by default")
     else()
-        set(BUILD_ALL OFF CACHE BOOL "Build all operators, applications, and packages by default")
+        set(BUILD_ALL OFF)
     endif()
 endif()
 
@@ -91,7 +94,14 @@ include(HoloHubConfigHelpers)
 # ---------------------------------------------------------------------------
 # Subprojects
 # ---------------------------------------------------------------------------
+# pkg/ must come *before* operators/ and applications/: add_holohub_package()
+# inside pkg/ uses set(... CACHE BOOL "" FORCE) to flip OP_<x>=ON / APP_<x>=ON
+# when its PKG_<name> option is ON, and the operator/application macros that
+# read those values run their `option(OP_<x> ... ${BUILD_ALL})` calls when
+# their subdirectories are processed — those bind the cache value the FIRST
+# time option() is encountered, so the FORCE has to happen before then.
 
+add_subdirectory(pkg)
 add_subdirectory(operators)
 add_subdirectory(applications)
 
@@ -137,23 +147,11 @@ file(WRITE ${_DEV_PTH_FILE}
 ")
 
 # ---------------------------------------------------------------------------
-# Packaging — Debian (.deb) via holohub_configure_deb
+# Packaging
 # ---------------------------------------------------------------------------
-# Option name follows the HoloHub convention: PKG_<package-name-with-underscores>.
-# `./holohub package` derives the option name from metadata.json:module.name,
-# so this stays in sync with what the CLI emits.
-
-option(PKG_holoscan_{{ cookiecutter.module_slug }}
-       "Build the holoscan-{{ cookiecutter.module_slug.replace('_', '-') }} Debian package" OFF)
-
-if(PKG_holoscan_{{ cookiecutter.module_slug }})
-    include(holohub_configure_deb)
-    holohub_configure_deb(
-        NAME        "holoscan-{{ cookiecutter.module_slug.replace('_', '-') }}"
-        DESCRIPTION "${PROJECT_DESCRIPTION}"
-        VERSION     "${PROJECT_VERSION}"
-        VENDOR      "NVIDIA"
-        CONTACT     "{{ cookiecutter.contact_email }}"
-        DEPENDS     "holoscan (>= {{ cookiecutter.holoscan_version }})"
-    )
-endif()
+# Debian / wheel packaging lives under pkg/. pkg/CMakeLists.txt calls
+# add_holohub_package({{ cookiecutter.module_repo_name }} OPERATORS {{ cookiecutter.operator_slug }}
+# APPLICATIONS {{ cookiecutter.module_slug }}_pipeline), which defines the
+# PKG_{{ cookiecutter.module_repo_name.replace('-', '_') }} option, FORCEs the OP_/APP_ deps to ON when the
+# package is enabled, and enters pkg/{{ cookiecutter.module_repo_name }}/CMakeLists.txt
+# for the holohub_configure_deb() call.

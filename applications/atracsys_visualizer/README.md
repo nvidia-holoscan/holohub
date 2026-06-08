@@ -70,7 +70,7 @@ The application includes a CMake integration to fetch the required GXF datasets 
 
 ## Recording Your Own Data
 
-If you have the physical hardware and wish to generate your own Replay GXF datasets, you can use the built-in [VideoStreamRecorderOp](https://docs.nvidia.com/holoscan/sdk-user-guide/holoscan_operators_extensions.html#videostreamrecorderop) and connect it to any of the camera ports in the `live_camera` mode.
+If you have the physical hardware and wish to generate your own Replay GXF datasets, you can use the built-in [VideoStreamRecorderOp](https://docs.nvidia.com/holoscan/sdk-user-guide/operators/operators-and-extensions#videostreamrecorderop) and connect it to any of the camera ports in the `live_camera` mode.
 
 ## Marker Registration and Calibration
 

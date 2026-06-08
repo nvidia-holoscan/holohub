@@ -27,7 +27,12 @@ from unittest.mock import patch
 sys.path.append(str(Path(os.getcwd()) / "utilities"))
 
 from utilities.cli.container import HoloHubContainer, _ContainerTerminationSignal
-from utilities.cli.util import get_cli_arg_value, get_cuda_tag, get_default_cuda_version
+from utilities.cli.util import (
+    get_cli_arg_value,
+    get_cuda_tag,
+    get_default_cuda_version,
+    get_host_gpu,
+)
 
 
 class TestHoloHubContainer(unittest.TestCase):
@@ -39,7 +44,7 @@ class TestHoloHubContainer(unittest.TestCase):
 
         # create a Dockerfile in the test directory
         self.dockerfile_path.write_text(
-            "FROM nvcr.io/nvidia/clara-holoscan/holoscan:4.2.0-cuda12-dgpu"
+            "FROM nvcr.io/nvidia/clara-holoscan/holoscan:4.3.0-cuda12-dgpu"
         )
 
         # create project metadata
@@ -463,6 +468,36 @@ class TestHoloHubContainer(unittest.TestCase):
         """No default org when API key is missing."""
         options = self.container.get_ngc_options()
         self.assertListEqual([], options)
+
+    @patch("utilities.cli.util.get_default_cuda_version")
+    @patch("utilities.cli.util.get_gpu_name")
+    def test_get_host_gpu_orin_driver_disambiguation(self, mock_gpu_name, mock_cuda_version):
+        """Orin (nvgpu) maps to igpu on JP6.x (CUDA 12) and dgpu on JP7.x (CUDA 13)."""
+        mock_gpu_name.return_value = "Orin (nvgpu)"
+
+        # JP6.x: driver < 580, CUDA 12 -> igpu
+        mock_cuda_version.return_value = "12"
+        self.assertEqual(get_host_gpu(), "igpu")
+
+        # JP7.x: driver >= 580, CUDA 13 -> dgpu (SBSA-compatible stack)
+        mock_cuda_version.return_value = "13"
+        self.assertEqual(get_host_gpu(), "dgpu")
+
+        # Unexpected/unknown CUDA version defaults to dgpu (treated as non-igpu)
+        mock_cuda_version.return_value = None
+        self.assertEqual(get_host_gpu(), "dgpu")
+
+    @patch("utilities.cli.util.get_gpu_name")
+    def test_get_host_gpu_non_orin(self, mock_gpu_name):
+        """Non-Orin GPU names always map to dgpu regardless of driver."""
+        mock_gpu_name.return_value = "NVIDIA RTX 4090"
+        self.assertEqual(get_host_gpu(), "dgpu")
+
+    @patch("utilities.cli.util.get_gpu_name")
+    def test_get_host_gpu_no_gpu(self, mock_gpu_name):
+        """No GPU detected defaults to dgpu."""
+        mock_gpu_name.return_value = None
+        self.assertEqual(get_host_gpu(), "dgpu")
 
     @patch("utilities.cli.util.run_info_command")
     @patch("utilities.cli.util.shutil.which")
