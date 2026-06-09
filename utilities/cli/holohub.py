@@ -2315,6 +2315,11 @@ class HoloHubCLI:
                     all_cpack_configs += [
                         pkg_config_dir / f"{base_name}-{g}.cmake" for g in cpack_generators
                     ]
+                elif not all_cpack_configs:
+                    holohub_cli_util.fatal(
+                        f"No CPack config files were generated in {pkg_config_dir}. "
+                        "Check module packaging configuration."
+                    )
 
                 # Separate generator-specific configs (e.g. CPackConfig-*-TGZ.cmake)
                 # from the base config so each generator uses the right one.
@@ -2333,6 +2338,12 @@ class HoloHubCLI:
 
                 for gen in cpack_generators:
                     configs_for_gen = gen_specific_configs.get(gen) or base_configs
+                    if not configs_for_gen:
+                        available = ", ".join(sorted(gen_specific_configs.keys())) or "none"
+                        holohub_cli_util.fatal(
+                            f"No CPack config found for generator '{gen}' in {pkg_config_dir}. "
+                            f"Available generator-specific configs: {available}."
+                        )
                     for cpack_config in configs_for_gen:
                         holohub_cli_util.run_command(
                             ["cpack", "--config", str(cpack_config), "-G", gen],

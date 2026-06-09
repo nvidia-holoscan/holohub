@@ -206,13 +206,13 @@ if(BUILD_TESTING)
 
     set(_gst_test_prefix "${CMAKE_CURRENT_BINARY_DIR}/tests/cmake/install_prefix")
 
-    # Fixture: cmake --install with --component gstreamer so only this operator's
+    # Fixture: cmake --install with --component holoscan-gstreamer so only this operator's
     # artifacts land in the temp prefix (safe in standalone and superbuild contexts).
     add_test(
         NAME holoscan_gstreamer_install
         COMMAND "${CMAKE_COMMAND}"
             --install "${CMAKE_BINARY_DIR}"
-            --component gstreamer
+            --component holoscan-gstreamer
             --prefix   "${_gst_test_prefix}"
     )
     set_tests_properties(holoscan_gstreamer_install PROPERTIES
