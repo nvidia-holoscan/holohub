@@ -4,7 +4,7 @@
 #
 # {{ cookiecutter.project_name }} CLI wrapper.
 # Delegates to the standalone `holoscan-cli` package with module-specific
-# defaults baked in, pinned to the same TestPyPI build as the HoloHub
+# defaults baked in, pinned to the same NVIDIA PyPI build as the HoloHub
 # repo wrapper so every invocation gets a known-good CLI.
 #
 # Usage:
@@ -82,7 +82,7 @@ _holohub_normalize_cli_spec() {
 }
 
 # Pinned holoscan-cli build (matches the HoloHub root wrapper).
-export HOLOSCAN_CLI_VERSION="$(_holohub_normalize_cli_spec "${HOLOSCAN_CLI_VERSION:-holoscan-cli==4.3.0rc1}")"
+export HOLOSCAN_CLI_VERSION="$(_holohub_normalize_cli_spec "${HOLOSCAN_CLI_VERSION:-holoscan-cli==4.3.0rc2}")"
 
 # Default Holoscan SDK version for this module's container base image.
 # holoscan-cli decoupled the base image from its own version (holoscan-cli#177)
@@ -97,7 +97,7 @@ fi
 # Install holoscan-cli unless a source-project-capable one is already present.
 # Probe the command surface (not just importability) so a stale legacy
 # holoscan-cli (<= 4.2.0) doesn't satisfy the check. Two-step install keeps
-# TestPyPI scoped to the holoscan-cli wheel so mirrored deps can't shadow PyPI.
+# NVIDIA PyPI scoped to the holoscan-cli wheel so mirrored deps can't shadow PyPI.
 if ! "${PYTHON_BIN}" -m holoscan_cli --help 2>/dev/null | grep -qw build; then
     # Bootstrap pip if the interpreter lacks it (minimal Python installs omit
     # it). `pip install` below would otherwise fail with a confusing error.
@@ -114,7 +114,7 @@ if ! "${PYTHON_BIN}" -m holoscan_cli --help 2>/dev/null | grep -qw build; then
     else
         echo "[{{ cookiecutter.module_slug }}] installing ${HOLOSCAN_CLI_VERSION}" >&2
         "${PYTHON_BIN}" -m pip install --pre --no-deps \
-            --index-url https://test.pypi.org/simple/ "${HOLOSCAN_CLI_VERSION}"
+            --index-url https://pypi.nvidia.com "${HOLOSCAN_CLI_VERSION}"
         "${PYTHON_BIN}" -m pip install \
             --index-url https://pypi.org/simple/ "${HOLOSCAN_CLI_VERSION}"
     fi

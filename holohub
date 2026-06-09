@@ -17,7 +17,7 @@
 #
 # HoloHub source-project entry point. Delegates to the standalone
 # `holoscan-cli` package (https://github.com/nvidia-holoscan/holoscan-cli),
-# pinned to a specific TestPyPI build so every invocation gets the same CLI
+# pinned to a specific NVIDIA PyPI build so every invocation gets the same CLI
 # regardless of what's cached locally.
 #
 # Optional overrides (rarely needed):
@@ -50,7 +50,7 @@ _holohub_normalize_cli_spec() {
 
 # Pinned holoscan-cli build. Env vars take precedence so users can opt into a
 # different version without editing.
-export HOLOSCAN_CLI_VERSION="$(_holohub_normalize_cli_spec "${HOLOSCAN_CLI_VERSION:-holoscan-cli==4.3.0rc1}")"
+export HOLOSCAN_CLI_VERSION="$(_holohub_normalize_cli_spec "${HOLOSCAN_CLI_VERSION:-holoscan-cli==4.3.0rc2}")"
 
 # Default Holoscan SDK version for project container base images. holoscan-cli
 # decoupled the base image from its own version (holoscan-cli#177) and no longer
@@ -68,8 +68,8 @@ fi
 # Install holoscan-cli unless a source-project-capable one is already present.
 # Probe the command surface (not just importability), so a stale legacy
 # holoscan-cli (<= 4.2.0, which lacks `build`/`list`) doesn't satisfy the check.
-# Two-step install keeps TestPyPI scoped to the holoscan-cli wheel so a TestPyPI
-# mirror of a common dep can't shadow the PyPI one.
+# Two-step install keeps NVIDIA PyPI scoped to the holoscan-cli wheel so a
+# non-PyPI mirror of a common dep can't shadow the PyPI one.
 if ! "${PYTHON_BIN}" -m holoscan_cli --help 2>/dev/null | grep -qw build; then
     # Bootstrap pip if the interpreter lacks it (minimal Python installs omit
     # it). `pip install` below would otherwise fail with a confusing error.
@@ -86,7 +86,7 @@ if ! "${PYTHON_BIN}" -m holoscan_cli --help 2>/dev/null | grep -qw build; then
     else
         echo "[holohub] installing ${HOLOSCAN_CLI_VERSION}" >&2
         "${PYTHON_BIN}" -m pip install --pre --no-deps \
-            --index-url https://test.pypi.org/simple/ "${HOLOSCAN_CLI_VERSION}"
+            --index-url https://pypi.nvidia.com "${HOLOSCAN_CLI_VERSION}"
         "${PYTHON_BIN}" -m pip install \
             --index-url https://pypi.org/simple/ "${HOLOSCAN_CLI_VERSION}"
     fi

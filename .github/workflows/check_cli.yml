@@ -10,12 +10,12 @@ permissions:
   contents: read
 
 # Pinned holoscan-cli build used by CI while the release is still on
-# TestPyPI. Bump this single value to roll the version across all jobs;
+# NVIDIA PyPI. Bump this single value to roll the version across all jobs;
 # drop the index-url overrides below once the release is promoted to
 # public PyPI.
 env:
-  HOLOSCAN_CLI_SPEC: "holoscan-cli==4.3.0rc1"
-  HOLOSCAN_CLI_INDEX_URL: "https://test.pypi.org/simple/"
+  HOLOSCAN_CLI_SPEC: "holoscan-cli==4.3.0rc2"
+  HOLOSCAN_CLI_INDEX_URL: "https://pypi.nvidia.com"
 
 jobs:
   check-cli-py:
@@ -34,13 +34,13 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # Install the pinned holoscan-cli from TestPyPI until the
+      # Install the pinned holoscan-cli from NVIDIA PyPI until the
       # release is promoted to public PyPI.
       #
-      # Two-step install scopes TestPyPI to *only* the pinned holoscan-cli
-      # wheel: first pull the wheel from TestPyPI with --no-deps, then
+      # Two-step install scopes NVIDIA PyPI to *only* the pinned holoscan-cli
+      # wheel: first pull the wheel from NVIDIA PyPI with --no-deps, then
       # resolve its transitive deps + the CI test tools from public PyPI.
-      # That avoids dependency-confusion risk where TestPyPI mirrors of
+      # That avoids dependency-confusion risk where non-PyPI mirrors of
       # common packages could shadow PyPI ones.
       - name: Install holoscan-cli (pinned dev build)
         run: |
@@ -75,7 +75,7 @@ jobs:
       # ctest invokes `python -m pytest` on the smoke test;
       # match the python-job install so the test actually runs rather than
       # erroring with "No module named pytest". Same two-step split as the
-      # check-cli-py matrix so TestPyPI is scoped to the holoscan-cli wheel
+      # check-cli-py matrix so NVIDIA PyPI is scoped to the holoscan-cli wheel
       # only and CI test tools come from public PyPI.
       #
       # cookiecutter is required by the registered `holohub_create_module`
@@ -108,7 +108,7 @@ jobs:
 
   # Exercise the same smoke test against a *source checkout*
   # of holoscan-cli (https://github.com/nvidia-holoscan/holoscan-cli) rather
-  # than the pinned TestPyPI wheel. This catches breakage when an in-flight
+  # than the pinned NVIDIA PyPI wheel. This catches breakage when an in-flight
   # holoscan-cli change lands ahead of a new release.
   check-cli-source:
     runs-on: ubuntu-22.04

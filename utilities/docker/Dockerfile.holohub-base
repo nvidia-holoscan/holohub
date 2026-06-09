@@ -66,14 +66,14 @@ RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
     ; fi
 
 # Install `holoscan-cli`. Two-step (matches CI): the wheel from
-# TestPyPI (--no-deps), then deps from PyPI so a TestPyPI mirror can't shadow a
+# NVIDIA PyPI (--no-deps), then deps from PyPI so a non-PyPI mirror can't shadow a
 # PyPI dep. The default is pinned (matches the repo-root wrapper and CI) so a
 # standalone `docker build` of this base image is reproducible rather than
-# floating to whatever TestPyPI currently serves. Escape hatches for iterating
+# floating to whatever NVIDIA PyPI currently serves. Escape hatches for iterating
 # on the CLI itself:
 #   * `--build-context holoscan-cli-src=<path>` installs a local checkout (wins).
 #   * HOLOSCAN_CLI_INSTALL_SPEC overrides the pinned version.
-ARG HOLOSCAN_CLI_INSTALL_SPEC=holoscan-cli==4.3.0rc1
+ARG HOLOSCAN_CLI_INSTALL_SPEC=holoscan-cli==4.3.0rc2
 
 # `git` is needed for `git+` specs and local-source builds (dunamai reads the
 # version from VCS). SDK bases already ship it; only barebones bases install.
@@ -92,7 +92,7 @@ RUN --mount=type=bind,from=holoscan-cli-src,target=/tmp/holoscan-cli-src \
     else \
         echo "Installing holoscan-cli from spec: ${HOLOSCAN_CLI_INSTALL_SPEC}"; \
         python3 -m pip install --no-cache-dir --pre --no-deps \
-            --index-url https://test.pypi.org/simple/ "${HOLOSCAN_CLI_INSTALL_SPEC}" \
+            --index-url https://pypi.nvidia.com "${HOLOSCAN_CLI_INSTALL_SPEC}" \
         && python3 -m pip install --no-cache-dir \
             --index-url https://pypi.org/simple/ "${HOLOSCAN_CLI_INSTALL_SPEC}"; \
     fi

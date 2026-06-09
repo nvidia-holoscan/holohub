@@ -10,12 +10,12 @@ permissions:
   contents: read
 
 # Pinned holoscan-cli build used by CI while the release is still on
-# TestPyPI. Bump this single value to roll the version across all jobs;
+# NVIDIA PyPI. Bump this single value to roll the version across all jobs;
 # drop the index-url overrides below once the release is promoted to
 # public PyPI.
 env:
-  HOLOSCAN_CLI_SPEC: "holoscan-cli==4.3.0rc1"
-  HOLOSCAN_CLI_INDEX_URL: "https://test.pypi.org/simple/"
+  HOLOSCAN_CLI_SPEC: "holoscan-cli==4.3.0rc2"
+  HOLOSCAN_CLI_INDEX_URL: "https://pypi.nvidia.com"
 
 jobs:
   check-lint:
@@ -25,16 +25,16 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # Pre-install the pinned holoscan-cli from TestPyPI so the
+      # Pre-install the pinned holoscan-cli from NVIDIA PyPI so the
       # ./holohub bootstrap doesn't reach public PyPI for a stale 4.2.0
       # build that predates the ``lint`` subcommand. Revert this step to
       # ``sudo ./holohub lint --install-dependencies`` once the
       # release lands on public PyPI.
       #
-      # Two-step install scopes TestPyPI to *only* the pinned holoscan-cli
-      # wheel: first pull the wheel from TestPyPI with --no-deps, then
+      # Two-step install scopes NVIDIA PyPI to *only* the pinned holoscan-cli
+      # wheel: first pull the wheel from NVIDIA PyPI with --no-deps, then
       # resolve its transitive deps from public PyPI. Prevents dependency-
-      # confusion risk where TestPyPI builds of common packages could
+      # confusion risk where non-PyPI builds of common packages could
       # shadow the PyPI versions.
       # Use a single interpreter across non-sudo / sudo / ./holohub bootstrap.
       # On GitHub-hosted ubuntu-22.04 the runner exposes `python` only via a

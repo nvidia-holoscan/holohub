@@ -45,7 +45,7 @@ The `./holohub` script at the repo root does three things in order:
    | Env var                | Behavior                                                    |
    | ---------------------- | ----------------------------------------------------------- |
    | `HOLOSCAN_CLI_SOURCE`  | Path to a local checkout. Wins over `HOLOSCAN_CLI_VERSION`. |
-   | `HOLOSCAN_CLI_VERSION` | Pip spec; defaults to the pinned `holoscan-cli==4.3.0rc1`.  |
+   | `HOLOSCAN_CLI_VERSION` | Pip spec; defaults to the pinned `holoscan-cli==4.3.0rc2`.  |
 
    A bare version or comparator (`4.3.0`, `>=4.3`) given as
    `HOLOSCAN_CLI_VERSION` is normalized to a valid `holoscan-cli` requirement;
