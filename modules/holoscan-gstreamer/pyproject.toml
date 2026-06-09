@@ -15,10 +15,9 @@ authors = [
     { name = "NVIDIA Corporation" },
 ]
 requires-python = ">=3.10"
-
-# NOTE: holoscan SDK is not declared as a runtime dependency here because the
-# wheel cannot guarantee binary compatibility across CUDA variants (cu12/cu13).
-# Install holoscan separately before using this wheel.
+dependencies = [
+    "holoscan-cu13>=4.2.0",
+]
 
 # NOTE: GStreamer system packages are required at build time and runtime.
 # Install them before building or using this wheel:
@@ -39,10 +38,6 @@ cmake.args = [
     "-DHOLOHUB_BUILD_PYTHON=ON",
 ]
 wheel.packages = []
-
-# TODO: The Python bindings are currently installed under the holohub.* namespace
-# (holohub.holoscan_gstreamer_bridge). A follow-on task should migrate the Python
-# package to the holoscan.gstreamer namespace declared in this module's metadata.json.
 
 [tool.ruff]
 line-length = 100
