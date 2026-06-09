@@ -129,7 +129,7 @@ endif()
 # Install library
 install(TARGETS holoscan_gstreamer_bridge
     EXPORT holoscan-gstreamer-targets
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/${CUDAToolkit_VERSION_MAJOR}
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
     COMPONENT holoscan-gstreamer
 )
 # Write the holoscan-gstreamer-targets.cmake file

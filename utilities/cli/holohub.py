@@ -2284,6 +2284,8 @@ class HoloHubCLI:
                     f"-DMODULE_{pkg_slug}=ON",
                     f"-DPKG_{pkg_slug}=ON",
                 ]
+                if "TGZ" in cpack_generators:
+                    cmake_args.append("-DHOLOHUB_PKG_TGZ=ON")
                 if shutil.which("ninja"):
                     cmake_args.extend(["-G", "Ninja"])
                 holohub_cli_util.run_command(cmake_args, dry_run=dryrun, env=build_env)

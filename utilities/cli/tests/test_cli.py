@@ -1570,6 +1570,7 @@ class TestHandlePackage(unittest.TestCase):
         self.assertIn("-DPKG_test_module_fixture=ON", cmake_args_str)
         self.assertIn("-DBUILD_ALL=OFF", cmake_args_str)
         self.assertIn(str(HoloHubCLI.HOLOHUB_ROOT), cmake_args_str)
+        self.assertNotIn("-DHOLOHUB_PKG_TGZ=ON", cmake_args_str)
 
         cpack_args = mock_run_command.call_args_list[2][0][0]
         self.assertEqual(cpack_args[0], "cpack")
@@ -1717,6 +1718,8 @@ class TestHandlePackage(unittest.TestCase):
         args.func(args)
 
         self.assertEqual(mock_run_command.call_count, 3)  # cmake configure, cmake build, cpack
+        cmake_args_str = " ".join(mock_run_command.call_args_list[0][0][0])
+        self.assertIn("-DHOLOHUB_PKG_TGZ=ON", cmake_args_str)
         cpack_args = mock_run_command.call_args_list[2][0][0]
         self.assertEqual(cpack_args[0], "cpack")
         self.assertIn("-G", cpack_args)
@@ -1752,6 +1755,8 @@ class TestHandlePackage(unittest.TestCase):
 
         # cmake configure, cmake build, cpack DEB, cpack TGZ
         self.assertEqual(mock_run_command.call_count, 4)
+        cmake_args_str = " ".join(mock_run_command.call_args_list[0][0][0])
+        self.assertIn("-DHOLOHUB_PKG_TGZ=ON", cmake_args_str)
         deb_cpack_args = mock_run_command.call_args_list[2][0][0]
         self.assertIn("DEB", deb_cpack_args)
         tgz_cpack_args = mock_run_command.call_args_list[3][0][0]

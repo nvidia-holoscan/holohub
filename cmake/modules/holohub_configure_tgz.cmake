@@ -37,6 +37,19 @@ function(holohub_configure_tgz)
   set(multiValueArgs COMPONENTS)
   cmake_parse_arguments(ARG "" "${oneValueArgs}" "${multiValueArgs}" ${ARGV})
 
+  # KitMaker multi-variant layout requires libraries under lib/<cuda_major>/.
+  # Override CMAKE_INSTALL_LIBDIR in the cache so operator install() rules —
+  # processed after modules in HoloHub's build order — use the versioned path.
+  # Only active when the CLI sets HOLOHUB_PKG_TGZ=ON (i.e. --pkg-generator TGZ);
+  # all other builds (normal installs, DEB, wheel) keep the default lib/ path.
+  if(HOLOHUB_PKG_TGZ)
+    find_package(CUDAToolkit QUIET)
+    if(CUDAToolkit_FOUND)
+      set(CMAKE_INSTALL_LIBDIR "lib/${CUDAToolkit_VERSION_MAJOR}"
+          CACHE STRING "Library install directory (KitMaker multi-variant layout)" FORCE)
+    endif()
+  endif()
+
   foreach(arg ${requiredArgs})
     if(NOT ARG_${arg})
       list(APPEND _missing ${arg})

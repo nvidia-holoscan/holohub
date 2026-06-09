@@ -44,7 +44,7 @@ holohub_configure_tgz(
     COMPONENTS holoscan-gstreamer
 )
 
-set(CMAKE_INSTALL_DEFAULT_COMPONENT_NAME gstreamer)
+set(CMAKE_INSTALL_DEFAULT_COMPONENT_NAME holoscan-gstreamer)
 
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/NOTICE.md"
     DESTINATION "share/doc/holoscan-gstreamer"
