@@ -28,14 +28,64 @@ FetchContent_MakeAvailable(pybind11)
 
 # Helper function to generate pybind11 operator modules
 function(pybind11_add_holohub_module)
-    cmake_parse_arguments(MODULE        # PREFIX
-        ""                              # OPTIONS
-        "CPP_CMAKE_TARGET;CLASS_NAME"   # ONEVAL
-        "SOURCES"                       # MULTIVAL
+    cmake_parse_arguments(MODULE                                            # PREFIX
+        ""                                                                  # OPTIONS
+        "CPP_CMAKE_TARGET;CLASS_NAME;PYTHON_MODULE_NAME;PYTHON_NAMESPACE"   # ONEVAL
+        "SOURCES"                                                           # MULTIVAL
         ${ARGN}
     )
 
-    set(MODULE_NAME ${MODULE_CPP_CMAKE_TARGET})
+    # PYTHON_MODULE_NAME overrides CPP_CMAKE_TARGET as the Python subpackage
+    # name (directory under the package root, OUTPUT_NAME prefix, and
+    # @MODULE_NAME@ in __init__.py).  Use it when the desired Python import
+    # name differs from the C++ library target name.
+    if(MODULE_PYTHON_MODULE_NAME)
+        set(MODULE_NAME ${MODULE_PYTHON_MODULE_NAME})
+    else()
+        set(MODULE_NAME ${MODULE_CPP_CMAKE_TARGET})
+    endif()
+
+    # PYTHON_NAMESPACE selects the top-level Python namespace (e.g. "holoscan"
+    # instead of the default "holohub").  When specified the module files are
+    # placed under a namespace-specific directory rather than
+    # HOLOHUB_PYTHON_MODULE_OUT_DIR, and a dedicated install() rule is added
+    # so the namespace root lands on the right Python path in both wheel and
+    # in-tree builds.  The top-level CMakeLists.txt install() only covers
+    # HOLOHUB_PYTHON_MODULE_OUT_DIR (the holohub/ tree); modules that declare
+    # their own namespace are responsible for their own install here.
+    if(MODULE_PYTHON_NAMESPACE)
+        if(NOT CMAKE_INSTALL_LIBDIR)
+            set(CMAKE_INSTALL_LIBDIR lib)
+        endif()
+        if(DEFINED SKBUILD)
+            # Wheel build: flat layout — namespace dir sits directly under the
+            # wheel root, which pip installs straight into site-packages.
+            set(_module_base_dir ${CMAKE_BINARY_DIR}/${MODULE_PYTHON_NAMESPACE})
+            set(_ns_install_dest ".")
+        else()
+            # In-tree HoloHub build: mirror the standard python/lib/ tree so
+            # the module is importable when that tree is on PYTHONPATH.
+            set(_module_base_dir
+                ${CMAKE_BINARY_DIR}/python/${CMAKE_INSTALL_LIBDIR}/${MODULE_PYTHON_NAMESPACE})
+            set(_ns_install_dest "python/lib")
+        endif()
+        install(
+            DIRECTORY "${_module_base_dir}"
+            DESTINATION "${_ns_install_dest}"
+            FILE_PERMISSIONS
+                OWNER_READ OWNER_WRITE OWNER_EXECUTE
+                GROUP_READ GROUP_EXECUTE
+                WORLD_READ WORLD_EXECUTE
+            DIRECTORY_PERMISSIONS
+                OWNER_READ OWNER_WRITE OWNER_EXECUTE
+                GROUP_READ GROUP_EXECUTE
+                WORLD_READ WORLD_EXECUTE
+            PATTERN "__pycache__" EXCLUDE
+        )
+    else()
+        set(_module_base_dir ${HOLOHUB_PYTHON_MODULE_OUT_DIR})
+    endif()
+
     set(target_name ${MODULE_NAME}_python)
     pybind11_add_module(${target_name} MODULE ${MODULE_SOURCES})
 
@@ -69,7 +119,7 @@ function(pybind11_add_holohub_module)
     )
     list(APPEND _rpath
         "\$ORIGIN/${install_lib_relative_path}" # in our install tree (same layout as src)
-        "\$ORIGIN/../../lib" # in our python wheel (module at holohub/<pkg>/_mod.so → lib/ is two levels up)
+        "\$ORIGIN/../../lib" # in our python wheel (module at <ns>/<pkg>/_mod.so → lib/ is two levels up)
         "\$ORIGIN/../lib"    # legacy fallback for one-level-deep layouts
     )
     list(JOIN _rpath ":" _rpath)
@@ -79,13 +129,13 @@ function(pybind11_add_holohub_module)
     unset(_rpath)
 
     # make submodule folder
-    file(MAKE_DIRECTORY ${HOLOHUB_PYTHON_MODULE_OUT_DIR}/${MODULE_NAME})
+    file(MAKE_DIRECTORY ${_module_base_dir}/${MODULE_NAME})
 
     # custom target to ensure the module's __init__.py file is copied
-    set(CMAKE_SUBMODULE_OUT_DIR ${HOLOHUB_PYTHON_MODULE_OUT_DIR}/${MODULE_NAME})
+    set(CMAKE_SUBMODULE_OUT_DIR ${_module_base_dir}/${MODULE_NAME})
     configure_file(
         ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/pybind11/__init__.py
-        ${HOLOHUB_PYTHON_MODULE_OUT_DIR}/${MODULE_NAME}/__init__.py
+        ${_module_base_dir}/${MODULE_NAME}/__init__.py
     )
 
     # Note: OUTPUT_NAME filename (_${MODULE_NAME}) must match the module name in the PYBIND11_MODULE macro

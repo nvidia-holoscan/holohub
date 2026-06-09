@@ -32,23 +32,25 @@ FROM base AS holohub-cli-prerequisites
 
 # Install python3 if not present (needed for holohub CLI)
 ARG PYTHON_VERSION=python3
-RUN if ! command -v python3 >/dev/null 2>&1; then \
+RUN if [ "${PYTHON_VERSION}" != "python3" ] && ! command -v ${PYTHON_VERSION} >/dev/null 2>&1; then \
         apt-get update \
         && apt-get install --no-install-recommends -y \
             software-properties-common curl gpg-agent \
         && add-apt-repository ppa:deadsnakes/ppa \
         && apt-get update \
         && apt-get install --no-install-recommends -y \
-            ${PYTHON_VERSION} \
+            ${PYTHON_VERSION} ${PYTHON_VERSION}-dev \
+        # Conditionally install -distutils only if available (for older python versions)
+        && (apt-cache show ${PYTHON_VERSION}-distutils >/dev/null 2>&1 && \
+            apt-get install --no-install-recommends -y ${PYTHON_VERSION}-distutils || true) \
         && apt purge -y \
             python3-pip \
             software-properties-common \
         && apt-get autoremove --purge -y \
         && rm -rf /var/lib/apt/lists/* \
-        && update-alternatives --install /usr/bin/python python /usr/bin/${PYTHON_VERSION} 100 \
-        && if [ "${PYTHON_VERSION}" != "python3" ]; then \
-            update-alternatives --install /usr/bin/python3 python3 /usr/bin/${PYTHON_VERSION} 100 \
-            ; fi \
+        # Register both python and python3 symlinks so all build/test tooling uses the selected version
+        && update-alternatives --install /usr/bin/python  python  /usr/bin/${PYTHON_VERSION} 100 \
+        && update-alternatives --install /usr/bin/python3 python3 /usr/bin/${PYTHON_VERSION} 100 \
     ; fi
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
 RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
