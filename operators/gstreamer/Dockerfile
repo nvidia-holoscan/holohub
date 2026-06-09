@@ -48,6 +48,7 @@ RUN if [ "${PYTHON_VERSION}" != "python3" ] && ! command -v ${PYTHON_VERSION} >/
             software-properties-common \
         && apt-get autoremove --purge -y \
         && rm -rf /var/lib/apt/lists/* \
+        # Register both python and python3 symlinks so all build/test tooling uses the selected version
         && update-alternatives --install /usr/bin/python  python  /usr/bin/${PYTHON_VERSION} 100 \
         && update-alternatives --install /usr/bin/python3 python3 /usr/bin/${PYTHON_VERSION} 100 \
     ; fi
