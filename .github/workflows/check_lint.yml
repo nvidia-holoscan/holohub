@@ -15,7 +15,7 @@ permissions:
 # public PyPI.
 env:
   HOLOSCAN_CLI_SPEC: "holoscan-cli==4.3.0rc2"
-  HOLOSCAN_CLI_INDEX_URL: "https://pypi.nvidia.com"
+  HOLOSCAN_CLI_EXTRA_INDEX_URL: "https://pypi.nvidia.com"
 
 jobs:
   check-lint:
@@ -46,9 +46,9 @@ jobs:
           PYBIN: ${{ steps.pybin.outputs.path }}
         run: |
           "${PYBIN}" -m pip install --upgrade pip
-          sudo --preserve-env=HOLOSCAN_CLI_SPEC,HOLOSCAN_CLI_INDEX_URL,PYBIN \
-              "${PYBIN}" -m pip install --pre \
-                  --index-url "${HOLOSCAN_CLI_INDEX_URL}" \
+          sudo --preserve-env=HOLOSCAN_CLI_SPEC,HOLOSCAN_CLI_EXTRA_INDEX_URL,PYBIN \
+              "${PYBIN}" -m pip install \
+                  --extra-index-url "${HOLOSCAN_CLI_EXTRA_INDEX_URL}" \
                   "${HOLOSCAN_CLI_SPEC}"
 
       # Forward PYBIN as HOLOHUB_PYTHON_BIN so the wrapper exec's the same
