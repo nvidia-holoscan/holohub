@@ -47,7 +47,9 @@ DAQIRI revision, pass a Docker build argument such as
 ## Run Instructions
 
 ```bash
-./holohub run daqiri_raw_ethernet_bench --docker-opts "-u root --privileged" --language cpp
+./holohub run daqiri_raw_ethernet_bench --language=cpp \
+  --docker-opts="-u root --privileged" \
+  --run-args="daqiri_raw_ethernet_bench_default_tx_rx.yaml"
 ```
 
 To run manually inside the container:
