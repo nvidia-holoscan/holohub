@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2024-2026 Voyager Technologies, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.24)
 project(psd_pipeline CXX CUDA)
 
 find_package(holoscan 4.0.0 REQUIRED CONFIG

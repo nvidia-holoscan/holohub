@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2024-2026 Voyager Technologies, Inc.
 # SPDX-License-Identifier: Apache-2.0
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.24)
 
 find_package(holoscan 4.0.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")

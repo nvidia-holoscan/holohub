@@ -2,6 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 function(holohub_link_daqiri target_name)
+  if(CMAKE_VERSION VERSION_LESS "3.24")
+    message(FATAL_ERROR "holohub_link_daqiri requires CMake 3.24 or newer")
+  endif()
+
   if(NOT TARGET "${target_name}")
     message(FATAL_ERROR "holohub_link_daqiri target does not exist: ${target_name}")
   endif()
@@ -14,14 +18,6 @@ function(holohub_link_daqiri target_name)
   endforeach()
 
   # DAQIRI static packages can contain cross-references between core and manager archives.
-  if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.24")
-    string(JOIN "," _daqiri_link_group ${_daqiri_targets})
-    target_link_libraries("${target_name}" PRIVATE "$<LINK_GROUP:RESCAN,${_daqiri_link_group}>")
-  else()
-    target_link_libraries("${target_name}" PRIVATE
-      "-Wl,--start-group"
-      ${_daqiri_targets}
-      "-Wl,--end-group"
-    )
-  endif()
+  string(JOIN "," _daqiri_link_group ${_daqiri_targets})
+  target_link_libraries("${target_name}" PRIVATE "$<LINK_GROUP:RESCAN,${_daqiri_link_group}>")
 endfunction()

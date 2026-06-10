@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.24)
 project(daqiri_socket_ping CXX)
 
 # Find dependencies
@@ -34,16 +34,8 @@ function(link_daqiri target_name)
   endforeach()
 
   # DAQIRI static packages can contain cross-references between core and manager archives.
-  if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.24")
-    string(JOIN "," _daqiri_link_group ${_daqiri_targets})
-    target_link_libraries("${target_name}" PRIVATE "$<LINK_GROUP:RESCAN,${_daqiri_link_group}>")
-  else()
-    target_link_libraries("${target_name}" PRIVATE
-      "-Wl,--start-group"
-      ${_daqiri_targets}
-      "-Wl,--end-group"
-    )
-  endif()
+  string(JOIN "," _daqiri_link_group ${_daqiri_targets})
+  target_link_libraries("${target_name}" PRIVATE "$<LINK_GROUP:RESCAN,${_daqiri_link_group}>")
 endfunction()
 
 # Create the executable

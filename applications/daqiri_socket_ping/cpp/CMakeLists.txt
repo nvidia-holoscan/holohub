@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.24)
 project(daqiri_socket_ping CXX)
 
 find_package(holoscan 0.5 REQUIRED CONFIG
