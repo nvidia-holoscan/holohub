@@ -10,7 +10,7 @@ The application is configured using the file [daqiri_socket_ping.yaml](daqiri_so
 Depending on how the machine is configured, the IP and UDP port likely need to be configured. All other
 settings do not need to be changed.
 
-Please refer to DAQIRI documentation for more configuration information.
+Please refer to [DAQIRI documentation](https://github.com/NVIDIA/daqiri#documentation) for more configuration information.
 
 ## Requirements
 
