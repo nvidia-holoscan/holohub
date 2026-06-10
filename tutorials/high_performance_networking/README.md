@@ -2082,7 +2082,7 @@ bench_tx: # (31)!
   udp_dst_port: 4096        # UDP destination port
 ```
 
-1. The `scheduler` section is passed to the multi threaded scheduler we declare in the `#!cpp main()` function of this application. See the [holoscan SDK documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/components/schedulers.html) and [API docs](https://docs.nvidia.com/holoscan/sdk-user-guide/api/cpp/classholoscan_1_1multithreadscheduler.html) for more details. This is related to the Holoscan core library and is not specific to Holoscan Networking.
+1. The `scheduler` section is passed to the multi threaded scheduler we declare in the `#!cpp main()` function of this application. See the [holoscan SDK documentation](https://docs.nvidia.com/holoscan/sdk-user-guide/components/schedulers) and [API docs](https://docs.nvidia.com/holoscan/sdk-user-guide/api-reference/cpp/holoscan/classes/multithreadscheduler) for more details. This is related to the Holoscan core library and is not specific to Holoscan Networking.
 2. The `daqiri` section is passed to `daqiri::daqiri_init`, which is responsible for setting up the NIC. That function should be called before the application graph starts.
 3. `stream_type` and `protocol` select a DAQIRI backend. The HoloHub examples use raw DPDK-style packet I/O and DAQIRI socket/RDMA paths.
 4. `master_core` is the ID of the CPU core used for setup. It does not need to be isolated, and is recommended to differ differ from the `cpu_core` fields below used for polling the NIC.
