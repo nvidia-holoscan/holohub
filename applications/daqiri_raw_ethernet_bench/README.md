@@ -69,7 +69,8 @@ To run manually inside the container:
 Build with testing enabled:
 
 ```bash
-./holohub build daqiri_raw_ethernet_bench --configure-args="-D BUILD_TESTING:BOOL=ON"
+./holohub build daqiri_raw_ethernet_bench --language=cpp \
+  --configure-args="-D BUILD_TESTING:BOOL=ON"
 ```
 
 Then run the benchmark tests from the build directory:
