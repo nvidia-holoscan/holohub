@@ -37,4 +37,4 @@ RUN chmod +x /tmp/scripts/run
 RUN /tmp/scripts/run setup
 
 # Install libraries
-RUN pip install torch torchvision
+RUN pip install torch==2.1.0 torchvision==0.16.0
