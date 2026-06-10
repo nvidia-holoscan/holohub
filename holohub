@@ -68,8 +68,7 @@ fi
 # Install holoscan-cli unless a source-project-capable one is already present.
 # Probe the command surface (not just importability), so a stale legacy
 # holoscan-cli (<= 4.2.0, which lacks `build`/`list`) doesn't satisfy the check.
-# Two-step install keeps NVIDIA PyPI scoped to the holoscan-cli wheel so a
-# non-PyPI mirror of a common dep can't shadow the PyPI one.
+# Install the pinned release from NVIDIA PyPI until it is promoted to public PyPI.
 if ! "${PYTHON_BIN}" -m holoscan_cli --help 2>/dev/null | grep -qw build; then
     # Bootstrap pip if the interpreter lacks it (minimal Python installs omit
     # it). `pip install` below would otherwise fail with a confusing error.
@@ -85,10 +84,8 @@ if ! "${PYTHON_BIN}" -m holoscan_cli --help 2>/dev/null | grep -qw build; then
         "${PYTHON_BIN}" -m pip install --upgrade "${HOLOSCAN_CLI_SOURCE}"
     else
         echo "[holohub] installing ${HOLOSCAN_CLI_VERSION}" >&2
-        "${PYTHON_BIN}" -m pip install --pre --no-deps \
+        "${PYTHON_BIN}" -m pip install --pre \
             --index-url https://pypi.nvidia.com "${HOLOSCAN_CLI_VERSION}"
-        "${PYTHON_BIN}" -m pip install \
-            --index-url https://pypi.org/simple/ "${HOLOSCAN_CLI_VERSION}"
     fi
 fi
 

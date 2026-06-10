@@ -35,22 +35,15 @@ jobs:
         uses: actions/checkout@v4
 
       # Install the pinned holoscan-cli from NVIDIA PyPI until the
-      # release is promoted to public PyPI.
-      #
-      # Two-step install scopes NVIDIA PyPI to *only* the pinned holoscan-cli
-      # wheel: first pull the wheel from NVIDIA PyPI with --no-deps, then
-      # resolve its transitive deps + the CI test tools from public PyPI.
-      # That avoids dependency-confusion risk where non-PyPI mirrors of
-      # common packages could shadow PyPI ones.
+      # release is promoted to public PyPI. CI test tools still come
+      # from public PyPI.
       - name: Install holoscan-cli (pinned dev build)
         run: |
           python -m pip install --upgrade pip
-          python -m pip install --pre --no-deps \
+          python -m pip install --pre \
               --index-url "${HOLOSCAN_CLI_INDEX_URL}" \
               "${HOLOSCAN_CLI_SPEC}"
-          python -m pip install \
-              --index-url https://pypi.org/simple/ \
-              "${HOLOSCAN_CLI_SPEC}" pytest pytest-mock
+          python -m pip install pytest pytest-mock
 
       # Verify the wrapper + holoscan-cli contract on HoloHub's project tree.
       - name: Run wrapper consolidation test
@@ -74,9 +67,8 @@ jobs:
 
       # ctest invokes `python -m pytest` on the smoke test;
       # match the python-job install so the test actually runs rather than
-      # erroring with "No module named pytest". Same two-step split as the
-      # check-cli-py matrix so NVIDIA PyPI is scoped to the holoscan-cli wheel
-      # only and CI test tools come from public PyPI.
+      # erroring with "No module named pytest". Install the pinned CLI from
+      # NVIDIA PyPI and the CI test tools from public PyPI.
       #
       # cookiecutter is required by the registered `holohub_create_module`
       # ctest (utilities/cli/tests/test_create_module.py); without it the
@@ -89,12 +81,10 @@ jobs:
       - name: Install holoscan-cli (pinned dev build)
         run: |
           python -m pip install --upgrade pip
-          python -m pip install --pre --no-deps \
+          python -m pip install --pre \
               --index-url "${HOLOSCAN_CLI_INDEX_URL}" \
               "${HOLOSCAN_CLI_SPEC}"
-          python -m pip install \
-              --index-url https://pypi.org/simple/ \
-              "${HOLOSCAN_CLI_SPEC}" pytest pytest-mock cookiecutter \
+          python -m pip install pytest pytest-mock cookiecutter \
               jsonschema referencing
 
       - name: Configure CMake with testing enabled

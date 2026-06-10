@@ -53,15 +53,13 @@ RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
 
 # Ensure the `holoscan` CLI exists. The legacy packaging-only CLI (holoscan-cli
 # <= 4.2.0) is also on PATH, so probe `holoscan --help` for a source-project
-# command (`build`) only the new CLI has. Two-step install (matches CI): wheel
-# from NVIDIA PyPI (--no-deps), deps from PyPI. HOLOSCAN_CLI_INSTALL_SPEC (the
+# command (`build`) only the new CLI has. Install the pinned release from NVIDIA
+# PyPI until it is promoted to public PyPI. HOLOSCAN_CLI_INSTALL_SPEC (the
 # wrapper forwards it) selects the version; default is the pinned build.
 ARG HOLOSCAN_CLI_INSTALL_SPEC=holoscan-cli==4.3.0rc2
 RUN if ! holoscan --help 2>/dev/null | grep -qw build; then \
-        python3 -m pip install --pre --no-deps \
-            --index-url https://pypi.nvidia.com "${HOLOSCAN_CLI_INSTALL_SPEC}" \
-        && python3 -m pip install \
-            --index-url https://pypi.org/simple/ "${HOLOSCAN_CLI_INSTALL_SPEC}"; \
+        python3 -m pip install --pre \
+            --index-url https://pypi.nvidia.com "${HOLOSCAN_CLI_INSTALL_SPEC}"; \
     fi
 
 ############################################################

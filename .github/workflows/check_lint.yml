@@ -31,11 +31,6 @@ jobs:
       # ``sudo ./holohub lint --install-dependencies`` once the
       # release lands on public PyPI.
       #
-      # Two-step install scopes NVIDIA PyPI to *only* the pinned holoscan-cli
-      # wheel: first pull the wheel from NVIDIA PyPI with --no-deps, then
-      # resolve its transitive deps from public PyPI. Prevents dependency-
-      # confusion risk where non-PyPI builds of common packages could
-      # shadow the PyPI versions.
       # Use a single interpreter across non-sudo / sudo / ./holohub bootstrap.
       # On GitHub-hosted ubuntu-22.04 the runner exposes `python` only via a
       # PATH shim that sudo strips (sudo's secure_path doesn't include the
@@ -52,12 +47,8 @@ jobs:
         run: |
           "${PYBIN}" -m pip install --upgrade pip
           sudo --preserve-env=HOLOSCAN_CLI_SPEC,HOLOSCAN_CLI_INDEX_URL,PYBIN \
-              "${PYBIN}" -m pip install --pre --no-deps \
+              "${PYBIN}" -m pip install --pre \
                   --index-url "${HOLOSCAN_CLI_INDEX_URL}" \
-                  "${HOLOSCAN_CLI_SPEC}"
-          sudo --preserve-env=HOLOSCAN_CLI_SPEC,PYBIN \
-              "${PYBIN}" -m pip install \
-                  --index-url https://pypi.org/simple/ \
                   "${HOLOSCAN_CLI_SPEC}"
 
       # Forward PYBIN as HOLOHUB_PYTHON_BIN so the wrapper exec's the same
