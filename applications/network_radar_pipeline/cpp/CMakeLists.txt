@@ -26,7 +26,6 @@ include(HoloHubDaqiri)
 
 # set(CMAKE_BUILD_TYPE Debug)
 # Enable cuda language
-set(CMAKE_CUDA_ARCHITECTURES "70;80;90")
 enable_language(CUDA)
 
 # Main
@@ -49,10 +48,6 @@ target_link_libraries(network_radar_pipeline PRIVATE
   daqiri_connectors
 )
 holohub_link_daqiri(network_radar_pipeline)
-
-set_target_properties(network_radar_pipeline PROPERTIES
-  CUDA_ARCHITECTURES "80;90"
-)
 
 target_include_directories(network_radar_pipeline PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}

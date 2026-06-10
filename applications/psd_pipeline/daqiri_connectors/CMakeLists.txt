@@ -11,7 +11,6 @@ list(PREPEND CMAKE_PREFIX_PATH "/opt/daqiri")
 find_package(daqiri REQUIRED CONFIG)
 include(HoloHubDaqiri)
 
-set(CMAKE_CUDA_ARCHITECTURES "70;80;90")
 enable_language(CUDA)
 
 add_library(daqiri_connectors

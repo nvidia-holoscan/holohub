@@ -22,7 +22,6 @@ find_package(daqiri REQUIRED CONFIG)
 include(HoloHubDaqiri)
 
 # Enable cuda language
-set(CMAKE_CUDA_ARCHITECTURES "70;80")
 enable_language(CUDA)
 
 add_executable(simple_pdw_pipeline

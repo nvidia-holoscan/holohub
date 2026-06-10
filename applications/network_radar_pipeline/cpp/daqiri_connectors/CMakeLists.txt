@@ -25,7 +25,6 @@ include(HoloHubDaqiri)
 
 # set(CMAKE_BUILD_TYPE Debug)
 # Enable cuda language
-set(CMAKE_CUDA_ARCHITECTURES "70;80")
 enable_language(CUDA)
 
 # Main

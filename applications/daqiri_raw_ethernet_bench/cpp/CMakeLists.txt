@@ -26,9 +26,6 @@ list(PREPEND CMAKE_PREFIX_PATH "/opt/daqiri")
 find_package(daqiri REQUIRED CONFIG)
 include(HoloHubDaqiri)
 
-# Global variables
-set(CMAKE_CUDA_ARCHITECTURES "70;80;90")
-
 # Create the executable
 add_executable(daqiri_raw_ethernet_bench
   kernels.cu
