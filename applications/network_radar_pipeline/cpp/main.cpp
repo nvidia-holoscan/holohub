@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,14 +18,31 @@
 #include "common.h"
 #include "source.h"
 #include "process.h"
-#include "basic_network_connectors/basic_networking_tx.h"
-#include "basic_network_connectors/basic_networking_rx.h"
-#include "advanced_network_connectors/adv_networking_tx.h"
-#include "advanced_network_connectors/adv_networking_rx.h"
+#include "daqiri_connectors/adv_networking_tx.h"
+#include "daqiri_connectors/adv_networking_rx.h"
 #include "holoscan/holoscan.hpp"
+#include <daqiri/daqiri.h>
 
 class App : public holoscan::Application {
  private:
+  bool use_daqiri(const std::string& section) {
+    bool enabled = true;
+
+    for (const auto& yaml_node : config().yaml_nodes()) {
+      const auto params = yaml_node[section];
+      if (!params || !params.IsMap()) { continue; }
+
+      if (params["use_daqiri"].IsDefined()) { enabled = params["use_daqiri"].as<bool>(); }
+    }
+
+    if (!enabled) {
+      HOLOSCAN_LOG_ERROR("Only DAQIRI networking is supported by this application");
+      exit(1);
+    }
+
+    return enabled;
+  }
+
   /**
    * @brief Setup the application as a radar I/Q data generation pipeline
    */
@@ -38,29 +55,15 @@ class App : public holoscan::Application {
       "target_sim",
       from_config("radar_pipeline"));
 
-    // Network operators
-    if (from_config("tx_params.use_ano").as<bool>()) {
-      // Advanced
+    if (use_daqiri("tx_params")) {
       auto adv_packet_gen = make_operator<ops::AdvConnectorOpTx>(
         "packet_gen",
-        from_config("advanced_network"),
+        from_config("daqiri"),
         from_config("radar_pipeline"),
         from_config("tx_params"),
         make_condition<BooleanCondition>("is_alive", true));
 
       add_flow(target_sim, adv_packet_gen, {{"rf_out", "rf_in"}});
-    } else {
-      // Basic
-      auto bas_packet_gen = make_operator<ops::BasicConnectorOpTx>(
-        "packet_gen",
-        from_config("radar_pipeline"),
-        from_config("basic_network"));
-      auto bas_net_tx = make_operator<ops::BasicNetworkOpTx>(
-        "bas_network_tx",
-        from_config("basic_network"));
-
-      add_flow(target_sim, bas_packet_gen, {{"rf_out", "rf_in"}});
-      add_flow(bas_packet_gen, bas_net_tx, {{"burst_out", "burst_in"}});
     }
   }
 
@@ -82,27 +85,13 @@ class App : public holoscan::Application {
     auto dop  = make_operator<ops::DopplerOp>("doppler", from_config("radar_pipeline"));
     auto cfar = make_operator<ops::CFAROp>("cfar", from_config("radar_pipeline"));
 
-    // Network operators
-    if (from_config("rx_params.use_ano").as<bool>()) {
-      // Advanced
+    if (use_daqiri("rx_params")) {
       auto adv_rx_pkt = make_operator<ops::AdvConnectorOpRx>(
         "bench_rx",
         from_config("rx_params"),
         from_config("radar_pipeline"),
         make_condition<BooleanCondition>("is_alive", true));
       add_flow(adv_rx_pkt, pc,         {{"rf_out", "rf_in"}});
-    } else {
-      // Basic
-      auto bas_net_rx = make_operator<ops::BasicNetworkOpRx>(
-        "bas_network_rx",
-        from_config("basic_network"),
-        make_condition<BooleanCondition>("is_alive", true));
-      auto bas_rx_pkt = make_operator<ops::BasicConnectorOpRx>(
-        "rx_pkt",
-        from_config("basic_network"),
-        from_config("radar_pipeline"));
-      add_flow(bas_net_rx, bas_rx_pkt, {{"burst_out", "burst_in"}});
-      add_flow(bas_rx_pkt, pc,         {{"rf_out", "rf_in"}});
     }
 
     add_flow(pc, tpc,   {{"pc_out", "tpc_in"}});
@@ -140,11 +129,19 @@ int main(int argc, char** argv) {
     return -1;
   }
 
+  if (daqiri::daqiri_init(config_path.string()) != daqiri::Status::SUCCESS) {
+    HOLOSCAN_LOG_ERROR("Failed to configure DAQIRI");
+    return -1;
+  }
+  HOLOSCAN_LOG_INFO("Configured DAQIRI");
+
   // Run
   app->config(config_path);
   app->scheduler(app->make_scheduler<holoscan::MultiThreadScheduler>(
         "multithread-scheduler", app->from_config("scheduler")));
   app->run();
 
+  daqiri::print_stats();
+  daqiri::shutdown();
   return 0;
 }

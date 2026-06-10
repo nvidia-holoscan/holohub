@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,5 +16,4 @@
 include(holohub_configure_deb)
 
 add_holohub_package(holoscan-networking
-                    APPLICATIONS adv_networking_bench basic_networking_ping
-                    OPERATORS advanced_network basic_network)
+                    APPLICATIONS daqiri_raw_ethernet_bench daqiri_socket_ping)

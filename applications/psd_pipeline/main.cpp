@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2024-2026 Voyager Technologies, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
-#include "advanced_network_connectors/vita49_rx.h"
+#include "daqiri_connectors/vita49_rx.h"
 #include <fft.hpp>
 #include <high_rate_psd.hpp>
 #include <low_rate_psd.hpp>
@@ -14,13 +14,6 @@ class PsdPipeline : public holoscan::Application {
  public:
     void compose() override {
         using namespace holoscan;
-
-        auto adv_net_config = from_config("advanced_network").as<NetworkConfig>();
-        if (adv_net_init(adv_net_config) != Status::SUCCESS) {
-            HOLOSCAN_LOG_ERROR("Failed to configure the Advanced Network manager");
-            exit(1);
-        }
-        HOLOSCAN_LOG_INFO("Configured the Advanced Network manager");
 
         auto vitaConnectorOp = make_operator<ops::Vita49ConnectorOpRx>(
             "vitaConnectorOp",
@@ -69,7 +62,7 @@ int main(int argc, char** argv) {
     auto app = holoscan::make_application<PsdPipeline>();
 
     // Get the configuration file
-    if (argc < 1) {
+    if (argc < 2) {
         HOLOSCAN_LOG_ERROR("Usage: {} [config.yaml]", argv[0]);
         return -1;
     }
@@ -84,6 +77,12 @@ int main(int argc, char** argv) {
         return -1;
     }
 
+    if (daqiri::daqiri_init(config_path.string()) != daqiri::Status::SUCCESS) {
+        HOLOSCAN_LOG_ERROR("Failed to configure DAQIRI");
+        return -1;
+    }
+    HOLOSCAN_LOG_INFO("Configured DAQIRI");
+
     // Run
     app->enable_metadata(true);
     app->config(config_path);
@@ -91,6 +90,7 @@ int main(int argc, char** argv) {
           "event-based-scheduler", app->from_config("scheduler")));
     app->run();
 
-    shutdown();
+    daqiri::print_stats();
+    daqiri::shutdown();
     return 0;
 }

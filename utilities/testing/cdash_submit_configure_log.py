@@ -27,7 +27,7 @@ will cause CDash to delete and recreate the build (RemoveIfDone behavior).
 Usage:
     python3 utilities/testing/cdash_submit_configure_log.py \\
         --cdash-url "http://cdash.nvidia.com/submit.php?project=Holoscan" \\
-        --build-name "holohub-linux-arm64-adv_networking_bench-dpdk-main" \\
+        --build-name "holohub-linux-arm64-daqiri_raw_ethernet_bench-dpdk-main" \\
         --site "my-node" \\
         --cmd "docker_build" \\
         --exit-code 1 \\

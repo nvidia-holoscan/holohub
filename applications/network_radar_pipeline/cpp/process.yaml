@@ -27,24 +27,15 @@ scheduler:
 
 rx_params:
   interface_name: rx0
-  use_ano: true
+  use_daqiri: true
   split_boundary: true
   batch_size: 5120
   max_packet_size: 9000
 
-basic_network:
-  batch_size: 100            # RX message batch size
-  max_payload_size: 8208     # Max bytes of single packet (stride)
-  dst_port: 4096             # Destination port
-  l4_proto: "udp"            # Protocol ('udp' or "tcp")
-  ip_addr: "192.168.200.17"  # Destination IP address
-  min_ipg_ns: 0              # Minimum inter-packet gap (nano-seconds)
-  retry_connect: 1
-
-advanced_network:
+daqiri:
   cfg:
     version: 1
-    manager: "dpdk"
+    stream_type: "raw"
     master_core: 16                 # Master CPU core
     memory_regions:
     - name: "HDR_RX_CPU"
@@ -57,19 +48,20 @@ advanced_network:
       affinity: 0
       num_bufs: 51200
       buf_size: 8958
-    rx:
+    interfaces:
       - name: rx0
-        address: 0000:17:00.1       # PCIe BFD of NIC
-        flow_isolation: true
-        queues:
-          - name: "ADC Samples"
-            id: 0
-            cpu_core: 2
-            batch_size: 5120            # Number of packets in a batch
-            memory_regions:
-              - "HDR_RX_CPU"
-              - "Data_RX_GPU"
-        flows:
+        address: 0000:17:00.1       # PCIe BDF of NIC
+        rx:
+          flow_isolation: true
+          queues:
+            - name: "ADC Samples"
+              id: 0
+              cpu_core: 2
+              batch_size: 5120            # Number of packets in a batch
+              memory_regions:
+                - "HDR_RX_CPU"
+                - "Data_RX_GPU"
+          flows:
             - name: "ADC Samples"
               id: 0
               action:
