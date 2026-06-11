@@ -41,7 +41,7 @@
         "sub_frame_visualizer",
         "udp_transmitter"
       ],
-      "nvidia_quality_score": 1
+      "nvidia_quality_score": 5
     }
   ]
 }
