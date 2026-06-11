@@ -22,7 +22,8 @@
 # Optional overrides (rarely needed):
 #   HOLOSCAN_CLI_SOURCE   Local checkout — wins over the package install.
 #   HOLOSCAN_CLI_INSTALL_ARGS  Pip install arguments.
-#   HOLOHUB_PYTHON_BIN    Python interpreter (default: python3).
+#   HOLOSCAN_CLI_PYTHON_BIN  Python interpreter (default: python3).
+#   HOLOHUB_PYTHON_BIN       Legacy fallback for HOLOSCAN_CLI_PYTHON_BIN.
 
 set -euo pipefail
 
@@ -30,7 +31,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 export HOLOSCAN_CLI_CMD_NAME="${BASH_SOURCE[0]}"
 export HOLOSCAN_CLI_ROOT="${SCRIPT_DIR}"
 
-PYTHON_BIN="${HOLOHUB_PYTHON_BIN:-python3}"
+PYTHON_BIN="${HOLOSCAN_CLI_PYTHON_BIN:-${HOLOHUB_PYTHON_BIN:-python3}}"
 export HOLOSCAN_CLI_INSTALL_ARGS="${HOLOSCAN_CLI_INSTALL_ARGS:---pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0}"
 
 # Default Holoscan SDK version for project container base images. holoscan-cli
@@ -55,7 +56,8 @@ if ! "${PYTHON_BIN}" -m holoscan_cli --help 2>/dev/null | grep -qw build; then
     if ! "${PYTHON_BIN}" -m pip --version >/dev/null 2>&1; then
         "${PYTHON_BIN}" -m ensurepip --upgrade >/dev/null 2>&1 || {
             echo "[holohub] ${PYTHON_BIN} has no pip and ensurepip is unavailable;" \
-                 "install pip (or set HOLOHUB_PYTHON_BIN to an interpreter that has it) and retry" >&2
+                 "install pip (or set HOLOSCAN_CLI_PYTHON_BIN, or legacy HOLOHUB_PYTHON_BIN," \
+                 "to an interpreter that has it) and retry" >&2
             exit 1
         }
     fi
