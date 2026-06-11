@@ -45,13 +45,13 @@ export HOLOSCAN_CLI_HOSTNAME_PREFIX="${HOLOSCAN_CLI_HOSTNAME_PREFIX:-{{ cookiecu
 # ==============================================================================
 
 export HOLOSCAN_CLI_DEFAULT_DOCKERFILE="${HOLOSCAN_CLI_DEFAULT_DOCKERFILE:-${SCRIPT_DIR}/Dockerfile}"
-# Recursive walk from SCRIPT_DIR — picks up the top-level metadata.json
+# Recursive walk from working directory — picks up the top-level metadata.json
 # (project_type=module) along with operators/<x>/metadata.json and
 # applications/<y>/metadata.json. The narrower default
 # `applications,operators` skipped the module's own descriptor, so
 # `./holohub list` showed no MODULES section and `./holohub package
 # <name>` couldn't find the module by name. (holohub#1582)
-export HOLOSCAN_CLI_SEARCH_PATH="${HOLOSCAN_CLI_SEARCH_PATH:-${SCRIPT_DIR}}"
+export HOLOSCAN_CLI_SEARCH_PATH="${HOLOSCAN_CLI_SEARCH_PATH:-./}"
 export HOLOSCAN_CLI_BUILD_PARENT_DIR="${HOLOSCAN_CLI_BUILD_PARENT_DIR:-${SCRIPT_DIR}/build}"
 export HOLOSCAN_CLI_DATA_DIR="${HOLOSCAN_CLI_DATA_DIR:-${SCRIPT_DIR}/data}"
 
