@@ -1,7 +1,7 @@
 # DAQIRI Raw Ethernet Benchmark
 
 > [!TIP]
-> Review the [High Performance Networking tutorial](/tutorials/high_performance_networking/README.md) for guided
+> Review the [System Configuration tutorial](https://nvidia.github.io/daqiri/tutorials/system_configuration/) for guided
 > instructions to configure your system and test DAQIRI.
 
 This sample application measures raw DAQIRI DPDK transmit and receive throughput using the single
@@ -10,7 +10,7 @@ configured interface and receives them on another configured interface.
 
 The performance of this application depends heavily on a properly-configured system and tuning parameters
 that are acceptable for the workload. To configure the system, see the
-[High Performance Networking documentation](/tutorials/high_performance_networking/README.md).
+[System Configuration tutorial](https://nvidia.github.io/daqiri/tutorials/system_configuration/).
 
 ## Configuration
 
