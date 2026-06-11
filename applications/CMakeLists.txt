@@ -49,6 +49,8 @@ add_holohub_application(deltacast_receiver DEPENDS
 
 add_holohub_application(depth_anything_v2)
 
+add_holohub_application(depth_to_point_cloud_demo DEPENDS OPERATORS depth_to_point_cloud)
+
 add_subdirectory(distributed)
 
 add_holohub_application(endoscopy_depth_estimation)
