@@ -34,32 +34,47 @@ ARG PYTHON_VERSION=python3
 # `pip>25.1.0` upgrade from holoscan-cli aborts with `Cannot uninstall
 # pip 24.0, RECORD file not found`. Install pip via get-pip.py instead.
 # Guard on ${PYTHON_VERSION} (not bare python3) so a PYTHON_VERSION override on
-# a base that already ships python3 still installs the requested interpreter;
-# also (re)install when curl is missing, since the get-pip.py bootstrap below
-# needs curl + CA roots even when python is already present.
-RUN if ! command -v "${PYTHON_VERSION}" >/dev/null 2>&1 || ! command -v curl >/dev/null 2>&1; then \
+# a base that already ships python3 still installs the requested interpreter
+# and matching development headers via deadsnakes when needed.
+RUN if ! command -v "${PYTHON_VERSION}" >/dev/null 2>&1; then \
         apt-get update \
         && apt-get install --no-install-recommends -y \
-            ${PYTHON_VERSION} curl ca-certificates \
+            software-properties-common curl ca-certificates gpg-agent \
+        && add-apt-repository ppa:deadsnakes/ppa \
+        && apt-get update \
+        && apt-get install --no-install-recommends -y \
+            ${PYTHON_VERSION} ${PYTHON_VERSION}-dev \
+        && (apt-cache show ${PYTHON_VERSION}-distutils >/dev/null 2>&1 \
+            && apt-get install --no-install-recommends -y ${PYTHON_VERSION}-distutils || true) \
+        && apt purge -y \
+            python3-pip \
+            software-properties-common \
+        && apt-get autoremove --purge -y \
         && rm -rf /var/lib/apt/lists/* \
+        && update-alternatives --install /usr/bin/python python "/usr/bin/${PYTHON_VERSION}" 100 \
         && if [ "${PYTHON_VERSION}" != "python3" ]; then \
             update-alternatives --install /usr/bin/python3 python3 "/usr/bin/${PYTHON_VERSION}" 100; \
         fi; \
     fi
+RUN if ! command -v curl >/dev/null 2>&1; then \
+        apt-get update \
+        && apt-get install --no-install-recommends -y curl ca-certificates \
+        && rm -rf /var/lib/apt/lists/*; \
+    fi
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
 RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
-        curl -sS https://bootstrap.pypa.io/get-pip.py | ${PYTHON_VERSION}; \
+        curl -sS https://bootstrap.pypa.io/get-pip.py | "${PYTHON_VERSION}"; \
     fi
 
-# Ensure the `holoscan` CLI exists. The legacy packaging-only CLI (holoscan-cli
-# <= 4.2.0) is also on PATH, so probe `holoscan --help` for a source-project
-# command (`build`) only the new CLI has. Use NVIDIA PyPI as an extra index
-# until the pinned release is promoted to public PyPI. HOLOSCAN_CLI_INSTALL_SPEC (the
-# wrapper forwards it) selects the version; default is the pinned build.
-ARG HOLOSCAN_CLI_INSTALL_SPEC=holoscan-cli==4.3.0rc2
+# Ensure the `holoscan` CLI exists before this image stages the wrapper, so
+# standalone Docker builds and wrapper-driven builds use the same
+# HOLOSCAN_CLI_INSTALL_ARGS. Probe `holoscan --help` for a source-project
+# command (`build`) so an incompatible installed CLI does not satisfy the check.
+# Install args select the package and any pip options.
+ARG HOLOSCAN_CLI_INSTALL_ARGS=--pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0
 RUN if ! holoscan --help 2>/dev/null | grep -qw build; then \
         python3 -m pip install \
-            --extra-index-url https://pypi.nvidia.com "${HOLOSCAN_CLI_INSTALL_SPEC}"; \
+            ${HOLOSCAN_CLI_INSTALL_ARGS}; \
     fi
 
 ############################################################

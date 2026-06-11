@@ -39,32 +39,43 @@ ARG PYTHON_VERSION=python3
 #    "Cannot uninstall pip 24.0, RECORD file not found".
 #    Guard on ${PYTHON_VERSION} (not bare python3) so a PYTHON_VERSION override
 #    on a base that already ships python3 still installs the requested
-#    interpreter; also (re)install when curl is missing, since the get-pip.py
-#    bootstrap below needs curl + CA roots even when python is already present.
-RUN if ! command -v "${PYTHON_VERSION}" >/dev/null 2>&1 || ! command -v curl >/dev/null 2>&1; then \
+#    interpreter via deadsnakes when the base apt repositories do not carry it.
+RUN if ! command -v "${PYTHON_VERSION}" >/dev/null 2>&1; then \
         apt-get update \
         && apt-get install --no-install-recommends -y \
-            ${PYTHON_VERSION} curl ca-certificates \
+            software-properties-common curl ca-certificates gpg-agent \
+        && add-apt-repository ppa:deadsnakes/ppa \
+        && apt-get update \
+        && apt-get install --no-install-recommends -y \
+            ${PYTHON_VERSION} \
+        && apt purge -y \
+            python3-pip \
+            software-properties-common \
+        && apt-get autoremove --purge -y \
         && rm -rf /var/lib/apt/lists/* \
+        && update-alternatives --install /usr/bin/python python "/usr/bin/${PYTHON_VERSION}" 100 \
         && if [ "${PYTHON_VERSION}" != "python3" ]; then \
             update-alternatives --install /usr/bin/python3 python3 "/usr/bin/${PYTHON_VERSION}" 100; \
         fi; \
     fi
+RUN if ! command -v curl >/dev/null 2>&1; then \
+        apt-get update \
+        && apt-get install --no-install-recommends -y curl ca-certificates \
+        && rm -rf /var/lib/apt/lists/*; \
+    fi
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
 RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
-        curl -sS https://bootstrap.pypa.io/get-pip.py | ${PYTHON_VERSION}; \
+        curl -sS https://bootstrap.pypa.io/get-pip.py | "${PYTHON_VERSION}"; \
     fi
 
-# 2. Ensure the `holoscan` CLI exists. The legacy packaging-only CLI
-#    (holoscan-cli <= 4.2.0) is also on PATH, so probe `holoscan --help` for a
-#    source-project command (`build`) only the new CLI has. Use NVIDIA PyPI
-#    as an extra index until the pinned release is promoted to public PyPI.
-#    HOLOSCAN_CLI_INSTALL_SPEC (the wrapper forwards it as a build-arg) selects
-#    the version; default is the pinned build.
-ARG HOLOSCAN_CLI_INSTALL_SPEC=holoscan-cli==4.3.0rc2
+# 2. Ensure the `holoscan` CLI exists. Probe `holoscan --help` for a
+#    source-project command (`build`) so an incompatible installed CLI does not
+#    satisfy the check. HOLOSCAN_CLI_INSTALL_ARGS (the wrapper forwards it as a
+#    build-arg) selects the package and any pip options.
+ARG HOLOSCAN_CLI_INSTALL_ARGS=--pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0
 RUN if ! holoscan --help 2>/dev/null | grep -qw build; then \
         python3 -m pip install \
-            --extra-index-url https://pypi.nvidia.com "${HOLOSCAN_CLI_INSTALL_SPEC}"; \
+            ${HOLOSCAN_CLI_INSTALL_ARGS}; \
     fi
 
 ############################################################
@@ -90,6 +101,8 @@ RUN holoscan version \
 #    the standard (prepared-base) path a no-op.
 RUN [ -f /etc/bash_completion.d/holohub_autocomplete ] \
     || (/tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*)
+RUN grep -qxF "[ -f /etc/bash_completion.d/holohub_autocomplete ] && . /etc/bash_completion.d/holohub_autocomplete" /etc/bash.bashrc \
+    || echo "[ -f /etc/bash_completion.d/holohub_autocomplete ] && . /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
 
 # 6. Mirror the prepared-base default data path so `--base-img` builds see the
 #    same HOLOSCAN_INPUT_PATH.

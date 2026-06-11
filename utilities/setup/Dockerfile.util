@@ -22,6 +22,6 @@ ARG BASE_IMAGE
 FROM ${BASE_IMAGE} AS base
 
 ARG SCRIPT
-COPY ${SCRIPT} ${SCRIPT}
-RUN chmod +x ${SCRIPT}
-RUN ${SCRIPT}
+COPY . /tmp/holohub-setup/
+RUN chmod +x /tmp/holohub-setup/${SCRIPT}
+RUN /tmp/holohub-setup/${SCRIPT}

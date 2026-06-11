@@ -9,13 +9,8 @@ on:
 permissions:
   contents: read
 
-# Pinned holoscan-cli build used by CI while the release is still on
-# NVIDIA PyPI. Bump this single value to roll the version across all jobs;
-# drop the index-url overrides below once the release is promoted to
-# public PyPI.
 env:
-  HOLOSCAN_CLI_SPEC: "holoscan-cli==4.3.0rc2"
-  HOLOSCAN_CLI_EXTRA_INDEX_URL: "https://pypi.nvidia.com"
+  HOLOSCAN_CLI_INSTALL_ARGS: "--pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0"
 
 jobs:
   check-cli-py:
@@ -34,15 +29,14 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # Install the pinned holoscan-cli from NVIDIA PyPI via --extra-index-url
-      # until the release is promoted to public PyPI. HoloHub-owned check
-      # dependencies live in utilities/requirements.check-cli.txt.
-      - name: Install holoscan-cli (pinned dev build)
+      # HoloHub-owned check dependencies live in
+      # utilities/requirements.check-cli.txt; holoscan-cli itself is resolved
+      # from NVIDIA PyPI.
+      - name: Install holoscan-cli
         run: |
           python -m pip install --upgrade pip
           python -m pip install \
-              --extra-index-url "${HOLOSCAN_CLI_EXTRA_INDEX_URL}" \
-              "${HOLOSCAN_CLI_SPEC}" \
+              ${HOLOSCAN_CLI_INSTALL_ARGS} \
               -r utilities/requirements.check-cli.txt
 
       # Verify the wrapper + holoscan-cli contract on HoloHub's project tree.
@@ -67,12 +61,11 @@ jobs:
 
       # ctest invokes `python -m pytest` on the smoke tests; keep the
       # HoloHub-owned test and template dependencies in one requirements file.
-      - name: Install holoscan-cli (pinned dev build)
+      - name: Install holoscan-cli
         run: |
           python -m pip install --upgrade pip
           python -m pip install \
-              --extra-index-url "${HOLOSCAN_CLI_EXTRA_INDEX_URL}" \
-              "${HOLOSCAN_CLI_SPEC}" \
+              ${HOLOSCAN_CLI_INSTALL_ARGS} \
               -r utilities/requirements.check-cli.txt
 
       - name: Configure CMake with testing enabled
@@ -86,8 +79,8 @@ jobs:
 
   # Exercise the same smoke test against a *source checkout*
   # of holoscan-cli (https://github.com/nvidia-holoscan/holoscan-cli) rather
-  # than the pinned NVIDIA PyPI wheel. This catches breakage when an in-flight
-  # holoscan-cli change lands ahead of a new release.
+  # than the NVIDIA PyPI wheel. This catches breakage when an in-flight
+  # holoscan-cli change lands ahead of a new release candidate.
   check-cli-source:
     runs-on: ubuntu-22.04
     steps:

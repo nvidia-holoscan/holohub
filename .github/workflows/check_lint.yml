@@ -9,13 +9,8 @@ on:
 permissions:
   contents: read
 
-# Pinned holoscan-cli build used by CI while the release is still on
-# NVIDIA PyPI. Bump this single value to roll the version across all jobs;
-# drop the index-url overrides below once the release is promoted to
-# public PyPI.
 env:
-  HOLOSCAN_CLI_SPEC: "holoscan-cli==4.3.0rc2"
-  HOLOSCAN_CLI_EXTRA_INDEX_URL: "https://pypi.nvidia.com"
+  HOLOSCAN_CLI_INSTALL_ARGS: "--pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0"
 
 jobs:
   check-lint:
@@ -25,44 +20,17 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # Pre-install the pinned holoscan-cli from NVIDIA PyPI so the
-      # ./holohub bootstrap doesn't reach public PyPI for a stale 4.2.0
-      # build that predates the ``lint`` subcommand. Revert this step to
-      # ``sudo ./holohub lint --install-dependencies`` once the
-      # release lands on public PyPI.
-      #
-      # Use a single interpreter across non-sudo / sudo / ./holohub bootstrap.
-      # On GitHub-hosted ubuntu-22.04 the runner exposes `python` only via a
-      # PATH shim that sudo strips (sudo's secure_path doesn't include the
-      # hostedtoolcache dirs); meanwhile the wrapper exec's `python3`. Resolve
-      # the absolute interpreter path once and reuse it everywhere so the
-      # pinned wheel lands in the same site-packages the wrapper imports from.
-      - name: Resolve Python interpreter
-        id: pybin
-        run: echo "path=$(command -v python3)" >> "${GITHUB_OUTPUT}"
-
-      - name: Install holoscan-cli (pinned dev build)
-        env:
-          PYBIN: ${{ steps.pybin.outputs.path }}
+      # Pre-install holoscan-cli from NVIDIA PyPI so ./holohub bootstrap uses
+      # the CLI expected by this lint workflow.
+      - name: Install holoscan-cli
         run: |
-          "${PYBIN}" -m pip install --upgrade pip
-          sudo --preserve-env=HOLOSCAN_CLI_SPEC,HOLOSCAN_CLI_EXTRA_INDEX_URL,PYBIN \
-              "${PYBIN}" -m pip install \
-                  --extra-index-url "${HOLOSCAN_CLI_EXTRA_INDEX_URL}" \
-                  "${HOLOSCAN_CLI_SPEC}"
+          python3 -m pip install --upgrade pip
+          sudo python3 -m pip install \
+              ${HOLOSCAN_CLI_INSTALL_ARGS}
 
-      # Forward PYBIN as HOLOHUB_PYTHON_BIN so the wrapper exec's the same
-      # interpreter the pinned wheel was just installed into. The wrapper
-      # defaults to `python3`, which under sudo's secure_path may resolve
-      # to a different binary than the absolute path we resolved above.
       - name: Install lint hook dependencies
-        env:
-          PYBIN: ${{ steps.pybin.outputs.path }}
         run: |
-          sudo --preserve-env=HOLOHUB_PYTHON_BIN \
-              env HOLOHUB_PYTHON_BIN="${PYBIN}" ./holohub lint --install-dependencies
+          sudo ./holohub lint --install-dependencies
 
       - name: Run linter
-        env:
-          PYBIN: ${{ steps.pybin.outputs.path }}
-        run: HOLOHUB_PYTHON_BIN="${PYBIN}" ./holohub lint
+        run: ./holohub lint

@@ -42,14 +42,10 @@ The `./holohub` script at the repo root does three things in order:
 2. If the probe fails, it bootstraps pip when missing and `pip install`s the
    package. The install spec is chosen in this precedence order:
 
-   | Env var                | Behavior                                                    |
-   | ---------------------- | ----------------------------------------------------------- |
-   | `HOLOSCAN_CLI_SOURCE`  | Path to a local checkout. Wins over `HOLOSCAN_CLI_VERSION`. |
-   | `HOLOSCAN_CLI_VERSION` | Pip spec; defaults to the pinned `holoscan-cli==4.3.0rc2`.  |
-
-   A bare version or comparator (`4.3.0`, `>=4.3`) given as
-   `HOLOSCAN_CLI_VERSION` is normalized to a valid `holoscan-cli` requirement;
-   full specs, URLs, and `git+https://...` pass through unchanged.
+   | Env var                     | Behavior                                                                                                   |
+   | --------------------------- | ---------------------------------------------------------------------------------------------------------- |
+   | `HOLOSCAN_CLI_SOURCE`       | Path to a local checkout. Wins over `HOLOSCAN_CLI_INSTALL_ARGS`.                                           |
+   | `HOLOSCAN_CLI_INSTALL_ARGS` | Pip install arguments; defaults to `--pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0`.   |
 
 3. Exports the `HOLOSCAN_CLI_*` environment variables that configure the CLI
    for this repo, then delegates the user's argv to

@@ -46,8 +46,8 @@ defaults. On first run it installs `holoscan-cli` via pip if it isn't already im
 | `./holohub test` | Run CTest (C++ unit tests) and pytest |
 | `./holohub install --dev` | Install a `.pth` hook so `import holoscan.{{ cookiecutter.module_slug }}` works in any shell |
 
-Set `HOLOSCAN_CLI_VERSION` to pin the installed `holoscan-cli` (e.g. `holoscan-cli==4.3.0`),
-or `HOLOSCAN_CLI_SOURCE` to a local checkout for development.
+Set `HOLOSCAN_CLI_INSTALL_ARGS` to override the pip install
+arguments, or `HOLOSCAN_CLI_SOURCE` to a local checkout for development.
 
 ---
 

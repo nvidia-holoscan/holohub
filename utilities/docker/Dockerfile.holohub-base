@@ -8,9 +8,11 @@
 # Holoscan SDK runtime and runs `holohub setup`, so downstream Dockerfiles can
 # `FROM ${BASE_IMAGE}` without re-provisioning.
 #
-# Writing a new custom Dockerfile? You don't need this file — just
-# `RUN pip install holoscan-cli` (see doc/developer.md). The build-context and
-# install-spec knobs below exist only to iterate on an unreleased holoscan-cli.
+# Writing a new custom Dockerfile? After 4.3.0 is promoted to public PyPI you
+# usually do not need this file — a normal `RUN pip install holoscan-cli` is
+# enough (see doc/developer.md). During the rc window, use the same
+# pre-release install spec as the default below. The build-context and
+# install-spec knobs exist only to iterate on an unreleased holoscan-cli.
 # ----------------------------------------------------------------------------
 
 ARG GPU_TYPE
@@ -62,16 +64,13 @@ RUN if ! command -v curl >/dev/null 2>&1; then \
 
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
 RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
-        curl -sS https://bootstrap.pypa.io/get-pip.py | ${PYTHON_VERSION} \
+        curl -sS https://bootstrap.pypa.io/get-pip.py | "${PYTHON_VERSION}" \
     ; fi
 
-# Install `holoscan-cli`. The default is pinned (matches the repo-root wrapper
-# and CI) so a standalone `docker build` of this base image is reproducible
-# rather than floating to whatever PyPI currently serves. Escape hatches
-# for iterating on the CLI itself:
+# Install `holoscan-cli`. Escape hatches for iterating on the CLI itself:
 #   * `--build-context holoscan-cli-src=<path>` installs a local checkout (wins).
-#   * HOLOSCAN_CLI_INSTALL_SPEC overrides the pinned version.
-ARG HOLOSCAN_CLI_INSTALL_SPEC=holoscan-cli==4.3.0rc2
+#   * HOLOSCAN_CLI_INSTALL_ARGS overrides the default pip install arguments.
+ARG HOLOSCAN_CLI_INSTALL_ARGS=--pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0
 
 # `git` is needed for `git+` specs and local-source builds (dunamai reads the
 # version from VCS). SDK bases already ship it; only barebones bases install.
@@ -88,9 +87,9 @@ RUN --mount=type=bind,from=holoscan-cli-src,target=/tmp/holoscan-cli-src \
         python3 -m pip install --no-cache-dir /tmp/holoscan-cli-src-writable; \
         rm -rf /tmp/holoscan-cli-src-writable; \
     else \
-        echo "Installing holoscan-cli from spec: ${HOLOSCAN_CLI_INSTALL_SPEC}"; \
+        echo "Installing holoscan-cli with args: ${HOLOSCAN_CLI_INSTALL_ARGS}"; \
         python3 -m pip install --no-cache-dir \
-            --extra-index-url https://pypi.nvidia.com "${HOLOSCAN_CLI_INSTALL_SPEC}"; \
+            ${HOLOSCAN_CLI_INSTALL_ARGS}; \
     fi
 
 RUN holoscan version \

@@ -23,9 +23,10 @@
 # HoloHub-style build/run from there.
 #
 # Env vars:
-#   HOLOSCAN_CLI_SOURCE      Local holoscan-cli checkout; wins over _VERSION.
-#   HOLOSCAN_CLI_VERSION     Pip spec (bare versions/operators normalized to
-#                            `holoscan-cli`). Default: `holoscan-cli` (PyPI).
+#   HOLOSCAN_CLI_SOURCE      Local holoscan-cli checkout; wins over install args.
+#   HOLOSCAN_CLI_INSTALL_ARGS
+#                            Pip install arguments. Default:
+#                            `--pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0`.
 #   HOLOSCAN_CLI_BASE_SDK_VERSION
 #                            Holoscan SDK version for container base images
 #                            (required by run/build/package). Default: 4.3.0.
@@ -33,7 +34,7 @@
 #
 # Examples:
 #   ./holohubCLI_wrapper --help
-#   HOLOSCAN_CLI_VERSION=">=4.3" ./holohubCLI_wrapper list
+#   HOLOSCAN_CLI_INSTALL_ARGS="holoscan-cli==4.3.0" ./holohubCLI_wrapper list
 # ==============================================================================
 
 set -euo pipefail
@@ -67,35 +68,25 @@ _holoscan_cli_has_source_project_dispatch() {
     "${PYTHON_BIN}" -m holoscan_cli --help 2>/dev/null | grep -qw build
 }
 
-_holohub_normalize_cli_spec() {
-    local raw="$1"
-    case "${raw}" in
-        holoscan-cli|holoscan-cli[\<\>=\!~]*|holoscan_cli|holoscan_cli[\<\>=\!~]*)
-            printf '%s' "${raw}" ;;
-        *://*|/*|./*|.|git+*|file:*)
-            printf '%s' "${raw}" ;;
-        [\<\>=\!~]*)
-            printf 'holoscan-cli%s' "${raw}" ;;
-        [0-9]*)
-            printf 'holoscan-cli==%s' "${raw}" ;;
-        *)
-            printf '%s' "${raw}" ;;
-    esac
-}
-
 _install_holoscan_cli() {
-    local spec
     if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
-        spec="${HOLOSCAN_CLI_SOURCE}"
-        echo "[holohubCLI_wrapper] installing holoscan-cli from local source: ${spec}" >&2
+        echo "[holohubCLI_wrapper] installing holoscan-cli from local source: ${HOLOSCAN_CLI_SOURCE}" >&2
+        "${PYTHON_BIN}" -m pip install --quiet --upgrade "${HOLOSCAN_CLI_SOURCE}"
     else
-        spec="$(_holohub_normalize_cli_spec "${HOLOSCAN_CLI_VERSION:-holoscan-cli}")"
-        echo "[holohubCLI_wrapper] installing ${spec}" >&2
+        local install_args="${HOLOSCAN_CLI_INSTALL_ARGS:---pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0}"
+        echo "[holohubCLI_wrapper] installing with args: ${install_args}" >&2
+        "${PYTHON_BIN}" -m pip install --quiet --upgrade ${install_args}
     fi
-    "${PYTHON_BIN}" -m pip install --quiet --upgrade "${spec}"
 }
 
 if ! _holoscan_cli_has_source_project_dispatch; then
+    if ! "${PYTHON_BIN}" -m pip --version >/dev/null 2>&1; then
+        "${PYTHON_BIN}" -m ensurepip --upgrade >/dev/null 2>&1 || {
+            echo "[holohubCLI_wrapper] ${PYTHON_BIN} has no pip and ensurepip is unavailable;" \
+                 "install pip (or set HOLOSCAN_CLI_PYTHON_BIN to an interpreter that has it) and retry" >&2
+            exit 1
+        }
+    fi
     _install_holoscan_cli
 fi
 

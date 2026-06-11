@@ -106,8 +106,12 @@ new Dockerfile you usually do not need any of that.
 The smallest fragment that gives a custom Dockerfile the `holoscan` command is:
 
 ```dockerfile
-FROM nvcr.io/nvidia/clara-holoscan/holoscan:v<sdk-version>-<gpu-type>
-RUN pip install holoscan-cli
+FROM ubuntu:24.04
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y python3 python3-pip ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
+RUN python3 -m pip install holoscan-cli>4.2.0
 ```
 
 Pin a release when you want reproducible builds (`pip install holoscan-cli==<version>`).

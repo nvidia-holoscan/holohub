@@ -11,6 +11,17 @@ from typing import Dict
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
+CLI_TIMEOUT_SECONDS = 120
+
+
+def _timeout_output(exc: subprocess.TimeoutExpired) -> str:
+    streams = []
+    for stream in (exc.stdout, exc.stderr):
+        if isinstance(stream, bytes):
+            streams.append(stream.decode(errors="replace"))
+        elif stream:
+            streams.append(stream)
+    return "\n".join(streams)
 
 
 def _holoscan_cli_env() -> Dict[str, str]:
@@ -30,15 +41,22 @@ def _holoscan_cli_env() -> Dict[str, str]:
 
 def _run_holoscan_cli(*args: str) -> subprocess.CompletedProcess:
     env = _holoscan_cli_env()
-    result = subprocess.run(
-        [sys.executable, "-m", "holoscan_cli", *args],
-        cwd=REPO_ROOT,
-        env=env,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        check=False,
-    )
+    try:
+        result = subprocess.run(
+            [sys.executable, "-m", "holoscan_cli", *args],
+            cwd=REPO_ROOT,
+            env=env,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+            timeout=CLI_TIMEOUT_SECONDS,
+        )
+    except subprocess.TimeoutExpired as exc:
+        pytest.fail(
+            f"holoscan_cli timed out after {CLI_TIMEOUT_SECONDS}s: {exc.cmd}\n"
+            f"{_timeout_output(exc)}"
+        )
     # `python -m holoscan_cli` reports the missing package as
     # `No module named holoscan_cli` (not a ModuleNotFoundError traceback)
     # and the wrapper bootstrap can surface the same string via pip's
@@ -76,15 +94,22 @@ def test_unified_cli_dryruns_holohub_project_run():
 
 def _run_holohub_wrapper(*args: str) -> subprocess.CompletedProcess:
     env = _holoscan_cli_env()
-    result = subprocess.run(
-        [str(REPO_ROOT / "holohub"), *args],
-        cwd=REPO_ROOT,
-        env=env,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        check=False,
-    )
+    try:
+        result = subprocess.run(
+            [str(REPO_ROOT / "holohub"), *args],
+            cwd=REPO_ROOT,
+            env=env,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+            timeout=CLI_TIMEOUT_SECONDS,
+        )
+    except subprocess.TimeoutExpired as exc:
+        pytest.fail(
+            f"holohub wrapper timed out after {CLI_TIMEOUT_SECONDS}s: {exc.cmd}\n"
+            f"{_timeout_output(exc)}"
+        )
     # `python -m holoscan_cli` reports the missing package as
     # `No module named holoscan_cli` (not a ModuleNotFoundError traceback)
     # and the wrapper bootstrap can surface the same string via pip's
