@@ -15,6 +15,14 @@
 
 import os
 import sys
+import warnings
+
+try:
+    from requests.exceptions import RequestsDependencyWarning
+
+    warnings.filterwarnings("ignore", category=RequestsDependencyWarning)
+except ImportError:
+    pass
 
 import torch
 from torchvision.models import ResNet50_Weights, detection
