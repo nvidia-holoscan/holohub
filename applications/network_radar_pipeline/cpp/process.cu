@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -66,7 +66,7 @@ void PulseCompressionOp::initialize() {
 
   // Normalize by L2 norm
   make_tensor(norms);
-  (norms = sum(norm(waveformPart))).run();
+  (norms = sum(abs2(waveformPart))).run();
   (norms = sqrt(norms)).run();
   (waveformPart = waveformPart / norms).run();
 
@@ -375,7 +375,7 @@ void CFAROp::compute(InputContext& op_input,
   HOLOSCAN_LOG_INFO("CFAR compute() called");
   auto cfar_data = op_input.receive<std::shared_ptr<CFARData>>("cfar_in").value();
 
-  (xPow = norm(cfar_data->tpcView)).run(cfar_data->stream);
+  (xPow = abs2(cfar_data->tpcView)).run(cfar_data->stream);
 
   // Estimate the background average power in each cell
   // background_averages = conv2(Xpow, mask, 'same') ./ norm;

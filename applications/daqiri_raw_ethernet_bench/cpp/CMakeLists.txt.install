@@ -1,0 +1,79 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+cmake_minimum_required(VERSION 3.24)
+
+if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
+  set(CMAKE_CUDA_ARCHITECTURES "native")
+endif()
+
+project(daqiri_raw_ethernet_bench CXX CUDA)
+
+# Dependencies
+find_package(holoscan 2.6 REQUIRED CONFIG PATHS "/opt/nvidia/holoscan")
+if(DEFINED ENV{DAQIRI_ROOT})
+  list(PREPEND CMAKE_PREFIX_PATH "$ENV{DAQIRI_ROOT}")
+endif()
+list(PREPEND CMAKE_PREFIX_PATH "/opt/daqiri")
+find_package(daqiri REQUIRED CONFIG)
+
+function(link_daqiri target_name)
+  set(_daqiri_targets daqiri::daqiri)
+  foreach(_daqiri_manager IN ITEMS dpdk socket rdma)
+    if(TARGET "daqiri::${_daqiri_manager}")
+      list(APPEND _daqiri_targets "daqiri::${_daqiri_manager}")
+    endif()
+  endforeach()
+
+  # DAQIRI static packages can contain cross-references between core and manager archives.
+  string(JOIN "," _daqiri_link_group ${_daqiri_targets})
+  target_link_libraries("${target_name}" PRIVATE "$<LINK_GROUP:RESCAN,${_daqiri_link_group}>")
+endfunction()
+
+# Create the executable
+add_executable(daqiri_raw_ethernet_bench
+  kernels.cu
+  main.cpp
+)
+target_link_libraries(daqiri_raw_ethernet_bench
+  PRIVATE
+  holoscan::core
+)
+link_daqiri(daqiri_raw_ethernet_bench)
+
+# Configure manager support through compile definitions
+if(NOT DEFINED DAQIRI_MGR)
+    set(DAQIRI_MGR "dpdk" CACHE STRING "DAQIRI manager type(s) list")
+endif()
+separate_arguments(DAQIRI_MGR_LIST UNIX_COMMAND ${DAQIRI_MGR})
+foreach(MGR IN LISTS DAQIRI_MGR_LIST)
+    string(TOUPPER "${MGR}" MGR_UPPER)
+    message(STATUS "Adding DAQIRI manager ${MGR} to the application configuration")
+    target_compile_definitions(${PROJECT_NAME} PUBLIC "DAQIRI_MGR_${MGR_UPPER}=1")
+endforeach()
+
+# Copy config files
+set(DAQIRI_RAW_ETHERNET_BENCH_CONFIGS
+  daqiri_raw_ethernet_bench_default_tx_rx.yaml
+)
+
+foreach(CONFIG_FILE IN LISTS DAQIRI_RAW_ETHERNET_BENCH_CONFIGS)
+  string(REPLACE "." "_" CONFIG_TARGET "${CONFIG_FILE}")
+  add_custom_target(${CONFIG_TARGET}
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/${CONFIG_FILE}" ${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${CONFIG_FILE}"
+  )
+  add_dependencies(daqiri_raw_ethernet_bench ${CONFIG_TARGET})
+endforeach()

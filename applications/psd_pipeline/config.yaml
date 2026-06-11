@@ -10,10 +10,10 @@ scheduler:
   stop_on_deadlock: true
   stop_on_deadlock_timeout: 500
 
-advanced_network:
+daqiri:
   cfg:
     version: 1
-    manager: "dpdk"
+    stream_type: "raw"
     master_core: 0  # Master CPU core
     debug: false
     log_level: "info"

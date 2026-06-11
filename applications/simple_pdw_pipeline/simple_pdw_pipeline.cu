@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,15 +15,142 @@
  * limitations under the License.
  */
 #include <arpa/inet.h>
+#include <array>
+#include <chrono>
 #include <cuda/std/complex>
-#include "basic_network_operator_rx.h"
-#include "basic_network_operator_tx.h"
+#include <cstring>
+#include <filesystem>
+#include <memory>
+#include <stdexcept>
+#include <thread>
+
 #include "holoscan/holoscan.hpp"
 #include "matx.h"
+#include <daqiri/daqiri.h>
 
 using namespace matx;
 using ftype = float;
 using ComplexType = cuda::std::complex<ftype>;
+
+struct NetworkOpBurstParams {
+  NetworkOpBurstParams(const uint8_t* input, size_t length, int packets)
+      : storage(new uint8_t[length], std::default_delete<uint8_t[]>()),
+        data(storage.get()),
+        len(length),
+        num_pkts(packets) {
+    std::memcpy(data, input, length);
+  }
+
+  std::shared_ptr<uint8_t[]> storage;
+  uint8_t* data;
+  size_t len;
+  int num_pkts;
+};
+
+class DaqiriSocketRxOp : public holoscan::Operator {
+ public:
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(DaqiriSocketRxOp);
+  DaqiriSocketRxOp() = default;
+
+  void setup(holoscan::OperatorSpec& spec) override {
+    spec.output<NetworkOpBurstParams>("burst_out");
+    spec.param(
+        server_address_, "server_address", "Server address", "DAQIRI UDP server address", {});
+    spec.param(server_port_, "server_port", "Server port", "DAQIRI UDP server port", {});
+  }
+
+  void initialize() override {
+    holoscan::Operator::initialize();
+    while (daqiri::socket_get_server_conn_id(
+               server_address_.get(), server_port_.get(), &conn_id_) != daqiri::Status::SUCCESS) {
+      HOLOSCAN_LOG_WARN(
+          "Waiting for DAQIRI UDP server {}:{}", server_address_.get(), server_port_.get());
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+  }
+
+  void compute(holoscan::InputContext&, holoscan::OutputContext& op_output,
+               holoscan::ExecutionContext&) override {
+    daqiri::BurstParams* burst = nullptr;
+    if (daqiri::get_rx_burst(&burst, conn_id_, true) != daqiri::Status::SUCCESS ||
+        burst == nullptr) {
+      return;
+    }
+
+    const auto packets = daqiri::get_num_packets(burst);
+    for (int pkt = 0; pkt < packets; ++pkt) {
+      const auto length = daqiri::get_packet_length(burst, pkt);
+      const auto* payload = reinterpret_cast<const uint8_t*>(daqiri::get_packet_ptr(burst, pkt));
+      auto out = std::make_shared<NetworkOpBurstParams>(payload, length, 1);
+      op_output.emit(out, "burst_out");
+    }
+    daqiri::free_all_packets_and_burst_rx(burst);
+  }
+
+ private:
+  holoscan::Parameter<std::string> server_address_;
+  holoscan::Parameter<int> server_port_;
+  uintptr_t conn_id_ = 0;
+};
+
+class DaqiriSocketTxOp : public holoscan::Operator {
+ public:
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(DaqiriSocketTxOp);
+  DaqiriSocketTxOp() = default;
+
+  void setup(holoscan::OperatorSpec& spec) override {
+    spec.input<NetworkOpBurstParams>("burst_in");
+    spec.param(
+        client_address_, "client_address", "Client address", "DAQIRI UDP client address", {});
+    spec.param(
+        server_address_, "server_address", "Server address", "DAQIRI UDP server address", {});
+    spec.param(server_port_, "server_port", "Server port", "DAQIRI UDP server port", {});
+  }
+
+  void initialize() override {
+    holoscan::Operator::initialize();
+    while (daqiri::socket_connect_to_server(
+               server_address_.get(), server_port_.get(), client_address_.get(), &conn_id_) !=
+           daqiri::Status::SUCCESS) {
+      HOLOSCAN_LOG_WARN("Waiting to connect DAQIRI UDP client to {}:{}",
+                        server_address_.get(),
+                        server_port_.get());
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    if (daqiri::socket_get_port_queue(conn_id_, &port_, &queue_) != daqiri::Status::SUCCESS) {
+      throw std::runtime_error("Failed to resolve DAQIRI UDP client port/queue");
+    }
+  }
+
+  void compute(holoscan::InputContext& op_input, holoscan::OutputContext&,
+               holoscan::ExecutionContext&) override {
+    auto packet = op_input.receive<NetworkOpBurstParams>("burst_in");
+    if (!packet) { return; }
+
+    auto* msg = daqiri::create_tx_burst_params();
+    daqiri::set_header(msg, port_, queue_, 1, 1);
+    if (daqiri::get_tx_packet_burst(msg) != daqiri::Status::SUCCESS) {
+      HOLOSCAN_LOG_WARN("Unable to allocate DAQIRI TX packet");
+      daqiri::free_tx_metadata(msg);
+      return;
+    }
+    auto* payload = reinterpret_cast<uint8_t*>(daqiri::get_packet_ptr(msg, 0));
+    std::memcpy(payload, packet->data, packet->len);
+    daqiri::set_packet_lengths(msg, 0, {static_cast<int>(packet->len)});
+    daqiri::set_connection_id(msg, conn_id_);
+    if (daqiri::send_tx_burst(msg) != daqiri::Status::SUCCESS) {
+      HOLOSCAN_LOG_WARN("Unable to send DAQIRI TX packet");
+    }
+  }
+
+ private:
+  holoscan::Parameter<std::string> client_address_;
+  holoscan::Parameter<std::string> server_address_;
+  holoscan::Parameter<int> server_port_;
+  uintptr_t conn_id_ = 0;
+  uint16_t port_ = 0;
+  uint16_t queue_ = 0;
+};
 
 // Time or frequency series data with a tag for an id
 struct TaggedSignalData {
@@ -116,9 +243,9 @@ class PulsePrinterOp : public holoscan::Operator {
       std::cout << "Average amplitude " << data->average_amplitude << std::endl;
     }
 
-    auto buff = new uint32_t[7];
     // Next, place these values into a network burst operator and send it
     if (to_tx.get()) {
+      std::array<uint32_t, burst_length> buff{};
       buff[0] = htonl((uint32_t)data->id);
       buff[1] = htonl((uint32_t)data->low_bin);
       buff[2] = htonl((uint32_t)data->high_bin);
@@ -127,7 +254,7 @@ class PulsePrinterOp : public holoscan::Operator {
       buff[5] = htonl((uint32_t)data->max_amplitude);
       buff[6] = htonl((uint32_t)data->average_amplitude);
       auto out = std::make_shared<NetworkOpBurstParams>(
-          (uint8_t*)buff, sizeof(uint32_t) * burst_length, 1);
+          reinterpret_cast<const uint8_t*>(buff.data()), sizeof(uint32_t) * burst_length, 1);
       HOLOSCAN_LOG_INFO("Forwarding message to Network TX");
       op_output.emit(out, "burst_out");
     }
@@ -153,9 +280,11 @@ class PulseDescriptorOp : public holoscan::Operator {
     auto data = op_input.receive<DetectedPulseSlice>("detected_pulses");
     tensor_t<float, 0> sum_power{};
     tensor_t<float, 0> maximum_power{};
+    make_tensor(sum_power);
+    make_tensor(maximum_power);
     // Compute statistics of of the pulse. Sum and average.
-    sum(sum_power, data->power, 0);
-    rmax(maximum_power, data->power, 0);
+    (sum_power = sum(data->power)).run();
+    (maximum_power = max(data->power)).run();
     cudaStreamSynchronize(0);
     float average_amplitude = sum_power() / data->power.Size(0);
     auto out = std::make_shared<PulseDescription>(data->id,
@@ -213,6 +342,8 @@ class ThresholdingOp : public holoscan::Operator {
 
     tensor_t<int, 0> rising_edge_count{};
     tensor_t<int, 0> falling_edge_count{};
+    make_tensor(rising_edge_count);
+    make_tensor(falling_edge_count);
 
     auto rising_edges_index = make_tensor<unsigned int>({max_pulse_count.get()});
     auto falling_edges_index = make_tensor<unsigned int>({max_pulse_count.get()});
@@ -233,11 +364,13 @@ class ThresholdingOp : public holoscan::Operator {
     //
     // As you can see the rising edge is when the top is when the original is
     // true and the shifted is false, while falling is reversed.
-    auto rising_edge_op = original && !right_shift;
-    auto falling_edge_op = !original && right_shift;
+    auto rising_edge_mask = make_tensor<char>({data->signal.Size(0)});
+    auto falling_edge_mask = make_tensor<char>({data->signal.Size(0)});
+    (rising_edge_mask = original && !right_shift).run();
+    (falling_edge_mask = !original && right_shift).run();
 
-    find_idx(rising_edges_index, rising_edge_count, rising_edge_op, GT{0});
-    find_idx(falling_edges_index, falling_edge_count, falling_edge_op, GT{0});
+    (mtie(rising_edges_index, rising_edge_count) = find_idx(rising_edge_mask, GT{0})).run();
+    (mtie(falling_edges_index, falling_edge_count) = find_idx(falling_edge_mask, GT{0})).run();
 
     cudaStreamSynchronize(0);
 
@@ -284,7 +417,7 @@ class FFTOp : public holoscan::Operator {
     auto data = op_input.receive<TaggedSignalData>("signal_input");
     int size = data->signal.Size(0);
     auto shifted_fft = make_tensor<ComplexType, 1>({size});
-    matx::fft(data->signal, data->signal);
+    (data->signal = matx::fft(data->signal)).run();
     (data->signal = fftshift1D(data->signal)).run();
     op_output.emit(data, "fft_output");
   }
@@ -386,13 +519,13 @@ class App : public holoscan::Application {
   void compose() override {
     using namespace holoscan;
 
-    auto net_rx = make_operator<ops::BasicNetworkOpRx>("net_rx", from_config("network_rx"));
+    auto net_rx = make_operator<DaqiriSocketRxOp>("net_rx", from_config("network_rx"));
     auto convert = make_operator<PacketToTensorOp>("converter");
     auto fft = make_operator<FFTOp>("fft");
     auto thresh = make_operator<ThresholdingOp>("pulse_detector", from_config("pulse_detector"));
     auto descrip = make_operator<PulseDescriptorOp>("pulse_descriptor");
     auto printer = make_operator<PulsePrinterOp>("pulse_printer", from_config("printer"));
-    auto net_tx = make_operator<ops::BasicNetworkOpTx>("net_tx", from_config("network_tx"));
+    auto net_tx = make_operator<DaqiriSocketTxOp>("net_tx", from_config("network_tx"));
 
     add_flow(net_rx, convert, {{"burst_out", "burst_in"}});
     add_flow(convert, fft, {{"tensor_output", "signal_input"}});
@@ -409,9 +542,15 @@ int main(int argc, char** argv) {
   // Get the configuration
   auto config_path = std::filesystem::canonical(argv[0]).parent_path();
   config_path += "/simple_pdw_pipeline.yaml";
+  if (daqiri::daqiri_init(config_path.string()) != daqiri::Status::SUCCESS) {
+    HOLOSCAN_LOG_ERROR("Failed to initialize DAQIRI");
+    return 1;
+  }
   app->config(config_path);
 
   app->run();
 
+  daqiri::print_stats();
+  daqiri::shutdown();
   return 0;
 }

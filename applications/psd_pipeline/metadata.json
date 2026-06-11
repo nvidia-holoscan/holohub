@@ -43,6 +43,7 @@
         },
         "platforms": ["x86_64"],
         "tags": ["Signal Processing", "Networking and Distributed Computing", "PSD", "GPUDirect", "UDP"],
+        "dockerfile": "pkg/holoscan-networking/Dockerfile",
         "ranking": 3,
         "requirements": {
             "operators": [
@@ -60,6 +61,11 @@
               "name": "vita49-rs",
               "version": "0.0.3",
               "url": "https://github.com/voyager-tech-inc/vita49-rs"
+            },
+            {
+              "name": "DAQIRI",
+              "version": "0.1.0",
+              "url": "https://github.com/NVIDIA/daqiri"
             }]
         },
         "run": {

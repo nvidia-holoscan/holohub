@@ -12,8 +12,9 @@
 			}
 		],
 		"language": "C++",
-		"version": "1.0",
+		"version": "1.1",
 		"changelog": {
+			"1.1": "Port network transport to DAQIRI",
 			"1.0": "Initial Release"
 		},
 		"holoscan_sdk": {
@@ -24,12 +25,15 @@
 		},
 		"platforms": ["x86_64", "aarch64"],
 		"tags": ["Signal Processing", "UDP"],
+		"dockerfile": "pkg/holoscan-networking/Dockerfile",
 		"ranking": 4,
 		"requirements": {
-			"gxf_extensions": [{
-				"name": "basic_network",
-				"version": "1.0"
-			}]
+			"libraries": [
+				{
+					"name": "DAQIRI",
+					"url": "https://github.com/NVIDIA/daqiri"
+				}
+			]
 		},
 		"run": {
 			"command": "<holohub_app_bin>/simple_pdw_pipeline",

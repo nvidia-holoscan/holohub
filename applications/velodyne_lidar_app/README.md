@@ -19,7 +19,7 @@ environment, with each point corresponding to an estimated point of reflection.
 
 For demonstration purposes we selected the Velodyne VLP-16 lidar sensor as our input source.
 We adapted existing packet processing code from NVIDIA DeepMap SDK into a custom Holoscan operator,
-`VelodyneLidarOp`, and connected it with the existing `BasicNetworkOp` and `HoloVizOp` operators
+`VelodyneLidarOp`, and connected it with the existing `DAQIRI socket` and `HoloVizOp` operators
 to provide a complete viewing pipeline. We performed initial benchmarking on an NVIDIA IGX devkit.
 
 ## Requirements
@@ -70,7 +70,7 @@ By comparison, the VLP-16 lidar publishes packets at a rate of approximately 1.3
 
 The application flow is as follows:
 
-1. A UDP packet is emitted from the Velodyne VLP-16 lidar sensor and received on port 2368 in the Holoscan `BasicNetworkOp` operator.
+1. A UDP packet is emitted from the Velodyne VLP-16 lidar sensor and received on port 2368 in the Holoscan `DAQIRI socket` operator.
 2. The packet payload is forwarded to the Holoscan `VelodyneLidarOp` operator. The operator decodes the packet
 according to the Velodyne lidar specification, where the VLP-16 packet defines 384 spherical points from laser firings. The operator converts the spherical points to Cartesian points on the GPU device and adds the resulting cloud to a rolling, accumulated point cloud.
 3. The Velodyne operator forwards the rolling point cloud to HoloViz, which renders the GPU point cloud to the screen.
