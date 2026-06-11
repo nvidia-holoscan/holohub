@@ -18,104 +18,66 @@
 ARG GPU_TYPE
 ARG BASE_SDK_VERSION
 ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v${BASE_SDK_VERSION}-${GPU_TYPE}
-
-############################################################
-# Prerequisites: normalize the base image into one that can run the HoloHub
-# CLI. See the root Dockerfile for the rationale; this stage is the same
-# contract.
-############################################################
-FROM ${BASE_IMAGE} AS holohub-cli-prerequisites
+FROM ${BASE_IMAGE} AS base
 
 ARG DEBIAN_FRONTEND=noninteractive
-ARG PYTHON_VERSION=python3
+ARG CMAKE_BUILD_TYPE=Release
 
-# Do NOT apt-install ${PYTHON_VERSION}-pip on Ubuntu 24.04+: that pip is
-# debian-managed and missing the RECORD file, so a transitive
-# `pip>25.1.0` upgrade from holoscan-cli aborts with `Cannot uninstall
-# pip 24.0, RECORD file not found`. Install pip via get-pip.py instead.
-# Guard on ${PYTHON_VERSION} (not bare python3) so a PYTHON_VERSION override on
-# a base that already ships python3 still installs the requested interpreter
-# and matching development headers via deadsnakes when needed.
-RUN if ! command -v "${PYTHON_VERSION}" >/dev/null 2>&1; then \
+# --------------------------------------------------------------------------
+#
+# Set up prerequisites to run HoloHub CLI
+#
+# --------------------------------------------------------------------------
+FROM base AS holohub-cli-prerequisites
+
+# Install python3 if not present (needed for holohub CLI)
+ARG PYTHON_VERSION=python3
+RUN if ! command -v ${PYTHON_VERSION} >/dev/null 2>&1; then \
         apt-get update \
         && apt-get install --no-install-recommends -y \
-            software-properties-common curl ca-certificates gpg-agent \
+            software-properties-common curl gpg-agent \
         && add-apt-repository ppa:deadsnakes/ppa \
         && apt-get update \
         && apt-get install --no-install-recommends -y \
-            ${PYTHON_VERSION} \
+            ${PYTHON_VERSION} ${PYTHON_VERSION}-dev \
+        # Conditionally install -distutils only if available (for older python versions)
+        && (apt-cache show ${PYTHON_VERSION}-distutils >/dev/null 2>&1 && \
+            apt-get install --no-install-recommends -y ${PYTHON_VERSION}-distutils || true) \
         && apt purge -y \
             python3-pip \
             software-properties-common \
         && apt-get autoremove --purge -y \
-        && rm -rf /var/lib/apt/lists/*; \
-    fi
-RUN if [ "${PYTHON_VERSION}" != "python3" ]; then \
-        apt-get update \
-        && apt-get install --no-install-recommends -y \
-            software-properties-common ca-certificates gpg-agent \
-        && add-apt-repository ppa:deadsnakes/ppa \
-        && apt-get update \
-        && apt-get install --no-install-recommends -y ${PYTHON_VERSION}-dev \
-        && (apt-cache show ${PYTHON_VERSION}-distutils >/dev/null 2>&1 \
-            && apt-get install --no-install-recommends -y ${PYTHON_VERSION}-distutils || true) \
-        && apt purge -y software-properties-common \
-        && apt-get autoremove --purge -y \
-        && rm -rf /var/lib/apt/lists/*; \
-    else \
-        apt-get update \
-        && apt-get install --no-install-recommends -y python3-dev \
-        && (apt-cache show python3-distutils >/dev/null 2>&1 \
-            && apt-get install --no-install-recommends -y python3-distutils || true) \
-        && rm -rf /var/lib/apt/lists/*; \
-    fi
-RUN update-alternatives --install /usr/bin/python python "/usr/bin/${PYTHON_VERSION}" 100 \
-    && if [ "${PYTHON_VERSION}" != "python3" ]; then \
-        update-alternatives --install /usr/bin/python3 python3 "/usr/bin/${PYTHON_VERSION}" 100; \
-    fi
-RUN if ! command -v curl >/dev/null 2>&1; then \
-        apt-get update \
-        && apt-get install --no-install-recommends -y curl ca-certificates \
-        && rm -rf /var/lib/apt/lists/*; \
-    fi
+        && rm -rf /var/lib/apt/lists/* \
+        # Register both python and python3 symlinks so all build/test tooling uses the selected version
+        && update-alternatives --install /usr/bin/python python /usr/bin/${PYTHON_VERSION} 100 \
+        && if [ "${PYTHON_VERSION}" != "python3" ]; then \
+            update-alternatives --install /usr/bin/python3 python3 /usr/bin/${PYTHON_VERSION} 100 \
+            ; fi \
+    ; fi
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
-RUN if ! "${PYTHON_VERSION}" -m pip --version >/dev/null 2>&1; then \
-        curl -sS https://bootstrap.pypa.io/get-pip.py | "${PYTHON_VERSION}"; \
-    fi
+RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
+        curl -sS https://bootstrap.pypa.io/get-pip.py | ${PYTHON_VERSION} \
+    ; fi
 
-# Ensure the `holoscan` CLI exists before this image stages the wrapper, so
-# standalone Docker builds and wrapper-driven builds use the same
-# HOLOSCAN_CLI_INSTALL_ARGS. Probe `holoscan --help` for a source-project
-# command (`build`) so an incompatible installed CLI does not satisfy the check.
-# Install args select the package and any pip options.
+# Install standalone holoscan-cli before running `holohub setup`.
 ARG HOLOSCAN_CLI_INSTALL_ARGS=--pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0
-RUN if ! holoscan --help 2>/dev/null | grep -qw build; then \
-        "${PYTHON_VERSION}" -m pip install \
-            ${HOLOSCAN_CLI_INSTALL_ARGS}; \
-    fi
+RUN if ! python3 -m holoscan_cli --help 2>/dev/null | grep -qw build; then \
+        python3 -m pip install ${HOLOSCAN_CLI_INSTALL_ARGS} \
+    ; fi
 
-############################################################
-# HoloHub CLI: stage the in-tree wrapper and smoke-test.
-############################################################
+# --------------------------------------------------------------------------
+#
+# Set up GStreamer-specific dependencies
+#
+# --------------------------------------------------------------------------
 FROM holohub-cli-prerequisites AS holohub-cli
 
-ARG CMAKE_BUILD_TYPE=Release
-
-# Stage the `holohub` wrapper + utilities/ helpers `holohub setup` needs, so
-# the raw-base `holohub setup` fallback below can run.
-RUN mkdir -p /tmp/scripts/utilities
+RUN mkdir -p /tmp/scripts
 COPY holohub /tmp/scripts/
+RUN mkdir -p /tmp/scripts/utilities
 COPY utilities /tmp/scripts/utilities/
 RUN chmod +x /tmp/scripts/holohub
-
-# Smoke-test: CLI + wrapper present and usable.
-RUN holoscan version \
-    && test -x /tmp/scripts/holohub
-
-# Run `holohub setup` only on raw-base builds. The prepared base already ran
-# it and left the autocomplete marker, so guard on that marker.
-RUN [ -f /etc/bash_completion.d/holohub_autocomplete ] \
-    || (/tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*)
+RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
 
 # Install GStreamer development packages and pkg-config
 COPY operators/gstreamer/install_deps.sh /tmp/install_deps.sh
@@ -135,9 +97,8 @@ RUN python3 -m pip install --no-cache-dir \
         build \
         scikit-build-core
 
-# Source autocomplete only if present (raw `--base-img` builds skip the
-# prepared base), to avoid "No such file or directory" in every shell.
-RUN echo "[ -f /etc/bash_completion.d/holohub_autocomplete ] && . /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
+# Enable autocomplete
+RUN echo ". /etc/bash_completion.d/holohub_autocomplete" >> /etc/bash.bashrc
 
 # Set default Holohub data directory
 ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data
