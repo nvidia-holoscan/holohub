@@ -842,7 +842,7 @@ The CLI respects these variables. Defaults and behavior are summarized below.
 
 | Variable                     | Purpose                                           |
 | ---------------------------- | ------------------------------------------------- |
-| `HOLOHUB_CTEST_SCRIPT`       | CTest script used by `./holohub test`             |
+| `HOLOSCAN_CLI_CTEST_SCRIPT`  | CTest script used by `./holohub test`             |
 | `HOLOHUB_CMD_NAME`           | Command name in help (default: `./holohub`)       |
 | `HOLOHUB_CLI_DOCS_URL`       | URL for CLI docs (for example for external forks) |
 | `CMAKE_BUILD_TYPE`           | Default CMake build type when not set on CLI      |

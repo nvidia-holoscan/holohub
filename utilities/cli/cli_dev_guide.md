@@ -110,7 +110,7 @@ Add `--local` to bypass the Docker layer and see the underlying cmake / app comm
 ./holohub test <app> --ctest-options "-R unit_tests"   # filter tests by regex
 ```
 
-Default CTest script: `utilities/testing/holohub.container.ctest` (relative to the directory containing `utilities/`). Override with `--ctest-script` or `HOLOHUB_CTEST_SCRIPT`. Downstream repos typically override this in their entry-point script — check the value of `HOLOHUB_CTEST_SCRIPT` there.
+Default CTest script: `utilities/testing/holohub.container.ctest` (relative to the directory containing `utilities/`). Override with `--ctest-script` or `HOLOSCAN_CLI_CTEST_SCRIPT`. Downstream repos typically override this in their entry-point script - check the value of `HOLOSCAN_CLI_CTEST_SCRIPT` there.
 
 ### Lint
 

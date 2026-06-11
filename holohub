@@ -23,6 +23,7 @@
 #   HOLOSCAN_CLI_SOURCE   Local checkout — wins over the package install.
 #   HOLOSCAN_CLI_INSTALL_ARGS  Pip install arguments.
 #   HOLOSCAN_CLI_PYTHON_BIN  Python interpreter (default: python3).
+#   HOLOSCAN_CLI_CTEST_SCRIPT  CTest script used by `./holohub test`.
 #   HOLOHUB_PYTHON_BIN       Legacy fallback for HOLOSCAN_CLI_PYTHON_BIN.
 
 set -euo pipefail
@@ -41,6 +42,7 @@ export HOLOSCAN_CLI_INSTALL_ARGS="${HOLOSCAN_CLI_INSTALL_ARGS:---pre --extra-ind
 # former in-tree CLI's util.py DEFAULT_BASE_SDK_VERSION (holohub#1590). Env var
 # takes precedence; per-project scripts may still override via export.
 export HOLOSCAN_CLI_BASE_SDK_VERSION="${HOLOSCAN_CLI_BASE_SDK_VERSION:-4.3.0}"
+export HOLOSCAN_CLI_CTEST_SCRIPT="${HOLOSCAN_CLI_CTEST_SCRIPT:-utilities/testing/holohub.container.ctest}"
 
 # A local holoscan-cli checkout takes precedence over the package install.
 if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then

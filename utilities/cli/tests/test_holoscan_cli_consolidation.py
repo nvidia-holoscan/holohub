@@ -144,3 +144,21 @@ def test_wrapper_dryruns_project_run_through_consolidated_cli():
     assert "Running endoscopy_tool_tracking" in output
     assert "docker run" in output
     assert "holoscan run endoscopy_tool_tracking" in output
+
+
+def test_wrapper_test_forwards_holohub_ctest_script_to_container():
+    """./holohub test forwards HoloHub's CTest script for container resolution."""
+    result = _run_holohub_wrapper(
+        "test",
+        "endoscopy_tool_tracking",
+        "--language",
+        "cpp",
+        "--dryrun",
+        "--no-docker-build",
+    )
+    output = result.stdout + result.stderr
+
+    assert result.returncode == 0, output
+    assert "docker run" in output
+    assert "-e HOLOSCAN_CLI_CTEST_SCRIPT=utilities/testing/holohub.container.ctest" in output
+    assert "from holoscan_cli.cli import HoloscanCLI" in output
