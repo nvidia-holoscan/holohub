@@ -15,7 +15,7 @@
     {
       "name": "holoscan-sensor-bridge",
       "url": "https://github.com/nvidia-holoscan/holoscan-sensor-bridge.git",
-      "ref": "2.6.0-EA2",
+      "ref": "c34f9fe876462e2fa83877527f86fe0427346cc0",
       "provides_operators": [
         "argus_isp",
         "audio_packetizer",
