@@ -52,11 +52,11 @@ RUN if ! command -v "${PYTHON_VERSION}" >/dev/null 2>&1; then \
             python3-pip \
             software-properties-common \
         && apt-get autoremove --purge -y \
-        && rm -rf /var/lib/apt/lists/* \
-        && update-alternatives --install /usr/bin/python python "/usr/bin/${PYTHON_VERSION}" 100 \
-        && if [ "${PYTHON_VERSION}" != "python3" ]; then \
-            update-alternatives --install /usr/bin/python3 python3 "/usr/bin/${PYTHON_VERSION}" 100; \
-        fi; \
+        && rm -rf /var/lib/apt/lists/*; \
+    fi
+RUN update-alternatives --install /usr/bin/python python "/usr/bin/${PYTHON_VERSION}" 100 \
+    && if [ "${PYTHON_VERSION}" != "python3" ]; then \
+        update-alternatives --install /usr/bin/python3 python3 "/usr/bin/${PYTHON_VERSION}" 100; \
     fi
 RUN if ! command -v curl >/dev/null 2>&1; then \
         apt-get update \
@@ -64,7 +64,7 @@ RUN if ! command -v curl >/dev/null 2>&1; then \
         && rm -rf /var/lib/apt/lists/*; \
     fi
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
-RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
+RUN if ! "${PYTHON_VERSION}" -m pip --version >/dev/null 2>&1; then \
         curl -sS https://bootstrap.pypa.io/get-pip.py | "${PYTHON_VERSION}"; \
     fi
 
@@ -74,7 +74,7 @@ RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
 #    build-arg) selects the package and any pip options.
 ARG HOLOSCAN_CLI_INSTALL_ARGS=--pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0
 RUN if ! holoscan --help 2>/dev/null | grep -qw build; then \
-        python3 -m pip install \
+        "${PYTHON_VERSION}" -m pip install \
             ${HOLOSCAN_CLI_INSTALL_ARGS}; \
     fi
 

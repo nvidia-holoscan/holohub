@@ -47,12 +47,12 @@ RUN if ! command -v "${PYTHON_VERSION}" >/dev/null 2>&1; then \
             python3-pip \
             software-properties-common \
         && apt-get autoremove --purge -y \
-        && rm -rf /var/lib/apt/lists/* \
-        && update-alternatives --install /usr/bin/python python /usr/bin/${PYTHON_VERSION} 100 \
-        && if [ "${PYTHON_VERSION}" != "python3" ]; then \
-            update-alternatives --install /usr/bin/python3 python3 /usr/bin/${PYTHON_VERSION} 100 \
-            ; fi \
-    ; fi
+        && rm -rf /var/lib/apt/lists/*; \
+    fi
+RUN update-alternatives --install /usr/bin/python python "/usr/bin/${PYTHON_VERSION}" 100 \
+    && if [ "${PYTHON_VERSION}" != "python3" ]; then \
+        update-alternatives --install /usr/bin/python3 python3 "/usr/bin/${PYTHON_VERSION}" 100; \
+    fi
 
 # Ensure curl + CA roots exist for the get-pip.py bootstrap even when the base
 # already had python (so the block above was skipped) but lacks curl/CA certs.
@@ -63,7 +63,7 @@ RUN if ! command -v curl >/dev/null 2>&1; then \
     fi
 
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
-RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
+RUN if ! "${PYTHON_VERSION}" -m pip --version >/dev/null 2>&1; then \
         curl -sS https://bootstrap.pypa.io/get-pip.py | "${PYTHON_VERSION}" \
     ; fi
 
@@ -84,11 +84,11 @@ RUN --mount=type=bind,from=holoscan-cli-src,target=/tmp/holoscan-cli-src \
     if [ -f /tmp/holoscan-cli-src/pyproject.toml ]; then \
         echo "Installing holoscan-cli from local source build-context"; \
         cp -a /tmp/holoscan-cli-src /tmp/holoscan-cli-src-writable; \
-        python3 -m pip install --no-cache-dir /tmp/holoscan-cli-src-writable; \
+        "${PYTHON_VERSION}" -m pip install --no-cache-dir /tmp/holoscan-cli-src-writable; \
         rm -rf /tmp/holoscan-cli-src-writable; \
     else \
         echo "Installing holoscan-cli with args: ${HOLOSCAN_CLI_INSTALL_ARGS}"; \
-        python3 -m pip install --no-cache-dir \
+        "${PYTHON_VERSION}" -m pip install --no-cache-dir \
             ${HOLOSCAN_CLI_INSTALL_ARGS}; \
     fi
 
