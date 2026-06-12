@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#if DAQIRI_MGR_DPDK
+#if DAQIRI_ENGINE_DPDK
 #include "default_bench_op_rx.h"
 #include "default_bench_op_tx.h"
 #endif
@@ -29,35 +29,28 @@ class App : public holoscan::Application {
     using namespace holoscan;
 
     const auto [rx_en, tx_en] = daqiri::get_rx_tx_configs_enabled(config());
-    const auto mgr_type = daqiri::get_manager_type();
 
-    HOLOSCAN_LOG_INFO("Using DAQIRI manager {}", daqiri::manager_type_to_string(mgr_type));
-
-    if (mgr_type == daqiri::ManagerType::DPDK) {
-#if DAQIRI_MGR_DPDK
-      if (rx_en) {
-        auto bench_rx = make_operator<ops::DaqiriRawEthernetBenchDefaultRxOp>(
-            "bench_rx",
-            from_config("bench_rx"),
-            make_condition<BooleanCondition>("is_alive", true));
-        add_operator(bench_rx);
-      }
-      if (tx_en) {
-        auto bench_tx = make_operator<ops::DaqiriRawEthernetBenchDefaultTxOp>(
-            "bench_tx",
-            from_config("bench_tx"),
-            make_condition<BooleanCondition>("is_alive", true));
-        add_operator(bench_tx);
-      }
-#else
-      HOLOSCAN_LOG_ERROR("DPDK manager/backend is disabled");
-      exit(1);
-#endif
-
-    } else {
-      HOLOSCAN_LOG_ERROR("Unsupported DAQIRI manager/backend");
-      exit(1);
+    // The raw Ethernet benchmark only runs on the DPDK engine, so there is no
+    // need to query or branch on the engine type at runtime.
+#if DAQIRI_ENGINE_DPDK
+    if (rx_en) {
+      auto bench_rx = make_operator<ops::DaqiriRawEthernetBenchDefaultRxOp>(
+          "bench_rx",
+          from_config("bench_rx"),
+          make_condition<BooleanCondition>("is_alive", true));
+      add_operator(bench_rx);
     }
+    if (tx_en) {
+      auto bench_tx = make_operator<ops::DaqiriRawEthernetBenchDefaultTxOp>(
+          "bench_tx",
+          from_config("bench_tx"),
+          make_condition<BooleanCondition>("is_alive", true));
+      add_operator(bench_tx);
+    }
+#else
+    HOLOSCAN_LOG_ERROR("DPDK engine is disabled; rebuild with -DDAQIRI_ENGINE=dpdk");
+    exit(1);
+#endif
   }
 };
 
