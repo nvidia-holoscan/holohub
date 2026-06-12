@@ -13,16 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import sys
 import warnings
 
-try:
-    from requests.exceptions import RequestsDependencyWarning
+# Must be set before requests is imported (e.g. by torchvision model download).
+warnings.filterwarnings("ignore", message=".*doesn't match a supported version.*")
 
-    warnings.filterwarnings("ignore", category=RequestsDependencyWarning)
-except ImportError:
-    pass
+import os
+import sys
 
 import torch
 from torchvision.models import ResNet50_Weights, detection

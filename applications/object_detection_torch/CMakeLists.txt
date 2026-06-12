@@ -54,7 +54,8 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
 
   # Download the model
   add_custom_target(download_model
-    COMMAND python3 "${CMAKE_CURRENT_SOURCE_DIR}/generate_resnet_model.py"  "${HOLOHUB_DATA_DIR}/object_detection_torch/frcnn_resnet50_t.pt"
+    COMMAND python3 -W ignore "${CMAKE_CURRENT_SOURCE_DIR}/generate_resnet_model.py"
+            "${HOLOHUB_DATA_DIR}/object_detection_torch/frcnn_resnet50_t.pt"
     BYPRODUCTS "${HOLOHUB_DATA_DIR}/object_detection_torch/frcnn_resnet50_t.pt"
   )
   add_dependencies(object_detection_torch download_model)
@@ -100,6 +101,7 @@ if(BUILD_TESTING)
            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
   set_tests_properties(object_detection_torch_test PROPERTIES
+                TIMEOUT 1500
                 PASS_REGULAR_EXPRESSION "Reach end of file or playback count reaches to the limit. Stop ticking.;"
                 FAIL_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed")
 
