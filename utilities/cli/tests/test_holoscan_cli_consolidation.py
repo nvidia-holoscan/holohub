@@ -92,8 +92,12 @@ def test_unified_cli_dryruns_holohub_project_run():
     assert "holoscan run endoscopy_tool_tracking" in output
 
 
-def _run_holohub_wrapper(*args: str) -> subprocess.CompletedProcess:
+def _run_holohub_wrapper(
+    *args: str, extra_env: Dict[str, str] | None = None
+) -> subprocess.CompletedProcess:
     env = _holoscan_cli_env()
+    if extra_env:
+        env.update(extra_env)
     try:
         result = subprocess.run(
             [str(REPO_ROOT / "holohub"), *args],
@@ -144,6 +148,21 @@ def test_wrapper_dryruns_project_run_through_consolidated_cli():
     assert "Running endoscopy_tool_tracking" in output
     assert "docker run" in output
     assert "holoscan run endoscopy_tool_tracking" in output
+
+
+def test_wrapper_quotes_default_docker_build_args_with_single_quotes():
+    """./holohub forwards docker build args that shlex can split."""
+    install_args = "--pre --extra-index-url https://example.invalid/simple pkg'name>1.0"
+    result = _run_holohub_wrapper(
+        "run-container",
+        "--dryrun",
+        "--verbose",
+        extra_env={"HOLOSCAN_CLI_INSTALL_ARGS": install_args},
+    )
+    output = result.stdout + result.stderr
+
+    assert result.returncode == 0, output
+    assert f"HOLOSCAN_CLI_INSTALL_ARGS={install_args}" in output
 
 
 def test_wrapper_test_forwards_holohub_ctest_script_to_container():

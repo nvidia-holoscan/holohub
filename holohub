@@ -75,8 +75,11 @@ fi
 # Forward the package install args (and any local source) as `--build-arg`s on every
 # project `docker build` so the in-container CLI matches the host. holoscan-cli
 # shlex-splits HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS, so single-quote each
-# KEY=VALUE to survive values with spaces.
-_q() { printf "'%s'" "${1//\'/\'\\\'\'}"; }
+# KEY=VALUE to survive values with spaces and single quotes.
+_q() {
+    local value="${1//\'/\'\"\'\"\'}"
+    printf "'%s'" "${value}"
+}
 extras=" --build-arg $(_q "HOLOSCAN_CLI_INSTALL_ARGS=${HOLOSCAN_CLI_INSTALL_ARGS}")"
 if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
     extras+=" --build-context $(_q "holoscan-cli-src=${HOLOSCAN_CLI_SOURCE}")"
