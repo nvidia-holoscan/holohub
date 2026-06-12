@@ -19699,8 +19699,13 @@ This command sets up the benchmarking environment on top of the default Holohub 
 </blockquote>
 <h3 id="bare-metal-installation">Bare-metal Installation<a class="headerlink" href="#bare-metal-installation" title="Permanent link">#</a></h3>
 <p>If not using the Holohub Docker container, apart from the holoscan and application's specific dependencies, additional Python packages should be installed:</p>
-<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>benchmarks/holoscan_flow_benchmarking/requirements.txt
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>holoscan-cli
+pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>benchmarks/holoscan_flow_benchmarking/requirements.txt
 </code></pre></div>
+<p><code>holoscan-cli</code> provides the project metadata APIs that <code>benchmark.py</code> uses to
+resolve applications and modes; see
+<a href="https://github.com/nvidia-holoscan/holoscan-cli">holoscan-cli</a> for pinning or
+pre-release specs.</p>
 <p>These python dependencies include:</p>
 <ul>
 <li>numpy: Data processing</li>
