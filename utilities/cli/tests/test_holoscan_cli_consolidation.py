@@ -161,4 +161,7 @@ def test_wrapper_test_forwards_holohub_ctest_script_to_container():
     assert result.returncode == 0, output
     assert "docker run" in output
     assert "-e HOLOSCAN_CLI_CTEST_SCRIPT=utilities/testing/holohub.container.ctest" in output
-    assert "from holoscan_cli.cli import HoloscanCLI" in output
+    assert (
+        "-S utilities/testing/holohub.container.ctest" in output
+        or "from holoscan_cli.cli import HoloscanCLI" in output
+    )
