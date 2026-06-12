@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,8 @@ project(velodyne_lidar
 set(CMAKE_CUDA_ARCHITECTURES "70;80")
 enable_language(CUDA)
 
-find_package(holoscan 2.0 REQUIRED CONFIG)
+find_package(holoscan 2.0 REQUIRED CONFIG
+             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
 add_library(velodyne_lidar SHARED
   velodyne_convert_xyz.cu
@@ -31,7 +32,6 @@ add_library(velodyne_lidar SHARED
 
 target_link_libraries(velodyne_lidar
   holoscan::core
-  basic_network
 )
 target_include_directories(velodyne_lidar INTERFACE
   ${CMAKE_CURRENT_SOURCE_DIR}

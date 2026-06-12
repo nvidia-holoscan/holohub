@@ -1,16 +1,16 @@
 # Radar Signal Processing over Network
 
-The Network Radar application demonstrates signal processing on data streamed via packets over a network. It showcases the use of both the Advanced Network Operator and Basic Network Operator to send or receive data, combined with the signal processing operators implemented in the Simple Radar Pipeline application.
+The Network Radar application demonstrates signal processing on data streamed via packets over a network. It uses DAQIRI to send or receive data, combined with the signal processing operators implemented in the Simple Radar Pipeline application.
 
-Using the GPUDirect capabilities afforded by the Advanced Network Operator, this pipeline has been tested up to 100 Gbps (Tx/Rx) using a ConnectX-7 NIC and A30 GPU.
+Using DAQIRI's GPUDirect-capable raw packet path, this pipeline has been tested up to 100 Gbps (Tx/Rx) using a ConnectX-7 NIC and A30 GPU.
 
-The motivation for building this application is to demonstrate how data arrays can be assembled from packet data in real-time for low-latency, high-throughput sensor processing applications. The main components of this work are defining a message format and writing code connecting the network operators to the signal processing operators.
+The motivation for building this application is to demonstrate how data arrays can be assembled from packet data in real-time for low-latency, high-throughput sensor processing applications. The main components of this work are defining a message format and writing code connecting DAQIRI packet bursts to the signal processing operators.
 
-This application supports the Advanced Network Operator DPDK and DOCA GPUNetIO transport layers.
+This application uses DAQIRI raw packet transport.
 
 ## Prerequisites
 
-See the README for the Advanced Network Operator for requirements and system tuning needed to enable high-throughput GPUDirect capabilities.
+See DAQIRI documentation for requirements and system tuning needed to enable high-throughput GPUDirect capabilities.
 
 ## Environment
 
@@ -22,31 +22,18 @@ Please refer to the top level Holohub README.md file for information on how to b
 
 ## Run
 
-Note: must properly configure YAML files before running. To run with DPDK as ANO transport layer:
+Note: must properly configure YAML files before running. To run with DAQIRI raw transport:
 
 - On Tx machine: `./build/applications/network_radar_pipeline/cpp/network_radar_pipeline source.yaml`
 - On Rx machine: `./build/applications/network_radar_pipeline/cpp/network_radar_pipeline process.yaml`
 
-To run with DOCA GPUNetIO as ANO transport layer:
+## DAQIRI Connectors
 
-- On Tx machine: `./build/applications/network_radar_pipeline/cpp/network_radar_pipeline source_doca.yaml`
-- On Rx machine: `./build/applications/network_radar_pipeline/cpp/network_radar_pipeline process_doca.yaml`
+Implementation is in `daqiri_connectors`. RX is configured to run with GPUDirect enabled, in header-data split (HDS) mode. TX supports both GPUDirect/HDS or CPU-only packet payloads.
 
-## Network Operator Connectors
+### Testing RX on generic packet data
 
-See each operators' README before using / for more detailed information.
-
-### Basic Network Operator Connector
-
-Implementation in `basic_network_connectors`. Only supports CPU packet receipt / transmit. Uses cudaMemcpy to move data between network operator and MatX tensors.
-
-### Advanced Network Operator Connector
-
-Implementation in `advanced_network_connectors`. RX connector is only configured to run with GPUDirect enabled, in header-data split (HDS) mode. TX connector supports both GPUDirect/HDS or CPU-only.
-
-#### Testing RX on generic packet data
-
-When using the Advanced network operator, the application supports testing the radar processing component in a "spoof packets" mode. This functionality allows for easier benchmarking of the application by ingesting generic packet data and writing in header fields such that the full radar pipeline will still be exercised. When "SPOOF_PACKET_DATA" (adv_networking_rx.h) is set to "true", the index of the packet will be used to set fields appropriately. This functionality is currently unsupported using the basic network operator connectors.
+The application supports testing the radar processing component in a "spoof packets" mode. This functionality allows for easier benchmarking of the application by ingesting generic packet data and writing in header fields such that the full radar pipeline will still be exercised. When `SPOOF_PACKET_DATA` (`daqiri_connectors/adv_networking_rx.h`) is set to `true`, the index of the packet will be used to set fields appropriately.
 
 ## Message format
 

@@ -32,8 +32,9 @@
 			}
 		],
 		"language": "C++",
-		"version": "1.0",
+		"version": "1.1",
 		"changelog": {
+			"1.1": "Port UDP receive path to DAQIRI",
 			"1.0": "Initial Release"
 		},
 		"holoscan_sdk": {
@@ -44,8 +45,16 @@
 		},
 		"platforms": ["x86_64", "aarch64"],
 		"tags": ["Signal Processing", "Lidar", "Point Cloud", "UDP", "Visualization"],
+		"dockerfile": "pkg/holoscan-networking/Dockerfile",
 		"ranking": 4,
-		"requirements": {},
+		"requirements": {
+			"libraries": [
+				{
+					"name": "DAQIRI",
+					"url": "https://github.com/NVIDIA/daqiri"
+				}
+			]
+		},
 		"run": {
 			"command": "<holohub_app_bin>/velodyne_lidar_app <holohub_app_source>/lidar.yaml",
 			"workdir": "holohub_bin"
