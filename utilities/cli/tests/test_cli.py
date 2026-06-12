@@ -1570,6 +1570,7 @@ class TestHandlePackage(unittest.TestCase):
         self.assertIn("-DPKG_test_module_fixture=ON", cmake_args_str)
         self.assertIn("-DBUILD_ALL=OFF", cmake_args_str)
         self.assertIn(str(HoloHubCLI.HOLOHUB_ROOT), cmake_args_str)
+        self.assertNotIn("-DHOLOHUB_PKG_TGZ=ON", cmake_args_str)
 
         cpack_args = mock_run_command.call_args_list[2][0][0]
         self.assertEqual(cpack_args[0], "cpack")
@@ -1686,6 +1687,186 @@ class TestHandlePackage(unittest.TestCase):
             cuda_version="13",
             extra_scripts=None,
         )
+
+    @patch("utilities.cli.holohub.write_external_operators_manifest")
+    @patch("utilities.cli.holohub.HoloHubCLI.find_project")
+    @patch("utilities.cli.util.run_command")
+    @patch("pathlib.Path.mkdir")
+    @patch("pathlib.Path.glob")
+    @patch("pathlib.Path.exists")
+    def test_package_tgz_invokes_cpack_tgz(
+        self,
+        mock_exists,
+        mock_glob,
+        mock_mkdir,
+        mock_run_command,
+        mock_find_project,
+        mock_write_manifest,
+    ):
+        """TGZ path calls cpack with -G TGZ using a generator-specific config."""
+        mock_find_project.return_value = self.mock_module_data
+        mock_run_command.return_value = MagicMock()
+        mock_exists.return_value = True
+        cpack_cfg = Path(
+            "/build/test_module_fixture/package/pkg/CPackConfig-test-module-fixture-TGZ.cmake"
+        )
+        mock_glob.return_value = [cpack_cfg]
+
+        args = self.cli.parser.parse_args(
+            ["package", "test-module-fixture", "--local", "--pkg-generator", "TGZ"]
+        )
+        args.func(args)
+
+        self.assertEqual(mock_run_command.call_count, 3)  # cmake configure, cmake build, cpack
+        cmake_args_str = " ".join(mock_run_command.call_args_list[0][0][0])
+        self.assertIn("-DHOLOHUB_PKG_TGZ=ON", cmake_args_str)
+        cpack_args = mock_run_command.call_args_list[2][0][0]
+        self.assertEqual(cpack_args[0], "cpack")
+        self.assertIn("-G", cpack_args)
+        self.assertIn("TGZ", cpack_args)
+
+    @patch("utilities.cli.holohub.write_external_operators_manifest")
+    @patch("utilities.cli.holohub.HoloHubCLI.find_project")
+    @patch("utilities.cli.util.run_command")
+    @patch("pathlib.Path.mkdir")
+    @patch("pathlib.Path.glob")
+    @patch("pathlib.Path.exists")
+    def test_package_multi_generator_deb_tgz(
+        self,
+        mock_exists,
+        mock_glob,
+        mock_mkdir,
+        mock_run_command,
+        mock_find_project,
+        mock_write_manifest,
+    ):
+        """DEB,TGZ produces two cpack calls, one per generator."""
+        mock_find_project.return_value = self.mock_module_data
+        mock_run_command.return_value = MagicMock()
+        mock_exists.return_value = True
+        base_cfg = Path("/build/pkg/CPackConfig-test-module-fixture.cmake")
+        tgz_cfg = Path("/build/pkg/CPackConfig-test-module-fixture-TGZ.cmake")
+        mock_glob.return_value = [base_cfg, tgz_cfg]
+
+        args = self.cli.parser.parse_args(
+            ["package", "test-module-fixture", "--local", "--pkg-generator", "DEB,TGZ"]
+        )
+        args.func(args)
+
+        # cmake configure, cmake build, cpack DEB, cpack TGZ
+        self.assertEqual(mock_run_command.call_count, 4)
+        cmake_args_str = " ".join(mock_run_command.call_args_list[0][0][0])
+        self.assertIn("-DHOLOHUB_PKG_TGZ=ON", cmake_args_str)
+        deb_cpack_args = mock_run_command.call_args_list[2][0][0]
+        self.assertIn("DEB", deb_cpack_args)
+        tgz_cpack_args = mock_run_command.call_args_list[3][0][0]
+        self.assertIn("TGZ", tgz_cpack_args)
+
+    @patch("utilities.cli.holohub.write_external_operators_manifest")
+    @patch("utilities.cli.holohub.HoloHubCLI.find_project")
+    @patch("utilities.cli.util.run_command")
+    @patch("pathlib.Path.mkdir")
+    @patch("pathlib.Path.glob")
+    @patch("pathlib.Path.exists")
+    def test_package_tgz_routes_to_generator_specific_config(
+        self,
+        mock_exists,
+        mock_glob,
+        mock_mkdir,
+        mock_run_command,
+        mock_find_project,
+        mock_write_manifest,
+    ):
+        """Generator-specific config (CPackConfig-*-TGZ.cmake) is used for TGZ; base config for DEB."""
+        mock_find_project.return_value = self.mock_module_data
+        mock_run_command.return_value = MagicMock()
+        mock_exists.return_value = True
+        base_cfg = Path("/build/pkg/CPackConfig-test-module-fixture.cmake")
+        tgz_cfg = Path("/build/pkg/CPackConfig-test-module-fixture-TGZ.cmake")
+        mock_glob.return_value = [base_cfg, tgz_cfg]
+
+        args = self.cli.parser.parse_args(
+            ["package", "test-module-fixture", "--local", "--pkg-generator", "DEB,TGZ"]
+        )
+        args.func(args)
+
+        deb_args_str = " ".join(str(a) for a in mock_run_command.call_args_list[2][0][0])
+        self.assertIn(str(base_cfg), deb_args_str)
+        self.assertNotIn(str(tgz_cfg), deb_args_str)
+
+        tgz_args_str = " ".join(str(a) for a in mock_run_command.call_args_list[3][0][0])
+        self.assertIn(str(tgz_cfg), tgz_args_str)
+        self.assertNotIn(str(base_cfg), tgz_args_str)
+
+    @patch("utilities.cli.holohub.write_external_operators_manifest")
+    @patch("utilities.cli.holohub.HoloHubCLI.find_project")
+    @patch("utilities.cli.util.run_command")
+    @patch("utilities.cli.util.fatal")
+    @patch("pathlib.Path.mkdir")
+    @patch("pathlib.Path.glob")
+    @patch("pathlib.Path.exists")
+    def test_package_missing_cpack_configs_fatal(
+        self,
+        mock_exists,
+        mock_glob,
+        mock_mkdir,
+        mock_fatal,
+        mock_run_command,
+        mock_find_project,
+        mock_write_manifest,
+    ):
+        """When the build produces no CPack configs, fatal is called with a clear message."""
+        mock_find_project.return_value = self.mock_module_data
+        mock_run_command.return_value = MagicMock()
+        mock_exists.return_value = True
+        mock_glob.return_value = []
+        mock_fatal.side_effect = SystemExit(1)
+
+        args = self.cli.parser.parse_args(
+            ["package", "test-module-fixture", "--local", "--pkg-generator", "TGZ"]
+        )
+        with self.assertRaises(SystemExit):
+            args.func(args)
+
+        mock_fatal.assert_called_once()
+        self.assertIn("No CPack config files", mock_fatal.call_args[0][0])
+
+    @patch("utilities.cli.holohub.write_external_operators_manifest")
+    @patch("utilities.cli.holohub.HoloHubCLI.find_project")
+    @patch("utilities.cli.util.run_command")
+    @patch("utilities.cli.util.fatal")
+    @patch("pathlib.Path.mkdir")
+    @patch("pathlib.Path.glob")
+    @patch("pathlib.Path.exists")
+    def test_package_missing_generator_config_fatal(
+        self,
+        mock_exists,
+        mock_glob,
+        mock_mkdir,
+        mock_fatal,
+        mock_run_command,
+        mock_find_project,
+        mock_write_manifest,
+    ):
+        """When no config exists for the requested generator, fatal lists available generators."""
+        mock_find_project.return_value = self.mock_module_data
+        mock_run_command.return_value = MagicMock()
+        mock_exists.return_value = True
+        # Only a DEB-specific config exists; TGZ is requested
+        deb_cfg = Path("/build/pkg/CPackConfig-test-module-fixture-DEB.cmake")
+        mock_glob.return_value = [deb_cfg]
+        mock_fatal.side_effect = SystemExit(1)
+
+        args = self.cli.parser.parse_args(
+            ["package", "test-module-fixture", "--local", "--pkg-generator", "TGZ"]
+        )
+        with self.assertRaises(SystemExit):
+            args.func(args)
+
+        mock_fatal.assert_called_once()
+        error_msg = mock_fatal.call_args[0][0]
+        self.assertIn("TGZ", error_msg)
+        self.assertIn("DEB", error_msg)  # available generator listed in error
 
 
 class TestRunCommand(unittest.TestCase):

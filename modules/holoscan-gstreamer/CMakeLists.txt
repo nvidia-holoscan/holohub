@@ -14,6 +14,7 @@
 # limitations under the License.
 
 include(holohub_configure_deb)
+include(holohub_configure_tgz)
 
 # Debian packaging
 set(_deb_depends
@@ -37,8 +38,22 @@ holohub_configure_deb(
     DEPENDS     "${_deb_depends_str}"
 )
 
+holohub_configure_tgz(
+    NAME    holoscan-gstreamer
+    VERSION 1.0.0
+    COMPONENTS holoscan-gstreamer
+)
+
+set(CMAKE_INSTALL_DEFAULT_COMPONENT_NAME holoscan-gstreamer)
+
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/NOTICE.md"
     DESTINATION "share/doc/holoscan-gstreamer"
+    COMPONENT holoscan-gstreamer
+)
+
+install(FILES "${CMAKE_SOURCE_DIR}/LICENSE"
+    DESTINATION "."
+    COMPONENT holoscan-gstreamer
 )
 
 # Wheel packaging: see pyproject.toml
