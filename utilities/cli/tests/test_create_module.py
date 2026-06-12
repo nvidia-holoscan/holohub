@@ -6,7 +6,7 @@
 Each test:
   1. Runs `./holohub create` in a temporary directory (non-interactively).
   2. Inspects the generated directory structure.
-  3. Runs `./holohub list` with HOLOHUB_SEARCH_PATH pointing at the generated
+  3. Runs `./holohub list` with HOLOSCAN_CLI_SEARCH_PATH pointing at the generated
      module's applications/ directory and asserts the scaffolded application
      appears in stdout.
 
@@ -69,7 +69,7 @@ class TestCreateModule(unittest.TestCase):
         )
 
     def _list_with_search_path(self, search_path: Path) -> subprocess.CompletedProcess:
-        env = {**os.environ, "HOLOHUB_SEARCH_PATH": str(search_path)}
+        env = {**os.environ, "HOLOSCAN_CLI_SEARCH_PATH": str(search_path)}
         return _run([str(HOLOHUB_SCRIPT), "list"], env=env)
 
     # ------------------------------------------------------------------
