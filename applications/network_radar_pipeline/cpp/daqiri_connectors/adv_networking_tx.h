@@ -89,7 +89,7 @@ class AdvConnectorOpTx : public Operator {
   uint32_t batch_size_;
   int hds_;
   bool gpu_direct_;
-  std::string mgr_;
+  std::string engine_;
 
   char eth_dst_[6];
   uint32_t ip_src_;

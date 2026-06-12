@@ -305,10 +305,10 @@ def _extract_metric(pattern, text) -> int:
     return 0  # Return 0 if no match found
 
 
-def parse_benchmark_results(log: str, manager_type: str) -> BenchmarkResults:
-    if manager_type == "dpdk":
+def parse_benchmark_results(log: str, engine_type: str) -> BenchmarkResults:
+    if engine_type == "dpdk":
         return parse_dpdk_benchmark_results(log)
-    raise ValueError(f"Unsupported manager type: {manager_type}")
+    raise ValueError(f"Unsupported engine type: {engine_type}")
 
 
 def parse_dpdk_benchmark_results(log: str) -> BenchmarkResults:

@@ -37,15 +37,15 @@ target_link_libraries(daqiri_raw_ethernet_bench
 )
 holohub_link_daqiri(daqiri_raw_ethernet_bench)
 
-# Configure manager support through compile definitions
-if(NOT DEFINED DAQIRI_MGR)
-    set(DAQIRI_MGR "dpdk" CACHE STRING "DAQIRI manager type(s) list")
+# Configure engine support through compile definitions
+if(NOT DEFINED DAQIRI_ENGINE)
+    set(DAQIRI_ENGINE "dpdk" CACHE STRING "DAQIRI engine type(s) list")
 endif()
-separate_arguments(DAQIRI_MGR_LIST UNIX_COMMAND ${DAQIRI_MGR})
-foreach(MGR IN LISTS DAQIRI_MGR_LIST)
-    string(TOUPPER "${MGR}" MGR_UPPER)
-    message(STATUS "Adding DAQIRI manager ${MGR} to the application configuration")
-    target_compile_definitions(${PROJECT_NAME} PUBLIC "DAQIRI_MGR_${MGR_UPPER}=1")
+separate_arguments(DAQIRI_ENGINE_LIST UNIX_COMMAND ${DAQIRI_ENGINE})
+foreach(ENGINE IN LISTS DAQIRI_ENGINE_LIST)
+    string(TOUPPER "${ENGINE}" ENGINE_UPPER)
+    message(STATUS "Adding DAQIRI engine ${ENGINE} to the application configuration")
+    target_compile_definitions(${PROJECT_NAME} PUBLIC "DAQIRI_ENGINE_${ENGINE_UPPER}=1")
 endforeach()
 
 # Copy config file
@@ -117,7 +117,7 @@ if(BUILD_TESTING)
   include(add_python_tests)
   add_python_tests(
     INPUT "testing"
-    ENVIRONMENT "DAQIRI_MANAGER_LIST=${DAQIRI_MGR_LIST}"
+    ENVIRONMENT "DAQIRI_ENGINE_LIST=${DAQIRI_ENGINE_LIST}"
     PYTEST_ARGS "-v" "-s" "--log-cli-level=DEBUG" "--show-capture=no"
   )
 endif()
