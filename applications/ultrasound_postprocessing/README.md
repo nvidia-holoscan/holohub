@@ -70,7 +70,7 @@ python3 -m streamlit run applications/ultrasound_postprocessing/ultra_post/app/s
 python3 -m ultra_post.app.holoscan_app [--uff path/to/myfile.uff] [--fps 10]
 ```
 
-The sample dataset used in this project is available at <https://www.ustb.no/ustb-datasets/>.
+The sample dataset used in this project is available at <https://unioslo.github.io/USTB/datasets.html>.
 
 ## Key Concepts
 
@@ -155,6 +155,6 @@ This project is licensed under the Apache-2.0 License. See the HoloHub [LICENSE]
 
 ## Reference Data
 
-This project uses UFF sample data hosted by the [Ultrasound Toolbox](https://www.ustb.no/).
+This project uses UFF sample data hosted by the [Ultrasound Toolbox](https://unioslo.github.io/USTB/datasets.html).
 
 > H. Liebgott, A. Rodriguez-Molares, F. Cervenansky, J. A. Jensen and O. Bernard, "Plane-Wave Imaging Challenge in Medical Ultrasound," 2016 IEEE International Ultrasonics Symposium (IUS), Tours, France, 2016, pp. 1-4, doi: 10.1109/ULTSYM.2016.7728908.
