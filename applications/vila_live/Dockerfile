@@ -36,13 +36,17 @@ RUN chmod +x /tmp/scripts/holohub && \
 # Install setup tools and PyTorch
 # ----------------------------------------------------------------------------
 ARG CUDA_MAJOR
+ARG TORCH_VERSION_CUDA13=2.12.0
+ARG TORCHVISION_VERSION_CUDA13=0.27.0
 RUN python3 -m pip install --no-cache-dir setuptools packaging && \
     if [ "${CUDA_MAJOR}" = "13" ]; then \
         INDEX_URL="https://download.pytorch.org/whl/cu130"; \
+        TORCH_PACKAGES="torch==${TORCH_VERSION_CUDA13} torchvision==${TORCHVISION_VERSION_CUDA13}"; \
     else \
         INDEX_URL="https://download.pytorch.org/whl/cu124"; \
+        TORCH_PACKAGES="torch torchvision"; \
     fi && \
-    python3 -m pip install --no-cache-dir torch torchvision --index-url ${INDEX_URL}
+    python3 -m pip install --no-cache-dir ${TORCH_PACKAGES} --index-url ${INDEX_URL}
 
 # ----------------------------------------------------------------------------
 # Install flash-attention 2
@@ -54,7 +58,13 @@ ARG CUDA_MAJOR
 RUN if [ "${CUDA_MAJOR}" = "13" ] && [ "$(uname -m)" = "x86_64" ]; then \
         PYTHON_VERSION=$(python3 -c "import sys; print(f'cp{sys.version_info.major}{sys.version_info.minor}')") && \
         TORCH_VERSION=$(python3 -c "import torch; print(f'torch{torch.__version__.split(\".\")[0]}.{torch.__version__.split(\".\")[1]}')") && \
-        WHEEL_URL="https://github.com/mjun0812/flash-attention-prebuild-wheels/releases/download/v0.7.16/flash_attn-2.8.3%2Bcu130${TORCH_VERSION}-${PYTHON_VERSION}-${PYTHON_VERSION}-linux_x86_64.whl" && \
+        case "${TORCH_VERSION}" in \
+            torch2.9|torch2.10) FLASH_ATTN_RELEASE="v0.7.16" ;; \
+            torch2.11) FLASH_ATTN_RELEASE="v0.9.4" ;; \
+            torch2.12) FLASH_ATTN_RELEASE="v0.9.17" ;; \
+            *) echo "Unsupported CUDA 13 flash-attn wheel for ${TORCH_VERSION}" && exit 1 ;; \
+        esac && \
+        WHEEL_URL="https://github.com/mjun0812/flash-attention-prebuild-wheels/releases/download/${FLASH_ATTN_RELEASE}/flash_attn-2.8.3%2Bcu130${TORCH_VERSION}-${PYTHON_VERSION}-${PYTHON_VERSION}-linux_x86_64.whl" && \
         echo "Installing flash-attn wheel for CUDA 13 (x86_64): ${WHEEL_URL}" && \
         python3 -m pip install --no-cache-dir "${WHEEL_URL}"; \
     else \
@@ -105,9 +115,8 @@ RUN python3 -m pip install -r /tmp/requirements.txt
 # Download the AWQ-quantized VILA model
 # ----------------------------------------------------------------------------
 RUN mkdir -p /workspace/volumes/models && \
-    huggingface-cli download Efficient-Large-Model/Llama-3-VILA1.5-8b-Fix-AWQ \
-    --local-dir /workspace/volumes/models/Llama-3-VILA1.5-8b-Fix-AWQ \
-    --cache-dir /workspace/volumes/models/Llama-3-VILA1.5-8b-Fix-AWQ
+    hf download Efficient-Large-Model/Llama-3-VILA1.5-8b-Fix-AWQ \
+    --local-dir /workspace/volumes/models/Llama-3-VILA1.5-8b-Fix-AWQ
 
 # ----------------------------------------------------------------------------
 # Set up final working directory to be the holohub directory
