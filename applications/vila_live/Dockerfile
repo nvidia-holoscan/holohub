@@ -115,9 +115,8 @@ RUN python3 -m pip install -r /tmp/requirements.txt
 # Download the AWQ-quantized VILA model
 # ----------------------------------------------------------------------------
 RUN mkdir -p /workspace/volumes/models && \
-    huggingface-cli download Efficient-Large-Model/Llama-3-VILA1.5-8b-Fix-AWQ \
-    --local-dir /workspace/volumes/models/Llama-3-VILA1.5-8b-Fix-AWQ \
-    --cache-dir /workspace/volumes/models/Llama-3-VILA1.5-8b-Fix-AWQ
+    hf download Efficient-Large-Model/Llama-3-VILA1.5-8b-Fix-AWQ \
+    --local-dir /workspace/volumes/models/Llama-3-VILA1.5-8b-Fix-AWQ
 
 # ----------------------------------------------------------------------------
 # Set up final working directory to be the holohub directory
