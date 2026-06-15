@@ -32,7 +32,7 @@ FROM base AS holohub-cli-prerequisites
 
 # Install python3 if not present (needed for holohub CLI)
 ARG PYTHON_VERSION=python3
-RUN if [ "${PYTHON_VERSION}" != "python3" ] && ! command -v ${PYTHON_VERSION} >/dev/null 2>&1; then \
+RUN if ! command -v ${PYTHON_VERSION} >/dev/null 2>&1; then \
         apt-get update \
         && apt-get install --no-install-recommends -y \
             software-properties-common curl gpg-agent \
@@ -49,12 +49,20 @@ RUN if [ "${PYTHON_VERSION}" != "python3" ] && ! command -v ${PYTHON_VERSION} >/
         && apt-get autoremove --purge -y \
         && rm -rf /var/lib/apt/lists/* \
         # Register both python and python3 symlinks so all build/test tooling uses the selected version
-        && update-alternatives --install /usr/bin/python  python  /usr/bin/${PYTHON_VERSION} 100 \
-        && update-alternatives --install /usr/bin/python3 python3 /usr/bin/${PYTHON_VERSION} 100 \
+        && update-alternatives --install /usr/bin/python python /usr/bin/${PYTHON_VERSION} 100 \
+        && if [ "${PYTHON_VERSION}" != "python3" ]; then \
+            update-alternatives --install /usr/bin/python3 python3 /usr/bin/${PYTHON_VERSION} 100 \
+            ; fi \
     ; fi
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
 RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
         curl -sS https://bootstrap.pypa.io/get-pip.py | ${PYTHON_VERSION} \
+    ; fi
+
+# Install standalone holoscan-cli before running `holohub setup`.
+ARG HOLOSCAN_CLI_INSTALL_ARGS=--pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0
+RUN if ! python3 -m holoscan_cli --help 2>/dev/null | grep -qw build; then \
+        python3 -m pip install ${HOLOSCAN_CLI_INSTALL_ARGS} \
     ; fi
 
 # --------------------------------------------------------------------------

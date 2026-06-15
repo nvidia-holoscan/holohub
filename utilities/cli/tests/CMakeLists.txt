@@ -13,581 +13,159 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-include(CTest)
-find_package(Python3 REQUIRED COMPONENTS Interpreter)
+# CLI-side CTest entries. Two layers:
+#
+#   1. Direct ``add_test(COMMAND ${CMAKE_SOURCE_DIR}/holohub <subcmd>)`` checks
+#      that exercise the user-facing path end-to-end (shell wrapper ->
+#      holoscan_cli.__main__ -> argparse -> dispatch -> stdout) and assert on
+#      the output via ``PASS_REGULAR_EXPRESSION``. These need no pytest, no
+#      Python imports — just a working ``./holohub`` wrapper and the
+#      installed consolidated ``holoscan-cli`` package. They cover the
+#      assertions that depend on a real HoloHub project tree (real
+#      ``metadata.json``, real ``applications/``/``operators/`` layout)
+#      and therefore cannot live in ``holoscan-cli/tests/unit/``.
+#
+#   2. Pytest-based smoke tests (``holoscan_cli_consolidation``,
+#      ``holohub_create_module``) that ride on the same ctest invocation but
+#      need ``pytest`` importable.
 
-# Add functional tests for holohub script
+include(CTest)
+
+# ----------------------------------------------------------------------------
+# Layer 1 — black-box CLI assertions against the real HoloHub tree.
+# ----------------------------------------------------------------------------
+
+# Project listing: ``./holohub list`` must enumerate the standard category
+# headers the wrapper-driven UI shows. Catches regressions where a category is
+# silently dropped from project discovery.
 add_test(
-    NAME test_holohub_list
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub list
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  NAME test_holohub_list
+  COMMAND ${CMAKE_SOURCE_DIR}/holohub list
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 set_tests_properties(test_holohub_list PROPERTIES
-    PASS_REGULAR_EXPRESSION "APPLICATIONS.*BENCHMARKS.*PACKAGES.*OPERATORS.*WORKFLOWS"
+  PASS_REGULAR_EXPRESSION "APPLICATIONS.*BENCHMARKS.*PACKAGES.*OPERATORS.*WORKFLOWS"
 )
 
+# Autocompletion list: shell completion depends on the wrapper printing one
+# project name + command per line. Pre-consolidation
+# ``test_holohub_autocompletion_list``.
 add_test(
-    NAME test_holohub_autocompletion_list
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub autocompletion_list
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  NAME test_holohub_autocompletion_list
+  COMMAND ${CMAKE_SOURCE_DIR}/holohub autocompletion_list
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 set_tests_properties(test_holohub_autocompletion_list PROPERTIES
-    PASS_REGULAR_EXPRESSION "ultrasound_segmentation.*build.*run.*list"
+  PASS_REGULAR_EXPRESSION "ultrasound_segmentation.*build.*run.*list"
 )
 
-
+# ``HOLOSCAN_CLI_PATH_PREFIX`` env var propagation through ``run-container``.
+# (The consolidated CLI renamed ``HOLOHUB_PATH_PREFIX`` to
+# ``HOLOSCAN_CLI_PATH_PREFIX``; CTest's regex engine is line-oriented and
+# can't bridge ``docker run`` and the ``-e HOLOSCAN_CLI_PATH_PREFIX=…``
+# arg across the dryrun pretty-printer's newlines, so the assertion targets
+# the env-passing line specifically.) Pre-consolidation
+# ``test_holohub_path_prefix_env``.
 add_test(
-    NAME test_holohub_lint
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub lint --dryrun
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  NAME test_holohub_path_prefix_env
+  COMMAND ${CMAKE_SOURCE_DIR}/holohub run-container --dryrun
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
-set_tests_properties(test_holohub_lint PROPERTIES
-    PASS_REGULAR_EXPRESSION "pre-commit run.*--all-files"
-)
-add_test(
-    NAME test_holohub_lint_fix
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub lint --fix --dryrun
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_tests_properties(test_holohub_lint_fix PROPERTIES
-    PASS_REGULAR_EXPRESSION "pre-commit run.*--all-files"
+set_tests_properties(test_holohub_path_prefix_env PROPERTIES
+  ENVIRONMENT "HOLOSCAN_CLI_PATH_PREFIX=custom_prefix_"
+  PASS_REGULAR_EXPRESSION "HOLOSCAN_CLI_PATH_PREFIX=custom_prefix_"
 )
 
+# Multi-language project detection: ``endoscopy_tool_tracking`` ships both
+# C++ and Python variants — the CLI must guide the user to disambiguate.
+# Pre-consolidation ``test_holohub_run_multi_language_project``.
 add_test(
-    NAME test_holohub_setup
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub setup --dryrun
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  NAME test_holohub_run_multi_language_project
+  COMMAND ${CMAKE_SOURCE_DIR}/holohub run endoscopy_tool_tracking --dryrun
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
-set_tests_properties(test_holohub_setup PROPERTIES
-    PASS_REGULAR_EXPRESSION "(already installed|apt install)"
-    FAIL_REGULAR_EXPRESSION "returned non-zero exit status;failed;Traceback;Error"
+set_tests_properties(test_holohub_run_multi_language_project PROPERTIES
+  PASS_REGULAR_EXPRESSION "has multiple languages.*language"
 )
 
-find_package(CUDAToolkit QUIET)
-if(CUDAToolkit_FOUND)
-    get_test_property(test_holohub_setup PASS_REGULAR_EXPRESSION pass_expression)
-    set_tests_properties(test_holohub_setup PROPERTIES
-        PASS_REGULAR_EXPRESSION "${pass_expression}.*(cudnn|nvinfer|nvonnxparsers)"
-        FAIL_REGULAR_EXPRESSION "returned non-zero exit status;failed;Traceback;Error checking available versions"
+# ``holochat`` explicit mode + CLI override → must surface the "will be
+# appended to mode command" warning. Pre-consolidation
+# ``test_holohub_explicit_mode_cli_override_run_args``.
+add_test(
+  NAME test_holohub_explicit_mode_cli_override_run_args
+  COMMAND ${CMAKE_SOURCE_DIR}/holohub run holochat mcp
+          --run-args=conflicting_operator --dryrun
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_tests_properties(test_holohub_explicit_mode_cli_override_run_args PROPERTIES
+  PASS_REGULAR_EXPRESSION "CLI.*--run-args.*will be appended to mode command"
+)
+
+# ``body_pose_estimation`` implicit-default mode resolution: with no mode
+# arg, the CLI must pick the metadata's default (``v4l2``).
+# Pre-consolidation ``test_holohub_bpe_run_implicit_default``.
+add_test(
+  NAME test_holohub_bpe_run_implicit_default
+  COMMAND ${CMAKE_SOURCE_DIR}/holohub run body_pose_estimation --dryrun
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_tests_properties(test_holohub_bpe_run_implicit_default PROPERTIES
+  PASS_REGULAR_EXPRESSION "Running body_pose_estimation in 'v4l2' mode"
+)
+
+# ``body_pose_estimation`` explicit mode: ``replayer`` must override the
+# metadata default. Pre-consolidation ``test_holohub_bpe_run_replayer``.
+add_test(
+  NAME test_holohub_bpe_run_replayer
+  COMMAND ${CMAKE_SOURCE_DIR}/holohub run body_pose_estimation replayer --dryrun
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_tests_properties(test_holohub_bpe_run_replayer PROPERTIES
+  PASS_REGULAR_EXPRESSION "Running body_pose_estimation in 'replayer' mode"
+)
+
+# ``./holohub env-info`` must print the three standard env sections users
+# rely on for bug reports. Pre-consolidation ``test_cli_env_info``.
+add_test(
+  NAME test_cli_env_info
+  COMMAND ${CMAKE_SOURCE_DIR}/holohub env-info
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_tests_properties(test_cli_env_info PROPERTIES
+  PASS_REGULAR_EXPRESSION "Holoscan CLI Environment Variables"
+)
+
+# ----------------------------------------------------------------------------
+# Layer 2 — pytest-based smoke tests.
+# ----------------------------------------------------------------------------
+#
+# ``--noconftest`` skips the repo-root ``conftest.py`` (which imports cupy and
+# holoscan); these smoke tests do not use any of those fixtures.
+
+find_package(Python3 COMPONENTS Interpreter)
+if(Python3_Interpreter_FOUND)
+  execute_process(
+    COMMAND ${Python3_EXECUTABLE} -c "import pytest"
+    RESULT_VARIABLE _pytest_probe
+    OUTPUT_QUIET ERROR_QUIET
+  )
+  if(_pytest_probe EQUAL 0)
+    add_test(
+      NAME holoscan_cli_consolidation
+      COMMAND ${Python3_EXECUTABLE} -m pytest -q --noconftest
+              ${CMAKE_CURRENT_SOURCE_DIR}/test_holoscan_cli_consolidation.py
+      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     )
+    add_test(
+      NAME holohub_create_module
+      COMMAND ${Python3_EXECUTABLE} -m pytest -q --noconftest
+              ${CMAKE_CURRENT_SOURCE_DIR}/test_create_module.py
+      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    )
+  else()
+    message(STATUS
+      "BUILD_HOLOHUB_TESTING is ON but Python pytest is not importable; "
+      "skipping pytest-based smoke tests. Install pytest into the Python "
+      "interpreter at ${Python3_EXECUTABLE} to enable them.")
+  endif()
 endif()
-
-add_test(
-    NAME test_holohub_clear_cache
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub clear-cache --dryrun
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_clear_cache PROPERTY
-    PASS_REGULAR_EXPRESSION "Would remove:.*${CMAKE_SOURCE_DIR}/build"
-)
-
-add_test(
-    NAME test_holohub_build_container_dryrun
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub build-container --dryrun --no-cache
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_build_container_dryrun PROPERTY
-    PASS_REGULAR_EXPRESSION "docker build"
-)
-
-add_test(
-    NAME test_holohub_build_container_build_args
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub build-container --dryrun --build-args "--build-arg TEST=value"
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_build_container_build_args PROPERTY
-    PASS_REGULAR_EXPRESSION "docker build"
-    PASS_REGULAR_EXPRESSION "--build-arg TEST=value"
-)
-
-# default docker build args via environment variable
-add_test(
-    NAME test_holohub_default_docker_build_args_env
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub build-container --dryrun
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_default_docker_build_args_env PROPERTY
-    ENVIRONMENT "HOLOHUB_DEFAULT_DOCKER_BUILD_ARGS=--build-arg DEFAULT_FLAG=abc"
-)
-set_property(TEST test_holohub_default_docker_build_args_env PROPERTY
-    PASS_REGULAR_EXPRESSION "docker build"
-    PASS_REGULAR_EXPRESSION "DEFAULT_FLAG=abc"
-)
-
-add_test(
-    NAME test_holohub_build_container_cuda_version
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub build-container --dryrun --cuda 13
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_build_container_cuda_version PROPERTY
-    PASS_REGULAR_EXPRESSION "docker build"
-    PASS_REGULAR_EXPRESSION "--build-arg CUDA_MAJOR=13"
-)
-
-add_test(
-    NAME test_holohub_run_container_docker_opts
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub run-container --dryrun --docker-opts "--memory 4g --entrypoint=bash"
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_run_container_docker_opts PROPERTY
-    PASS_REGULAR_EXPRESSION "docker run"
-    PASS_REGULAR_EXPRESSION "--memory 4g"
-)
-
-add_test(
-    NAME test_holohub_run_container_add_volume
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub run-container --dryrun --add-volume "/tmp:/tmp"
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_run_container_add_volume PROPERTY
-    PASS_REGULAR_EXPRESSION "docker run"
-    PASS_REGULAR_EXPRESSION "-v /tmp:/tmp"
-)
-
-# default docker run args via environment variable
-add_test(
-    NAME test_holohub_default_docker_run_args_env
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub run-container --dryrun
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_default_docker_run_args_env PROPERTY
-    ENVIRONMENT "HOLOHUB_DEFAULT_DOCKER_RUN_ARGS=-e TEST_ENV=123"
-)
-set_property(TEST test_holohub_default_docker_run_args_env PROPERTY
-    PASS_REGULAR_EXPRESSION "docker run"
-    PASS_REGULAR_EXPRESSION "TEST_ENV=123"
-)
-
-add_test(
-    NAME test_holohub_build_dryrun
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub build endoscopy_tool_tracking --dryrun
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_build_dryrun PROPERTY
-    PASS_REGULAR_EXPRESSION "build endoscopy_tool_tracking.*--local"
-)
-
-add_test(
-    NAME test_holohub_run_dryrun
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub run endoscopy_tool_tracking --dryrun
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_run_dryrun PROPERTY
-    PASS_REGULAR_EXPRESSION "run endoscopy_tool_tracking.*--local"
-)
-
-add_test(
-    NAME test_holohub_run_forward_args
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub run endoscopy_tool_tracking --dryrun --run-args=--flag
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_run_forward_args PROPERTY
-    PASS_REGULAR_EXPRESSION "run endoscopy_tool_tracking.*--run-args=--flag"
-)
-
-add_test(
-    NAME test_holohub_run_pythonpath
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub run-container --dryrun
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_run_pythonpath PROPERTY
-    PASS_REGULAR_EXPRESSION "Inspect docker image PYTHONPATH: docker inspect --format"
-)
-
-add_test(
-    NAME test_holohub_run_container_dryrun
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub run-container --dryrun -- echo hello
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_run_container_dryrun PROPERTY
-    PASS_REGULAR_EXPRESSION "docker run"
-    PASS_REGULAR_EXPRESSION "holohub.*echo hello"
-)
-
-# Add test for status module
-add_test(
-    NAME test_status
-    COMMAND ${Python3_EXECUTABLE} -m unittest discover -s ${CMAKE_CURRENT_SOURCE_DIR} -p "test_status.py"
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-
-# Add test for container module
-add_test(
-    NAME test_container
-    COMMAND ${Python3_EXECUTABLE} -m unittest discover -s ${CMAKE_CURRENT_SOURCE_DIR} -p "test_container.py"
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-
-# Add test for CLI module
-add_test(
-    NAME test_cli
-    COMMAND ${Python3_EXECUTABLE} -m unittest discover -s ${CMAKE_CURRENT_SOURCE_DIR} -p "test_cli.py"
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-
-# Add test for system_check module
-add_test(
-    NAME test_system_check
-    COMMAND ${Python3_EXECUTABLE} -m unittest discover -s ${CMAKE_CURRENT_SOURCE_DIR} -p "test_system_check.py"
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-
-add_test(
-    NAME test_cli_env_info
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub env-info
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_cli_env_info PROPERTY
-    PASS_REGULAR_EXPRESSION "HoloHub Environment Variables"
-    PASS_REGULAR_EXPRESSION "Holoscan Environment Variables"
-    PASS_REGULAR_EXPRESSION "Other Relevant Environment Variables"
-)
-
-add_test(
-    NAME test_cli_env_check
-    COMMAND sh -c "${CMAKE_SOURCE_DIR}/holohub env-check || true"
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_tests_properties(test_cli_env_check PROPERTIES
-    PASS_REGULAR_EXPRESSION "System Info Check"
-)
-
-add_test(
-    NAME test_cli_env_check_json
-    COMMAND sh -c "${CMAKE_SOURCE_DIR}/holohub env-check --json || true"
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_tests_properties(test_cli_env_check_json PROPERTIES
-    PASS_REGULAR_EXPRESSION "\"elapsed_seconds\""
-)
-
-# test ambiguous dash-prefixed arguments
-add_test(
-    NAME test_cli_ambiguous_dash_prefixed_arguments
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub run-container --dryrun --run-args --local
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_cli_ambiguous_dash_prefixed_arguments PROPERTY
-    PASS_REGULAR_EXPRESSION "ambiguous dash-prefixed arguments"
-)
-
-# test explicit mode allows CLI parameters with warnings
-add_test(
-    NAME test_holohub_explicit_mode_cli_override_run_args
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub run holochat mcp --run-args "conflicting_operator" --dryrun
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_explicit_mode_cli_override_run_args PROPERTY
-    PASS_REGULAR_EXPRESSION "CLI.*--run-args.*will be appended to mode command"
-)
-
-# test explicit mode allows multiple CLI parameter overrides with warnings
-add_test(
-    NAME test_holohub_explicit_mode_multiple_cli_overrides
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub run holochat mcp --build-with "operator1" --run-args="--verbose" --dryrun
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_explicit_mode_multiple_cli_overrides PROPERTY
-    PASS_REGULAR_EXPRESSION "Running holochat in 'mcp' mode"
-)
-
-# test implicit default mode allows CLI parameter overrides
-add_test(
-    NAME test_holohub_implicit_default_mode_run_args_allowed
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub run holochat --run-args="--debug" --dryrun
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_implicit_default_mode_run_args_allowed PROPERTY
-    PASS_REGULAR_EXPRESSION "Running holochat in.*mode.*--run-args=.*--debug"
-)
-
-# test implicit default mode with multiple CLI parameter overrides
-add_test(
-    NAME test_holohub_implicit_default_mode_multiple_overrides
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub run holochat --run-args="--verbose" --build-with="custom_ops" --dryrun
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_implicit_default_mode_multiple_overrides PROPERTY
-    PASS_REGULAR_EXPRESSION "Running holochat in.*mode.*--build-with.*custom_ops.*--run-args=.*--verbose"
-)
-
-# test explicit mode allows CLI parameter overrides with warnings
-add_test(
-    NAME test_holohub_explicit_mode_allows_overrides
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub run holochat cloud --run-args="--debug" --dryrun
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_explicit_mode_allows_overrides PROPERTY
-    PASS_REGULAR_EXPRESSION "Running holochat in 'cloud' mode"
-)
-
-# test build command with implicit default mode overrides
-add_test(
-    NAME test_holohub_build_implicit_default_overrides
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub build holochat --build-with="debug_ops" --dryrun
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_build_implicit_default_overrides PROPERTY
-    PASS_REGULAR_EXPRESSION "Building holochat in.*mode.*--build-with.*debug_ops"
-)
-
-# implicit default mode: run-args append warning is printed
-add_test(
-    NAME test_holohub_implicit_default_warn_run_args_appended
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub run holochat --run-args="--debug" --dryrun
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_implicit_default_warn_run_args_appended PROPERTY
-    PASS_REGULAR_EXPRESSION "CLI args --run-args=.*--debug.* will be appended to mode command"
-)
-
-# implicit default mode: docker-opts override warning when mode sets docker_run_args
-add_test(
-    NAME test_holohub_implicit_default_warn_docker_opts_override
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub run isaac_sim_holoscan_bridge --dryrun --docker-opts "--memory 2g"
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_implicit_default_warn_docker_opts_override PROPERTY
-    PASS_REGULAR_EXPRESSION "CLI args --docker-opts='--memory 2g' overrides mode --docker-opts"
-)
-
-# body_pose_estimation: implicit default mode run (v4l2)
-add_test(
-    NAME test_holohub_bpe_run_implicit_default
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub run body_pose_estimation --dryrun
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_bpe_run_implicit_default PROPERTY
-    PASS_REGULAR_EXPRESSION "Running body_pose_estimation in 'v4l2' mode"
-)
-
-# body_pose_estimation: explicit mode run replayer
-add_test(
-    NAME test_holohub_bpe_run_replayer
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub run body_pose_estimation replayer --dryrun
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_bpe_run_replayer PROPERTY
-    PASS_REGULAR_EXPRESSION "Running body_pose_estimation in 'replayer' mode"
-)
-
-# body_pose_estimation: implicit default allows run-args append warning
-add_test(
-    NAME test_holohub_bpe_run_implicit_warn_run_args
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub run body_pose_estimation --run-args="--source replayer" --dryrun
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_bpe_run_implicit_warn_run_args PROPERTY
-    PASS_REGULAR_EXPRESSION "CLI args --run-args=.*--source replayer.* will be appended to mode command"
-)
-
-# body_pose_estimation: implicit default build (v4l2)
-add_test(
-    NAME test_holohub_bpe_build_implicit_default
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub build body_pose_estimation --dryrun
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_bpe_build_implicit_default PROPERTY
-    PASS_REGULAR_EXPRESSION "Building body_pose_estimation in 'v4l2' mode"
-)
-
-# body_pose_estimation: explicit mode now allows CLI parameters with warnings
-add_test(
-    NAME test_holohub_bpe_explicit_dds_allows_build_with
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub run body_pose_estimation dds --build-with="extra_ops" --dryrun
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_bpe_explicit_dds_allows_build_with PROPERTY
-    PASS_REGULAR_EXPRESSION "CLI.*--build-with.*overrides mode depends"
-)
-
-# test multi language project
-add_test(
-    NAME test_holohub_run_multi_language_project
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub run endoscopy_tool_tracking --dryrun
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_run_multi_language_project PROPERTY
-    PASS_REGULAR_EXPRESSION "has multiple languages.*language"
-)
-
-add_test(
-    NAME test_holohub_test_build_name_suffix
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub test --dryrun --build-name-suffix=test-branch
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_test_build_name_suffix PROPERTY
-    PASS_REGULAR_EXPRESSION "DTAG=test-branch"
-)
-
-add_test(
-    NAME test_holohub_test_cmake_options
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub test --dryrun --cmake-options="-DMAKE=1" --cmake-options="-DMAKE2=2" --ctest-options="-DTEST=2"
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_test_cmake_options PROPERTY
-    PASS_REGULAR_EXPRESSION "DCONFIGURE_OPTIONS.*DMAKE=1.*DMAKE2=2.*DTEST=2"
-)
-
-add_test(
-    NAME test_holohub_test_ctest_options
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub test --dryrun --ctest-options="-DMAKE2=2" --ctest-options="-DTEST=2"
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_test_ctest_options PROPERTY
-    PASS_REGULAR_EXPRESSION "DMAKE2=2.*DTEST=2"
-)
-
-# Test that HOLOHUB_PATH_PREFIX is passed from host to container
-add_test(
-    NAME test_holohub_path_prefix_env
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub run-container --dryrun
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_path_prefix_env PROPERTY
-    ENVIRONMENT "HOLOHUB_PATH_PREFIX=custom_prefix_"
-)
-set_property(TEST test_holohub_path_prefix_env PROPERTY
-    PASS_REGULAR_EXPRESSION "docker run"
-    PASS_REGULAR_EXPRESSION "-e HOLOHUB_PATH_PREFIX=custom_prefix_"
-)
-
-# Test that HOLOHUB_PATH_PREFIX is passed when running an application locally
-add_test(
-    NAME test_holohub_path_prefix_app_local
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub run endoscopy_tool_tracking --local --dryrun
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_path_prefix_app_local PROPERTY
-    ENVIRONMENT "HOLOHUB_PATH_PREFIX=custom_prefix_"
-)
-set_property(TEST test_holohub_path_prefix_app_local PROPERTY
-    PASS_REGULAR_EXPRESSION "custom_prefix_root"
-)
-
-# test mode.env is applied during local run with --verbose
-add_test(
-    NAME test_holohub_mode_env_verbose_output
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub run holochat --local --verbose --dryrun --no-local-build
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_mode_env_verbose_output PROPERTY
-    PASS_REGULAR_EXPRESSION "export PYTHONPATH="
-)
-
-# test that local builds work correctly (env parameter support)
-add_test(
-    NAME test_holohub_local_build_env_support
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub build holochat --local --dryrun
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_local_build_env_support PROPERTY
-    PASS_REGULAR_EXPRESSION "Building holochat in.*mode"
-)
-
-add_test(  # Test that Python projects automatically get -DHOLOHUB_BUILD_PYTHON=ON flag
-    NAME test_holohub_build_python_auto_flag
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub build volume_rendering --language python --local --dryrun
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_build_python_auto_flag PROPERTY
-    PASS_REGULAR_EXPRESSION "-DHOLOHUB_BUILD_PYTHON=ON"
-)
-
-add_test(
-    NAME test_holohub_run_container_extra_scripts_xvfb
-    COMMAND ${CMAKE_SOURCE_DIR}/holohub run-container --extra-scripts xvfb --dryrun
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_property(TEST test_holohub_run_container_extra_scripts_xvfb PROPERTY
-    PASS_REGULAR_EXPRESSION "SCRIPT=utilities/setup/xvfb.sh"
-)
-
-# ───── install --dev: dev-hook installer ─────
-# Coverage for `./holohub install --dev`, which copies the .pth + helper
-# that a Holoscan-Module build stages into the user's Python user-site so
-# `import holoscan.<module>` resolves to the live build tree.
-
-# `--dev` is wired into the install command's argparse: surface it in
-# --help to catch accidental removal. COLUMNS=200 keeps argparse from
-# wrapping the usage line — the regex is single-line (cmsys's `.` does
-# not match newline).
-add_test(
-    NAME test_holohub_install_dev_help_advertises_flags
-    COMMAND sh -c "COLUMNS=200 \"${CMAKE_SOURCE_DIR}/holohub\" install --help"
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_tests_properties(test_holohub_install_dev_help_advertises_flags PROPERTIES
-    PASS_REGULAR_EXPRESSION "--dev.*--uninstall.*--build-dir"
-)
-
-# `install --dev` against an empty build dir must hit the
-# no-staged-hooks fatal path (and not crash with a stack trace from
-# elsewhere). Use --build-dir to avoid touching whatever the user has
-# in their default build dir at test time.
-add_test(
-    NAME test_holohub_install_dev_no_staged_hooks
-    COMMAND sh -c "rm -rf \"${CMAKE_BINARY_DIR}/test_install_dev_empty\" && \
-        mkdir -p \"${CMAKE_BINARY_DIR}/test_install_dev_empty\" && \
-        \"${CMAKE_SOURCE_DIR}/holohub\" install --dev \
-            --build-dir \"${CMAKE_BINARY_DIR}/test_install_dev_empty\" 2>&1 || true"
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_tests_properties(test_holohub_install_dev_no_staged_hooks PROPERTIES
-    PASS_REGULAR_EXPRESSION "No staged dev hooks .holoscan_.*_dev.py."
-    FAIL_REGULAR_EXPRESSION "Traceback"
-)
-
-# `install --dev --build-dir <missing-path>` must hit the "is not a
-# directory" fatal path before any user-site work.
-add_test(
-    NAME test_holohub_install_dev_missing_build_dir
-    COMMAND sh -c "\"${CMAKE_SOURCE_DIR}/holohub\" install --dev \
-        --build-dir \"${CMAKE_BINARY_DIR}/test_install_dev_missing\" 2>&1 || true"
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_tests_properties(test_holohub_install_dev_missing_build_dir PROPERTIES
-    PASS_REGULAR_EXPRESSION "is not a directory"
-    FAIL_REGULAR_EXPRESSION "Traceback"
-)
-
-# `--uninstall` without `--dev` must be rejected — the regular install
-# path doesn't own user-site files.
-add_test(
-    NAME test_holohub_install_uninstall_requires_dev
-    COMMAND sh -c "\"${CMAKE_SOURCE_DIR}/holohub\" install some_project \
-        --uninstall --dryrun 2>&1 || true"
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_tests_properties(test_holohub_install_uninstall_requires_dev PROPERTIES
-    PASS_REGULAR_EXPRESSION "--uninstall is only valid with --dev"
-    FAIL_REGULAR_EXPRESSION "Traceback"
-)
-
-# Round-trip: stage a fake hook pair into a temp build dir, install into a
-# sandboxed site dir via --site-dir, verify the files land, then uninstall
-# and confirm removal is reported. Uses --site-dir to avoid touching the
-# real Python environment.
-add_test(
-    NAME test_holohub_install_dev_round_trip
-    COMMAND sh -c "rm -rf \
-            \"${CMAKE_BINARY_DIR}/test_rt_build\" \
-            \"${CMAKE_BINARY_DIR}/test_rt_site\" && \
-        mkdir -p \
-            \"${CMAKE_BINARY_DIR}/test_rt_build\" \
-            \"${CMAKE_BINARY_DIR}/test_rt_site\" && \
-        printf 'pass\n' > \
-            \"${CMAKE_BINARY_DIR}/test_rt_build/holoscan_mymod_dev.py\" && \
-        printf 'holoscan_mymod_dev\n' > \
-            \"${CMAKE_BINARY_DIR}/test_rt_build/holoscan-mymod-dev.pth\" && \
-        \"${CMAKE_SOURCE_DIR}/holohub\" install --dev \
-            --build-dir \"${CMAKE_BINARY_DIR}/test_rt_build\" \
-            --site-dir \"${CMAKE_BINARY_DIR}/test_rt_site\" && \
-        \"${CMAKE_SOURCE_DIR}/holohub\" install --dev --uninstall \
-            --site-dir \"${CMAKE_BINARY_DIR}/test_rt_site\" 2>&1"
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-set_tests_properties(test_holohub_install_dev_round_trip PROPERTIES
-    PASS_REGULAR_EXPRESSION "Removed.*holoscan"
-    FAIL_REGULAR_EXPRESSION "Traceback"
-)

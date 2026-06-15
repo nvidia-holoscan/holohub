@@ -60,6 +60,12 @@ RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
         curl -sS https://bootstrap.pypa.io/get-pip.py | ${PYTHON_VERSION} \
     ; fi
 
+# Install standalone holoscan-cli before running `holohub setup`.
+ARG HOLOSCAN_CLI_INSTALL_ARGS=--pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0
+RUN if ! python3 -m holoscan_cli --help 2>/dev/null | grep -qw build; then \
+        python3 -m pip install ${HOLOSCAN_CLI_INSTALL_ARGS} \
+    ; fi
+
 # --------------------------------------------------------------------------
 #
 # Use HoloHub CLI to set up common packages for developing with Holoscan SDK
