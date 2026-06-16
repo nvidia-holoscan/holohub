@@ -68,15 +68,15 @@ Many commands inherit **container build** and/or **container run** options. They
 
 Used by: `build-container`, `run-container`, `build`, `run`, `install`, `test`.
 
-| Option                   | Description                                                                                                                                      |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `--base-img`             | Fully qualified base image name for the container build                                                                                          |
-| `--docker-file`          | Path to Dockerfile to use                                                                                                                        |
-| `--img`                  | Fully qualified output container image name                                                                                                      |
-| `--no-cache`             | Do not use cache when building the image                                                                                                         |
-| `--cuda <version>`       | CUDA major version (for example `12`, `13`). Default: `12`                                                                                       |
-| `--build-args`           | Extra arguments to `docker build` (for example `--build-args '--network=host'`)                                                                  |
-| `--extra-scripts <name>` | Run named setup scripts as Docker layers (search in `HOLOHUB_SETUP_SCRIPTS_DIR`). Can be repeated. Use `./holohub setup --list-scripts` to list. |
+| Option                   | Description                                                                                                                                           |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--base-img`             | Fully qualified base image name for the container build                                                                                               |
+| `--docker-file`          | Path to Dockerfile to use                                                                                                                             |
+| `--img`                  | Fully qualified output container image name                                                                                                           |
+| `--no-cache`             | Do not use cache when building the image                                                                                                              |
+| `--cuda <version>`       | CUDA major version (for example `12`, `13`). Default: `12`                                                                                            |
+| `--build-args`           | Extra arguments to `docker build` (for example `--build-args '--network=host'`)                                                                       |
+| `--extra-scripts <name>` | Run named setup scripts as Docker layers (search in `HOLOSCAN_CLI_SETUP_SCRIPTS_DIR`). Can be repeated. Use `./holohub setup --list-scripts` to list. |
 
 ### Container Run Options
 
@@ -424,7 +424,7 @@ Install HoloHub recommended packages and run setup scripts (for example for Holo
 
 | Option             | Description                                                                 |
 | ------------------ | --------------------------------------------------------------------------- |
-| `--list-scripts`   | List available scripts in `HOLOHUB_SETUP_SCRIPTS_DIR`                       |
+| `--list-scripts`   | List available scripts in `HOLOSCAN_CLI_SETUP_SCRIPTS_DIR`                  |
 | `--scripts <name>` | Run named script(s); can be repeated. Omit to run default recommended setup |
 | `--dryrun`         | Print commands without executing                                            |
 
@@ -785,7 +785,7 @@ Each mode is defined under the `modes` key in `metadata.json`:
 - **`--no-docker-build`:** use an existing container image (skip image build).
 - **`--no-local-build`:** (`run` only) skip app build and run existing binaries/artifacts.
 
-Environment variable `HOLOHUB_BUILD_LOCAL` forces local mode (same as `--local`).
+Environment variable `HOLOSCAN_CLI_BUILD_LOCAL` forces local mode (same as `--local`).
 
 **Default behavior of `./holohub run`:**
 
@@ -803,48 +803,48 @@ The CLI respects these variables. Defaults and behavior are summarized below.
 
 ### Build and Execution
 
-| Variable                 | Purpose                                                                                                          |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------- |
-| `HOLOHUB_BUILD_LOCAL`    | Force local mode (like `--local`); skips container build steps and runs on the host directly                     |
-| `HOLOHUB_ALWAYS_BUILD`   | Defaults to `true`. Set to `false` to allow skipping builds with `--no-local-build` / `--no-docker-build`        |
-| `HOLOHUB_ENABLE_SCCACHE` | Defaults to `false`. Set to `true` to enable sccache for builds; use with `--extra-scripts sccache` in container |
+| Variable                      | Purpose                                                                                                          |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `HOLOSCAN_CLI_BUILD_LOCAL`    | Force local mode (like `--local`); skips container build steps and runs on the host directly                     |
+| `HOLOSCAN_CLI_ALWAYS_BUILD`   | Defaults to `true`. Set to `false` to allow skipping builds with `--no-local-build` / `--no-docker-build`        |
+| `HOLOSCAN_CLI_ENABLE_SCCACHE` | Defaults to `false`. Set to `true` to enable sccache for builds; use with `--extra-scripts sccache` in container |
 
 ### Paths and Directories
 
-| Variable                    | Default / purpose                                                                    |
-| --------------------------- | ------------------------------------------------------------------------------------ |
-| `HOLOHUB_ROOT`              | HoloHub repo root                                                                    |
-| `HOLOHUB_BUILD_PARENT_DIR`  | `<HOLOHUB_ROOT>/build`                                                               |
-| `HOLOHUB_DATA_DIR`          | `<HOLOHUB_ROOT>/data`                                                                |
-| `HOLOHUB_SETUP_SCRIPTS_DIR` | `<HOLOHUB_ROOT>/utilities/setup`                                                     |
-| `HOLOHUB_PATH_PREFIX`       | `holohub_` (prefix for path placeholders in metadata)                                |
-| `HOLOHUB_DEFAULT_HSDK_DIR`  | `/opt/nvidia/holoscan`                                                               |
-| `HOLOSCAN_SDK_ROOT`         | Local Holoscan SDK path (for mounting into containers)                               |
-| `HOLOHUB_SEARCH_PATH`       | Comma-separated dirs to scan for metadata (for example `applications,workflows,...`) |
+| Variable                         | Default / purpose                                                                    |
+| -------------------------------- | ------------------------------------------------------------------------------------ |
+| `HOLOSCAN_CLI_ROOT`              | HoloHub repo root                                                                    |
+| `HOLOSCAN_CLI_BUILD_PARENT_DIR`  | `<HOLOSCAN_CLI_ROOT>/build`                                                          |
+| `HOLOSCAN_CLI_DATA_DIR`          | `<HOLOSCAN_CLI_ROOT>/data`                                                           |
+| `HOLOSCAN_CLI_SETUP_SCRIPTS_DIR` | `<HOLOSCAN_CLI_ROOT>/utilities/setup`                                                |
+| `HOLOSCAN_CLI_PATH_PREFIX`       | `holohub_` (prefix for path placeholders in metadata)                                |
+| `HOLOSCAN_CLI_DEFAULT_HSDK_DIR`  | `/opt/nvidia/holoscan`                                                               |
+| `HOLOSCAN_SDK_ROOT`              | Local Holoscan SDK path (for mounting into containers)                               |
+| `HOLOSCAN_CLI_SEARCH_PATH`       | Comma-separated dirs to scan for metadata (for example `applications,workflows,...`) |
 
 ### Container and Docker
 
-| Variable                                                                      | Default / purpose                                       |
-| ----------------------------------------------------------------------------- | ------------------------------------------------------- |
-| `HOLOHUB_REPO_PREFIX`                                                         | `holohub`; base for naming                              |
-| `HOLOHUB_CONTAINER_PREFIX`                                                    | Same as repo prefix; container name prefix              |
-| `HOLOHUB_WORKSPACE_NAME`                                                      | Workspace dir name in container                         |
-| `HOLOHUB_HOSTNAME_PREFIX`                                                     | Container hostname prefix (for example for VSCode)      |
-| `HOLOHUB_DOCKER_EXE`                                                          | `docker`                                                |
-| `HOLOHUB_BASE_IMAGE`, `HOLOHUB_BASE_SDK_VERSION`, `HOLOHUB_BASE_IMAGE_FORMAT` | Base image for Dockerfiles                              |
-| `HOLOHUB_DEFAULT_IMAGE_FORMAT`                                                | Default output image tag format                         |
-| `HOLOHUB_DEFAULT_DOCKER_BUILD_ARGS`                                           | Extra default args for `docker build`                   |
-| `HOLOHUB_DEFAULT_DOCKER_RUN_ARGS`                                             | Extra default args for `docker run`                     |
-| `HOLOHUB_DEFAULT_DOCKERFILE`                                                  | Default Dockerfile path                                 |
-| `HOLOHUB_BENCHMARKING_SUBDIR`                                                 | Benchmarking subdir (for example for flow benchmarking) |
+| Variable                                                                                     | Default / purpose                                       |
+| -------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| `HOLOSCAN_CLI_REPO_PREFIX`                                                                   | `holohub`; base for naming                              |
+| `HOLOSCAN_CLI_CONTAINER_PREFIX`                                                              | Same as repo prefix; container name prefix              |
+| `HOLOSCAN_CLI_WORKSPACE_NAME`                                                                | Workspace dir name in container                         |
+| `HOLOSCAN_CLI_HOSTNAME_PREFIX`                                                               | Container hostname prefix (for example for VSCode)      |
+| `HOLOSCAN_CLI_DOCKER_EXE`                                                                    | `docker`                                                |
+| `HOLOSCAN_CLI_BASE_IMAGE`, `HOLOSCAN_CLI_BASE_SDK_VERSION`, `HOLOSCAN_CLI_BASE_IMAGE_FORMAT` | Base image for Dockerfiles                              |
+| `HOLOSCAN_CLI_DEFAULT_IMAGE_FORMAT`                                                          | Default output image tag format                         |
+| `HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS`                                                     | Extra default args for `docker build`                   |
+| `HOLOSCAN_CLI_DEFAULT_DOCKER_RUN_ARGS`                                                       | Extra default args for `docker run`                     |
+| `HOLOSCAN_CLI_DEFAULT_DOCKERFILE`                                                            | Default Dockerfile path                                 |
+| `HOLOSCAN_CLI_BENCHMARKING_SUBDIR`                                                           | Benchmarking subdir (for example for flow benchmarking) |
 
 ### Other
 
 | Variable                     | Purpose                                           |
 | ---------------------------- | ------------------------------------------------- |
-| `HOLOHUB_CTEST_SCRIPT`       | CTest script used by `./holohub test`             |
-| `HOLOHUB_CMD_NAME`           | Command name in help (default: `./holohub`)       |
-| `HOLOHUB_CLI_DOCS_URL`       | URL for CLI docs (for example for external forks) |
+| `HOLOSCAN_CLI_CTEST_SCRIPT`  | CTest script used by `./holohub test`             |
+| `HOLOSCAN_CLI_CMD_NAME`      | Command name in help (default: `./holohub`)       |
+| `HOLOSCAN_CLI_DOCS_URL`      | URL for CLI docs (for example for external forks) |
 | `CMAKE_BUILD_TYPE`           | Default CMake build type when not set on CLI      |
 | `CMAKE_BUILD_PARALLEL_LEVEL` | Default parallel build jobs                       |
 

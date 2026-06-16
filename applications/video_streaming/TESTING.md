@@ -527,7 +527,7 @@ echo "Current commit: $(git log --oneline -1)"
 docker system prune -f --filter "label=holohub"
 
 # Sets SDK version environment variable
-export HOLOHUB_BASE_SDK_VERSION=3.6.0
+export HOLOSCAN_CLI_BASE_SDK_VERSION=3.6.0
 ```
 
 #### 2. Docker Build & Test Execution (2-4 minutes) (Python)

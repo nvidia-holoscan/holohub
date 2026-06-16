@@ -511,13 +511,13 @@ wget -O /path/to/your/project/proj_cli https://raw.githubusercontent.com/nvidia-
 chmod +x /path/to/your/project/proj_cli
 ```
 
-Add the following to your `.gitignore` file to exclude the downloaded Holohub CLI utilities:
+Add the following to your `.gitignore` file to exclude local Python state that
+may be created while using the wrapper:
 
 ```bash
-# Holohub CLI
-utilities
-cmake
-.local
+# holoscan-cli wrapper state
+.cache/
+.local/
 ```
 
 ### Project Structure with CLI
@@ -545,7 +545,10 @@ Once you have the `proj_cli` script in your project, you can use it to access va
 ./proj_cli --help
 ```
 
-> **Note:** The first time you run the script, it will automatically download the Holohub CLI scripts locally from the Holohub repository. Therefore, an internet connection is required for the initial run.
+> **Note:** The first time you run the script, it installs the standalone
+> `holoscan-cli` package unless a compatible installation already exists or
+> `HOLOSCAN_CLI_SOURCE` points at a local checkout. An internet connection is
+> required for that initial package install.
 
 Please refer to the Holohub CLI help command for more information.
 
@@ -562,10 +565,10 @@ The Holohub CLI provides several useful features for external projects:
 
 The CLI script automatically handles:
 
-- Setting up the correct Python path
+- Bootstrapping the standalone `holoscan-cli` package when needed
+- Using `HOLOSCAN_CLI_SOURCE` when you want to test a local CLI checkout
 - Managing Docker options (if using Docker)
-- Configuring environment variables
-- Fetching necessary utilities from the Holohub repository
+- Configuring `HOLOSCAN_CLI_*` environment variables for the external project
 
 ### Benefits for External Projects
 
