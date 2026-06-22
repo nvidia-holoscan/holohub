@@ -61,13 +61,12 @@ if(HOLOHUB_BUILD_PYTHON)
   if(NOT CMAKE_INSTALL_LIBDIR)
     set(CMAKE_INSTALL_LIBDIR lib)
   endif()
-  if(DEFINED SKBUILD)
-    # When scikit-build-core drives the build it sets SKBUILD. Use a flat
-    # output path so the wheel installs the holohub package directly into
-    # site-packages rather than three directories deep (python/lib/holohub).
-    set(HOLOHUB_PYTHON_MODULE_OUT_DIR ${CMAKE_BINARY_DIR}/holohub)
-  else()
-    set(HOLOHUB_PYTHON_MODULE_OUT_DIR ${CMAKE_BINARY_DIR}/python/${CMAKE_INSTALL_LIBDIR}/holohub)
+  if(NOT HOLOHUB_PYTHON_MODULE_OUT_DIR)
+    if(DEFINED SKBUILD)
+        set(HOLOHUB_PYTHON_MODULE_OUT_DIR ${CMAKE_BINARY_DIR}/holohub)
+    else()
+      set(HOLOHUB_PYTHON_MODULE_OUT_DIR ${CMAKE_BINARY_DIR}/python/${CMAKE_INSTALL_LIBDIR}/holohub)
+    endif()
   endif()
   file(MAKE_DIRECTORY ${HOLOHUB_PYTHON_MODULE_OUT_DIR})
   if(DEFINED SKBUILD)
@@ -167,5 +166,7 @@ endif()
 option(BUILD_HOLOHUB_TESTING OFF)
 if(BUILD_TESTING AND BUILD_HOLOHUB_TESTING)
   enable_testing()
+  # CLI-side CTest entries live under utilities/cli/tests/CMakeLists.txt
+  # (black-box `./holohub` assertions + pytest smoke tests).
   add_subdirectory(utilities/cli/tests)
 endif()

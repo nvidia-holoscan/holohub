@@ -12,7 +12,7 @@ Steps for running the application:
 
 a) Download and Prep the ODM Dataset
 
-1. Download the [Lafayette Square Dataset](https://www.opendronemap.org/odm/datasets/) and place into ~/Data.
+1. Download the [Lafayette Square Dataset](https://opendronemap.org/odm/datasets/) and place into ~/Data.
 
 2. Process the dataset with ODM via docker command:
 

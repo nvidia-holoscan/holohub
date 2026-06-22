@@ -1,4 +1,4 @@
-# # SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# # SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # # SPDX-License-Identifier: Apache-2.0
 # #
 # # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,11 @@
 cmake_minimum_required(VERSION 3.24)
 project(velodyne_lidar_app CXX)
 
-find_package(holoscan 2.0 REQUIRED CONFIG)
+find_package(holoscan 2.0 REQUIRED CONFIG
+             PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+list(PREPEND CMAKE_PREFIX_PATH "$ENV{DAQIRI_ROOT}" "/opt/daqiri")
+find_package(daqiri REQUIRED CONFIG)
+include(HoloHubDaqiri)
 
 add_executable(velodyne_lidar_app main.cpp)
 
@@ -24,6 +28,6 @@ target_link_libraries(velodyne_lidar_app
    PRIVATE
    holoscan::core
    holoscan::ops::holoviz
-   basic_network
    velodyne_lidar
 )
+holohub_link_daqiri(velodyne_lidar_app)

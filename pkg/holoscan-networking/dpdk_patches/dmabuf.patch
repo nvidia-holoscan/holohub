@@ -1,0 +1,961 @@
+diff --git a/.mailmap b/.mailmap
+index 2f089326ff..4c2b2f921d 100644
+--- a/.mailmap
++++ b/.mailmap
+@@ -291,6 +291,7 @@ Cian Ferriter <cian.ferriter at intel.com>
+ Ciara Loftus <ciara.loftus at intel.com>
+ Ciara Power <ciara.power at intel.com>
+ Claire Murphy <claire.k.murphy at intel.com>
++Cliff Burdick <cburdick at nvidia.com>
+ Clemens Famulla-Conrad <cfamullaconrad at suse.com>
+ Cody Doucette <doucette at bu.edu>
+ Congwen Zhang <zhang.congwen at zte.com.cn>
+diff --git a/doc/guides/rel_notes/release_26_03.rst b/doc/guides/rel_notes/release_26_03.rst
+index 15dabee7a1..56457d0382 100644
+--- a/doc/guides/rel_notes/release_26_03.rst
++++ b/doc/guides/rel_notes/release_26_03.rst
+@@ -55,6 +55,12 @@ New Features
+      Also, make sure to start the actual text at the margin.
+      =======================================================
+
++* **Added dma-buf-backed external memory support.**
++
++  Added EAL support for registering dma-buf-backed external memory with
++  ``rte_extmem_register_dmabuf``, and enabled mlx5 common code to consume
++  dma-buf mappings for device access.
++
+
+ Removed Items
+ -------------
+diff --git a/lib/eal/common/eal_common_memory.c b/lib/eal/common/eal_common_memory.c
+index c62edf5e55..4b8b1c8b59 100644
+--- a/lib/eal/common/eal_common_memory.c
++++ b/lib/eal/common/eal_common_memory.c
+@@ -45,6 +45,15 @@
+ static void *next_baseaddr;
+ static uint64_t system_page_sz;
+
++/* Internal storage for dma-buf info, indexed by memseg list index.
++ * This keeps dma-buf metadata out of the public rte_memseg_list structure
++ * to preserve ABI compatibility.
++ */
++static struct {
++	int fd;          /**< dma-buf fd, -1 if not dma-buf backed */
++	uint64_t offset; /**< offset within dma-buf */
++} dmabuf_info[RTE_MAX_MEMSEG_LISTS];
++
+ #define MAX_MMAP_WITH_DEFINED_ADDR_TRIES 5
+ void *
+ eal_get_virtual_area(void *requested_addr, size_t *size,
+@@ -232,6 +241,10 @@ eal_memseg_list_init(struct rte_memseg_list *msl, uint64_t page_sz,
+ {
+ 	char name[RTE_FBARRAY_NAME_LEN];
+
++	/* Initialize dma-buf info to "not dma-buf backed" */
++	dmabuf_info[type_msl_idx].fd = -1;
++	dmabuf_info[type_msl_idx].offset = 0;
++
+ 	snprintf(name, sizeof(name), MEMSEG_LIST_FMT, page_sz >> 10, socket_id,
+ 		 type_msl_idx);
+
+@@ -930,10 +943,113 @@ rte_memseg_get_fd_offset(const struct rte_memseg *ms, size_t *offset)
+ 	return ret;
+ }
+
+-RTE_EXPORT_SYMBOL(rte_extmem_register)
++/* Internal dma-buf info functions */
+ int
+-rte_extmem_register(void *va_addr, size_t len, rte_iova_t iova_addrs[],
+-		unsigned int n_pages, size_t page_sz)
++eal_memseg_list_set_dmabuf_info(int list_idx, int fd, uint64_t offset)
++{
++	if (list_idx < 0 || list_idx >= RTE_MAX_MEMSEG_LISTS)
++		return -EINVAL;
++
++	dmabuf_info[list_idx].fd = fd;
++	dmabuf_info[list_idx].offset = offset;
++	return 0;
++}
++
++int
++eal_memseg_list_get_dmabuf_fd(int list_idx)
++{
++	if (list_idx < 0 || list_idx >= RTE_MAX_MEMSEG_LISTS)
++		return -EINVAL;
++
++	return dmabuf_info[list_idx].fd;
++}
++
++int
++eal_memseg_list_get_dmabuf_offset(int list_idx, uint64_t *offset)
++{
++	if (list_idx < 0 || list_idx >= RTE_MAX_MEMSEG_LISTS || offset == NULL)
++		return -EINVAL;
++
++	*offset = dmabuf_info[list_idx].offset;
++	return 0;
++}
++
++/* Public dma-buf info API functions */
++RTE_EXPORT_EXPERIMENTAL_SYMBOL(rte_memseg_list_get_dmabuf_fd_unsafe, 26.03)
++int
++rte_memseg_list_get_dmabuf_fd_unsafe(const struct rte_memseg_list *msl)
++{
++	struct rte_mem_config *mcfg = rte_eal_get_configuration()->mem_config;
++	int msl_idx;
++
++	if (msl == NULL) {
++		rte_errno = EINVAL;
++		return -1;
++	}
++
++	msl_idx = msl - mcfg->memsegs;
++	if (msl_idx < 0 || msl_idx >= RTE_MAX_MEMSEG_LISTS) {
++		rte_errno = EINVAL;
++		return -1;
++	}
++
++	return dmabuf_info[msl_idx].fd;
++}
++
++RTE_EXPORT_EXPERIMENTAL_SYMBOL(rte_memseg_list_get_dmabuf_fd, 26.03)
++int
++rte_memseg_list_get_dmabuf_fd(const struct rte_memseg_list *msl)
++{
++	int ret;
++
++	rte_mcfg_mem_read_lock();
++	ret = rte_memseg_list_get_dmabuf_fd_unsafe(msl);
++	rte_mcfg_mem_read_unlock();
++
++	return ret;
++}
++
++RTE_EXPORT_EXPERIMENTAL_SYMBOL(rte_memseg_list_get_dmabuf_offset_unsafe, 26.03)
++int
++rte_memseg_list_get_dmabuf_offset_unsafe(const struct rte_memseg_list *msl,
++		uint64_t *offset)
++{
++	struct rte_mem_config *mcfg = rte_eal_get_configuration()->mem_config;
++	int msl_idx;
++
++	if (msl == NULL || offset == NULL) {
++		rte_errno = EINVAL;
++		return -1;
++	}
++
++	msl_idx = msl - mcfg->memsegs;
++	if (msl_idx < 0 || msl_idx >= RTE_MAX_MEMSEG_LISTS) {
++		rte_errno = EINVAL;
++		return -1;
++	}
++
++	*offset = dmabuf_info[msl_idx].offset;
++	return 0;
++}
++
++RTE_EXPORT_EXPERIMENTAL_SYMBOL(rte_memseg_list_get_dmabuf_offset, 26.03)
++int
++rte_memseg_list_get_dmabuf_offset(const struct rte_memseg_list *msl,
++		uint64_t *offset)
++{
++	int ret;
++
++	rte_mcfg_mem_read_lock();
++	ret = rte_memseg_list_get_dmabuf_offset_unsafe(msl, offset);
++	rte_mcfg_mem_read_unlock();
++
++	return ret;
++}
++
++static int
++extmem_register(void *va_addr, size_t len,
++	int dmabuf_fd, uint64_t dmabuf_offset,
++	rte_iova_t iova_addrs[], unsigned int n_pages, size_t page_sz)
+ {
+ 	struct rte_mem_config *mcfg = rte_eal_get_configuration()->mem_config;
+ 	unsigned int socket_id, n;
+@@ -967,10 +1083,19 @@ rte_extmem_register(void *va_addr, size_t len, rte_iova_t iova_addrs[],
+
+ 	/* we can create a new memseg */
+ 	n = len / page_sz;
+-	if (malloc_heap_create_external_seg(va_addr, iova_addrs, n,
++	if (dmabuf_fd < 0) {
++		if (malloc_heap_create_external_seg(va_addr, iova_addrs, n,
+ 			page_sz, "extmem", socket_id) == NULL) {
+-		ret = -1;
+-		goto unlock;
++			ret = -1;
++			goto unlock;
++		}
++	} else {
++		if (malloc_heap_create_external_seg_dmabuf(va_addr, iova_addrs, n,
++			page_sz, "extmem_dmabuf", socket_id,
++			dmabuf_fd, dmabuf_offset) == NULL) {
++			ret = -1;
++			goto unlock;
++		}
+ 	}
+
+ 	/* memseg list successfully created - increment next socket ID */
+@@ -980,6 +1105,34 @@ rte_extmem_register(void *va_addr, size_t len, rte_iova_t iova_addrs[],
+ 	return ret;
+ }
+
++RTE_EXPORT_SYMBOL(rte_extmem_register)
++int
++rte_extmem_register(void *va_addr, size_t len, rte_iova_t iova_addrs[],
++		unsigned int n_pages, size_t page_sz)
++{
++	return extmem_register(va_addr, len, -1, 0, iova_addrs, n_pages, page_sz);
++}
++
++RTE_EXPORT_EXPERIMENTAL_SYMBOL(rte_extmem_register_dmabuf, 26.03)
++int
++rte_extmem_register_dmabuf(void *va_addr, size_t len,
++		int dmabuf_fd, uint64_t dmabuf_offset,
++		rte_iova_t iova_addrs[], unsigned int n_pages, size_t page_sz)
++{
++	if (dmabuf_fd < 0) {
++		rte_errno = EINVAL;
++		return -1;
++	}
++
++	return extmem_register(va_addr,
++		len,
++		dmabuf_fd,
++		dmabuf_offset,
++		iova_addrs,
++		n_pages,
++		page_sz);
++}
++
+ RTE_EXPORT_SYMBOL(rte_extmem_unregister)
+ int
+ rte_extmem_unregister(void *va_addr, size_t len)
+diff --git a/lib/eal/common/eal_memalloc.h b/lib/eal/common/eal_memalloc.h
+index 0c267066d9..e7e807ddcb 100644
+--- a/lib/eal/common/eal_memalloc.h
++++ b/lib/eal/common/eal_memalloc.h
+@@ -90,6 +90,27 @@ eal_memalloc_set_seg_list_fd(int list_idx, int fd);
+ int
+ eal_memalloc_get_seg_fd_offset(int list_idx, int seg_idx, size_t *offset);
+
++/*
++ * Set dma-buf info for a memseg list.
++ * Returns 0 on success, -errno on failure.
++ */
++int
++eal_memseg_list_set_dmabuf_info(int list_idx, int fd, uint64_t offset);
++
++/*
++ * Get dma-buf fd for a memseg list.
++ * Returns fd (>= 0) on success, -1 if not dma-buf backed, -errno on error.
++ */
++int
++eal_memseg_list_get_dmabuf_fd(int list_idx);
++
++/*
++ * Get dma-buf offset for a memseg list.
++ * Returns 0 on success, -errno on failure.
++ */
++int
++eal_memseg_list_get_dmabuf_offset(int list_idx, uint64_t *offset);
++
+ int
+ eal_memalloc_init(void)
+ 	__rte_requires_shared_capability(rte_mcfg_mem_get_lock());
+diff --git a/lib/eal/common/malloc_heap.c b/lib/eal/common/malloc_heap.c
+index 39240c261c..bf986fe654 100644
+--- a/lib/eal/common/malloc_heap.c
++++ b/lib/eal/common/malloc_heap.c
+@@ -1232,6 +1232,33 @@ malloc_heap_create_external_seg(void *va_addr, rte_iova_t iova_addrs[],
+ 	msl->version = 0;
+ 	msl->external = 1;
+
++	/* initialize dma-buf info to "not dma-buf backed" */
++	eal_memseg_list_set_dmabuf_info(msl - mcfg->memsegs, -1, 0);
++
++	return msl;
++}
++
++struct rte_memseg_list *
++malloc_heap_create_external_seg_dmabuf(void *va_addr, rte_iova_t iova_addrs[],
++		unsigned int n_pages, size_t page_sz, const char *seg_name,
++		unsigned int socket_id, int dmabuf_fd, uint64_t dmabuf_offset)
++{
++	struct rte_mem_config *mcfg = rte_eal_get_configuration()->mem_config;
++	struct rte_memseg_list *msl;
++	int msl_idx;
++
++	/* Create the base external segment */
++	msl = malloc_heap_create_external_seg(va_addr, iova_addrs, n_pages,
++			page_sz, seg_name, socket_id);
++	if (msl == NULL)
++		return NULL;
++
++	/* Get memseg list index */
++	msl_idx = msl - mcfg->memsegs;
++
++	/* Set dma-buf info in the internal side-table */
++	eal_memseg_list_set_dmabuf_info(msl_idx, dmabuf_fd, dmabuf_offset);
++
+ 	return msl;
+ }
+
+diff --git a/lib/eal/common/malloc_heap.h b/lib/eal/common/malloc_heap.h
+index dfc56d4ae3..87525d1a68 100644
+--- a/lib/eal/common/malloc_heap.h
++++ b/lib/eal/common/malloc_heap.h
+@@ -51,6 +51,11 @@ malloc_heap_create_external_seg(void *va_addr, rte_iova_t iova_addrs[],
+ 		unsigned int n_pages, size_t page_sz, const char *seg_name,
+ 		unsigned int socket_id);
+
++struct rte_memseg_list *
++malloc_heap_create_external_seg_dmabuf(void *va_addr, rte_iova_t iova_addrs[],
++		unsigned int n_pages, size_t page_sz, const char *seg_name,
++		unsigned int socket_id, int dmabuf_fd, uint64_t dmabuf_offset);
++
+ struct rte_memseg_list *
+ malloc_heap_find_external_seg(void *va_addr, size_t len);
+
+diff --git a/lib/eal/include/rte_memory.h b/lib/eal/include/rte_memory.h
+index b6e97ad695..fffeb8fcf5 100644
+--- a/lib/eal/include/rte_memory.h
++++ b/lib/eal/include/rte_memory.h
+@@ -405,6 +405,98 @@ int
+ rte_memseg_get_fd_offset_thread_unsafe(const struct rte_memseg *ms,
+ 		size_t *offset);
+
++/**
++ * @warning
++ * @b EXPERIMENTAL: this API may change without prior notice.
++ *
++ * Get dma-buf file descriptor associated with a memseg list.
++ *
++ * @note This function read-locks the memory hotplug subsystem, and thus cannot
++ *       be used within memory-related callback functions.
++ *
++ * @param msl
++ *   A pointer to memseg list for which to get dma-buf fd.
++ *
++ * @return
++ *   Valid dma-buf file descriptor (>= 0) in case of success.
++ *   -1 if not dma-buf backed or in case of error, with ``rte_errno`` set to:
++ *     - EINVAL  - ``msl`` pointer was NULL or did not point to a valid memseg list
++ */
++__rte_experimental
++int
++rte_memseg_list_get_dmabuf_fd(const struct rte_memseg_list *msl);
++
++/**
++ * @warning
++ * @b EXPERIMENTAL: this API may change without prior notice.
++ *
++ * Get dma-buf file descriptor associated with a memseg list.
++ *
++ * @note This function does not perform any locking, and is only safe to call
++ *       from within memory-related callback functions.
++ *
++ * @param msl
++ *   A pointer to memseg list for which to get dma-buf fd.
++ *
++ * @return
++ *   Valid dma-buf file descriptor (>= 0) in case of success.
++ *   -1 if not dma-buf backed or in case of error, with ``rte_errno`` set to:
++ *     - EINVAL  - ``msl`` pointer was NULL or did not point to a valid memseg list
++ */
++__rte_experimental
++int
++rte_memseg_list_get_dmabuf_fd_unsafe(const struct rte_memseg_list *msl);
++
++/**
++ * @warning
++ * @b EXPERIMENTAL: this API may change without prior notice.
++ *
++ * Get dma-buf offset associated with a memseg list.
++ *
++ * @note This function read-locks the memory hotplug subsystem, and thus cannot
++ *       be used within memory-related callback functions.
++ *
++ * @param msl
++ *   A pointer to memseg list for which to get dma-buf offset.
++ * @param offset
++ *   A pointer to offset value where the result will be stored.
++ *
++ * @return
++ *   0 on success.
++ *   -1 in case of error, with ``rte_errno`` set to:
++ *     - EINVAL  - ``msl`` pointer was NULL or did not point to a valid memseg list
++ *     - EINVAL  - ``offset`` pointer was NULL
++ */
++__rte_experimental
++int
++rte_memseg_list_get_dmabuf_offset(const struct rte_memseg_list *msl,
++		uint64_t *offset);
++
++/**
++ * @warning
++ * @b EXPERIMENTAL: this API may change without prior notice.
++ *
++ * Get dma-buf offset associated with a memseg list.
++ *
++ * @note This function does not perform any locking, and is only safe to call
++ *       from within memory-related callback functions.
++ *
++ * @param msl
++ *   A pointer to memseg list for which to get dma-buf offset.
++ * @param offset
++ *   A pointer to offset value where the result will be stored.
++ *
++ * @return
++ *   0 on success.
++ *   -1 in case of error, with ``rte_errno`` set to:
++ *     - EINVAL  - ``msl`` pointer was NULL or did not point to a valid memseg list
++ *     - EINVAL  - ``offset`` pointer was NULL
++ */
++__rte_experimental
++int
++rte_memseg_list_get_dmabuf_offset_unsafe(const struct rte_memseg_list *msl,
++		uint64_t *offset);
++
+ /**
+  * Register external memory chunk with DPDK.
+  *
+@@ -443,6 +535,59 @@ int
+ rte_extmem_register(void *va_addr, size_t len, rte_iova_t iova_addrs[],
+ 		unsigned int n_pages, size_t page_sz);
+
++/**
++ * @warning
++ * @b EXPERIMENTAL: this API may change without prior notice.
++ *
++ * Register external memory chunk backed by a dma-buf file descriptor and offset.
++ *
++ * This is similar to rte_extmem_register() but additionally stores dma-buf
++ * file descriptor information, allowing drivers to use dma-buf based
++ * memory registration (e.g., ibv_reg_dmabuf_mr for RDMA devices).
++ *
++ * @note Using this API is mutually exclusive with ``rte_malloc`` family of
++ *   API's.
++ *
++ * @note This API will not perform any DMA mapping. It is expected that user
++ *   will do that themselves via rte_dev_dma_map().
++ *
++ * @note Before accessing this memory in other processes, it needs to be
++ *   attached in each of those processes by calling ``rte_extmem_attach`` in
++ *   each other process.
++ *
++ * @param va_addr
++ *   Start of virtual area to register (mmap'd address of the dma-buf).
++ *   Must be aligned by ``page_sz``.
++ * @param len
++ *   Length of virtual area to register. Must be aligned by ``page_sz``.
++ *   This is independent of dma-buf offset.
++ * @param dmabuf_fd
++ *   File descriptor of the dma-buf.
++ * @param dmabuf_offset
++ *   Offset within the dma-buf where the registered region starts.
++ * @param iova_addrs
++ *   Array of page IOVA addresses corresponding to each page in this memory
++ *   area. Can be NULL, in which case page IOVA addresses will be set to
++ *   RTE_BAD_IOVA.
++ * @param n_pages
++ *   Number of elements in the iova_addrs array. Ignored if ``iova_addrs``
++ *   is NULL.
++ * @param page_sz
++ *   Page size of the underlying memory
++ *
++ * @return
++ *   - 0 on success
++ *   - -1 in case of error, with rte_errno set to one of the following:
++ *     EINVAL - one of the parameters was invalid
++ *     EEXIST - memory chunk is already registered
++ *     ENOSPC - no more space in internal config to store a new memory chunk
++ */
++__rte_experimental
++int
++rte_extmem_register_dmabuf(void *va_addr, size_t len,
++		int dmabuf_fd, uint64_t dmabuf_offset,
++		rte_iova_t iova_addrs[], unsigned int n_pages, size_t page_sz);
++
+ /**
+  * Unregister external memory chunk with DPDK.
+  *
+diff --git a/.mailmap b/.mailmap
+index 4c2b2f921d..0a8a67098f 100644
+--- a/.mailmap
++++ b/.mailmap
+@@ -291,8 +291,8 @@ Cian Ferriter <cian.ferriter at intel.com>
+ Ciara Loftus <ciara.loftus at intel.com>
+ Ciara Power <ciara.power at intel.com>
+ Claire Murphy <claire.k.murphy at intel.com>
+-Cliff Burdick <cburdick at nvidia.com>
+ Clemens Famulla-Conrad <cfamullaconrad at suse.com>
++Cliff Burdick <cburdick at nvidia.com>
+ Cody Doucette <doucette at bu.edu>
+ Congwen Zhang <zhang.congwen at zte.com.cn>
+ Conor Fogarty <conor.fogarty at intel.com>
+diff --git a/drivers/common/mlx5/linux/meson.build b/drivers/common/mlx5/linux/meson.build
+index 3767e7a69b..8e83104165 100644
+--- a/drivers/common/mlx5/linux/meson.build
++++ b/drivers/common/mlx5/linux/meson.build
+@@ -203,6 +203,8 @@ has_sym_args = [
+             'mlx5dv_dr_domain_allow_duplicate_rules' ],
+         [ 'HAVE_MLX5_IBV_REG_MR_IOVA', 'infiniband/verbs.h',
+             'ibv_reg_mr_iova' ],
++        [ 'HAVE_IBV_REG_DMABUF_MR', 'infiniband/verbs.h',
++            'ibv_reg_dmabuf_mr' ],
+         [ 'HAVE_MLX5_IBV_IMPORT_CTX_PD_AND_MR', 'infiniband/verbs.h',
+             'ibv_import_device' ],
+         [ 'HAVE_MLX5DV_DR_ACTION_CREATE_DEST_ROOT_TABLE', 'infiniband/mlx5dv.h',
+diff --git a/drivers/common/mlx5/linux/mlx5_common_verbs.c b/drivers/common/mlx5/linux/mlx5_common_verbs.c
+index 98260df470..f6d18fd5df 100644
+--- a/drivers/common/mlx5/linux/mlx5_common_verbs.c
++++ b/drivers/common/mlx5/linux/mlx5_common_verbs.c
+@@ -129,6 +129,47 @@ mlx5_common_verbs_reg_mr(void *pd, void *addr, size_t length,
+ 	return 0;
+ }
+
++/**
++ * Register mr for dma-buf backed memory. Given protection domain pointer,
++ * dma-buf fd, offset and length, register the memory region.
++ *
++ * @param[in] pd
++ *   Pointer to protection domain context.
++ * @param[in] offset
++ *   Offset within the dma-buf.
++ * @param[in] length
++ *   Length of the memory to register.
++ * @param[in] fd
++ *   File descriptor of the dma-buf.
++ * @param[out] pmd_mr
++ *   pmd_mr struct set with lkey, address, length and pointer to mr object
++ *
++ * @return
++ *   0 on successful registration, -1 otherwise
++ */
++RTE_EXPORT_INTERNAL_SYMBOL(mlx5_common_verbs_reg_dmabuf_mr)
++int
++mlx5_common_verbs_reg_dmabuf_mr(void *pd, uint64_t offset, size_t length,
++				uint64_t iova, int fd,
++				struct mlx5_pmd_mr *pmd_mr)
++{
++	struct ibv_mr *ibv_mr;
++	ibv_mr = mlx5_glue->reg_dmabuf_mr(pd, offset, length, iova, fd,
++					  IBV_ACCESS_LOCAL_WRITE |
++					  (haswell_broadwell_cpu ? 0 :
++					  IBV_ACCESS_RELAXED_ORDERING));
++	if (!ibv_mr)
++		return -1;
++
++	*pmd_mr = (struct mlx5_pmd_mr){
++		.lkey = ibv_mr->lkey,
++		.addr = ibv_mr->addr,
++		.len = ibv_mr->length,
++		.obj = (void *)ibv_mr,
++	};
++	return 0;
++}
++
+ /**
+  * Deregister mr. Given the mlx5 pmd MR - deregister the MR
+  *
+@@ -151,13 +192,18 @@ mlx5_common_verbs_dereg_mr(struct mlx5_pmd_mr *pmd_mr)
+  *
+  * @param[out] reg_mr_cb
+  *   Pointer to reg_mr func
++ * @param[out] reg_dmabuf_mr_cb
++ *   Pointer to reg_dmabuf_mr func
+  * @param[out] dereg_mr_cb
+  *   Pointer to dereg_mr func
+  */
+ RTE_EXPORT_INTERNAL_SYMBOL(mlx5_os_set_reg_mr_cb)
+ void
+-mlx5_os_set_reg_mr_cb(mlx5_reg_mr_t *reg_mr_cb, mlx5_dereg_mr_t *dereg_mr_cb)
++mlx5_os_set_reg_mr_cb(mlx5_reg_mr_t *reg_mr_cb,
++		      mlx5_reg_dmabuf_mr_t *reg_dmabuf_mr_cb,
++		      mlx5_dereg_mr_t *dereg_mr_cb)
+ {
+ 	*reg_mr_cb = mlx5_common_verbs_reg_mr;
++	*reg_dmabuf_mr_cb = mlx5_common_verbs_reg_dmabuf_mr;
+ 	*dereg_mr_cb = mlx5_common_verbs_dereg_mr;
+ }
+diff --git a/drivers/common/mlx5/linux/mlx5_glue.c b/drivers/common/mlx5/linux/mlx5_glue.c
+index a91eaa429d..6fac7f2bcd 100644
+--- a/drivers/common/mlx5/linux/mlx5_glue.c
++++ b/drivers/common/mlx5/linux/mlx5_glue.c
+@@ -291,6 +291,24 @@ mlx5_glue_reg_mr_iova(struct ibv_pd *pd, void *addr, size_t length,
+ #endif
+ }
+
++static struct ibv_mr *
++mlx5_glue_reg_dmabuf_mr(struct ibv_pd *pd, uint64_t offset, size_t length,
++			uint64_t iova, int fd, int access)
++{
++#ifdef HAVE_IBV_REG_DMABUF_MR
++	return ibv_reg_dmabuf_mr(pd, offset, length, iova, fd, access);
++#else
++	(void)pd;
++	(void)offset;
++	(void)length;
++	(void)iova;
++	(void)fd;
++	(void)access;
++	errno = ENOTSUP;
++	return NULL;
++#endif
++}
++
+ static struct ibv_mr *
+ mlx5_glue_alloc_null_mr(struct ibv_pd *pd)
+ {
+@@ -1619,6 +1637,7 @@ const struct mlx5_glue *mlx5_glue = &(const struct mlx5_glue) {
+ 	.modify_qp = mlx5_glue_modify_qp,
+ 	.reg_mr = mlx5_glue_reg_mr,
+ 	.reg_mr_iova = mlx5_glue_reg_mr_iova,
++	.reg_dmabuf_mr = mlx5_glue_reg_dmabuf_mr,
+ 	.alloc_null_mr = mlx5_glue_alloc_null_mr,
+ 	.dereg_mr = mlx5_glue_dereg_mr,
+ 	.create_counter_set = mlx5_glue_create_counter_set,
+diff --git a/drivers/common/mlx5/linux/mlx5_glue.h b/drivers/common/mlx5/linux/mlx5_glue.h
+index 81d6b0aaf9..66216d1194 100644
+--- a/drivers/common/mlx5/linux/mlx5_glue.h
++++ b/drivers/common/mlx5/linux/mlx5_glue.h
+@@ -219,6 +219,9 @@ struct mlx5_glue {
+ 	struct ibv_mr *(*reg_mr_iova)(struct ibv_pd *pd, void *addr,
+ 				      size_t length, uint64_t iova,
+ 				      int access);
++	struct ibv_mr *(*reg_dmabuf_mr)(struct ibv_pd *pd, uint64_t offset,
++					size_t length, uint64_t iova,
++					int fd, int access);
+ 	struct ibv_mr *(*alloc_null_mr)(struct ibv_pd *pd);
+ 	int (*dereg_mr)(struct ibv_mr *mr);
+ 	struct ibv_counter_set *(*create_counter_set)
+diff --git a/drivers/common/mlx5/mlx5_common.c b/drivers/common/mlx5/mlx5_common.c
+index 84a93e7dbd..82cf17ca78 100644
+--- a/drivers/common/mlx5/mlx5_common.c
++++ b/drivers/common/mlx5/mlx5_common.c
+@@ -13,6 +13,7 @@
+ #include <rte_class.h>
+ #include <rte_malloc.h>
+ #include <rte_eal_paging.h>
++#include <rte_memory.h>
+
+ #include "mlx5_common.h"
+ #include "mlx5_common_os.h"
+@@ -1125,6 +1126,7 @@ mlx5_common_dev_dma_map(struct rte_device *rte_dev, void *addr,
+ 	struct mlx5_common_device *dev;
+ 	struct mlx5_mr_btree *bt;
+ 	struct mlx5_mr *mr;
++	struct rte_memseg_list *msl;
+
+ 	dev = to_mlx5_device(rte_dev);
+ 	if (!dev) {
+@@ -1134,8 +1136,44 @@ mlx5_common_dev_dma_map(struct rte_device *rte_dev, void *addr,
+ 		rte_errno = ENODEV;
+ 		return -1;
+ 	}
+-	mr = mlx5_create_mr_ext(dev->pd, (uintptr_t)addr, len,
+-				SOCKET_ID_ANY, dev->mr_scache.reg_mr_cb);
++	/* Check if this is dma-buf backed external memory */
++	msl = rte_mem_virt2memseg_list(addr);
++	if (msl != NULL && msl->external) {
++		int dmabuf_fd = rte_memseg_list_get_dmabuf_fd(msl);
++		if (dmabuf_fd >= 0) {
++			uint64_t dmabuf_off;
++			/* Get base offset from memseg list */
++			int ret = rte_memseg_list_get_dmabuf_offset(
++				msl, &dmabuf_off);
++			if (ret < 0) {
++				DRV_LOG(ERR,
++					"Failed to get dma-buf offset for memseg list %p",
++					(void *)msl);
++				return -1;
++			}
++			/* Calculate offset within dma-buf address */
++			dmabuf_off += ((uintptr_t)addr - (uintptr_t)msl->base_va);
++			/* Use dma-buf MR registration */
++			mr = mlx5_create_mr_ext_dmabuf(dev->pd,
++						       (uintptr_t)addr,
++						       len,
++						       SOCKET_ID_ANY,
++						       dmabuf_fd,
++						       dmabuf_off,
++						       dev->mr_scache.reg_dmabuf_mr_cb);
++		} else {
++			/* Use regular MR registration */
++			mr = mlx5_create_mr_ext(dev->pd,
++						(uintptr_t)addr,
++						len,
++						SOCKET_ID_ANY,
++						dev->mr_scache.reg_mr_cb);
++		}
++	} else {
++		/* Use regular MR registration */
++		mr = mlx5_create_mr_ext(dev->pd, (uintptr_t)addr, len,
++					SOCKET_ID_ANY, dev->mr_scache.reg_mr_cb);
++	}
+ 	if (!mr) {
+ 		DRV_LOG(WARNING, "Device %s unable to DMA map", rte_dev->name);
+ 		rte_errno = EINVAL;
+diff --git a/drivers/common/mlx5/mlx5_common_mr.c b/drivers/common/mlx5/mlx5_common_mr.c
+index 8ed988dec9..8f31eaefe8 100644
+--- a/drivers/common/mlx5/mlx5_common_mr.c
++++ b/drivers/common/mlx5/mlx5_common_mr.c
+@@ -8,6 +8,7 @@
+ #include <rte_eal_memconfig.h>
+ #include <rte_eal_paging.h>
+ #include <rte_errno.h>
++#include <rte_memory.h>
+ #include <rte_mempool.h>
+ #include <rte_malloc.h>
+ #include <rte_rwlock.h>
+@@ -1141,6 +1142,7 @@ mlx5_mr_create_cache(struct mlx5_mr_share_cache *share_cache, int socket)
+ {
+ 	/* Set the reg_mr and dereg_mr callback functions */
+ 	mlx5_os_set_reg_mr_cb(&share_cache->reg_mr_cb,
++			      &share_cache->reg_dmabuf_mr_cb,
+ 			      &share_cache->dereg_mr_cb);
+ 	rte_rwlock_init(&share_cache->rwlock);
+ 	rte_rwlock_init(&share_cache->mprwlock);
+@@ -1221,6 +1223,74 @@ mlx5_create_mr_ext(void *pd, uintptr_t addr, size_t len, int socket_id,
+ 	return mr;
+ }
+
++/**
++ * Creates a memory region for dma-buf backed external memory.
++ *
++ * @param pd
++ *   Pointer to pd of a device (net, regex, vdpa,...).
++ * @param addr
++ *   Starting virtual address of memory (mmap'd address).
++ * @param len
++ *   Length of memory segment being mapped.
++ * @param socket_id
++ *   Socket to allocate heap memory for the control structures.
++ * @param dmabuf_fd
++ *   File descriptor of the dma-buf.
++ * @param dmabuf_offset
++ *   Offset within the dma-buf.
++ * @param reg_dmabuf_mr_cb
++ *   Callback function for dma-buf MR registration.
++ *
++ * @return
++ *   Pointer to MR structure on success, NULL otherwise.
++ */
++struct mlx5_mr *
++mlx5_create_mr_ext_dmabuf(void *pd, uintptr_t addr, size_t len, int socket_id,
++			  int dmabuf_fd, uint64_t dmabuf_offset,
++			  mlx5_reg_dmabuf_mr_t reg_dmabuf_mr_cb)
++{
++	struct mlx5_mr *mr = NULL;
++
++	if (reg_dmabuf_mr_cb == NULL) {
++		DRV_LOG(WARNING, "dma-buf MR registration not supported");
++		rte_errno = ENOTSUP;
++		return NULL;
++	}
++	mr = mlx5_malloc(MLX5_MEM_RTE | MLX5_MEM_ZERO,
++			 RTE_ALIGN_CEIL(sizeof(*mr), RTE_CACHE_LINE_SIZE),
++			 RTE_CACHE_LINE_SIZE, socket_id);
++	if (mr == NULL)
++		return NULL;
++	if (reg_dmabuf_mr_cb(pd, dmabuf_offset, len, addr, dmabuf_fd,
++			     &mr->pmd_mr) < 0) {
++		DRV_LOG(WARNING,
++			"Fail to create dma-buf MR for address (%p) fd=%d",
++			(void *)addr, dmabuf_fd);
++		mlx5_free(mr);
++		return NULL;
++	}
++	mr->msl = NULL; /* Mark it is external memory. */
++	mr->ms_bmp = NULL;
++	mr->ms_n = 1;
++	mr->ms_bmp_n = 1;
++	/*
++	 * For dma-buf MR, the returned addr may be NULL since there's no VA
++	 * in the registration. Store the user-provided addr for cache lookup.
++	 */
++	if (mr->pmd_mr.addr == NULL)
++		mr->pmd_mr.addr = (void *)addr;
++	if (mr->pmd_mr.len == 0)
++		mr->pmd_mr.len = len;
++	DRV_LOG(DEBUG,
++		"MR CREATED (%p) for dma-buf external memory %p (fd=%d):\n"
++		"  [0x%" PRIxPTR ", 0x%" PRIxPTR "),"
++		" lkey=0x%x base_idx=%u ms_n=%u, ms_bmp_n=%u",
++		(void *)mr, (void *)addr, dmabuf_fd,
++		addr, addr + len, rte_cpu_to_be_32(mr->pmd_mr.lkey),
++		mr->ms_base_idx, mr->ms_n, mr->ms_bmp_n);
++	return mr;
++}
++
+ /**
+  * Callback for memory free event. Iterate freed memsegs and check whether it
+  * belongs to an existing MR. If found, clear the bit from bitmap of MR. As a
+@@ -1747,9 +1817,48 @@ mlx5_mr_mempool_register_primary(struct mlx5_mr_share_cache *share_cache,
+ 		struct mlx5_mempool_mr *mr = &new_mpr->mrs[i];
+ 		const struct mlx5_range *range = &ranges[i];
+ 		size_t len = range->end - range->start;
++		struct rte_memseg_list *msl;
++		int reg_result;
++
++		/* Check if this is dma-buf backed external memory */
++		msl = rte_mem_virt2memseg_list((void *)range->start);
++		if (msl != NULL && msl->external &&
++		    share_cache->reg_dmabuf_mr_cb != NULL) {
++			int dmabuf_fd = rte_memseg_list_get_dmabuf_fd(msl);
++			if (dmabuf_fd >= 0) {
++				uint64_t dmabuf_off;
++				/* Get base offset from memseg list */
++				ret = rte_memseg_list_get_dmabuf_offset(msl, &dmabuf_off);
++				if (ret < 0) {
++					DRV_LOG(ERR, "Failed to get dma-buf offset for memseg list %p",
++						(void *)msl);
++					goto exit;
++				}
++				/* Calculate offset within dma-buf for this specific range */
++				dmabuf_off += (range->start - (uintptr_t)msl->base_va);
++				/* Use dma-buf MR registration */
++				reg_result = share_cache->reg_dmabuf_mr_cb(pd,
++					dmabuf_off, len, range->start, dmabuf_fd,
++					&mr->pmd_mr);
++				if (reg_result == 0) {
++					/* For dma-buf MR, set addr if not set by driver */
++					if (mr->pmd_mr.addr == NULL)
++						mr->pmd_mr.addr = (void *)range->start;
++					if (mr->pmd_mr.len == 0)
++						mr->pmd_mr.len = len;
++				}
++			} else {
++				/* Use regular MR registration */
++				reg_result = share_cache->reg_mr_cb(pd,
++					(void *)range->start, len, &mr->pmd_mr);
++			}
++		} else {
++			/* Use regular MR registration */
++			reg_result = share_cache->reg_mr_cb(pd,
++				(void *)range->start, len, &mr->pmd_mr);
++		}
+
+-		if (share_cache->reg_mr_cb(pd, (void *)range->start, len,
+-		    &mr->pmd_mr) < 0) {
++		if (reg_result < 0) {
+ 			DRV_LOG(ERR,
+ 				"Failed to create an MR in PD %p for address range "
+ 				"[0x%" PRIxPTR ", 0x%" PRIxPTR "] (%zu bytes) for mempool %s",
+diff --git a/drivers/common/mlx5/mlx5_common_mr.h b/drivers/common/mlx5/mlx5_common_mr.h
+index cf7c685e9b..3b967b1323 100644
+--- a/drivers/common/mlx5/mlx5_common_mr.h
++++ b/drivers/common/mlx5/mlx5_common_mr.h
+@@ -35,6 +35,9 @@ struct mlx5_pmd_mr {
+  */
+ typedef int (*mlx5_reg_mr_t)(void *pd, void *addr, size_t length,
+ 			     struct mlx5_pmd_mr *pmd_mr);
++typedef int (*mlx5_reg_dmabuf_mr_t)(void *pd, uint64_t offset, size_t length,
++				    uint64_t iova, int fd,
++				    struct mlx5_pmd_mr *pmd_mr);
+ typedef void (*mlx5_dereg_mr_t)(struct mlx5_pmd_mr *pmd_mr);
+
+ /* Memory Region object. */
+@@ -87,6 +90,7 @@ struct __rte_packed_begin mlx5_mr_share_cache {
+ 	struct mlx5_mr_list mr_free_list; /* Freed MR list. */
+ 	struct mlx5_mempool_reg_list mempool_reg_list; /* Mempool database. */
+ 	mlx5_reg_mr_t reg_mr_cb; /* Callback to reg_mr func */
++	mlx5_reg_dmabuf_mr_t reg_dmabuf_mr_cb; /* Callback to reg_dmabuf_mr func */
+ 	mlx5_dereg_mr_t dereg_mr_cb; /* Callback to dereg_mr func */
+ } __rte_packed_end;
+
+@@ -233,6 +237,10 @@ mlx5_mr_lookup_list(struct mlx5_mr_share_cache *share_cache,
+ struct mlx5_mr *
+ mlx5_create_mr_ext(void *pd, uintptr_t addr, size_t len, int socket_id,
+ 		   mlx5_reg_mr_t reg_mr_cb);
++struct mlx5_mr *
++mlx5_create_mr_ext_dmabuf(void *pd, uintptr_t addr, size_t len, int socket_id,
++			  int dmabuf_fd, uint64_t dmabuf_offset,
++			  mlx5_reg_dmabuf_mr_t reg_dmabuf_mr_cb);
+ void mlx5_mr_free(struct mlx5_mr *mr, mlx5_dereg_mr_t dereg_mr_cb);
+ __rte_internal
+ uint32_t
+@@ -251,12 +259,19 @@ int
+ mlx5_common_verbs_reg_mr(void *pd, void *addr, size_t length,
+ 			 struct mlx5_pmd_mr *pmd_mr);
+ __rte_internal
++int
++mlx5_common_verbs_reg_dmabuf_mr(void *pd, uint64_t offset, size_t length,
++				uint64_t iova, int fd,
++				struct mlx5_pmd_mr *pmd_mr);
++__rte_internal
+ void
+ mlx5_common_verbs_dereg_mr(struct mlx5_pmd_mr *pmd_mr);
+
+ __rte_internal
+ void
+-mlx5_os_set_reg_mr_cb(mlx5_reg_mr_t *reg_mr_cb, mlx5_dereg_mr_t *dereg_mr_cb);
++mlx5_os_set_reg_mr_cb(mlx5_reg_mr_t *reg_mr_cb,
++		      mlx5_reg_dmabuf_mr_t *reg_dmabuf_mr_cb,
++		      mlx5_dereg_mr_t *dereg_mr_cb);
+
+ __rte_internal
+ int
+diff --git a/drivers/common/mlx5/windows/mlx5_common_os.c b/drivers/common/mlx5/windows/mlx5_common_os.c
+index 7fac361460..5e284742ab 100644
+--- a/drivers/common/mlx5/windows/mlx5_common_os.c
++++ b/drivers/common/mlx5/windows/mlx5_common_os.c
+@@ -17,6 +17,7 @@
+ #include "mlx5_common.h"
+ #include "mlx5_common_os.h"
+ #include "mlx5_malloc.h"
++#include "mlx5_common_mr.h"
+
+ /**
+  * Initialization routine for run-time dependency on external lib.
+@@ -442,15 +443,20 @@ mlx5_os_dereg_mr(struct mlx5_pmd_mr *pmd_mr)
+  *
+  * @param[out] reg_mr_cb
+  *   Pointer to reg_mr func
++ * @param[out] reg_dmabuf_mr_cb
++ *   Pointer to reg_dmabuf_mr func (NULL on Windows - not supported)
+  * @param[out] dereg_mr_cb
+  *   Pointer to dereg_mr func
+  *
+  */
+ RTE_EXPORT_INTERNAL_SYMBOL(mlx5_os_set_reg_mr_cb)
+ void
+-mlx5_os_set_reg_mr_cb(mlx5_reg_mr_t *reg_mr_cb, mlx5_dereg_mr_t *dereg_mr_cb)
++mlx5_os_set_reg_mr_cb(mlx5_reg_mr_t *reg_mr_cb,
++		      mlx5_reg_dmabuf_mr_t *reg_dmabuf_mr_cb,
++		      mlx5_dereg_mr_t *dereg_mr_cb)
+ {
+ 	*reg_mr_cb = mlx5_os_reg_mr;
++	*reg_dmabuf_mr_cb = NULL; /* dma-buf not supported on Windows */
+ 	*dereg_mr_cb = mlx5_os_dereg_mr;
+ }
+
+diff --git a/drivers/crypto/mlx5/mlx5_crypto.h b/drivers/crypto/mlx5/mlx5_crypto.h
+index f9f127e9e6..b2712c9a8d 100644
+--- a/drivers/crypto/mlx5/mlx5_crypto.h
++++ b/drivers/crypto/mlx5/mlx5_crypto.h
+@@ -41,6 +41,7 @@ struct mlx5_crypto_priv {
+ 	struct mlx5_common_device *cdev; /* Backend mlx5 device. */
+ 	struct rte_cryptodev *crypto_dev;
+ 	mlx5_reg_mr_t reg_mr_cb; /* Callback to reg_mr func */
++	mlx5_reg_dmabuf_mr_t reg_dmabuf_mr_cb; /* Callback to reg_dmabuf_mr func */
+ 	mlx5_dereg_mr_t dereg_mr_cb; /* Callback to dereg_mr func */
+ 	struct mlx5_uar uar; /* User Access Region. */
+ 	uint32_t max_segs_num; /* Maximum supported data segs. */
+diff --git a/drivers/crypto/mlx5/mlx5_crypto_gcm.c b/drivers/crypto/mlx5/mlx5_crypto_gcm.c
+index 89f32c7722..380689cfeb 100644
+--- a/drivers/crypto/mlx5/mlx5_crypto_gcm.c
++++ b/drivers/crypto/mlx5/mlx5_crypto_gcm.c
+@@ -1186,7 +1186,8 @@ mlx5_crypto_gcm_init(struct mlx5_crypto_priv *priv)
+
+ 	/* Override AES-GCM specified ops. */
+ 	dev_ops->sym_session_configure = mlx5_crypto_sym_gcm_session_configure;
+-	mlx5_os_set_reg_mr_cb(&priv->reg_mr_cb, &priv->dereg_mr_cb);
++	mlx5_os_set_reg_mr_cb(&priv->reg_mr_cb,  &priv->reg_dmabuf_mr_cb,
++			&priv->dereg_mr_cb);
+ 	dev_ops->queue_pair_setup = mlx5_crypto_gcm_qp_setup;
+ 	dev_ops->queue_pair_release = mlx5_crypto_gcm_qp_release;
+ 	if (mlx5_crypto_is_ipsec_opt(priv)) {

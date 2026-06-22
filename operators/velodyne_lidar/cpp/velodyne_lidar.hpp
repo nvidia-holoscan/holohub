@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights
+ * SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights
  * reserved. SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,16 +18,32 @@
 #ifndef HOLOSCAN_OPERATORS_VELODYNE_LIDAR_HPP
 #define HOLOSCAN_OPERATORS_VELODYNE_LIDAR_HPP
 
+#include <cstdint>
+#include <cstring>
 #include <memory>
 #include <string>
 #include <vector>
 
 #include <holoscan/holoscan.hpp>
 
-#include <basic_network_operator_common.h>
 #include "velodyne_convert_xyz.hpp"
 
 namespace holoscan::ops {
+
+struct NetworkPacket {
+  NetworkPacket(const uint8_t* input, size_t length, int packets)
+      : storage(new uint8_t[length], std::default_delete<uint8_t[]>()),
+        data(storage.get()),
+        len(length),
+        num_pkts(packets) {
+    std::memcpy(data, input, length);
+  }
+
+  std::shared_ptr<uint8_t[]> storage;
+  uint8_t* data;
+  size_t len;
+  int num_pkts;
+};
 
 /**
  * @brief Operator class to process Velodyne VLP-16 lidar sensor input.
@@ -43,14 +59,12 @@ namespace holoscan::ops {
  * 3. Output the point cloud tensor and update the tensor insertion pointer to prepare
  *    for the next incoming packet.
  *
- * We recommend relying on HoloHub networking operators to receive Velodyne VLP-16 lidar packets
- * over UDP/IP and forward them to this operator.
+ * We recommend relying on DAQIRI socket or raw packet handling to receive Velodyne VLP-16 lidar
+ * packets over UDP/IP and forward them to this operator.
  *
  * This operator was developed in part with support from the NVIDIA ISAAC team and adapts portions
  * of the NVIDIA DeepMap SDK.
  *
- * @see holoscan::ops::AdvNetworkOpRx
- * @see holoscan::ops::BasicNetworkOpRx
  * @see https://developer.nvidia.com/isaac
  * @see https://data.ouster.io/downloads/velodyne/user-manual/vlp-16-user-manual-revf.pdf
  */
@@ -72,7 +86,7 @@ class VelodyneLidarOp : public Operator {
   void initialize() override;
   void setup(OperatorSpec& spec) override {
     // The incoming UDP packet to possibly translate to a VLP-16 cloud.
-    spec.input<std::shared_ptr<NetworkOpBurstParams>>("burst_in");
+    spec.input<NetworkPacket>("burst_in");
     // The outgoing point cloud tensor.
     spec.output<holoscan::TensorMap>("cloud_out");
 

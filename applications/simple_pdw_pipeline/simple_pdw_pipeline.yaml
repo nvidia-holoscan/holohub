@@ -1,5 +1,5 @@
 %YAML 1.2
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,16 +15,70 @@
 # limitations under the License.
 ---
 
+daqiri:
+  cfg:
+    version: 1
+    stream_type: "socket"
+    protocol: "udp"
+    master_core: 3
+    debug: false
+    log_level: "info"
+
+    memory_regions:
+    - name: "PDW_SOCKET_RX"
+      kind: "host"
+      affinity: 0
+      num_bufs: 64
+      buf_size: 16400
+    - name: "PDW_SOCKET_TX"
+      kind: "host"
+      affinity: 0
+      num_bufs: 64
+      buf_size: 8192
+
+    interfaces:
+    - name: "pdw_udp_server"
+      address: "0.0.0.0"
+      socket_config:
+        mode: server
+        local_ip: "0.0.0.0"
+        local_port: 8999
+        max_payload_size: 16400
+      rx:
+        queues:
+        - name: "rx_q_0"
+          id: 0
+          cpu_core: 8
+          batch_size: 1
+          memory_regions:
+          - "PDW_SOCKET_RX"
+    - name: "pdw_udp_client"
+      address: "127.0.0.1"
+      socket_config:
+        mode: client
+        local_ip: "127.0.0.1"
+        local_port: 12347
+        remote_ip: "127.0.0.1"
+        remote_port: 12346
+        max_payload_size: 8192
+        min_ipg_ns: 0
+        retry_connect_s: 1
+      tx:
+        queues:
+        - name: "tx_q_0"
+          id: 0
+          cpu_core: 8
+          batch_size: 1
+          memory_regions:
+          - "PDW_SOCKET_TX"
+
 pulse_detector:
   threshold: 50000
   max_pulses: 10
 
 network_rx:
-  batch_size: 1
-  max_payload_size: 16400
-  udp_dst_port: 8999
-  l4_proto: "udp"
-  ip_addr: "0.0.0.0"
+  server_address: "0.0.0.0"
+  server_port: 8999
 
 printer:
   sample_rate: 1000000000
@@ -38,9 +92,6 @@ signal_generator:
   chirp_stopping_frequency: 3000000
 
 network_tx:
-  max_payload_size: 8192
-  udp_dst_port: 12346
-  l4_proto: "udp"
-  ip_addr: "127.0.0.1"
-  min_ipg_ns: 0
-  retry_connect: 1
+  client_address: "127.0.0.1"
+  server_address: "127.0.0.1"
+  server_port: 12346

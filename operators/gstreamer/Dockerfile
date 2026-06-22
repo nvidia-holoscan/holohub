@@ -32,19 +32,23 @@ FROM base AS holohub-cli-prerequisites
 
 # Install python3 if not present (needed for holohub CLI)
 ARG PYTHON_VERSION=python3
-RUN if ! command -v python3 >/dev/null 2>&1; then \
+RUN if ! command -v ${PYTHON_VERSION} >/dev/null 2>&1; then \
         apt-get update \
         && apt-get install --no-install-recommends -y \
             software-properties-common curl gpg-agent \
         && add-apt-repository ppa:deadsnakes/ppa \
         && apt-get update \
         && apt-get install --no-install-recommends -y \
-            ${PYTHON_VERSION} \
+            ${PYTHON_VERSION} ${PYTHON_VERSION}-dev \
+        # Conditionally install -distutils only if available (for older python versions)
+        && (apt-cache show ${PYTHON_VERSION}-distutils >/dev/null 2>&1 && \
+            apt-get install --no-install-recommends -y ${PYTHON_VERSION}-distutils || true) \
         && apt purge -y \
             python3-pip \
             software-properties-common \
         && apt-get autoremove --purge -y \
         && rm -rf /var/lib/apt/lists/* \
+        # Register both python and python3 symlinks so all build/test tooling uses the selected version
         && update-alternatives --install /usr/bin/python python /usr/bin/${PYTHON_VERSION} 100 \
         && if [ "${PYTHON_VERSION}" != "python3" ]; then \
             update-alternatives --install /usr/bin/python3 python3 /usr/bin/${PYTHON_VERSION} 100 \
@@ -53,6 +57,12 @@ RUN if ! command -v python3 >/dev/null 2>&1; then \
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
 RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
         curl -sS https://bootstrap.pypa.io/get-pip.py | ${PYTHON_VERSION} \
+    ; fi
+
+# Install standalone holoscan-cli before running `holohub setup`.
+ARG HOLOSCAN_CLI_INSTALL_ARGS=--pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0
+RUN if ! python3 -m holoscan_cli --help 2>/dev/null | grep -qw build; then \
+        python3 -m pip install ${HOLOSCAN_CLI_INSTALL_ARGS} \
     ; fi
 
 # --------------------------------------------------------------------------

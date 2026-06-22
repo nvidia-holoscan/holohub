@@ -1,0 +1,3 @@
+-r setup/requirements.template.txt
+pytest
+pytest-mock

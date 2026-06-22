@@ -79,11 +79,11 @@ Select `(gdb) examples/hello_world/cpp` from the list of available launch config
 Hit **F5** on the keyboard or click the green arrow to start debugging. VS Code shall hit the breakpoint and stop as the screenshot shows below:
 ![VS Code Breakpoint](./static/vscode-breakpoint.png)
 
-> 💡 *Tip*: **What happens when you hit F5?** VS Code looks up the launch profile for `(gdb) examples/hello_world/cpp` in the [.vscode/launch.json](/.vscode/launch.json) file and starts the debugger with the appropriate configurations and arguments.
+> 💡 *Tip*: **What happens when you hit F5?** VS Code looks up the launch profile for `(gdb) examples/hello_world/cpp` in the `/workspace/.vscode/launch.json` file and starts the debugger with the appropriate configurations and arguments.
 
 ### Debugging a Python Application
 
-There are a few options when debugging a Python application. In the [.vscode/launch.json](/.vscode/launch.json) file, you may find the following options to debug the Hello World application:
+There are a few options when debugging a Python application. In the `/workspace/.vscode/launch.json` file, you may find the following options to debug the Hello World application:
 
 - **Python: Debug Current File**: with this option selected, open [hello_world.py](https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/examples/hello_world/python/hello_world.py) file and hit F5. It shall stop at any breakpoints selected.
 - **Python C++ Debug**: similar to the previous option, this launch profile allows you to debug both the Python and C++ code.

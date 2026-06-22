@@ -1,7 +1,7 @@
 {
 	"tutorial": {
 		"name": "High Performance Networking with Holoscan",
-		"description": "How to use the Advanced Network library (ANO) for low latency and high throughput communication through NVIDIA SmartNICs.",
+		"description": "How to use DAQIRI for low latency and high throughput communication through NVIDIA SmartNICs.",
 		"authors": [
 			{
 				"name": "Alexis Girault",
@@ -32,10 +32,13 @@
 		"ranking": 1,
 		"requirements": {
 			"applications": [
-				"adv_networking_bench"
+				"daqiri_raw_ethernet_bench"
 			],
-			"operators": [
-				"advanced_network"
+			"libraries": [
+				{
+					"name": "DAQIRI",
+					"url": "https://github.com/NVIDIA/daqiri"
+				}
 			]
 		}
 	}

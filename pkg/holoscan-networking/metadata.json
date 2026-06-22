@@ -1,5 +1,5 @@
 {
 	"package": {
-		"dockerfile": "operators/advanced_network/Dockerfile"
+		"dockerfile": "pkg/holoscan-networking/Dockerfile"
 	}
 }

@@ -1,0 +1,61 @@
+{
+	"application": {
+		"name": "DAQIRI Socket Ping",
+		"authors": [
+			{
+				"name": "Cliff Burdick",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "C++",
+		"version": "1.1",
+		"changelog": {
+			"1.1": "Port networking backend to DAQIRI",
+			"1.0": "Initial Release"
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "0.5.0",
+			"tested_versions": [
+				"0.5.0",
+				"3.9.0",
+				"3.10.0",
+				"3.11.0",
+				"4.0.0",
+				"4.1.0",
+				"4.2.0",
+				"4.3.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": ["Networking and Distributed Computing", "Distributed", "UDP", "Communications"],
+		"dockerfile": "pkg/holoscan-networking/Dockerfile",
+		"ranking": 1,
+		"requirements": {
+			"libraries": [{
+				"name": "DAQIRI",
+				"version": "0.1.0",
+				"url": "https://github.com/NVIDIA/daqiri"
+			}]
+		},
+		"default_mode": "loopback",
+		"modes": {
+			"flexible": {
+				"description": "Run with the specified configuration arguments",
+				"run": {
+					"command": "<holohub_app_bin>/daqiri_socket_ping",
+					"workdir": "holohub_app_bin"
+				}
+			},
+			"loopback": {
+				"description": "Run DAQIRI socket UDP loopback ping",
+				"run": {
+					"command": "<holohub_app_bin>/daqiri_socket_ping daqiri_socket_ping.yaml",
+					"workdir": "holohub_app_bin"
+				}
+			}
+		}
+	}
+}

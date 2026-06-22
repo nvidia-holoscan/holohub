@@ -33,7 +33,7 @@ docker system prune -f --filter "label=holohub" 2>/dev/null || true
 # Build and test using Docker with Python support (this will use your committed fixes)
 echo "Running Python integration test with Docker (using committed fixes)..."
 # Set SDK version via environment variable to match base image version
-export HOLOHUB_BASE_SDK_VERSION=3.6.0
+export HOLOSCAN_CLI_BASE_SDK_VERSION=3.6.0
 ./holohub test video_streaming \
     --base-img=nvcr.io/nvidia/clara-holoscan/holoscan:v3.6.0-dgpu \
     --cmake-options="-DBUILD_TESTING=ON -DHOLOHUB_BUILD_PYTHON=ON" \

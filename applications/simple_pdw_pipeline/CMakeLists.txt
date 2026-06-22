@@ -12,24 +12,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.24)
 project(simple_pdw_pipeline C CXX)
 
 find_package(holoscan 0.5 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+list(PREPEND CMAKE_PREFIX_PATH "$ENV{DAQIRI_ROOT}" "/opt/daqiri")
+find_package(daqiri REQUIRED CONFIG)
+include(HoloHubDaqiri)
 
 # Enable cuda language
-set(CMAKE_CUDA_ARCHITECTURES "70;80")
 enable_language(CUDA)
-
-# Download MatX
-include(FetchContent)
-FetchContent_Declare(
-  MatX
-  GIT_REPOSITORY https://github.com/NVIDIA/MatX.git
-  GIT_TAG v0.3.0
-)
-FetchContent_MakeAvailable(MatX)
 
 add_executable(simple_pdw_pipeline
   simple_pdw_pipeline.cu
@@ -37,9 +30,9 @@ add_executable(simple_pdw_pipeline
 
 
 target_link_libraries(simple_pdw_pipeline
-  PRIVATE holoscan::core matx::matx
-  holoscan::ops::basic_network
+  PRIVATE holoscan::core holoscan::matx
 )
+holohub_link_daqiri(simple_pdw_pipeline)
 
 add_executable(simple_pdw_siggen
   siggen.c
