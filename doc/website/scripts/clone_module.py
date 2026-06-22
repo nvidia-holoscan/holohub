@@ -49,17 +49,18 @@ def clone_external_module(url: str, ref: str) -> tuple[Path, tempfile.TemporaryD
     clone_path = Path(tmp.name)
 
     if _SHA_RE.match(ref):
-        # git clone --branch rejects bare SHAs; use init + fetch instead.
-        subprocess.run([_GIT, "init", str(clone_path)], check=True, capture_output=True, text=True)
+        # GitHub rejects bare-SHA shallow fetches from empty repos (no local tips to prove
+        # reachability). Use a blobless partial clone instead: downloads the full commit graph
+        # without file content, then lazily fetches only the blobs needed for the target commit.
         subprocess.run(
-            [_GIT, "-C", str(clone_path), "fetch", "--depth=1", url, ref],
+            [_GIT, "clone", "--filter=blob:none", "--no-checkout", url, str(clone_path)],
             check=True,
             capture_output=True,
             text=True,
-            timeout=120,
+            timeout=300,
         )
         subprocess.run(
-            [_GIT, "-C", str(clone_path), "checkout", "FETCH_HEAD"],
+            [_GIT, "-C", str(clone_path), "checkout", ref],
             check=True,
             capture_output=True,
             text=True,
