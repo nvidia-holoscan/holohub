@@ -35,8 +35,8 @@ When a user asks how to customize a build or run — change the build directory,
    mode values; `--run-args` is appended to the argument list passed to
    `docker run` or the application process.
 3. Expand placeholders first: mode commands may contain
-   `<{prefix}_app_source>`, `<{prefix}_data_dir>`, etc. The prefix comes from
-   `HOLOSCAN_CLI_PATH_PREFIX` and defaults to `holohub`. Run through
+   `<{prefix}app_source>`, `<{prefix}data_dir>`, etc. The prefix comes from
+   `HOLOSCAN_CLI_PATH_PREFIX` and defaults to `holohub_`. Run through
    `build_holohub_path_mapping()` and `replace_placeholders()`.
 4. Use `run_command()`: it handles dry-run, sudo detection, and fail-fast
    behavior. Use `run_info_command()` for best-effort probes.

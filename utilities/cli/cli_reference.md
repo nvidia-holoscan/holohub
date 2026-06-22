@@ -844,7 +844,6 @@ The CLI respects these variables. Defaults and behavior are summarized below.
 | ---------------------------- | ------------------------------------------------- |
 | `HOLOSCAN_CLI_CTEST_SCRIPT`  | CTest script used by `./holohub test`             |
 | `HOLOSCAN_CLI_CMD_NAME`      | Command name in help (default: `./holohub`)       |
-| `HOLOSCAN_CLI_DOCS_URL`      | URL for CLI docs (for example for external forks) |
 | `CMAKE_BUILD_TYPE`           | Default CMake build type when not set on CLI      |
 | `CMAKE_BUILD_PARALLEL_LEVEL` | Default parallel build jobs                       |
 
