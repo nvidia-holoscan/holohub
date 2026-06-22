@@ -37,7 +37,7 @@ repos:
 
   # Python: ruff
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.17
+    rev: v0.15.18
     hooks:
       - id: ruff
         args: [--fix, --ignore, E712]
@@ -45,7 +45,7 @@ repos:
 
   # Python: isort
   - repo: https://github.com/PyCQA/isort
-    rev: 8.0.1
+    rev: 9.0.0a3
     hooks:
       - id: isort
         args: [--settings-path, .]
@@ -88,7 +88,7 @@ repos:
 
   # Markdown: markdownlint
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.48.0
+    rev: v0.49.0
     hooks:
       - id: markdownlint
         args: [--fix, --config, .markdownlint.yaml, --ignore-path, .markdownlintignore]
