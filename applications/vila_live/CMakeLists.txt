@@ -24,7 +24,7 @@ add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/vila_live/meeting.mp4"
     COMMAND mkdir -p "${HOLOHUB_DATA_DIR}/vila_live"
     COMMAND curl -S -o "${HOLOHUB_DATA_DIR}/vila_live/video.mp4"
               -L "https://www.pexels.com/download/video/3252919/?fps=25.0&h=720&w=1280"
-    COMMAND ffmpeg -i "${HOLOHUB_DATA_DIR}/vila_live/video.mp4" -t 6.4
+    COMMAND ffmpeg -y -i "${HOLOHUB_DATA_DIR}/vila_live/video.mp4" -t 6.4
               -c:v libx264 "${HOLOHUB_DATA_DIR}/vila_live/meeting.mp4"
     COMMAND rm -rf "${HOLOHUB_DATA_DIR}/vila_live/video.mp4"
     VERBATIM

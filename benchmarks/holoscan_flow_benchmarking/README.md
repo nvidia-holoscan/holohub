@@ -52,8 +52,14 @@ All dependencies are automatically managed by the Holohub Docker container. You 
 If not using the Holohub Docker container, apart from the holoscan and application's specific dependencies, additional Python packages should be installed:
 
 ```bash
+pip install holoscan-cli
 pip install -r benchmarks/holoscan_flow_benchmarking/requirements.txt
 ```
+
+`holoscan-cli` provides the project metadata APIs that `benchmark.py` uses to
+resolve applications and modes; see
+[holoscan-cli](https://github.com/nvidia-holoscan/holoscan-cli) for pinning or
+pre-release specs.
 
 These python dependencies include:
 

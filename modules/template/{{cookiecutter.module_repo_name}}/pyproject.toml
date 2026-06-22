@@ -38,13 +38,12 @@ wheel.packages = []
 line-length = 100
 target-version = "py310"
 # The post-gen hook copies cmake/pybind11/ into this tree from the HoloHub
-# clone; .holohub/ is the on-demand CLI download; build*/, dist/ are CMake/
-# wheel outputs; .local/, .cache/, .cupy/ are dev-container HOME junk.
+# clone; build*/, dist/ are CMake/wheel outputs; .local/, .cache/, .cupy/
+# are dev-container HOME junk.
 exclude = [
     "build*",
     "dist",
     ".cache",
-    ".holohub",
     ".local",
     ".cupy",
     "cmake/pybind11",

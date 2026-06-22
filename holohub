@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +14,76 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+# HoloHub source-project entry point. Delegates to the standalone
+# `holoscan-cli` package (https://github.com/nvidia-holoscan/holoscan-cli),
+# defaulting to NVIDIA PyPI release-candidate-capable install args.
+#
+# Optional overrides (rarely needed):
+#   HOLOSCAN_CLI_SOURCE   Local checkout — wins over the package install.
+#   HOLOSCAN_CLI_INSTALL_ARGS  Pip install arguments.
+#   HOLOSCAN_CLI_PYTHON_BIN  Python interpreter (default: python3).
+#   HOLOSCAN_CLI_CTEST_SCRIPT  CTest script used by `./holohub test`.
+#   HOLOHUB_PYTHON_BIN       Legacy fallback for HOLOSCAN_CLI_PYTHON_BIN.
 
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-PYTHONPATH="${PYTHONPATH:+${PYTHONPATH}:}${SCRIPT_DIR}" exec python3 "${SCRIPT_DIR}/utilities/cli/holohub.py" "$@"
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
+export HOLOSCAN_CLI_CMD_NAME="${BASH_SOURCE[0]}"
+export HOLOSCAN_CLI_ROOT="${SCRIPT_DIR}"
+
+PYTHON_BIN="${HOLOSCAN_CLI_PYTHON_BIN:-${HOLOHUB_PYTHON_BIN:-python3}}"
+export HOLOSCAN_CLI_INSTALL_ARGS="${HOLOSCAN_CLI_INSTALL_ARGS:---pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0}"
+
+# Default Holoscan SDK version for project container base images. holoscan-cli
+# decoupled the base image from its own version (holoscan-cli#177) and no longer
+# ships a built-in default, so it errors unless this is set (or --base-img is
+# passed). Pin it here -- this is the single source of truth that replaces the
+# former in-tree CLI's util.py DEFAULT_BASE_SDK_VERSION (holohub#1590). Env var
+# takes precedence; per-project scripts may still override via export.
+export HOLOSCAN_CLI_BASE_SDK_VERSION="${HOLOSCAN_CLI_BASE_SDK_VERSION:-4.3.0}"
+export HOLOSCAN_CLI_CTEST_SCRIPT="${HOLOSCAN_CLI_CTEST_SCRIPT:-utilities/testing/holohub.container.ctest}"
+
+# A local holoscan-cli checkout takes precedence over the package install.
+if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
+    export PYTHONPATH="${HOLOSCAN_CLI_SOURCE%/}/src${PYTHONPATH:+:${PYTHONPATH}}"
+fi
+
+# Install holoscan-cli unless a source-project-capable one is already present.
+# Probe the command surface (not just importability), so a stale legacy
+# holoscan-cli (<= 4.2.0, which lacks `build`/`list`) doesn't satisfy the check.
+if ! "${PYTHON_BIN}" -m holoscan_cli --help 2>/dev/null | grep -qw build; then
+    # Bootstrap pip if the interpreter lacks it (minimal Python installs omit
+    # it). `pip install` below would otherwise fail with a confusing error.
+    if ! "${PYTHON_BIN}" -m pip --version >/dev/null 2>&1; then
+        "${PYTHON_BIN}" -m ensurepip --upgrade >/dev/null 2>&1 || {
+            echo "[holohub] ${PYTHON_BIN} has no pip and ensurepip is unavailable;" \
+                 "install pip (or set HOLOSCAN_CLI_PYTHON_BIN, or legacy HOLOHUB_PYTHON_BIN," \
+                 "to an interpreter that has it) and retry" >&2
+            exit 1
+        }
+    fi
+    if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
+        echo "[holohub] installing holoscan-cli from ${HOLOSCAN_CLI_SOURCE}" >&2
+        "${PYTHON_BIN}" -m pip install --upgrade "${HOLOSCAN_CLI_SOURCE}"
+    else
+        echo "[holohub] installing with args: ${HOLOSCAN_CLI_INSTALL_ARGS}" >&2
+        "${PYTHON_BIN}" -m pip install ${HOLOSCAN_CLI_INSTALL_ARGS}
+    fi
+fi
+
+# Forward the package install args (and any local source) as `--build-arg`s on every
+# project `docker build` so the in-container CLI matches the host. holoscan-cli
+# shlex-splits HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS, so single-quote each
+# KEY=VALUE to survive values with spaces and single quotes.
+_q() {
+    local value="${1//\'/\'\"\'\"\'}"
+    printf "'%s'" "${value}"
+}
+extras=" --build-arg $(_q "HOLOSCAN_CLI_INSTALL_ARGS=${HOLOSCAN_CLI_INSTALL_ARGS}")"
+if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
+    extras+=" --build-context $(_q "holoscan-cli-src=${HOLOSCAN_CLI_SOURCE}")"
+fi
+export HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS="${HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS:-}${extras}"
+
+exec "${PYTHON_BIN}" -m holoscan_cli "$@"
