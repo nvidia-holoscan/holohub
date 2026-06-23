@@ -550,6 +550,15 @@ Once you have the `proj_cli` script in your project, you can use it to access va
 > `HOLOSCAN_CLI_SOURCE` points at a local checkout. An internet connection is
 > required for that initial package install.
 
+Common wrapper overrides:
+
+| Variable | Purpose |
+| --- | --- |
+| `HOLOSCAN_CLI_SOURCE` | Local `holoscan-cli` checkout. Wins over the package install for host-side wrapper execution. |
+| `HOLOSCAN_CLI_INSTALL_ARGS` | Pip install arguments for `holoscan-cli`. Also forwarded into Docker builds as the `HOLOSCAN_CLI_INSTALL_ARGS` build arg. |
+| `HOLOSCAN_CLI_PYTHON_BIN` | Python interpreter used for bootstrap and execution. Defaults to `python3`. |
+| `HOLOSCAN_CLI_BASE_SDK_VERSION` | Holoscan SDK version used for default container base image selection. Defaults to `4.3.0`; override it to match your project. |
+
 Please refer to the Holohub CLI help command for more information.
 
 ### CLI Features
@@ -567,6 +576,8 @@ The CLI script automatically handles:
 
 - Bootstrapping the standalone `holoscan-cli` package when needed
 - Using `HOLOSCAN_CLI_SOURCE` when you want to test a local CLI checkout
+- Forwarding CLI install overrides into Docker builds so host and container
+  usage stay aligned
 - Managing Docker options (if using Docker)
 - Configuring `HOLOSCAN_CLI_*` environment variables for the external project
 

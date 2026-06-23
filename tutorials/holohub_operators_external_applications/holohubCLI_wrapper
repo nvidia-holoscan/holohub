@@ -54,6 +54,7 @@ export HOLOSCAN_CLI_ROOT="${SCRIPT_DIR}"
 export HOLOSCAN_CLI_BASE_SDK_VERSION="${HOLOSCAN_CLI_BASE_SDK_VERSION:-4.3.0}"
 
 PYTHON_BIN="${HOLOSCAN_CLI_PYTHON_BIN:-python3}"
+export HOLOSCAN_CLI_INSTALL_ARGS="${HOLOSCAN_CLI_INSTALL_ARGS:---pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0}"
 
 # Make a HOLOSCAN_CLI_SOURCE checkout win over any system-installed copy by
 # prepending `<source>/src` to PYTHONPATH. Mirrors the repo-root wrapper.
@@ -73,9 +74,8 @@ _install_holoscan_cli() {
         echo "[holohubCLI_wrapper] installing holoscan-cli from local source: ${HOLOSCAN_CLI_SOURCE}" >&2
         "${PYTHON_BIN}" -m pip install --quiet --upgrade "${HOLOSCAN_CLI_SOURCE}"
     else
-        local install_args="${HOLOSCAN_CLI_INSTALL_ARGS:---pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0}"
-        echo "[holohubCLI_wrapper] installing with args: ${install_args}" >&2
-        "${PYTHON_BIN}" -m pip install --quiet --upgrade ${install_args}
+        echo "[holohubCLI_wrapper] installing with args: ${HOLOSCAN_CLI_INSTALL_ARGS}" >&2
+        "${PYTHON_BIN}" -m pip install --quiet --upgrade ${HOLOSCAN_CLI_INSTALL_ARGS}
     fi
 }
 
@@ -89,5 +89,16 @@ if ! _holoscan_cli_has_source_project_dispatch; then
     fi
     _install_holoscan_cli
 fi
+
+# Forward wrapper-selected CLI install args into project Docker builds so the
+# in-container CLI matches the host wrapper. holoscan-cli shlex-splits
+# HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS, so single-quote each KEY=VALUE to
+# preserve spaces and quotes in pip arguments.
+_q() {
+    local value="${1//\'/\'\"\'\"\'}"
+    printf "'%s'" "${value}"
+}
+extras=" --build-arg $(_q "HOLOSCAN_CLI_INSTALL_ARGS=${HOLOSCAN_CLI_INSTALL_ARGS}")"
+export HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS="${HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS:-}${extras}"
 
 exec "${PYTHON_BIN}" -m holoscan_cli "$@"
