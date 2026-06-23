@@ -14,9 +14,10 @@
 # limitations under the License.
 """Shallow git clone helper for fetching external Holoscan Module content at website build time.
 
-Distinct from utilities/cli/external_resolver.py, which parses module dependency declarations
-into CMake FetchContent records without performing any network operations. This module does
-the actual git checkout so the website generator can read remote README and metadata files.
+Module dependency declarations are resolved by holoscan-cli into CMake
+FetchContent records without performing any network operations. This module
+does the actual git checkout so the website generator can read remote README
+and metadata files.
 """
 
 import re
