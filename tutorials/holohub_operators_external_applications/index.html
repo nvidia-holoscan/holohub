@@ -20447,11 +20447,11 @@ wget<span class="w"> </span>-O<span class="w"> </span>/path/to/your/project/proj
 <span class="c1"># Make it executable</span>
 chmod<span class="w"> </span>+x<span class="w"> </span>/path/to/your/project/proj_cli
 </code></pre></div>
-<p>Add the following to your <code>.gitignore</code> file to exclude the downloaded Holohub CLI utilities:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Holohub CLI</span>
-utilities
-cmake
-.local
+<p>Add the following to your <code>.gitignore</code> file to exclude local Python state that
+may be created while using the wrapper:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># holoscan-cli wrapper state</span>
+.cache/
+.local/
 </code></pre></div>
 <h3 id="project-structure-with-cli">Project Structure with CLI<a class="headerlink" href="#project-structure-with-cli" title="Permanent link">#</a></h3>
 <p>Your project structure will look like this:</p>
@@ -20471,8 +20471,38 @@ cmake
 ./proj_cli<span class="w"> </span>--help
 </code></pre></div>
 <blockquote>
-<p><strong>Note:</strong> The first time you run the script, it will automatically download the Holohub CLI scripts locally from the Holohub repository. Therefore, an internet connection is required for the initial run.</p>
+<p><strong>Note:</strong> The first time you run the script, it installs the standalone
+<code>holoscan-cli</code> package unless a compatible installation already exists or
+<code>HOLOSCAN_CLI_SOURCE</code> points at a local checkout. An internet connection is
+required for that initial package install.</p>
 </blockquote>
+<p>Common wrapper overrides:</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>HOLOSCAN_CLI_SOURCE</code></td>
+<td>Local <code>holoscan-cli</code> checkout. Wins over the package install for host-side wrapper execution.</td>
+</tr>
+<tr>
+<td><code>HOLOSCAN_CLI_INSTALL_ARGS</code></td>
+<td>Pip install arguments for <code>holoscan-cli</code>. Also forwarded into Docker builds as the <code>HOLOSCAN_CLI_INSTALL_ARGS</code> build arg.</td>
+</tr>
+<tr>
+<td><code>HOLOSCAN_CLI_PYTHON_BIN</code></td>
+<td>Python interpreter used for bootstrap and execution. Defaults to <code>python3</code>.</td>
+</tr>
+<tr>
+<td><code>HOLOSCAN_CLI_BASE_SDK_VERSION</code></td>
+<td>Holoscan SDK version used for default container base image selection. Defaults to <code>4.3.0</code>; override it to match your project.</td>
+</tr>
+</tbody>
+</table>
 <p>Please refer to the Holohub CLI help command for more information.</p>
 <h3 id="cli-features">CLI Features<a class="headerlink" href="#cli-features" title="Permanent link">#</a></h3>
 <p>The Holohub CLI provides several useful features for external projects:</p>
@@ -20485,10 +20515,12 @@ cmake
 <h3 id="environment-setup">Environment Setup<a class="headerlink" href="#environment-setup" title="Permanent link">#</a></h3>
 <p>The CLI script automatically handles:</p>
 <ul>
-<li>Setting up the correct Python path</li>
+<li>Bootstrapping the standalone <code>holoscan-cli</code> package when needed</li>
+<li>Using <code>HOLOSCAN_CLI_SOURCE</code> when you want to test a local CLI checkout</li>
+<li>Forwarding CLI install overrides into Docker builds so host and container
+  usage stay aligned</li>
 <li>Managing Docker options (if using Docker)</li>
-<li>Configuring environment variables</li>
-<li>Fetching necessary utilities from the Holohub repository</li>
+<li>Configuring <code>HOLOSCAN_CLI_*</code> environment variables for the external project</li>
 </ul>
 <h3 id="benefits-for-external-projects">Benefits for External Projects<a class="headerlink" href="#benefits-for-external-projects" title="Permanent link">#</a></h3>
 <p>Using the Holohub CLI in your external project provides:</p>
