@@ -54,9 +54,16 @@ repos:
       - id: markdownlint
         args: [--fix, --config, .markdownlint.yaml, --ignore-path, .markdownlintignore]
 
-  # CMake + copyright headers (local hooks)
+  # CMake, metadata, and copyright headers (local hooks)
   - repo: local
     hooks:
+      - id: holoscan-metadata-validate
+        name: validate metadata.json against the Holoscan CLI schema
+        entry: python3 .github/workflows/scripts/validate_metadata.py
+        language: system
+        files: '(^|/)metadata\.json$'
+        pass_filenames: false
+
       - id: cmakelint
         name: cmakelint
         entry: cmakelint
