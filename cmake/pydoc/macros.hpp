@@ -18,8 +18,6 @@
 #ifndef PYHOLOSCAN_MACRO_HPP
 #define PYHOLOSCAN_MACRO_HPP
 
-#include <fmt/format.h>
-
 #include <string>
 
 constexpr const char* remove_leading_spaces(const char* str) {

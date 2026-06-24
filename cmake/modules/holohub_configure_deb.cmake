@@ -47,8 +47,8 @@ function(holohub_configure_deb)
   set(CPACK_DEBIAN_PACKAGE_DEPENDS "${ARG_DEPENDS}")
   set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "${ARG_RECOMMENDS}")
   set(CPACK_DEBIAN_PACKAGE_SUGGESTS "${ARG_SUGGESTS}")
-  set(CPACK_PACKAGE_SECTION "${ARG_SECTION}")
-  set(CPACK_PACKAGE_PRIORITY "${ARG_PRIORITY}")
+  set(CPACK_DEBIAN_PACKAGE_SECTION "${ARG_SECTION}")
+  set(CPACK_DEBIAN_PACKAGE_PRIORITY "${ARG_PRIORITY}")
 
   if(ARG_EXPORT_NAME)
     set(config_install_dir "lib/cmake/${ARG_NAME}")
@@ -86,7 +86,10 @@ function(holohub_configure_deb)
     # only packages installed components, in a single package
     set(CPACK_DEB_COMPONENT_INSTALL 1)
     set(CPACK_ARCHIVE_COMPONENT_INSTALL 1)
-    set(CPACK_COMPONENTS_ALL "${ARG_COMPONENTS};${export_component}") # TODO: check if components are valid?
+    set(CPACK_COMPONENTS_ALL "${ARG_COMPONENTS}")
+    if(export_component)
+      list(APPEND CPACK_COMPONENTS_ALL "${export_component}")
+    endif()
     set(CPACK_COMPONENTS_GROUPING ALL_COMPONENTS_IN_ONE)
   else()
     # package all installed targets
