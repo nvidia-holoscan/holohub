@@ -22,7 +22,8 @@ distributing this Holoscan Module.
 │       └── metadata.json           # Operator-level metadata
 ├── applications/
 │   └── {{ cookiecutter.module_slug }}_pipeline/
-│       └── {{ cookiecutter.module_slug }}_pipeline.{% if cookiecutter.language == 'cpp' %}cpp{% else %}py{% endif %}   # Example pipeline
+│       ├── python/                 # Python pipeline + metadata.json (every module)
+│       └── cpp/                    # C++ pipeline + metadata.json (cpp-language modules)
 ├── python/holoscan/{{ cookiecutter.module_slug }}/
 │   └── __init__.py                 # Re-exports operators for `from holoscan.{{ cookiecutter.module_slug }} import ...`
 └── tests/
