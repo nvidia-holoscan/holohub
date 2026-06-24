@@ -9,7 +9,7 @@ distributing this Holoscan Module.
 
 ## Module layout
 
-```
+```text
 {{ cookiecutter.module_repo_name }}/
 ├── holohub                         # CLI wrapper (delegates to holoscan-cli)
 ├── Dockerfile                      # Development container image
@@ -40,7 +40,7 @@ defaults. On first run it installs `holoscan-cli` via pip if it isn't already im
 (internet required); subsequent runs reuse the installed copy.
 
 | Command | What it does |
-|---|---|
+| --- | --- |
 | `./holohub run-container` | Build and start the development container |
 | `./holohub build {{ cookiecutter.module_slug }}_pipeline` | CMake configure + build inside the container |
 | `./holohub run {{ cookiecutter.module_slug }}_pipeline` | Run the example pipeline |
@@ -62,14 +62,14 @@ cmake -S . -B build -DBUILD_ALL=ON -D{{ cookiecutter.module_slug | upper }}_BUIL
 cmake --build build -j"$(nproc)"
 ```
 
-{% if cookiecutter.language == 'cpp' %}
+{% if cookiecutter.language == 'cpp' -%}
 Run C++ tests:
 
 ```bash
 ctest --test-dir build --output-on-failure -L unit
 ```
 
-{% endif %}
+{% endif -%}
 Run Python tests:
 
 ```bash
@@ -91,7 +91,7 @@ pytest tests/python/ -v
 wheel packaging. Key fields to update before publishing:
 
 | Field | Purpose |
-|---|---|
+| --- | --- |
 | `[project].name` | PyPI package name — should match `metadata.json:module.binary_packages.pypi` |
 | `[project].version` | Sync with `metadata.json:module.version` |
 | `[project].description` | Short description shown on PyPI |
@@ -110,7 +110,7 @@ python -m build --wheel
 ## Naming conventions
 
 | Context | Convention | Example |
-|---|---|---|
+| --- | --- | --- |
 | Python import / C++ namespace | `snake_case` | `holoscan.{{ cookiecutter.module_slug }}` |
 | Repository folder | `holoscan-<slug>` (kebab) | `{{ cookiecutter.module_repo_name }}` |
 | Debian package | `holoscan-<slug>` (kebab) | `holoscan-{{ cookiecutter.module_slug.replace('_', '-') }}` |

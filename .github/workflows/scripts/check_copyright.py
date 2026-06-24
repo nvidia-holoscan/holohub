@@ -55,7 +55,7 @@ CheckNonSPDX = re.compile(
 
 
 def check_this_file(f):
-    # This check covers things like symlinks which point to files that DNE
+    # This check covers things like symlinks which point to files that do not exist
     if not (os.path.exists(f)):
         return False
     if gitutils and gitutils.is_file_empty(f):

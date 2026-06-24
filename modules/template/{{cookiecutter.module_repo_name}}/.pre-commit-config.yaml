@@ -45,7 +45,13 @@ repos:
       - id: cpplint
         # Line width is owned by clang-format (ColumnLimit 100); TODO markers in
         # the generated stubs intentionally omit a username.
-        args: [--quiet, --filter=-readability/todo,-whitespace/line_length]
+        # NOTE: keep the comma-separated --filter value on one block-list line.
+        # In flow style ([a, b]) YAML splits on the comma, turning the second
+        # category into a stray "-whitespace/line_length" arg that cpplint
+        # rejects with a usage error.
+        args:
+          - --quiet
+          - --filter=-readability/todo,-whitespace/line_length
 
   # Markdown
   - repo: https://github.com/igorshubovych/markdownlint-cli
