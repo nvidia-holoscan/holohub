@@ -6,8 +6,8 @@ For command/flag docs, see the [CLI Reference](cli_reference.md).
 > [!NOTE] Portability
 > This guide applies to any repo built on the HoloHub CLI.
 > Examples use `./holohub`; downstream repos have their own entry point
-> (e.g. `./i4h`, `./isaac_os`), configured via `HOLOHUB_CMD_NAME`.
-> Currently `HOLOHUB_`-prefixed env vars are shared CLI infrastructure, not
+> (e.g. `./i4h`, `./isaac_os`), configured via `HOLOSCAN_CLI_CMD_NAME`.
+> Currently `HOLOSCAN_CLI_`-prefixed env vars are shared CLI infrastructure, not
 > HoloHub-specific. Substitute your repo's entry point wherever you
 > see `./holohub`.
 
@@ -27,13 +27,22 @@ When a user asks how to customize a build or run — change the build directory,
 
 ## Implementation Invariants
 
-| #   | Rule                                   | Detail                                                                                                                                                                                                                                                                                                   |
-| --- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Container re-enters local              | `build`/`run`/`install` in container mode build an image, then run the CLI with `--local` inside it. Local-mode changes affect both host and container execution.                                                                                                                                        |
-| 2   | CLI flags override modes               | Resolution: `resolve_mode` → `validate_mode` → `get_effective_build_config`/`get_effective_run_config`. Most flags override (do not merge with) mode values; `--run-args` is **appended** to the argument list passed to `docker run` or the application process (not inserted into the command string). |
-| 3   | Expand placeholders first              | Mode commands may contain `<{prefix}_app_source>`, `<{prefix}_data_dir>`, etc. (prefix = `HOLOHUB_PATH_PREFIX`, default `holohub`). Run through `build_holohub_path_mapping()` + `replace_placeholders()`.                                                                                               |
-| 4   | Use `run_command()`                    | Handles dry-run, sudo detection, fail-fast (`check=True`). Use `run_info_command()` for best-effort probes.                                                                                                                                                                                              |
-| 5   | Use `self.script_name` / `self.prefix` | `self.script_name` (from `HOLOHUB_CMD_NAME`) for user messages. `self.prefix` (from `HOLOHUB_PATH_PREFIX`) for placeholder resolution.                                                                                                                                                                   |
+1. Container re-enters local: `build`/`run`/`install` in container mode build an
+   image, then run the CLI with `--local` inside it. Local-mode changes affect
+   both host and container execution.
+2. CLI flags override modes: resolution is `resolve_mode` -> `validate_mode` ->
+   `get_effective_build_config`/`get_effective_run_config`. Most flags override
+   mode values; `--run-args` is appended to the argument list passed to
+   `docker run` or the application process.
+3. Expand placeholders first: mode commands may contain
+   `<{prefix}app_source>`, `<{prefix}data_dir>`, etc. The prefix comes from
+   `HOLOSCAN_CLI_PATH_PREFIX` and defaults to `holohub_`. Run through
+   `build_holohub_path_mapping()` and `replace_placeholders()`.
+4. Use `run_command()`: it handles dry-run, sudo detection, and fail-fast
+   behavior. Use `run_info_command()` for best-effort probes.
+5. Use `self.script_name` / `self.prefix`: `self.script_name` comes from
+   `HOLOSCAN_CLI_CMD_NAME`; `self.prefix` comes from
+   `HOLOSCAN_CLI_PATH_PREFIX` for placeholder resolution.
 
 ## Execution Model
 
@@ -42,7 +51,7 @@ When a user asks how to customize a build or run — change the build directory,
 ### Phase 1 — Container setup (runs on host)
 
 1. Build a Docker image with project dependencies (`docker build`). Skip with `--no-docker-build`.
-2. Launch a container (`docker run`) with the repo bind-mounted at `/workspace/<name>` (`HOLOHUB_WORKSPACE_NAME`, default `holohub`) and `HOLOHUB_BUILD_LOCAL=1` set in the environment.
+2. Launch a container (`docker run`) with the repo bind-mounted at `/workspace/<name>` (`HOLOSCAN_CLI_WORKSPACE_NAME`, default `holohub`) and `HOLOSCAN_CLI_BUILD_LOCAL=1` set in the environment.
 
 ### Phase 2 — Build / run (runs inside the container)
 
@@ -55,7 +64,7 @@ The container re-invokes the CLI with `--local` appended. For example, `./holohu
 | `install` | Same cmake build, then `cmake --install build/<app>`                           |
 | `test`    | CTest via a CTest script                                                       |
 
-The cmake flag `-DAPP_<app>=ON` selects a single project (operators use `-DOP_<name>=ON`, extensions use `-DEXT_<name>=ON`). The build directory `build/<app>/` isolates per-project artifacts; this path is `HOLOHUB_BUILD_PARENT_DIR/<app>` (default parent varies by repo; `<repo_root>/build` in HoloHub). Because the repo is bind-mounted, artifacts persist on the host after the container exits.
+The cmake flag `-DAPP_<app>=ON` selects a single project (operators use `-DOP_<name>=ON`, extensions use `-DEXT_<name>=ON`). The build directory `build/<app>/` isolates per-project artifacts; this path is `HOLOSCAN_CLI_BUILD_PARENT_DIR/<app>` (default parent varies by repo; `<repo_root>/build` in HoloHub). Because the repo is bind-mounted, artifacts persist on the host after the container exits.
 
 `--local` bypasses both phases and runs cmake / the app directly on the host.
 
@@ -67,7 +76,7 @@ By default (without `--local` or relevant environment variables) every cmake, py
 # 1. Enter the container (builds the image if needed, then opens an interactive shell):
 ./holohub run-container <app> [mode]
 
-# 2. Inside the container, HOLOHUB_BUILD_LOCAL=1 is already set, so all
+# 2. Inside the container, HOLOSCAN_CLI_BUILD_LOCAL=1 is already set, so all
 #    ./holohub commands behave as --local. Run the standard CLI build:
 ./holohub build <app> [mode]
 
@@ -135,18 +144,18 @@ later container runs and are already ignored by git. Use
 `./holohub lint --install-dependencies` when you want to prefetch hooks or
 install dependencies without running lint.
 
-Downstream wrappers may override `HoloHubCLI.handle_lint` (or simply ship their own `.pre-commit-config.yaml`) to point lint at different tooling. If no `.pre-commit-config.yaml` is present at the project root, the command exits zero with a recommendation so downstream wrappers without a config don't break their CI.
+Downstream projects may override the upstream lint handling (or simply ship their own `.pre-commit-config.yaml`) to point lint at different tooling. If no `.pre-commit-config.yaml` is present at the project root, the command exits zero with a recommendation so downstream wrappers without a config don't break their CI.
 
 ### Iterate fast
 
 Check for existing images first: `docker images | grep <project>`.
 
-| Flag / Env                                                | Effect                                                                                                            |
-| --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `--no-docker-build`                                       | Reuse existing image — default during dev. Rebuild only when Dockerfile, base image, or `--extra-scripts` change. |
-| `--no-local-build`                                        | Skip cmake — for re-runs with different args or Python-only changes.                                              |
-| `HOLOHUB_ALWAYS_BUILD=false`                              | Disable both build phases globally.                                                                               |
-| `HOLOHUB_ENABLE_SCCACHE=true` + `--extra-scripts sccache` | Compiler cache at `~/.cache/sccache`.                                                                             |
+| Flag / Env                                                     | Effect                                                                                                            |
+| -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `--no-docker-build`                                            | Reuse existing image — default during dev. Rebuild only when Dockerfile, base image, or `--extra-scripts` change. |
+| `--no-local-build`                                             | Skip cmake — for re-runs with different args or Python-only changes.                                              |
+| `HOLOSCAN_CLI_ALWAYS_BUILD=false`                              | Disable both build phases globally.                                                                               |
+| `HOLOSCAN_CLI_ENABLE_SCCACHE=true` + `--extra-scripts sccache` | Compiler cache at `~/.cache/sccache`.                                                                             |
 
 ### Debug inside the container
 
@@ -168,7 +177,7 @@ Everything after `--` is joined into a single string and executed via `bash -c`,
 ### Resource management
 
 - `CMAKE_BUILD_PARALLEL_LEVEL=N` — cap parallel jobs to prevent OOM.
-- `./holohub clear-cache` removes cache directories matching `build*/`, `data*/`, and `install*/` at the repo root (e.g., `build/`, `build-*/`, `data/`, `data-*/`, `install/`, `install-*/`), plus any overridden build/data parent directories configured via `HOLOHUB_BUILD_PARENT_DIR` and `HOLOHUB_DATA_DIR` (which may live outside the repo). Ask for approval before running; use `--dryrun` first to preview.
+- `./holohub clear-cache` removes cache directories matching `build*/`, `data*/`, and `install*/` at the repo root (e.g., `build/`, `build-*/`, `data/`, `data-*/`, `install/`, `install-*/`), plus any overridden build/data parent directories configured via `HOLOSCAN_CLI_BUILD_PARENT_DIR` and `HOLOSCAN_CLI_DATA_DIR` (which may live outside the repo). Ask for approval before running; use `--dryrun` first to preview.
   - `--build` — most common. Use when builds are broken, stale, or after switching branches, SDK versions, or build types.
   - `--data` — use when downloaded models or datasets are corrupt/incomplete, or to reclaim disk space. Re-downloading can be slow.
   - `--install` — use when installed artifacts are stale or from a different build configuration.
