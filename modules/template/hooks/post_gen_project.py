@@ -127,6 +127,13 @@ if _holohub_root:
         _src = _scripts_src / _script
         if _src.exists():
             shutil.copy2(_src, _scripts_dst / _script)
+        else:
+            warnings.warn(
+                f"Expected script not found: {_src}\n"
+                f"The check-copyright pre-commit hook will fail until this file is present.\n"
+                f"Copy it manually from your HoloHub clone into .github/workflows/scripts/.",
+                stacklevel=1,
+            )
 
 # Make the module CLI wrapper executable.
 wrapper = "./holohub"

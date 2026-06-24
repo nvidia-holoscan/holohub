@@ -7,7 +7,6 @@ assertIn
 ba
 bu
 dne
-DNE
 donot
 EHR
 ehr

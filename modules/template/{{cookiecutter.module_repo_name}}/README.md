@@ -106,13 +106,15 @@ cmake --build build -j$(nproc)
 
 Or, without the HoloHub CLI:
 
-{% if cookiecutter.language == 'cpp' -%}
+{% if cookiecutter.language == 'cpp' %}
+
 ```bash
 # C++ (GTest via CTest)
 ctest --test-dir build --output-on-failure -L unit
 ```
 
-{% endif -%}
+{% endif %}
+
 ```bash
 # Python (pytest)
 PYTHONPATH=build/python${PYTHONPATH:+:$PYTHONPATH} {{ cookiecutter.module_slug | upper }}_BUILD_DIR=build pytest tests/python/ -v

@@ -26,7 +26,7 @@ import os
 import sys
 from pathlib import Path
 
-_EXCLUDE_DIRS = {"build", ".local", ".cache", "_CPack_Packages"}
+_EXCLUDE_DIRS = {"build", "install", ".local", ".cache", "_CPack_Packages"}
 
 
 def iter_metadata_files(repo_root: Path):
@@ -54,7 +54,7 @@ def main():
     for path in sorted(iter_metadata_files(repo_root)):
         rel = path.relative_to(repo_root)
         try:
-            data = json.loads(path.read_text())
+            data = json.loads(path.read_text(encoding="utf-8"))
         except json.JSONDecodeError as exc:
             print(f"{rel}: invalid JSON — {exc}", file=sys.stderr)
             failed = True
