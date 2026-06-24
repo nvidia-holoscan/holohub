@@ -1,0 +1,9 @@
+# SPDX-FileCopyrightText: Copyright (c) {% now 'utc', '%Y' %} {{ cookiecutter.full_name }}{% if cookiecutter.affiliation %} / {{ cookiecutter.affiliation }}{% endif %}. All rights reserved.
+# SPDX-License-Identifier: {{ cookiecutter._license }}
+
+MD013:
+  line_length: 800
+  code_block_line_length: 800
+  heading_line_length: 800
+MD046:
+  style: fenced

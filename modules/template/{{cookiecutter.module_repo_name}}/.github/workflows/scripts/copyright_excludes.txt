@@ -1,0 +1,17 @@
+# Copyright check exclude patterns
+# One pattern per line, comments start with #
+#
+# Usage:
+#   In CI: python3 .github/workflows/scripts/check_copyright.py --exclude-config .github/workflows/scripts/copyright_excludes.txt .
+#   Locally: python3 .github/workflows/scripts/check_copyright.py --exclude-config .github/workflows/scripts/copyright_excludes.txt --git-modified-only .
+#
+# You can also combine with additional excludes:
+#   python3 .github/workflows/scripts/check_copyright.py --exclude-config .github/workflows/scripts/copyright_excludes.txt --exclude "my_temp_file.py" .
+build
+install
+.cache
+.local
+_CPack_Packages
+# CMake helpers copied in from the HoloHub clone by the post-gen hook — these
+# carry their own upstream copyright and are not maintained in this module.
+cmake

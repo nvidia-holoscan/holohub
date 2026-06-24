@@ -19,9 +19,7 @@ import pytest
 pytest.importorskip("holoscan", reason="holoscan SDK not installed", exc_type=ImportError)
 
 
-EXPECTED_OPERATORS = (
-    "{{ op_class }}",
-)
+EXPECTED_OPERATORS = ("{{ op_class }}",)
 
 
 @pytest.mark.parametrize("operator_name", EXPECTED_OPERATORS)
