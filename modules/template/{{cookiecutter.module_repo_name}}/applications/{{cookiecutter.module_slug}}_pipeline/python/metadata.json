@@ -1,0 +1,35 @@
+{
+    "$schema": "urn:holohub:application:v1",
+    "application": {
+        "name": "{{ cookiecutter.module_slug }}_pipeline",
+        "authors": [
+            {
+                "name": "{{ cookiecutter.full_name }}",
+                "affiliation": "{{ cookiecutter.affiliation }}"
+            }
+        ],
+        "language": ["Python"],
+        "version": "{{ cookiecutter.version }}",
+        "changelog": {
+            "{{ cookiecutter.version }}": "TODO: describe this example application"
+        },
+        "holoscan_sdk": {
+            "minimum_required_version": "{{ cookiecutter.holoscan_version }}",
+            "tested_versions": ["{{ cookiecutter.holoscan_version }}"]
+        },
+        "platforms": ["x86_64", "aarch64"],
+        "tags": ["TODO: add tags"],
+        "ranking": 3,
+        "requirements": {},
+        "default_mode": "default",
+        "modes": {
+            "default": {
+                "description": "Run the Python {{ cookiecutter.module_slug }} pipeline",
+                "run": {
+                    "command": "python3 <holohub_app_source>/{{ cookiecutter.module_slug }}_pipeline.py",
+                    "workdir": "holohub_app_bin"
+                }
+            }
+        }
+    }
+}
