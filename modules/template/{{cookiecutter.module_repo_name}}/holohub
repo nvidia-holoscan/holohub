@@ -101,6 +101,17 @@ if ! "${PYTHON_BIN}" -m holoscan_cli --help 2>/dev/null | grep -qw build; then
     fi
 fi
 
+# Forward wrapper-selected CLI install args into project Docker builds so the
+# in-container CLI matches the host wrapper. holoscan-cli shlex-splits
+# HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS, so single-quote each KEY=VALUE to
+# preserve spaces and quotes in pip arguments.
+_q() {
+    local value="${1//\'/\'\"\'\"\'}"
+    printf "'%s'" "${value}"
+}
+extras=" --build-arg $(_q "HOLOSCAN_CLI_INSTALL_ARGS=${HOLOSCAN_CLI_INSTALL_ARGS}")"
+export HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS="${HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS:-}${extras}"
+
 # exec so signals reach the CLI directly; `python -m` so the same interpreter
 # that bootstrapped the CLI above runs it (a `holoscan` console script on PATH
 # may resolve elsewhere).

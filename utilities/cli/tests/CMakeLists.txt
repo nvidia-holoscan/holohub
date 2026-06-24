@@ -60,12 +60,6 @@ set_tests_properties(test_holohub_autocompletion_list PROPERTIES
 )
 
 # ``HOLOSCAN_CLI_PATH_PREFIX`` env var propagation through ``run-container``.
-# (The consolidated CLI renamed ``HOLOHUB_PATH_PREFIX`` to
-# ``HOLOSCAN_CLI_PATH_PREFIX``; CTest's regex engine is line-oriented and
-# can't bridge ``docker run`` and the ``-e HOLOSCAN_CLI_PATH_PREFIX=…``
-# arg across the dryrun pretty-printer's newlines, so the assertion targets
-# the env-passing line specifically.) Pre-consolidation
-# ``test_holohub_path_prefix_env``.
 add_test(
   NAME test_holohub_path_prefix_env
   COMMAND ${CMAKE_SOURCE_DIR}/holohub run-container --dryrun
