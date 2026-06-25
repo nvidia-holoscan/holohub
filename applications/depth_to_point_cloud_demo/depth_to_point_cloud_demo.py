@@ -111,7 +111,7 @@ class PointCloudStatsOp(Operator):
 class CloudToHolovizOp(Operator):
     """Compact the organized H x W x 3 cloud to a flat N x 3 of finite points for HolovizOp.
 
-    HolovizOp renders a ``points_3d`` primitive from a ``[1, N, 3]`` coordinate tensor, so the
+    HolovizOp renders a ``points_3d`` primitive from an ``(N, 3)`` coordinate tensor, so the
     organized cloud is flattened and the invalid (NaN) pixels are dropped first, as recommended in
     the README. The compaction stays on the GPU (CuPy), keeping the path device-resident.
     """
@@ -128,7 +128,7 @@ class CloudToHolovizOp(Operator):
         # Holoviz expects at least one coordinate; emit a degenerate point if the frame is empty.
         if pts.shape[0] == 0:
             pts = cp.zeros((1, 3), dtype=cp.float32)
-        coords = cp.ascontiguousarray(pts[cp.newaxis, ...].astype(cp.float32))  # (1, N, 3)
+        coords = cp.ascontiguousarray(pts.astype(cp.float32))  # (N, 3) as HolovizOp expects
         op_output.emit({"point_cloud": coords}, "out")
 
 
@@ -198,6 +198,14 @@ class DepthToPointCloudDemoApp(Application):
                 self,
                 name="holoviz",
                 window_title="depth_to_point_cloud_demo",
+                width=1280,
+                height=720,
+                # The cloud lives in the camera optical frame (x-right, y-down, z-forward),
+                # centered near (0, 0, ~1.5 m). Place the camera in front of and above it (negative
+                # z is "in front", negative y is "up" in this frame) so the tilted plane is framed.
+                camera_eye=[1.5, -1.5, -1.0],
+                camera_look_at=[0.0, 0.0, 1.5],
+                camera_up=[0.0, -1.0, 0.0],
                 tensors=[
                     dict(
                         name="point_cloud",
