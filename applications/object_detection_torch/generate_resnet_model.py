@@ -20,6 +20,7 @@ from typing import List
 
 import torch
 
+
 # Suppress PyTorch's UserWarning: Failed to load image Python extension: 'libnvjpeg.so.12: cannot open shared object file: No such file or directory'
 with warnings.catch_warnings():
     warnings.simplefilter("ignore", UserWarning)
@@ -48,7 +49,10 @@ det_model = detection.fasterrcnn_resnet50_fpn(
 # https://forums.developer.nvidia.com/t/dgx-dashboard-playbook-pytorch-in-sample-code-not-supporting-cuda-12-1/350762
 with warnings.catch_warnings():
     warnings.filterwarnings(
-        "ignore", category=UserWarning, module="torch.cuda", message=r"\n.*Found GPU0 NVIDIA GB10.*"
+        "ignore",
+        category=UserWarning,
+        module=r"torch\.cuda",
+        message=r"\n.*Found GPU0 NVIDIA GB10.*",
     )
     det_model = det_model.to(DEVICE)
 
