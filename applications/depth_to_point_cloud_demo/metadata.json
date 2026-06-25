@@ -34,9 +34,22 @@
 				}
 			]
 		},
-		"run": {
-			"command": "python3 <holohub_app_source>/depth_to_point_cloud_demo.py",
-			"workdir": "holohub_bin"
+		"default_mode": "synthetic",
+		"modes": {
+			"synthetic": {
+				"description": "Hardware-free on-GPU synthetic depth+RGB source (CI-friendly)",
+				"run": {
+					"command": "python3 <holohub_app_source>/depth_to_point_cloud_demo.py --source synthetic",
+					"workdir": "holohub_bin"
+				}
+			},
+			"realsense": {
+				"description": "Live Intel RealSense camera source (requires hardware; see README — not yet runnable from Python)",
+				"run": {
+					"command": "python3 <holohub_app_source>/depth_to_point_cloud_demo.py --source realsense",
+					"workdir": "holohub_bin"
+				}
+			}
 		}
 	}
 }

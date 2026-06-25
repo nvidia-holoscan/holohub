@@ -93,6 +93,9 @@ It is also registered with CTest (`depth_to_point_cloud_test`) when the project 
 
 ## Requirements
 
-- Holoscan SDK ≥ 4.0.0, CUDA. Platforms: `x86_64`, `aarch64` (Jetson). No third-party dependencies
-  beyond the CUDA runtime — the deprojection runs as a custom CUDA kernel (no VPI/PVA/VIC fixed-function
-  block exists for depth deprojection, and it is not a library-shaped op).
+- Holoscan SDK ≥ 4.0.0
+- CUDA runtime
+- Platforms: `x86_64`, `aarch64` (Jetson)
+- No third-party dependencies beyond the CUDA runtime — the deprojection runs as a custom CUDA
+  kernel (no VPI/PVA/VIC fixed-function block exists for depth deprojection, and it is not a
+  library-shaped op).

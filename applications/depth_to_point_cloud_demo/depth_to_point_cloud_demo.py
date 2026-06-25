@@ -15,11 +15,16 @@
 
 """Demo for DepthToPointCloudOp.
 
-Generates a synthetic organized depth image (a gently tilting plane) plus an aligned RGB
-image entirely on the GPU, deprojects it into an organized point cloud with
-DepthToPointCloudOp, and validates the result. No camera or dataset is required, so the
-app runs in CI. See README.md for wiring a real Intel RealSense camera or adding Holoviz
-3D rendering.
+Selectable input source (``--source``):
+
+* ``synthetic`` (default) generates an organized depth image (a gently tilting plane) plus an
+  aligned RGB image entirely on the GPU. No camera or dataset is required, so the app runs in CI.
+* ``realsense`` is scaffolded for a live Intel RealSense camera but is not yet runnable from Python
+  (the ``realsense_camera`` operator ships no Python bindings and emits ``VideoBuffer``s rather than
+  the ``Tensor`` this operator consumes); selecting it raises ``NotImplementedError``. See README.md.
+
+The deprojected organized point cloud is either summarized by ``PointCloudStatsOp`` (default,
+CI-friendly) or rendered as 3D points by ``HolovizOp`` when ``--visualize`` is passed.
 """
 
 import argparse
@@ -27,6 +32,7 @@ import argparse
 import cupy as cp
 from holoscan.conditions import CountCondition
 from holoscan.core import Application, Operator, OperatorSpec
+from holoscan.operators import HolovizOp
 from holoscan.resources import BlockMemoryPool, MemoryStorageType
 
 from holohub.depth_to_point_cloud import DepthToPointCloudOp
@@ -102,14 +108,51 @@ class PointCloudStatsOp(Operator):
             print("[depth_to_point_cloud_demo] no valid points")
 
 
+class CloudToHolovizOp(Operator):
+    """Compact the organized H x W x 3 cloud to a flat N x 3 of finite points for HolovizOp.
+
+    HolovizOp renders a ``points_3d`` primitive from a ``[1, N, 3]`` coordinate tensor, so the
+    organized cloud is flattened and the invalid (NaN) pixels are dropped first, as recommended in
+    the README. The compaction stays on the GPU (CuPy), keeping the path device-resident.
+    """
+
+    def setup(self, spec: OperatorSpec):
+        spec.input("in")
+        spec.output("out")
+
+    def compute(self, op_input, op_output, context):
+        msg = op_input.receive("in")
+        pc = cp.asarray(msg["point_cloud"]).reshape(-1, 3)  # (H*W, 3) float32
+        valid = cp.isfinite(pc).all(axis=1)
+        pts = pc[valid]  # (N, 3)
+        # Holoviz expects at least one coordinate; emit a degenerate point if the frame is empty.
+        if pts.shape[0] == 0:
+            pts = cp.zeros((1, 3), dtype=cp.float32)
+        coords = cp.ascontiguousarray(pts[cp.newaxis, ...].astype(cp.float32))  # (1, N, 3)
+        op_output.emit({"point_cloud": coords}, "out")
+
+
 class DepthToPointCloudDemoApp(Application):
-    def __init__(self, frames=100, width=640, height=480):
+    def __init__(self, frames=100, width=640, height=480, source="synthetic", visualize=False):
         super().__init__()
         self._frames = frames
         self._width = width
         self._height = height
+        self._source = source
+        self._visualize = visualize
 
     def compose(self):
+        if self._source == "realsense":
+            raise NotImplementedError(
+                "--source realsense is not yet runnable from this Python demo: the "
+                "realsense_camera operator ships no Python bindings and emits VideoBuffers "
+                "rather than the Tensor DepthToPointCloudOp consumes. See the 'Using a real "
+                "Intel RealSense camera' section of README.md for the required wiring "
+                "(Python bindings + FormatConverterOp + intrinsics)."
+            )
+        if self._source != "synthetic":
+            raise ValueError(f"unknown source '{self._source}'")
+
         generator = SyntheticDepthGeneratorOp(
             self,
             CountCondition(self, count=self._frames),
@@ -145,15 +188,51 @@ class DepthToPointCloudDemoApp(Application):
             depth_max=10.0,
         )
 
-        sink = PointCloudStatsOp(self, name="stats")
-
         self.add_flow(generator, cloud, {("depth", "depth")})
         self.add_flow(generator, cloud, {("color", "color")})
-        self.add_flow(cloud, sink, {("point_cloud", "in")})
+
+        if self._visualize:
+            # Compact the organized cloud to N x 3 finite points, then render as 3D points.
+            compact = CloudToHolovizOp(self, name="compact")
+            visualizer = HolovizOp(
+                self,
+                name="holoviz",
+                window_title="depth_to_point_cloud_demo",
+                tensors=[
+                    dict(
+                        name="point_cloud",
+                        type="points_3d",
+                        color=[0.0, 1.0, 0.0, 1.0],
+                        point_size=3.0,
+                    ),
+                ],
+            )
+            self.add_flow(cloud, compact, {("point_cloud", "in")})
+            self.add_flow(compact, visualizer, {("out", "receivers")})
+        else:
+            sink = PointCloudStatsOp(self, name="stats")
+            self.add_flow(cloud, sink, {("point_cloud", "in")})
 
 
 def main():
-    parser = argparse.ArgumentParser(description="DepthToPointCloudOp synthetic demo")
+    parser = argparse.ArgumentParser(description="DepthToPointCloudOp demo")
+    parser.add_argument(
+        "-s",
+        "--source",
+        choices=["synthetic", "realsense"],
+        default="synthetic",
+        help=(
+            "Input source. 'synthetic' (default) uses an on-GPU depth+RGB generator (hardware-free, "
+            "CI-friendly); 'realsense' targets a live Intel RealSense camera (see README — not yet "
+            "runnable from Python)."
+        ),
+    )
+    parser.add_argument(
+        "--visualize",
+        action="store_true",
+        help="Render the cloud as 3D points in HolovizOp instead of the statistics sink "
+        "(requires a display).",
+    )
     parser.add_argument("--frames", type=int, default=100, help="Number of frames to process")
     parser.add_argument("--width", type=int, default=640)
     parser.add_argument("--height", type=int, default=480)
@@ -167,7 +246,13 @@ def main():
         if value <= 0:
             parser.error(f"{name} must be a positive integer (got {value})")
 
-    app = DepthToPointCloudDemoApp(frames=args.frames, width=args.width, height=args.height)
+    app = DepthToPointCloudDemoApp(
+        frames=args.frames,
+        width=args.width,
+        height=args.height,
+        source=args.source,
+        visualize=args.visualize,
+    )
     app.run()
 
 
