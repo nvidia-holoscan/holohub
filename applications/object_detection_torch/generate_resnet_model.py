@@ -21,6 +21,21 @@ from typing import List
 import torch
 
 
+def ignore_known_torch_cuda_capability_warnings():
+    warnings.filterwarnings(
+        "ignore",
+        category=UserWarning,
+        module=r"torch\.cuda",
+        message=r"\n.*Found GPU0 NVIDIA GB10.*",
+    )
+    warnings.filterwarnings(
+        "ignore",
+        category=UserWarning,
+        module=r"torch\.cuda",
+        message=r"\n.*Found GPU0 DRIVE-P2021.*capability.*10\.0\.",
+    )
+
+
 # Suppress PyTorch's UserWarning: Failed to load image Python extension: 'libnvjpeg.so.12: cannot open shared object file: No such file or directory'
 with warnings.catch_warnings():
     warnings.simplefilter("ignore", UserWarning)
@@ -33,7 +48,11 @@ model_file = "frcnn_resnet50_t.pt"
 if len(sys.argv) > 1:
     model_file = sys.argv[1]
 
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# Suppress known PyTorch CUDA compatibility warnings for platforms where model
+# generation can continue successfully despite PyTorch not listing the GPU SM.
+with warnings.catch_warnings():
+    ignore_known_torch_cuda_capability_warnings()
+    DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 det_model = detection.fasterrcnn_resnet50_fpn(
     weights=FasterRCNN_ResNet50_FPN_Weights.DEFAULT,
@@ -41,19 +60,16 @@ det_model = detection.fasterrcnn_resnet50_fpn(
     weights_backbone=ResNet50_Weights.DEFAULT,
 )
 
-# Suppress PyTorch 2.9 known UserWarning for GB10 / sm_120 (capability 12.x) only.
+# Suppress PyTorch 2.9 known UserWarning for GB10 / sm_120 (capability 12.x).
 # \\n    Found GPU0 NVIDIA GB10 which is of cuda capability 12.1.
 # \\n    Minimum and Maximum cuda capability supported by this version of PyTorch is
 # \\n    (8.0) - (12.0)\\n
 # https://github.com/pytorch/pytorch/issues/172629
 # https://forums.developer.nvidia.com/t/dgx-dashboard-playbook-pytorch-in-sample-code-not-supporting-cuda-12-1/350762
+# Also suppress the same non-fatal compatibility warning for DRIVE-P2021.
+# \\n    Found GPU0 DRIVE-P2021 which is of compute capability (CC) 10.0.
 with warnings.catch_warnings():
-    warnings.filterwarnings(
-        "ignore",
-        category=UserWarning,
-        module=r"torch\.cuda",
-        message=r"\n.*Found GPU0 NVIDIA GB10.*",
-    )
+    ignore_known_torch_cuda_capability_warnings()
     det_model = det_model.to(DEVICE)
 
 
