@@ -14,7 +14,7 @@
 # limitations under the License.
 
 # Find pybind11
-find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
+find_package(Python3 REQUIRED COMPONENTS Interpreter Development.Module)
 
 # We fetch pybind11 since we need the same version as the Holoscan SDK
 # and it's not necessarily available on all the platforms
