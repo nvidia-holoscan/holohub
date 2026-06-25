@@ -21,6 +21,10 @@ jobs:
       - run: pip install ruff
       - name: Python lint
         run: ruff check .
+      - name: Validate metadata.json against the Holoscan CLI schema
+        run: |
+          pip install holoscan-cli
+          python .github/workflows/scripts/validate_metadata.py
 {% if cookiecutter.language == 'cpp' %}
       - name: Install clang-format
         run: sudo apt-get update && sudo apt-get install -y clang-format

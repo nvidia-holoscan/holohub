@@ -13,8 +13,8 @@ target_link_libraries({{ cookiecutter.operator_slug }} PRIVATE holoscan::core)
 install(FILES {{ cookiecutter.operator_slug }}.hpp DESTINATION include/{{ cookiecutter.operator_slug }})
 
 add_subdirectory(python)
-{% else %}# Pure Python operator — copy source into the Python package tree.
+{%- else %}# Pure Python operator — copy source into the Python package tree.
 configure_file(
     {{ cookiecutter.operator_slug }}.py
     ${{'{'}}{{ cookiecutter.module_slug | upper }}_PYTHON_PKG_DIR}/{{ cookiecutter.operator_slug }}.py COPYONLY)
-{% endif %}
+{%- endif %}

@@ -26,14 +26,15 @@ A **Holoscan Module** — a self-contained, redistributable library that extends
 ## Operators
 
 | Operator | Implementation | Ports | Parameters |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `{{ op_class }}` | {% if cookiecutter.language == 'cpp' %}C++ + pybind11{% else %}Pure Python{% endif %} | TODO | TODO |
 
-**Namespace**
-{% if cookiecutter.language == 'cpp' %}
+### Namespace
 
+{% if cookiecutter.language == 'cpp' -%}
 - C++: `holoscan::{{ cookiecutter.module_slug }}`
-{% endif %}
+
+{% endif -%}
 - Python: `holoscan.{{ cookiecutter.module_slug }}`
 
 ---
@@ -56,8 +57,7 @@ class MyApp(Application):
 MyApp().run()
 ```
 
-{% if cookiecutter.language == 'cpp' %}
-
+{% if cookiecutter.language == 'cpp' -%}
 ### C++
 
 ```cpp
@@ -75,14 +75,13 @@ class MyApp : public holoscan::Application {
 int main() { holoscan::make_application<MyApp>()->run(); }
 ```
 
-{% endif %}
-
+{% endif -%}
 ---
 
 ## Building from Source (without HoloHub CLI)
 
 | Requirement | Version |
-|---|---|
+| --- | --- |
 | Holoscan SDK | ≥ {{ cookiecutter.holoscan_version }} |
 | CUDA Toolkit | 13.x (matches the Holoscan SDK CUDA pin; the dev `Dockerfile` uses `cuda13-dgpu`) |
 | CMake | ≥ 3.24 |
