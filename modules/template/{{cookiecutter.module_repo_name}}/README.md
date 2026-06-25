@@ -117,13 +117,13 @@ ctest --test-dir build --output-on-failure -L unit
 
 ```bash
 # Python (pytest)
-PYTHONPATH=build/python${PYTHONPATH:+:$PYTHONPATH} {{ cookiecutter.module_slug | upper }}_BUILD_DIR=build pytest tests/python/ -v
+PYTHONPATH=build/python/lib${PYTHONPATH:+:$PYTHONPATH} {{ cookiecutter.module_slug | upper }}_BUILD_DIR=build pytest tests/python/ -v
 ```
 
 `PYTHONPATH` is **prepended** (with `${PYTHONPATH:+:$PYTHONPATH}`) so that an
-ambient holoscan SDK install stays visible. A bare `PYTHONPATH=build/python`
+ambient holoscan SDK install stays visible. A bare `PYTHONPATH=build/python/lib`
 would replace the variable and hide the SDK from pytest. A bare
-`PYTHONPATH=build/python:$PYTHONPATH` looks safe but, when `$PYTHONPATH` is
+`PYTHONPATH=build/python/lib:$PYTHONPATH` looks safe but, when `$PYTHONPATH` is
 unset (typical on a fresh shell or CI runner), it expands to a trailing colon
 that Python reads as an empty path entry — equivalent to `.`, which silently
 adds the test CWD to `sys.path` and lets a local file shadow installed
