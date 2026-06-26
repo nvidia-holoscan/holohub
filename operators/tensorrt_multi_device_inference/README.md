@@ -19,7 +19,7 @@ parallelism). TRT-28040.
 ## Parameters
 
 | Name | Type | Description |
-|---|---|---|
+| --- | --- | --- |
 | `engine_paths` | `std::vector<std::string>` | TensorRT engine plan files, one per rank (index == rank). A **single** path = one offline-sharded plan deserialized on every rank; **N** paths = per-rank weight-shard plans (tensor parallelism). |
 | `device_ids` | `std::vector<int32_t>` | Physical GPU id per rank; `device_ids[0]` is rank 0. Length = number of ranks (≥ 2). |
 | `input_tensor_name` | `std::string` | Name of the input tensor on the incoming message (default `input`). |
