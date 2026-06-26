@@ -21,8 +21,8 @@ install(TARGETS {{ cookiecutter.operator_slug }}
     EXPORT holoscan_{{ cookiecutter.module_slug }}_targets)
 
 add_subdirectory(python)
-{% else %}# Pure Python operator — copy source into the Python package tree.
+{%- else %}# Pure Python operator — copy source into the Python package tree.
 configure_file(
     {{ cookiecutter.operator_slug }}.py
     ${{'{'}}{{ cookiecutter.module_slug | upper }}_PYTHON_PKG_DIR}/{{ cookiecutter.operator_slug }}.py COPYONLY)
-{% endif %}
+{%- endif %}

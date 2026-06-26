@@ -84,7 +84,7 @@ repos:
     hooks:
       - id: cpplint
         args: [--quiet]
-        exclude: ^applications/holoviz/template/cookiecutter
+        exclude: '^(applications/holoviz/template/cookiecutter|modules/template/\{\{cookiecutter)'
 
   # Markdown: markdownlint
   - repo: https://github.com/igorshubovych/markdownlint-cli

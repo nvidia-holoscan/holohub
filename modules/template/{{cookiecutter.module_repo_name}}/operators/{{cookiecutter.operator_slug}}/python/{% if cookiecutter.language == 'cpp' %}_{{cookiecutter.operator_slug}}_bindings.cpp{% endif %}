@@ -5,14 +5,14 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include <memory>
+#include <string>
+
 #include <holoscan/core/condition.hpp>
 #include <holoscan/core/fragment.hpp>
 #include <holoscan/core/operator.hpp>
 #include <holoscan/core/operator_spec.hpp>
 #include <holoscan/core/resource.hpp>
-
-#include <memory>
-#include <string>
 
 #include <{{ cookiecutter.operator_slug }}/{{ cookiecutter.operator_slug }}.hpp>
 
@@ -64,7 +64,8 @@ class Py{{ op_class }} : public {{ op_class }} {
 }  // namespace holoscan::{{ cookiecutter.module_slug }}
 
 PYBIND11_MODULE(_{{ cookiecutter.operator_slug }}, m) {
-  using namespace holoscan::{{ cookiecutter.module_slug }};
+  using holoscan::{{ cookiecutter.module_slug }}::{{ op_class }};
+  using holoscan::{{ cookiecutter.module_slug }}::Py{{ op_class }};
 
   m.doc() = "{{ op_class }} Python bindings";
 
