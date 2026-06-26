@@ -1,0 +1,35 @@
+{
+	"application": {
+		"name": "Multi-Device Inference",
+		"authors": [
+			{
+				"name": "Peter Kisfaludi",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"language": "C++",
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial release: demonstrates TensorRtMultiDeviceInferenceOp (multi-GPU TensorRT Multi-Device inference, TRT-28040)."
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "2.0.0",
+			"tested_versions": ["2.0.0"]
+		},
+		"platforms": ["x86_64"],
+		"tags": ["Inference", "TensorRT", "Multi-GPU", "NCCL", "Tensor Parallel"],
+		"ranking": 3,
+		"requirements": {},
+		"dependencies": {
+			"operators": [
+				{
+					"name": "tensorrt_multi_device_inference"
+				}
+			]
+		},
+		"run": {
+			"command": "<holohub_app_bin>/multi_device_inference <holohub_app_source>/multi_device_inference.yaml",
+			"workdir": "holohub_bin"
+		}
+	}
+}

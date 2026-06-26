@@ -105,6 +105,8 @@ add_holohub_application(tracks2endo4d DEPENDS OPERATORS tapnext_inference)
 
 add_holohub_application(monai_endoscopic_tool_seg DEPENDS
                         OPERATORS OPTIONAL aja_source)
+add_holohub_application(multi_device_inference DEPENDS
+                        OPERATORS tensorrt_multi_device_inference)
 add_holohub_application(multiai_endoscopy DEPENDS
                         OPERATORS OPTIONAL aja_source)
 add_holohub_application(multiai_ultrasound DEPENDS
