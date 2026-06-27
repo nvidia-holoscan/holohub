@@ -4,7 +4,7 @@ Demonstrates the [`tensorrt_multi_device_inference`](../../operators/tensorrt_mu
 operator: a single TensorRT engine **sharded across ≥2 GPUs** via TensorRT Multi-Device
 (NCCL `DistCollective`). The pipeline is:
 
-```
+```text
 DeterministicTensorSourceOp  ->  TensorRtMultiDeviceInferenceOp (GPUs 0+1)  ->  ChecksumSinkOp
 ```
 
