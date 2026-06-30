@@ -1,8 +1,6 @@
 # High Performance Networking with Holoscan
 
-!!! info "MIGRATION NOTICE"
-
-    <div class="migration-notice" markdown>
+!!! warning "MIGRATION NOTICE"
 
     **This tutorial covers the legacy in-tree networking implementation.**
     High-performance networking is now implemented in the standalone networking
@@ -15,17 +13,6 @@
     - [Benchmarking Examples](https://nvidia.github.io/daqiri/benchmarks/raw_benchmarking/) — measure networking throughput and latency
     - [DAQIRI + Holoscan Integration](https://nvidia.github.io/daqiri/tutorials/daqiri-holoscan-integration/) — connect DAQIRI to a Holoscan pipeline
 
-    </div>
-
-<style>
-.md-typeset .admonition:has(.migration-notice) > .admonition-title {
-  font-size: 0.8rem;
-}
-.md-typeset .migration-notice {
-  font-size: 0.8rem;
-}
-</style>
-
 This tutorial demonstrates how to use the Advanced Network library (referred to as `advanced_network` in HoloHub) for low latency and high throughput communication through NVIDIA SmartNICs. With a properly tuned system, the Advanced Network library can achieve hundreds of Gbps with latencies in the low microseconds.
 
 !!! note
@@ -37,9 +24,9 @@ This tutorial demonstrates how to use the Advanced Network library (referred to 
 
 ## Prerequisites
 
-Achieving High Performance Networking with Holoscan requires a system with an [**NVIDIA SmartNIC**](https://www.nvidia.com/en-us/networking/ethernet-adapters/) and a [**discrete GPU**](https://www.nvidia.com/en-us/design-visualization/desktop-graphics/). That is the case of [NVIDIA Data Center](https://www.nvidia.com/en-us/data-center/) systems, or edge systems like the [NVIDIA IGX](https://www.nvidia.com/en-us/edge-computing/products/igx/) platform and the [NVIDIA Project DIGITS](https://www.nvidia.com/en-us/project-digits/). `x86_64` systems equipped with these components are also supported, though the performance will vary greatly depending on the PCIe topology of the system (more on this [below](#31-ensure-ideal-pcie-topology)).
+Achieving High Performance Networking with Holoscan requires a system with an [**NVIDIA SmartNIC**](https://www.nvidia.com/en-us/networking/ethernet-adapters/) and a [**discrete GPU**](https://www.nvidia.com/en-us/design-visualization/desktop-graphics/). That is the case of [NVIDIA Data Center](https://www.nvidia.com/en-us/data-center/) systems, or edge systems like the [NVIDIA IGX](https://www.nvidia.com/en-us/edge-computing/products/igx/) platform and the [NVIDIA DGX Spark](https://www.nvidia.com/en-us/products/workstations/dgx-spark/). `x86_64` systems equipped with these components are also supported, though the performance will vary greatly depending on the PCIe topology of the system (more on this [below](#31-ensure-ideal-pcie-topology)).
 
-In this tutorial, we will be developing on an **NVIDIA IGX Orin platform** with [IGX SW 1.1](https://docs.nvidia.com/igx-orin/user-guide/latest/base-os.html) and an [NVIDIA RTX 6000 ADA GPU](https://www.nvidia.com/en-us/design-visualization/rtx-6000/), which is the configuration that is currently actively tested. The concepts should be applicable to other systems based on Ubuntu 22.04 as well. It should also work on other Linux distributions with a glibc version of 2.35 or higher by containerizing the dependencies and applications on top of an Ubuntu 22.04 image, but this is not actively tested at this time.
+In this tutorial, we will be developing on an **NVIDIA IGX Orin platform** with [IGX SW 1.1](https://docs.nvidia.com/igx/user-guide/latest/base-os.html) and an [NVIDIA RTX 6000 ADA GPU](https://www.nvidia.com/en-us/design-visualization/rtx-6000/), which is the configuration that is currently actively tested. The concepts should be applicable to other systems based on Ubuntu 22.04 as well. It should also work on other Linux distributions with a glibc version of 2.35 or higher by containerizing the dependencies and applications on top of an Ubuntu 22.04 image, but this is not actively tested at this time.
 
 !!! Warning "Secure boot conflict"
 
@@ -270,7 +257,7 @@ ibv_devinfo
 
 **For Holoscan Networking, we want the NIC to use the ETH link layer.** To switch the link layer mode, there are two possible options:
 
-1. On IGX Orin developer kits, you can switch that setting through the BIOS: [see IGX Orin documentation](https://docs.nvidia.com/igx-orin/user-guide/latest/switch-network-link.html).
+1. On IGX Orin developer kits, you can switch that setting through the BIOS: [see IGX Orin documentation](https://docs.nvidia.com/igx/user-guide/latest/switch-network-link.html).
 2. On any system with a NVIDIA NIC (including the IGX Orin developer kits), you can run the commands below from a terminal:
 
     1. Identify the PCI address of your NVIDIA NIC
