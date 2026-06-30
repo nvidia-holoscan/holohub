@@ -89,7 +89,11 @@ if _holohub_root is None:
 
 # Copy CMake helpers from the HoloHub clone so the module builds standalone:
 #   - HoloHubConfigHelpers.cmake: add_holohub_application/operator/package gating
-#   - holohub_configure_deb.cmake: deb packaging helper used by the root CMakeLists
+#   - holohub_configure_deb.cmake: deb packaging helper used by the root
+#     CMakeLists. Brings a companion asset:
+#       - Config.cmake.in: package-config template the helper feeds to
+#         configure_package_config_file() when EXPORT_NAME is set, so
+#         downstream find_package(<module>) resolves the exported targets
 #   - pybind11_add_holohub_module.cmake: fetches pybind11 at the HSDK-pinned
 #     version + ABI-aligned target. Brings two companion assets:
 #       - pybind11/__init__.py: per-operator __init__ template configured by
@@ -102,6 +106,7 @@ if _holohub_root:
     for _rel in (
         ("cmake", "HoloHubConfigHelpers.cmake"),
         ("cmake", "modules", "holohub_configure_deb.cmake"),
+        ("cmake", "modules", "Config.cmake.in"),
         ("cmake", "pybind11_add_holohub_module.cmake"),
     ):
         _src = _holohub_root.joinpath(*_rel)
