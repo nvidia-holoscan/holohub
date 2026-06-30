@@ -24,7 +24,7 @@ try:
 except ImportError as e:
     pybind11_hsdk_err = 'unknown base type "holoscan::'
 
-    if not pybind11_hsdk_err in str(e):
+    if pybind11_hsdk_err not in str(e):
         # Unknown import error, raise it
         raise e
 

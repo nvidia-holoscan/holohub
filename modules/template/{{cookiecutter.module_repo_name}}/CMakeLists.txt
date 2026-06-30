@@ -63,10 +63,15 @@ endif()
 # Python package root in the build tree.
 # PYTHONPATH=${{'{'}}{{ cookiecutter.module_slug | upper }}_PYTHON_ROOT} lets Python find
 # holoscan.{{ cookiecutter.module_slug }} alongside the installed Holoscan SDK package.
+#
+# The package lands under python/lib/ (not just python/) to match the layout
+# the Holoscan CLI expects in default `./holohub run` mode — it resolves the
+# module from <build>/python/lib, so `import holoscan.{{ cookiecutter.module_slug }}` fails if the
+# package is staged one directory higher.
 # ---------------------------------------------------------------------------
 
 set({{ cookiecutter.module_slug | upper }}_PYTHON_ROOT
-    ${CMAKE_BINARY_DIR}/python)
+    ${CMAKE_BINARY_DIR}/python/lib)
 set({{ cookiecutter.module_slug | upper }}_PYTHON_PKG_DIR
     ${{'{'}}{{ cookiecutter.module_slug | upper }}_PYTHON_ROOT}/holoscan/{{ cookiecutter.module_slug }})
 

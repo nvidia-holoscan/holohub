@@ -9,7 +9,7 @@ distributing this Holoscan Module.
 
 ## Module layout
 
-```
+```text
 {{ cookiecutter.module_repo_name }}/
 ├── holohub                         # CLI wrapper (delegates to holoscan-cli)
 ├── Dockerfile                      # Development container image
@@ -22,7 +22,8 @@ distributing this Holoscan Module.
 │       └── metadata.json           # Operator-level metadata
 ├── applications/
 │   └── {{ cookiecutter.module_slug }}_pipeline/
-│       └── {{ cookiecutter.module_slug }}_pipeline.{% if cookiecutter.language == 'cpp' %}cpp{% else %}py{% endif %}   # Example pipeline
+│       ├── python/                 # Python pipeline + metadata.json (every module)
+│       └── cpp/                    # C++ pipeline + metadata.json (cpp-language modules)
 ├── python/holoscan/{{ cookiecutter.module_slug }}/
 │   └── __init__.py                 # Re-exports operators for `from holoscan.{{ cookiecutter.module_slug }} import ...`
 └── tests/
@@ -39,7 +40,7 @@ defaults. On first run it installs `holoscan-cli` via pip if it isn't already im
 (internet required); subsequent runs reuse the installed copy.
 
 | Command | What it does |
-|---|---|
+| --- | --- |
 | `./holohub run-container` | Build and start the development container |
 | `./holohub build {{ cookiecutter.module_slug }}_pipeline` | CMake configure + build inside the container |
 | `./holohub run {{ cookiecutter.module_slug }}_pipeline` | Run the example pipeline |
@@ -61,26 +62,26 @@ cmake -S . -B build -DBUILD_ALL=ON -D{{ cookiecutter.module_slug | upper }}_BUIL
 cmake --build build -j"$(nproc)"
 ```
 
-{% if cookiecutter.language == 'cpp' %}
+{% if cookiecutter.language == 'cpp' -%}
 Run C++ tests:
 
 ```bash
 ctest --test-dir build --output-on-failure -L unit
 ```
 
-{% endif %}
+{% endif -%}
 Run Python tests:
 
 ```bash
 {{ cookiecutter.module_slug | upper }}_BUILD_DIR=build \
-PYTHONPATH=build/python${PYTHONPATH:+:$PYTHONPATH} \
+PYTHONPATH=build/python/lib${PYTHONPATH:+:$PYTHONPATH} \
 pytest tests/python/ -v
 ```
 
 `PYTHONPATH` is **prepended via `${PYTHONPATH:+:$PYTHONPATH}`** so that an existing entry on the variable is kept while an unset/empty variable doesn't yield a trailing colon. Two failure modes the shorter forms invite:
 
-- **`PYTHONPATH=build/python`** (replace): drops any ambient holoscan SDK install on `PYTHONPATH`. The module-level `importorskip("holoscan")` then fires, pytest exits with code 5, and CTest marks the run as Skipped.
-- **`PYTHONPATH=build/python:$PYTHONPATH`** (naive prepend): on a fresh shell or CI runner where `$PYTHONPATH` is unset, this expands to `PYTHONPATH=build/python:` — Python treats the trailing empty entry as the current directory, silently shadowing installed packages with whatever happens to live in the test CWD.
+- **`PYTHONPATH=build/python/lib`** (replace): drops any ambient holoscan SDK install on `PYTHONPATH`. The module-level `importorskip("holoscan")` then fires, pytest exits with code 5, and CTest marks the run as Skipped.
+- **`PYTHONPATH=build/python/lib:$PYTHONPATH`** (naive prepend): on a fresh shell or CI runner where `$PYTHONPATH` is unset, this expands to `PYTHONPATH=build/python/lib:` — Python treats the trailing empty entry as the current directory, silently shadowing installed packages with whatever happens to live in the test CWD.
 
 ---
 
@@ -90,7 +91,7 @@ pytest tests/python/ -v
 wheel packaging. Key fields to update before publishing:
 
 | Field | Purpose |
-|---|---|
+| --- | --- |
 | `[project].name` | PyPI package name — should match `metadata.json:module.binary_packages.pypi` |
 | `[project].version` | Sync with `metadata.json:module.version` |
 | `[project].description` | Short description shown on PyPI |
@@ -109,7 +110,7 @@ python -m build --wheel
 ## Naming conventions
 
 | Context | Convention | Example |
-|---|---|---|
+| --- | --- | --- |
 | Python import / C++ namespace | `snake_case` | `holoscan.{{ cookiecutter.module_slug }}` |
 | Repository folder | `holoscan-<slug>` (kebab) | `{{ cookiecutter.module_repo_name }}` |
 | Debian package | `holoscan-<slug>` (kebab) | `holoscan-{{ cookiecutter.module_slug.replace('_', '-') }}` |

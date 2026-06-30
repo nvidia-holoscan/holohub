@@ -18,7 +18,7 @@ build_dir = os.environ.get(
 try:
     import holoscan  # noqa: E402
 
-    build_holoscan_path = os.path.join(build_dir, "python", "holoscan")
+    build_holoscan_path = os.path.join(build_dir, "python", "lib", "holoscan")
     if build_holoscan_path not in holoscan.__path__:
         holoscan.__path__.insert(0, build_holoscan_path)
 except ImportError:
