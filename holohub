@@ -99,18 +99,31 @@ fi
 
 # Install the CLI into the resolved interpreter if it isn't already usable there.
 if [[ -n "${CLI_READY}" ]] || _holoscan_cli_ok "${PYTHON_BIN}"; then
-    :
-elif [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
-    echo "[holohub] installing holoscan-cli from ${HOLOSCAN_CLI_SOURCE}" >&2
-    "${PYTHON_BIN}" -m pip install --upgrade "${HOLOSCAN_CLI_SOURCE}"
-elif "${PYTHON_BIN}" -m pip install ${HOLOSCAN_CLI_INSTALL_ARGS}; then
-    :
+    :  # already usable -- nothing to install
 else
-    echo "[holohub] Could not install holoscan-cli into ${PYTHON_BIN}." >&2
-    echo "[holohub] On a PEP 668 system Python, create a venv first:" >&2
-    echo "[holohub]   python3 -m venv .venv && source .venv/bin/activate && ./holohub setup" >&2
-    echo "[holohub] Or build/run in the container, which manages Python for you." >&2
-    exit 1
+    # Ensure the chosen interpreter has pip before installing. The managed venv
+    # always has it, but an explicitly selected interpreter (HOLOSCAN_CLI_PYTHON_BIN
+    # / HOLOHUB_PYTHON_BIN / VIRTUAL_ENV) on a minimal Python may not -- bootstrap
+    # it, or fail clearly instead of a confusing "No module named pip".
+    if ! "${PYTHON_BIN}" -m pip --version >/dev/null 2>&1; then
+        "${PYTHON_BIN}" -m ensurepip --upgrade >/dev/null 2>&1 || {
+            echo "[holohub] ${PYTHON_BIN} has no pip and ensurepip is unavailable;" \
+                 "install pip, or point HOLOSCAN_CLI_PYTHON_BIN at an interpreter that has it." >&2
+            exit 1
+        }
+    fi
+    if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
+        echo "[holohub] installing holoscan-cli from ${HOLOSCAN_CLI_SOURCE}" >&2
+        "${PYTHON_BIN}" -m pip install --upgrade "${HOLOSCAN_CLI_SOURCE}"
+    elif "${PYTHON_BIN}" -m pip install ${HOLOSCAN_CLI_INSTALL_ARGS}; then
+        :
+    else
+        echo "[holohub] Could not install holoscan-cli into ${PYTHON_BIN}." >&2
+        echo "[holohub] On a PEP 668 system Python, create a venv first:" >&2
+        echo "[holohub]   python3 -m venv .venv && source .venv/bin/activate && ./holohub setup" >&2
+        echo "[holohub] Or build/run in the container, which manages Python for you." >&2
+        exit 1
+    fi
 fi
 
 # Forward the package install args (and any local source) as `--build-arg`s on every
