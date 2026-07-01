@@ -5,6 +5,12 @@ SPDX-License-Identifier: Apache-2.0
 -->
 # VITA 49 Power Spectral Density (PSD)
 
+> [!NOTE]
+> **DAQIRI migration (June 26, 2026):** HoloHub networking examples, which
+> previously utilized the Basic or Advanced Networking Operators, have been
+> migrated to the standalone networking library,
+> [DAQIRI](https://github.com/NVIDIA/daqiri).
+
 ## Overview
 
 The VITA 49 Power Spectral Density (PSD) application takes in a VITA49 data stream from

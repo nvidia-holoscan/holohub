@@ -1,5 +1,11 @@
 # Basic Pulse Description Word (PDW) Generator
 
+> [!NOTE]
+> **DAQIRI migration (June 26, 2026):** HoloHub networking examples, which
+> previously utilized the Basic or Advanced Networking Operators, have been
+> migrated to the standalone networking library,
+> [DAQIRI](https://github.com/NVIDIA/daqiri).
+
 This is a Holoscan pipeline that shows the possibility of using Holoscan as a
 Pulse Description Word (PDW) generator. This is a process that takes in IQ
 samples (signals represented using time-series complex numbers) and picks out
@@ -12,12 +18,12 @@ the input to this pipeline.
 
 ## DAQIRI socket RX
 
-This uses the Basic Network Operator to read udp packets this operator is
-documented elsewhere.
+This uses DAQIRI socket transport to read udp packets. Configuration is handled
+in the YAML file under the `daqiri` section.
 
 ## PacketToTensorOp
 
-This converts the bytes from the Basic Network Operator into the packets used
+This converts the bytes from DAQIRI socket transport into the packets used
 in the rest of the pipeline. The format of the incoming packets is a 16-bit id
 followed by 8192 IQ samples each sample has the following format:
 16 bits (I)
@@ -33,7 +39,7 @@ so that 0 Hz is centered.
 Detects samples over a threshold and then packetizes the runs of samples that
 are above the threshold as a "pulse".
 
-## PulseDescriptiorOp
+## PulseDescriptorOp
 
 Takes simple statistics of input pulses. This is where I am most excited for
 future work, but that is not the point of this particular project.

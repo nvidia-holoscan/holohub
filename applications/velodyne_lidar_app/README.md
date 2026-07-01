@@ -1,5 +1,11 @@
 # Velodyne VLP-16 Lidar Viewer
 
+> [!NOTE]
+> **DAQIRI migration (June 26, 2026):** HoloHub networking examples, which
+> previously utilized the Basic or Advanced Networking Operators, have been
+> migrated to the standalone networking library,
+> [DAQIRI](https://github.com/NVIDIA/daqiri).
+
 ![HoloViz Visual of Highway Sample Lidar Data](./doc/VLP10HzMontereyHighway.gif)
 
 ## Overview

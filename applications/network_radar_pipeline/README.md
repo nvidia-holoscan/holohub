@@ -1,5 +1,11 @@
 # Radar Signal Processing over Network
 
+> [!NOTE]
+> **DAQIRI migration (June 26, 2026):** HoloHub networking examples, which
+> previously utilized the Basic or Advanced Networking Operators, have been
+> migrated to the standalone networking library,
+> [DAQIRI](https://github.com/NVIDIA/daqiri).
+
 The Network Radar application demonstrates signal processing on data streamed via packets over a network. It uses DAQIRI to send or receive data, combined with the signal processing operators implemented in the Simple Radar Pipeline application.
 
 Using DAQIRI's GPUDirect-capable raw packet path, this pipeline has been tested up to 100 Gbps (Tx/Rx) using a ConnectX-7 NIC and A30 GPU.
