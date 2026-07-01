@@ -24,8 +24,17 @@ set -e
 
 # Configuration
 SCCACHE_MIN_VERSION="${SCCACHE_MIN_VERSION:-0.12.0-rapids.20}"
-INSTALL_DIR="/opt/sccache"
-SYMLINK_PATH="/usr/local/bin/sccache"
+# Where the sccache *binary* is installed. This is distinct from SCCACHE_DIR,
+# which is the compiler-cache directory the CLI manages elsewhere. When root
+# (e.g. a container build) install system-wide; on the host install into a
+# user-owned location so no elevation is needed. Both are overridable.
+if [[ "${EUID:-$(id -u)}" -eq 0 ]]; then
+    INSTALL_DIR="${SCCACHE_INSTALL_DIR:-/opt/sccache}"
+    SYMLINK_PATH="${SCCACHE_SYMLINK:-/usr/local/bin/sccache}"
+else
+    INSTALL_DIR="${SCCACHE_INSTALL_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/holoscan/sccache}"
+    SYMLINK_PATH="${SCCACHE_SYMLINK:-$HOME/.local/bin/sccache}"
+fi
 BASE_URL="https://github.com/rapidsai/sccache/releases/download"
 
 # Expected format: [v]MAJOR.MINOR.PATCH-rapids.NN (e.g. 0.12.0-rapids.20 or v0.12.0-rapids.20)
@@ -119,8 +128,10 @@ main() {
     # Ensure cleanup on exit (partial download or failed extraction)
     trap cleanup_install EXIT
 
-    # Prepare install directory
-    mkdir -p "$INSTALL_DIR"
+    # Prepare install + symlink directories (user-owned on host, system when root)
+    local symlink_dir
+    symlink_dir="$(dirname "$SYMLINK_PATH")"
+    mkdir -p "$INSTALL_DIR" "$symlink_dir"
 
     # Download, verify, and extract release tarball
     echo "Downloading from ${url}..."
@@ -134,14 +145,18 @@ main() {
     fi
     chmod u+x "${INSTALL_DIR}/sccache"
 
-    # Create symlink in /usr/local/bin
+    # Symlink onto PATH (system dir when root, ~/.local/bin on the host)
     ln -sf "${INSTALL_DIR}/sccache" "$SYMLINK_PATH"
 
     trap - EXIT
     rm -f "$tar_path"
 
     echo "sccache ${INSTALL_VERSION} installed successfully"
-    sccache --version
+    "${SYMLINK_PATH}" --version
+    case ":${PATH}:" in
+        *":${symlink_dir}:"*) ;;
+        *) echo "Note: add ${symlink_dir} to your PATH to use 'sccache' directly." >&2 ;;
+    esac
 }
 
 main "$@"

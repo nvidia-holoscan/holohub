@@ -136,6 +136,33 @@ def test_wrapper_delegates_list_to_holoscan_cli():
     assert "endoscopy_tool_tracking" in result.stdout
 
 
+def test_wrapper_runs_source_override_from_managed_venv(tmp_path):
+    """A source override still runs inside the wrapper-managed venv."""
+    source = os.environ.get("HOLOSCAN_CLI_SOURCE")
+    if not source:
+        pytest.skip("set HOLOSCAN_CLI_SOURCE to test managed-venv bootstrap")
+
+    env = os.environ.copy()
+    # Keep this test focused on the wrapper's source handling rather than an
+    # inherited PYTHONPATH that could make the system interpreter appear ready.
+    env.pop("PYTHONPATH", None)
+    env["HOLOSCAN_CLI_SOURCE"] = source
+    env["HOLOSCAN_CLI_VENV"] = str(tmp_path / "holoscan-cli-venv")
+    result = subprocess.run(
+        [str(REPO_ROOT / "holohub"), "env-info"],
+        cwd=REPO_ROOT,
+        env=env,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+        timeout=CLI_TIMEOUT_SECONDS,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert f"Executable: {env['HOLOSCAN_CLI_VENV']}/bin/python" in result.stdout
+
+
 def test_wrapper_dryruns_project_run_through_consolidated_cli():
     """./holohub run renders an in-container `holoscan run` recursion."""
     # Same multi-language note as `test_unified_cli_dryruns_holohub_project_run`.

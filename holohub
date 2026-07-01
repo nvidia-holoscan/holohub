@@ -22,9 +22,13 @@
 # Optional overrides (rarely needed):
 #   HOLOSCAN_CLI_SOURCE   Local checkout — wins over the package install.
 #   HOLOSCAN_CLI_INSTALL_ARGS  Pip install arguments.
-#   HOLOSCAN_CLI_PYTHON_BIN  Python interpreter (default: python3).
+#   HOLOSCAN_CLI_PYTHON_BIN  Interpreter for the CLI (default: a user-owned managed venv).
+#   HOLOSCAN_CLI_VENV        Location of the managed CLI venv (default under XDG data dir).
 #   HOLOSCAN_CLI_CTEST_SCRIPT  CTest script used by `./holohub test`.
 #   HOLOHUB_PYTHON_BIN       Legacy fallback for HOLOSCAN_CLI_PYTHON_BIN.
+#
+# The CLI installs into a user-owned venv (never system Python, never as root).
+# Only `setup` uses sudo, and only for the system packages it installs.
 
 set -euo pipefail
 
@@ -32,8 +36,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 export HOLOSCAN_CLI_CMD_NAME="${BASH_SOURCE[0]}"
 export HOLOSCAN_CLI_ROOT="${SCRIPT_DIR}"
 
-PYTHON_BIN="${HOLOSCAN_CLI_PYTHON_BIN:-${HOLOHUB_PYTHON_BIN:-python3}}"
 export HOLOSCAN_CLI_INSTALL_ARGS="${HOLOSCAN_CLI_INSTALL_ARGS:---pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0}"
+HOLOSCAN_CLI_VENV="${HOLOSCAN_CLI_VENV:-${XDG_DATA_HOME:-$HOME/.local/share}/holoscan-cli/venv}"
 
 # Default Holoscan SDK version for project container base images. holoscan-cli
 # decoupled the base image from its own version (holoscan-cli#177) and no longer
@@ -44,32 +48,65 @@ export HOLOSCAN_CLI_INSTALL_ARGS="${HOLOSCAN_CLI_INSTALL_ARGS:---pre --extra-ind
 export HOLOSCAN_CLI_BASE_SDK_VERSION="${HOLOSCAN_CLI_BASE_SDK_VERSION:-4.3.0}"
 export HOLOSCAN_CLI_CTEST_SCRIPT="${HOLOSCAN_CLI_CTEST_SCRIPT:-utilities/testing/holohub.container.ctest}"
 
-# A local holoscan-cli checkout takes precedence over the package install.
+# Probe the command surface (not just importability), so a stale legacy
+# holoscan-cli (<= 4.2.0, which lacks `build`/`list`) doesn't satisfy the check.
+_holoscan_cli_ok() { "$1" -m holoscan_cli --help 2>/dev/null | grep -qw build; }
+
+# A local holoscan-cli checkout takes precedence and needs no install.
 if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
     export PYTHONPATH="${HOLOSCAN_CLI_SOURCE%/}/src${PYTHONPATH:+:${PYTHONPATH}}"
 fi
 
-# Install holoscan-cli unless a source-project-capable one is already present.
-# Probe the command surface (not just importability), so a stale legacy
-# holoscan-cli (<= 4.2.0, which lacks `build`/`list`) doesn't satisfy the check.
-if ! "${PYTHON_BIN}" -m holoscan_cli --help 2>/dev/null | grep -qw build; then
-    # Bootstrap pip if the interpreter lacks it (minimal Python installs omit
-    # it). `pip install` below would otherwise fail with a confusing error.
-    if ! "${PYTHON_BIN}" -m pip --version >/dev/null 2>&1; then
-        "${PYTHON_BIN}" -m ensurepip --upgrade >/dev/null 2>&1 || {
-            echo "[holohub] ${PYTHON_BIN} has no pip and ensurepip is unavailable;" \
-                 "install pip (or set HOLOSCAN_CLI_PYTHON_BIN, or legacy HOLOHUB_PYTHON_BIN," \
-                 "to an interpreter that has it) and retry" >&2
-            exit 1
-        }
+# Resolve the interpreter that runs the CLI. The CLI is a tool that lives in one
+# Python environment; prefer whatever already has it before creating anything, so
+# a container (CLI installed in the image) and an existing install just run --
+# no root special case, no flag.
+CLI_READY=""   # set when the resolved interpreter is already verified, to skip re-probing
+if [[ -n "${HOLOSCAN_CLI_PYTHON_BIN:-}${HOLOHUB_PYTHON_BIN:-}${VIRTUAL_ENV:-}" ]]; then
+    PYTHON_BIN="${HOLOSCAN_CLI_PYTHON_BIN:-${HOLOHUB_PYTHON_BIN:-${VIRTUAL_ENV:+$VIRTUAL_ENV/bin/python}}}"
+    PYTHON_BIN="${PYTHON_BIN:-python3}"
+elif _holoscan_cli_ok "${HOLOSCAN_CLI_VENV}/bin/python"; then
+    PYTHON_BIN="${HOLOSCAN_CLI_VENV}/bin/python"; CLI_READY=1   # reuse the managed venv
+elif [[ -z "${HOLOSCAN_CLI_SOURCE:-}" ]] && _holoscan_cli_ok python3; then
+    PYTHON_BIN="python3"; CLI_READY=1              # already installed (container image / global install)
+else
+    # Must provision. You don't need sudo (setup elevates apt itself), and running
+    # as root leaves root-owned files under $HOME -- but don't block; just warn.
+    if [[ "${EUID}" -eq 0 ]]; then
+        echo "[holohub] Note: sudo isn't needed (setup elevates apt itself), and running as root" \
+             "creates root-owned files under \$HOME. Continuing anyway." >&2
     fi
-    if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
-        echo "[holohub] installing holoscan-cli from ${HOLOSCAN_CLI_SOURCE}" >&2
-        "${PYTHON_BIN}" -m pip install --upgrade "${HOLOSCAN_CLI_SOURCE}"
-    else
-        echo "[holohub] installing with args: ${HOLOSCAN_CLI_INSTALL_ARGS}" >&2
-        "${PYTHON_BIN}" -m pip install ${HOLOSCAN_CLI_INSTALL_ARGS}
-    fi
+    PYTHON_BIN="${HOLOSCAN_CLI_VENV}/bin/python"
+    [[ -x "${PYTHON_BIN}" ]] || python3 -m venv "${HOLOSCAN_CLI_VENV}" || {
+        echo "[holohub] Could not create ${HOLOSCAN_CLI_VENV}." \
+             "Install venv once:  sudo apt install python3-venv  then re-run ./holohub." >&2
+        exit 1
+    }
+fi
+export HOLOSCAN_CLI_PYTHON_BIN="${PYTHON_BIN}"
+
+# Setup scripts historically invoke `python3 -m pip`. Put the selected
+# interpreter first on PATH so those scripts use the same environment as the
+# CLI, including when the wrapper created the managed venv.
+PYTHON_PATH="$(command -v "${PYTHON_BIN}" 2>/dev/null || true)"
+if [[ -n "${PYTHON_PATH}" ]]; then
+    export PATH="$(dirname "${PYTHON_PATH}"):${PATH}"
+fi
+
+# Install the CLI into the resolved interpreter if it isn't already usable there.
+if [[ -n "${CLI_READY}" ]] || _holoscan_cli_ok "${PYTHON_BIN}"; then
+    :
+elif [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
+    echo "[holohub] installing holoscan-cli from ${HOLOSCAN_CLI_SOURCE}" >&2
+    "${PYTHON_BIN}" -m pip install --upgrade "${HOLOSCAN_CLI_SOURCE}"
+elif "${PYTHON_BIN}" -m pip install ${HOLOSCAN_CLI_INSTALL_ARGS}; then
+    :
+else
+    echo "[holohub] Could not install holoscan-cli into ${PYTHON_BIN}." >&2
+    echo "[holohub] On a PEP 668 system Python, create a venv first:" >&2
+    echo "[holohub]   python3 -m venv .venv && source .venv/bin/activate && ./holohub setup" >&2
+    echo "[holohub] Or build/run in the container, which manages Python for you." >&2
+    exit 1
 fi
 
 # Forward the package install args (and any local source) as `--build-arg`s on every

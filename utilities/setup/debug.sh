@@ -18,9 +18,11 @@
 set -e
 
 # Install CLI debugging tools for development
+# (system packages need root; sudo is a no-op as root)
 
-apt update
-apt install --no-install-recommends -y \
+sudo apt-get update
+sudo apt-get install --no-install-recommends -y \
     gdb \
     valgrind
-apt clean && rm -rf /var/lib/apt/lists/*
+sudo apt-get clean
+sudo rm -rf /var/lib/apt/lists/*
