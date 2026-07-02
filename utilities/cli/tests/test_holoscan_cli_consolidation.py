@@ -143,9 +143,13 @@ def test_wrapper_runs_source_override_from_managed_venv(tmp_path):
         pytest.skip("set HOLOSCAN_CLI_SOURCE to test managed-venv bootstrap")
 
     env = os.environ.copy()
-    # Keep this test focused on the wrapper's source handling rather than an
-    # inherited PYTHONPATH that could make the system interpreter appear ready.
-    env.pop("PYTHONPATH", None)
+    # Keep this test focused on the wrapper's source handling: an inherited
+    # PYTHONPATH could make the system interpreter appear ready, and an
+    # inherited VIRTUAL_ENV / explicit interpreter override would take the
+    # wrapper's explicit-choice branch instead of creating the managed venv
+    # (e.g. when pytest itself runs inside an activated venv).
+    for var in ("PYTHONPATH", "VIRTUAL_ENV", "HOLOSCAN_CLI_PYTHON_BIN", "HOLOHUB_PYTHON_BIN"):
+        env.pop(var, None)
     env["HOLOSCAN_CLI_SOURCE"] = source
     env["HOLOSCAN_CLI_VENV"] = str(tmp_path / "holoscan-cli-venv")
     result = subprocess.run(
