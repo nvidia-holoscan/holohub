@@ -27,8 +27,10 @@
 #   HOLOSCAN_CLI_CTEST_SCRIPT  CTest script used by `./holohub test`.
 #   HOLOHUB_PYTHON_BIN       Legacy fallback for HOLOSCAN_CLI_PYTHON_BIN.
 #
-# The CLI itself installs into a user-owned venv (never system Python, never as
-# root), and `setup` uses sudo only for the host packages/files it installs.
+# By default the CLI lives in a user-owned managed venv; an already-installed
+# CLI (container images, global installs) or an explicit interpreter choice is
+# reused as-is -- the wrapper itself never installs into system Python.
+# `setup` uses sudo only for the host packages/files it installs.
 # Applications run unprivileged by default, but some hardware apps document
 # running with elevated privileges (e.g. `sudo ./holohub run ...`, setcap,
 # sysctl) for raw network, real-time scheduling, or device access -- so the
