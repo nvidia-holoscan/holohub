@@ -81,8 +81,9 @@ else
     # One-time provisioning. sudo isn't needed for this (setup elevates apt
     # itself); as root it still works but leaves root-owned files under $HOME.
     if [[ "${EUID}" -eq 0 ]]; then
-        echo "[holohub] Note: sudo isn't needed (setup elevates apt itself), and running as root" \
-             "creates root-owned files under \$HOME. Continuing anyway." >&2
+        echo "[holohub] Note: sudo isn't needed (setup elevates apt itself). The CLI will be" \
+             "installed for root only (under ${HOME}); run without sudo to install it for" \
+             "your user. Continuing anyway." >&2
     fi
     python3 -m venv "${HOLOSCAN_CLI_VENV}" || {
         echo "[holohub] Could not create ${HOLOSCAN_CLI_VENV}." \
