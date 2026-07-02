@@ -89,7 +89,11 @@ if _holohub_root is None:
 
 # Copy CMake helpers from the HoloHub clone so the module builds standalone:
 #   - HoloHubConfigHelpers.cmake: add_holohub_application/operator/package gating
-#   - holohub_configure_deb.cmake: deb packaging helper used by the root CMakeLists
+#   - holohub_configure_deb.cmake: deb packaging helper used by the root
+#     CMakeLists. Brings a companion asset:
+#       - Config.cmake.in: package-config template the helper feeds to
+#         configure_package_config_file() when EXPORT_NAME is set, so
+#         downstream find_package(<module>) resolves the exported targets
 #   - pybind11_add_holohub_module.cmake: fetches pybind11 at the HSDK-pinned
 #     version + ABI-aligned target. Brings two companion assets:
 #       - pybind11/__init__.py: per-operator __init__ template configured by
@@ -102,6 +106,7 @@ if _holohub_root:
     for _rel in (
         ("cmake", "HoloHubConfigHelpers.cmake"),
         ("cmake", "modules", "holohub_configure_deb.cmake"),
+        ("cmake", "modules", "Config.cmake.in"),
         ("cmake", "pybind11_add_holohub_module.cmake"),
     ):
         _src = _holohub_root.joinpath(*_rel)
@@ -115,6 +120,25 @@ if _holohub_root:
             if _dst_dir.exists():
                 shutil.rmtree(_dst_dir)
             shutil.copytree(_src_dir, _dst_dir)
+
+# Copy shared CI scripts from the HoloHub clone so the module's pre-commit
+# hooks have access to check_copyright.py and its gitutils dependency without
+# maintaining a fork.
+if _holohub_root:
+    _scripts_src = _holohub_root / ".github" / "workflows" / "scripts"
+    _scripts_dst = pathlib.Path(".github") / "workflows" / "scripts"
+    _scripts_dst.mkdir(parents=True, exist_ok=True)
+    for _script in ("check_copyright.py", "gitutils.py"):
+        _src = _scripts_src / _script
+        if _src.exists():
+            shutil.copy2(_src, _scripts_dst / _script)
+        else:
+            warnings.warn(
+                f"Expected script not found: {_src}\n"
+                f"The check-copyright pre-commit hook will fail until this file is present.\n"
+                f"Copy it manually from your HoloHub clone into .github/workflows/scripts/.",
+                stacklevel=1,
+            )
 
 # Make the module CLI wrapper executable.
 wrapper = "./holohub"

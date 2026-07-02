@@ -12,4 +12,5 @@ holohub_configure_deb(
     VENDOR      "{% if cookiecutter.affiliation %}{{ cookiecutter.affiliation }}{% else %}NVIDIA{% endif %}"
     CONTACT     "{{ cookiecutter.contact_email }}"
     DEPENDS     "holoscan (>= {{ cookiecutter.holoscan_version }})"
-)
+{% if cookiecutter.language == 'cpp' %}    EXPORT_NAME "holoscan_{{ cookiecutter.module_slug }}_targets"
+{% endif %})
