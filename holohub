@@ -87,6 +87,11 @@ else
              "installed for root only (under ${HOME}); run without sudo to install it for" \
              "your user. Continuing anyway." >&2
     fi
+    if [[ -d "${HOLOSCAN_CLI_VENV}" && ! -w "${HOLOSCAN_CLI_VENV}" ]]; then
+        echo "[holohub] ${HOLOSCAN_CLI_VENV} exists but isn't writable by this user" \
+             "(likely created by a previous root run). Remove it or chown it, then re-run." >&2
+        exit 1
+    fi
     python3 -m venv "${HOLOSCAN_CLI_VENV}" || {
         echo "[holohub] Could not create ${HOLOSCAN_CLI_VENV}." \
              "Install venv once:  sudo apt install python3-venv  then re-run ./holohub." >&2
