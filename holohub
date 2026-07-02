@@ -93,13 +93,13 @@ else
         exit 1
     fi
     python3 -m venv "${HOLOSCAN_CLI_VENV}" || {
-        echo "[holohub] Could not create ${HOLOSCAN_CLI_VENV}." \
-             "Install venv once:  sudo apt install python3-venv  then re-run ./holohub." >&2
+        echo "[holohub] Could not create ${HOLOSCAN_CLI_VENV}. Install venv support once:" >&2
+        echo "[holohub]   sudo apt-get update && sudo apt-get install -y python3-venv" >&2
+        echo "[holohub] then re-run ./holohub." >&2
         exit 1
     }
     PYTHON_BIN="${HOLOSCAN_CLI_VENV}/bin/python"
 fi
-export HOLOSCAN_CLI_PYTHON_BIN="${PYTHON_BIN}"
 
 # Fail early if the selected interpreter doesn't exist (e.g. a typo'd
 # HOLOSCAN_CLI_PYTHON_BIN), rather than surfacing a misleading pip error later.
@@ -109,10 +109,16 @@ if [[ -z "${PYTHON_PATH}" ]]; then
          "(check HOLOSCAN_CLI_PYTHON_BIN / HOLOHUB_PYTHON_BIN / your active venv)." >&2
     exit 1
 fi
+# Absolutize: a relative HOLOSCAN_CLI_PYTHON_BIN (e.g. .venv/bin/python) would
+# otherwise put a relative directory on PATH, which breaks once the CLI
+# changes working directory (as `run --local` does).
+PYTHON_DIR="$(cd "$(dirname "${PYTHON_PATH}")" && pwd)"
+PYTHON_BIN="${PYTHON_DIR}/$(basename "${PYTHON_PATH}")"
+export HOLOSCAN_CLI_PYTHON_BIN="${PYTHON_BIN}"
 # Setup scripts historically invoke `python3 -m pip`. Put the selected
 # interpreter first on PATH so those scripts use the same environment as the
 # CLI, including when the wrapper created the managed venv.
-export PATH="$(dirname "${PYTHON_PATH}"):${PATH}"
+export PATH="${PYTHON_DIR}:${PATH}"
 
 # Install the CLI into the resolved interpreter if it isn't already usable there
 # (a source checkout on PYTHONPATH, a container image, or a prior install all
