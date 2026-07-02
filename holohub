@@ -94,13 +94,18 @@ else
 fi
 export HOLOSCAN_CLI_PYTHON_BIN="${PYTHON_BIN}"
 
+# Fail early if the selected interpreter doesn't exist (e.g. a typo'd
+# HOLOSCAN_CLI_PYTHON_BIN), rather than surfacing a misleading pip error later.
+PYTHON_PATH="$(command -v "${PYTHON_BIN}" 2>/dev/null || true)"
+if [[ -z "${PYTHON_PATH}" ]]; then
+    echo "[holohub] Python interpreter not found: ${PYTHON_BIN}" \
+         "(check HOLOSCAN_CLI_PYTHON_BIN / HOLOHUB_PYTHON_BIN / your active venv)." >&2
+    exit 1
+fi
 # Setup scripts historically invoke `python3 -m pip`. Put the selected
 # interpreter first on PATH so those scripts use the same environment as the
 # CLI, including when the wrapper created the managed venv.
-PYTHON_PATH="$(command -v "${PYTHON_BIN}" 2>/dev/null || true)"
-if [[ -n "${PYTHON_PATH}" ]]; then
-    export PATH="$(dirname "${PYTHON_PATH}"):${PATH}"
-fi
+export PATH="$(dirname "${PYTHON_PATH}"):${PATH}"
 
 # Install the CLI into the resolved interpreter if it isn't already usable there
 # (a source checkout on PYTHONPATH, a container image, or a prior install all

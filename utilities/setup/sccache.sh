@@ -65,10 +65,14 @@ cleanup_install() {
     exit "$exit_code"
 }
 
-# Check if sccache is already installed and meets minimum version
+# Check if sccache is already installed (on PATH, or at the install symlink —
+# ~/.local/bin may not be on PATH yet) and meets the minimum version.
 check_existing_sccache() {
-    command -v sccache &>/dev/null || return 1
-    local ver_output=$(sccache --version 2>/dev/null || true)
+    local sccache_bin
+    sccache_bin="$(command -v sccache 2>/dev/null || true)"
+    [[ -n "$sccache_bin" ]] || sccache_bin="$SYMLINK_PATH"
+    [[ -x "$sccache_bin" ]] || return 1
+    local ver_output=$("$sccache_bin" --version 2>/dev/null || true)
     echo "$ver_output" | grep -q "rapids" || return 1
 
     local installed_ver=$(parse_version "$(echo "$ver_output" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)")
