@@ -15,12 +15,12 @@
 
 cmake_minimum_required(VERSION 3.20)
 
-project({{ cookiecutter.project_slug }})
+{% if cookiecutter.language == "cpp" %}
+project({{ cookiecutter.project_slug }} LANGUAGES CXX)
 
 find_package(holoscan {{ cookiecutter.holoscan_version }} REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
 
-{% if cookiecutter.language == "cpp" %}
 add_executable({{ cookiecutter.project_slug }}
     src/main.cpp
 )
@@ -29,10 +29,15 @@ target_link_libraries({{ cookiecutter.project_slug }}
     PRIVATE
     holoscan::core
 )
+{% else %}
+# Python application: nothing to compile. The Holoscan SDK is imported at
+# runtime (`import holoscan`), so configuring this project needs no C/C++
+# toolchain and no Holoscan SDK development package.
+project({{ cookiecutter.project_slug }} LANGUAGES NONE)
+{% endif %}
 
 if(BUILD_TESTING)
-  add_test({{ cookiecutter.project_slug }}-test
+  add_test(NAME {{ cookiecutter.project_slug }}-test
     COMMAND echo "Add test coverage for {{ cookiecutter.project_slug }} here"
   )
 endif()
-{% endif %}
