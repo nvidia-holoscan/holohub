@@ -61,31 +61,35 @@ if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
     export PYTHONPATH="${HOLOSCAN_CLI_SOURCE%/}/src${PYTHONPATH:+:${PYTHONPATH}}"
 fi
 
-# Resolve the interpreter that runs the CLI. The CLI is a tool that lives in one
-# Python environment; prefer whatever already has it before creating anything, so
-# a container (CLI installed in the image) and an existing install just run --
-# no root special case, no flag.
-CLI_READY=""   # set when the resolved interpreter is already verified, to skip re-probing
+# Resolve the interpreter that runs the CLI, in order:
+#   1. An explicit choice: HOLOSCAN_CLI_PYTHON_BIN / legacy var / an active venv.
+#   2. The managed venv whenever it exists -- it is the CLI's home; if its CLI
+#      is stale or broken, the install step below repairs it in place.
+#   3. python3 when the CLI is already installed there (container images, global
+#      installs). Skipped for source checkouts, whose pip/setup installs must
+#      land in a venv rather than a possibly externally-managed system Python.
+#   4. Otherwise create the managed venv (one-time; also re-runs over a venv
+#      whose python was broken by a system Python upgrade).
 if [[ -n "${HOLOSCAN_CLI_PYTHON_BIN:-}${HOLOHUB_PYTHON_BIN:-}${VIRTUAL_ENV:-}" ]]; then
     PYTHON_BIN="${HOLOSCAN_CLI_PYTHON_BIN:-${HOLOHUB_PYTHON_BIN:-${VIRTUAL_ENV:+$VIRTUAL_ENV/bin/python}}}"
     PYTHON_BIN="${PYTHON_BIN:-python3}"
-elif _holoscan_cli_ok "${HOLOSCAN_CLI_VENV}/bin/python"; then
-    PYTHON_BIN="${HOLOSCAN_CLI_VENV}/bin/python"; CLI_READY=1   # reuse the managed venv
+elif [[ -x "${HOLOSCAN_CLI_VENV}/bin/python" ]]; then
+    PYTHON_BIN="${HOLOSCAN_CLI_VENV}/bin/python"
 elif [[ -z "${HOLOSCAN_CLI_SOURCE:-}" ]] && _holoscan_cli_ok python3; then
-    PYTHON_BIN="python3"; CLI_READY=1              # already installed (container image / global install)
+    PYTHON_BIN="python3"
 else
-    # Must provision. You don't need sudo (setup elevates apt itself), and running
-    # as root leaves root-owned files under $HOME -- but don't block; just warn.
+    # One-time provisioning. sudo isn't needed for this (setup elevates apt
+    # itself); as root it still works but leaves root-owned files under $HOME.
     if [[ "${EUID}" -eq 0 ]]; then
         echo "[holohub] Note: sudo isn't needed (setup elevates apt itself), and running as root" \
              "creates root-owned files under \$HOME. Continuing anyway." >&2
     fi
-    PYTHON_BIN="${HOLOSCAN_CLI_VENV}/bin/python"
-    [[ -x "${PYTHON_BIN}" ]] || python3 -m venv "${HOLOSCAN_CLI_VENV}" || {
+    python3 -m venv "${HOLOSCAN_CLI_VENV}" || {
         echo "[holohub] Could not create ${HOLOSCAN_CLI_VENV}." \
              "Install venv once:  sudo apt install python3-venv  then re-run ./holohub." >&2
         exit 1
     }
+    PYTHON_BIN="${HOLOSCAN_CLI_VENV}/bin/python"
 fi
 export HOLOSCAN_CLI_PYTHON_BIN="${PYTHON_BIN}"
 
@@ -97,8 +101,10 @@ if [[ -n "${PYTHON_PATH}" ]]; then
     export PATH="$(dirname "${PYTHON_PATH}"):${PATH}"
 fi
 
-# Install the CLI into the resolved interpreter if it isn't already usable there.
-if [[ -n "${CLI_READY}" ]] || _holoscan_cli_ok "${PYTHON_BIN}"; then
+# Install the CLI into the resolved interpreter if it isn't already usable there
+# (a source checkout on PYTHONPATH, a container image, or a prior install all
+# satisfy the probe, so this is a no-op on every run after the first).
+if _holoscan_cli_ok "${PYTHON_BIN}"; then
     :  # already usable -- nothing to install
 else
     # Ensure the chosen interpreter has pip before installing. The managed venv
