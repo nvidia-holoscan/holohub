@@ -55,7 +55,7 @@ HOLOSCAN_CLI_VENV="${HOLOSCAN_CLI_VENV:-${XDG_DATA_HOME:-$HOME/.local/share}/hol
 # passed). Pin it here -- this is the single source of truth that replaces the
 # former in-tree CLI's util.py DEFAULT_BASE_SDK_VERSION (holohub#1590). Env var
 # takes precedence; per-project scripts may still override via export.
-export HOLOSCAN_CLI_BASE_SDK_VERSION="${HOLOSCAN_CLI_BASE_SDK_VERSION:-4.3.0}"
+export HOLOSCAN_CLI_BASE_SDK_VERSION="${HOLOSCAN_CLI_BASE_SDK_VERSION:-4.4.0}"
 export HOLOSCAN_CLI_CTEST_SCRIPT="${HOLOSCAN_CLI_CTEST_SCRIPT:-utilities/testing/holohub.container.ctest}"
 
 # Probe the command surface (not just importability), so a stale legacy

@@ -35,7 +35,7 @@ def _holoscan_cli_env() -> Dict[str, str]:
     # configured. The ./holohub wrapper sets this; the direct `python -m
     # holoscan_cli` invocations below must supply it too. Mirror the HoloHub
     # default SDK version so the dryrun resolves a base image.
-    env.setdefault("HOLOSCAN_CLI_BASE_SDK_VERSION", "4.3.0")
+    env.setdefault("HOLOSCAN_CLI_BASE_SDK_VERSION", "4.4.0")
     return env
 
 
