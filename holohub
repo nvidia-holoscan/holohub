@@ -29,7 +29,9 @@
 #
 # By default the CLI lives in a user-owned managed venv; an already-installed
 # CLI (container images, global installs) or an explicit interpreter choice is
-# reused as-is -- the wrapper itself never installs into system Python.
+# reused as-is. Container build = system-wide (the container's interpreter is
+# the one environment); host = managed per-user environment -- the wrapper
+# never installs into a host's system Python, even under sudo.
 # `setup` uses sudo only for the host packages/files it installs.
 # Applications run unprivileged by default, but some hardware apps document
 # running with elevated privileges (e.g. `sudo ./holohub run ...`, setcap,
@@ -58,6 +60,16 @@ export HOLOSCAN_CLI_CTEST_SCRIPT="${HOLOSCAN_CLI_CTEST_SCRIPT:-utilities/testing
 # holoscan-cli (<= 4.2.0, which lacks `build`/`list`) doesn't satisfy the check.
 _holoscan_cli_ok() { "$1" -m holoscan_cli --help 2>/dev/null | grep -qw build; }
 
+# Detect a container environment (Docker/Podman markers, then cgroup names).
+# BuildKit `RUN` steps have neither marker file and may report an opaque
+# cgroup, so callers should also honor PIP_BREAK_SYSTEM_PACKAGES=1 -- base
+# images that manage their own Python (e.g. Holoscan SDK images) set it, and
+# it is the same opt-in pip itself respects.
+_is_container() {
+    [[ -f /.dockerenv || -f /run/.containerenv ]] ||
+        grep -Eq '(docker|containerd|kubepods|podman)' /proc/1/cgroup 2>/dev/null
+}
+
 # A local holoscan-cli checkout takes precedence and needs no install.
 if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
     export PYTHONPATH="${HOLOSCAN_CLI_SOURCE%/}/src${PYTHONPATH:+:${PYTHONPATH}}"
@@ -70,8 +82,14 @@ fi
 #   3. python3 when the CLI is already installed there (container images, global
 #      installs). Skipped for source checkouts, whose pip/setup installs must
 #      land in a venv rather than a possibly externally-managed system Python.
-#   4. Otherwise create the managed venv (one-time; also re-runs over a venv
-#      whose python was broken by a system Python upgrade).
+#   4. python3 when provisioning as root in a container (or an environment that
+#      already opts into system installation): container build = system-wide.
+#      Minimal base images lack python3-venv, and the container's system
+#      interpreter IS the one environment there. Root alone is NOT this signal
+#      -- on a host, `sudo ./holohub` must not touch system Python.
+#   5. Otherwise create the managed venv (one-time; also re-runs over a venv
+#      whose python was broken by a system Python upgrade). Host = managed
+#      per-user environment, including for root.
 if [[ -n "${HOLOSCAN_CLI_PYTHON_BIN:-}${HOLOHUB_PYTHON_BIN:-}${VIRTUAL_ENV:-}" ]]; then
     PYTHON_BIN="${HOLOSCAN_CLI_PYTHON_BIN:-${HOLOHUB_PYTHON_BIN:-${VIRTUAL_ENV:+$VIRTUAL_ENV/bin/python}}}"
     PYTHON_BIN="${PYTHON_BIN:-python3}"
@@ -79,6 +97,10 @@ elif [[ -x "${HOLOSCAN_CLI_VENV}/bin/python" ]]; then
     PYTHON_BIN="${HOLOSCAN_CLI_VENV}/bin/python"
 elif [[ -z "${HOLOSCAN_CLI_SOURCE:-}" ]] && _holoscan_cli_ok python3; then
     PYTHON_BIN="python3"
+elif [[ "${EUID}" -eq 0 ]] &&
+     { _is_container || [[ "${PIP_BREAK_SYSTEM_PACKAGES:-}" == "1" ]]; }; then
+    PYTHON_BIN="python3"
+    export PIP_BREAK_SYSTEM_PACKAGES=1
 else
     # One-time provisioning. sudo isn't needed for this (setup elevates apt
     # itself); as root it still works but leaves root-owned files under $HOME.

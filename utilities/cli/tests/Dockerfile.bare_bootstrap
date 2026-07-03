@@ -1,0 +1,62 @@
+# syntax=docker/dockerfile:1
+
+# SPDX-FileCopyrightText: Copyright (c) 2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Regression fixture for the wrapper's in-container provisioning path.
+#
+# Per-application Dockerfiles run `holohub setup` on bare Holoscan SDK base
+# images: python3 + pip present, NO python3-venv, NO preinstalled holoscan-cli.
+# The wrapper must provision into the container's system Python there (it
+# cannot create its managed venv without python3-venv). Like the Holoscan SDK
+# images, this fixture opts into system installation via
+# PIP_BREAK_SYSTEM_PACKAGES=1 -- the signal the wrapper honors during
+# `docker build`, where container marker files are absent.
+#
+# Build from the repository root:
+#   docker build -f utilities/cli/tests/Dockerfile.bare_bootstrap .
+
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
+
+# python3 + pip, deliberately WITHOUT python3-venv. The guard keeps the
+# fixture honest: if a future package pulls in ensurepip, this test would
+# silently stop exercising the venv-less path.
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y python3 python3-pip ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && if python3 -m ensurepip --version >/dev/null 2>&1; then \
+        echo "fixture invalid: ensurepip is present, venv-less bootstrap is not exercised" >&2; \
+        exit 1; \
+    fi
+
+# Single source of truth for the package resolution: CI forwards the same
+# HOLOSCAN_CLI_INSTALL_ARGS the other check-cli jobs use.
+ARG HOLOSCAN_CLI_INSTALL_ARGS="--pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0"
+ENV HOLOSCAN_CLI_INSTALL_ARGS=${HOLOSCAN_CLI_INSTALL_ARGS}
+
+# Mirror the per-application Dockerfile pattern (COPY wrapper + utilities,
+# then `holohub setup`).
+RUN mkdir -p /tmp/scripts/utilities
+COPY holohub /tmp/scripts/
+COPY utilities /tmp/scripts/utilities/
+RUN chmod +x /tmp/scripts/holohub
+
+# `setup --dryrun` does not dry-run wrapper bootstrapping: the wrapper still
+# resolves an interpreter and pip-installs holoscan-cli -- exactly the path
+# under test -- while the CLI's own host mutations (apt, keyrings) stay dry.
+RUN /tmp/scripts/holohub setup --dryrun
