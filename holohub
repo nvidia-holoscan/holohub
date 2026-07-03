@@ -133,7 +133,7 @@ _use_managed_venv() {
             return
         fi
         echo "[holohub] Could not create ${HOLOSCAN_CLI_VENV}. Install venv support:" >&2
-        echo "[holohub]   sudo apt-get install -y python3-venv" >&2
+        echo "[holohub]   sudo apt-get update && sudo apt-get install -y python3-venv" >&2
         exit 1
     fi
 }
