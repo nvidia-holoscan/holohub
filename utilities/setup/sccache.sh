@@ -32,6 +32,12 @@ if [[ "${EUID:-$(id -u)}" -eq 0 ]]; then
     INSTALL_DIR="${SCCACHE_INSTALL_DIR:-/opt/sccache}"
     SYMLINK_PATH="${SCCACHE_SYMLINK:-/usr/local/bin/sccache}"
 else
+    # The defaults derive from HOME (and XDG_DATA_HOME); fail clearly instead
+    # of expanding to /.local/... when HOME is unset (minimal environments).
+    if [[ -z "${HOME:-}" && ( -z "${SCCACHE_INSTALL_DIR:-}" || -z "${SCCACHE_SYMLINK:-}" ) ]]; then
+        echo "HOME is not set; set SCCACHE_INSTALL_DIR and SCCACHE_SYMLINK explicitly." >&2
+        exit 1
+    fi
     INSTALL_DIR="${SCCACHE_INSTALL_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/holoscan/sccache}"
     SYMLINK_PATH="${SCCACHE_SYMLINK:-$HOME/.local/bin/sccache}"
 fi
