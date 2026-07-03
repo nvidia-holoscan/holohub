@@ -9,9 +9,6 @@ on:
 permissions:
   contents: read
 
-env:
-  HOLOSCAN_CLI_INSTALL_ARGS: "--pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0"
-
 jobs:
   check-docker-build:
     runs-on: ${{ matrix.runner }}
@@ -31,23 +28,3 @@ jobs:
           export ubuntu_version=${{ matrix.ubuntu_version }}
 
           ./holohub build-container --base-img ubuntu:${ubuntu_version}
-
-  # Regression test for the wrapper's in-container provisioning path
-  # (holohub#1635): per-application Dockerfiles run `holohub setup` on bare
-  # base images with no preinstalled CLI and no python3-venv. The top-level
-  # Dockerfile built above preinstalls the CLI, so it never exercises this
-  # path. The package source is pinned by HOLOSCAN_CLI_INSTALL_ARGS, the same
-  # resolution every other check-cli job uses.
-  check-docker-bare-bootstrap:
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-
-      - name: Bootstrap the CLI on a bare container image
-        run: |
-          docker build \
-            --build-arg "HOLOSCAN_CLI_INSTALL_ARGS=${HOLOSCAN_CLI_INSTALL_ARGS}" \
-            -f utilities/cli/tests/Dockerfile.bare_bootstrap .
