@@ -99,8 +99,8 @@ def _run_holohub_wrapper(
 ) -> subprocess.CompletedProcess:
     if env is None:
         env = _holoscan_cli_env()
-        if extra_env:
-            env.update(extra_env)
+    if extra_env:
+        env = {**env, **extra_env}
     try:
         result = subprocess.run(
             [str(REPO_ROOT / "holohub"), *args],

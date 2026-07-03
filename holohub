@@ -31,7 +31,9 @@
 # CLI (container images, global installs) or an explicit interpreter choice is
 # reused as-is. Container build = system-wide (the container's interpreter is
 # the one environment); host = managed per-user environment -- the wrapper
-# never installs into a host's system Python, even under sudo.
+# never installs into a host's system Python, even under sudo, unless the
+# environment already opts in via PIP_BREAK_SYSTEM_PACKAGES=1 (pip's own
+# opt-in, which Holoscan SDK base images set).
 # `setup` uses sudo only for the host packages/files it installs.
 # Applications run unprivileged by default, but some hardware apps document
 # running with elevated privileges (e.g. `sudo ./holohub run ...`, setcap,
