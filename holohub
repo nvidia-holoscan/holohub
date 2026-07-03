@@ -47,7 +47,8 @@ export HOLOSCAN_CLI_CMD_NAME="${BASH_SOURCE[0]}"
 export HOLOSCAN_CLI_ROOT="${SCRIPT_DIR}"
 
 export HOLOSCAN_CLI_INSTALL_ARGS="${HOLOSCAN_CLI_INSTALL_ARGS:---pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0}"
-HOLOSCAN_CLI_VENV="${HOLOSCAN_CLI_VENV:-${XDG_DATA_HOME:-$HOME/.local/share}/holoscan-cli/venv}"
+# Exported so `holoscan env-info` can classify the managed venv it runs in.
+export HOLOSCAN_CLI_VENV="${HOLOSCAN_CLI_VENV:-${XDG_DATA_HOME:-$HOME/.local/share}/holoscan-cli/venv}"
 
 # Default Holoscan SDK version for project container base images. holoscan-cli
 # decoupled the base image from its own version (holoscan-cli#177) and no longer
