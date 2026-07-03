@@ -43,9 +43,7 @@ _holoscan_cli_version() {
 _holoscan_cli_ok() {
     "$1" -m holoscan_cli build --help >/dev/null 2>&1 || return 1
     if [[ -n "${HOLOSCAN_CLI_PINNED_VERSION}" && -z "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
-        local installed_version
-        installed_version="$(_holoscan_cli_version "$1" || true)"
-        [[ "${installed_version}" == "${HOLOSCAN_CLI_PINNED_VERSION}" ]]
+        [[ "$(_holoscan_cli_version "$1" || true)" == "${HOLOSCAN_CLI_PINNED_VERSION}" ]]
     fi
 }
 
@@ -54,39 +52,19 @@ _is_container() {
         grep -Eq '(docker|containerd|kubepods|podman|buildkit)' /proc/1/cgroup 2>/dev/null
 }
 
-_use_root_system() {
-    CLI_ENV="root-system"
-    PYTHON_BIN="python3"
-    export PIP_BREAK_SYSTEM_PACKAGES="${PIP_BREAK_SYSTEM_PACKAGES:-1}"
-}
-
+# sudo keeping the caller's HOME must not write root-owned files into it.
 _refuse_foreign_sudo_venv() {
     [[ "${EUID}" -eq 0 && -n "${SUDO_USER:-}" ]] || return 0
-    local probe owner permissions
-    probe="$(realpath -m -- "$1" 2>/dev/null)" || {
-        echo "[holohub] Refusing to use ${1} as root: ownership could not be verified." >&2
-        exit 1
-    }
-    while :; do
-        if [[ -e "${probe}" ]]; then
-            owner="$(stat -c %u -- "${probe}" 2>/dev/null)" || {
-                echo "[holohub] Refusing to use ${1} as root: ${probe} could not be inspected." >&2
-                exit 1
-            }
-            permissions="$(stat -c %A -- "${probe}" 2>/dev/null)" || {
-                echo "[holohub] Refusing to use ${1} as root: ${probe} could not be inspected." >&2
-                exit 1
-            }
-            if [[ "${owner}" != "0" || "${permissions:5:1}" == "w" ||
-                  "${permissions:8:1}" == "w" ]]; then
-                echo "[holohub] Refusing to use ${1} as root: ${probe} is not root-controlled." >&2
-                echo "[holohub] Re-run without sudo, or use sudo -H." >&2
-                exit 1
-            fi
-        fi
-        [[ "${probe}" == "/" ]] && return 0
+    local probe
+    probe="$(realpath -m -- "$1" 2>/dev/null)" || probe="$1"
+    while [[ ! -e "${probe}" && "${probe}" != "/" ]]; do
         probe="$(dirname -- "${probe}")"
     done
+    if [[ "$(stat -c %u -- "${probe}" 2>/dev/null)" != "0" ]]; then
+        echo "[holohub] Refusing to use ${1} as root: ${probe} is not root-owned." >&2
+        echo "[holohub] Re-run without sudo, or use sudo -H." >&2
+        exit 1
+    fi
 }
 
 _managed_venv_ready() {
@@ -136,9 +114,9 @@ if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
     export PYTHONPATH="${CLI_SOURCE}/src${PYTHONPATH:+:${PYTHONPATH}}"
 fi
 
-CLI_INSTALL_ARGS="${HOLOSCAN_CLI_INSTALL_ARGS}"
+read -r -a CLI_INSTALL_ARGS <<< "${HOLOSCAN_CLI_INSTALL_ARGS}"
 if [[ -n "${HOLOSCAN_CLI_PINNED_VERSION}" && -z "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
-    CLI_INSTALL_ARGS+=" holoscan-cli==${HOLOSCAN_CLI_PINNED_VERSION}"
+    CLI_INSTALL_ARGS+=("holoscan-cli==${HOLOSCAN_CLI_PINNED_VERSION}")
 fi
 
 CLI_ENV="caller"
@@ -148,7 +126,9 @@ if [[ -n "${PYTHON_BIN}" ]]; then
     :
 elif [[ "${EUID}" -eq 0 ]] &&
      { _is_container || [[ "${SCRIPT_DIR}" == "/tmp/scripts" ]]; }; then
-    _use_root_system
+    CLI_ENV="root-system"
+    PYTHON_BIN="python3"
+    export PIP_BREAK_SYSTEM_PACKAGES="${PIP_BREAK_SYSTEM_PACKAGES:-1}"
 elif _managed_venv_available; then
     CLI_ENV="managed"
     PYTHON_BIN="${HOLOSCAN_CLI_VENV}/bin/python"
@@ -187,24 +167,14 @@ _install_cli() {
         echo "[holohub] installing holoscan-cli from ${HOLOSCAN_CLI_SOURCE}" >&2
         "${python}" -m pip install --upgrade "${HOLOSCAN_CLI_SOURCE}" || return 1
     else
-        local IFS=$' \t\n'
-        local -a install_args=()
-        read -r -a install_args <<< "${HOLOSCAN_CLI_INSTALL_ARGS}"
-        if [[ -n "${HOLOSCAN_CLI_PINNED_VERSION}" ]]; then
-            install_args+=("holoscan-cli==${HOLOSCAN_CLI_PINNED_VERSION}")
-        fi
-        "${python}" -m pip install "${install_args[@]}" || return 1
+        "${python}" -m pip install "${CLI_INSTALL_ARGS[@]}" || return 1
     fi
 
-    if _holoscan_cli_ok "${python}"; then
-        return
-    fi
+    _holoscan_cli_ok "${python}" && return
 
     if [[ -n "${HOLOSCAN_CLI_PINNED_VERSION}" && -z "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
-        local installed_version
-        installed_version="$(_holoscan_cli_version "${python}" || true)"
-        echo "[holohub] Installed version '${installed_version:-none}' does not match" \
-             "'${HOLOSCAN_CLI_PINNED_VERSION}'." >&2
+        echo "[holohub] Installed version '$(_holoscan_cli_version "${python}" || true)'" \
+             "does not match '${HOLOSCAN_CLI_PINNED_VERSION}'." >&2
     else
         echo "[holohub] Installed holoscan-cli is missing required commands." >&2
     fi
@@ -225,11 +195,7 @@ if [[ -z "${CLI_READY}" ]] && ! _holoscan_cli_ok "${PYTHON_BIN}"; then
     }
 fi
 
-_q() {
-    local value="${1//\'/\'\"\'\"\'}"
-    printf "'%s'" "${value}"
-}
-extras=" --build-arg $(_q "HOLOSCAN_CLI_INSTALL_ARGS=${CLI_INSTALL_ARGS}")"
-export HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS="${HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS:-}${extras}"
+extras="HOLOSCAN_CLI_INSTALL_ARGS=${CLI_INSTALL_ARGS[*]}"
+export HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS="${HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS:-} --build-arg '${extras//\'/\'\"\'\"\'}'"
 
 exec "${PYTHON_BIN}" -m holoscan_cli "$@"

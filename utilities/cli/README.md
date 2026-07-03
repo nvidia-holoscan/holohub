@@ -60,7 +60,7 @@ an explicit caller-owned interpreter always has highest precedence.
 selected; it is not a host/container signal. The wrapper defaults it to `1` in
 root system scope and respects an explicit `0`. Under `sudo` that preserves a
 caller's `HOME`/`XDG_DATA_HOME`, the wrapper refuses to use or create a managed
-venv below directories that are not root-controlled. Re-run without sudo, or
+venv below directories that are not root-owned. Re-run without sudo, or
 use `sudo -H` for a root-owned home. Explicit interpreter and active-venv
 overrides are trusted and bypass this managed-path check; do not preserve them
 through `sudo` unless that is intentional.
