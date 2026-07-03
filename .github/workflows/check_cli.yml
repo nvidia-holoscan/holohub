@@ -147,6 +147,7 @@ jobs:
           ROOT_HOME: ${{ runner.temp }}/holohub-root
         run: |
           root_venv="${ROOT_HOME}/.local/share/holoscan-cli/venv"
+          sudo mkdir -p "${ROOT_HOME}"   # a root-owned HOME, as sudo -H would give
           run_as_root() {
             sudo env \
               -u HOLOSCAN_CLI_PYTHON_BIN \
@@ -163,3 +164,21 @@ jobs:
           run_as_root ./holohub env-info | tee "${RUNNER_TEMP}/root-env-info.txt"
           grep -Fq "Executable: ${root_venv}/bin/python" "${RUNNER_TEMP}/root-env-info.txt"
           run_as_root ./holohub setup --dryrun
+
+          # Direct root on a *host* (no SUDO_USER, no container, no opt-in)
+          # must still use the managed venv, not system Python.
+          run_as_root env -u SUDO_USER ./holohub env-info \
+            | tee "${RUNNER_TEMP}/direct-root-env-info.txt"
+          grep -Fq "Executable: ${root_venv}/bin/python" \
+            "${RUNNER_TEMP}/direct-root-env-info.txt"
+
+          # sudo with a preserved, caller-owned HOME must refuse to write
+          # root-owned files into it.
+          user_home="${RUNNER_TEMP}/holohub-user"
+          if run_as_root env HOME="${user_home}" \
+              HOLOSCAN_CLI_VENV="${user_home}/refused-venv" \
+              ./holohub version 2> "${RUNNER_TEMP}/refused.txt"; then
+            echo "expected the wrapper to refuse a foreign-owned HOME" >&2
+            exit 1
+          fi
+          grep -Fq "Refusing to write" "${RUNNER_TEMP}/refused.txt"

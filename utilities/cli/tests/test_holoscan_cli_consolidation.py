@@ -130,6 +130,125 @@ def _run_holohub_wrapper(
     return result
 
 
+def _fake_python_for_wrapper(
+    tmp_path: Path, installed_version: str, executable_name: str = "python3"
+):
+    """Return a fake interpreter and its mutable package-version/log files.
+
+    The intercepted argv shapes must mirror the wrapper's `_holoscan_cli_ok`
+    probe and `_install_cli`; update both together. Setting FAKE_PYTHON_PIP_NOOP
+    makes `pip install` succeed without changing the installed version, which
+    models an unsatisfiable requirement (e.g. a pin no index can provide).
+    """
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    version_file = tmp_path / "installed-version.txt"
+    log_file = tmp_path / "fake-python.log"
+    version_file.write_text(installed_version, encoding="utf-8")
+    fake_python = tmp_path / executable_name
+    fake_python.write_text(
+        """#!/usr/bin/env bash
+set -eu
+printf '%s\n' "$*" >> "${FAKE_PYTHON_LOG}"
+
+if [[ "${1:-}" == "-c" ]]; then
+    cat "${FAKE_PYTHON_VERSION_FILE}"
+elif [[ "${1:-}" == "-m" && "${2:-}" == "holoscan_cli" && "${3:-}" == "build" && "${4:-}" == "--help" ]]; then
+    :
+elif [[ "${1:-}" == "-m" && "${2:-}" == "pip" && "${3:-}" == "--version" ]]; then
+    echo "pip 1.0"
+elif [[ "${1:-}" == "-m" && "${2:-}" == "pip" && "${3:-}" == "install" ]]; then
+    if [[ -z "${FAKE_PYTHON_PIP_NOOP:-}" ]]; then
+        for arg in "$@"; do
+            if [[ "$arg" == holoscan-cli==* ]]; then
+                printf '%s' "${arg#holoscan-cli==}" > "${FAKE_PYTHON_VERSION_FILE}"
+            fi
+        done
+    fi
+elif [[ "${1:-}" == "-m" && "${2:-}" == "holoscan_cli" ]]; then
+    :
+else
+    exit 2
+fi
+""",
+        encoding="utf-8",
+    )
+    fake_python.chmod(0o755)
+    return fake_python, version_file, log_file
+
+
+def _fake_wrapper_env(fake_python: Path, version_file: Path, log_file: Path):
+    env = os.environ.copy()
+    for var in (
+        "HOLOSCAN_CLI_SOURCE",
+        "HOLOSCAN_CLI_PINNED_VERSION",
+        "PYTHONPATH",
+        "VIRTUAL_ENV",
+        "HOLOHUB_PYTHON_BIN",
+    ):
+        env.pop(var, None)
+    env["HOLOSCAN_CLI_PYTHON_BIN"] = str(fake_python)
+    env["FAKE_PYTHON_VERSION_FILE"] = str(version_file)
+    env["FAKE_PYTHON_LOG"] = str(log_file)
+    env["HOLOSCAN_CLI_INSTALL_ARGS"] = (
+        "--pre --extra-index-url https://example.invalid/simple holoscan-cli>4.2.0"
+    )
+    return env
+
+
+def _fake_system_cli_env(tmp_path: Path, version="4.3.0", managed_python=None):
+    system_bin = tmp_path / "system-bin"
+    system_bin.mkdir()
+    system_log = tmp_path / "system-python.log"
+    system_pip_log = tmp_path / "system-pip.log"
+    managed_venv = tmp_path / "managed-venv"
+    fake_python = system_bin / "python3"
+    fake_python.write_text(
+        """#!/usr/bin/env bash
+set -eu
+printf '%s\n' "$*" >> "${FAKE_SYSTEM_LOG}"
+
+if [[ "${1:-}" == "-c" ]]; then
+    printf '%s' "${FAKE_SYSTEM_VERSION}"
+elif [[ "${1:-}" == "-m" && "${2:-}" == "holoscan_cli" && "${3:-}" == "build" && "${4:-}" == "--help" ]]; then
+    :
+elif [[ "${1:-}" == "-m" && "${2:-}" == "pip" && "${3:-}" == "--version" ]]; then
+    echo "pip 1.0"
+elif [[ "${1:-}" == "-m" && "${2:-}" == "pip" && "${3:-}" == "install" ]]; then
+    touch "${FAKE_SYSTEM_PIP_LOG}"
+elif [[ "${1:-}" == "-m" && "${2:-}" == "venv" ]]; then
+    mkdir -p "${3}/bin"
+    cp "${FAKE_MANAGED_PYTHON_SOURCE}" "${3}/bin/python"
+elif [[ "${1:-}" == "-m" && "${2:-}" == "holoscan_cli" ]]; then
+    :
+else
+    exit 2
+fi
+""",
+        encoding="utf-8",
+    )
+    fake_python.chmod(0o755)
+
+    env = os.environ.copy()
+    for var in (
+        "HOLOSCAN_CLI_SOURCE",
+        "HOLOSCAN_CLI_PINNED_VERSION",
+        "HOLOSCAN_CLI_PYTHON_BIN",
+        "HOLOHUB_PYTHON_BIN",
+        "PYTHONPATH",
+        "VIRTUAL_ENV",
+    ):
+        env.pop(var, None)
+    env["PATH"] = f"{system_bin}:{env['PATH']}"
+    env["SUDO_USER"] = "host-user"
+    env["HOLOSCAN_CLI_VENV"] = str(managed_venv)
+    env["HOLOSCAN_CLI_INSTALL_ARGS"] = "holoscan-cli>4.2.0"
+    env["FAKE_SYSTEM_LOG"] = str(system_log)
+    env["FAKE_SYSTEM_PIP_LOG"] = str(system_pip_log)
+    env["FAKE_SYSTEM_VERSION"] = version
+    env["FAKE_MANAGED_PYTHON_SOURCE"] = str(managed_python or tmp_path / "unused")
+    return env, managed_venv, system_log, system_pip_log
+
+
 def test_wrapper_delegates_list_to_holoscan_cli():
     """./holohub list should hit the consolidated CLI's source-project dispatch."""
     result = _run_holohub_wrapper("list")
@@ -137,6 +256,142 @@ def test_wrapper_delegates_list_to_holoscan_cli():
     assert result.returncode == 0, result.stderr
     assert "== APPLICATIONS" in result.stdout
     assert "endoscopy_tool_tracking" in result.stdout
+
+
+def test_wrapper_reconciles_an_explicit_cli_version_pin(tmp_path):
+    fake_python, version_file, log_file = _fake_python_for_wrapper(tmp_path, "4.3.0")
+    env = _fake_wrapper_env(fake_python, version_file, log_file)
+    env["HOLOSCAN_CLI_PINNED_VERSION"] = "4.4.1"
+
+    result = _run_holohub_wrapper("version", env=env)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert version_file.read_text(encoding="utf-8") == "4.4.1"
+    log = log_file.read_text(encoding="utf-8")
+    assert "-m pip install" in log
+    assert "holoscan-cli>4.2.0 holoscan-cli==4.4.1" in log
+
+
+def test_wrapper_fails_clearly_when_a_pin_cannot_be_satisfied(tmp_path):
+    fake_python, version_file, log_file = _fake_python_for_wrapper(tmp_path, "4.3.0")
+    env = _fake_wrapper_env(fake_python, version_file, log_file)
+    env["HOLOSCAN_CLI_PINNED_VERSION"] = "4.4.1"
+    env["FAKE_PYTHON_PIP_NOOP"] = "1"
+
+    result = _run_holohub_wrapper("version", env=env)
+
+    assert result.returncode == 1
+    assert "does not match" in result.stderr
+    assert "Could not install holoscan-cli" in result.stderr
+    # pip ran ("already satisfied" model) but must not have changed anything.
+    assert version_file.read_text(encoding="utf-8") == "4.3.0"
+
+
+@pytest.mark.parametrize("pin", [None, "4.3.0"])
+def test_wrapper_does_not_reinstall_a_compatible_cli(tmp_path, pin):
+    fake_python, version_file, log_file = _fake_python_for_wrapper(tmp_path, "4.3.0")
+    env = _fake_wrapper_env(fake_python, version_file, log_file)
+    if pin is None:
+        env.pop("HOLOSCAN_CLI_PINNED_VERSION", None)
+    else:
+        env["HOLOSCAN_CLI_PINNED_VERSION"] = pin
+
+    result = _run_holohub_wrapper("version", env=env)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "-m pip install" not in log_file.read_text(encoding="utf-8")
+
+
+def test_wrapper_prefers_an_existing_managed_venv(tmp_path):
+    managed_venv = tmp_path / "managed-venv"
+    managed_python, version_file, log_file = _fake_python_for_wrapper(
+        managed_venv / "bin", "4.3.0", executable_name="python"
+    )
+    global_dir = tmp_path / "global-bin"
+    global_dir.mkdir()
+    global_log = tmp_path / "global-python.log"
+    global_python = global_dir / "python3"
+    global_python.write_text(
+        """#!/usr/bin/env bash
+printf '%s\n' "$*" >> "${FAKE_GLOBAL_PYTHON_LOG}"
+[[ "${1:-}" == "-m" && "${2:-}" == "holoscan_cli" ]] && echo build
+""",
+        encoding="utf-8",
+    )
+    global_python.chmod(0o755)
+
+    env = _fake_wrapper_env(managed_python, version_file, log_file)
+    env.pop("HOLOSCAN_CLI_PYTHON_BIN")
+    env["HOLOSCAN_CLI_VENV"] = str(managed_venv)
+    env["FAKE_GLOBAL_PYTHON_LOG"] = str(global_log)
+    env["PATH"] = f"{global_dir}:{env['PATH']}"
+    # Also makes this model the isolated sudo-host path when CI itself is root.
+    env["SUDO_USER"] = "host-user"
+
+    result = _run_holohub_wrapper("version", env=env)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "-m holoscan_cli version" in log_file.read_text(encoding="utf-8")
+    assert not global_log.exists()
+
+
+@pytest.mark.parametrize("pin", [None, "4.3.0"])
+def test_wrapper_reuses_a_compatible_system_cli_readonly(tmp_path, pin):
+    env, managed_venv, system_log, system_pip_log = _fake_system_cli_env(tmp_path)
+    if pin:
+        env["HOLOSCAN_CLI_PINNED_VERSION"] = pin
+
+    result = _run_holohub_wrapper("version", env=env)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "-m holoscan_cli version" in system_log.read_text(encoding="utf-8")
+    assert not managed_venv.exists()
+    assert not system_pip_log.exists()
+
+
+def test_wrapper_uses_managed_venv_for_a_mismatched_system_pin(tmp_path):
+    managed_python, version_file, managed_log = _fake_python_for_wrapper(
+        tmp_path / "managed-template", "4.3.0", executable_name="python"
+    )
+    env, managed_venv, _, system_pip_log = _fake_system_cli_env(
+        tmp_path, managed_python=managed_python
+    )
+    env["HOLOSCAN_CLI_PINNED_VERSION"] = "4.4.1"
+    env["FAKE_PYTHON_VERSION_FILE"] = str(version_file)
+    env["FAKE_PYTHON_LOG"] = str(managed_log)
+
+    result = _run_holohub_wrapper("version", env=env)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert (managed_venv / "bin/python").is_file()
+    assert version_file.read_text(encoding="utf-8") == "4.4.1"
+    assert "-m pip install" in managed_log.read_text(encoding="utf-8")
+    assert not system_pip_log.exists()
+
+
+def test_wrapper_works_without_home_when_system_cli_is_compatible(tmp_path):
+    """Personas without HOME (minimal images, USER stages) must not die on the
+    managed-venv default expansion when they never need the venv."""
+    env, managed_venv, system_log, system_pip_log = _fake_system_cli_env(tmp_path)
+    for var in ("HOME", "XDG_DATA_HOME", "HOLOSCAN_CLI_VENV"):
+        env.pop(var, None)
+
+    result = _run_holohub_wrapper("version", env=env)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "-m holoscan_cli version" in system_log.read_text(encoding="utf-8")
+    assert not managed_venv.exists()
+    assert not system_pip_log.exists()
+
+
+def test_wrapper_rejects_an_invalid_source_override(tmp_path):
+    env = os.environ.copy()
+    env["HOLOSCAN_CLI_SOURCE"] = str(tmp_path / "missing-checkout")
+
+    result = _run_holohub_wrapper("version", env=env)
+
+    assert result.returncode == 1
+    assert "Invalid HOLOSCAN_CLI_SOURCE" in result.stderr
 
 
 def test_wrapper_runs_host_setup_from_managed_venv(tmp_path):
@@ -147,10 +402,9 @@ def test_wrapper_runs_host_setup_from_managed_venv(tmp_path):
 
     env = os.environ.copy()
     # Keep this test focused on the wrapper's source handling: an inherited
-    # PYTHONPATH could make the system interpreter appear ready, and an
-    # inherited VIRTUAL_ENV / explicit interpreter override would take the
-    # wrapper's explicit-choice branch instead of creating the managed venv
-    # (e.g. when pytest itself runs inside an activated venv).
+    # PYTHONPATH could resolve a different checkout, and an inherited
+    # VIRTUAL_ENV / explicit interpreter override would take the wrapper's
+    # caller-owned branch instead of creating the managed venv.
     for var in ("PYTHONPATH", "VIRTUAL_ENV", "HOLOSCAN_CLI_PYTHON_BIN", "HOLOHUB_PYTHON_BIN"):
         env.pop(var, None)
     env["HOLOSCAN_CLI_SOURCE"] = source
