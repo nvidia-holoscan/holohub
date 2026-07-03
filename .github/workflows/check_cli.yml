@@ -130,6 +130,7 @@ jobs:
           run_as_user() {
             HOME="${USER_HOME}" \
               PATH="/usr/sbin:/usr/bin:/sbin:/bin" \
+              PYTHONDONTWRITEBYTECODE=1 \
               HOLOSCAN_CLI_SOURCE="${CLI_SOURCE}" \
               HOLOSCAN_CLI_VENV="${USER_HOME}/cli-venv" \
               "$@"
@@ -144,10 +145,11 @@ jobs:
       - name: Run sudo host setup through a managed venv
         env:
           CLI_SOURCE: ${{ github.workspace }}/holoscan-cli-src
-          ROOT_HOME: ${{ runner.temp }}/holohub-root
+          FIXTURE_SOURCE: ${{ github.workspace }}/utilities/cli/tests/fixtures/wrapper_cli_source
+          ROOT_HOME: /root/holohub-${{ github.run_id }}-${{ github.run_attempt }}
         run: |
           root_venv="${ROOT_HOME}/.local/share/holoscan-cli/venv"
-          sudo mkdir -p "${ROOT_HOME}"   # a root-owned HOME, as sudo -H would give
+          sudo mkdir -p "${ROOT_HOME}"
           run_as_root() {
             sudo env \
               -u HOLOSCAN_CLI_PYTHON_BIN \
@@ -157,6 +159,7 @@ jobs:
               -u VIRTUAL_ENV \
               HOME="${ROOT_HOME}" \
               PATH="/usr/sbin:/usr/bin:/sbin:/bin" \
+              PYTHONDONTWRITEBYTECODE=1 \
               HOLOSCAN_CLI_SOURCE="${CLI_SOURCE}" \
               HOLOSCAN_CLI_VENV="${root_venv}" \
               "$@"
@@ -165,20 +168,41 @@ jobs:
           grep -Fq "Executable: ${root_venv}/bin/python" "${RUNNER_TEMP}/root-env-info.txt"
           run_as_root ./holohub setup --dryrun
 
-          # Direct root on a *host* (no SUDO_USER, no container, no opt-in)
-          # must still use the managed venv, not system Python.
-          run_as_root env -u SUDO_USER ./holohub env-info \
-            | tee "${RUNNER_TEMP}/direct-root-env-info.txt"
-          grep -Fq "Executable: ${root_venv}/bin/python" \
-            "${RUNNER_TEMP}/direct-root-env-info.txt"
+          # Root scope selection: managed venv on a host, system Python from
+          # the /tmp/scripts Dockerfile bootstrap location.
+          sudo install -D -m 755 ./holohub /tmp/scripts/holohub
+          run_scope_case() {
+            name="$1"
+            wrapper="$2"
+            expected="$3"
+            pip_break="${4:-}"
+            home="/root/holohub-scope-${name}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+            output="${RUNNER_TEMP}/scope-${name}.txt"
+            sudo mkdir -p "${home}"
+            sudo env -i \
+              HOME="${home}" \
+              PATH="/usr/sbin:/usr/bin:/sbin:/bin" \
+              PYTHONDONTWRITEBYTECODE=1 \
+              HOLOSCAN_CLI_SOURCE="${FIXTURE_SOURCE}" \
+              HOLOSCAN_CLI_VENV="${home}/venv" \
+              PIP_BREAK_SYSTEM_PACKAGES="${pip_break}" \
+              "${wrapper}" env-info | tee "${output}"
+            grep -Fq "Executable: ${expected}" "${output}"
+          }
+
+          # PEP 668's pip escape hatch is not permission to mutate host Python.
+          host_home="/root/holohub-scope-host-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          run_scope_case host "${GITHUB_WORKSPACE}/holohub" \
+            "${host_home}/venv/bin/python" 1
+          run_scope_case staged /tmp/scripts/holohub /usr/bin/python3
 
           # sudo with a preserved, caller-owned HOME must refuse to write
-          # root-owned files into it.
+          # to its existing managed environment.
           user_home="${RUNNER_TEMP}/holohub-user"
           if run_as_root env HOME="${user_home}" \
-              HOLOSCAN_CLI_VENV="${user_home}/refused-venv" \
+              HOLOSCAN_CLI_VENV="${user_home}/cli-venv" \
               ./holohub version 2> "${RUNNER_TEMP}/refused.txt"; then
             echo "expected the wrapper to refuse a foreign-owned HOME" >&2
             exit 1
           fi
-          grep -Fq "Refusing to write" "${RUNNER_TEMP}/refused.txt"
+          grep -Fq "Refusing to use" "${RUNNER_TEMP}/refused.txt"

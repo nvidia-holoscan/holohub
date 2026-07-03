@@ -801,6 +801,22 @@ Dedicated commands (`build`, `run`, `build-container`, `run-container`) allow cl
 
 The CLI respects these variables. Defaults and behavior are summarized below.
 
+### Wrapper Bootstrap
+
+These variables are consumed by `./holohub` before it delegates to
+`holoscan-cli`. See [How the wrapper resolves the CLI](README.md#how-the-wrapper-resolves-the-cli)
+for selection order, safety boundaries, and managed-venv maintenance.
+
+| Variable | Default / purpose |
+| --- | --- |
+| `HOLOSCAN_CLI_PYTHON_BIN` | Explicit caller-owned interpreter; highest precedence. `HOLOHUB_PYTHON_BIN` is its legacy alias. |
+| `VIRTUAL_ENV` | Uses the active environment's `bin/python` when no explicit interpreter is set. |
+| `HOLOSCAN_CLI_VENV` | Wrapper-managed environment; defaults to `${XDG_DATA_HOME:-$HOME/.local/share}/holoscan-cli/venv`. |
+| `HOLOSCAN_CLI_SOURCE` | Local holoscan-cli checkout used in preference to a package requirement. |
+| `HOLOSCAN_CLI_INSTALL_ARGS` | Whitespace-separated pip tokens; defaults to the NVIDIA pre-release index and floating `holoscan-cli>4.2.0`. Shell quotes are not parsed. |
+| `HOLOSCAN_CLI_PINNED_VERSION` | One exact package version token to install and verify; whitespace is rejected and empty means floating. Ignored with `HOLOSCAN_CLI_SOURCE`. |
+| `PIP_BREAK_SYSTEM_PACKAGES` | PEP 668 pip control only; defaults to `1` after root system scope is selected and never selects that scope. |
+
 ### Build and Execution
 
 | Variable                      | Purpose                                                                                                          |

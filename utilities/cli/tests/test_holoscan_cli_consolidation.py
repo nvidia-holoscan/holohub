@@ -12,6 +12,11 @@ import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 CLI_TIMEOUT_SECONDS = 120
+# Root in a container resolves to system Python before the branches these
+# tests exercise.
+requires_nonroot = pytest.mark.skipif(
+    os.geteuid() == 0, reason="resolver branch tests assume a non-root invocation"
+)
 
 
 def _timeout_output(exc: subprocess.TimeoutExpired) -> str:
@@ -96,6 +101,7 @@ def _run_holohub_wrapper(
     *args: str,
     extra_env: Dict[str, str] | None = None,
     env: Dict[str, str] | None = None,
+    cwd: Path = REPO_ROOT,
 ) -> subprocess.CompletedProcess:
     if env is None:
         env = _holoscan_cli_env()
@@ -104,7 +110,7 @@ def _run_holohub_wrapper(
     try:
         result = subprocess.run(
             [str(REPO_ROOT / "holohub"), *args],
-            cwd=REPO_ROOT,
+            cwd=cwd,
             env=env,
             text=True,
             stdout=subprocess.PIPE,
@@ -182,6 +188,7 @@ def _fake_wrapper_env(fake_python: Path, version_file: Path, log_file: Path):
         "HOLOSCAN_CLI_SOURCE",
         "HOLOSCAN_CLI_PINNED_VERSION",
         "PYTHONPATH",
+        "PIP_BREAK_SYSTEM_PACKAGES",
         "VIRTUAL_ENV",
         "HOLOHUB_PYTHON_BIN",
     ):
@@ -216,6 +223,13 @@ elif [[ "${1:-}" == "-m" && "${2:-}" == "pip" && "${3:-}" == "--version" ]]; the
 elif [[ "${1:-}" == "-m" && "${2:-}" == "pip" && "${3:-}" == "install" ]]; then
     touch "${FAKE_SYSTEM_PIP_LOG}"
 elif [[ "${1:-}" == "-m" && "${2:-}" == "venv" ]]; then
+    if [[ -n "${FAKE_VENV_FAIL_ONCE_FILE:-}" && ! -e "${FAKE_VENV_FAIL_ONCE_FILE}" ]]; then
+        touch "${FAKE_VENV_FAIL_ONCE_FILE}"
+        mkdir -p "${3}/bin"
+        printf '#!/usr/bin/env bash\nexit 1\n' > "${3}/bin/python"
+        chmod +x "${3}/bin/python"
+        exit 1
+    fi
     mkdir -p "${3}/bin"
     cp "${FAKE_MANAGED_PYTHON_SOURCE}" "${3}/bin/python"
 elif [[ "${1:-}" == "-m" && "${2:-}" == "holoscan_cli" ]]; then
@@ -234,6 +248,7 @@ fi
         "HOLOSCAN_CLI_PINNED_VERSION",
         "HOLOSCAN_CLI_PYTHON_BIN",
         "HOLOHUB_PYTHON_BIN",
+        "PIP_BREAK_SYSTEM_PACKAGES",
         "PYTHONPATH",
         "VIRTUAL_ENV",
     ):
@@ -287,6 +302,21 @@ def test_wrapper_fails_clearly_when_a_pin_cannot_be_satisfied(tmp_path):
     assert version_file.read_text(encoding="utf-8") == "4.3.0"
 
 
+def test_wrapper_does_not_expand_install_argument_globs(tmp_path):
+    fake_python, version_file, log_file = _fake_python_for_wrapper(tmp_path / "fake-bin", "4.3.0")
+    env = _fake_wrapper_env(fake_python, version_file, log_file)
+    env["HOLOSCAN_CLI_PINNED_VERSION"] = "4.4.1"
+    env["HOLOSCAN_CLI_INSTALL_ARGS"] = "[abc] holoscan-cli>4.2.0"
+    (tmp_path / "a").touch()
+
+    result = _run_holohub_wrapper("version", env=env, cwd=tmp_path)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    log = log_file.read_text(encoding="utf-8")
+    assert "-m pip install [abc] holoscan-cli>4.2.0" in log
+    assert "-m pip install a holoscan-cli>4.2.0" not in log
+
+
 @pytest.mark.parametrize("pin", [None, "4.3.0"])
 def test_wrapper_does_not_reinstall_a_compatible_cli(tmp_path, pin):
     fake_python, version_file, log_file = _fake_python_for_wrapper(tmp_path, "4.3.0")
@@ -302,6 +332,7 @@ def test_wrapper_does_not_reinstall_a_compatible_cli(tmp_path, pin):
     assert "-m pip install" not in log_file.read_text(encoding="utf-8")
 
 
+@requires_nonroot
 def test_wrapper_prefers_an_existing_managed_venv(tmp_path):
     managed_venv = tmp_path / "managed-venv"
     managed_python, version_file, log_file = _fake_python_for_wrapper(
@@ -335,6 +366,7 @@ printf '%s\n' "$*" >> "${FAKE_GLOBAL_PYTHON_LOG}"
     assert not global_log.exists()
 
 
+@requires_nonroot
 @pytest.mark.parametrize("pin", [None, "4.3.0"])
 def test_wrapper_reuses_a_compatible_system_cli_readonly(tmp_path, pin):
     env, managed_venv, system_log, system_pip_log = _fake_system_cli_env(tmp_path)
@@ -349,6 +381,7 @@ def test_wrapper_reuses_a_compatible_system_cli_readonly(tmp_path, pin):
     assert not system_pip_log.exists()
 
 
+@requires_nonroot
 def test_wrapper_uses_managed_venv_for_a_mismatched_system_pin(tmp_path):
     managed_python, version_file, managed_log = _fake_python_for_wrapper(
         tmp_path / "managed-template", "4.3.0", executable_name="python"
@@ -369,6 +402,33 @@ def test_wrapper_uses_managed_venv_for_a_mismatched_system_pin(tmp_path):
     assert not system_pip_log.exists()
 
 
+@requires_nonroot
+def test_wrapper_retries_after_a_partial_venv_failure(tmp_path):
+    managed_python, version_file, managed_log = _fake_python_for_wrapper(
+        tmp_path / "managed-template", "4.3.0", executable_name="python"
+    )
+    env, managed_venv, system_log, system_pip_log = _fake_system_cli_env(
+        tmp_path, managed_python=managed_python
+    )
+    failure_marker = tmp_path / "failed-once"
+    env["HOLOSCAN_CLI_PINNED_VERSION"] = "4.4.1"
+    env["FAKE_PYTHON_VERSION_FILE"] = str(version_file)
+    env["FAKE_PYTHON_LOG"] = str(managed_log)
+    env["FAKE_VENV_FAIL_ONCE_FILE"] = str(failure_marker)
+
+    first = _run_holohub_wrapper("version", env=env)
+    second = _run_holohub_wrapper("version", env=env)
+
+    assert first.returncode == 1
+    assert "Could not create" in first.stderr
+    assert second.returncode == 0, second.stdout + second.stderr
+    assert system_log.read_text(encoding="utf-8").count("-m venv") == 2
+    assert (managed_venv / "bin/python").is_file()
+    assert version_file.read_text(encoding="utf-8") == "4.4.1"
+    assert not system_pip_log.exists()
+
+
+@requires_nonroot
 def test_wrapper_works_without_home_when_system_cli_is_compatible(tmp_path):
     """Personas without HOME (minimal images, USER stages) must not die on the
     managed-venv default expansion when they never need the venv."""

@@ -25,12 +25,15 @@ network access. Run `./holohub` as your normal user; **no sudo needed** —
 See [utilities/cli/README.md](../utilities/cli/README.md) for the full
 environment-selection order and the `HOLOSCAN_CLI_*` variables that control
 it (interpreter, venv location, source checkout, install arguments, version
-pin). `./holohub env-info` reports which environment was selected and how to
-remove the CLI; to uninstall the managed environment entirely:
+pin, and root system-install policy). `./holohub env-info` reports which
+environment was selected. To remove the managed environment entirely:
 
 ```bash
-rm -rf ~/.local/share/holoscan-cli/venv   # the next ./holohub run re-creates it
+rm -rf ~/.local/share/holoscan-cli/venv
 ```
+
+The next invocation resolves again, either reusing a compatible system CLI
+read-only or creating a new managed environment.
 
 ## Native Build
 

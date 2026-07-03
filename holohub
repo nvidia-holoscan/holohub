@@ -15,30 +15,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# HoloHub entry point for the standalone holoscan-cli package. Host installs
-# use a managed venv; a compatible system install is reused read-only, never
-# modified. Root *containers* (or environments opting into system installation
-# via PIP_BREAK_SYSTEM_PACKAGES=1) install system-wide; root on a host keeps
-# the managed venv and falls back to system Python, loudly, only when venv
-# creation is impossible.
+# HoloHub entry point for the standalone holoscan-cli package. Hosts use a
+# managed venv or reuse a compatible system install read-only. Root containers
+# install system-wide. See utilities/cli/README.md.
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd -P)"
 export HOLOSCAN_CLI_CMD_NAME="${BASH_SOURCE[0]}"
 export HOLOSCAN_CLI_ROOT="${SCRIPT_DIR}"
 
 export HOLOSCAN_CLI_INSTALL_ARGS="${HOLOSCAN_CLI_INSTALL_ARGS:---pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0}"
 export HOLOSCAN_CLI_PINNED_VERSION="${HOLOSCAN_CLI_PINNED_VERSION:-}"
-# The managed-venv default needs HOME or XDG_DATA_HOME; some personas (root
-# containers, USER stages without HOME) never need the venv, so leave it empty
-# rather than failing here under `set -u`.
 if [[ -z "${HOLOSCAN_CLI_VENV:-}" && -n "${XDG_DATA_HOME:-}${HOME:-}" ]]; then
     HOLOSCAN_CLI_VENV="${XDG_DATA_HOME:-${HOME}/.local/share}/holoscan-cli/venv"
 fi
 export HOLOSCAN_CLI_VENV="${HOLOSCAN_CLI_VENV:-}"
 
-# HoloHub owns the default SDK image version; holoscan-cli has no built-in one.
 export HOLOSCAN_CLI_BASE_SDK_VERSION="${HOLOSCAN_CLI_BASE_SDK_VERSION:-4.4.0}"
 export HOLOSCAN_CLI_CTEST_SCRIPT="${HOLOSCAN_CLI_CTEST_SCRIPT:-utilities/testing/holohub.container.ctest}"
 
@@ -56,49 +49,57 @@ _holoscan_cli_ok() {
     fi
 }
 
-# Detect a container environment (Docker/Podman markers, then cgroup names).
-# BuildKit `RUN` steps may expose neither; the PIP_BREAK_SYSTEM_PACKAGES=1
-# opt-in (set by Holoscan SDK base images) and the root fallback in
-# _use_managed_venv cover those.
 _is_container() {
-    [[ -f /.dockerenv || -f /run/.containerenv ]] ||
+    [[ -f /.dockerenv || -f /run/.containerenv || -f /run/systemd/container ]] ||
         grep -Eq '(docker|containerd|kubepods|podman|buildkit)' /proc/1/cgroup 2>/dev/null
 }
 
 _use_root_system() {
     CLI_ENV="root-system"
     PYTHON_BIN="python3"
-    # Respect an explicit opt-out; otherwise default to pip's own PEP 668 opt-in.
     export PIP_BREAK_SYSTEM_PACKAGES="${PIP_BREAK_SYSTEM_PACKAGES:-1}"
 }
 
-# sudo configured to keep the caller's HOME (or XDG_DATA_HOME) must not leave
-# root-owned files in the caller's directories.
-_refuse_foreign_sudo_write() {
+_refuse_foreign_sudo_venv() {
     [[ "${EUID}" -eq 0 && -n "${SUDO_USER:-}" ]] || return 0
-    local probe="$1"
-    while [[ ! -e "${probe}" && "${probe}" != "/" ]]; do
-        probe="$(dirname "${probe}")"
-    done
-    local owner
-    owner="$(stat -c %u "${probe}" 2>/dev/null || echo 0)"
-    if [[ "${owner}" != "0" ]]; then
-        echo "[holohub] Refusing to write ${1} as root: ${probe} is owned by uid ${owner}." >&2
-        echo "[holohub] Re-run without sudo, or use sudo -H for a root-owned HOME." >&2
+    local probe owner permissions
+    probe="$(realpath -m -- "$1" 2>/dev/null)" || {
+        echo "[holohub] Refusing to use ${1} as root: ownership could not be verified." >&2
         exit 1
-    fi
+    }
+    while :; do
+        if [[ -e "${probe}" ]]; then
+            owner="$(stat -c %u -- "${probe}" 2>/dev/null)" || {
+                echo "[holohub] Refusing to use ${1} as root: ${probe} could not be inspected." >&2
+                exit 1
+            }
+            permissions="$(stat -c %A -- "${probe}" 2>/dev/null)" || {
+                echo "[holohub] Refusing to use ${1} as root: ${probe} could not be inspected." >&2
+                exit 1
+            }
+            if [[ "${owner}" != "0" || "${permissions:5:1}" == "w" ||
+                  "${permissions:8:1}" == "w" ]]; then
+                echo "[holohub] Refusing to use ${1} as root: ${probe} is not root-controlled." >&2
+                echo "[holohub] Re-run without sudo, or use sudo -H." >&2
+                exit 1
+            fi
+        fi
+        [[ "${probe}" == "/" ]] && return 0
+        probe="$(dirname -- "${probe}")"
+    done
 }
 
-# Serialize concurrent first runs (venv creation + install) on fd 9; the fd is
-# closed before the final exec so the lock never outlives provisioning.
-_provision_lock() {
-    [[ -n "${HOLOSCAN_CLI_VENV}" ]] || return 0
-    command -v flock >/dev/null 2>&1 || return 0
-    local dir
-    dir="$(dirname "${HOLOSCAN_CLI_VENV}")"
-    mkdir -p "${dir}" 2>/dev/null || return 0
-    exec 9>"${dir}/.provision.lock" 2>/dev/null || return 0
-    flock 9 || true
+_managed_venv_ready() {
+    [[ -n "${HOLOSCAN_CLI_VENV}" && -x "${HOLOSCAN_CLI_VENV}/bin/python" ]] &&
+        "${HOLOSCAN_CLI_VENV}/bin/python" -m pip --version >/dev/null 2>&1
+}
+
+_managed_venv_available() {
+    if [[ -n "${HOLOSCAN_CLI_VENV}" &&
+          ( -e "${HOLOSCAN_CLI_VENV}" || -L "${HOLOSCAN_CLI_VENV}" ) ]]; then
+        _refuse_foreign_sudo_venv "${HOLOSCAN_CLI_VENV}"
+    fi
+    _managed_venv_ready
 }
 
 _use_managed_venv() {
@@ -109,29 +110,17 @@ _use_managed_venv() {
         exit 1
     fi
     PYTHON_BIN="${HOLOSCAN_CLI_VENV}/bin/python"
-    [[ -x "${PYTHON_BIN}" ]] && return
-
-    _refuse_foreign_sudo_write "${HOLOSCAN_CLI_VENV}"
-    _provision_lock
-    # Another process may have provisioned while we waited for the lock.
-    [[ -x "${PYTHON_BIN}" ]] && return
+    _refuse_foreign_sudo_venv "${HOLOSCAN_CLI_VENV}"
+    _managed_venv_ready && return
 
     if [[ "${EUID}" -eq 0 ]]; then
-        echo "[holohub] Note: creating a root-owned CLI environment under ${HOME:-/root}." >&2
+        echo "[holohub] Note: creating a root-owned CLI environment at ${HOLOSCAN_CLI_VENV}." >&2
     fi
     if [[ -d "${HOLOSCAN_CLI_VENV}" && ! -w "${HOLOSCAN_CLI_VENV}" ]]; then
         echo "[holohub] ${HOLOSCAN_CLI_VENV} isn't writable; remove it or fix ownership." >&2
         exit 1
     fi
     if ! python3 -m venv "${HOLOSCAN_CLI_VENV}"; then
-        if [[ "${EUID}" -eq 0 ]]; then
-            # Root safety net (images without python3-venv, or a base image
-            # that exports SUDO_USER): fall back to the system interpreter
-            # loudly rather than failing the build.
-            echo "[holohub] venv creation failed; falling back to system Python as root." >&2
-            _use_root_system
-            return
-        fi
         echo "[holohub] Could not create ${HOLOSCAN_CLI_VENV}. Install venv support:" >&2
         echo "[holohub]   sudo apt-get update && sudo apt-get install -y python3-venv" >&2
         exit 1
@@ -157,15 +146,12 @@ CLI_READY=""
 PYTHON_BIN="${HOLOSCAN_CLI_PYTHON_BIN:-${HOLOHUB_PYTHON_BIN:-${VIRTUAL_ENV:+$VIRTUAL_ENV/bin/python}}}"
 if [[ -n "${PYTHON_BIN}" ]]; then
     :
-elif [[ -n "${HOLOSCAN_CLI_VENV}" && -x "${HOLOSCAN_CLI_VENV}/bin/python" ]]; then
+elif [[ "${EUID}" -eq 0 ]] &&
+     { _is_container || [[ "${SCRIPT_DIR}" == "/tmp/scripts" ]]; }; then
+    _use_root_system
+elif _managed_venv_available; then
     CLI_ENV="managed"
     PYTHON_BIN="${HOLOSCAN_CLI_VENV}/bin/python"
-elif [[ "${EUID}" -eq 0 && -z "${SUDO_USER:-}" ]] &&
-     { _is_container || [[ "${PIP_BREAK_SYSTEM_PACKAGES:-}" == "1" ]]; }; then
-    # Root in a container (or an environment already opting into system
-    # installation): the container's interpreter is the one environment.
-    # Root on a *host* falls through to read-only reuse or the managed venv.
-    _use_root_system
 elif [[ -z "${HOLOSCAN_CLI_SOURCE:-}" ]] && _holoscan_cli_ok python3; then
     CLI_ENV="system-readonly"
     PYTHON_BIN="python3"
@@ -195,22 +181,19 @@ _ensure_pip() {
 
 _install_cli() {
     local python="$1"
-    if [[ "${CLI_ENV}" == "managed" ]]; then
-        _refuse_foreign_sudo_write "${HOLOSCAN_CLI_VENV}"
-        _provision_lock
-    fi
     _ensure_pip "${python}" || return 1
 
     if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
         echo "[holohub] installing holoscan-cli from ${HOLOSCAN_CLI_SOURCE}" >&2
         "${python}" -m pip install --upgrade "${HOLOSCAN_CLI_SOURCE}" || return 1
     else
-        local rc=0
-        set -f # the args must word-split, but must not glob against CWD files
-        # shellcheck disable=SC2086
-        "${python}" -m pip install ${CLI_INSTALL_ARGS} || rc=$?
-        set +f
-        [[ "${rc}" -eq 0 ]] || return 1
+        local IFS=$' \t\n'
+        local -a install_args=()
+        read -r -a install_args <<< "${HOLOSCAN_CLI_INSTALL_ARGS}"
+        if [[ -n "${HOLOSCAN_CLI_PINNED_VERSION}" ]]; then
+            install_args+=("holoscan-cli==${HOLOSCAN_CLI_PINNED_VERSION}")
+        fi
+        "${python}" -m pip install "${install_args[@]}" || return 1
     fi
 
     if _holoscan_cli_ok "${python}"; then
@@ -230,7 +213,7 @@ _install_cli() {
 
 if [[ -z "${CLI_READY}" ]] && ! _holoscan_cli_ok "${PYTHON_BIN}"; then
     if [[ "${CLI_ENV}" == "root-system" ]]; then
-        echo "[holohub] Installing holoscan-cli into the container's system Python." >&2
+        echo "[holohub] Installing holoscan-cli into system Python as root." >&2
     fi
     _install_cli "${PYTHON_BIN}" || {
         echo "[holohub] Could not install holoscan-cli into ${PYTHON_BIN}." >&2
@@ -249,6 +232,4 @@ _q() {
 extras=" --build-arg $(_q "HOLOSCAN_CLI_INSTALL_ARGS=${CLI_INSTALL_ARGS}")"
 export HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS="${HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS:-}${extras}"
 
-# Release the provisioning lock, if held, before replacing the process.
-{ exec 9>&-; } 2>/dev/null || true
 exec "${PYTHON_BIN}" -m holoscan_cli "$@"

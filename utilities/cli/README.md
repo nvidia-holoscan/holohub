@@ -35,29 +35,35 @@ This directory keeps the user-facing CLI documentation:
 
 The `./holohub` script selects one Python environment in this order:
 
-1. `HOLOSCAN_CLI_PYTHON_BIN` (or the legacy override) and an active virtual
-   environment are caller-owned.
-2. An existing wrapper-managed venv is reused.
-3. Root **in a container** (detected by container markers, or by an
-   environment that already opts into system installation via
-   `PIP_BREAK_SYSTEM_PACKAGES=1`, as Holoscan SDK base images do) uses the
-   container's system Python. Root on a host is not, by itself, this signal:
-   a direct root login falls through to the next steps.
-4. A compatible system CLI is reused without wrapper pip installation. This
-   supports existing `sudo pip` installations and non-root runtime containers.
-5. Otherwise the wrapper creates and provisions its managed venv (concurrent
-   first runs are serialized by a lock). If venv creation fails while running
-   as root — for example a minimal image without `python3-venv` — the wrapper
-   falls back to the system interpreter loudly instead of failing the build.
+1. An explicit `HOLOSCAN_CLI_PYTHON_BIN` (or legacy
+   `HOLOHUB_PYTHON_BIN`) and an active `VIRTUAL_ENV` are caller-owned and win.
+2. Root uses system Python inside a container (container markers, or the
+   `/tmp/scripts` Dockerfile bootstrap location).
+   This check intentionally precedes an implicit `/root` managed venv so a CLI
+   installed while building a container remains available after `USER` changes.
+3. A healthy wrapper-managed venv is reused.
+4. A compatible system CLI is reused read-only. This supports previous global
+   installations and containers built as root but run as a regular user.
+5. Otherwise the wrapper creates and provisions its managed venv. A failed
+   venv creation is reported with the `python3-venv` installation hint; it
+   never falls back to modifying system Python.
 
 A venv isolates Python packages, not operating-system resources; commands still
 have normal access to devices, CUDA, files, networking, and system libraries.
-On a host — ordinary, sudo, or direct root — wrapper bootstrap never installs
-into system Python unless the caller explicitly selects that interpreter (an
-explicit `PIP_BREAK_SYSTEM_PACKAGES=0` opt-out is also respected in
-containers). Under `sudo` that preserves the caller's `HOME`/`XDG_DATA_HOME`,
-the wrapper refuses to create or modify a managed venv inside directories the
-caller owns — re-run without sudo, or use `sudo -H` for a root-owned HOME.
+On a host, wrapper bootstrap does not modify system Python: root installs
+system-wide only with a positive container marker or when the wrapper's
+physical directory is exactly `/tmp/scripts`, the controlled Dockerfile
+bootstrap location. A compatible system CLI may still be reused read-only, and
+an explicit caller-owned interpreter always has highest precedence.
+
+`PIP_BREAK_SYSTEM_PACKAGES` controls pip only after system scope has been
+selected; it is not a host/container signal. The wrapper defaults it to `1` in
+root system scope and respects an explicit `0`. Under `sudo` that preserves a
+caller's `HOME`/`XDG_DATA_HOME`, the wrapper refuses to use or create a managed
+venv below directories that are not root-controlled. Re-run without sudo, or
+use `sudo -H` for a root-owned home. Explicit interpreter and active-venv
+overrides are trusted and bypass this managed-path check; do not preserve them
+through `sudo` unless that is intentional.
 
 It then does three things in order:
 
@@ -69,13 +75,15 @@ It then does three things in order:
    `HOLOSCAN_CLI_PINNED_VERSION` is set, package metadata must also match that
    exact version.
 2. If the probe fails, it bootstraps pip when missing and `pip install`s the
-   package. The install spec is chosen in this precedence order:
+   package. The source/package choice has this precedence:
 
-   | Env var                       | Behavior                                                                                                 |
-   | ----------------------------- | -------------------------------------------------------------------------------------------------------- |
-   | `HOLOSCAN_CLI_SOURCE`         | Valid local checkout. Wins over package installation and bypasses package-version matching.              |
-   | `HOLOSCAN_CLI_INSTALL_ARGS`   | Pip arguments; defaults to `--pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0`.         |
-   | `HOLOSCAN_CLI_PINNED_VERSION` | Exact canonical package version; mismatch is reconciled and verified. Empty keeps floating behavior.     |
+   - `HOLOSCAN_CLI_SOURCE` selects a valid local checkout, wins over package
+     installation, and bypasses package-version matching.
+   - `HOLOSCAN_CLI_INSTALL_ARGS` supplies single-line, whitespace-separated
+     pip tokens. It defaults to `--pre --extra-index-url
+     https://pypi.nvidia.com holoscan-cli>4.2.0`; shell quotes are not parsed.
+   - `HOLOSCAN_CLI_PINNED_VERSION` supplies one exact package version. A
+     mismatch is installed and verified; an empty value keeps floating mode.
 
    The exact requirement is appended to the effective pip arguments. It is
    also forwarded through the existing Docker build argument; Dockerfiles that
@@ -87,9 +95,36 @@ It then does three things in order:
    for this repo, then delegates the user's argv to
    the selected environment's `python -m holoscan_cli`.
 
-The legacy `HOLOHUB_*` env-var spellings are still honored for one release
-with a one-line deprecation warning; this wrapper sets the new names
-proactively so the warning never fires.
+### Wrapper configuration
+
+| Variable | Default | Effect |
+| --- | --- | --- |
+| `HOLOSCAN_CLI_PYTHON_BIN` | unset | Explicit caller-owned Python interpreter; highest precedence. |
+| `HOLOHUB_PYTHON_BIN` | unset | Legacy alias for `HOLOSCAN_CLI_PYTHON_BIN`. |
+| `VIRTUAL_ENV` | unset | Its `bin/python` is used when no explicit interpreter is set. |
+| `HOLOSCAN_CLI_VENV` | `${XDG_DATA_HOME:-$HOME/.local/share}/holoscan-cli/venv` | Location of the wrapper-managed environment. Set it explicitly when neither `HOME` nor `XDG_DATA_HOME` exists and a managed environment is needed. |
+| `HOLOSCAN_CLI_SOURCE` | unset | Local holoscan-cli checkout; prepends `<checkout>/src` to `PYTHONPATH` and installs from that checkout if needed. |
+| `HOLOSCAN_CLI_INSTALL_ARGS` | `--pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0` | Floating package and index arguments, parsed as single-line whitespace-separated tokens without shell evaluation. |
+| `HOLOSCAN_CLI_PINNED_VERSION` | unset | Requires one exact installed package version token and appends `holoscan-cli==<version>` to the effective pip/Docker arguments. Whitespace is rejected; ignored with `HOLOSCAN_CLI_SOURCE`. |
+| `PIP_BREAK_SYSTEM_PACKAGES` | `1` in root system scope | Passed to pip for PEP 668 behavior. It does not authorize or select system installation. |
+| `HOLOSCAN_CLI_BASE_SDK_VERSION` | `4.4.0` | Default Holoscan SDK base-image version used by CLI container commands. |
+| `HOLOSCAN_CLI_CTEST_SCRIPT` | `utilities/testing/holohub.container.ctest` | CTest driver used by `./holohub test`. |
+| `HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS` | unset | Existing default Docker build arguments; the wrapper appends its effective CLI install constraint. |
+
+Floating mode keeps any compatible CLI and does not upgrade it on every run.
+To force a version, set `HOLOSCAN_CLI_PINNED_VERSION`; the wrapper reconciles
+and verifies it. To inspect or manage the default venv directly:
+
+```bash
+cli_venv="${XDG_DATA_HOME:-$HOME/.local/share}/holoscan-cli/venv"
+"${cli_venv}/bin/python" -m pip show holoscan-cli
+"${cli_venv}/bin/python" -m pip install --upgrade \
+  --pre --extra-index-url https://pypi.nvidia.com 'holoscan-cli>4.2.0'
+rm -rf "${cli_venv}"  # remove only the wrapper-managed CLI environment
+```
+
+After removal, the next invocation resolves again: it may reuse a compatible
+system CLI read-only or create a new managed environment.
 
 ## holoscan-cli smoke test
 
