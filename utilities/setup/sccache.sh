@@ -72,7 +72,8 @@ check_existing_sccache() {
     sccache_bin="$(command -v sccache 2>/dev/null || true)"
     [[ -n "$sccache_bin" ]] || sccache_bin="$SYMLINK_PATH"
     [[ -x "$sccache_bin" ]] || return 1
-    local ver_output=$("$sccache_bin" --version 2>/dev/null || true)
+    local ver_output
+    ver_output=$("$sccache_bin" --version 2>/dev/null || true)
     echo "$ver_output" | grep -q "rapids" || return 1
 
     local installed_ver=$(parse_version "$(echo "$ver_output" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)")

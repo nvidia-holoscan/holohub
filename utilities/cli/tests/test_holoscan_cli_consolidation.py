@@ -93,11 +93,14 @@ def test_unified_cli_dryruns_holohub_project_run():
 
 
 def _run_holohub_wrapper(
-    *args: str, extra_env: Dict[str, str] | None = None
+    *args: str,
+    extra_env: Dict[str, str] | None = None,
+    env: Dict[str, str] | None = None,
 ) -> subprocess.CompletedProcess:
-    env = _holoscan_cli_env()
-    if extra_env:
-        env.update(extra_env)
+    if env is None:
+        env = _holoscan_cli_env()
+        if extra_env:
+            env.update(extra_env)
     try:
         result = subprocess.run(
             [str(REPO_ROOT / "holohub"), *args],
@@ -152,16 +155,7 @@ def test_wrapper_runs_source_override_from_managed_venv(tmp_path):
         env.pop(var, None)
     env["HOLOSCAN_CLI_SOURCE"] = source
     env["HOLOSCAN_CLI_VENV"] = str(tmp_path / "holoscan-cli-venv")
-    result = subprocess.run(
-        [str(REPO_ROOT / "holohub"), "env-info"],
-        cwd=REPO_ROOT,
-        env=env,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        check=False,
-        timeout=CLI_TIMEOUT_SECONDS,
-    )
+    result = _run_holohub_wrapper("env-info", env=env)
 
     assert result.returncode == 0, result.stderr
     assert f"Executable: {env['HOLOSCAN_CLI_VENV']}/bin/python" in result.stdout
