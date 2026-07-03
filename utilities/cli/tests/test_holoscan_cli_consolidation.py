@@ -153,16 +153,6 @@ def test_wrapper_runs_host_setup_from_managed_venv(tmp_path):
     # (e.g. when pytest itself runs inside an activated venv).
     for var in ("PYTHONPATH", "VIRTUAL_ENV", "HOLOSCAN_CLI_PYTHON_BIN", "HOLOHUB_PYTHON_BIN"):
         env.pop(var, None)
-    test_home = tmp_path / "home"
-    test_home.mkdir()
-    env["HOME"] = str(test_home)
-    # Keep a developer's existing ngc installation from short-circuiting the
-    # dry-run destination assertion below.
-    env["PATH"] = os.pathsep.join(
-        entry
-        for entry in env.get("PATH", "").split(os.pathsep)
-        if entry and not (Path(entry) / "ngc").exists()
-    )
     env["HOLOSCAN_CLI_SOURCE"] = source
     env["HOLOSCAN_CLI_VENV"] = str(tmp_path / "holoscan-cli-venv")
     result = _run_holohub_wrapper("env-info", env=env)
@@ -170,13 +160,12 @@ def test_wrapper_runs_host_setup_from_managed_venv(tmp_path):
     assert result.returncode == 0, result.stderr
     assert f"Executable: {env['HOLOSCAN_CLI_VENV']}/bin/python" in result.stdout
 
+    # Assert only the wrapper contract: the default setup dry-runs through the
+    # managed venv. Per-step behavior (apt, ngc/sccache destinations) belongs
+    # to holoscan-cli's own test suites -- asserting it here would couple this
+    # repo's CI to unreleased holoscan-cli changes.
     setup_result = _run_holohub_wrapper("setup", "--dryrun", env=env)
-    setup_output = setup_result.stdout + setup_result.stderr
-    user_ngc = str(Path(env["HOME"]) / ".local" / "bin" / "ngc")
-
-    assert setup_result.returncode == 0, setup_output
-    assert user_ngc in setup_output
-    assert "/usr/local/bin/ngc" not in setup_output
+    assert setup_result.returncode == 0, setup_result.stdout + setup_result.stderr
 
 
 def test_wrapper_dryruns_project_run_through_consolidated_cli():
