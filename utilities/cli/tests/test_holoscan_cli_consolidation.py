@@ -139,8 +139,8 @@ def test_wrapper_delegates_list_to_holoscan_cli():
     assert "endoscopy_tool_tracking" in result.stdout
 
 
-def test_wrapper_runs_source_override_from_managed_venv(tmp_path):
-    """A source override still runs inside the wrapper-managed venv."""
+def test_wrapper_runs_host_setup_from_managed_venv(tmp_path):
+    """A source override and setup both run inside the managed host venv."""
     source = os.environ.get("HOLOSCAN_CLI_SOURCE")
     if not source:
         pytest.skip("set HOLOSCAN_CLI_SOURCE to test managed-venv bootstrap")
@@ -153,12 +153,30 @@ def test_wrapper_runs_source_override_from_managed_venv(tmp_path):
     # (e.g. when pytest itself runs inside an activated venv).
     for var in ("PYTHONPATH", "VIRTUAL_ENV", "HOLOSCAN_CLI_PYTHON_BIN", "HOLOHUB_PYTHON_BIN"):
         env.pop(var, None)
+    test_home = tmp_path / "home"
+    test_home.mkdir()
+    env["HOME"] = str(test_home)
+    # Keep a developer's existing ngc installation from short-circuiting the
+    # dry-run destination assertion below.
+    env["PATH"] = os.pathsep.join(
+        entry
+        for entry in env.get("PATH", "").split(os.pathsep)
+        if entry and not (Path(entry) / "ngc").exists()
+    )
     env["HOLOSCAN_CLI_SOURCE"] = source
     env["HOLOSCAN_CLI_VENV"] = str(tmp_path / "holoscan-cli-venv")
     result = _run_holohub_wrapper("env-info", env=env)
 
     assert result.returncode == 0, result.stderr
     assert f"Executable: {env['HOLOSCAN_CLI_VENV']}/bin/python" in result.stdout
+
+    setup_result = _run_holohub_wrapper("setup", "--dryrun", env=env)
+    setup_output = setup_result.stdout + setup_result.stderr
+    user_ngc = str(Path(env["HOME"]) / ".local" / "bin" / "ngc")
+
+    assert setup_result.returncode == 0, setup_output
+    assert user_ngc in setup_output
+    assert "/usr/local/bin/ngc" not in setup_output
 
 
 def test_wrapper_dryruns_project_run_through_consolidated_cli():

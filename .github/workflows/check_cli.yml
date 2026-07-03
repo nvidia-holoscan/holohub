@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
@@ -82,10 +82,10 @@ jobs:
   # than the NVIDIA PyPI wheel. This catches breakage when an in-flight
   # holoscan-cli change lands ahead of a new release candidate.
   check-cli-source:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
@@ -115,3 +115,51 @@ jobs:
         env:
           HOLOSCAN_CLI_SOURCE: ${{ github.workspace }}/holoscan-cli-src
         run: python -m pytest -v --noconftest utilities/cli/tests/test_holoscan_cli_consolidation.py
+
+      # Execute one inexpensive named setup script as the ordinary runner
+      # user. This covers the script's per-operation sudo contract in addition
+      # to the default setup dry-run exercised by the consolidation suite.
+      - name: Run non-root host setup script
+        env:
+          CLI_SOURCE: ${{ github.workspace }}/holoscan-cli-src
+          USER_HOME: ${{ runner.temp }}/holohub-user
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y python3-venv
+          mkdir -p "${USER_HOME}"
+          run_as_user() {
+            HOME="${USER_HOME}" \
+              PATH="/usr/sbin:/usr/bin:/sbin:/bin" \
+              HOLOSCAN_CLI_SOURCE="${CLI_SOURCE}" \
+              HOLOSCAN_CLI_VENV="${USER_HOME}/cli-venv" \
+              "$@"
+          }
+          run_as_user ./holohub setup --scripts xvfb --dryrun
+          run_as_user ./holohub setup --scripts xvfb
+          command -v xvfb-run
+
+      # The original PEP 668 regression was a host-side sudo invocation, not a
+      # container build. Exercise that resolver branch with distro Python and a
+      # temporary root HOME; CLI setup itself remains a non-mutating dry run.
+      - name: Run sudo host setup through a managed venv
+        env:
+          CLI_SOURCE: ${{ github.workspace }}/holoscan-cli-src
+          ROOT_HOME: ${{ runner.temp }}/holohub-root
+        run: |
+          root_venv="${ROOT_HOME}/.local/share/holoscan-cli/venv"
+          run_as_root() {
+            sudo env \
+              -u HOLOSCAN_CLI_PYTHON_BIN \
+              -u HOLOHUB_PYTHON_BIN \
+              -u PIP_BREAK_SYSTEM_PACKAGES \
+              -u PYTHONPATH \
+              -u VIRTUAL_ENV \
+              HOME="${ROOT_HOME}" \
+              PATH="/usr/sbin:/usr/bin:/sbin:/bin" \
+              HOLOSCAN_CLI_SOURCE="${CLI_SOURCE}" \
+              HOLOSCAN_CLI_VENV="${root_venv}" \
+              "$@"
+          }
+          run_as_root ./holohub env-info | tee "${RUNNER_TEMP}/root-env-info.txt"
+          grep -Fq "Executable: ${root_venv}/bin/python" "${RUNNER_TEMP}/root-env-info.txt"
+          run_as_root ./holohub setup --dryrun
