@@ -5,11 +5,32 @@ and to support advanced project use cases.
 
 ## Table of Contents
 
+- [The `./holohub` Script and the Holoscan CLI](#the-holohub-script-and-the-holoscan-cli)
 - [Native Build](#native-build)
 - [Advanced Container Build Options](#advanced-build-options-container)
 - [Advanced Container Launch Options](#advanced-launch-options-container)
 - [Advanced Options for Building Applications](#advanced-options-for-building-applications)
 - [Advanced Options for Running Applications](#advanced-options-for-running-applications)
+
+## The `./holohub` Script and the Holoscan CLI
+
+The `./holohub` script is a thin wrapper around the standalone
+[holoscan-cli](https://github.com/nvidia-holoscan/holoscan-cli) package. On
+first use it selects a Python environment for the CLI — typically a
+wrapper-managed venv under `~/.local/share/holoscan-cli/venv` (requires
+`python3-venv`) — and installs the package there, so the first run needs
+network access. Run `./holohub` as your normal user; **no sudo needed** —
+`setup` elevates the individual system operations itself.
+
+See [utilities/cli/README.md](../utilities/cli/README.md) for the full
+environment-selection order and the `HOLOSCAN_CLI_*` variables that control
+it (interpreter, venv location, source checkout, install arguments, version
+pin). `./holohub env-info` reports which environment was selected and how to
+remove the CLI; to uninstall the managed environment entirely:
+
+```bash
+rm -rf ~/.local/share/holoscan-cli/venv   # the next ./holohub run re-creates it
+```
 
 ## Native Build
 
@@ -20,14 +41,14 @@ Refer to the [Holoscan SDK README](https://github.com/nvidia-holoscan/holoscan-s
 Install the package dependencies for HoloHub on your host system. The easiest way to make sure the minimal package dependencies is to use the `./holohub` script from the top level directory.
 
 ```bash
-  ./holohub setup  # sudo privileges may be required
+  ./holohub setup  # run as your normal user; individual steps elevate with sudo as needed
 ```
 
 If you prefer you can also install the dependencies manually, typically including the following:
 
 - [CMake](https://www.cmake.org): 3.24.0+
-- Python interpreter: 3.9 to 3.12
-- Python dev: 3.9 to 3.12 (matching version of the interpreter)
+- Python interpreter: 3.10 to 3.13
+- Python dev: 3.10 to 3.13 (matching version of the interpreter)
 - ffmpeg runtime
 - [ngc-cli](https://ngc.nvidia.com/setup/installers/cli)
 - wget
