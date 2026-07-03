@@ -125,7 +125,9 @@ fi
 
 # Fail early if the selected interpreter doesn't exist (e.g. a typo'd
 # HOLOSCAN_CLI_PYTHON_BIN), rather than surfacing a misleading pip error later.
-PYTHON_PATH="$(command -v "${PYTHON_BIN}" 2>/dev/null || true)"
+# `type -P` resolves executables only -- unlike `command -v`, it cannot return
+# an exported shell function's bare name, which dirname would turn into ".".
+PYTHON_PATH="$(type -P "${PYTHON_BIN}" 2>/dev/null || true)"
 if [[ -z "${PYTHON_PATH}" ]]; then
     echo "[holohub] Python interpreter not found: ${PYTHON_BIN}" \
          "(check HOLOSCAN_CLI_PYTHON_BIN / HOLOHUB_PYTHON_BIN / your active venv)." >&2
