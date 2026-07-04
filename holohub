@@ -161,7 +161,8 @@ export PATH="${PYTHON_DIR}:${PATH}"
 _ensure_pip() {
     "$1" -m pip --version >/dev/null 2>&1 && return
     "$1" -m ensurepip --upgrade >/dev/null 2>&1 || {
-        echo "[holohub] $1 has no pip and ensurepip is unavailable." >&2
+        echo "[holohub] $1 has no pip and ensurepip is unavailable; install" \
+             "python3-pip, or choose another interpreter (HOLOSCAN_CLI_PYTHON_BIN)." >&2
         return 1
     }
 }
