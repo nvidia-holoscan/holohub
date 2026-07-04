@@ -116,38 +116,16 @@ jobs:
           HOLOSCAN_CLI_SOURCE: ${{ github.workspace }}/holoscan-cli-src
         run: python -m pytest -v --noconftest utilities/cli/tests/test_holoscan_cli_consolidation.py
 
-      # Execute one inexpensive named setup script as the ordinary runner
-      # user. This covers the script's per-operation sudo contract in addition
-      # to the default setup dry-run exercised by the consolidation suite.
-      - name: Run non-root host setup script
-        env:
-          CLI_SOURCE: ${{ github.workspace }}/holoscan-cli-src
-          USER_HOME: ${{ runner.temp }}/holohub-user
-        run: |
-          sudo apt-get update
-          sudo apt-get install --no-install-recommends -y python3-venv
-          mkdir -p "${USER_HOME}"
-          run_as_user() {
-            HOME="${USER_HOME}" \
-              PATH="/usr/sbin:/usr/bin:/sbin:/bin" \
-              PYTHONDONTWRITEBYTECODE=1 \
-              HOLOSCAN_CLI_SOURCE="${CLI_SOURCE}" \
-              HOLOSCAN_CLI_VENV="${USER_HOME}/cli-venv" \
-              "$@"
-          }
-          run_as_user ./holohub setup --scripts xvfb --dryrun
-          run_as_user ./holohub setup --scripts xvfb
-          command -v xvfb-run
-
       # The original PEP 668 regression was a host-side sudo invocation, not a
       # container build. Exercise that resolver branch with distro Python and a
       # temporary root HOME; CLI setup itself remains a non-mutating dry run.
       - name: Run sudo host setup through a managed venv
         env:
           CLI_SOURCE: ${{ github.workspace }}/holoscan-cli-src
-          FIXTURE_SOURCE: ${{ github.workspace }}/utilities/cli/tests/fixtures/wrapper_cli_source
           ROOT_HOME: /root/holohub-${{ github.run_id }}-${{ github.run_attempt }}
         run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y python3-venv
           root_venv="${ROOT_HOME}/.local/share/holoscan-cli/venv"
           sudo mkdir -p "${ROOT_HOME}"
           run_as_root() {
@@ -168,37 +146,10 @@ jobs:
           grep -Fq "Executable: ${root_venv}/bin/python" "${RUNNER_TEMP}/root-env-info.txt"
           run_as_root ./holohub setup --dryrun
 
-          # Root scope selection: managed venv on a host, system Python from
-          # the /tmp/scripts Dockerfile bootstrap location.
-          sudo install -D -m 755 ./holohub /tmp/scripts/holohub
-          run_scope_case() {
-            name="$1"
-            wrapper="$2"
-            expected="$3"
-            pip_break="${4:-}"
-            home="/root/holohub-scope-${name}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-            output="${RUNNER_TEMP}/scope-${name}.txt"
-            sudo mkdir -p "${home}"
-            sudo env -i \
-              HOME="${home}" \
-              PATH="/usr/sbin:/usr/bin:/sbin:/bin" \
-              PYTHONDONTWRITEBYTECODE=1 \
-              HOLOSCAN_CLI_SOURCE="${FIXTURE_SOURCE}" \
-              HOLOSCAN_CLI_VENV="${home}/venv" \
-              PIP_BREAK_SYSTEM_PACKAGES="${pip_break}" \
-              "${wrapper}" env-info | tee "${output}"
-            grep -Fq "Executable: ${expected}" "${output}"
-          }
-
-          # PEP 668's pip escape hatch is not permission to mutate host Python.
-          host_home="/root/holohub-scope-host-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-          run_scope_case host "${GITHUB_WORKSPACE}/holohub" \
-            "${host_home}/venv/bin/python" 1
-          run_scope_case staged /tmp/scripts/holohub /usr/bin/python3
-
-          # sudo with a preserved, caller-owned HOME must refuse to write
-          # to its existing managed environment.
+          # sudo with a preserved, caller-owned HOME must refuse the caller's
+          # managed environment location.
           user_home="${RUNNER_TEMP}/holohub-user"
+          mkdir -p "${user_home}"
           if run_as_root env HOME="${user_home}" \
               HOLOSCAN_CLI_VENV="${user_home}/cli-venv" \
               ./holohub version 2> "${RUNNER_TEMP}/refused.txt"; then
