@@ -126,6 +126,10 @@ rm -rf "${cli_venv}"  # remove only the wrapper-managed CLI environment
 After removal, the next invocation resolves again: it may reuse a compatible
 system CLI read-only or create a new managed environment.
 
+Never run the wrapper with `sudo`. When an application needs root, use
+`./holohub run <app> --as-root` (with or without `--local`): the build stays
+user-owned and only the application phase runs as root.
+
 ## holoscan-cli smoke test
 
 ```bash

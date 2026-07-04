@@ -206,3 +206,17 @@ jobs:
             exit 1
           fi
           grep -Fq "Refusing to use" "${RUNNER_TEMP}/refused.txt"
+
+          # A root-owned leaf is still unsafe when a caller-owned directory is
+          # one of its ancestors (for example, residue from an older sudo run).
+          root_owned_venv="${user_home}/root-owned-cli-venv"
+          sudo mkdir -p "${root_owned_venv}"
+          sudo chown root:root "${root_owned_venv}"
+          if run_as_root env HOME="${user_home}" \
+              HOLOSCAN_CLI_VENV="${root_owned_venv}" \
+              ./holohub version 2> "${RUNNER_TEMP}/refused-root-leaf.txt"; then
+            echo "expected the wrapper to refuse a root-owned leaf below a foreign HOME" >&2
+            exit 1
+          fi
+          grep -Fq "${user_home} is not root-owned" \
+            "${RUNNER_TEMP}/refused-root-leaf.txt"

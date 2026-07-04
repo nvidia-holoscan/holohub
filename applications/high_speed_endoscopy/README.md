@@ -66,14 +66,14 @@ make -j
 
 ```bash
 cd <HOLOHUB_SOURCE_DIR>
-sudo ./holohub run high_speed_endoscopy --local --language cpp
+./holohub run high_speed_endoscopy --local --as-root --language cpp
 ```
 
 For python version:
 
 ```bash
 cd <HOLOHUB_SOURCE_DIR>
-sudo ./holohub run high_speed_endoscopy --local --language python
+./holohub run high_speed_endoscopy --local --as-root --language python
 ```
 
 ## Troubleshooting
@@ -82,7 +82,7 @@ sudo ./holohub run high_speed_endoscopy --local --language python
     - Make sure that the MLNX ConnectX SmartNIC is configured with the correct IP address. See [EVT troubleshooting](../../operators/emergent_source/setup.md#troubleshooting).
 
 2. **Problem:** The application fails to open the EVT camera.
-    - Make sure that the application was run with `sudo` privileges.
+    - Make sure that the application was run with `--as-root`.
     - Make sure a valid Rivermax license file is located at `/opt/mellanox/rivermax/rivermax.lic`.
     - Make sure that a previously run `high_speed_endoscopy` application has been terminated successfully. One might need to run `sudo kill -9 <PID>` to terminate the application.
 

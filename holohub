@@ -55,16 +55,21 @@ _is_container() {
 # sudo keeping the caller's HOME must not write root-owned files into it.
 _refuse_foreign_sudo_venv() {
     [[ "${EUID}" -eq 0 && -n "${SUDO_USER:-}" ]] || return 0
-    local probe
-    probe="$(realpath -m -- "$1" 2>/dev/null)" || probe="$1"
-    while [[ ! -e "${probe}" && "${probe}" != "/" ]]; do
+    local probe owner
+    probe="$(realpath -m -- "$1" 2>/dev/null)" || probe=""
+    while [[ ! -e "${probe:-/}" ]]; do
         probe="$(dirname -- "${probe}")"
     done
-    if [[ "$(stat -c %u -- "${probe}" 2>/dev/null)" != "0" ]]; then
-        echo "[holohub] Refusing to use ${1} as root: ${probe} is not root-owned." >&2
-        echo "[holohub] Re-run without sudo, or use sudo -H." >&2
-        exit 1
-    fi
+    while :; do
+        owner="$(stat -c %u -- "${probe}" 2>/dev/null || echo -1)"
+        if [[ -z "${probe}" || "${owner}" != "0" ]]; then
+            echo "[holohub] Refusing to use ${1} as root: ${probe:-$1} is not root-owned." >&2
+            echo "[holohub] Re-run without sudo, or use sudo -H." >&2
+            exit 1
+        fi
+        [[ "${probe}" == "/" ]] && return 0
+        probe="$(dirname -- "${probe}")"
+    done
 }
 
 _managed_venv_ready() {
