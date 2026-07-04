@@ -132,9 +132,11 @@ elif [[ "${EUID}" -eq 0 ]] &&
 elif _managed_venv_available; then
     CLI_ENV="managed"
     PYTHON_BIN="${HOLOSCAN_CLI_VENV}/bin/python"
-elif [[ -z "${HOLOSCAN_CLI_SOURCE:-}" ]] && _holoscan_cli_ok python3; then
+elif [[ -z "${HOLOSCAN_CLI_SOURCE:-}" ]] &&
+     SYSTEM_PYTHON="$(type -P python3 2>/dev/null)" &&
+     _holoscan_cli_ok "${SYSTEM_PYTHON}"; then
     CLI_ENV="system-readonly"
-    PYTHON_BIN="python3"
+    PYTHON_BIN="${SYSTEM_PYTHON}"
     CLI_READY=1
 else
     _use_managed_venv
