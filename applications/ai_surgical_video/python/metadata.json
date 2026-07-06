@@ -1,6 +1,6 @@
 {
-	"workflow": {
-		"name": "Real-Time AI End-to-End Surgical Video Workflow",
+	"application": {
+		"name": "Real-Time End-to-end AI Surgical Video Pipeline",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -55,7 +55,7 @@
 				}
 			]
 		},
-		"dockerfile": "workflows/ai_surgical_video/Dockerfile",
+		"dockerfile": "applications/ai_surgical_video/Dockerfile",
 		"default_mode": "replayer",
 		"modes": {
 			"replayer": {

@@ -41,11 +41,6 @@ METADATA_DIRECTORY_CONFIG = {
         "metadata_is_required": False,
         "schema": "tutorial",
     },
-    "workflows": {
-        "ignore_patterns": ["template"],
-        "metadata_is_required": True,
-        "schema": "workflow",
-    },
     "modules": {
         "ignore_patterns": ["template"],
         "metadata_is_required": True,
