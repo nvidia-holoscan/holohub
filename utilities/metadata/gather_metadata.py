@@ -69,7 +69,6 @@ def extract_project_name(metadata_filepath: str) -> str:
     The following are valid examples:
     - applications/my_application/metadata.json -> my_application
     - applications/nested/paths/my_application/cpp/metadata.json -> my_application
-    - workflows/my_workflow/metadata.json -> my_workflow
 
     """
     parts = metadata_filepath.split(os.sep)
@@ -79,7 +78,7 @@ def extract_project_name(metadata_filepath: str) -> str:
 
 
 def generate_build_and_run_command(entry: dict) -> str:
-    """Generate the build and run command for the application or workflow"""
+    """Generate the build and run command for the application"""
     project_name = entry.get("project_name") or entry.get("application_name")
     if not project_name:
         return ""
@@ -136,7 +135,6 @@ def gather_metadata(repo_paths: list[str], exclude_paths: list[str] = None) -> l
         "package",
         "operator",
         "tutorial",
-        "workflow",
     ]
 
     metadata = []
@@ -168,7 +166,7 @@ def gather_metadata(repo_paths: list[str], exclude_paths: list[str] = None) -> l
                     data["readme"] = readme
                     data["project_name"] = project_name
                     data["source_folder"] = str(source_folder)
-                    if data["project_type"] in ["application", "benchmark", "workflow"]:
+                    if data["project_type"] in ["application", "benchmark"]:
                         command = generate_build_and_run_command(data)
                         if command:
                             data["build_and_run"] = command

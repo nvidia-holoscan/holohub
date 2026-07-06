@@ -323,7 +323,6 @@ def get_unique_first_tags(git_repo_path: Path, component_type: str) -> dict:
         "operators": "operator",
         "tutorials": "tutorial",
         "benchmarks": "benchmark",
-        "workflows": "workflow",
     }
     expected_key = component_key_map.get(component_type, component_type.rstrip("s"))
 
@@ -415,7 +414,6 @@ def generate_component_html(component_type: str, output_path: str):
         "operators": "operator",
         "tutorials": "tutorial",
         "benchmarks": "benchmark",
-        "workflows": "workflow",
     }
     expected_key = component_key_map.get(component_type, component_type.rstrip("s"))
 
@@ -526,7 +524,6 @@ def main():
         "applications",
         "benchmarks",
         "tutorials",
-        "workflows",
     ]
 
     # Validate output file path
