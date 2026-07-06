@@ -19,9 +19,7 @@ import pytest
 pytest.importorskip("holoscan", reason="holoscan SDK not installed", exc_type=ImportError)
 
 
-EXPECTED_OPERATORS = (
-    "{{ op_class }}",
-)
+EXPECTED_OPERATORS = ("{{ op_class }}",)
 
 
 @pytest.mark.parametrize("operator_name", EXPECTED_OPERATORS)
@@ -34,8 +32,7 @@ def test_operator_is_importable(operator_name):
     )
     operator_cls = getattr(module, operator_name)
     assert inspect.isclass(operator_cls), (
-        f"holoscan.{{ cookiecutter.module_slug }}.{operator_name} is not a class "
-        f"(got {type(operator_cls)!r})"
+        f"holoscan.{{ cookiecutter.module_slug }}.{operator_name} is not a class (got {type(operator_cls)!r})"
     )
 
 

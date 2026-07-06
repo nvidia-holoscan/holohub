@@ -107,7 +107,7 @@ class TestCreateModule(unittest.TestCase):
                 Path("README.md"),
                 Path("DEVELOPER.md"),
                 Path(f"operators/{operator_slug}/{operator_slug}.py"),
-                Path(f"applications/{app_name}/metadata.json"),
+                Path(f"applications/{app_name}/python/metadata.json"),
                 Path("python") / "holoscan" / module_slug / "__init__.py",
             ]
             for rel in expected_paths:
@@ -178,8 +178,9 @@ class TestCreateModule(unittest.TestCase):
                 Path(f"operators/{operator_slug}/{operator_slug}.cpp"),
                 Path(f"operators/{operator_slug}/{operator_slug}.hpp"),
                 Path(f"operators/{operator_slug}/python/_{operator_slug}_bindings.cpp"),
-                Path(f"applications/{app_name}/metadata.json"),
-                Path(f"applications/{app_name}/{app_name}.cpp"),
+                Path(f"applications/{app_name}/python/metadata.json"),
+                Path(f"applications/{app_name}/cpp/metadata.json"),
+                Path(f"applications/{app_name}/cpp/{app_name}.cpp"),
                 Path("tests/cpp/test_operators.cpp"),
                 Path(".clang-format"),
                 Path("python") / "holoscan" / module_slug / "__init__.py",

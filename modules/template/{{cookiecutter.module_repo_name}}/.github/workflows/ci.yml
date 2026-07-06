@@ -21,6 +21,10 @@ jobs:
       - run: pip install ruff
       - name: Python lint
         run: ruff check .
+      - name: Validate metadata.json against the Holoscan CLI schema
+        run: |
+          pip install holoscan-cli
+          python .github/workflows/scripts/validate_metadata.py
 {% if cookiecutter.language == 'cpp' %}
       - name: Install clang-format
         run: sudo apt-get update && sudo apt-get install -y clang-format
@@ -83,7 +87,7 @@ jobs:
       - name: Python tests (pytest)
         run: |
           {{ cookiecutter.module_slug | upper }}_BUILD_DIR=build \
-          PYTHONPATH=build/python${PYTHONPATH:+:$PYTHONPATH} \
+          PYTHONPATH=build/python/lib${PYTHONPATH:+:$PYTHONPATH} \
           python -m pytest tests/python/ -v --tb=short
 
       - uses: actions/upload-artifact@v4

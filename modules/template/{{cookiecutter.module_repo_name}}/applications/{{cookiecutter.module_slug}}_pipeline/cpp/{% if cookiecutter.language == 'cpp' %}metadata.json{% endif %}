@@ -8,7 +8,7 @@
                 "affiliation": "{{ cookiecutter.affiliation }}"
             }
         ],
-        "language": {% if cookiecutter.language == "cpp" %}["C++", "Python"]{% else %}["Python"]{% endif %},
+        "language": ["C++"],
         "version": "{{ cookiecutter.version }}",
         "changelog": {
             "{{ cookiecutter.version }}": "TODO: describe this example application"
@@ -21,10 +21,15 @@
         "tags": ["TODO: add tags"],
         "ranking": 3,
         "requirements": {},
-        "run": {
-            {% if cookiecutter.language == "cpp" %}"command": "<holohub_app_bin>/{{ cookiecutter.module_slug }}_pipeline",
-            "workdir": "holohub_app_bin"{% else %}"command": "python3 {{ cookiecutter.module_slug }}_pipeline.py",
-            "workdir": "holohub_app_source"{% endif %}
+        "default_mode": "default",
+        "modes": {
+            "default": {
+                "description": "Run the C++ {{ cookiecutter.module_slug }} pipeline",
+                "run": {
+                    "command": "<holohub_app_bin>/{{ cookiecutter.module_slug }}_pipeline",
+                    "workdir": "holohub_app_bin"
+                }
+            }
         }
     }
 }

@@ -55,7 +55,7 @@ CheckNonSPDX = re.compile(
 
 
 def check_this_file(f):
-    # This check covers things like symlinks which point to files that DNE
+    # This check covers things like symlinks which point to files that do not exist
     if not (os.path.exists(f)):
         return False
     if gitutils and gitutils.is_file_empty(f):
@@ -139,7 +139,12 @@ def check_copyright(f, update_current_year, ignore_year_mismatch=False):
     fp.close()
     # copyright header itself not found
     if not cr_found:
-        e = [f, 0, "Copyright header missing or formatted incorrectly (manual fix required)", None]
+        e = [
+            f,
+            0,
+            "Copyright header missing or formatted incorrectly (manual fix required)",
+            None,
+        ]
         errs.append(e)
     # even if the year matches a copyright header, make the check pass
     if year_matched:
@@ -253,7 +258,7 @@ def check_copyright_main():
                 config_path = os.path.join(script_dir, os.path.basename(config_path))
 
         if os.path.exists(config_path):
-            with open(config_path, "r", encoding="utf-8") as f:
+            with open(config_path, encoding="utf-8") as f:
                 for line in f:
                     line = line.strip()
                     # Skip empty lines and comments
