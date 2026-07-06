@@ -13,6 +13,10 @@
          <lastmod>2026-07-06</lastmod>
     </url>
     <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/applications/ai_surgical_video/</loc>
+         <lastmod>2026-07-06</lastmod>
+    </url>
+    <url>
          <loc>https://nvidia-holoscan.github.io/holohub/applications/aja_video_capture/</loc>
          <lastmod>2026-07-06</lastmod>
     </url>
@@ -994,14 +998,6 @@
     </url>
     <url>
          <loc>https://nvidia-holoscan.github.io/holohub/tutorials/windows_vm/</loc>
-         <lastmod>2026-07-06</lastmod>
-    </url>
-    <url>
-         <loc>https://nvidia-holoscan.github.io/holohub/workflows/</loc>
-         <lastmod>2026-07-06</lastmod>
-    </url>
-    <url>
-         <loc>https://nvidia-holoscan.github.io/holohub/workflows/ai_surgical_video/</loc>
          <lastmod>2026-07-06</lastmod>
     </url>
 </urlset>
