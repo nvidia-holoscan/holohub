@@ -477,7 +477,7 @@ This ensures proper isolation with each workload getting dedicated GPU resources
    **Solution**: Clear holohub cache to resolve build contamination:
 
    ```bash
-   sudo ./holohub clear-cache
+   ./holohub clear-cache
    ```
 
    Then retry the benchmark command. This resolves CUDA version path mismatches from cached build artifacts.

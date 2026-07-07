@@ -30,7 +30,7 @@ jobs:
 
       - name: Install lint hook dependencies
         run: |
-          sudo ./holohub lint --install-dependencies
+          ./holohub lint --install-dependencies
 
       - name: Run linter
         run: ./holohub lint

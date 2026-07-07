@@ -27,13 +27,13 @@ This benchmark is implemented in C++ for optimal performance and provides:
 Run the benchmark with default settings (60 FPS, 30 seconds, SCHED_DEADLINE):
 
 ```bash
-sudo ./holohub run realtime_threads_benchmarking \
+./holohub run realtime_threads_benchmarking --as-root \
   --docker-opts="--privileged -v /tmp/benchmark_plots:/tmp/benchmark_plots"
 ```
 
 **Important**: The benchmark requires:
 
-- `sudo` privileges to run Docker with `--privileged` flag
+- `--as-root` so the application container runs as root (real-time scheduling requires it)
 - `--privileged` flag to enable real-time scheduling policies (SCHED_DEADLINE, SCHED_FIFO, SCHED_RR)
 - Volume mounting to access generated plots on the host system
 
@@ -42,7 +42,7 @@ sudo ./holohub run realtime_threads_benchmarking \
 The benchmark supports several configuration options:
 
 ```bash
-sudo ./holohub run realtime_threads_benchmarking \
+./holohub run realtime_threads_benchmarking --as-root \
   --docker-opts="--privileged -v /tmp/benchmark_plots:/tmp/benchmark_plots" \
   --run-args="--target-fps 30 --duration 20 --scheduling-policy SCHED_DEADLINE --bg-load-intensity 2000"
 ```
@@ -71,7 +71,7 @@ The benchmark automatically generates detailed timing analysis plots including:
 To specify a custom output location:
 
 ```bash
-sudo ./holohub run realtime_threads_benchmarking \
+./holohub run realtime_threads_benchmarking --as-root \
   --docker-opts="--privileged -v /path/to/host/output:/custom/output" \
   --run-args="--output /custom/output/my_results.json"
 ```
@@ -234,7 +234,7 @@ If you encounter errors like:
 1. **Ensure Docker privileged mode**:
 
 ```bash
-sudo ./holohub run realtime_threads_benchmarking \
+./holohub run realtime_threads_benchmarking --as-root \
   --docker-opts="--privileged -v /tmp/benchmark_plots:/tmp/benchmark_plots"
 ```
 
