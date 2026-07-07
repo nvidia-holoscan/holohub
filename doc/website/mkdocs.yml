@@ -94,7 +94,6 @@ watch:
   - ../../operators
   - ../../tutorials
   - ../../benchmarks
-  - ../../workflows
   - ../../modules
   - overrides/assets
   - overrides/pages

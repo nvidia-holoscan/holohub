@@ -16,7 +16,7 @@
 # limitations under the License.
 
 # =============================================================================
-# AI Surgical Video Workflow Container
+# AI Surgical Video Application Container
 #
 # Stages:
 #   holohub-cli  — base HoloHub CLI environment (replayer / aja modes)
@@ -96,7 +96,7 @@ ENV HOLOSCAN_INPUT_PATH=/workspace/holohub/data
 #   libdoca-sdk-verbs-dev     — DOCA verbs pkg-config module   (gpu_roce_transceiver)
 #   libcurl4-openssl-dev      — libcurl for hsb_flasher tool
 #
-# Runtime deps (needed when the container runs the workflow):
+# Runtime deps (needed when the container runs the application):
 #   libibverbs1, ibverbs-utils, rdma-core — RoCE / InfiniBand userspace stack
 #   libnuma1                              — NUMA runtime
 # --------------------------------------------------------------------------
