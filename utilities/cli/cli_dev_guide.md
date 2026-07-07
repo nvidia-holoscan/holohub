@@ -192,7 +192,7 @@ Everything after `--` is joined into a single string and executed via `bash -c`,
 - Dash-prefixed values need `=`: `--run-args="--verbose"`, not `--run-args --verbose`.
 - `--local` + `--docker-opts` is a fatal error.
 - `--build-with` replaces `build.depends` entirely (does not append).
-- `--benchmark` is a `build`-only flag and only applies to applications, workflows, and benchmarks.
+- `--benchmark` is a `build`-only flag and only applies to applications and benchmarks.
 - Root application: `run --as-root`. Root whole container: `run-container --as-root`.
 
 ### Project configuration
@@ -206,7 +206,7 @@ Everything after `--` is joined into a single string and executed via `bash -c`,
 
 - [Base project schema](../metadata/project.schema.json) — all valid fields, types, and constraints
 - [CLI Reference > Modes](cli_reference.md#modes) — mode fields, path placeholders, build/run config
-- Examples: [simple app](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/applications/endoscopy_tool_tracking/python/metadata.json), [multi-mode with docker opts](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/applications/isaac_sim_holoscan_bridge/metadata.json), [multi-mode with build deps](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/workflows/ai_surgical_video/python/metadata.json)
+- Examples: [simple app](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/applications/endoscopy_tool_tracking/python/metadata.json), [multi-mode with docker opts](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/applications/isaac_sim_holoscan_bridge/metadata.json), [multi-mode with build deps](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/applications/ai_surgical_video/python/metadata.json)
 
 ## Extending the CLI
 

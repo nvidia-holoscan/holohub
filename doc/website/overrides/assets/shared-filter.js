@@ -32,7 +32,6 @@ function autoInitializeFilters() {
         'operators': 'All Operators',
         'benchmarks': 'All Benchmarks',
         'tutorials': 'All Tutorials',
-        'workflows': 'All Workflows',
         'modules': 'All Modules'
     };
 

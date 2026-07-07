@@ -46,7 +46,7 @@ Run the CLI from the repository root:
 | [run-container](#run-container)             | Build and launch the development container                                 |
 | [build](#build)                             | Build a project (container or local)                                       |
 | [run](#run)                                 | Build and run a project (container or local)                               |
-| [list](#list)                               | List all available targets (applications, workflows, operators, and so on) |
+| [list](#list)                               | List all available targets (applications, operators, and so on)            |
 | [modes](#modes)                             | List available modes for an application                                    |
 | [lint](#lint)                               | Run linting tools                                                          |
 | [setup](#setup)                             | Install HoloHub recommended packages for development                       |
@@ -254,7 +254,7 @@ Build a project. By default builds inside the container; use `--local` to build 
 | `--parallel <n>`         | Number of parallel build jobs                                                       |
 | `--pkg-generator`        | `DEB` (default) or other cpack generator                                            |
 | `--language`             | `cpp` or `python`                                                                   |
-| `--benchmark`            | Build for Holoscan Flow Benchmarking (applications/workflows only)                  |
+| `--benchmark`            | Build for Holoscan Flow Benchmarking (applications only)                            |
 | `--no-docker-build`      | Skip building the container                                                         |
 | `--verbose`              | Extra output                                                                        |
 | `--dryrun`               | Print commands without executing                                                    |
@@ -318,7 +318,7 @@ Build and run a project. By default: build container (if needed), build app in c
 
 ### List
 
-List all available targets (applications, workflows, operators, packages, and so on).
+List all available targets (applications, operators, packages, and so on).
 
 **Usage:**
 
@@ -837,7 +837,7 @@ for selection order, safety boundaries, and managed-venv maintenance.
 | `HOLOSCAN_CLI_PATH_PREFIX`       | `holohub_` (prefix for path placeholders in metadata)                                |
 | `HOLOSCAN_CLI_DEFAULT_HSDK_DIR`  | `/opt/nvidia/holoscan`                                                               |
 | `HOLOSCAN_SDK_ROOT`              | Local Holoscan SDK path (for mounting into containers)                               |
-| `HOLOSCAN_CLI_SEARCH_PATH`       | Comma-separated dirs to scan for metadata (for example `applications,workflows,...`) |
+| `HOLOSCAN_CLI_SEARCH_PATH`       | Comma-separated dirs to scan for metadata (for example `applications,operators,...`) |
 
 ### Container and Docker
 
