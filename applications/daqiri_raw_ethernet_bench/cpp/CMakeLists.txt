@@ -42,6 +42,7 @@ if(NOT DEFINED DAQIRI_ENGINE)
     set(DAQIRI_ENGINE "dpdk" CACHE STRING "DAQIRI engine type(s) list")
 endif()
 separate_arguments(DAQIRI_ENGINE_LIST UNIX_COMMAND ${DAQIRI_ENGINE})
+list(JOIN DAQIRI_ENGINE_LIST " " DAQIRI_ENGINE_LIST_STR)
 foreach(ENGINE IN LISTS DAQIRI_ENGINE_LIST)
     string(TOUPPER "${ENGINE}" ENGINE_UPPER)
     message(STATUS "Adding DAQIRI engine ${ENGINE} to the application configuration")
@@ -117,7 +118,7 @@ if(BUILD_TESTING)
   include(add_python_tests)
   add_python_tests(
     INPUT "testing"
-    ENVIRONMENT "DAQIRI_ENGINE_LIST=${DAQIRI_ENGINE_LIST}"
+    ENVIRONMENT "DAQIRI_ENGINE_LIST=${DAQIRI_ENGINE_LIST_STR}"
     PYTEST_ARGS "-v" "-s" "--log-cli-level=DEBUG" "--show-capture=no"
   )
 endif()

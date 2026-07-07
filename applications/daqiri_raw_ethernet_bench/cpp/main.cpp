@@ -28,11 +28,11 @@ class App : public holoscan::Application {
   void compose() override {
     using namespace holoscan;
 
+#if DAQIRI_ENGINE_DPDK
     const auto [rx_en, tx_en] = daqiri::get_rx_tx_configs_enabled(config());
 
     // The raw Ethernet benchmark only runs on the DPDK engine, so there is no
     // need to query or branch on the engine type at runtime.
-#if DAQIRI_ENGINE_DPDK
     if (rx_en) {
       auto bench_rx = make_operator<ops::DaqiriRawEthernetBenchDefaultRxOp>(
           "bench_rx",
@@ -47,22 +47,25 @@ class App : public holoscan::Application {
           make_condition<BooleanCondition>("is_alive", true));
       add_operator(bench_tx);
     }
-#else
-    HOLOSCAN_LOG_ERROR("DPDK engine is disabled; rebuild with -DDAQIRI_ENGINE=dpdk");
-    exit(1);
 #endif
   }
 };
 
 int main(int argc, char** argv) {
   using namespace holoscan;
-  auto app = make_application<App>();
 
   // Get the configuration
   if (argc < 2) {
     HOLOSCAN_LOG_ERROR("Usage: {} config_file", argv[0]);
     return -1;
   }
+
+#if !DAQIRI_ENGINE_DPDK
+  HOLOSCAN_LOG_ERROR("DPDK engine is disabled; rebuild with -DDAQIRI_ENGINE=dpdk");
+  return -1;
+#endif
+
+  auto app = make_application<App>();
 
   std::filesystem::path config_path(argv[1]);
   if (!config_path.is_absolute()) {
