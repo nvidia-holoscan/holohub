@@ -11,13 +11,13 @@ function(holohub_link_daqiri target_name)
   endif()
 
   set(_daqiri_targets daqiri::daqiri)
-  foreach(_daqiri_manager IN ITEMS dpdk socket rdma)
-    if(TARGET "daqiri::${_daqiri_manager}")
-      list(APPEND _daqiri_targets "daqiri::${_daqiri_manager}")
+  foreach(_daqiri_engine IN ITEMS dpdk socket rdma)
+    if(TARGET "daqiri::${_daqiri_engine}")
+      list(APPEND _daqiri_targets "daqiri::${_daqiri_engine}")
     endif()
   endforeach()
 
-  # DAQIRI static packages can contain cross-references between core and manager archives.
+  # DAQIRI static packages can contain cross-references between core and engine archives.
   string(JOIN "," _daqiri_link_group ${_daqiri_targets})
   target_link_libraries("${target_name}" PRIVATE "$<LINK_GROUP:RESCAN,${_daqiri_link_group}>")
 endfunction()
