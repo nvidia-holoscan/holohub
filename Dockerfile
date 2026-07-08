@@ -22,7 +22,7 @@
 
 ARG GPU_TYPE
 ARG BASE_SDK_VERSION
-ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v${BASE_SDK_VERSION}-${GPU_TYPE}
+ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v4.4.0-cuda13
 FROM ${BASE_IMAGE} AS base
 
 ARG DEBIAN_FRONTEND=noninteractive
@@ -61,7 +61,7 @@ RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
     ; fi
 
 # Install standalone holoscan-cli before running `holohub setup`.
-ARG HOLOSCAN_CLI_INSTALL_ARGS=--pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0
+ARG HOLOSCAN_CLI_INSTALL_ARGS=--pre --extra-index-url https://pypi.nvidia.com holoscan-cli==4.4.0
 RUN if ! python3 -m holoscan_cli --help 2>/dev/null | grep -qw build; then \
         python3 -m pip install ${HOLOSCAN_CLI_INSTALL_ARGS} \
     ; fi
