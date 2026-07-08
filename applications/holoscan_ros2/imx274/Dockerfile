@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,10 +16,10 @@
 # limitations under the License.
 
 ############################################################
-# Build the vb1940 image with ROS2 and hololink dependencies
+# Build the imx274 image with ROS2 and hololink dependencies
 ############################################################
 ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v4.4.0-cuda13
-FROM ${BASE_IMAGE} AS vb1940
+FROM ${BASE_IMAGE} AS imx274
 
 # Install basic dependencies
 RUN apt update && apt install -y \
@@ -86,15 +86,24 @@ RUN mkdir -p /deps
 WORKDIR /deps
 RUN git clone https://github.com/nvidia-holoscan/holoscan-sensor-bridge.git
 
-# Build the holoscan-sensor-bridge C++ libraries
+# Build the holoscan-sensor-bridge C++ libraries.
+# HOLOLINK_BUILD_ROCE=OFF: this application uses the Linux socket receiver over
+# the Jetson Thor MGBE ports, so no ConnectX NIC / RDMA (ibverbs) support is needed.
 WORKDIR /deps/holoscan-sensor-bridge
 RUN mkdir -p build
 WORKDIR /deps/holoscan-sensor-bridge/build
-RUN cmake .. && make -j$(nproc)
+RUN cmake .. -DHOLOLINK_BUILD_ROCE=OFF && make -j$(nproc)
 
 # Install the holoscan-sensor-bridge Python package
 WORKDIR /deps/holoscan-sensor-bridge/python
 RUN pip3 install -e .
+
+# Install the standalone holoscan-cli; the holohub CLI runs `holoscan build`
+# inside this container.
+ARG HOLOSCAN_CLI_INSTALL_ARGS="--pre --extra-index-url https://pypi.nvidia.com holoscan-cli==4.4.0"
+RUN if ! python3 -m holoscan_cli --help 2>/dev/null | grep -qw build; then \
+        python3 -m pip install ${HOLOSCAN_CLI_INSTALL_ARGS} \
+    ; fi
 
 # Set default working directory
 WORKDIR /workspace
