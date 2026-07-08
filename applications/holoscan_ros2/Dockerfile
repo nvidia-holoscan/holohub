@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM nvcr.io/nvidia/clara-holoscan/holoscan:v3.3.0-dgpu AS base
+FROM nvcr.io/nvidia/clara-holoscan/holoscan:v4.4.0-cuda13 AS base
 
 # Install basic dependencies
 RUN apt update && apt install -y \
