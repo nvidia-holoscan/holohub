@@ -61,7 +61,7 @@ ENV PKG_CONFIG_PATH=/opt/ros/jazzy/lib/pkgconfig
 ENV VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/nvidia_icd.json
 ENV VK_LAYER_PATH=/usr/share/vulkan/explicit_layer.d
 ENV VK_LOADER_LAYERS_ENABLE=1
-ENV VK_LOADER_DEBUG=all
+ENV VK_LOADER_DEBUG=warn
 
 # Set PYTHONPATH to include ROS2 packages
 ENV PYTHONPATH=/opt/ros/jazzy/lib/python3.12/site-packages:/opt/nvidia/holoscan/python/lib
