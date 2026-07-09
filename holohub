@@ -18,6 +18,15 @@
 # HoloHub entry point for the standalone holoscan-cli package. Hosts use a
 # managed venv or reuse a compatible system install read-only. Root containers
 # install system-wide. See utilities/cli/README.md.
+#
+# Optional overrides:
+#   HOLOSCAN_CLI_SOURCE          Local CLI checkout for paired development.
+#   HOLOSCAN_CLI_INSTALL_ARGS    Pip install arguments (default is floating).
+#   HOLOSCAN_CLI_PINNED_VERSION  Exact package version to install and verify.
+#   HOLOSCAN_CLI_PYTHON_BIN      Caller-owned interpreter.
+#   HOLOHUB_PYTHON_BIN           Legacy interpreter override.
+#   HOLOSCAN_CLI_VENV            Wrapper-managed venv location.
+#   HOLOSCAN_CLI_CTEST_SCRIPT    CTest script used by `./holohub test`.
 
 set -euo pipefail
 
@@ -32,6 +41,7 @@ if [[ -z "${HOLOSCAN_CLI_VENV:-}" && -n "${XDG_DATA_HOME:-}${HOME:-}" ]]; then
 fi
 export HOLOSCAN_CLI_VENV="${HOLOSCAN_CLI_VENV:-}"
 
+# The standalone CLI has no SDK-image default; HoloHub owns this project default.
 export HOLOSCAN_CLI_BASE_SDK_VERSION="${HOLOSCAN_CLI_BASE_SDK_VERSION:-4.4.0}"
 export HOLOSCAN_CLI_CTEST_SCRIPT="${HOLOSCAN_CLI_CTEST_SCRIPT:-utilities/testing/holohub.container.ctest}"
 
@@ -40,6 +50,8 @@ _holoscan_cli_version() {
         2>/dev/null
 }
 
+# Probe the command surface, not just importability, so legacy packages cannot
+# satisfy this source-project wrapper.
 _holoscan_cli_ok() {
     "$1" -m holoscan_cli build --help >/dev/null 2>&1 || return 1
     if [[ -n "${HOLOSCAN_CLI_PINNED_VERSION}" && -z "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
@@ -127,6 +139,13 @@ fi
 CLI_ENV="caller"
 CLI_READY=""
 PYTHON_BIN="${HOLOSCAN_CLI_PYTHON_BIN:-${HOLOHUB_PYTHON_BIN:-${VIRTUAL_ENV:+$VIRTUAL_ENV/bin/python}}}"
+# An explicit interpreter (including an active venv) is caller-owned, so keep
+# its PYTHONHOME. For wrapper-selected interpreters, remove an inherited
+# override before probing or provisioning Python; otherwise it can redirect
+# the interpreter away from its own standard library or managed venv.
+if [[ -z "${PYTHON_BIN}" ]]; then
+    unset PYTHONHOME
+fi
 if [[ -n "${PYTHON_BIN}" ]]; then
     :
 elif [[ "${EUID}" -eq 0 ]] &&

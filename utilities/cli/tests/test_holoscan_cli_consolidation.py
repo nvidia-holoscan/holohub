@@ -165,6 +165,7 @@ def test_wrapper_runs_host_setup_from_managed_venv(tmp_path):
         env.pop(var, None)
     env["HOLOSCAN_CLI_SOURCE"] = source
     env["HOLOSCAN_CLI_VENV"] = str(tmp_path / "holoscan-cli-venv")
+    env["PYTHONHOME"] = str(tmp_path / "stale-python-home")
     result = _run_holohub_wrapper("env-info", env=env)
 
     assert result.returncode == 0, result.stderr
@@ -176,6 +177,40 @@ def test_wrapper_runs_host_setup_from_managed_venv(tmp_path):
     # repo's CI to unreleased holoscan-cli changes.
     setup_result = _run_holohub_wrapper("setup", "--dryrun", env=env)
     assert setup_result.returncode == 0, setup_result.stdout + setup_result.stderr
+
+
+def test_wrapper_preserves_pythonhome_for_explicit_interpreter(tmp_path):
+    """Caller-owned Python keeps its accompanying PYTHONHOME override."""
+    source = os.environ.get("HOLOSCAN_CLI_SOURCE")
+    if not source:
+        pytest.skip("set HOLOSCAN_CLI_SOURCE to test an explicit interpreter")
+
+    pythonhome_log = tmp_path / "pythonhome.log"
+    python_wrapper = tmp_path / "python"
+    python_wrapper.write_text(
+        "#!/usr/bin/env bash\n"
+        'printf \'%s\\n\' "${PYTHONHOME-unset}" >> "${PYTHONHOME_LOG}"\n'
+        "unset PYTHONHOME\n"
+        'exec "${REAL_PYTHON}" "$@"\n',
+        encoding="utf-8",
+    )
+    python_wrapper.chmod(0o755)
+
+    env = os.environ.copy()
+    for var in ("PYTHONPATH", "VIRTUAL_ENV", "HOLOSCAN_CLI_PYTHON_BIN"):
+        env.pop(var, None)
+    env["HOLOSCAN_CLI_SOURCE"] = source
+    env["HOLOHUB_PYTHON_BIN"] = str(python_wrapper)
+    env["PYTHONHOME"] = "/caller/python-home"
+    env["PYTHONHOME_LOG"] = str(pythonhome_log)
+    env["REAL_PYTHON"] = sys.executable
+
+    result = _run_holohub_wrapper("version", env=env)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    observed_pythonhomes = pythonhome_log.read_text(encoding="utf-8").splitlines()
+    assert observed_pythonhomes
+    assert set(observed_pythonhomes) == {"/caller/python-home"}
 
 
 def test_wrapper_dryruns_project_run_through_consolidated_cli():
