@@ -20,6 +20,7 @@
 #include <cstdint>
 #include <iostream>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <thread>
 
@@ -73,6 +74,22 @@ class Vb1940SubscriberOp : public holoscan::ros2::ops::SubscriberOp<sensor_msgs:
     // Receive ROS2 message - this is a blocking call
     auto message = receive().get();
 
+    // Validate the image layout before allocating and copying
+    const size_t expected_step = static_cast<size_t>(message.width) * 3 * sizeof(uint8_t);
+    const size_t expected_size = expected_step * message.height;
+    if (message.encoding != "rgb8" || message.step != expected_step ||
+        message.data.size() != expected_size) {
+      HOLOSCAN_LOG_ERROR(
+          "Skipping image with unexpected layout: encoding='{}', step={}, data_size={} "
+          "(expected rgb8, step={}, data_size={})",
+          message.encoding,
+          message.step,
+          message.data.size(),
+          expected_step,
+          expected_size);
+      return;
+    }
+
     // Create allocator handle
     auto allocator_handle =
         nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(context.context(), pool_->gxf_cid());
@@ -113,10 +130,14 @@ class Vb1940SubscriberOp : public holoscan::ros2::ops::SubscriberOp<sensor_msgs:
     }
 
     // Copy data to the tensor
-    cudaMemcpy(maybe_tensor.value()->pointer(),
-               message.data.data(),
-               message.data.size(),
-               cudaMemcpyHostToDevice);
+    auto copy_status = cudaMemcpy(maybe_tensor.value()->pointer(),
+                                  message.data.data(),
+                                  message.data.size(),
+                                  cudaMemcpyHostToDevice);
+    if (copy_status != cudaSuccess) {
+      HOLOSCAN_LOG_ERROR("cudaMemcpy failed: {}; skipping frame", cudaGetErrorString(copy_status));
+      return;
+    }
 
     // Create a new Holoscan entity from the GXF entity and emit it
     auto result = holoscan::gxf::Entity(std::move(out_message.value()));
@@ -184,13 +205,19 @@ int main(int argc, char** argv) {
   auto variables_map = Parser().parse_command_line(argc, argv, options_description);
 
   try {
+    auto check_cuda = [](CUresult result, const char* what) {
+      if (result != CUDA_SUCCESS) {
+        throw std::runtime_error(std::string(what) + " failed (" +
+                                 std::to_string(static_cast<int>(result)) + ")");
+      }
+    };
     // Initialize CUDA
-    cuInit(0);
+    check_cuda(cuInit(0), "cuInit");
     CUdevice cu_device;
     int cu_device_ordinal = 0;
-    cuDeviceGet(&cu_device, cu_device_ordinal);
+    check_cuda(cuDeviceGet(&cu_device, cu_device_ordinal), "cuDeviceGet");
     CUcontext cu_context;
-    cuDevicePrimaryCtxRetain(&cu_context, cu_device);
+    check_cuda(cuDevicePrimaryCtxRetain(&cu_context, cu_device), "cuDevicePrimaryCtxRetain");
 
     // Set up the application
     auto app = std::make_unique<HoloscanVb1940SubscriberApplication>(

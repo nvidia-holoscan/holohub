@@ -38,12 +38,15 @@ __global__ void convert_16bit_to_8bit_kernel(const uint16_t* input, uint8_t* out
 }
 
 // C++ wrapper function to launch the CUDA kernel
-extern "C" void launch_convert_16bit_to_8bit_kernel(const uint16_t* input, uint8_t* output,
-                                                    int width, int height, int input_channels) {
+extern "C" cudaError_t launch_convert_16bit_to_8bit_kernel(const uint16_t* input, uint8_t* output,
+                                                           int width, int height,
+                                                           int input_channels,
+                                                           cudaStream_t stream) {
   dim3 block_size(16, 16);
   dim3 grid_size((width + block_size.x - 1) / block_size.x,
                  (height + block_size.y - 1) / block_size.y);
 
-  convert_16bit_to_8bit_kernel<<<grid_size, block_size>>>(
+  convert_16bit_to_8bit_kernel<<<grid_size, block_size, 0, stream>>>(
       input, output, width, height, input_channels);
+  return cudaGetLastError();
 }

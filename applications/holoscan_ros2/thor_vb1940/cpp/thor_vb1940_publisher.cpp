@@ -19,6 +19,7 @@
 #include <chrono>
 #include <cstdint>
 #include <memory>
+#include <stdexcept>
 #include <string>
 
 #include <holoscan/holoscan.hpp>
@@ -103,6 +104,18 @@ class Vb1940PublisherOp : public holoscan::ros2::ops::PublisherOp<sensor_msgs::m
         auto element_type = tensor_ptr->element_type();
         size_t bytes_size = tensor_ptr->bytes_size();
 
+        // Validate the tensor layout before treating the data as HxWx3 uint16 RGB
+        if (shape.rank() != 3 || shape.dimension(2) != 3 ||
+            element_type != nvidia::gxf::PrimitiveType::kUnsigned16) {
+          HOLOSCAN_LOG_ERROR(
+              "Skipping tensor with unexpected layout: rank={}, channels={}, element_type={} "
+              "(expected rank 3, 3 channels, uint16)",
+              shape.rank(),
+              shape.rank() == 3 ? shape.dimension(2) : -1,
+              static_cast<int>(element_type));
+          continue;
+        }
+
         // Initialize message metadata only once if not already done
         if (!message_initialized_) {
           message_.header.frame_id = "vb1940";
@@ -132,8 +145,13 @@ class Vb1940PublisherOp : public holoscan::ros2::ops::PublisherOp<sensor_msgs::m
                             output_size);
         }
 
-        // Assert that the incoming data size matches our expectations
-        assert(bytes_size == expected_bytes_size_ && "Tensor size changed unexpectedly");
+        // Verify the incoming data size matches our expectations
+        if (bytes_size != expected_bytes_size_) {
+          HOLOSCAN_LOG_ERROR("Tensor size changed unexpectedly ({} != {}); skipping frame",
+                             bytes_size,
+                             expected_bytes_size_);
+          continue;
+        }
 
         // Calculate sizes
         int input_channels = shape.dimension(2);  // RGB = 3 channels
@@ -151,17 +169,29 @@ class Vb1940PublisherOp : public holoscan::ros2::ops::PublisherOp<sensor_msgs::m
         }
 
         // Launch CUDA kernel to convert 16-bit to 8-bit per channel
-        launch_convert_16bit_to_8bit_kernel(
+        auto kernel_status = launch_convert_16bit_to_8bit_kernel(
             reinterpret_cast<const uint16_t*>(tensor_ptr->pointer()),
             d_rgb8_buffer_.get(),
             message_.width,
             message_.height,
-            input_channels);
+            input_channels,
+            cudaStreamDefault);
+        if (kernel_status != cudaSuccess) {
+          HOLOSCAN_LOG_ERROR("CUDA conversion kernel launch failed: {}",
+                             cudaGetErrorString(kernel_status));
+          continue;
+        }
 
         message_.header.stamp = rclcpp::Clock().now();
 
         // Copy converted RGB8 data from device to host
-        cudaMemcpy(message_.data.data(), d_rgb8_buffer_.get(), output_size, cudaMemcpyDeviceToHost);
+        auto copy_status = cudaMemcpy(
+            message_.data.data(), d_rgb8_buffer_.get(), output_size, cudaMemcpyDeviceToHost);
+        if (copy_status != cudaSuccess) {
+          HOLOSCAN_LOG_ERROR("cudaMemcpy failed: {}; skipping frame",
+                             cudaGetErrorString(copy_status));
+          continue;
+        }
 
         HOLOSCAN_LOG_TRACE(
             "Publishing Image: {}x{}x{} bytes", message_.height, message_.width, message_.step);
@@ -309,13 +339,19 @@ int main(int argc, char** argv) {
   auto variables_map = Parser().parse_command_line(argc, argv, options_description);
 
   try {
+    auto check_cuda = [](CUresult result, const char* what) {
+      if (result != CUDA_SUCCESS) {
+        throw std::runtime_error(std::string(what) + " failed (" +
+                                 std::to_string(static_cast<int>(result)) + ")");
+      }
+    };
     // Initialize CUDA
-    cuInit(0);
+    check_cuda(cuInit(0), "cuInit");
     CUdevice cu_device;
     int cu_device_ordinal = 0;
-    cuDeviceGet(&cu_device, cu_device_ordinal);
+    check_cuda(cuDeviceGet(&cu_device, cu_device_ordinal), "cuDeviceGet");
     CUcontext cu_context;
-    cuDevicePrimaryCtxRetain(&cu_context, cu_device);
+    check_cuda(cuDevicePrimaryCtxRetain(&cu_context, cu_device), "cuDevicePrimaryCtxRetain");
 
     // Get a handle to the Hololink device
     auto channel_metadata =
