@@ -245,140 +245,243 @@
         
           
             
+
+
+
+<style>
+  /* Allow dropdown panels to escape the tab bar bounds. Material sets
+     overflow:auto on .md-tabs and contain:content + overflow:auto on
+     .md-tabs__list, both of which clip the absolutely-positioned dropdown. */
+  .md-tabs { overflow: visible !important; }
+  .md-tabs__list { overflow: visible !important; contain: none !important; }
+
+  .hs-nav__item { position: relative; }
+
+  /* Parent that opens a submenu */
+  .hs-nav__link--parent {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+  .hs-nav__caret {
+    width: 0;
+    height: 0;
+    border-left: 0.22rem solid transparent;
+    border-right: 0.22rem solid transparent;
+    border-top: 0.22rem solid currentColor;
+    transition: transform 0.15s ease;
+    opacity: 0.7;
+  }
+  .hs-nav__item:hover .hs-nav__caret,
+  .hs-nav__item:focus-within .hs-nav__caret { transform: rotate(180deg); }
+
+  /* Dropdown panel */
+  .hs-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 20;
+    min-width: 13rem;
+    margin: 0;
+    padding: 0.3rem 0;
+    list-style: none;
+    background-color: var(--md-default-bg-color);
+    color: var(--md-default-fg-color);
+    border: 1px solid var(--md-default-fg-color--lightest);
+    border-radius: 0.15rem;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.24);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(0.25rem);
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+  }
+  .hs-nav__item:hover > .hs-dropdown,
+  .hs-nav__item:focus-within > .hs-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .hs-dropdown__link {
+    display: block;
+    padding: 0.45rem 1rem;
+    font-size: 0.7rem;
+    line-height: 1.3;
+    color: var(--md-default-fg-color);
+    white-space: nowrap;
+    text-decoration: none;
+  }
+  .hs-dropdown__link:hover,
+  .hs-dropdown__link:focus {
+    background-color: var(--md-default-fg-color--lightest);
+    color: var(--md-accent-fg-color);
+  }
+  .hs-dropdown__link .hs-ext {
+    margin-left: 0.4rem;
+    font-size: 0.6rem;
+    opacity: 0.6;
+  }
+</style>
 <nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
       
         
-  
-  
-  
-  
-    <li class="md-tabs__item">
-      <a href="../../.." class="md-tabs__link">
         
-  
-  
-    
-  
-  Home
-
-      </a>
-    </li>
-  
-
+          
+            
+          
+        
+        <li class="md-tabs__item hs-nav__item">
+          
+            <a href="https://nvidia-holoscan.github.io/" class="md-tabs__link">
+              Home
+            </a>
+          
+        </li>
       
         
-  
-  
-  
-    
-  
-  
-    
-    
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../../" class="md-tabs__link">
+        
+        <li class="md-tabs__item hs-nav__item">
           
-  
-  
-    
-  
-  Applications
-
-        </a>
-      </li>
-    
-  
-
+            
+              <span class="md-tabs__link hs-nav__link--parent" tabindex="0" role="button" aria-haspopup="true">
+                Holoscan SDK<span class="hs-nav__caret" aria-hidden="true"></span>
+              </span>
+            
+            <ul class="hs-dropdown">
+              
+                <li>
+                  <a class="hs-dropdown__link" href="https://docs.nvidia.com/holoscan/sdk-user-guide/" target="_blank" rel="noopener">
+                    Documentation<span class="hs-ext" aria-hidden="true">&#8599;</span>
+                  </a>
+                </li>
+              
+                <li>
+                  <a class="hs-dropdown__link" href="https://github.com/nvidia-holoscan/holoscan-sdk" target="_blank" rel="noopener">
+                    GitHub<span class="hs-ext" aria-hidden="true">&#8599;</span>
+                  </a>
+                </li>
+              
+            </ul>
+          
+        </li>
       
         
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
-        <a href="../../../operators/" class="md-tabs__link">
+        
           
-  
-  
-    
-  
-  Operators
-
-        </a>
-      </li>
-    
-  
-
+            
+          
+        
+        <li class="md-tabs__item hs-nav__item md-tabs__item--active">
+          
+            
+              <a href="https://nvidia-holoscan.github.io/holohub/" class="md-tabs__link hs-nav__link--parent">
+                HoloHub<span class="hs-nav__caret" aria-hidden="true"></span>
+              </a>
+            
+            <ul class="hs-dropdown">
+              
+                <li>
+                  <a class="hs-dropdown__link" href="https://nvidia-holoscan.github.io/holohub/applications/">
+                    Applications
+                  </a>
+                </li>
+              
+                <li>
+                  <a class="hs-dropdown__link" href="https://nvidia-holoscan.github.io/holohub/operators/">
+                    Operators
+                  </a>
+                </li>
+              
+                <li>
+                  <a class="hs-dropdown__link" href="https://nvidia-holoscan.github.io/holohub/tutorials/">
+                    Tutorials
+                  </a>
+                </li>
+              
+                <li>
+                  <a class="hs-dropdown__link" href="https://nvidia-holoscan.github.io/holohub/benchmarks/">
+                    Benchmarks
+                  </a>
+                </li>
+              
+                <li>
+                  <a class="hs-dropdown__link" href="https://nvidia-holoscan.github.io/holohub/modules/">
+                    Modules
+                  </a>
+                </li>
+              
+            </ul>
+          
+        </li>
       
         
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
-        <a href="../../../tutorials/" class="md-tabs__link">
+        
+        <li class="md-tabs__item hs-nav__item">
           
-  
-  
-    
-  
-  Tutorials
-
-        </a>
-      </li>
-    
-  
-
+            
+              <span class="md-tabs__link hs-nav__link--parent" tabindex="0" role="button" aria-haspopup="true">
+                Holoscan Sensor Bridge<span class="hs-nav__caret" aria-hidden="true"></span>
+              </span>
+            
+            <ul class="hs-dropdown">
+              
+                <li>
+                  <a class="hs-dropdown__link" href="https://docs.nvidia.com/holoscan/sensor-bridge/latest/" target="_blank" rel="noopener">
+                    Documentation<span class="hs-ext" aria-hidden="true">&#8599;</span>
+                  </a>
+                </li>
+              
+                <li>
+                  <a class="hs-dropdown__link" href="https://github.com/nvidia-holoscan/holoscan-sensor-bridge" target="_blank" rel="noopener">
+                    GitHub<span class="hs-ext" aria-hidden="true">&#8599;</span>
+                  </a>
+                </li>
+              
+            </ul>
+          
+        </li>
       
         
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
-        <a href="../../../benchmarks/" class="md-tabs__link">
+        
+        <li class="md-tabs__item hs-nav__item">
           
-  
-  
-    
-  
-  Benchmarks
-
-        </a>
-      </li>
-    
-  
-
+            
+              <span class="md-tabs__link hs-nav__link--parent" tabindex="0" role="button" aria-haspopup="true">
+                Support<span class="hs-nav__caret" aria-hidden="true"></span>
+              </span>
+            
+            <ul class="hs-dropdown">
+              
+                <li>
+                  <a class="hs-dropdown__link" href="https://www.nvidia.com/en-us/data-center/products/ai-enterprise/" target="_blank" rel="noopener">
+                    NVAIE<span class="hs-ext" aria-hidden="true">&#8599;</span>
+                  </a>
+                </li>
+              
+                <li>
+                  <a class="hs-dropdown__link" href="https://forums.developer.nvidia.com/c/robotics-edge-computing/holoscan/757" target="_blank" rel="noopener">
+                    Forum<span class="hs-ext" aria-hidden="true">&#8599;</span>
+                  </a>
+                </li>
+              
+            </ul>
+          
+        </li>
       
         
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
-        <a href="../../../modules/" class="md-tabs__link">
+        
           
-  
-  
-    
-  
-  Modules
-
-        </a>
-      </li>
-    
-  
-
+        
+        <li class="md-tabs__item hs-nav__item">
+          
+            <a href="https://nvidia-holoscan.github.io/blog/" class="md-tabs__link">
+              Blog
+            </a>
+          
+        </li>
       
     </ul>
   </div>
