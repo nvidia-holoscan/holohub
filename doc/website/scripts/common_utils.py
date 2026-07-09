@@ -33,7 +33,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 # Constants
-COMPONENT_TYPES = ["workflows", "applications", "operators", "tutorials", "benchmarks"]
+COMPONENT_TYPES = ["applications", "operators", "tutorials", "benchmarks"]
 HOLOHUB_REPO_URL = "https://github.com/nvidia-holoscan/holohub"
 
 

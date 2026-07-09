@@ -118,9 +118,6 @@ add_subdirectory(pkg)
 # Build modules
 add_subdirectory(modules)
 
-# Build the workflows
-add_subdirectory(workflows)
-
 # Build the applications
 add_subdirectory(applications)
 

@@ -19,7 +19,6 @@ daqiri:
   cfg:
     version: 1
     stream_type: "socket"
-    protocol: "udp"
     master_core: 3
     debug: false
     log_level: "info"
@@ -41,8 +40,7 @@ daqiri:
       address: "0.0.0.0"
       socket_config:
         mode: server
-        local_ip: "0.0.0.0"
-        local_port: 8999
+        local_addr: "udp://0.0.0.0:8999"
         max_payload_size: 16400
       rx:
         queues:
@@ -56,10 +54,8 @@ daqiri:
       address: "127.0.0.1"
       socket_config:
         mode: client
-        local_ip: "127.0.0.1"
-        local_port: 12347
-        remote_ip: "127.0.0.1"
-        remote_port: 12346
+        local_addr: "udp://127.0.0.1:12347"
+        remote_addr: "udp://127.0.0.1:12346"
         max_payload_size: 8192
         min_ipg_ns: 0
         retry_connect_s: 1

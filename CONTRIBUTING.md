@@ -1,6 +1,6 @@
 # Contributing to HoloHub
 
-Welcome to HoloHub! We're excited that you're interested in contributing to the NVIDIA Holoscan developer community. This guide will help you understand how to make meaningful contributions to our collection of applications, operators, workflows, and tutorials.
+Welcome to HoloHub! We're excited that you're interested in contributing to the NVIDIA Holoscan developer community. This guide will help you understand how to make meaningful contributions to our collection of applications, operators, and tutorials.
 
 ## Quick Start
 
@@ -36,7 +36,7 @@ New to HoloHub? Follow these steps:
 
 ## Introduction
 
-HoloHub is a collaborative ecosystem for the NVIDIA Holoscan SDK, featuring community-contributed applications, reusable operators, end-to-end workflows, and educational tutorials. Your contributions help expand the capabilities available to developers working on real-time AI applications across healthcare, industrial inspection, and other domains.
+HoloHub is a collaborative ecosystem for the NVIDIA Holoscan SDK, featuring community-contributed applications, reusable operators, and educational tutorials. Your contributions help expand the capabilities available to developers working on real-time AI applications across healthcare, industrial inspection, and other domains.
 
 Whether you're fixing a bug, adding a new feature, or sharing a complete application, this guide will help you contribute effectively to the HoloHub community.
 
@@ -112,9 +112,7 @@ Choose the right contribution type based on what you want to share:
 
 ```text
 What are you contributing?
-├── 🔄 Complete end-to-end pipeline (sensor → insight)?
-│   └── → Submit as a "Workflow"
-├── 🎯 Focused application for specific use case?
+├── 🎯 Application for a specific use case or an end-to-end pipeline?
 │   └── → Submit as an "Application"
 ├── 🧩 Reusable component for multiple use cases?
 │   └── → Submit as an "Operator" + demo Application
@@ -124,8 +122,6 @@ What are you contributing?
     └── → Submit a "Pull Request"
 ```
 
-> **Important**: Workflows are _end-to-end_ reference applications demonstrating complete "sensor-to-insight" pipelines. They integrate multiple components to solve entire use cases, while applications may focus on specific functionality.
-
 ## Preparing Your Submission
 
 We request that members follow the guidelines in this document to make sure new submissions can be easily used by others.
@@ -134,7 +130,7 @@ We request that members follow the guidelines in this document to make sure new 
 
 A typical submission consists of:
 
-- **Code**: Application, workflow, operator, and/or tutorial code using the Holoscan SDK
+- **Code**: Application, operator, and/or tutorial code using the Holoscan SDK
 - **Metadata**: A [`metadata.json`](#metadata-description) file
 - **Documentation**: A [README](#readme-file) file describing the contribution
 
@@ -170,7 +166,6 @@ Every application and operator should have an associated `metadata.json` file de
 
 Schemas are available for different contribution types:
 
-- [Workflows](./utilities/metadata/workflow.schema.json)
 - [Applications](./utilities/metadata/application.schema.json)
 - [GXF Extensions](./utilities/metadata/gxf_extension.schema.json)
 - [Operators](./utilities/metadata/operator.schema.json)
@@ -188,7 +183,7 @@ Versioning policy for the schemas:
 | Loosening (new optional fields, widened enums) | Keep `v<n>` | Unchanged |
 | Tightening (new required fields, narrowed enums) | Bump to `v<n+1>`; keep the previous schema file alongside for a deprecation window | Migrated on each file's own cadence |
 
-Validation runs in pre-commit via two hooks: `check-metaschema` validates each `*.schema.json` against the Draft 2020-12 meta-schema, and `holohub-metadata-validate` runs `python3 -m utilities.metadata.metadata_validator` against every `metadata.json` in the corpus. Run them locally with `pre-commit run --all-files`. The validator picks the schema by inspecting the top-level envelope key (`application`, `operator`, `workflow`, etc.) so an operator definition nested under `applications/<app>/operators/<op>/metadata.json` is validated against the operator schema rather than the application schema.
+Validation runs in pre-commit via two hooks: `check-metaschema` validates each `*.schema.json` against the Draft 2020-12 meta-schema, and `holohub-metadata-validate` runs `python3 -m utilities.metadata.metadata_validator` against every `metadata.json` in the corpus. Run them locally with `pre-commit run --all-files`. The validator picks the schema by inspecting the top-level envelope key (`application`, `operator`, etc.) so an operator definition nested under `applications/<app>/operators/<op>/metadata.json` is validated against the operator schema rather than the application schema.
 
 A future-facing option (no consumer changes required yet): a metadata file may set `"$schema": "urn:holohub:application:v1"` at the top level to pin a specific schema version. The validator does not require this today, but it allows files to opt into a particular `v<n>` when multiple versions coexist.
 
@@ -305,16 +300,6 @@ holohub/applications/your_app_name/
 └── CMakeLists.txt                  # For build system integration
 ```
 
-#### Workflows
-
-```text
-holohub/workflows/your_workflow_name/
-├── metadata.json                   # Required: follows workflow schema
-├── README.md                       # Required: describes workflow purpose
-├── your_workflow_name.py|.cpp      # Main application code
-└── CMakeLists.txt                  # For build system integration
-```
-
 #### GXF Extensions
 
 ```text
@@ -389,17 +374,6 @@ add_holohub_application(my_application DEPENDS
 ```
 
 If the application relies on one or more operators then the optional `DEPENDS OPERATORS` should be added so that
-the build system knows to build the dependent operator(s).
-
-**For Workflows:**
-
-```cmake
-# In ./workflow/CMakeLists.txt
-add_holohub_application(my_workflow DEPENDS
-                        OPERATORS my_operator1 my_operator2)
-```
-
-If the workflow relies on one or more operators then the optional `DEPENDS OPERATORS` should be added so that
 the build system knows to build the dependent operator(s).
 
 **For Packages:**

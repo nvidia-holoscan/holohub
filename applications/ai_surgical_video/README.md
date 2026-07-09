@@ -1,4 +1,4 @@
-# Real-Time End-to-end AI Surgical Video Workflow
+# Real-Time End-to-end AI Surgical Video Pipeline
 
 ![Overall Diagram](images/RAISVP_overall_diagram.png)
 *Fig.1: The overall diagram illustrating the end-to-end pipeline for real-time AI surgical video processing. The pipeline achieves an average end-to-end latency of 37ms (maximum 54ms). Key latency components are shown: Holoscan Sensor Bridge (HSB) latency averages 21ms (max 28ms), and the AI application averages 16ms (median 17ms, 95th percentile 18ms, 99th percentile 22ms, max 26ms). These results demonstrate the solution's high-performance, low-latency capabilities for demanding surgical video applications.*
@@ -19,15 +19,15 @@ Specifically, we demonstrate a comprehensive real-time end-to-end AI surgical vi
 
 ## Architecture
 
-![RAISVP-workflow](./images/RAISVP_dynamic_workflow.png)
-*Fig.2: The workflow diagram representing all the holoscan operators (in green) and holoscan sensor bridge operators (in yellow). The source can be a Holoscan Sensor Bridge, an AJA Card or a video replayer.*
+![RAISVP-pipeline](./images/RAISVP_dynamic_pipeline.png)
+*Fig.2: The pipeline diagram representing all the holoscan operators (in green) and holoscan sensor bridge operators (in yellow). The source can be a Holoscan Sensor Bridge, an AJA Card or a video replayer.*
 
 ![Sample Output Images](images/RAISVP_sample_images.png)
 *Fig.3: Endoscopy image from a partial nephrectomy procedure (surgical removal of the diseased portion of the kidney) showing AI tool segmentation results when the camera is inside the body and a deidentified (pixelated) output image when the camera is outside of the body.*
 
 ### 1. Out-of-Body Detection
 
-The workflow first determines if the endoscope is inside or outside the patient's body using an AI model.
+The application first determines if the endoscope is inside or outside the patient's body using an AI model.
 
 ### 2. Dynamic Flow Control
 
@@ -59,7 +59,7 @@ The HolovizOp displays the processed video with overlaid AI results, including:
 
 ### Models
 
-This workflow utilizes the following three AI models:
+This application utilizes the following three AI models:
 
 | Model | Description | File |
 | --- | --- | --- |
@@ -79,7 +79,7 @@ This workflow utilizes the following three AI models:
 ./holohub run ai_surgical_video
 ```
 
-This single command will create and launch Holohub container, build the workflow, and run the workflow with the default arguments set in the [config.yaml](./python/config.yaml) file and a replayer source.
+This single command will create and launch Holohub container, build the application, and run the application with the default arguments set in the [config.yaml](./python/config.yaml) file and a replayer source.
 
 ### Using AJA Card as I/O
 
@@ -101,15 +101,15 @@ embedded in the Holoscan SDK development container:
 ./holohub run ai_surgical_video sensor_bridge
 ```
 
-**ConnectX / RoCE Support (From source)**: Run the command below to build and launch the workflow with HSB input.
+**ConnectX / RoCE Support (From source)**: Run the command below to build and launch the application with HSB input.
 
 ```bash
 ./holohub run ai_surgical_video sensor_bridge_source
 ```
 
-This single command will create and launch the Holohub container, fetch Holoscan Sensor Bridge project sources, build the workflow with Sensor Bridge sources, and run the workflow with the default arguments set in the [config.yaml](./python/config.yaml) file and a Holoscan Sensor Bridge source.
+This single command will create and launch the Holohub container, fetch Holoscan Sensor Bridge project sources, build the application with Sensor Bridge sources, and run the application with the default arguments set in the [config.yaml](./python/config.yaml) file and a Holoscan Sensor Bridge source.
 
-*Camera over Ethernet (FuSA, SIPL): Not supported in this workflow.*
+*Camera over Ethernet (FuSA, SIPL): Not supported in this application.*
 
 ## Advanced Usage
 
@@ -129,7 +129,7 @@ First, you need to run the Holohub container:
 
 ### Building the Application
 
-Once your environment is set up, you can build the workflow using the following command:
+Once your environment is set up, you can build the application using the following command:
 
 ```sh
 ./holohub build ai_surgical_video
@@ -139,13 +139,13 @@ Once your environment is set up, you can build the workflow using the following 
 
 #### Use Holohub Container from Outside of the Container
 
-Using the Holohub container, you can run the workflow without building it again:
+Using the Holohub container, you can run the application without building it again:
 
 ```sh
 ./holohub run ai_surgical_video --no-build
 ```
 
-However, if you want to build the workflow, you can just remove the `--no-build` flag:
+However, if you want to build the application, you can just remove the `--no-build` flag:
 
 ```sh
 ./holohub run ai_surgical_video
@@ -154,7 +154,7 @@ However, if you want to build the workflow, you can just remove the `--no-build`
 Alternatively, you can run the application directly from the source directory:
 
 ```sh
-cd <HOLOHUB_SOURCE_DIR>/workflows/ai_surgical_video/python
+cd <HOLOHUB_SOURCE_DIR>/applications/ai_surgical_video/python
 python3 ai_surgical_video.py --source hsb --data <DATA_DIR> --config <CONFIG_FILE>
 ```
 
@@ -188,4 +188,4 @@ The application accepts the following command line arguments:
 
 ## Benchmarking
 
-Please refer to [Holoscan Benchmarking](../../benchmarks/holoscan_flow_benchmarking/README.md) for how to perform benchmarking for this workflow.
+Please refer to [Holoscan Benchmarking](../../benchmarks/holoscan_flow_benchmarking/README.md) for how to perform benchmarking for this application.

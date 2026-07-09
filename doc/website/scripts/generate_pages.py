@@ -38,7 +38,7 @@ from generate_api_docs import get_api_reference_for_operator  # noqa: E402
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-COMPONENT_TYPES = ["workflows", "applications", "operators", "tutorials", "benchmarks"]
+COMPONENT_TYPES = ["applications", "operators", "tutorials", "benchmarks"]
 
 RANKING_LEVELS = {
     0: "Level 0 - Core Stable",
@@ -154,9 +154,9 @@ def create_run_locally_button_and_modal(
     """Create the Run Locally button (modal will be created dynamically by JavaScript).
 
     Args:
-        app_path (str): Path to the application or workflow (e.g., "applications/endoscopy_tool_tracking/python" or "workflows/ai_surgical_video/python")
-        app_name (str): Name of the application or workflow for display
-        metadata (dict): Application or workflow metadata containing language information
+        app_path (str): Path to the application (e.g., "applications/endoscopy_tool_tracking/python")
+        app_name (str): Name of the application for display
+        metadata (dict): Application metadata containing language information
         git_repo_path (Path): Path to the Git repository root
 
     Returns:
@@ -192,13 +192,13 @@ def create_run_locally_button_and_modal(
             else:
                 detected_lang = language
 
-    # Extract just the application/workflow name from the path (last meaningful part)
+    # Extract just the application name from the path (last meaningful part)
     path_parts_list = app_path.split("/")
     app_short_name = path_parts_list[-1]
     if app_short_name in ["python", "cpp"]:
         app_short_name = path_parts_list[-2] if len(path_parts_list) > 1 else path_parts_list[-1]
 
-    # Determine component type (application or workflow)
+    # Determine component type (e.g. application)
     component_type = path_parts_list[0] if len(path_parts_list) > 0 else "application"
     component_type_singular = component_type.rstrip("s")  # Remove trailing 's' to get singular form
 
@@ -769,11 +769,11 @@ def create_page(
             current_version, archives, relative_dir, latest_version
         )
 
-    # Generate Run Locally button for applications and workflows (only for latest, non-archived versions)
+    # Generate Run Locally button for applications (only for latest, non-archived versions)
     run_locally_html = ""
     alt_language_link = ""
     all_languages = ""
-    if not archive_version and relative_dir.parts[0] in ["applications", "workflows"]:
+    if not archive_version and relative_dir.parts[0] == "applications":
         app_path = str(relative_dir)
         app_name = metadata.get("name", "Application")
         run_locally_html = create_run_locally_button_and_modal(
@@ -829,7 +829,7 @@ def create_title_from_readme_title(readme_title: str, suffix: str = "") -> str:
         Cleaned title with suffix appended
     """
     title = re.sub(
-        r"(Operator|Operators|Op|Application|App|Workflow)\b",
+        r"(Operator|Operators|Op|Application|App)\b",
         "",
         readme_title,
         flags=re.IGNORECASE,
@@ -1112,7 +1112,7 @@ def generate_pages() -> None:
     """Generate pages for documentation.
 
     This function orchestrates the entire process of generating API references,
-    copying README files for workflow, applications and operators.
+    copying README files for applications and operators.
 
     Returns:
         None
@@ -1193,7 +1193,6 @@ sort:
     nav_content = """
 nav:
 - Home: index.md
-- workflows
 - applications
 - operators
 - tutorials
