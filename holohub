@@ -22,11 +22,12 @@
 # Optional overrides:
 #   HOLOSCAN_CLI_SOURCE          Local CLI checkout for paired development.
 #   HOLOSCAN_CLI_INSTALL_ARGS    Pip install arguments (default is floating).
-#   HOLOSCAN_CLI_PINNED_VERSION  Exact package version to install and verify.
+#   HOLOSCAN_CLI_PINNED_VERSION  Exact package version; empty enables floating mode.
 #   HOLOSCAN_CLI_PYTHON_BIN      Caller-owned interpreter.
 #   HOLOHUB_PYTHON_BIN           Legacy interpreter override.
 #   HOLOSCAN_CLI_VENV            Wrapper-managed venv location.
 #   HOLOSCAN_CLI_CTEST_SCRIPT    CTest script used by `./holohub test`.
+#   HOLOSCAN_CLI_IN_CONTAINER_CMD  In-container CLI entry (default: this wrapper).
 
 set -euo pipefail
 
@@ -35,7 +36,17 @@ export HOLOSCAN_CLI_CMD_NAME="${BASH_SOURCE[0]}"
 export HOLOSCAN_CLI_ROOT="${SCRIPT_DIR}"
 
 export HOLOSCAN_CLI_INSTALL_ARGS="${HOLOSCAN_CLI_INSTALL_ARGS:---pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0}"
-export HOLOSCAN_CLI_PINNED_VERSION="${HOLOSCAN_CLI_PINNED_VERSION:-}"
+# Single bump point for the CLI version everywhere (host, images, runtime);
+# keep in sync with the module-template wrapper.
+HOLOSCAN_CLI_DEFAULT_PIN="4.5.0rc1"
+export HOLOSCAN_CLI_PINNED_VERSION="${HOLOSCAN_CLI_PINNED_VERSION-${HOLOSCAN_CLI_DEFAULT_PIN}}"
+# Version overrides never cross the Docker boundary; say so instead of
+# diverging silently.
+if [[ "${HOLOSCAN_CLI_PINNED_VERSION}" != "${HOLOSCAN_CLI_DEFAULT_PIN}" || -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
+    echo "[holohub] CLI override active for this host invocation only;" \
+         "containers follow the committed pin (${HOLOSCAN_CLI_DEFAULT_PIN})." >&2
+fi
+CLI_VENV_EXPLICIT="${HOLOSCAN_CLI_VENV:+1}"
 if [[ -z "${HOLOSCAN_CLI_VENV:-}" && -n "${XDG_DATA_HOME:-}${HOME:-}" ]]; then
     HOLOSCAN_CLI_VENV="${XDG_DATA_HOME:-${HOME}/.local/share}/holoscan-cli/venv"
 fi
@@ -108,6 +119,15 @@ _use_managed_venv() {
     _refuse_foreign_sudo_venv "${HOLOSCAN_CLI_VENV}"
     _managed_venv_ready && return
 
+    # Provisioning in a container would write an unkeyed venv into the
+    # bind-mounted checkout; fail with the real fix instead.
+    if _is_container && [[ -z "${CLI_VENV_EXPLICIT}" ]]; then
+        echo "[holohub] This container image lacks the required" \
+             "holoscan-cli${HOLOSCAN_CLI_PINNED_VERSION:+==${HOLOSCAN_CLI_PINNED_VERSION}}." >&2
+        echo "[holohub] Rebuild the image, or set HOLOSCAN_CLI_VENV or" \
+             "HOLOSCAN_CLI_PYTHON_BIN to provision one explicitly." >&2
+        exit 1
+    fi
     if [[ "${EUID}" -eq 0 ]]; then
         echo "[holohub] Note: creating a root-owned CLI environment at ${HOLOSCAN_CLI_VENV}." >&2
     fi
@@ -222,7 +242,8 @@ if [[ -z "${CLI_READY}" ]] && ! _holoscan_cli_ok "${PYTHON_BIN}"; then
     }
 fi
 
-extras="HOLOSCAN_CLI_INSTALL_ARGS=${CLI_INSTALL_ARGS[*]}"
-export HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS="${HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS:-} --build-arg '${extras//\'/\'\"\'\"\'}'"
+# Containers re-enter through this mounted wrapper so the pinned CLI version
+# is verified at runtime.
+export HOLOSCAN_CLI_IN_CONTAINER_CMD="${HOLOSCAN_CLI_IN_CONTAINER_CMD:-./${BASH_SOURCE[0]##*/}}"
 
 exec "${PYTHON_BIN}" -m holoscan_cli "$@"

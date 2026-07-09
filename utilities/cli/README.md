@@ -83,13 +83,18 @@ It then does three things in order:
      pip tokens. It defaults to `--pre --extra-index-url
      https://pypi.nvidia.com holoscan-cli>4.2.0`; shell quotes are not parsed.
    - `HOLOSCAN_CLI_PINNED_VERSION` supplies one exact package version. A
-     mismatch is installed and verified; an empty value keeps floating mode.
+     mismatch is installed and verified; an explicitly empty value keeps
+     floating mode.
 
-   The exact requirement is appended to the effective pip arguments. It is
-   also forwarded through the existing Docker build argument; Dockerfiles that
-   declare and consume `ARG HOLOSCAN_CLI_INSTALL_ARGS` receive the constraint.
-   Floating mode keeps an already-compatible CLI; it does not upgrade on every
-   invocation.
+   The exact requirement is appended to the effective pip arguments.
+   Floating mode keeps an already-compatible host CLI; it does not upgrade
+   on every invocation.
+
+   Containers reuse the same mechanism: Dockerfiles `COPY` this wrapper and
+   run it, so images install the wrapper-pinned version and a pin bump
+   rebuilds exactly that layer. At runtime the CLI re-enters containers
+   through the mounted wrapper, which verifies the pin — root containers
+   reconcile in place, non-root containers fail with a rebuild hint.
 
 3. Exports the `HOLOSCAN_CLI_*` environment variables that configure the CLI
    for this repo, then delegates the user's argv to
@@ -105,15 +110,20 @@ It then does three things in order:
 | `HOLOSCAN_CLI_VENV` | `${XDG_DATA_HOME:-$HOME/.local/share}/holoscan-cli/venv` | Location of the wrapper-managed environment. Set it explicitly when neither `HOME` nor `XDG_DATA_HOME` exists and a managed environment is needed. |
 | `HOLOSCAN_CLI_SOURCE` | unset | Local holoscan-cli checkout; prepends `<checkout>/src` to `PYTHONPATH` and installs from that checkout if needed. |
 | `HOLOSCAN_CLI_INSTALL_ARGS` | `--pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0` | Floating package and index arguments, parsed as single-line whitespace-separated tokens without shell evaluation. |
-| `HOLOSCAN_CLI_PINNED_VERSION` | unset | One exact package version; appends `holoscan-cli==<version>` to the effective pip/Docker arguments. Ignored with `HOLOSCAN_CLI_SOURCE`. |
+| `HOLOSCAN_CLI_PINNED_VERSION` | `4.5.0rc1` | One exact package version; appends `holoscan-cli==<version>` to the effective pip arguments. Empty selects floating mode. Host-only; ignored with `HOLOSCAN_CLI_SOURCE`. |
 | `PIP_BREAK_SYSTEM_PACKAGES` | `1` in root system scope | Passed to pip for PEP 668 behavior. It does not authorize or select system installation. |
 | `HOLOSCAN_CLI_BASE_SDK_VERSION` | `4.4.0` | Default Holoscan SDK base-image version used by CLI container commands. |
 | `HOLOSCAN_CLI_CTEST_SCRIPT` | `utilities/testing/holohub.container.ctest` | CTest driver used by `./holohub test`. |
-| `HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS` | unset | Existing default Docker build arguments; the wrapper appends its effective CLI install constraint. |
+| `HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS` | unset | Optional extra Docker build arguments passed through to CLI container builds. |
+| `HOLOSCAN_CLI_IN_CONTAINER_CMD` | `./holohub` | CLI entry the host CLI uses when recursing into a container; defaults to this wrapper, mounted with the repo. |
 
-Floating mode keeps any compatible CLI and does not upgrade it on every run.
-To force a version, set `HOLOSCAN_CLI_PINNED_VERSION`; the wrapper reconciles
-and verifies it. To inspect or manage the default venv directly:
+Set `HOLOSCAN_CLI_PINNED_VERSION` to select another exact version, or set it
+empty for floating mode. Floating mode keeps any compatible host CLI and
+does not guarantee the latest version. Overrides apply to the host only and
+never cross the Docker boundary; the wrapper prints a notice when one
+changes the effective version (custom or empty pin, or a source checkout),
+and containers keep following the committed pin. To inspect or manage the
+default venv directly:
 
 ```bash
 cli_venv="${XDG_DATA_HOME:-$HOME/.local/share}/holoscan-cli/venv"
@@ -129,6 +139,29 @@ system CLI read-only or create a new managed environment.
 Never run the wrapper with `sudo`. When an application needs root, use
 `./holohub run <app> --as-root` (with or without `--local`): the build stays
 user-owned and only the application phase runs as root.
+
+## Using the wrapper pattern in another source project
+
+Any holoscan-cli source project can adopt the same contract; a CLI upgrade
+is then a one-line pin bump in that repo's wrapper:
+
+1. Vendor one wrapper script that exports the project's `HOLOSCAN_CLI_*`
+   identity variables, sets `HOLOSCAN_CLI_PINNED_VERSION`, and bootstraps
+   holoscan-cli before delegating to `python -m holoscan_cli`. See the
+   [module template](../../modules/template) wrapper.
+2. Provision containers by running that wrapper in the Dockerfile, copied
+   before anything else so the layer stays cached until the pin changes:
+
+   ```dockerfile
+   COPY --chmod=755 <wrapper> /tmp/scripts/
+   RUN /tmp/scripts/<wrapper> env-info
+   ```
+
+3. Export `HOLOSCAN_CLI_IN_CONTAINER_CMD=./<wrapper>` so in-container
+   recursion re-enters through the mounted wrapper and verifies the pin.
+
+The wrapper file is the only version carrier; do not forward the CLI version
+through Docker build args or environment variables.
 
 ## holoscan-cli smoke test
 

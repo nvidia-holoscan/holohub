@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -214,7 +215,7 @@ def test_wrapper_preserves_pythonhome_for_explicit_interpreter(tmp_path):
 
 
 def test_wrapper_dryruns_project_run_through_consolidated_cli():
-    """./holohub run renders an in-container `holoscan run` recursion."""
+    """./holohub run recurses into the container through the mounted wrapper."""
     # Same multi-language note as `test_unified_cli_dryruns_holohub_project_run`.
     result = _run_holohub_wrapper(
         "run", "endoscopy_tool_tracking", "--language", "python", "--dryrun"
@@ -224,22 +225,49 @@ def test_wrapper_dryruns_project_run_through_consolidated_cli():
     assert result.returncode == 0, output
     assert "Running endoscopy_tool_tracking" in output
     assert "docker run" in output
-    assert "holoscan run endoscopy_tool_tracking" in output
+    # In-container recursion re-enters through the mounted wrapper so the
+    # pinned CLI version is verified (and reconciled) at runtime.
+    assert "./holohub run endoscopy_tool_tracking" in output
 
 
-def test_wrapper_quotes_default_docker_build_args_with_single_quotes():
-    """./holohub forwards docker build args that shlex can split."""
-    install_args = "--pre --extra-index-url https://example.invalid/simple pkg'name>1.0"
+def test_wrapper_does_not_forward_cli_version_out_of_band():
+    """The wrapper file is the only CLI version carrier for containers."""
     result = _run_holohub_wrapper(
         "run-container",
         "--dryrun",
         "--verbose",
-        extra_env={"HOLOSCAN_CLI_INSTALL_ARGS": install_args},
     )
     output = result.stdout + result.stderr
 
     assert result.returncode == 0, output
-    assert f"HOLOSCAN_CLI_INSTALL_ARGS={install_args}" in output
+    assert not re.search(r"--build-arg '?HOLOSCAN_CLI_INSTALL_ARGS", output)
+
+
+def test_wrapper_pins_stay_in_sync():
+    """The repo wrapper and module-template wrapper track one CLI pin."""
+    pin_pattern = re.compile(r'^HOLOSCAN_CLI_DEFAULT_PIN="([^"]+)"$', re.MULTILINE)
+    template_wrapper = (
+        REPO_ROOT / "modules" / "template" / "{{cookiecutter.module_repo_name}}" / "holohub"
+    )
+
+    repo_pin = pin_pattern.search((REPO_ROOT / "holohub").read_text(encoding="utf-8"))
+    template_pin = pin_pattern.search(template_wrapper.read_text(encoding="utf-8"))
+
+    assert repo_pin, "repo wrapper must declare HOLOSCAN_CLI_DEFAULT_PIN"
+    assert template_pin, "template wrapper must declare HOLOSCAN_CLI_DEFAULT_PIN"
+    assert repo_pin.group(1) == template_pin.group(1)
+
+
+def test_wrapper_announces_host_only_cli_overrides():
+    """Overrides never cross the Docker boundary, so the wrapper says so."""
+    result = _run_holohub_wrapper(
+        "env-info",
+        extra_env={"HOLOSCAN_CLI_PINNED_VERSION": ""},
+    )
+    output = result.stdout + result.stderr
+
+    assert result.returncode == 0, output
+    assert "containers follow the committed pin" in output
 
 
 def test_wrapper_test_forwards_holohub_ctest_script_to_container():

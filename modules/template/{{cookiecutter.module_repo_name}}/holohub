@@ -67,6 +67,10 @@ export CMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE:-Release}"
 
 PYTHON_BIN="${HOLOSCAN_CLI_PYTHON_BIN:-${HOLOHUB_PYTHON_BIN:-python3}}"
 export HOLOSCAN_CLI_INSTALL_ARGS="${HOLOSCAN_CLI_INSTALL_ARGS:---pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0}"
+# Single bump point for the CLI version everywhere (host, images, runtime);
+# keep in sync with the HoloHub repo wrapper.
+HOLOSCAN_CLI_DEFAULT_PIN="4.5.0rc1"
+export HOLOSCAN_CLI_PINNED_VERSION="${HOLOSCAN_CLI_PINNED_VERSION-${HOLOSCAN_CLI_DEFAULT_PIN}}"
 
 # Default Holoscan SDK version for this module's container base image.
 # holoscan-cli decoupled the base image from its own version (holoscan-cli#177)
@@ -78,10 +82,27 @@ if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
     export PYTHONPATH="${HOLOSCAN_CLI_SOURCE%/}/src${PYTHONPATH:+:${PYTHONPATH}}"
 fi
 
-# Install holoscan-cli unless a source-project-capable one is already present.
-# Probe the command surface (not just importability) so a stale legacy
+# Install holoscan-cli unless a source-project-capable one at the pinned
+# version is present. An exact pin match implies the command surface; in
+# floating mode probe the surface (not just importability) so a stale legacy
 # holoscan-cli (<= 4.2.0) doesn't satisfy the check.
-if ! "${PYTHON_BIN}" -m holoscan_cli --help 2>/dev/null | grep -qw build; then
+_cli_ok() {
+    if [[ -n "${HOLOSCAN_CLI_PINNED_VERSION}" && -z "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
+        [[ "$("${PYTHON_BIN}" -c 'from importlib.metadata import version; print(version("holoscan-cli"))' 2>/dev/null)" \
+            == "${HOLOSCAN_CLI_PINNED_VERSION}" ]]
+    else
+        "${PYTHON_BIN}" -m holoscan_cli --help 2>/dev/null | grep -qw build
+    fi
+}
+_is_container() {
+    [[ -f /.dockerenv || -f /run/.containerenv || -f /run/systemd/container ]] ||
+        grep -Eq '(docker|containerd|kubepods|podman|buildkit)' /proc/1/cgroup 2>/dev/null
+}
+if ! _cli_ok; then
+    # Root container installs (image builds) target the system interpreter.
+    if _is_container && [[ "${EUID}" -eq 0 ]]; then
+        export PIP_BREAK_SYSTEM_PACKAGES="${PIP_BREAK_SYSTEM_PACKAGES:-1}"
+    fi
     # Bootstrap pip if the interpreter lacks it (minimal Python installs omit
     # it). `pip install` below would otherwise fail with a confusing error.
     if ! "${PYTHON_BIN}" -m pip --version >/dev/null 2>&1; then
@@ -97,20 +118,18 @@ if ! "${PYTHON_BIN}" -m holoscan_cli --help 2>/dev/null | grep -qw build; then
         "${PYTHON_BIN}" -m pip install --upgrade "${HOLOSCAN_CLI_SOURCE}"
     else
         echo "[{{ cookiecutter.module_slug }}] installing with args: ${HOLOSCAN_CLI_INSTALL_ARGS}" >&2
-        "${PYTHON_BIN}" -m pip install ${HOLOSCAN_CLI_INSTALL_ARGS}
+        "${PYTHON_BIN}" -m pip install ${HOLOSCAN_CLI_INSTALL_ARGS} \
+            ${HOLOSCAN_CLI_PINNED_VERSION:+"holoscan-cli==${HOLOSCAN_CLI_PINNED_VERSION}"} || {
+            _is_container && echo "[{{ cookiecutter.module_slug }}] Install failed in this" \
+                "container; rebuild the image (./holohub build-container)." >&2
+            exit 1
+        }
     fi
 fi
 
-# Forward wrapper-selected CLI install args into project Docker builds so the
-# in-container CLI matches the host wrapper. holoscan-cli shlex-splits
-# HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS, so single-quote each KEY=VALUE to
-# preserve spaces and quotes in pip arguments.
-_q() {
-    local value="${1//\'/\'\"\'\"\'}"
-    printf "'%s'" "${value}"
-}
-extras=" --build-arg $(_q "HOLOSCAN_CLI_INSTALL_ARGS=${HOLOSCAN_CLI_INSTALL_ARGS}")"
-export HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS="${HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS:-}${extras}"
+# Containers re-enter through this mounted wrapper so the pinned CLI version
+# is verified at runtime.
+export HOLOSCAN_CLI_IN_CONTAINER_CMD="${HOLOSCAN_CLI_IN_CONTAINER_CMD:-./${BASH_SOURCE[0]##*/}}"
 
 # exec so signals reach the CLI directly; `python -m` so the same interpreter
 # that bootstrapped the CLI above runs it (a `holoscan` console script on PATH
