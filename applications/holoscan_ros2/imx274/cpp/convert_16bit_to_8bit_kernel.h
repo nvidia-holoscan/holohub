@@ -18,10 +18,13 @@
 #ifndef CONVERT_16BIT_TO_8BIT_KERNEL_H
 #define CONVERT_16BIT_TO_8BIT_KERNEL_H
 
+#include <cuda_runtime.h>
 #include <cstdint>
 
 // C++ wrapper function declaration
-extern "C" void launch_convert_16bit_to_8bit_kernel(const uint16_t* input, uint8_t* output,
-                                                    int width, int height, int input_channels);
+extern "C" cudaError_t launch_convert_16bit_to_8bit_kernel(const uint16_t* input, uint8_t* output,
+                                                           int width, int height,
+                                                           int input_channels,
+                                                           cudaStream_t stream);
 
 #endif  // CONVERT_16BIT_TO_8BIT_KERNEL_H
