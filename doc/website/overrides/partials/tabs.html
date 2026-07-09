@@ -1,0 +1,153 @@
+{#-
+  Unified top navigation for the NVIDIA Holoscan GitHub Pages sites.
+
+  This file is intentionally IDENTICAL between:
+    - nvidia-holoscan.github.io/overrides/partials/tabs.html
+    - holohub/doc/website/overrides/partials/tabs.html
+  Keep the two copies in sync so both sites present the exact same menu and
+  feel like a single website. All links are absolute cross-site URLs so the
+  menu works regardless of which site is currently being served.
+-#}
+{% set _root = "https://nvidia-holoscan.github.io/" %}
+{% set _hub  = "https://nvidia-holoscan.github.io/holohub/" %}
+{% set _menu = [
+  {"title": "Home", "url": _root, "match": _root, "exact": true},
+  {"title": "Holoscan SDK", "children": [
+      {"title": "Documentation", "url": "https://docs.nvidia.com/holoscan/sdk-user-guide/", "external": true},
+      {"title": "GitHub",        "url": "https://github.com/nvidia-holoscan/holoscan-sdk",  "external": true}
+  ]},
+  {"title": "HoloHub", "url": _hub, "match": _hub, "children": [
+      {"title": "Applications", "url": _hub ~ "applications/"},
+      {"title": "Operators",    "url": _hub ~ "operators/"},
+      {"title": "Tutorials",    "url": _hub ~ "tutorials/"},
+      {"title": "Benchmarks",   "url": _hub ~ "benchmarks/"},
+      {"title": "Modules",      "url": _hub ~ "modules/"}
+  ]},
+  {"title": "Holoscan Sensor Bridge", "children": [
+      {"title": "Documentation", "url": "https://docs.nvidia.com/holoscan/sensor-bridge/latest/", "external": true},
+      {"title": "GitHub",        "url": "https://github.com/nvidia-holoscan/holoscan-sensor-bridge", "external": true}
+  ]},
+  {"title": "Support", "children": [
+      {"title": "NVAIE", "url": "https://www.nvidia.com/en-us/data-center/products/ai-enterprise/", "external": true},
+      {"title": "Forum", "url": "https://forums.developer.nvidia.com/c/robotics-edge-computing/holoscan/757", "external": true}
+  ]},
+  {"title": "Blog", "url": _root ~ "blog/", "match": _root ~ "blog/"}
+] %}
+{% set _here = (page.canonical_url if page else "") or "" %}
+<style>
+  /* Allow dropdown panels to escape the tab bar bounds. Material sets
+     overflow:auto on .md-tabs and contain:content + overflow:auto on
+     .md-tabs__list, both of which clip the absolutely-positioned dropdown. */
+  .md-tabs { overflow: visible !important; }
+  .md-tabs__list { overflow: visible !important; contain: none !important; }
+
+  .hs-nav__item { position: relative; }
+
+  /* Parent that opens a submenu */
+  .hs-nav__link--parent {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+  .hs-nav__caret {
+    width: 0;
+    height: 0;
+    border-left: 0.22rem solid transparent;
+    border-right: 0.22rem solid transparent;
+    border-top: 0.22rem solid currentColor;
+    transition: transform 0.15s ease;
+    opacity: 0.7;
+  }
+  .hs-nav__item:hover .hs-nav__caret,
+  .hs-nav__item:focus-within .hs-nav__caret { transform: rotate(180deg); }
+
+  /* Dropdown panel */
+  .hs-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 20;
+    min-width: 13rem;
+    margin: 0;
+    padding: 0.3rem 0;
+    list-style: none;
+    background-color: var(--md-default-bg-color);
+    color: var(--md-default-fg-color);
+    border: 1px solid var(--md-default-fg-color--lightest);
+    border-radius: 0.15rem;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.24);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(0.25rem);
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+  }
+  .hs-nav__item:hover > .hs-dropdown,
+  .hs-nav__item:focus-within > .hs-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .hs-dropdown__link {
+    display: block;
+    padding: 0.45rem 1rem;
+    font-size: 0.7rem;
+    line-height: 1.3;
+    color: var(--md-default-fg-color);
+    white-space: nowrap;
+    text-decoration: none;
+  }
+  .hs-dropdown__link:hover,
+  .hs-dropdown__link:focus {
+    background-color: var(--md-default-fg-color--lightest);
+    color: var(--md-accent-fg-color);
+  }
+  .hs-dropdown__link .hs-ext {
+    margin-left: 0.4rem;
+    font-size: 0.6rem;
+    opacity: 0.6;
+  }
+</style>
+<nav class="md-tabs" aria-label="{{ lang.t('tabs') }}" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      {% for item in _menu %}
+        {% set ns = namespace(active=false) %}
+        {% if item.match %}
+          {% if item.exact %}
+            {% if _here == item.match or _here == item.match ~ "index.html" %}{% set ns.active = true %}{% endif %}
+          {% elif _here.startswith(item.match) %}
+            {% set ns.active = true %}
+          {% endif %}
+        {% endif %}
+        <li class="md-tabs__item hs-nav__item{% if ns.active %} md-tabs__item--active{% endif %}">
+          {% if item.children %}
+            {% if item.url %}
+              <a href="{{ item.url }}" class="md-tabs__link hs-nav__link--parent">
+                {{ item.title }}<span class="hs-nav__caret" aria-hidden="true"></span>
+              </a>
+            {% else %}
+              <span class="md-tabs__link hs-nav__link--parent" tabindex="0" role="button" aria-haspopup="true">
+                {{ item.title }}<span class="hs-nav__caret" aria-hidden="true"></span>
+              </span>
+            {% endif %}
+            <ul class="hs-dropdown">
+              {% for child in item.children %}
+                <li>
+                  <a class="hs-dropdown__link" href="{{ child.url }}"{% if child.external %} target="_blank" rel="noopener"{% endif %}>
+                    {{ child.title }}{% if child.external %}<span class="hs-ext" aria-hidden="true">&#8599;</span>{% endif %}
+                  </a>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <a href="{{ item.url }}" class="md-tabs__link"{% if item.external %} target="_blank" rel="noopener"{% endif %}>
+              {{ item.title }}
+            </a>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+</nav>
