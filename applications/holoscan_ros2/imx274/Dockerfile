@@ -18,11 +18,16 @@
 ############################################################
 # Build the imx274 image with ROS2 and hololink dependencies
 ############################################################
-ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v4.4.0-cuda13
+ARG GPU_TYPE
+ARG BASE_SDK_VERSION
+ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v${BASE_SDK_VERSION}-${GPU_TYPE}
 FROM ${BASE_IMAGE} AS imx274
 
+ARG DEBIAN_FRONTEND=noninteractive
+ARG CMAKE_BUILD_TYPE=Release
+
 # Install basic dependencies
-RUN apt update && apt install -y \
+RUN apt-get update && apt-get install --no-install-recommends -y \
     curl \
     gnupg \
     lsb-release \
@@ -30,7 +35,7 @@ RUN apt update && apt install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install git to clone the public holoscan-sensor-bridge repository
-RUN apt update && apt install -y \
+RUN apt-get update && apt-get install --no-install-recommends -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
@@ -39,7 +44,7 @@ RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o 
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null
 
 # Install ROS2 Jazzy and comprehensive Vulkan support
-RUN apt update && apt install -y \
+RUN apt-get update && apt-get install --no-install-recommends -y \
     ros-jazzy-desktop \
     ros-jazzy-ros-base \
     vulkan-tools \
@@ -72,10 +77,13 @@ RUN mkdir -p /usr/share/vulkan/icd.d /usr/share/vulkan/explicit_layer.d
 # Create a proper NVIDIA Vulkan ICD configuration
 RUN echo '{"file_format_version": "1.0.1", "ICD": {"library_path": "libGLX_nvidia.so.0", "api_version": "1.4.329"}}' > /usr/share/vulkan/icd.d/nvidia_icd.json
 
-RUN echo -e '#!/bin/bash \n \
-set -e \n \
-source /opt/ros/jazzy/setup.bash \n \
-exec "$@"' > /usr/bin/entrypoint.sh && chmod +x /usr/bin/entrypoint.sh
+COPY <<'EOF' /usr/bin/entrypoint.sh
+#!/bin/bash
+set -e
+source /opt/ros/jazzy/setup.bash
+exec "$@"
+EOF
+RUN chmod +x /usr/bin/entrypoint.sh
 
 ENTRYPOINT ["/usr/bin/entrypoint.sh"]
 
