@@ -110,7 +110,7 @@ It then does three things in order:
 | `HOLOSCAN_CLI_VENV` | `${XDG_DATA_HOME:-$HOME/.local/share}/holoscan-cli/venv` | Location of the wrapper-managed environment. Set it explicitly when neither `HOME` nor `XDG_DATA_HOME` exists and a managed environment is needed. |
 | `HOLOSCAN_CLI_SOURCE` | unset | Local holoscan-cli checkout; prepends `<checkout>/src` to `PYTHONPATH` and installs from that checkout if needed. |
 | `HOLOSCAN_CLI_INSTALL_ARGS` | `--pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0` | Floating package and index arguments, parsed as single-line whitespace-separated tokens without shell evaluation. |
-| `HOLOSCAN_CLI_PINNED_VERSION` | `4.5.0rc1` | One exact package version; appends `holoscan-cli==<version>` to the effective pip arguments. Empty selects floating mode. Host-only; ignored with `HOLOSCAN_CLI_SOURCE`. |
+| `HOLOSCAN_CLI_PINNED_VERSION` | `HOLOSCAN_CLI_DEFAULT_PIN` in the wrapper | One exact package version; appends `holoscan-cli==<version>` to the effective pip arguments. Empty selects floating mode. Host-only; ignored with `HOLOSCAN_CLI_SOURCE`. |
 | `PIP_BREAK_SYSTEM_PACKAGES` | `1` in root system scope | Passed to pip for PEP 668 behavior. It does not authorize or select system installation. |
 | `HOLOSCAN_CLI_BASE_SDK_VERSION` | `4.4.0` | Default Holoscan SDK base-image version used by CLI container commands. |
 | `HOLOSCAN_CLI_CTEST_SCRIPT` | `utilities/testing/holohub.container.ctest` | CTest driver used by `./holohub test`. |
