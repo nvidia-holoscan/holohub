@@ -1,20 +1,20 @@
 {#-
   Drawer / primary navigation override for the NVIDIA Holoscan GitHub Pages sites.
 
-  Based on the Material for MkDocs `partials/nav.html`, with the shared unified
-  menu (partials/hs-nav.html) injected at the top of the drawer. The injected
-  items are marked `.hs-drawer-only` so they appear only in the mobile drawer,
-  not in the desktop left sidebar (the custom tab bar covers desktop).
+  Based on the Material for MkDocs `partials/nav.html`, but the drawer renders
+  only the shared unified menu (partials/hs-nav.html) so both sites present the
+  exact same mobile navigation. The injected items are marked `.hs-drawer-only`
+  so they appear only in the mobile drawer, not in the desktop left sidebar
+  (the custom tab bar covers desktop).
 
-  The site's own navigation (`nav.items`) is rendered below the unified menu
-  only when `extra.hs_drawer_native_nav` is true (used by HoloHub to keep its
-  deep applications/operators tree reachable on mobile).
+  Note: the site's own deep navigation (applications/operators/... on HoloHub)
+  is intentionally not rendered here; it is reached from the HoloHub landing and
+  the per-section index pages, keeping the drawer identical across both sites.
 
   This file is intentionally IDENTICAL between:
     - nvidia-holoscan.github.io/overrides/partials/nav.html
     - holohub/doc/website/overrides/partials/nav.html
 -#}
-{% import "partials/nav-item.html" as item with context %}
 {% import "partials/hs-nav.html" as hsnav with context %}
 {% set class = "md-nav md-nav--primary" %}
 {% if "navigation.tabs" in features %}
@@ -37,14 +37,5 @@
   {% endif %}
   <ul class="md-nav__list" data-md-scrollfix>
     {{ hsnav.drawer((page.canonical_url if page else "") or "") }}
-    {% if config.extra.hs_drawer_native_nav %}
-      <li class="md-nav__item hs-drawer-only hs-drawer-divider">
-        <span class="md-nav__link hs-drawer-divider__label">{{ config.site_name }}</span>
-      </li>
-      {% for nav_item in nav.items %}
-        {% set path = "__nav_" ~ loop.index %}
-        {{ item.render(nav_item, path, 1) }}
-      {% endfor %}
-    {% endif %}
   </ul>
 </nav>

@@ -560,18 +560,3 @@
     display: none;
   }
 }
-
-/* Subtle divider label separating the unified menu from the site's own nav. */
-.hs-drawer-divider {
-  margin-top: 0.4rem;
-  padding-top: 0.4rem;
-  border-top: 1px solid var(--md-default-fg-color--lightest);
-}
-.hs-drawer-divider__label {
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  opacity: 0.6;
-  cursor: default;
-}

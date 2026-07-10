@@ -142,9 +142,6 @@ extra:
     alias: true
   github_url: https://github.com/nvidia-holoscan/holohub
   generator: false
-  # Keep HoloHub's own deep applications/operators tree in the mobile drawer,
-  # rendered below the shared unified menu (see overrides/partials/nav.html).
-  hs_drawer_native_nav: true
   analytics:
     provider: google
     property: G-S5CCWVS2B6
