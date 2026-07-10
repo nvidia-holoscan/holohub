@@ -130,7 +130,7 @@ The benchmark measures and compares:
 
 - Linux system with real-time scheduling support
 - Docker with privileged mode support
-- `sudo` access to run Docker with `--privileged` flag
+- Permission to run Docker containers with the `--privileged` flag
 - Multiple CPU cores recommended for meaningful contention testing
 
 ### Docker Requirements
@@ -259,7 +259,7 @@ If benchmark plots are not accessible on the host system, ensure proper volume m
 
 ## Notes
 
-- Real-time scheduling requires Docker `--privileged` mode and `sudo` privileges
+- Real-time scheduling requires Docker `--privileged` mode and the application `--as-root` flag
 - The benchmark automatically handles thread pool configuration and CPU pinning
 - Detailed timing plots are automatically generated and saved to the specified directory
 - Results may vary based on system load and hardware configuration

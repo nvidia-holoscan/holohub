@@ -16,8 +16,9 @@
 # Optional overrides (rarely needed):
 #   HOLOSCAN_CLI_SOURCE   Local checkout — wins over the package install.
 #   HOLOSCAN_CLI_INSTALL_ARGS  Pip install arguments.
-#   HOLOSCAN_CLI_PYTHON_BIN  Python interpreter (default: python3).
+#   HOLOSCAN_CLI_PYTHON_BIN  Caller-owned Python interpreter.
 #   HOLOHUB_PYTHON_BIN       Legacy fallback for HOLOSCAN_CLI_PYTHON_BIN.
+#   HOLOSCAN_CLI_VENV         Wrapper-managed venv location.
 
 set -euo pipefail
 
@@ -65,12 +66,16 @@ export CMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE:-Release}"
 # holoscan-cli bootstrap + exec
 # ==============================================================================
 
-PYTHON_BIN="${HOLOSCAN_CLI_PYTHON_BIN:-${HOLOHUB_PYTHON_BIN:-python3}}"
 export HOLOSCAN_CLI_INSTALL_ARGS="${HOLOSCAN_CLI_INSTALL_ARGS:---pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0}"
 # Single bump point for the CLI version everywhere (host, images, runtime);
 # keep in sync with the HoloHub repo wrapper.
 HOLOSCAN_CLI_DEFAULT_PIN="4.5.0rc1"
 export HOLOSCAN_CLI_PINNED_VERSION="${HOLOSCAN_CLI_PINNED_VERSION-${HOLOSCAN_CLI_DEFAULT_PIN}}"
+CLI_VENV_EXPLICIT="${HOLOSCAN_CLI_VENV:+1}"
+if [[ -z "${HOLOSCAN_CLI_VENV:-}" && -n "${XDG_DATA_HOME:-}${HOME:-}" ]]; then
+    HOLOSCAN_CLI_VENV="${XDG_DATA_HOME:-${HOME}/.local/share}/holoscan-cli/venv"
+fi
+export HOLOSCAN_CLI_VENV="${HOLOSCAN_CLI_VENV:-}"
 
 # Default Holoscan SDK version for this module's container base image.
 # holoscan-cli decoupled the base image from its own version (holoscan-cli#177)
@@ -82,29 +87,59 @@ if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
     export PYTHONPATH="${HOLOSCAN_CLI_SOURCE%/}/src${PYTHONPATH:+:${PYTHONPATH}}"
 fi
 
-# Install holoscan-cli unless a source-project-capable one at the pinned
-# version is present. An exact pin match implies the command surface; in
-# floating mode probe the surface (not just importability) so a stale legacy
-# holoscan-cli (<= 4.2.0) doesn't satisfy the check.
 _cli_ok() {
+    local python="$1"
     if [[ -n "${HOLOSCAN_CLI_PINNED_VERSION}" && -z "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
-        [[ "$("${PYTHON_BIN}" -c 'from importlib.metadata import version; print(version("holoscan-cli"))' 2>/dev/null)" \
+        [[ "$("${python}" -c 'from importlib.metadata import version; print(version("holoscan-cli"))' 2>/dev/null)" \
             == "${HOLOSCAN_CLI_PINNED_VERSION}" ]]
     else
-        "${PYTHON_BIN}" -m holoscan_cli --help 2>/dev/null | grep -qw build
+        "${python}" -m holoscan_cli --help 2>/dev/null | grep -qw build
     fi
 }
 _is_container() {
     [[ -f /.dockerenv || -f /run/.containerenv || -f /run/systemd/container ]] ||
         grep -Eq '(docker|containerd|kubepods|podman|buildkit)' /proc/1/cgroup 2>/dev/null
 }
-if ! _cli_ok; then
-    # Root container installs (image builds) target the system interpreter.
-    if _is_container && [[ "${EUID}" -eq 0 ]]; then
-        export PIP_BREAK_SYSTEM_PACKAGES="${PIP_BREAK_SYSTEM_PACKAGES:-1}"
+_managed_venv_ready() {
+    [[ -n "${HOLOSCAN_CLI_VENV}" && -x "${HOLOSCAN_CLI_VENV}/bin/python" ]] &&
+        "${HOLOSCAN_CLI_VENV}/bin/python" -m pip --version >/dev/null 2>&1
+}
+_use_managed_venv() {
+    if [[ -z "${HOLOSCAN_CLI_VENV}" ]]; then
+        echo "[{{ cookiecutter.module_slug }}] Set HOME, XDG_DATA_HOME, or HOLOSCAN_CLI_VENV." >&2
+        exit 1
     fi
-    # Bootstrap pip if the interpreter lacks it (minimal Python installs omit
-    # it). `pip install` below would otherwise fail with a confusing error.
+    if ! python3 -m venv "${HOLOSCAN_CLI_VENV}"; then
+        echo "[{{ cookiecutter.module_slug }}] Could not create ${HOLOSCAN_CLI_VENV}; install python3-venv." >&2
+        exit 1
+    fi
+    PYTHON_BIN="${HOLOSCAN_CLI_VENV}/bin/python"
+}
+
+PYTHON_BIN="${HOLOSCAN_CLI_PYTHON_BIN:-${HOLOHUB_PYTHON_BIN:-${VIRTUAL_ENV:+$VIRTUAL_ENV/bin/python}}}"
+if [[ -z "${PYTHON_BIN}" ]]; then
+    unset PYTHONHOME
+fi
+if [[ -n "${PYTHON_BIN}" ]]; then
+    :
+elif [[ "${EUID}" -eq 0 ]] && _is_container; then
+    PYTHON_BIN="python3"
+    export PIP_BREAK_SYSTEM_PACKAGES="${PIP_BREAK_SYSTEM_PACKAGES:-1}"
+elif _managed_venv_ready; then
+    PYTHON_BIN="${HOLOSCAN_CLI_VENV}/bin/python"
+elif [[ -n "${CLI_VENV_EXPLICIT}" ]]; then
+    _use_managed_venv
+elif [[ -z "${HOLOSCAN_CLI_SOURCE:-}" ]] && _cli_ok python3; then
+    PYTHON_BIN="python3"
+elif _is_container; then
+    echo "[{{ cookiecutter.module_slug }}] This container lacks holoscan-cli" \
+         "${HOLOSCAN_CLI_PINNED_VERSION:+==${HOLOSCAN_CLI_PINNED_VERSION}}; rebuild the image." >&2
+    exit 1
+else
+    _use_managed_venv
+fi
+
+if ! _cli_ok "${PYTHON_BIN}"; then
     if ! "${PYTHON_BIN}" -m pip --version >/dev/null 2>&1; then
         "${PYTHON_BIN}" -m ensurepip --upgrade >/dev/null 2>&1 || {
             echo "[{{ cookiecutter.module_slug }}] ${PYTHON_BIN} has no pip and ensurepip is unavailable;" \
