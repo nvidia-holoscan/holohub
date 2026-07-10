@@ -119,9 +119,12 @@ _use_managed_venv() {
     _refuse_foreign_sudo_venv "${HOLOSCAN_CLI_VENV}"
     _managed_venv_ready && return
 
-    # Provisioning in a container would write an unkeyed venv into the
-    # bind-mounted checkout; fail with the real fix instead.
-    if _is_container && [[ -z "${CLI_VENV_EXPLICIT}" ]]; then
+    # Provisioning into the project checkout (the bind-mounted workspace at
+    # container runtime, where HOME is /workspace/<name>) would pollute it
+    # with an unkeyed venv; fail with the real fix instead. A container home
+    # outside the checkout provisions as on a host.
+    if _is_container && [[ -z "${CLI_VENV_EXPLICIT}" ]] &&
+       [[ "$(realpath -m -- "${HOLOSCAN_CLI_VENV}")" == "${HOLOSCAN_CLI_ROOT}"/* ]]; then
         echo "[holohub] This container image lacks the required" \
              "holoscan-cli${HOLOSCAN_CLI_PINNED_VERSION:+==${HOLOSCAN_CLI_PINNED_VERSION}}." >&2
         echo "[holohub] Rebuild the image, or set HOLOSCAN_CLI_VENV or" \
