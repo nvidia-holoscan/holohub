@@ -352,6 +352,11 @@ int main(int argc, char** argv) {
     check_cuda(cuDeviceGet(&cu_device, cu_device_ordinal), "cuDeviceGet");
     CUcontext cu_context;
     check_cuda(cuDevicePrimaryCtxRetain(&cu_context, cu_device), "cuDevicePrimaryCtxRetain");
+    // Release the primary context on all exit paths, including exceptions
+    struct CudaContextGuard {
+      CUdevice device;
+      ~CudaContextGuard() { cuDevicePrimaryCtxRelease(device); }
+    } cuda_context_guard{cu_device};
 
     // Get a handle to the Hololink device
     auto channel_metadata =
@@ -380,6 +385,16 @@ int main(int argc, char** argv) {
 
     auto hololink = hololink_channel.hololink();
     hololink->start();
+    // Stop the hololink device on all exit paths, including exceptions
+    struct HololinkStopGuard {
+      decltype(hololink) link;
+      ~HololinkStopGuard() {
+        try {
+          link->stop();
+        } catch (...) { /* never throw from a destructor during unwinding */
+        }
+      }
+    } hololink_stop_guard{hololink};
     hololink->reset();
     hololink->write_uint32(0x8, 0x0);  // Keep the sensor RESET at low
     camera->setup_clock();
@@ -390,10 +405,8 @@ int main(int argc, char** argv) {
     camera->configure(camera_mode);
 
     app->run();
-    hololink->stop();
 
-    cuDevicePrimaryCtxRelease(cu_device);
-    // Shutdown ROS2
+    // Shutdown ROS2 (hololink stop and CUDA context release run via the scope guards)
     rclcpp::shutdown();
     return 0;
   } catch (const std::exception& e) {

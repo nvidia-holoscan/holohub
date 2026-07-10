@@ -218,6 +218,11 @@ int main(int argc, char** argv) {
     check_cuda(cuDeviceGet(&cu_device, cu_device_ordinal), "cuDeviceGet");
     CUcontext cu_context;
     check_cuda(cuDevicePrimaryCtxRetain(&cu_context, cu_device), "cuDevicePrimaryCtxRetain");
+    // Release the primary context on all exit paths, including exceptions
+    struct CudaContextGuard {
+      CUdevice device;
+      ~CudaContextGuard() { cuDevicePrimaryCtxRelease(device); }
+    } cuda_context_guard{cu_device};
 
     // Set up the application
     auto app = std::make_unique<HoloscanVb1940SubscriberApplication>(
@@ -229,8 +234,7 @@ int main(int argc, char** argv) {
 
     app->run();
 
-    cuDevicePrimaryCtxRelease(cu_device);
-    // Shutdown ROS2
+    // Shutdown ROS2 (CUDA context release runs via the scope guard)
     rclcpp::shutdown();
     return 0;
   } catch (const std::exception& e) {
