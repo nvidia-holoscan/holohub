@@ -29,7 +29,7 @@ pin, and root system-install policy). `./holohub env-info` reports which
 environment was selected. To remove the managed environment entirely:
 
 ```bash
-rm -rf ~/.local/share/holoscan-cli/venv
+rm -rf "${XDG_DATA_HOME:-$HOME/.local/share}/holoscan-cli/venv"
 ```
 
 The next invocation resolves again, either reusing a compatible system CLI
