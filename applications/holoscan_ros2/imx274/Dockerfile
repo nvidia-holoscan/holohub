@@ -90,9 +90,12 @@ ENTRYPOINT ["/usr/bin/entrypoint.sh"]
 # Set up deps directory and clone holoscan-sensor-bridge
 RUN mkdir -p /deps
 
-# Clone the public Holoscan Sensor Bridge repository
+# Clone the public Holoscan Sensor Bridge repository, pinned to a release
+# tag for reproducible builds.
+ARG HOLOLINK_REF=2.6.0
 WORKDIR /deps
-RUN git clone https://github.com/nvidia-holoscan/holoscan-sensor-bridge.git
+RUN git clone https://github.com/nvidia-holoscan/holoscan-sensor-bridge.git \
+    && git -C holoscan-sensor-bridge checkout ${HOLOLINK_REF}
 
 # Build the holoscan-sensor-bridge C++ libraries.
 # HOLOLINK_BUILD_ROCE=OFF: this application uses the Linux socket receiver over
