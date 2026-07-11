@@ -21,6 +21,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <thread>
 
 #include <holoscan/holoscan.hpp>
 #include <holoscan/operators/bayer_demosaic/bayer_demosaic.hpp>
@@ -162,8 +163,13 @@ class Vb1940PublisherOp : public holoscan::ros2::ops::PublisherOp<sensor_msgs::m
 
         // Allocate CUDA buffer only once if not already allocated or if size changed
         if (!d_rgb8_buffer_ || output_size != rgb8_buffer_size_) {
-          uint8_t* new_buffer;
-          cudaMalloc(&new_buffer, output_size);
+          uint8_t* new_buffer = nullptr;
+          auto alloc_status = cudaMalloc(&new_buffer, output_size);
+          if (alloc_status != cudaSuccess) {
+            HOLOSCAN_LOG_ERROR("cudaMalloc failed: {}; skipping frame",
+                               cudaGetErrorString(alloc_status));
+            continue;
+          }
           d_rgb8_buffer_.reset(new_buffer);
           rgb8_buffer_size_ = output_size;
         }
