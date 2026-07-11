@@ -1,0 +1,216 @@
+{#-
+  Shared unified navigation menu for the NVIDIA Holoscan GitHub Pages sites.
+
+  Single source of truth for the cross-site menu. Consumed by:
+    - partials/tabs.html : desktop top tab bar (hover dropdowns)
+    - partials/nav.html  : mobile drawer (native Material expandable nav)
+
+  This file is intentionally IDENTICAL between:
+    - nvidia-holoscan.github.io/overrides/partials/hs-nav.html
+    - holohub/doc/website/overrides/partials/hs-nav.html
+  Keep the copies in sync. All links are absolute cross-site URLs so the menu
+  works regardless of which site is currently being served.
+-#}
+{% set root = "https://nvidia-holoscan.github.io/" %}
+{% set hub  = "https://nvidia-holoscan.github.io/holohub/" %}
+{% set menu = [
+  {"title": "Home", "url": root, "match": root, "exact": true},
+  {"title": "Holoscan SDK", "children": [
+      {"title": "Documentation", "url": "https://docs.nvidia.com/holoscan/sdk-user-guide/", "external": true},
+      {"title": "GitHub",        "url": "https://github.com/nvidia-holoscan/holoscan-sdk",  "external": true}
+  ]},
+  {"title": "HoloHub", "url": hub, "match": hub, "children": [
+      {"title": "Applications", "url": hub ~ "applications/"},
+      {"title": "Operators",    "url": hub ~ "operators/"},
+      {"title": "Tutorials",    "url": hub ~ "tutorials/"},
+      {"title": "Benchmarks",   "url": hub ~ "benchmarks/"},
+      {"title": "Modules",      "url": hub ~ "modules/"}
+  ]},
+  {"title": "Holoscan Sensor Bridge", "children": [
+      {"title": "Documentation", "url": "https://docs.nvidia.com/holoscan/sensor-bridge/latest/", "external": true},
+      {"title": "GitHub",        "url": "https://github.com/nvidia-holoscan/holoscan-sensor-bridge", "external": true}
+  ]},
+  {"title": "Support", "children": [
+      {"title": "NVAIE", "url": "https://www.nvidia.com/en-us/data-center/products/ai-enterprise/", "external": true},
+      {"title": "Forum", "url": "https://forums.developer.nvidia.com/c/robotics-edge-computing/holoscan/757", "external": true}
+  ]},
+  {"title": "Blog", "url": root ~ "blog/", "match": root ~ "blog/"}
+] %}
+{#- Returns the literal string "active" when the given menu item matches the current page. -#}
+{%- macro active_flag(item, here) -%}
+  {%- set ns = namespace(active=false) -%}
+  {%- if item.match -%}
+    {%- if item.exact -%}
+      {%- if here == item.match or here == item.match ~ "index.html" -%}{%- set ns.active = true -%}{%- endif -%}
+    {%- elif here.startswith(item.match) -%}
+      {%- set ns.active = true -%}
+    {%- endif -%}
+  {%- endif -%}
+  {{- "active" if ns.active else "" -}}
+{%- endmacro -%}
+
+{#- ============================ DESKTOP TAB BAR ============================ -#}
+{%- macro tabs(here) -%}
+<style>
+  /* Allow dropdown panels to escape the tab bar bounds. Material sets
+     overflow:auto on .md-tabs and contain:content + overflow:auto on
+     .md-tabs__list, both of which clip the absolutely-positioned dropdown. */
+  .md-tabs { overflow: visible !important; }
+  .md-tabs__list { overflow: visible !important; contain: none !important; }
+
+  .hs-nav__item { position: relative; }
+
+  /* Parent that opens a submenu */
+  .hs-nav__link--parent {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+  .hs-nav__caret {
+    width: 0;
+    height: 0;
+    border-left: 0.22rem solid transparent;
+    border-right: 0.22rem solid transparent;
+    border-top: 0.22rem solid currentColor;
+    transition: transform 0.15s ease;
+    opacity: 0.7;
+  }
+  .hs-nav__item:hover .hs-nav__caret,
+  .hs-nav__item:focus-within .hs-nav__caret { transform: rotate(180deg); }
+
+  /* Dropdown panel */
+  .hs-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 20;
+    min-width: 13rem;
+    margin: 0;
+    padding: 0.3rem 0;
+    list-style: none;
+    background-color: var(--md-default-bg-color);
+    color: var(--md-default-fg-color);
+    border: 1px solid var(--md-default-fg-color--lightest);
+    border-radius: 0.15rem;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.24);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(0.25rem);
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+  }
+  .hs-nav__item:hover > .hs-dropdown,
+  .hs-nav__item:focus-within > .hs-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .hs-dropdown__link {
+    display: block;
+    padding: 0.45rem 1rem;
+    font-size: 0.7rem;
+    line-height: 1.3;
+    color: var(--md-default-fg-color);
+    white-space: nowrap;
+    text-decoration: none;
+  }
+  .hs-dropdown__link:hover,
+  .hs-dropdown__link:focus {
+    background-color: var(--md-default-fg-color--lightest);
+    color: var(--md-accent-fg-color);
+  }
+  .hs-dropdown__link .hs-ext {
+    margin-left: 0.4rem;
+    font-size: 0.6rem;
+    opacity: 0.6;
+  }
+</style>
+<nav class="md-tabs" aria-label="{{ lang.t('tabs') }}" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      {% for item in menu %}
+        {% set is_active = active_flag(item, here) %}
+        <li class="md-tabs__item hs-nav__item{% if is_active %} md-tabs__item--active{% endif %}">
+          {% if item.children %}
+            {% if item.url %}
+              <a href="{{ item.url }}" class="md-tabs__link hs-nav__link--parent">
+                {{ item.title }}<span class="hs-nav__caret" aria-hidden="true"></span>
+              </a>
+            {% else %}
+              <span class="md-tabs__link hs-nav__link--parent" tabindex="0" role="button" aria-haspopup="true">
+                {{ item.title }}<span class="hs-nav__caret" aria-hidden="true"></span>
+              </span>
+            {% endif %}
+            <ul class="hs-dropdown">
+              {% for child in item.children %}
+                <li>
+                  <a class="hs-dropdown__link" href="{{ child.url }}"{% if child.external %} target="_blank" rel="noopener"{% endif %}>
+                    {{ child.title }}{% if child.external %}<span class="hs-ext" aria-hidden="true">&#8599;</span>{% endif %}
+                  </a>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <a href="{{ item.url }}" class="md-tabs__link"{% if item.external %} target="_blank" rel="noopener"{% endif %}>
+              {{ item.title }}
+            </a>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+</nav>
+{%- endmacro -%}
+
+{#- ============================ MOBILE DRAWER ============================ -#}
+{#- Renders the unified menu as native Material drawer items. Each <li> is
+    tagged .hs-drawer-only so it shows in the mobile drawer but not in the
+    desktop left sidebar (where the custom tab bar already covers navigation). -#}
+{%- macro drawer(here) -%}
+  {% for item in menu %}
+    {% set is_active = active_flag(item, here) %}
+    {% if item.children %}
+      {% set path = "__hsnav_" ~ loop.index %}
+      <li class="md-nav__item md-nav__item--nested hs-drawer-only{% if is_active %} md-nav__item--active{% endif %}">
+        <input class="md-nav__toggle md-toggle" type="checkbox" id="{{ path }}"{% if is_active %} checked{% endif %}>
+        {% if item.url %}
+          <div class="md-nav__link md-nav__container">
+            <a href="{{ item.url }}" class="md-nav__link">
+              <span class="md-ellipsis">{{ item.title }}</span>
+            </a>
+            <label class="md-nav__link" for="{{ path }}" id="{{ path }}_label" tabindex="0">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          </div>
+        {% else %}
+          <label class="md-nav__link" for="{{ path }}" id="{{ path }}_label" tabindex="0">
+            <span class="md-ellipsis">{{ item.title }}</span>
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        {% endif %}
+        <nav class="md-nav" data-md-level="1" aria-labelledby="{{ path }}_label" aria-expanded="{{ 'true' if is_active else 'false' }}">
+          <label class="md-nav__title" for="{{ path }}">
+            <span class="md-nav__icon md-icon"></span>
+            {{ item.title }}
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            {% for child in item.children %}
+              <li class="md-nav__item">
+                <a href="{{ child.url }}" class="md-nav__link"{% if child.external %} target="_blank" rel="noopener"{% endif %}>
+                  <span class="md-ellipsis">{{ child.title }}{% if child.external %} &#8599;{% endif %}</span>
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        </nav>
+      </li>
+    {% else %}
+      <li class="md-nav__item hs-drawer-only{% if is_active %} md-nav__item--active{% endif %}">
+        <a href="{{ item.url }}" class="md-nav__link{% if is_active %} md-nav__link--active{% endif %}"{% if item.external %} target="_blank" rel="noopener"{% endif %}>
+          <span class="md-ellipsis">{{ item.title }}</span>
+        </a>
+      </li>
+    {% endif %}
+  {% endfor %}
+{%- endmacro -%}
