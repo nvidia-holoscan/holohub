@@ -18,11 +18,14 @@
 #include <unistd.h>
 #include <chrono>
 #include <cstdint>
+#include <future>
 #include <iostream>
 #include <memory>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <thread>
+#include <utility>
 
 #include <holoscan/core/parameter.hpp>
 #include <holoscan/holoscan.hpp>
@@ -71,25 +74,52 @@ class Vb1940SubscriberOp : public holoscan::ros2::ops::SubscriberOp<sensor_msgs:
 
   void compute(holoscan::InputContext& op_input, holoscan::OutputContext& op_output,
                holoscan::ExecutionContext& context) override {
-    // Receive ROS2 message - this is a blocking call
-    auto message = receive().get();
+    // Wait for the next ROS2 message with a timeout instead of blocking forever:
+    // Holoviz only services its window events when it receives a frame, so an
+    // indefinitely blocked receive freezes the window ("not responding") until
+    // the publisher starts streaming. Keep the pending future across compute()
+    // calls: abandoning a timed-out future would leave its promise queued in the
+    // bridge, silently consuming the next message.
+    if (!pending_message_) {
+      pending_message_ = receive();
+    }
+    if (pending_message_->wait_for(kReceiveTimeout) == std::future_status::ready) {
+      auto message = pending_message_->get();
+      pending_message_.reset();
 
-    // Validate the image layout before allocating and copying
-    const size_t expected_step = static_cast<size_t>(message.width) * 3 * sizeof(uint8_t);
-    const size_t expected_size = expected_step * message.height;
-    if (message.encoding != "rgb8" || message.step != expected_step ||
-        message.data.size() != expected_size) {
-      HOLOSCAN_LOG_ERROR(
-          "Skipping image with unexpected layout: encoding='{}', step={}, data_size={} "
-          "(expected rgb8, step={}, data_size={})",
-          message.encoding,
-          message.step,
-          message.data.size(),
-          expected_step,
-          expected_size);
-      return;
+      // Validate the image layout before allocating and copying
+      const size_t expected_step = static_cast<size_t>(message.width) * 3 * sizeof(uint8_t);
+      const size_t expected_size = expected_step * message.height;
+      if (message.encoding != "rgb8" || message.step != expected_step ||
+          message.data.size() != expected_size) {
+        HOLOSCAN_LOG_ERROR(
+            "Skipping image with unexpected layout: encoding='{}', step={}, data_size={} "
+            "(expected rgb8, step={}, data_size={})",
+            message.encoding,
+            message.step,
+            message.data.size(),
+            expected_step,
+            expected_size);
+      } else {
+        last_message_ = std::move(message);
+      }
     }
 
+    if (last_message_) {
+      // Emit the most recent frame (re-emitted while no new frame has arrived
+      // so the Holoviz window keeps servicing events).
+      emit_frame(last_message_->width, last_message_->height, last_message_->data.data(),
+                 op_output, context);
+    } else {
+      // No frame received yet: emit a black placeholder so the Holoviz window
+      // stays responsive while waiting for the publisher to start.
+      emit_frame(kPlaceholderWidth, kPlaceholderHeight, nullptr, op_output, context);
+    }
+  }
+
+ private:
+  void emit_frame(uint32_t width, uint32_t height, const uint8_t* host_data,
+                  holoscan::OutputContext& op_output, holoscan::ExecutionContext& context) {
     // Create allocator handle
     auto allocator_handle =
         nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(context.context(), pool_->gxf_cid());
@@ -103,14 +133,14 @@ class Vb1940SubscriberOp : public holoscan::ros2::ops::SubscriberOp<sensor_msgs:
                                      allocator_handle.value(),
                                      {{"",
                                        nvidia::gxf::MemoryStorageType::kDevice,
-                                       nvidia::gxf::Shape{static_cast<int32_t>(message.height),
-                                                          static_cast<int32_t>(message.width),
+                                       nvidia::gxf::Shape{static_cast<int32_t>(height),
+                                                          static_cast<int32_t>(width),
                                                           static_cast<int32_t>(3)},  // RGB channels
                                        nvidia::gxf::PrimitiveType::kUnsigned8,  // 8-bit per channel
                                        0,
                                        nvidia::gxf::ComputeTrivialStrides(
-                                           nvidia::gxf::Shape{static_cast<int32_t>(message.height),
-                                                              static_cast<int32_t>(message.width),
+                                           nvidia::gxf::Shape{static_cast<int32_t>(height),
+                                                              static_cast<int32_t>(width),
                                                               static_cast<int32_t>(3)},
                                            sizeof(uint8_t))}},
                                      false);
@@ -129,13 +159,18 @@ class Vb1940SubscriberOp : public holoscan::ros2::ops::SubscriberOp<sensor_msgs:
       return;
     }
 
-    // Copy data to the tensor
-    auto copy_status = cudaMemcpy(maybe_tensor.value()->pointer(),
-                                  message.data.data(),
-                                  message.data.size(),
-                                  cudaMemcpyHostToDevice);
+    // Copy data to the tensor (or clear it to black when no frame is available)
+    const size_t frame_bytes = static_cast<size_t>(width) * height * 3 * sizeof(uint8_t);
+    cudaError_t copy_status;
+    if (host_data != nullptr) {
+      copy_status = cudaMemcpy(
+          maybe_tensor.value()->pointer(), host_data, frame_bytes, cudaMemcpyHostToDevice);
+    } else {
+      copy_status = cudaMemset(maybe_tensor.value()->pointer(), 0, frame_bytes);
+    }
     if (copy_status != cudaSuccess) {
-      HOLOSCAN_LOG_ERROR("cudaMemcpy failed: {}; skipping frame", cudaGetErrorString(copy_status));
+      HOLOSCAN_LOG_ERROR("Failed to fill output tensor: {}; skipping frame",
+                         cudaGetErrorString(copy_status));
       return;
     }
 
@@ -144,8 +179,13 @@ class Vb1940SubscriberOp : public holoscan::ros2::ops::SubscriberOp<sensor_msgs:
     op_output.emit(result, "output");
   }
 
- private:
+  static constexpr std::chrono::milliseconds kReceiveTimeout{100};
+  static constexpr uint32_t kPlaceholderWidth = 2560;
+  static constexpr uint32_t kPlaceholderHeight = 1984;
+
   holoscan::Parameter<std::shared_ptr<holoscan::Allocator>> pool_;
+  std::optional<std::future<MessageType>> pending_message_;
+  std::optional<MessageType> last_message_;
 };
 
 class HoloscanVb1940SubscriberApplication : public holoscan::Application {
