@@ -21,7 +21,7 @@ This application performs monitor registration using an [Emergent Vision Technol
 
 ```bash
 ./holohub build evt_cam_calibration --local
-./holohub run evt_cam_calibration --local --no-local-build
+./holohub run evt_cam_calibration --local --no-local-build --as-root
 ```
 
 ## Output
@@ -33,4 +33,4 @@ The application generates a calibration file `evt-cali.npy` in the build directo
 - The camera must have a clear view of all four April tags
 - Avoid backlighting or glare on the monitor
 - If using a different camera model, update the camera settings in the Python app or YAML configuration file
-- The application requires sudo privileges to run
+- The application requires root; run it with `--as-root`

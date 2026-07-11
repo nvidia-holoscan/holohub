@@ -310,16 +310,16 @@ class DetectionPostprocessorOp(Operator):
         op_output.emit(out_message, "out")
 
 
-class AISurgicalVideoWorkflow(Application):
+class AISurgicalVideoApp(Application):
     """
-    Real-Time End-to-End AI Surgical Video Workflow
+    Real-Time End-to-End AI Surgical Video Pipeline
 
-    This class defines the workflow for processing surgical video streams with AI models.
+    This class defines the application for processing surgical video streams with AI models.
     It supports three different sources:
         - Holoscan Sensor Bridge (HSB)
         - AJA Card
         - Video Replayer
-    The workflow is composed of the following overall components:
+    The application is composed of the following overall components:
         - Out-of-Body Detection
         - Conditional Flow Control
         - Multi-AI Surgical Instrument Detection and Segmentation
@@ -347,7 +347,7 @@ class AISurgicalVideoWorkflow(Application):
     ):
         super().__init__()
         # Set application name
-        self.name = "Real-Time End-to-End AI Surgical Video Workflow"
+        self.name = "Real-Time End-to-End AI Surgical Video Pipeline"
         # Validate the path to the data directory
         self.data_dir = data if data is not None else os.environ.get("HOLOHUB_DATA_PATH", "../data")
         if not self.data_dir or not os.path.exists(self.data_dir):
@@ -780,7 +780,7 @@ def main(args):
 
         # __________________________________________________________________
         # Set up our Holoscan pipeline
-        application = AISurgicalVideoWorkflow(
+        application = AISurgicalVideoApp(
             source=args.source,
             data=args.data,
             headless=args.headless,
@@ -836,7 +836,7 @@ def main(args):
         cuda_driver.cuDevicePrimaryCtxRelease(cu_device)
 
     else:
-        application = AISurgicalVideoWorkflow(
+        application = AISurgicalVideoApp(
             source=args.source,
             data=args.data,
             headless=args.headless,
@@ -850,7 +850,7 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = ArgumentParser(description="Real-Time End-to-End AI Surgical Video Workflow")
+    parser = ArgumentParser(description="Real-Time End-to-End AI Surgical Video Pipeline")
     parser.add_argument(
         "-s",
         "--source",

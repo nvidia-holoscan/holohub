@@ -21,11 +21,10 @@ FROM ${BASE_IMAGE}
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-# Install holoscan-cli developer tools
-ARG HOLOSCAN_CLI_INSTALL_ARGS="--pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0"
-RUN if ! python3 -m holoscan_cli --help 2>/dev/null | grep -qw build; then \
-        python3 -m pip install ${HOLOSCAN_CLI_INSTALL_ARGS} \
-    ; fi
+# Install the wrapper-pinned holoscan-cli; copying only the wrapper keeps
+# this layer cached until the pin changes.
+COPY --chmod=755 holohub /tmp/scripts/
+RUN /tmp/scripts/holohub env-info
 
 # TODO: add module-specific runtime / build dependencies below.
 {% if cookiecutter.language == "cpp" %}RUN apt-get update \

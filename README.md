@@ -66,7 +66,7 @@ To build and run in a containerized environment you will need:
 - the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html) (v1.12.2 or later)
 - [Docker](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository), including the buildx plugin (`docker-buildx-plugin`)
 - `git` version control
-- (optional) [Python 3.10+](https://www.python.org/downloads/) on the host machine to run the `holohub` infrastructure script
+- (optional) [Python 3.10+](https://www.python.org/downloads/) with `venv` support on the host machine to run the `./holohub` infrastructure script; its first run installs the [holoscan-cli](https://github.com/nvidia-holoscan/holoscan-cli) package into a user-owned environment (see [utilities/cli/README.md](utilities/cli/README.md))
 
 You will also need to set up your NVIDIA NGC credentials at [ngc.nvidia.com](https://catalog.ngc.nvidia.com/).
 

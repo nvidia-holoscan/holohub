@@ -21,6 +21,16 @@
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE} AS base
 
+# Setup scripts use `sudo` for system packages. Ensure it exists on top of the
+# (arbitrary) base image; as root `sudo` is a harmless passthrough. Kept in its
+# own layer so it caches independently of which SCRIPT is being built.
+RUN if ! command -v sudo >/dev/null 2>&1; then \
+        apt-get update \
+        && apt-get install --no-install-recommends -y sudo \
+        && apt-get clean \
+        && rm -rf /var/lib/apt/lists/* \
+    ; fi
+
 ARG SCRIPT
 COPY utilities/setup/ /tmp/holohub-setup/
 RUN script="/tmp/holohub-setup/${SCRIPT##*/}" \

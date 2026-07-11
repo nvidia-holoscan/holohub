@@ -183,15 +183,17 @@ Everything after `--` is joined into a single string and executed via `bash -c`,
   - `--install` — use when installed artifacts are stale or from a different build configuration.
   - No flags — clears everything for a fresh start (e.g., switching SDK or CUDA versions).
 - `docker image prune` / `docker system prune` — reclaim disk (ask for approval before running).
-- Don't use `sudo ./holohub` — sudo filters `PATH` and other env vars.
+- Don't use `sudo ./holohub` — sudo filters `PATH` and other env vars. Use
+  `./holohub run <app> --as-root` instead: the build stays user-owned and only
+  the application phase runs as root.
 
 ### Gotchas
 
 - Dash-prefixed values need `=`: `--run-args="--verbose"`, not `--run-args --verbose`.
 - `--local` + `--docker-opts` is a fatal error.
 - `--build-with` replaces `build.depends` entirely (does not append).
-- `--benchmark` is a `build`-only flag and only applies to applications, workflows, and benchmarks.
-- Root in container: `--docker-opts="-u root"`.
+- `--benchmark` is a `build`-only flag and only applies to applications and benchmarks.
+- Root application: `run --as-root`. Root whole container: `run-container --as-root`.
 
 ### Project configuration
 
@@ -204,7 +206,7 @@ Everything after `--` is joined into a single string and executed via `bash -c`,
 
 - [Base project schema](../metadata/project.schema.json) — all valid fields, types, and constraints
 - [CLI Reference > Modes](cli_reference.md#modes) — mode fields, path placeholders, build/run config
-- Examples: [simple app](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/applications/endoscopy_tool_tracking/python/metadata.json), [multi-mode with docker opts](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/applications/isaac_sim_holoscan_bridge/metadata.json), [multi-mode with build deps](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/workflows/ai_surgical_video/python/metadata.json)
+- Examples: [simple app](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/applications/endoscopy_tool_tracking/python/metadata.json), [multi-mode with docker opts](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/applications/isaac_sim_holoscan_bridge/metadata.json), [multi-mode with build deps](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/applications/ai_surgical_video/python/metadata.json)
 
 ## Extending the CLI
 
