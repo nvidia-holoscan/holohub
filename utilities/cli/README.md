@@ -67,12 +67,26 @@ The main overrides are:
 | `HOLOSCAN_CLI_PINNED_VERSION` | Override the required package version; an empty value enables floating mode. |
 
 Host source and version overrides are not forwarded into Docker; containers
-continue to use the version pinned in the wrapper. To force a clean reinstall,
-remove only the managed environment; the next host invocation recreates it:
+continue to use the version pinned in the wrapper.
+
+To uninstall the CLI from the default managed environment:
 
 ```bash
 rm -rf "${XDG_DATA_HOME:-$HOME/.local/share}/holoscan-cli/venv"
 ```
+
+The next `./holohub` invocation reinstalls the committed version. To install
+and use another published version on the host:
+
+```bash
+HOLOSCAN_CLI_PINNED_VERSION=4.4.0 ./holohub env-info
+```
+
+Keep the variable set for later commands; without it, the wrapper restores the
+committed version.
+
+To change the version installed in HoloHub containers, update the committed
+`HOLOSCAN_CLI_DEFAULT_PIN` in `./holohub` and rebuild the image.
 
 Never run the wrapper with `sudo`. When an application needs root, use
 `./holohub run <app> --as-root` (with or without `--local`): the build stays
