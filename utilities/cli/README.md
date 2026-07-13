@@ -33,27 +33,87 @@ This directory keeps the user-facing CLI documentation:
 
 ## How the wrapper resolves the CLI
 
-The `./holohub` script at the repo root does three things in order:
+`./holohub` delegates to the standalone `holoscan-cli` package through one
+Python environment. On a host, it does not implicitly install into or reuse
+system Python.
 
-1. Probes the installed command surface — `python3 -m holoscan_cli --help |
-   grep -qw build` — rather than just checking importability. This ensures a
-   source-project-capable CLI is present, so a stale legacy `holoscan-cli`
-   (<= 4.2.0, which lacks `build`/`list`) does not satisfy the check.
-2. If the probe fails, it bootstraps pip when missing and `pip install`s the
-   package. The install spec is chosen in this precedence order:
+The wrapper selects an environment in this order:
 
-   | Env var                     | Behavior                                                                                                   |
-   | --------------------------- | ---------------------------------------------------------------------------------------------------------- |
-   | `HOLOSCAN_CLI_SOURCE`       | Path to a local checkout. Wins over `HOLOSCAN_CLI_INSTALL_ARGS`.                                           |
-   | `HOLOSCAN_CLI_INSTALL_ARGS` | Pip install arguments; defaults to `--pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0`.   |
+1. An explicit `HOLOSCAN_CLI_PYTHON_BIN` or active `VIRTUAL_ENV`.
+2. System Python while provisioning a container as root.
+3. An existing wrapper-managed virtual environment.
+4. A compatible system installation in a non-root container.
+5. A new wrapper-managed virtual environment.
 
-3. Exports the `HOLOSCAN_CLI_*` environment variables that configure the CLI
-   for this repo, then delegates the user's argv to
-   `python3 -m holoscan_cli`.
+The managed environment defaults to
+`${XDG_DATA_HOME:-$HOME/.local/share}/holoscan-cli/venv`. After selecting an
+environment, the wrapper verifies the required CLI version and commands,
+installs or repairs the package when allowed, and runs
+`python -m holoscan_cli` with the original arguments.
 
-The legacy `HOLOHUB_*` env-var spellings are still honored for one release
-with a one-line deprecation warning; this wrapper sets the new names
-proactively so the warning never fires.
+Container images install the CLI into system Python so it remains available
+after the Dockerfile changes users. At runtime, a non-root container reuses
+that installation. If the image does not contain the required version, the
+default behavior is to request an image rebuild instead of creating a virtual
+environment in the mounted source tree.
+
+The main overrides are:
+
+| Variable | Effect |
+| --- | --- |
+| `HOLOSCAN_CLI_PYTHON_BIN` | Use a specific caller-managed Python interpreter. |
+| `HOLOSCAN_CLI_VENV` | Change the managed environment location. |
+| `HOLOSCAN_CLI_SOURCE` | Use a local holoscan-cli checkout for development. |
+| `HOLOSCAN_CLI_PINNED_VERSION` | Override the required package version; an empty value enables floating mode. |
+
+Host source and version overrides are not forwarded into Docker; containers
+continue to use the version pinned in the wrapper.
+
+To uninstall the CLI from the default managed environment:
+
+```bash
+rm -rf "${XDG_DATA_HOME:-$HOME/.local/share}/holoscan-cli/venv"
+```
+
+The next `./holohub` invocation reinstalls the committed version. To install
+and use another published version on the host:
+
+```bash
+HOLOSCAN_CLI_PINNED_VERSION=4.4.0 ./holohub env-info
+```
+
+Keep the variable set for later commands; without it, the wrapper restores the
+committed version.
+
+To change the version installed in HoloHub containers, update the committed
+`HOLOSCAN_CLI_DEFAULT_PIN` in `./holohub` and rebuild the image.
+
+Never run the wrapper with `sudo`. When an application needs root, use
+`./holohub run <app> --as-root` (with or without `--local`): the build stays
+user-owned and only the application phase runs as root.
+
+## Using the wrapper pattern in another source project
+
+Any holoscan-cli source project can adopt the same contract; a CLI upgrade
+is then a one-line pin bump in that repo's wrapper:
+
+1. Vendor one wrapper script that exports the project's `HOLOSCAN_CLI_*`
+   identity variables, sets `HOLOSCAN_CLI_PINNED_VERSION`, and bootstraps
+   holoscan-cli before delegating to `python -m holoscan_cli`. See the
+   [module template](../../modules/template) wrapper.
+2. Provision containers by running that wrapper in the Dockerfile, copied
+   before anything else so the layer stays cached until the pin changes:
+
+   ```dockerfile
+   COPY --chmod=755 <wrapper> /tmp/scripts/
+   RUN /tmp/scripts/<wrapper> env-info
+   ```
+
+3. Export `HOLOSCAN_CLI_IN_CONTAINER_CMD=./<wrapper>` so in-container
+   recursion re-enters through the mounted wrapper and verifies the pin.
+
+The wrapper file is the only version carrier; do not forward the CLI version
+through Docker build args or environment variables.
 
 ## holoscan-cli smoke test
 

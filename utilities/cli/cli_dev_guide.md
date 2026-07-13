@@ -183,7 +183,9 @@ Everything after `--` is joined into a single string and executed via `bash -c`,
   - `--install` — use when installed artifacts are stale or from a different build configuration.
   - No flags — clears everything for a fresh start (e.g., switching SDK or CUDA versions).
 - `docker image prune` / `docker system prune` — reclaim disk (ask for approval before running).
-- Don't use `sudo ./holohub` — sudo filters `PATH` and other env vars.
+- Don't use `sudo ./holohub` — sudo filters `PATH` and other env vars. Use
+  `./holohub run <app> --as-root` instead: the build stays user-owned and only
+  the application phase runs as root.
 
 ### Gotchas
 
@@ -191,7 +193,7 @@ Everything after `--` is joined into a single string and executed via `bash -c`,
 - `--local` + `--docker-opts` is a fatal error.
 - `--build-with` replaces `build.depends` entirely (does not append).
 - `--benchmark` is a `build`-only flag and only applies to applications and benchmarks.
-- Root in container: `--docker-opts="-u root"`.
+- Root application: `run --as-root`. Root whole container: `run-container --as-root`.
 
 ### Project configuration
 

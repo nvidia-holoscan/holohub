@@ -59,11 +59,10 @@ RUN if ! python3 -m pip --version >/dev/null 2>&1; then \
         curl -sS https://bootstrap.pypa.io/get-pip.py | ${PYTHON_VERSION} \
     ; fi
 
-# Install standalone holoscan-cli before running `holohub setup`.
-ARG HOLOSCAN_CLI_INSTALL_ARGS=--pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0
-RUN if ! python3 -m holoscan_cli --help 2>/dev/null | grep -qw build; then \
-        python3 -m pip install ${HOLOSCAN_CLI_INSTALL_ARGS} \
-    ; fi
+# Install the wrapper-pinned holoscan-cli; copying only the wrapper keeps
+# this layer cached until the pin changes.
+COPY --chmod=755 holohub /tmp/scripts/
+RUN /tmp/scripts/holohub env-info
 
 # --------------------------------------------------------------------------
 #
@@ -72,11 +71,8 @@ RUN if ! python3 -m holoscan_cli --help 2>/dev/null | grep -qw build; then \
 # --------------------------------------------------------------------------
 FROM holohub-cli-prerequisites AS holohub-cli
 
-RUN mkdir -p /tmp/scripts
-COPY holohub /tmp/scripts/
 RUN mkdir -p /tmp/scripts/utilities
 COPY utilities /tmp/scripts/utilities/
-RUN chmod +x /tmp/scripts/holohub
 RUN /tmp/scripts/holohub setup && rm -rf /var/lib/apt/lists/*
 
 # Install GStreamer development packages and pkg-config

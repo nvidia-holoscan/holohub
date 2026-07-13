@@ -160,7 +160,7 @@ bash riva_start.sh
 Launch the `holohub:lmm` container:
 
 ```bash
-sudo ./holohub run-container lmm --add-volume <your_model_dir>
+./holohub run-container lmm --add-volume <your_model_dir>
 ```
 
 - Note, if the parent directory of <your_model_dir> is not `/models` you must update the [asr_llm_tts.yaml](./asr_llm_tts.yaml) and [ehr.yaml](./agents_configs/ehr.yaml) files with the complete path to your model inside the container. You will also need to update the [run_lmm.sh](./run_lmm.sh) so the correct directory is exported in the `set_transformer_cache()` function. (You can determine these paths by looking in `/workspace/volumes` inside the launched container) or you can use the following `sed` commands:
