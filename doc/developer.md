@@ -32,8 +32,7 @@ environment was selected. To remove the managed environment entirely:
 rm -rf "${XDG_DATA_HOME:-$HOME/.local/share}/holoscan-cli/venv"
 ```
 
-The next invocation resolves again, either reusing a compatible system CLI
-read-only or creating a new managed environment.
+The next ordinary host invocation creates a new managed environment.
 
 ## Native Build
 

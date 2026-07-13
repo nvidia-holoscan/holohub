@@ -35,26 +35,26 @@ This directory keeps the user-facing CLI documentation:
 
 The `./holohub` script selects one Python environment in this order:
 
-1. An explicit `HOLOSCAN_CLI_PYTHON_BIN` (or legacy
-   `HOLOHUB_PYTHON_BIN`) and an active `VIRTUAL_ENV` are caller-owned and win.
+1. An explicit `HOLOSCAN_CLI_PYTHON_BIN` or an active `VIRTUAL_ENV` is
+   caller-owned and wins.
 2. Root uses system Python inside a container (container markers, or the
    `/tmp/scripts` Dockerfile bootstrap location).
    This check intentionally precedes an implicit `/root` managed venv so a CLI
    installed while building a container remains available after `USER` changes.
 3. A healthy wrapper-managed venv is reused.
-4. A compatible system CLI is reused read-only. This supports previous global
-   installations and containers built as root but run as a regular user.
+4. A compatible system CLI is reused read-only in a non-root container. This
+   makes the image installation available after a Dockerfile changes `USER`.
 5. Otherwise the wrapper creates and provisions its managed venv. A failed
    venv creation is reported with the `python3-venv` installation hint; it
    never falls back to modifying system Python.
 
 A venv isolates Python packages, not operating-system resources; commands still
 have normal access to devices, CUDA, files, networking, and system libraries.
-On a host, wrapper bootstrap does not modify system Python: root installs
-system-wide only with a positive container marker or when the wrapper's
-physical directory is exactly `/tmp/scripts`, the controlled Dockerfile
-bootstrap location. A compatible system CLI may still be reused read-only, and
-an explicit caller-owned interpreter always has highest precedence.
+On a host, wrapper bootstrap does not implicitly install into or reuse packages
+from system Python. It uses the managed venv unless the caller explicitly
+selects an interpreter or activates a venv. Root installs system-wide only with
+a positive container marker or when the wrapper's physical directory is exactly
+`/tmp/scripts`, the controlled Dockerfile bootstrap location.
 
 `PIP_BREAK_SYSTEM_PACKAGES` controls pip only after system scope has been
 selected; it is not a host/container signal. The wrapper defaults it to `1` in
@@ -87,8 +87,8 @@ It then does three things in order:
      floating mode.
 
    The exact requirement is appended to the effective pip arguments.
-   Floating mode keeps an already-compatible host CLI; it does not upgrade
-   on every invocation.
+   Floating mode keeps an already-compatible CLI in the selected environment;
+   it does not upgrade on every invocation.
 
    Containers reuse the same mechanism: Dockerfiles `COPY` this wrapper and
    run it, so images install the wrapper-pinned version and a pin bump
@@ -105,7 +105,6 @@ It then does three things in order:
 | Variable | Default | Effect |
 | --- | --- | --- |
 | `HOLOSCAN_CLI_PYTHON_BIN` | unset | Explicit caller-owned Python interpreter; highest precedence. |
-| `HOLOHUB_PYTHON_BIN` | unset | Legacy alias for `HOLOSCAN_CLI_PYTHON_BIN`. |
 | `VIRTUAL_ENV` | unset | Its `bin/python` is used when no explicit interpreter is set. |
 | `HOLOSCAN_CLI_VENV` | `${XDG_DATA_HOME:-$HOME/.local/share}/holoscan-cli/venv` | Location of the wrapper-managed environment. Set it explicitly when neither `HOME` nor `XDG_DATA_HOME` exists and a managed environment is needed. |
 | `HOLOSCAN_CLI_SOURCE` | unset | Local holoscan-cli checkout; prepends `<checkout>/src` to `PYTHONPATH` and installs from that checkout if needed. |
@@ -118,12 +117,12 @@ It then does three things in order:
 | `HOLOSCAN_CLI_IN_CONTAINER_CMD` | `./holohub` | CLI entry the host CLI uses when recursing into a container; defaults to this wrapper, mounted with the repo. |
 
 Set `HOLOSCAN_CLI_PINNED_VERSION` to select another exact version, or set it
-empty for floating mode. Floating mode keeps any compatible host CLI and
-does not guarantee the latest version. Overrides apply to the host only and
-never cross the Docker boundary; the wrapper prints a notice when one
-changes the effective version (custom or empty pin, or a source checkout),
-and containers keep following the committed pin. To inspect or manage the
-default venv directly:
+empty for floating mode. Floating mode keeps any compatible CLI in the
+selected host environment and does not guarantee the latest version. Overrides
+apply to the host only and never cross the Docker boundary; the wrapper prints
+a notice when one changes the effective version (custom or empty pin, or a
+source checkout), and containers keep following the committed pin. To inspect
+or manage the default venv directly:
 
 ```bash
 cli_venv="${XDG_DATA_HOME:-$HOME/.local/share}/holoscan-cli/venv"
@@ -133,8 +132,8 @@ cli_venv="${XDG_DATA_HOME:-$HOME/.local/share}/holoscan-cli/venv"
 rm -rf "${cli_venv}"  # remove only the wrapper-managed CLI environment
 ```
 
-After removal, the next invocation resolves again: it may reuse a compatible
-system CLI read-only or create a new managed environment.
+After removal, the next ordinary host invocation creates a new managed
+environment.
 
 Never run the wrapper with `sudo`. When an application needs root, use
 `./holohub run <app> --as-root` (with or without `--local`): the build stays

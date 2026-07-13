@@ -810,7 +810,7 @@ for selection order, safety boundaries, and managed-venv maintenance.
 
 | Variable | Default / purpose |
 | --- | --- |
-| `HOLOSCAN_CLI_PYTHON_BIN` | Explicit caller-owned interpreter; highest precedence. `HOLOHUB_PYTHON_BIN` is its legacy alias. |
+| `HOLOSCAN_CLI_PYTHON_BIN` | Explicit caller-owned interpreter; highest precedence. |
 | `VIRTUAL_ENV` | Uses the active environment's `bin/python` when no explicit interpreter is set. |
 | `HOLOSCAN_CLI_VENV` | Wrapper-managed environment; defaults to `${XDG_DATA_HOME:-$HOME/.local/share}/holoscan-cli/venv`. |
 | `HOLOSCAN_CLI_SOURCE` | Local holoscan-cli checkout used in preference to a package requirement. |

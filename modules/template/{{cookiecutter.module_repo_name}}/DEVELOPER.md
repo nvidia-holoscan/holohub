@@ -36,8 +36,9 @@ distributing this Holoscan Module.
 ## `holohub` wrapper commands
 
 The `holohub` script at the module root wraps the `holoscan-cli` package with module-specific
-defaults. On first run it installs `holoscan-cli` via pip if it isn't already importable
-(internet required); subsequent runs reuse the installed copy.
+defaults. On a host, its first run creates a managed virtual environment and installs
+`holoscan-cli` there (internet required); subsequent runs reuse that environment. Containers
+reuse the package installed into the image during the Docker build.
 
 | Command | What it does |
 | --- | --- |

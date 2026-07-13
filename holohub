@@ -16,15 +16,15 @@
 # limitations under the License.
 #
 # HoloHub entry point for the standalone holoscan-cli package. Hosts use a
-# managed venv or reuse a compatible system install read-only. Root containers
-# install system-wide. See utilities/cli/README.md.
+# caller-selected interpreter or a managed venv. Root containers install
+# system-wide, and non-root containers reuse that image installation read-only.
+# See utilities/cli/README.md.
 #
 # Optional overrides:
 #   HOLOSCAN_CLI_SOURCE          Local CLI checkout for paired development.
 #   HOLOSCAN_CLI_INSTALL_ARGS    Pip install arguments (default is floating).
 #   HOLOSCAN_CLI_PINNED_VERSION  Exact package version; empty enables floating mode.
 #   HOLOSCAN_CLI_PYTHON_BIN      Caller-owned interpreter.
-#   HOLOHUB_PYTHON_BIN           Legacy interpreter override.
 #   HOLOSCAN_CLI_VENV            Wrapper-managed venv location.
 #   HOLOSCAN_CLI_CTEST_SCRIPT    CTest script used by `./holohub test`.
 #   HOLOSCAN_CLI_IN_CONTAINER_CMD  In-container CLI entry (default: this wrapper).
@@ -161,7 +161,7 @@ fi
 
 CLI_ENV="caller"
 CLI_READY=""
-PYTHON_BIN="${HOLOSCAN_CLI_PYTHON_BIN:-${HOLOHUB_PYTHON_BIN:-${VIRTUAL_ENV:+$VIRTUAL_ENV/bin/python}}}"
+PYTHON_BIN="${HOLOSCAN_CLI_PYTHON_BIN:-${VIRTUAL_ENV:+$VIRTUAL_ENV/bin/python}}"
 # An explicit interpreter (including an active venv) is caller-owned, so keep
 # its PYTHONHOME. For wrapper-selected interpreters, remove an inherited
 # override before probing or provisioning Python; otherwise it can redirect
@@ -179,7 +179,8 @@ elif [[ "${EUID}" -eq 0 ]] &&
 elif _managed_venv_available; then
     CLI_ENV="managed"
     PYTHON_BIN="${HOLOSCAN_CLI_VENV}/bin/python"
-elif [[ -z "${HOLOSCAN_CLI_SOURCE:-}" ]] &&
+elif _is_container &&
+     [[ -z "${HOLOSCAN_CLI_SOURCE:-}" ]] &&
      SYSTEM_PYTHON="$(type -P python3 2>/dev/null)" &&
      _holoscan_cli_ok "${SYSTEM_PYTHON}"; then
     CLI_ENV="system-readonly"
@@ -192,7 +193,7 @@ fi
 PYTHON_PATH="$(type -P "${PYTHON_BIN}" 2>/dev/null || true)"
 if [[ -z "${PYTHON_PATH}" ]]; then
     echo "[holohub] Python interpreter not found: ${PYTHON_BIN}" \
-         "(check HOLOSCAN_CLI_PYTHON_BIN / HOLOHUB_PYTHON_BIN / your active venv)." >&2
+         "(check HOLOSCAN_CLI_PYTHON_BIN or your active venv)." >&2
     exit 1
 fi
 PYTHON_DIR="$(cd "$(dirname "${PYTHON_PATH}")" && pwd)"

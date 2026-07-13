@@ -9,9 +9,6 @@ on:
 permissions:
   contents: read
 
-env:
-  HOLOSCAN_CLI_INSTALL_ARGS: "--pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0"
-
 jobs:
   check-lint:
     runs-on: ubuntu-22.04
@@ -20,13 +17,10 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # Pre-install holoscan-cli from NVIDIA PyPI so ./holohub bootstrap uses
-      # the CLI expected by this lint workflow.
-      - name: Install holoscan-cli
-        run: |
-          python3 -m pip install --upgrade pip
-          sudo python3 -m pip install \
-              ${HOLOSCAN_CLI_INSTALL_ARGS}
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
 
       - name: Install lint hook dependencies
         run: |

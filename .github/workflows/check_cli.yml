@@ -131,7 +131,6 @@ jobs:
           run_as_root() {
             sudo env \
               -u HOLOSCAN_CLI_PYTHON_BIN \
-              -u HOLOHUB_PYTHON_BIN \
               -u PIP_BREAK_SYSTEM_PACKAGES \
               -u PYTHONPATH \
               -u VIRTUAL_ENV \

@@ -162,7 +162,7 @@ def test_wrapper_runs_host_setup_from_managed_venv(tmp_path):
     # PYTHONPATH could resolve a different checkout, and an inherited
     # VIRTUAL_ENV / explicit interpreter override would take the wrapper's
     # caller-owned branch instead of creating the managed venv.
-    for var in ("PYTHONPATH", "VIRTUAL_ENV", "HOLOSCAN_CLI_PYTHON_BIN", "HOLOHUB_PYTHON_BIN"):
+    for var in ("PYTHONPATH", "VIRTUAL_ENV", "HOLOSCAN_CLI_PYTHON_BIN"):
         env.pop(var, None)
     env["HOLOSCAN_CLI_SOURCE"] = source
     env["HOLOSCAN_CLI_VENV"] = str(tmp_path / "holoscan-cli-venv")
@@ -201,7 +201,7 @@ def test_wrapper_preserves_pythonhome_for_explicit_interpreter(tmp_path):
     for var in ("PYTHONPATH", "VIRTUAL_ENV", "HOLOSCAN_CLI_PYTHON_BIN"):
         env.pop(var, None)
     env["HOLOSCAN_CLI_SOURCE"] = source
-    env["HOLOHUB_PYTHON_BIN"] = str(python_wrapper)
+    env["HOLOSCAN_CLI_PYTHON_BIN"] = str(python_wrapper)
     env["PYTHONHOME"] = "/caller/python-home"
     env["PYTHONHOME_LOG"] = str(pythonhome_log)
     env["REAL_PYTHON"] = sys.executable

@@ -17,7 +17,6 @@
 #   HOLOSCAN_CLI_SOURCE   Local checkout — wins over the package install.
 #   HOLOSCAN_CLI_INSTALL_ARGS  Pip install arguments.
 #   HOLOSCAN_CLI_PYTHON_BIN  Caller-owned Python interpreter.
-#   HOLOHUB_PYTHON_BIN       Legacy fallback for HOLOSCAN_CLI_PYTHON_BIN.
 #   HOLOSCAN_CLI_VENV         Wrapper-managed venv location.
 
 set -euo pipefail
@@ -116,7 +115,7 @@ _use_managed_venv() {
     PYTHON_BIN="${HOLOSCAN_CLI_VENV}/bin/python"
 }
 
-PYTHON_BIN="${HOLOSCAN_CLI_PYTHON_BIN:-${HOLOHUB_PYTHON_BIN:-${VIRTUAL_ENV:+$VIRTUAL_ENV/bin/python}}}"
+PYTHON_BIN="${HOLOSCAN_CLI_PYTHON_BIN:-${VIRTUAL_ENV:+$VIRTUAL_ENV/bin/python}}"
 if [[ -z "${PYTHON_BIN}" ]]; then
     unset PYTHONHOME
 fi
@@ -129,7 +128,7 @@ elif _managed_venv_ready; then
     PYTHON_BIN="${HOLOSCAN_CLI_VENV}/bin/python"
 elif [[ -n "${CLI_VENV_EXPLICIT}" ]]; then
     _use_managed_venv
-elif [[ -z "${HOLOSCAN_CLI_SOURCE:-}" ]] && _cli_ok python3; then
+elif _is_container && [[ -z "${HOLOSCAN_CLI_SOURCE:-}" ]] && _cli_ok python3; then
     PYTHON_BIN="python3"
 elif _is_container; then
     echo "[{{ cookiecutter.module_slug }}] This container lacks holoscan-cli" \
@@ -143,8 +142,8 @@ if ! _cli_ok "${PYTHON_BIN}"; then
     if ! "${PYTHON_BIN}" -m pip --version >/dev/null 2>&1; then
         "${PYTHON_BIN}" -m ensurepip --upgrade >/dev/null 2>&1 || {
             echo "[{{ cookiecutter.module_slug }}] ${PYTHON_BIN} has no pip and ensurepip is unavailable;" \
-                 "install pip (or set HOLOSCAN_CLI_PYTHON_BIN, or legacy HOLOHUB_PYTHON_BIN," \
-                 "to an interpreter that has it) and retry" >&2
+                 "install pip or set HOLOSCAN_CLI_PYTHON_BIN to an interpreter that has it" \
+                 "and retry" >&2
             exit 1
         }
     fi
