@@ -19798,7 +19798,7 @@
 </ol>
 <h2 id="running-the-application">Running the Application<a class="headerlink" href="#running-the-application" title="Permanent link">#</a></h2>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>evt_cam_calibration<span class="w"> </span>--local
-./holohub<span class="w"> </span>run<span class="w"> </span>evt_cam_calibration<span class="w"> </span>--local<span class="w"> </span>--no-local-build
+./holohub<span class="w"> </span>run<span class="w"> </span>evt_cam_calibration<span class="w"> </span>--local<span class="w"> </span>--no-local-build<span class="w"> </span>--as-root
 </code></pre></div>
 <h2 id="output">Output<a class="headerlink" href="#output" title="Permanent link">#</a></h2>
 <p>The application generates a calibration file <code>evt-cali.npy</code> in the build directory, which contains the monitor's corner coordinates.</p>
@@ -19807,7 +19807,7 @@
 <li>The camera must have a clear view of all four April tags</li>
 <li>Avoid backlighting or glare on the monitor</li>
 <li>If using a different camera model, update the camera settings in the Python app or YAML configuration file</li>
-<li>The application requires sudo privileges to run</li>
+<li>The application requires root; run it with <code>--as-root</code></li>
 </ul>
 
 

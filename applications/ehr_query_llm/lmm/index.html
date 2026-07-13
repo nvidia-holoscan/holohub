@@ -20175,7 +20175,7 @@ bash<span class="w"> </span>riva_start.sh
 <h3 id="step-3-launch-and-run-the-app">Step 3: Launch and Run the App<a class="headerlink" href="#step-3-launch-and-run-the-app" title="Permanent link">#</a></h3>
 <h4 id="step-31">Step 3.1<a class="headerlink" href="#step-31" title="Permanent link">#</a></h4>
 <p>Launch the <code>holohub:lmm</code> container:</p>
-<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>./holohub<span class="w"> </span>run-container<span class="w"> </span>lmm<span class="w"> </span>--add-volume<span class="w"> </span>&lt;your_model_dir&gt;
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>lmm<span class="w"> </span>--add-volume<span class="w"> </span>&lt;your_model_dir&gt;
 </code></pre></div>
 <ul>
 <li>Note, if the parent directory of <your_model_dir> is not <code>/models</code> you must update the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/ehr_query_llm/lmm/asr_llm_tts.yaml">asr_llm_tts.yaml</a> and <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/ehr_query_llm/lmm/agents_configs/ehr.yaml">ehr.yaml</a> files with the complete path to your model inside the container. You will also need to update the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/ehr_query_llm/lmm/run_lmm.sh">run_lmm.sh</a> so the correct directory is exported in the <code>set_transformer_cache()</code> function. (You can determine these paths by looking in <code>/workspace/volumes</code> inside the launched container) or you can use the following <code>sed</code> commands:</li>

@@ -19842,11 +19842,11 @@ make<span class="w"> </span>-j
 </code></pre></div>
 <h3 id="run-the-application">Run the application<a class="headerlink" href="#run-the-application" title="Permanent link">#</a></h3>
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>&lt;HOLOHUB_SOURCE_DIR&gt;
-sudo<span class="w"> </span>./holohub<span class="w"> </span>run<span class="w"> </span>high_speed_endoscopy<span class="w"> </span>--local<span class="w"> </span>--language<span class="w"> </span>cpp
+./holohub<span class="w"> </span>run<span class="w"> </span>high_speed_endoscopy<span class="w"> </span>--local<span class="w"> </span>--as-root<span class="w"> </span>--language<span class="w"> </span>cpp
 </code></pre></div>
 <p>For python version:</p>
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>&lt;HOLOHUB_SOURCE_DIR&gt;
-sudo<span class="w"> </span>./holohub<span class="w"> </span>run<span class="w"> </span>high_speed_endoscopy<span class="w"> </span>--local<span class="w"> </span>--language<span class="w"> </span>python
+./holohub<span class="w"> </span>run<span class="w"> </span>high_speed_endoscopy<span class="w"> </span>--local<span class="w"> </span>--as-root<span class="w"> </span>--language<span class="w"> </span>python
 </code></pre></div>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h2>
 <ol>
@@ -19859,7 +19859,7 @@ sudo<span class="w"> </span>./holohub<span class="w"> </span>run<span class="w">
 <li>
 <p><strong>Problem:</strong> The application fails to open the EVT camera.</p>
 <ul>
-<li>Make sure that the application was run with <code>sudo</code> privileges.</li>
+<li>Make sure that the application was run with <code>--as-root</code>.</li>
 <li>Make sure a valid Rivermax license file is located at <code>/opt/mellanox/rivermax/rivermax.lic</code>.</li>
 <li>Make sure that a previously run <code>high_speed_endoscopy</code> application has been terminated successfully. One might need to run <code>sudo kill -9 &lt;PID&gt;</code> to terminate the application.</li>
 </ul>

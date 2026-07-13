@@ -20504,7 +20504,7 @@ Int   (MB)  /Block    Impr    Avg(μs)     Avg(μs)
 &quot;/usr/local/cuda/targets/x86_64-linux/include/cccl&quot;
 </code></pre></div>
 <p><strong>Solution</strong>: Clear holohub cache to resolve build contamination:</p>
-<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>./holohub<span class="w"> </span>clear-cache
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>clear-cache
 </code></pre></div>
 <p>Then retry the benchmark command. This resolves CUDA version path mismatches from cached build artifacts.</p>
 <h3 id="performance-tuning">Performance Tuning<a class="headerlink" href="#performance-tuning" title="Permanent link">#</a></h3>
