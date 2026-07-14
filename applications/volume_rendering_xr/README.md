@@ -253,7 +253,7 @@ code appears, try any of the following:
 export ML_START_OPTIONS="debug"
 ```
 
-1. Follow [Advanced Setup Instructions](#advanced-setup) and add the `-u root` option to launch the container with root permissions.
+1. Follow [Advanced Setup Instructions](#advanced-setup) and add the `--as-root` option to run the application phase as root.
 
 ```sh
 ./holohub run volume_rendering_xr --img holohub:volume_rendering_xr --as-root

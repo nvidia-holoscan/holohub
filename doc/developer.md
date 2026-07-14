@@ -223,9 +223,9 @@ For example:
   ./holohub build endoscopy_tool_tracking
 ```
 
-If a project has multiple language implementations, the CLI reports its
-selection and defaults to Python when available. Pass `--language cpp` or
-`--language python` to select an implementation explicitly.
+If a project has multiple language implementations, the CLI warns that the
+project has multiple languages and defaults to Python when available. Pass
+`--language cpp` or `--language python` to select an implementation explicitly.
 
 ### Building an application or operator manually
 

@@ -152,7 +152,7 @@ The application generates two types of outputs:
 > This helper requires the application packager from `holoscan-cli` 4.2.0 or
 > earlier. Current `./holohub package` builds Holoscan Module artifacts instead.
 
-With a compatible legacy Holoscan CLI, an applications built with Holoscan SDK can be packaged into a Holoscan Application Package (HAP), which is essentially a Open Container Initiative compliant container image. An HAP is well suited to be distributed for deployment on hosting platforms, be a Docker Compose, Kubernetes, or else. Please refer to Packaging Holoscan Applications in the User Guide for more information.
+With a compatible legacy Holoscan CLI, an application built with Holoscan SDK can be packaged into a Holoscan Application Package (HAP), which is essentially a Open Container Initiative compliant container image. An HAP is well suited to be distributed for deployment on hosting platforms, be a Docker Compose, Kubernetes, or else. Please refer to Packaging Holoscan Applications in the User Guide for more information.
 
 This example application includes all the necessary files for HAP packaging. First, you should install the application:
 
