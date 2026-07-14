@@ -18,7 +18,7 @@
 ############################################################
 # Build the vb1940 image with ROS2 and hololink dependencies
 ############################################################
-ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v4.4.0-cuda13
+ARG BASE_IMAGE=nvcr.io/nvidia/clara-holoscan/holoscan:v3.5.0-dgpu
 FROM ${BASE_IMAGE} AS vb1940
 
 # Install basic dependencies
@@ -70,7 +70,7 @@ ENV PYTHONPATH=/opt/ros/jazzy/lib/python3.12/site-packages:/opt/nvidia/holoscan/
 RUN mkdir -p /usr/share/vulkan/icd.d /usr/share/vulkan/explicit_layer.d
 
 # Create a proper NVIDIA Vulkan ICD configuration
-RUN echo '{"file_format_version": "1.0.1", "ICD": {"library_path": "libGLX_nvidia.so.0", "api_version": "1.4.329"}}' > /usr/share/vulkan/icd.d/nvidia_icd.json
+#RUN echo '{"file_format_version": "1.0.0", "ICD": {"library_path": "libGLX_nvidia.so.0", "api_version": "1.3.242"}}' > /usr/share/vulkan/icd.d/nvidia_icd.json
 
 RUN echo -e '#!/bin/bash \n \
 set -e \n \
