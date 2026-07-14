@@ -91,7 +91,7 @@ Used by: `run-container`, `build`, `run`, `install`.
 | `--init`                  | Use tini entry point                                                          |
 | `--persistent`            | Do not delete container after it exits                                        |
 | `--add-volume <path>`     | Mount path at `/workspace/volumes`. Can be repeated                           |
-| `--as-root`               | Run container as root                                                         |
+| `--as-root`               | With `run`, build as the user and run the application phase as root           |
 | `--nsys-location <path>`  | Nsight Systems installation path on host                                      |
 | `--mps`                   | Mount CUDA MPS host directories into container (if MPS enabled on host)       |
 | `--enable-x11`            | Deprecated; X11/Wayland forwarding is auto-detected                           |
@@ -308,6 +308,7 @@ Build and run a project. By default: build container (if needed), build app in c
 ```bash
 ./holohub run myapp --language cpp
 ./holohub run myapp --local --language cpp --build-type debug
+./holohub run hardware_app --local --as-root
 ./holohub run myapp --language cpp --run-args="--config=config.json"
 ./holohub run body_pose_estimation replayer
 ./holohub run holochat standalone
@@ -801,6 +802,22 @@ Dedicated commands (`build`, `run`, `build-container`, `run-container`) allow cl
 
 The CLI respects these variables. Defaults and behavior are summarized below.
 
+### Wrapper Bootstrap
+
+These variables are consumed by `./holohub` before it delegates to
+`holoscan-cli`. See [How the wrapper resolves the CLI](README.md#how-the-wrapper-resolves-the-cli)
+for selection order, safety boundaries, and managed-venv maintenance.
+
+| Variable | Default / purpose |
+| --- | --- |
+| `HOLOSCAN_CLI_PYTHON_BIN` | Explicit caller-owned interpreter; highest precedence. |
+| `VIRTUAL_ENV` | Uses the active environment's `bin/python` when no explicit interpreter is set. |
+| `HOLOSCAN_CLI_VENV` | Wrapper-managed environment; defaults to `${XDG_DATA_HOME:-$HOME/.local/share}/holoscan-cli/venv`. |
+| `HOLOSCAN_CLI_SOURCE` | Local holoscan-cli checkout used in preference to a package requirement. |
+| `HOLOSCAN_CLI_INSTALL_ARGS` | Whitespace-separated pip tokens; defaults to the NVIDIA pre-release index and floating `holoscan-cli>4.2.0`. Shell quotes are not parsed. |
+| `HOLOSCAN_CLI_PINNED_VERSION` | One exact package version to install and verify. An explicitly empty value means floating. Ignored with `HOLOSCAN_CLI_SOURCE`. |
+| `PIP_BREAK_SYSTEM_PACKAGES` | PEP 668 pip control only; defaults to `1` after root system scope is selected and never selects that scope. |
+
 ### Build and Execution
 
 | Variable                      | Purpose                                                                                                          |
@@ -879,5 +896,6 @@ source ~/.bashrc
   `./holohub run-container -- './holohub lint && ./holohub build myapp'`.
   Avoid multi-line strings after `--`; use semicolons instead.
 - All CLI options use **hyphens** (`-`), not underscores (for example `--base-img`, not `--base_img`).
-- `sudo ./holohub` may not work correctly due to environment filtering (for example `PATH`).
+- Don't run the wrapper with `sudo`. Use `./holohub run <app> --as-root`: the
+  build stays user-owned and only the application phase runs as root.
 - To free disk during development: `docker image prune`, `docker buildx prune`, `docker system prune` (see [Docker docs](https://docs.docker.com/reference/cli/docker/)).
