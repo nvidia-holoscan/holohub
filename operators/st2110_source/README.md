@@ -172,7 +172,7 @@ To build the operator:
 To build with Python bindings:
 
 ```bash
-./holohub build st2110_source --configure-args "-DHOLOHUB_BUILD_PYTHON=ON"
+./holohub build st2110_source --configure-args="-DHOLOHUB_BUILD_PYTHON=ON"
 ```
 
 ## Network Configuration

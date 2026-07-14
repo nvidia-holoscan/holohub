@@ -5,7 +5,10 @@ The inference is executed using `torch` backend in `holoinfer` module in Holosca
 
 `object_detection_torch.yaml` is the configuration file. Input video file is converted into GXF tensors and the name and location of the GXF tensors are updated in the `basename` and the `directory` field in `replayer`.
 
-This application need `Libtorch` for inferencing. Ensure that the Holoscan SDK is build with `build_libtorch` flag as true. If not, then rebuild the SDK with following: `./holohub build --build_libtorch true` before running this application.
+This application requires LibTorch for inference. Use the application-specific
+container through `./holohub`; its Dockerfile verifies PyTorch from the selected
+base image, configures its LibTorch runtime for the C++ application, and
+installs a matching `torchvision` version.
 
 ## Data
 
@@ -82,9 +85,13 @@ export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/opt/hpcx/ompi/lib"
 
 ## Containerize the application
 
-To containerize the application using [Holoscan CLI](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/cli_packager), first build the application using `./holohub install object_detection_torch`, run the `package-app.sh` script and then follow the generated output to package and run the application.
+> [!IMPORTANT]
+> This helper requires the application packager from `holoscan-cli` 4.2.0 or
+> earlier. Current `./holohub package` builds Holoscan Module artifacts instead.
 
-Refer to the [Packaging Holoscan Applications](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/cli_packager) section of the [Holoscan User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/introduction/getting-started) to learn more about installing the Holoscan CLI or packaging your application using Holoscan CLI.
+To containerize the application using the legacy [Holoscan CLI](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/cli_packager), first build the application using `./holohub install object_detection_torch`, run the `package-app.sh` script and then follow the generated output to package and run the application.
+
+Refer to the [Packaging Holoscan Applications](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/cli_packager) section of the [Holoscan User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/introduction/getting-started) to learn more about installing the legacy Holoscan CLI or packaging your application using Holoscan CLI.
 
 ## Known Issues
 

@@ -2303,11 +2303,14 @@ bench_tx: # (31)!
     5. Run your application like so:
 
         ```bash
-        ./holohub run --img holohub:my_app --docker-opts "-u 0 --privileged" --bash -c "./build/my_app/applications/my_app my_app_config.yaml"
+        ./holohub run-container my_app --img holohub:my_app \
+          --docker-opts "-u 0 --privileged" -- \
+          "./build/my_app/applications/my_app my_app_config.yaml"
         ```
 
         or, if you have set up a shortcut to run your application with its config file through its `metadata.json` (see other apps for examples):
 
         ```bash
-        ./holohub run --no-local-build --container_args " -u 0 --privileged"
+        ./holohub run my_app --no-local-build --img holohub:my_app \
+          --docker-opts "-u 0 --privileged"
         ```

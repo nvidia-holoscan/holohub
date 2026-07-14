@@ -142,10 +142,11 @@ Once your environment is set up, you can build the application using the followi
 Using the Holohub container, you can run the application without building it again:
 
 ```sh
-./holohub run ai_surgical_video --no-build
+./holohub run ai_surgical_video --no-docker-build --no-local-build
 ```
 
-However, if you want to build the application, you can just remove the `--no-build` flag:
+Remove the skip flags when the container image or application artifacts need
+to be rebuilt:
 
 ```sh
 ./holohub run ai_surgical_video

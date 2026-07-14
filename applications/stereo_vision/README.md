@@ -48,11 +48,11 @@ you build the devcontainer with a compatible `base_img` as shown in the **Build 
 Run the following command to build and run application using the recorded video:
 
 ```sh
-./holohub run stereo_vision --base_img nvcr.io/nvidia/clara-holoscan/holoscan:v2.4.0-dgpu
+./holohub run stereo_vision --base-img nvcr.io/nvidia/clara-holoscan/holoscan:v2.4.0-dgpu
 ```
 
 To run the application using a v4l2 compatible stereo camera, run:
 
 ```sh
-./holohub run stereo_vision --base_img nvcr.io/nvidia/clara-holoscan/holoscan:v2.4.0-dgpu --run-args="--source v4l2"
+./holohub run stereo_vision --base-img nvcr.io/nvidia/clara-holoscan/holoscan:v2.4.0-dgpu --run-args="--source v4l2"
 ```

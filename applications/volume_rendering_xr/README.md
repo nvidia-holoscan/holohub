@@ -105,8 +105,8 @@ To build the release container:
 
 ```bash
 # Generate HoloHub `volume_rendering_xr` installation in the "holohub/install" folder
-./holohub build volume_rendering_xr --configure-args="-DCMAKE_INSTALL_PREFIX:PATH=/workspace/holohub/install"
-./holohub run-container volume_rendering_xr --docker-opts="--entrypoint=bash" -- -c cmake --build ./build --target install
+./holohub install volume_rendering_xr \
+  --configure-args="-DCMAKE_INSTALL_PREFIX:PATH=/workspace/holohub/install"
 
 # Copy files into a release container
 ./holohub build-container --img holohub:volume_rendering_xr_rel --docker-file ./applications/volume_rendering_xr/scripts/Dockerfile.rel --base-img nvcr.io/nvidia/cuda:12.4.1-runtime-ubuntu22.04
@@ -256,7 +256,7 @@ export ML_START_OPTIONS="debug"
 1. Follow [Advanced Setup Instructions](#advanced-setup) and add the `-u root` option to launch the container with root permissions.
 
 ```sh
-./holohub run --img holohub:volume_rendering_xr --docker-opts"-u root"
+./holohub run volume_rendering_xr --img holohub:volume_rendering_xr --as-root
 ```
 
 1. Clear the build cache and any home cache folders in the HoloHub workspace.

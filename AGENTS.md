@@ -9,7 +9,13 @@ Projects live under `applications/`, `benchmarks/`, `operators/`, `gxf_extension
 ## Boundaries
 
 - **Always** run `./holohub run-container -- "./holohub lint --install-dependencies; ./holohub lint"` before committing
-- **Always** use `--dryrun --verbose` to inspect a CLI command before running it for real
+- **Always** preview mutating CLI commands before running them for real:
+  - Use `--dryrun --verbose` with `build`, `run`, `build-container`,
+    `run-container`, `install`, `test`, and `package`
+  - Use `--dryrun` with `create`, `lint`, `setup`, and `clear-cache`; these
+    commands do not accept `--verbose`
+  - `list`, `modes`, `env-info`, `env-check`, `status`, and `version` are
+    read-only diagnostics and accept neither preview flag
 - **Ask first** before changing `metadata.json` schemas, shared Dockerfiles, or CMake registration macros (`add_holohub_application`, `add_holohub_operator`, etc.)
 - **Never** delete `build/`, `data/`, or `install/` directories without asking
 
