@@ -36,8 +36,9 @@ distributing this Holoscan Module.
 ## `holohub` wrapper commands
 
 The `holohub` script at the module root wraps the `holoscan-cli` package with module-specific
-defaults. On first run it installs `holoscan-cli` via pip if it isn't already importable
-(internet required); subsequent runs reuse the installed copy.
+defaults. On a host, its first run creates a managed virtual environment and installs
+`holoscan-cli` there (internet required); subsequent runs reuse that environment. Containers
+reuse the package installed into the image during the Docker build.
 
 | Command | What it does |
 | --- | --- |
@@ -47,11 +48,11 @@ defaults. On first run it installs `holoscan-cli` via pip if it isn't already im
 | `./holohub test` | Run CTest (C++ unit tests) and pytest |
 | `./holohub install --dev` | Install a `.pth` hook so `import holoscan.{{ cookiecutter.module_slug }}` works in any shell |
 
-Set `HOLOSCAN_CLI_INSTALL_ARGS` to override the pip install arguments. The
-wrapper forwards this value into Docker builds as the
-`HOLOSCAN_CLI_INSTALL_ARGS` build arg, so the development image installs the
-same CLI package spec as the host wrapper. Set `HOLOSCAN_CLI_SOURCE` to a local
-checkout for host-side CLI development.
+The wrapper file owns the holoscan-cli version: bump
+`HOLOSCAN_CLI_PINNED_VERSION` in `./holohub` to upgrade the CLI everywhere;
+the Dockerfile copies and runs the wrapper, so the image follows the same
+pin. Set `HOLOSCAN_CLI_INSTALL_ARGS` to override the pip index arguments, or
+`HOLOSCAN_CLI_SOURCE` to a local checkout for host-side CLI development.
 
 ---
 

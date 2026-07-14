@@ -15,75 +15,239 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# HoloHub source-project entry point. Delegates to the standalone
-# `holoscan-cli` package (https://github.com/nvidia-holoscan/holoscan-cli),
-# defaulting to NVIDIA PyPI release-candidate-capable install args.
+# HoloHub entry point for the standalone holoscan-cli package. Hosts use a
+# caller-selected interpreter or a managed venv. Root containers install
+# system-wide, and non-root containers reuse that image installation read-only.
+# See utilities/cli/README.md.
 #
-# Optional overrides (rarely needed):
-#   HOLOSCAN_CLI_SOURCE   Local checkout — wins over the package install.
-#   HOLOSCAN_CLI_INSTALL_ARGS  Pip install arguments.
-#   HOLOSCAN_CLI_PYTHON_BIN  Python interpreter (default: python3).
-#   HOLOSCAN_CLI_CTEST_SCRIPT  CTest script used by `./holohub test`.
-#   HOLOHUB_PYTHON_BIN       Legacy fallback for HOLOSCAN_CLI_PYTHON_BIN.
+# Optional overrides:
+#   HOLOSCAN_CLI_SOURCE          Local CLI checkout for paired development.
+#   HOLOSCAN_CLI_INSTALL_ARGS    Pip install arguments (default is floating).
+#   HOLOSCAN_CLI_PINNED_VERSION  Exact package version; empty enables floating mode.
+#   HOLOSCAN_CLI_PYTHON_BIN      Caller-owned interpreter.
+#   HOLOSCAN_CLI_VENV            Wrapper-managed venv location.
+#   HOLOSCAN_CLI_CTEST_SCRIPT    CTest script used by `./holohub test`.
+#   HOLOSCAN_CLI_IN_CONTAINER_CMD  In-container CLI entry (default: this wrapper).
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd -P)"
 export HOLOSCAN_CLI_CMD_NAME="${BASH_SOURCE[0]}"
 export HOLOSCAN_CLI_ROOT="${SCRIPT_DIR}"
 
-PYTHON_BIN="${HOLOSCAN_CLI_PYTHON_BIN:-${HOLOHUB_PYTHON_BIN:-python3}}"
-export HOLOSCAN_CLI_INSTALL_ARGS="${HOLOSCAN_CLI_INSTALL_ARGS:---pre --extra-index-url https://pypi.nvidia.com holoscan-cli==4.4.0}"
+export HOLOSCAN_CLI_INSTALL_ARGS="${HOLOSCAN_CLI_INSTALL_ARGS:---pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0}"
+# Single bump point for the CLI version everywhere (host, images, runtime);
+# keep in sync with the module-template wrapper.
+HOLOSCAN_CLI_DEFAULT_PIN="4.5.0rc1"
+export HOLOSCAN_CLI_PINNED_VERSION="${HOLOSCAN_CLI_PINNED_VERSION-${HOLOSCAN_CLI_DEFAULT_PIN}}"
+# Version overrides never cross the Docker boundary; say so instead of
+# diverging silently.
+if [[ "${HOLOSCAN_CLI_PINNED_VERSION}" != "${HOLOSCAN_CLI_DEFAULT_PIN}" || -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
+    echo "[holohub] CLI override active for this host invocation only;" \
+         "containers follow the committed pin (${HOLOSCAN_CLI_DEFAULT_PIN})." >&2
+fi
+CLI_VENV_EXPLICIT="${HOLOSCAN_CLI_VENV:+1}"
+if [[ -z "${HOLOSCAN_CLI_VENV:-}" && -n "${XDG_DATA_HOME:-}${HOME:-}" ]]; then
+    HOLOSCAN_CLI_VENV="${XDG_DATA_HOME:-${HOME}/.local/share}/holoscan-cli/venv"
+fi
+export HOLOSCAN_CLI_VENV="${HOLOSCAN_CLI_VENV:-}"
 
-# Default Holoscan SDK version for project container base images. holoscan-cli
-# decoupled the base image from its own version (holoscan-cli#177) and no longer
-# ships a built-in default, so it errors unless this is set (or --base-img is
-# passed). Pin it here -- this is the single source of truth that replaces the
-# former in-tree CLI's util.py DEFAULT_BASE_SDK_VERSION (holohub#1590). Env var
-# takes precedence; per-project scripts may still override via export.
+# The standalone CLI has no SDK-image default; HoloHub owns this project default.
 export HOLOSCAN_CLI_BASE_SDK_VERSION="${HOLOSCAN_CLI_BASE_SDK_VERSION:-4.4.0}"
 export HOLOSCAN_CLI_CTEST_SCRIPT="${HOLOSCAN_CLI_CTEST_SCRIPT:-utilities/testing/holohub.container.ctest}"
 
-# A local holoscan-cli checkout takes precedence over the package install.
+_holoscan_cli_version() {
+    "$1" -c 'from importlib.metadata import version; print(version("holoscan-cli"))' \
+        2>/dev/null
+}
+
+# Probe the command surface, not just importability, so legacy packages cannot
+# satisfy this source-project wrapper.
+_holoscan_cli_ok() {
+    "$1" -m holoscan_cli build --help >/dev/null 2>&1 || return 1
+    if [[ -n "${HOLOSCAN_CLI_PINNED_VERSION}" && -z "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
+        [[ "$(_holoscan_cli_version "$1" || true)" == "${HOLOSCAN_CLI_PINNED_VERSION}" ]]
+    fi
+}
+
+_is_container() {
+    [[ -f /.dockerenv || -f /run/.containerenv || -f /run/systemd/container ]] ||
+        grep -Eq '(docker|containerd|kubepods|podman|buildkit)' /proc/1/cgroup 2>/dev/null
+}
+
+# sudo keeping the caller's HOME must not write root-owned files into it.
+_refuse_foreign_sudo_venv() {
+    [[ "${EUID}" -eq 0 && -n "${SUDO_USER:-}" ]] || return 0
+    local probe owner
+    probe="$(realpath -m -- "$1" 2>/dev/null)" || probe=""
+    while [[ ! -e "${probe:-/}" ]]; do
+        probe="$(dirname -- "${probe}")"
+    done
+    while :; do
+        owner="$(stat -c %u -- "${probe}" 2>/dev/null || echo -1)"
+        if [[ -z "${probe}" || "${owner}" != "0" ]]; then
+            echo "[holohub] Refusing to use ${1} as root: ${probe:-$1} is not root-owned." >&2
+            echo "[holohub] Re-run without sudo, or use sudo -H." >&2
+            exit 1
+        fi
+        [[ "${probe}" == "/" ]] && return 0
+        probe="$(dirname -- "${probe}")"
+    done
+}
+
+_managed_venv_ready() {
+    [[ -n "${HOLOSCAN_CLI_VENV}" && -x "${HOLOSCAN_CLI_VENV}/bin/python" ]] &&
+        "${HOLOSCAN_CLI_VENV}/bin/python" -m pip --version >/dev/null 2>&1
+}
+
+_managed_venv_available() {
+    if [[ -n "${HOLOSCAN_CLI_VENV}" &&
+          ( -e "${HOLOSCAN_CLI_VENV}" || -L "${HOLOSCAN_CLI_VENV}" ) ]]; then
+        _refuse_foreign_sudo_venv "${HOLOSCAN_CLI_VENV}"
+    fi
+    _managed_venv_ready
+}
+
+_use_managed_venv() {
+    CLI_ENV="managed"
+    if [[ -z "${HOLOSCAN_CLI_VENV}" ]]; then
+        echo "[holohub] No HOME or XDG_DATA_HOME to place the managed CLI venv;" \
+             "set HOLOSCAN_CLI_VENV explicitly." >&2
+        exit 1
+    fi
+    PYTHON_BIN="${HOLOSCAN_CLI_VENV}/bin/python"
+    _refuse_foreign_sudo_venv "${HOLOSCAN_CLI_VENV}"
+    _managed_venv_ready && return
+
+    # Provisioning into the project checkout (the bind-mounted workspace at
+    # container runtime, where HOME is /workspace/<name>) would pollute it
+    # with an unkeyed venv; fail with the real fix instead. A container home
+    # outside the checkout provisions as on a host.
+    if _is_container && [[ -z "${CLI_VENV_EXPLICIT}" ]] &&
+       [[ "$(realpath -m -- "${HOLOSCAN_CLI_VENV}")" == "${HOLOSCAN_CLI_ROOT}"/* ]]; then
+        echo "[holohub] This container image lacks the required" \
+             "holoscan-cli${HOLOSCAN_CLI_PINNED_VERSION:+==${HOLOSCAN_CLI_PINNED_VERSION}}." >&2
+        echo "[holohub] Rebuild the image, or set HOLOSCAN_CLI_VENV or" \
+             "HOLOSCAN_CLI_PYTHON_BIN to provision one explicitly." >&2
+        exit 1
+    fi
+    if [[ "${EUID}" -eq 0 ]]; then
+        echo "[holohub] Note: creating a root-owned CLI environment at ${HOLOSCAN_CLI_VENV}." >&2
+    fi
+    if [[ -d "${HOLOSCAN_CLI_VENV}" && ! -w "${HOLOSCAN_CLI_VENV}" ]]; then
+        echo "[holohub] ${HOLOSCAN_CLI_VENV} isn't writable; remove it or fix ownership." >&2
+        exit 1
+    fi
+    if ! python3 -m venv "${HOLOSCAN_CLI_VENV}"; then
+        echo "[holohub] Could not create ${HOLOSCAN_CLI_VENV}. Install venv support:" >&2
+        echo "[holohub]   sudo apt-get update && sudo apt-get install -y python3-venv" >&2
+        exit 1
+    fi
+}
+
 if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
-    export PYTHONPATH="${HOLOSCAN_CLI_SOURCE%/}/src${PYTHONPATH:+:${PYTHONPATH}}"
+    CLI_SOURCE="${HOLOSCAN_CLI_SOURCE%/}"
+    if [[ ! -d "${CLI_SOURCE}/src/holoscan_cli" ]]; then
+        echo "[holohub] Invalid HOLOSCAN_CLI_SOURCE: ${HOLOSCAN_CLI_SOURCE}" >&2
+        exit 1
+    fi
+    export PYTHONPATH="${CLI_SOURCE}/src${PYTHONPATH:+:${PYTHONPATH}}"
 fi
 
-# Install holoscan-cli unless a source-project-capable one is already present.
-# Probe the command surface (not just importability), so a stale legacy
-# holoscan-cli (<= 4.2.0, which lacks `build`/`list`) doesn't satisfy the check.
-if ! "${PYTHON_BIN}" -m holoscan_cli --help 2>/dev/null | grep -qw build; then
-    # Bootstrap pip if the interpreter lacks it (minimal Python installs omit
-    # it). `pip install` below would otherwise fail with a confusing error.
-    if ! "${PYTHON_BIN}" -m pip --version >/dev/null 2>&1; then
-        "${PYTHON_BIN}" -m ensurepip --upgrade >/dev/null 2>&1 || {
-            echo "[holohub] ${PYTHON_BIN} has no pip and ensurepip is unavailable;" \
-                 "install pip (or set HOLOSCAN_CLI_PYTHON_BIN, or legacy HOLOHUB_PYTHON_BIN," \
-                 "to an interpreter that has it) and retry" >&2
-            exit 1
-        }
-    fi
+read -r -a CLI_INSTALL_ARGS <<< "${HOLOSCAN_CLI_INSTALL_ARGS}"
+if [[ -n "${HOLOSCAN_CLI_PINNED_VERSION}" && -z "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
+    CLI_INSTALL_ARGS+=("holoscan-cli==${HOLOSCAN_CLI_PINNED_VERSION}")
+fi
+
+CLI_ENV="caller"
+CLI_READY=""
+PYTHON_BIN="${HOLOSCAN_CLI_PYTHON_BIN:-${VIRTUAL_ENV:+$VIRTUAL_ENV/bin/python}}"
+# An explicit interpreter (including an active venv) is caller-owned, so keep
+# its PYTHONHOME. For wrapper-selected interpreters, remove an inherited
+# override before probing or provisioning Python; otherwise it can redirect
+# the interpreter away from its own standard library or managed venv.
+if [[ -z "${PYTHON_BIN}" ]]; then
+    unset PYTHONHOME
+fi
+if [[ -n "${PYTHON_BIN}" ]]; then
+    :
+elif [[ "${EUID}" -eq 0 ]] &&
+     { _is_container || [[ "${SCRIPT_DIR}" == "/tmp/scripts" ]]; }; then
+    CLI_ENV="root-system"
+    PYTHON_BIN="python3"
+    export PIP_BREAK_SYSTEM_PACKAGES="${PIP_BREAK_SYSTEM_PACKAGES:-1}"
+elif _managed_venv_available; then
+    CLI_ENV="managed"
+    PYTHON_BIN="${HOLOSCAN_CLI_VENV}/bin/python"
+elif _is_container &&
+     [[ -z "${HOLOSCAN_CLI_SOURCE:-}" ]] &&
+     SYSTEM_PYTHON="$(type -P python3 2>/dev/null)" &&
+     _holoscan_cli_ok "${SYSTEM_PYTHON}"; then
+    CLI_ENV="system-readonly"
+    PYTHON_BIN="${SYSTEM_PYTHON}"
+    CLI_READY=1
+else
+    _use_managed_venv
+fi
+
+PYTHON_PATH="$(type -P "${PYTHON_BIN}" 2>/dev/null || true)"
+if [[ -z "${PYTHON_PATH}" ]]; then
+    echo "[holohub] Python interpreter not found: ${PYTHON_BIN}" \
+         "(check HOLOSCAN_CLI_PYTHON_BIN or your active venv)." >&2
+    exit 1
+fi
+PYTHON_DIR="$(cd "$(dirname "${PYTHON_PATH}")" && pwd)"
+PYTHON_BIN="${PYTHON_DIR}/$(basename "${PYTHON_PATH}")"
+export HOLOSCAN_CLI_PYTHON_BIN="${PYTHON_BIN}"
+export PATH="${PYTHON_DIR}:${PATH}"
+
+_ensure_pip() {
+    "$1" -m pip --version >/dev/null 2>&1 && return
+    "$1" -m ensurepip --upgrade >/dev/null 2>&1 || {
+        echo "[holohub] $1 has no pip and ensurepip is unavailable; install" \
+             "python3-pip, or choose another interpreter (HOLOSCAN_CLI_PYTHON_BIN)." >&2
+        return 1
+    }
+}
+
+_install_cli() {
+    local python="$1"
+    _ensure_pip "${python}" || return 1
+
     if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
         echo "[holohub] installing holoscan-cli from ${HOLOSCAN_CLI_SOURCE}" >&2
-        "${PYTHON_BIN}" -m pip install --upgrade "${HOLOSCAN_CLI_SOURCE}"
+        "${python}" -m pip install --upgrade "${HOLOSCAN_CLI_SOURCE}" || return 1
     else
-        echo "[holohub] installing with args: ${HOLOSCAN_CLI_INSTALL_ARGS}" >&2
-        "${PYTHON_BIN}" -m pip install ${HOLOSCAN_CLI_INSTALL_ARGS}
+        "${python}" -m pip install "${CLI_INSTALL_ARGS[@]}" || return 1
     fi
+
+    _holoscan_cli_ok "${python}" && return
+
+    if [[ -n "${HOLOSCAN_CLI_PINNED_VERSION}" && -z "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
+        echo "[holohub] Installed version '$(_holoscan_cli_version "${python}" || true)'" \
+             "does not match '${HOLOSCAN_CLI_PINNED_VERSION}'." >&2
+    else
+        echo "[holohub] Installed holoscan-cli is missing required commands." >&2
+    fi
+    return 1
+}
+
+if [[ -z "${CLI_READY}" ]] && ! _holoscan_cli_ok "${PYTHON_BIN}"; then
+    if [[ "${CLI_ENV}" == "root-system" ]]; then
+        echo "[holohub] Installing holoscan-cli into system Python as root." >&2
+    fi
+    _install_cli "${PYTHON_BIN}" || {
+        echo "[holohub] Could not install holoscan-cli into ${PYTHON_BIN}." >&2
+        if [[ "${CLI_ENV}" == "caller" ]]; then
+            echo "[holohub] On a PEP 668 system Python, use a venv:" >&2
+            echo "[holohub]   python3 -m venv .venv && . .venv/bin/activate && ./holohub" >&2
+        fi
+        exit 1
+    }
 fi
 
-# Forward the package install args (and any local source) as `--build-arg`s on every
-# project `docker build` so the in-container CLI matches the host. holoscan-cli
-# shlex-splits HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS, so single-quote each
-# KEY=VALUE to survive values with spaces and single quotes.
-_q() {
-    local value="${1//\'/\'\"\'\"\'}"
-    printf "'%s'" "${value}"
-}
-extras=" --build-arg $(_q "HOLOSCAN_CLI_INSTALL_ARGS=${HOLOSCAN_CLI_INSTALL_ARGS}")"
-if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
-    extras+=" --build-context $(_q "holoscan-cli-src=${HOLOSCAN_CLI_SOURCE}")"
-fi
-export HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS="${HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS:-}${extras}"
+# Containers re-enter through this mounted wrapper so the pinned CLI version
+# is verified at runtime.
+export HOLOSCAN_CLI_IN_CONTAINER_CMD="${HOLOSCAN_CLI_IN_CONTAINER_CMD:-./${BASH_SOURCE[0]##*/}}"
 
 exec "${PYTHON_BIN}" -m holoscan_cli "$@"

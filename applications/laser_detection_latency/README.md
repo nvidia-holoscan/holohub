@@ -106,20 +106,21 @@ Before running the app, make sure that the EVT camera can see all the corners of
 
 ```bash
 ./holohub build evt_cam_calibration --local
-[sudo] ./holohub run evt_cam_calibration --local --no-local-build
+./holohub run evt_cam_calibration --local --no-local-build --as-root
 ```
 
 This will output a file `evt-cali.npy` in the build directory.
 
 #### note (EVT camera)
 
-Use `sudo` when running the application with EVT camera.
+Use `--as-root` when running the application with EVT camera.
 
 ### 3. Build and run `laser_detection`
 
 ```bash
 ./holohub build laser_detection --local
-[sudo] LD_PRELOAD=/usr/lib/aarch64-linux-gnu/nvidia/libnvjpeg.so ./holohub run laser_detection --local --no-local-build
+LD_PRELOAD=/usr/lib/aarch64-linux-gnu/nvidia/libnvjpeg.so \
+    ./holohub run laser_detection --local --no-local-build --as-root
 ```
 
 Now you can use the laser pointer and point it to the monitor. If the icons are not detecting the laser or they are moving in random fashion, then redo the calibration steps.

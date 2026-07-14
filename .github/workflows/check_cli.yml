@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
@@ -73,6 +73,8 @@ jobs:
           cmake -B build -DBUILD_TESTING=ON -DBUILD_HOLOHUB_TESTING=ON .
 
       - name: Run CMake tests
+        env:
+          HOLOSCAN_CLI_PYTHON_BIN: python
         run: |
           cd build
           ctest --verbose
@@ -82,10 +84,10 @@ jobs:
   # than the NVIDIA PyPI wheel. This catches breakage when an in-flight
   # holoscan-cli change lands ahead of a new release candidate.
   check-cli-source:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
@@ -115,3 +117,58 @@ jobs:
         env:
           HOLOSCAN_CLI_SOURCE: ${{ github.workspace }}/holoscan-cli-src
         run: python -m pytest -v --noconftest utilities/cli/tests/test_holoscan_cli_consolidation.py
+
+      # The original PEP 668 regression was a host-side sudo invocation, not a
+      # container build. Exercise that resolver branch with distro Python and a
+      # temporary root HOME; CLI setup itself remains a non-mutating dry run.
+      - name: Run sudo host setup through a managed venv
+        env:
+          CLI_SOURCE: ${{ github.workspace }}/holoscan-cli-src
+          ROOT_HOME: /root/holohub-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y python3-venv
+          root_venv="${ROOT_HOME}/.local/share/holoscan-cli/venv"
+          sudo mkdir -p "${ROOT_HOME}"
+          run_as_root() {
+            sudo env \
+              -u HOLOSCAN_CLI_PYTHON_BIN \
+              -u PIP_BREAK_SYSTEM_PACKAGES \
+              -u PYTHONPATH \
+              -u VIRTUAL_ENV \
+              HOME="${ROOT_HOME}" \
+              PATH="/usr/sbin:/usr/bin:/sbin:/bin" \
+              PYTHONDONTWRITEBYTECODE=1 \
+              HOLOSCAN_CLI_SOURCE="${CLI_SOURCE}" \
+              HOLOSCAN_CLI_VENV="${root_venv}" \
+              "$@"
+          }
+          run_as_root ./holohub env-info | tee "${RUNNER_TEMP}/root-env-info.txt"
+          grep -Fq "Executable: ${root_venv}/bin/python" "${RUNNER_TEMP}/root-env-info.txt"
+          run_as_root ./holohub setup --dryrun
+
+          # sudo with a preserved, caller-owned HOME must refuse the caller's
+          # managed environment location.
+          user_home="${RUNNER_TEMP}/holohub-user"
+          mkdir -p "${user_home}"
+          if run_as_root env HOME="${user_home}" \
+              HOLOSCAN_CLI_VENV="${user_home}/cli-venv" \
+              ./holohub version 2> "${RUNNER_TEMP}/refused.txt"; then
+            echo "expected the wrapper to refuse a foreign-owned HOME" >&2
+            exit 1
+          fi
+          grep -Fq "Refusing to use" "${RUNNER_TEMP}/refused.txt"
+
+          # A root-owned leaf is still unsafe when a caller-owned directory is
+          # one of its ancestors (for example, residue from an older sudo run).
+          root_owned_venv="${user_home}/root-owned-cli-venv"
+          sudo mkdir -p "${root_owned_venv}"
+          sudo chown root:root "${root_owned_venv}"
+          if run_as_root env HOME="${user_home}" \
+              HOLOSCAN_CLI_VENV="${root_owned_venv}" \
+              ./holohub version 2> "${RUNNER_TEMP}/refused-root-leaf.txt"; then
+            echo "expected the wrapper to refuse a root-owned leaf below a foreign HOME" >&2
+            exit 1
+          fi
+          grep -Fq "${user_home} is not root-owned" \
+            "${RUNNER_TEMP}/refused-root-leaf.txt"
