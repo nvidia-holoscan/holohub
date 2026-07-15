@@ -13,7 +13,13 @@ For command/flag docs, see the [CLI Reference](cli_reference.md).
 
 ## Agent Safety Rules
 
-1. Always `./holohub <cmd> --dryrun --verbose` before running any command for real.
+1. Preview mutating commands with the flags they support:
+   - `build`, `run`, `build-container`, `run-container`, `install`, `test`,
+     and `package`: use `--dryrun --verbose`.
+   - `create`, `lint`, `setup`, and `clear-cache`: use `--dryrun`; they do not
+     accept `--verbose`.
+   - `list`, `modes`, `env-info`, `env-check`, `status`, and `version` are
+     read-only diagnostics and accept neither preview flag.
 2. Never `./holohub build --local` or `./holohub run --local` without explicit user approval — they run directly in the host workspace, may modify files there, and require host dependencies to already be installed (no automatic package installation).
 3. Never hardcode repo names, command names, or path prefixes — the CLI is reused across repos via env vars.
 4. Check the project's README and `metadata.json` for architecture/platform (e.g. x86_64, aarch64, IGX, Thor, DGX Spark) requirements before building.  The project may not support all platforms, do not suggest building on platforms that are not supported unless the user explicitly asks for it.
@@ -21,15 +27,23 @@ For command/flag docs, see the [CLI Reference](cli_reference.md).
 
 ## Mental Model
 
-The CLI is a **container-first** build system. Every `build`, `run`, `install`, and `test` command builds a Docker image and then re-invokes itself with `--local` inside that container. The only host-side commands are `docker build` and `docker run`; cmake, python, and application processes execute inside the container where dependencies are guaranteed to exist.
+The CLI is a **container-first** build system. In normal container mode,
+`build`, `run`, `install`, and `package` resolve the project on the host, build
+or reuse its Docker image, and then re-invoke the CLI with `--local` inside
+that container. `test` uses the same image setup but launches CTest directly.
+The host handles wrapper bootstrap, metadata resolution, and Docker
+orchestration; cmake, python, packaging, testing, and application processes
+execute inside the container. `--local`, the `--no-*-build` flags, and
+`HOLOSCAN_CLI_ALWAYS_BUILD=false` intentionally alter that flow.
 
 When a user asks how to customize a build or run — change the build directory, add cmake flags, use a different build type — the answer is `./holohub run-container <app>` first, then run commands inside (see [Why this matters](#why-this-matters) for examples).
 
 ## Implementation Invariants
 
-1. Container re-enters local: `build`/`run`/`install` in container mode build an
-   image, then run the CLI with `--local` inside it. Local-mode changes affect
-   both host and container execution.
+1. Container re-entry: `build`/`run`/`install`/`package` in container mode
+   build or reuse an image, then run the CLI with `--local` inside it. `test`
+   launches its CTest command directly in the selected image. Local-mode
+   changes affect both host and re-entered container execution.
 2. CLI flags override modes: resolution is `resolve_mode` -> `validate_mode` ->
    `get_effective_build_config`/`get_effective_run_config`. Most flags override
    mode values; `--run-args` is appended to the argument list passed to
@@ -46,23 +60,29 @@ When a user asks how to customize a build or run — change the build directory,
 
 ## Execution Model
 
-`build`, `run`, `install`, and `test` follow a two-phase container pattern by default (without `--local`):
+`build`, `run`, `install`, `test`, and `package` follow a two-phase container
+pattern by default (without `--local`):
 
 ### Phase 1 — Container setup (runs on host)
 
-1. Build a Docker image with project dependencies (`docker build`). Skip with `--no-docker-build`.
+1. Build a Docker image with project dependencies (`docker build`), unless
+   `--no-docker-build` or `HOLOSCAN_CLI_ALWAYS_BUILD=false` skips that step.
 2. Launch a container (`docker run`) with the repo bind-mounted at `/workspace/<name>` (`HOLOSCAN_CLI_WORKSPACE_NAME`, default `holohub`) and `HOLOSCAN_CLI_BUILD_LOCAL=1` set in the environment.
 
 ### Phase 2 — Build / run (runs inside the container)
 
-The container re-invokes the CLI with `--local` appended. For example, `./holohub build myapp` on the host becomes `./holohub build myapp --local` inside the container. The local handler runs the underlying tools:
+For `build`, `run`, `install`, and `package`, the container re-invokes the CLI
+with `--local` appended. For example, `./holohub build myapp` on the host
+becomes `./holohub build myapp --local` inside the container. `test` launches
+its CTest command directly in the container.
 
 | Command   | What runs inside the container                                                 |
 | --------- | ------------------------------------------------------------------------------ |
 | `build`   | `cmake -B build/<app> -S . -DAPP_<app>=ON [opts] && cmake --build build/<app>` |
 | `run`     | Same cmake build, then the mode's `run.command` with placeholders expanded     |
 | `install` | Same cmake build, then `cmake --install build/<app>`                           |
-| `test`    | CTest via a CTest script                                                       |
+| `package` | Module configure/build plus requested CPack and/or wheel generation            |
+| `test`    | CTest via the configured CTest script                                          |
 
 The cmake flag `-DAPP_<app>=ON` selects a single project (operators use `-DOP_<name>=ON`, extensions use `-DEXT_<name>=ON`). The build directory `build/<app>/` isolates per-project artifacts; this path is `HOLOSCAN_CLI_BUILD_PARENT_DIR/<app>` (default parent varies by repo; `<repo_root>/build` in HoloHub). Because the repo is bind-mounted, artifacts persist on the host after the container exits.
 
@@ -70,7 +90,12 @@ The cmake flag `-DAPP_<app>=ON` selects a single project (operators use `-DOP_<n
 
 ### Why this matters
 
-By default (without `--local` or relevant environment variables) every cmake, python, and application command executes **inside the container**, not on the host. To run those commands manually — customize the build directory, add cmake flags, or debug a failure — enter the container first, then run whatever you need:
+By default (without `--local`) cmake, python, packaging, and application
+commands execute **inside the container**, not on the host. Build-skip controls
+can reuse existing image or project artifacts, but do not move those commands
+to the host. To run commands manually — customize the build directory, add
+cmake flags, or debug a failure — enter the container first, then run whatever
+you need:
 
 ```bash
 # 1. Enter the container (builds the image if needed, then opens an interactive shell):
@@ -98,7 +123,9 @@ Use `--dryrun --local` on the host to see the exact cmake commands the CLI would
 
 ### Inspect before running
 
-`--dryrun` prints every command (prefixed `[dryrun]`) without executing anything. It works with every CLI command.
+For commands that support it, `--dryrun` prints external commands (prefixed
+`[dryrun]`) without executing them. Read-only diagnostics do not need a
+preview mode.
 
 Add `--local` to bypass the Docker layer and see the underlying cmake / app commands directly. Without `--local`, you see the `docker build` + `docker run` wrapper instead.
 
@@ -108,7 +135,9 @@ Add `--local` to bypass the Docker layer and see the underlying cmake / app comm
 ./holohub build <app> [mode] --dryrun              # docker build + docker run wrapping the local build
 ```
 
-`--verbose` adds env variable dumps, path mappings, and Docker launch details. In local mode, `--dryrun` already implies the same env output as `--verbose`.
+For container/build commands that support it, `--verbose` adds environment
+variables, path mappings, and Docker launch details. In local mode,
+`--dryrun` already implies the same environment output as `--verbose`.
 
 ### Test
 
@@ -152,9 +181,9 @@ Check for existing images first: `docker images | grep <project>`.
 
 | Flag / Env                                                     | Effect                                                                                                            |
 | -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `--no-docker-build`                                            | Reuse existing image — default during dev. Rebuild only when Dockerfile, base image, or `--extra-scripts` change. |
+| `--no-docker-build`                                            | Reuse an existing image during iteration. Rebuild when the Dockerfile, base image, or `--extra-scripts` change.   |
 | `--no-local-build`                                             | Skip cmake — for re-runs with different args or Python-only changes.                                              |
-| `HOLOSCAN_CLI_ALWAYS_BUILD=false`                              | Disable both build phases globally.                                                                               |
+| `HOLOSCAN_CLI_ALWAYS_BUILD=false`                              | With `run`, reuse both image and project artifacts; other container commands skip only the image build.           |
 | `HOLOSCAN_CLI_ENABLE_SCCACHE=true` + `--extra-scripts sccache` | Compiler cache at `~/.cache/sccache`.                                                                             |
 
 ### Debug inside the container
@@ -198,14 +227,17 @@ Everything after `--` is joined into a single string and executed via `bash -c`,
 ### Project configuration
 
 - Each project's `metadata.json` drives automatic discovery, language selection, dependency tracking, Dockerfile resolution, run command templates, and mode definitions.
-- `metadata.json` modes must be self-contained (Docker opts, run opts, env vars).
+- Application `metadata.json` files may define either a top-level `run` or
+  `modes`, but not both. Every mode requires `description` and `run`; two or
+  more modes also require `default_mode`.
 - `CMakeLists.txt` must guard inclusion behind `APP_<name>=ON` (or `OP_`/`EXT_`/`PKG_`).
 - Dockerfiles resolve by walking up parent dirs — siblings share a common-ancestor Dockerfile.
 
 **Metadata references** (for downstream repos without local access to HoloHub examples):
 
 - [Base project schema](../metadata/project.schema.json) — all valid fields, types, and constraints
-- [CLI Reference > Modes](cli_reference.md#modes) — mode fields, path placeholders, build/run config
+- [CLI Reference > Modes](cli_reference.md#application-modes) — mode fields,
+  path placeholders, and build/run configuration
 - Examples: [simple app](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/applications/endoscopy_tool_tracking/python/metadata.json), [multi-mode with docker opts](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/applications/isaac_sim_holoscan_bridge/metadata.json), [multi-mode with build deps](https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/applications/ai_surgical_video/python/metadata.json)
 
 ## Extending the CLI

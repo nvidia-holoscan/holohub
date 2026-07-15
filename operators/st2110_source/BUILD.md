@@ -25,7 +25,7 @@ This document provides instructions for building the ST2110 Source operator on N
 ./holohub build st2110_source
 
 # Build with Python bindings
-./holohub build st2110_source --configure-args "-DHOLOHUB_BUILD_PYTHON=ON"
+./holohub build st2110_source --configure-args="-DHOLOHUB_BUILD_PYTHON=ON"
 ```
 
 ## Detailed Build Instructions
@@ -54,7 +54,7 @@ cd /path/to/holohub
 ./holohub build st2110_source
 
 # Build with Python bindings
-./holohub build st2110_source --configure-args "-DHOLOHUB_BUILD_PYTHON=ON"
+./holohub build st2110_source --configure-args="-DHOLOHUB_BUILD_PYTHON=ON"
 ```
 
 #### Option B: Direct CMake build (For development)

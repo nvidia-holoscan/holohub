@@ -55,10 +55,9 @@ For custom Docker builds:
 
 ```bash
 # Build with custom base image
-./holohub build-container {{ cookiecutter.project_slug }} --base-image nvcr.io/nvidia/clara-holoscan/holoscan:v{{ cookiecutter.holoscan_version }}-dgpu
+./holohub build-container {{ cookiecutter.project_slug }} --base-img nvcr.io/nvidia/clara-holoscan/holoscan:v{{ cookiecutter.holoscan_version }}-dgpu
 
-# Run with specific GPU type
-./holohub run-container {{ cookiecutter.project_slug }} --gpu-type dgpu
+# GPU type is detected automatically.
 ```
 
 ## Development

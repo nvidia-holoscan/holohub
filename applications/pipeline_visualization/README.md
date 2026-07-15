@@ -70,7 +70,8 @@ Options:
 Example with custom settings:
 
 ```bash
-./holohub run pipeline_visualization --nats_url nats://0.0.0.0:4222 --subject_prefix my_demo --publish_rate 5.0
+./holohub run pipeline_visualization \
+  --run-args="--nats_url nats://0.0.0.0:4222 --subject_prefix my_demo --publish_rate 5.0"
 ```
 
 ### Step 4: Visualize the Data

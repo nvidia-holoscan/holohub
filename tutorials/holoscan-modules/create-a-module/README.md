@@ -126,10 +126,11 @@ local Python environment:
 
 ### 3.2 Scaffold with `./holohub create`
 
-From your HoloHub clone:
+From your HoloHub clone, pass the unprefixed module name; the template creates
+the `holoscan-<name>` repository directory:
 
 ```bash
-./holohub create holoscan-my-sensor \
+./holohub create my-sensor \
     --template modules/template \
     --directory ~/repos
 ```
@@ -158,7 +159,7 @@ The CLI will further derive some names using these rules:
 *Advanced Users and AI Agents:* For non-interactive use, pass values directly:
 
 ```bash
-./holohub create holoscan-my-sensor \
+./holohub create my-sensor \
     --template modules/template \
     --directory $HOME \
     --interactive false \
@@ -190,7 +191,7 @@ Git repository initialised. Push to a remote when ready:
   git push -u origin main
 
 Register your module at https://nvidia-holoscan.github.io/ when ready.
-Successfully created new project: holoscan-my-sensor
+Successfully created new project: my-sensor
 Directory: /home/myuser/holoscan-my-sensor
 
 Possible next steps:
@@ -562,7 +563,7 @@ Fast lookup for repeat use:
 
 | Step | Command | Key file or output |
 | --- | --- | --- |
-| Scaffold | `./holohub create <repo> --template modules/template --directory <dir>` | `<dir>/<repo>/` |
+| Scaffold | `./holohub create <name> --template modules/template --directory <dir>` | `<dir>/holoscan-<name>/` |
 | Build | `./holohub build <app> --local` | `build/` |
 | Test | `./holohub test` | `ctest` + `pytest` output |
 | Dev import | `./holohub install --dev` | `.pth` shim in site-packages |

@@ -36,5 +36,6 @@ variables are set (which can be done using the RTI `setenv` script) and use the
 following:
 
 ```sh
-./holohub run --docker-opts "-v $NDDSHOME:/opt/dds -e NDDSHOME=/opt/dds -e CONNEXTDDS_ARCH=$CONNEXTDDS_ARCH"
+./holohub run-container dds_video \
+  --docker-opts "-v $NDDSHOME:/opt/dds -e NDDSHOME=/opt/dds -e CONNEXTDDS_ARCH=$CONNEXTDDS_ARCH"
 ```
