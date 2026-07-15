@@ -145,8 +145,7 @@ Using the Holohub container, you can run the application without building it aga
 ./holohub run ai_surgical_video --no-docker-build --no-local-build
 ```
 
-Remove the skip flags when the container image or application artifacts need
-to be rebuilt:
+Remove the skip flags to fully rebuild the container image and application:
 
 ```sh
 ./holohub run ai_surgical_video
