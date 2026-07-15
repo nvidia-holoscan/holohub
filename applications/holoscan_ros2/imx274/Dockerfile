@@ -62,11 +62,9 @@ ENV LD_LIBRARY_PATH=/opt/ros/jazzy/lib:$LD_LIBRARY_PATH
 ENV PATH=/opt/ros/jazzy/bin:$PATH
 ENV PKG_CONFIG_PATH=/opt/ros/jazzy/lib/pkgconfig
 
-# Set comprehensive Vulkan environment variables for Holoviz
+# Point the Vulkan loader at the NVIDIA ICD for Holoviz. Validation layers and
+# loader debugging are opt-in at run time (e.g. -e VK_LOADER_DEBUG=all).
 ENV VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/nvidia_icd.json
-ENV VK_LAYER_PATH=/usr/share/vulkan/explicit_layer.d
-ENV VK_LOADER_LAYERS_ENABLE=1
-ENV VK_LOADER_DEBUG=all
 
 # Set PYTHONPATH to include ROS2 packages
 ENV PYTHONPATH=/opt/ros/jazzy/lib/python3.12/site-packages:/opt/nvidia/holoscan/python/lib

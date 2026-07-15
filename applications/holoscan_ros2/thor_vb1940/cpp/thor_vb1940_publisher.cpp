@@ -238,11 +238,16 @@ class HoloscanVb1940PublisherApplication : public holoscan::Application {
   void compose() override {
     using namespace holoscan;
 
-    std::shared_ptr<Condition> condition;
+    // Each operator needs its own Condition instance; a Condition is owned by
+    // the operator it is assigned to and must not be shared.
+    std::shared_ptr<Condition> receiver_condition;
+    std::shared_ptr<Condition> publisher_condition;
     if (frame_limit_) {
-      condition = make_condition<CountCondition>("count", frame_limit_);
+      receiver_condition = make_condition<CountCondition>("receiver_count", frame_limit_);
+      publisher_condition = make_condition<CountCondition>("publisher_count", frame_limit_);
     } else {
-      condition = make_condition<BooleanCondition>("ok", true);
+      receiver_condition = make_condition<BooleanCondition>("receiver_ok", true);
+      publisher_condition = make_condition<BooleanCondition>("publisher_ok", true);
     }
     camera_->set_mode(camera_mode_);
 
@@ -263,7 +268,7 @@ class HoloscanVb1940PublisherApplication : public holoscan::Application {
     // network stack (Jetson Thor MGBE ports); no ConnectX NIC / RoCE required.
     auto receiver_operator = make_operator<hololink::operators::LinuxReceiverOp>(
         "receiver",
-        condition,
+        receiver_condition,
         Arg("frame_size", frame_size),
         Arg("frame_context", cuda_context_),
         Arg("hololink_channel", &hololink_channel_),
@@ -298,7 +303,7 @@ class HoloscanVb1940PublisherApplication : public holoscan::Application {
         make_resource<holoscan::ros2::Bridge>("vb1940_bridge_resource", "vb1940_bridge_node");
     auto vb1940_publisher =
         make_operator<Vb1940PublisherOp>("vb1940_publisher",
-                                         condition,
+                                         publisher_condition,
                                          Arg("ros2_bridge", ros2_bridge),
                                          Arg("topic_name", std::string("vb1940/image")),
                                          Arg("qos", holoscan::ros2::QoS(10)));

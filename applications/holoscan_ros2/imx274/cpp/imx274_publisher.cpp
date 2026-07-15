@@ -236,11 +236,16 @@ class HoloscanImx274PublisherApplication : public holoscan::Application {
   void compose() override {
     using namespace holoscan;
 
-    std::shared_ptr<Condition> condition;
+    // Each operator needs its own Condition instance; a Condition is owned by
+    // the operator it is assigned to and must not be shared.
+    std::shared_ptr<Condition> receiver_condition;
+    std::shared_ptr<Condition> publisher_condition;
     if (frame_limit_) {
-      condition = make_condition<CountCondition>("count", frame_limit_);
+      receiver_condition = make_condition<CountCondition>("receiver_count", frame_limit_);
+      publisher_condition = make_condition<CountCondition>("publisher_count", frame_limit_);
     } else {
-      condition = make_condition<BooleanCondition>("ok", true);
+      receiver_condition = make_condition<BooleanCondition>("receiver_ok", true);
+      publisher_condition = make_condition<BooleanCondition>("publisher_ok", true);
     }
     camera_->set_mode(camera_mode_);
 
@@ -261,7 +266,7 @@ class HoloscanImx274PublisherApplication : public holoscan::Application {
     // network stack (Jetson Thor MGBE ports); no ConnectX NIC / RoCE required.
     auto receiver_operator = make_operator<hololink::operators::LinuxReceiverOp>(
         "receiver",
-        condition,
+        receiver_condition,
         Arg("frame_size", frame_size),
         Arg("frame_context", cuda_context_),
         Arg("hololink_channel", &hololink_channel_),
@@ -296,7 +301,7 @@ class HoloscanImx274PublisherApplication : public holoscan::Application {
         make_resource<holoscan::ros2::Bridge>("imx274_bridge_resource", "imx274_bridge_node");
     auto imx274_publisher =
         make_operator<Imx274PublisherOp>("imx274_publisher",
-                                         condition,
+                                         publisher_condition,
                                          Arg("ros2_bridge", ros2_bridge),
                                          Arg("topic_name", std::string("imx274/image")),
                                          Arg("qos", holoscan::ros2::QoS(10)));
@@ -356,6 +361,15 @@ int main(int argc, char** argv) {
     return -1;
   }
 
+  // Validate the I2C expander configuration before any sensor access
+  const int expander_configuration = variables_map["expander-configuration"].as<int>();
+  if (expander_configuration != 0 && expander_configuration != 1) {
+    HOLOSCAN_LOG_ERROR("Invalid --expander-configuration {}: expected 0 or 1",
+                       expander_configuration);
+    rclcpp::shutdown();
+    return -1;
+  }
+
   try {
     auto check_cuda = [](CUresult result, const char* what) {
       if (result != CUDA_SUCCESS) {
@@ -383,7 +397,7 @@ int main(int argc, char** argv) {
 
     // Get a handle to the camera
     auto camera = std::make_shared<hololink::sensors::NativeImx274Sensor>(
-        hololink_channel, variables_map["expander-configuration"].as<int>());
+        hololink_channel, expander_configuration);
 
     // Convert camera_mode to proper enum
     auto camera_mode =
