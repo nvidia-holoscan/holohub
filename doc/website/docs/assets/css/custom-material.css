@@ -547,3 +547,31 @@
     height: 0.85em;
   }
 }
+
+/* Unified cross-site menu injected into the mobile drawer (see
+   overrides/partials/nav.html + hs-nav.html). Show it only while the primary
+   navigation is a drawer; hide it once it becomes the fixed desktop sidebar,
+   where the custom tab bar already provides the same menu. */
+.hs-drawer-only {
+  display: block;
+}
+@media screen and (min-width: 76.25em) {
+  .hs-drawer-only {
+    display: none;
+  }
+}
+
+/* Subtle divider label separating the unified menu from the site's own nav. */
+.hs-drawer-divider {
+  margin-top: 0.4rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid var(--md-default-fg-color--lightest);
+}
+.hs-drawer-divider__label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.6;
+  cursor: default;
+}

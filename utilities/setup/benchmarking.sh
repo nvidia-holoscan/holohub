@@ -21,16 +21,17 @@ set -e
 # Install standard Holoscan flow benchmarking dependencies.
 # =========================================================
 
-# Install APT dependencies
-apt update
-apt install --no-install-recommends -y \
+# Install APT dependencies (system packages need root; sudo is a no-op as root)
+sudo apt-get update
+sudo apt-get install --no-install-recommends -y \
     libcairo2-dev \
     libgirepository1.0-dev \
     gobject-introspection \
     libgtk-3-dev \
     libcanberra-gtk-module \
     graphviz
-apt clean && rm -rf /var/lib/apt/lists/*
+sudo apt-get clean
+sudo rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
 python3 -m pip install \

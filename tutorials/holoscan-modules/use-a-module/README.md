@@ -104,7 +104,7 @@ Pick the path that matches your project, then jump to the corresponding section.
 
 | Your project is… | Use… |
 | --- | --- |
-| A HoloHub application, operator, workflow, or benchmark | [Path A (§4)](#4-path-a--consume-from-a-holohub-subproject-primary) |
+| A HoloHub application, operator, or benchmark | [Path A (§4)](#4-path-a--consume-from-a-holohub-subproject-primary) |
 | Another Holoscan Module declaring a transitive dependency | [Path A (§4.7)](#47-module-to-module-transitive-dependencies) |
 | A standalone C++ application using a module binary package | [Path B (§5)](#5-path-b--external-c-project-binary-install) |
 | A pure-Python application or notebook | [Path C (§6)](#6-path-c--external-python-project-pip-install) |
@@ -120,12 +120,10 @@ dependency.
 ### 4.1 (Optional) Scaffold a HoloHub subproject
 
 If you don't already have a subproject, you can use the HoloHub CLI to create one.
-Pick the template that matches the type of project you want to build, then fill in
-the interactive prompts with your project details.
+The application template produces metadata ready for a module dependency.
 
 ```bash
 ./holohub create my_app --template applications/template
-./holohub create my_op  --template operators/template
 ```
 
 The scaffolded subproject ships a `metadata.json` ready for you to add a

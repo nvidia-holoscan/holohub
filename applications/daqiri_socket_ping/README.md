@@ -1,5 +1,11 @@
 # DAQIRI Socket Ping
 
+> [!NOTE]
+> **DAQIRI migration (June 26, 2026):** HoloHub networking examples, which
+> previously utilized the Basic or Advanced Networking Operators, have been
+> migrated to the standalone networking library,
+> [DAQIRI](https://github.com/NVIDIA/daqiri).
+
 This application takes the existing ping example that runs over Holoscan ports and instead uses DAQIRI
 socket transport to run over a UDP socket. The transmit and receive operators run in one process using
 DAQIRI client and server socket interfaces.

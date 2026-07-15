@@ -29,7 +29,7 @@ repos:
 
   # JSON Schema: validate metadata schemas against the Draft 2020-12 meta-schema
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0.37.3
+    rev: 0.37.4
     hooks:
       - id: check-metaschema
         name: check metadata schemas against JSON Schema 2020-12 meta-schema
@@ -37,7 +37,7 @@ repos:
 
   # Python: ruff
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.18
+    rev: v0.15.21
     hooks:
       - id: ruff
         args: [--fix, --ignore, E712]

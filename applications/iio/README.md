@@ -64,7 +64,7 @@ Connect your ADALM-Pluto to your computer via USB. The device will appear as a n
 
 ```bash
 # From HoloHub root directory
-./dev_container build_and_run iio
+./holohub run iio
 ```
 
 ### 3. Run Examples
@@ -75,7 +75,7 @@ The application includes several example modes:
 
 ```bash
 # Transmits a sine wave on the configured frequency
-./run launch iio python
+./holohub run iio --language python
 ```
 
 #### Read Device Attributes
@@ -92,8 +92,8 @@ The C++ FFT example (`cpp/pluto_fft_example`) demonstrates real-time FFT visuali
 
 ```bash
 # Build and run the FFT example
-./run build iio cpp
-./run launch iio cpp
+./holohub build iio --language cpp
+./holohub run iio --language cpp
 ```
 
 This example captures IQ samples from the Pluto SDR and displays a real-time FFT spectrum:

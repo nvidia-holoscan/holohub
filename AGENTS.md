@@ -4,12 +4,12 @@ Guidance for AI agents working in this repository.
 
 ## Repository Structure
 
-Projects live under `applications/`, `benchmarks/`, `operators/`, `gxf_extensions/`, `tutorials/`, `workflows/`, and `pkg/`. Each project has a `metadata.json` (configuration, modes, dependencies) and a `CMakeLists.txt` (build registration). Check a project's README for hardware requirements and data downloads before building.
+Projects live under `applications/`, `benchmarks/`, `operators/`, `gxf_extensions/`, `tutorials/`, and `pkg/`. Each project has a `metadata.json` (configuration, modes, dependencies) and a `CMakeLists.txt` (build registration). Check a project's README for hardware requirements and data downloads before building.
 
 ## Boundaries
 
 - **Always** run `./holohub run-container -- "./holohub lint --install-dependencies; ./holohub lint"` before committing
-- **Always** use `--dryrun --verbose` to inspect a CLI command before running it for real
+- **Always** preview mutating CLI commands with `--dryrun` before running them for real; add `--verbose` where supported. Read-only diagnostics (`list`, `modes`, `env-info`, `env-check`, `status`, `version`) need no preview. See the [CLI Reference](utilities/cli/cli_reference.md#preview-support) for per-command support.
 - **Ask first** before changing `metadata.json` schemas, shared Dockerfiles, or CMake registration macros (`add_holohub_application`, `add_holohub_operator`, etc.)
 - **Never** delete `build/`, `data/`, or `install/` directories without asking
 

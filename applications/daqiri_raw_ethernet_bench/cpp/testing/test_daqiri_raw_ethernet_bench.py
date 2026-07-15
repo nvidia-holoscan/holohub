@@ -46,18 +46,18 @@ def executable(work_dir):
     return os.path.join(work_dir, "daqiri_raw_ethernet_bench")
 
 
-def skip_if_manager_unavailable(manager):
-    """Skip the current test if the given manager is not in DAQIRI_MANAGER_LIST."""
-    manager_list = os.environ.get("DAQIRI_MANAGER_LIST", "").split()
-    if manager not in manager_list:
-        pytest.skip(f"{manager} manager not available in this build")
+def skip_if_engine_unavailable(engine):
+    """Skip the current test if the given engine is not in DAQIRI_ENGINE_LIST."""
+    engine_list = os.environ.get("DAQIRI_ENGINE_LIST", "").split()
+    if engine not in engine_list:
+        pytest.skip(f"{engine} engine not available in this build")
 
 
 @pytest.fixture(autouse=True)
-def _skip_unavailable_manager(request):
-    """Auto-skip parametrized tests whose manager is not in DAQIRI_MANAGER_LIST."""
-    if hasattr(request.node, "callspec") and "manager" in request.node.callspec.params:
-        skip_if_manager_unavailable(request.node.callspec.params["manager"])
+def _skip_unavailable_engine(request):
+    """Auto-skip parametrized tests whose engine is not in DAQIRI_ENGINE_LIST."""
+    if hasattr(request.node, "callspec") and "engine" in request.node.callspec.params:
+        skip_if_engine_unavailable(request.node.callspec.params["engine"])
 
 
 @pytest.mark.parametrize(
@@ -69,12 +69,12 @@ def _skip_unavailable_manager(request):
         (9000, 96.0, 0.1, 0.0),
     ],
 )
-@pytest.mark.parametrize("manager", ["dpdk"])
+@pytest.mark.parametrize("engine", ["dpdk"])
 def test_multi_if_loopback(
     executable,
     work_dir,
     nvidia_nics,
-    manager,
+    engine,
     packet_size,
     avg_throughput_threshold,
     missed_pkts_threshold,
@@ -96,7 +96,7 @@ def test_multi_if_loopback(
     payload_size = packet_size - header_size
     in_config_file = os.path.join(work_dir, "daqiri_raw_ethernet_bench_default_tx_rx.yaml")
     out_config_file = os.path.join(
-        work_dir, "testing", f"daqiri_raw_ethernet_bench_{manager}_tx_rx_{packet_size}.yaml"
+        work_dir, "testing", f"daqiri_raw_ethernet_bench_{engine}_tx_rx_{packet_size}.yaml"
     )
     update_yaml_file(
         in_config_file,
@@ -116,7 +116,7 @@ def test_multi_if_loopback(
     # Run the application until completion and parse the results
     command = f"{executable} {out_config_file}"
     result = run_command(command, stream_output=True)
-    results = parse_benchmark_results(result.stdout + result.stderr, manager)
+    results = parse_benchmark_results(result.stdout + result.stderr, engine)
 
     # Validate some expected metrics
     port_map = {0: 1}  # Port 0 (TX) sends to Port 1 (RX), matching daqiri.cfg.interfaces
