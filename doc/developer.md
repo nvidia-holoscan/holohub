@@ -5,11 +5,34 @@ and to support advanced project use cases.
 
 ## Table of Contents
 
+- [The `./holohub` Script and the Holoscan CLI](#the-holohub-script-and-the-holoscan-cli)
 - [Native Build](#native-build)
 - [Advanced Container Build Options](#advanced-build-options-container)
 - [Advanced Container Launch Options](#advanced-launch-options-container)
 - [Advanced Options for Building Applications](#advanced-options-for-building-applications)
 - [Advanced Options for Running Applications](#advanced-options-for-running-applications)
+
+## The `./holohub` Script and the Holoscan CLI
+
+The `./holohub` script is a thin wrapper around the standalone
+[holoscan-cli](https://github.com/nvidia-holoscan/holoscan-cli) package. On
+first use it selects a Python environment for the CLI — typically a
+wrapper-managed venv under `~/.local/share/holoscan-cli/venv` (requires
+`python3-venv`) — and installs the package there, so the first run needs
+network access. Run `./holohub` as your normal user; **no sudo needed** —
+`setup` elevates the individual system operations itself.
+
+See [utilities/cli/README.md](../utilities/cli/README.md) for the full
+environment-selection order and the `HOLOSCAN_CLI_*` variables that control
+it (interpreter, venv location, source checkout, install arguments, version
+pin, and root system-install policy). `./holohub env-info` reports which
+environment was selected. To remove the managed environment entirely:
+
+```bash
+rm -rf "${XDG_DATA_HOME:-$HOME/.local/share}/holoscan-cli/venv"
+```
+
+The next ordinary host invocation creates a new managed environment.
 
 ## Native Build
 
@@ -20,23 +43,19 @@ Refer to the [Holoscan SDK README](https://github.com/nvidia-holoscan/holoscan-s
 Install the package dependencies for HoloHub on your host system. The easiest way to make sure the minimal package dependencies is to use the `./holohub` script from the top level directory.
 
 ```bash
-  ./holohub setup  # sudo privileges may be required
+  ./holohub setup  # run as your normal user; individual steps elevate with sudo as needed
 ```
 
 If you prefer you can also install the dependencies manually, typically including the following:
 
 - [CMake](https://www.cmake.org): 3.24.0+
-- Python interpreter: 3.9 to 3.12
-- Python dev: 3.9 to 3.12 (matching version of the interpreter)
+- Python interpreter: 3.10 to 3.13
+- Python dev: 3.10 to 3.13 (matching version of the interpreter)
 - ffmpeg runtime
 - [ngc-cli](https://ngc.nvidia.com/setup/installers/cli)
 - wget
-- CUDA Toolkit: 12.6
-- libcudnn9-cuda-12
-- libcudnn9-dev-cuda-12
-- libnvinfer-dev
-- libnvinfer-plugin-dev
-- libnvonnxparsers-dev
+- The CUDA Toolkit, cuDNN, and TensorRT versions required by the installed
+  Holoscan SDK and selected platform
 
 Visit the [Holoscan SDK User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/setup/sdk-installation) for the latest
 details on dependency versions and custom installation.
@@ -95,21 +114,18 @@ Where:
 - `--docker-file`  is the path to the container's Dockerfile;
 - `--img` defines the fully qualified image name.
 
-### Build with Verbose Output
+### Inspect the Container Build
 
-To print the values for base image, Dockerfile, GPU type, and output image name, use ```--verbose```.
-
-For example, on an x86_64 system with dGPU, the default build command will print the following values when using the ```--verbose``` option.
+Use `--dryrun --verbose` to resolve the base image, Dockerfile, GPU type,
+build arguments, and output tags without building an image:
 
 ```bash
-user@ubuntu-20-04:/media/data/github/holohub$ ./holohub build-container --verbose
-Build (HOLOHUB_ROOT:/media/data/github/holohub)...
-Build (gpu_type_type:dgpu)...
-Build (base_img:nvcr.io/nvidia/clara-holoscan/holoscan:v0.6.0-dgpu)...
-Build (docker_file_path:/media/data/github/holohub/Dockerfile)...
-Build (img:holohub:ngc-v0.6.0-dgpu)...
-....
+./holohub build-container --dryrun --verbose
 ```
+
+The preview prints the exact `docker build` command. Values depend on the
+wrapper's configured SDK version, detected GPU type, selected CUDA major
+version, current branch, and commit.
 
 ## Advanced Launch Options (Container)
 
@@ -176,15 +192,26 @@ HoloHub automatically forwards X11 and Wayland displays when `DISPLAY` or
 
 ### Local SDK Path
 
-If you have an installation of the Holoscan SDK which is not in a standard path, you may want to provide the root directory of your Holoscan SDK installation.
+To build against a Holoscan SDK source/build tree on the host, use
+`--local-sdk-root`:
 
 ```bash
-  ./holohub build --configure-args="-Dholoscan_DIR=/path/to/holoscan/install/lib/cmake/holoscan"
+./holohub build <project> \
+  --local-sdk-root /path/to/holoscan-sdk
+```
+
+If a nonstandard SDK install is already visible inside the selected container
+or native environment, pass its CMake package directory explicitly:
+
+```bash
+./holohub build <project> \
+  --configure-args="-Dholoscan_DIR=/path/to/holoscan/install/lib/cmake/holoscan"
 ```
 
 ### Building a Specific Application
 
-By default HoloHub builds all the sample applications that are maintained with the SDK. You can build specific applications by the name of the directory.
+`./holohub build` requires a discovered project name and builds that project
+plus its declared dependencies. Use `./holohub list` to see valid names.
 
 ```bash
   ./holohub build <application>
@@ -196,27 +223,39 @@ For example:
   ./holohub build endoscopy_tool_tracking
 ```
 
-Note that CMake will build the application in the directory specified. If there are multiple languages, the script will attempt to build all of them.
+If a project has multiple language implementations, the CLI warns that the
+project has multiple languages and defaults to Python when available. Pass
+`--language cpp` or `--language python` to select an implementation explicitly.
 
-### Building application or operator manually
+### Building an application or operator manually
 
-If you prefer to build applications and operator manually you can follow the steps below.
+Prefer entering the project's development container before invoking CMake
+directly. This keeps host dependencies and generated files aligned with the
+standard CLI build environment:
 
 ```bash
-# Export cuda (in case it's not already in the path)
-export PATH=$PATH:/usr/local/cuda/bin
+./holohub run-container <project>
+```
 
-# Configure HoloHub with CMake
-cmake -S <path_to_holohub_source>            # Source directory
-      -B build                               # Build directory
-      -DPython3_EXECUTABLE=/usr/bin/python3  # Specifies the python executable for CMake to find the correct version
-      -DHOLOHUB_DATA_DIR=$(pwd)/data         # Specifies the data directory
-      -DAPP_<name_of_the_application>=1      # Specified the application to build
+Inside the container, configure and build with commands such as:
 
+```bash
+# Export CUDA if it is not already in PATH.
+export PATH="$PATH:/usr/local/cuda/bin"
+
+# Configure HoloHub with CMake (example application)
+cmake -S /workspace/holohub \
+  -B build \
+  -DPython3_EXECUTABLE=/usr/bin/python3 \
+  -DHOLOHUB_DATA_DIR="$(pwd)/data" \
+  -DAPP_endoscopy_tool_tracking=ON
 
 # Build the application(s)
 cmake --build build
 ```
+
+Direct host CMake builds are the native-build path and require the host setup
+described above.
 
 ## Additional Build Notes
 
@@ -224,8 +263,10 @@ While not all applications requires building HoloHub, the current build system a
 
 You can refer to the README of each application/operator if you prefer to build/run them manually.
 
-The `./holohub` script creates a `data` subdirectory to store the downloaded HoloHub data.
-This directory is noted `HOLOHUB_DATA_DIR/holohub_data_dir` in the documentation, READMEs and metadata files.
+The CLI creates a `data` subdirectory for downloaded HoloHub data. CMake uses
+`HOLOHUB_DATA_DIR`; application metadata refers to the same location through
+the `<holohub_data_dir>` placeholder. At runtime, the CLI also exports
+`HOLOSCAN_CLI_DATA_PATH` and `HOLOSCAN_INPUT_PATH`.
 
 ## Advanced Options for Running Applications
 

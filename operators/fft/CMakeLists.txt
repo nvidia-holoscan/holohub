@@ -4,7 +4,6 @@
 cmake_minimum_required(VERSION 3.20)
 project(fft CXX)
 
-set(CMAKE_CUDA_ARCHITECTURES "70;80;90")
 enable_language(CUDA)
 
 find_package(holoscan 4.0.0 REQUIRED CONFIG

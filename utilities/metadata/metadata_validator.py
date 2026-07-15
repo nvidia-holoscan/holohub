@@ -139,7 +139,6 @@ def check_name_matches_readme(metadata_path, json_data):
 KNOWN_ENVELOPES = (
     "application",
     "operator",
-    "workflow",
     "tutorial",
     "benchmark",
     "gxf_extension",

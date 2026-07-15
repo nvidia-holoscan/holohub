@@ -14,6 +14,16 @@
 # limitations under the License.
 
 # Make sure to order by alphabetical list
+add_holohub_application(ai_surgical_video DEPENDS
+                        OPERATORS orsi_format_converter
+                                  orsi_segmentation_preprocessor
+                        OPTIONAL  aja_source
+                                  csi_to_bayer
+                                  image_processor
+                                  image_shift_to_uint8
+                                  roce_receiver
+                        )
+
 add_holohub_application(aja_video_capture DEPENDS
                         OPERATORS aja_source)
 

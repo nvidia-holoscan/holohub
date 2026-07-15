@@ -31,13 +31,13 @@ find_package(daqiri REQUIRED CONFIG)
 
 function(link_daqiri target_name)
   set(_daqiri_targets daqiri::daqiri)
-  foreach(_daqiri_manager IN ITEMS dpdk socket rdma)
-    if(TARGET "daqiri::${_daqiri_manager}")
-      list(APPEND _daqiri_targets "daqiri::${_daqiri_manager}")
+  foreach(_daqiri_engine IN ITEMS dpdk socket rdma)
+    if(TARGET "daqiri::${_daqiri_engine}")
+      list(APPEND _daqiri_targets "daqiri::${_daqiri_engine}")
     endif()
   endforeach()
 
-  # DAQIRI static packages can contain cross-references between core and manager archives.
+  # DAQIRI static packages can contain cross-references between core and engine archives.
   string(JOIN "," _daqiri_link_group ${_daqiri_targets})
   target_link_libraries("${target_name}" PRIVATE "$<LINK_GROUP:RESCAN,${_daqiri_link_group}>")
 endfunction()
@@ -53,15 +53,15 @@ target_link_libraries(daqiri_raw_ethernet_bench
 )
 link_daqiri(daqiri_raw_ethernet_bench)
 
-# Configure manager support through compile definitions
-if(NOT DEFINED DAQIRI_MGR)
-    set(DAQIRI_MGR "dpdk" CACHE STRING "DAQIRI manager type(s) list")
+# Configure engine support through compile definitions
+if(NOT DEFINED DAQIRI_ENGINE)
+    set(DAQIRI_ENGINE "dpdk" CACHE STRING "DAQIRI engine type(s) list")
 endif()
-separate_arguments(DAQIRI_MGR_LIST UNIX_COMMAND ${DAQIRI_MGR})
-foreach(MGR IN LISTS DAQIRI_MGR_LIST)
-    string(TOUPPER "${MGR}" MGR_UPPER)
-    message(STATUS "Adding DAQIRI manager ${MGR} to the application configuration")
-    target_compile_definitions(${PROJECT_NAME} PUBLIC "DAQIRI_MGR_${MGR_UPPER}=1")
+separate_arguments(DAQIRI_ENGINE_LIST UNIX_COMMAND ${DAQIRI_ENGINE})
+foreach(ENGINE IN LISTS DAQIRI_ENGINE_LIST)
+    string(TOUPPER "${ENGINE}" ENGINE_UPPER)
+    message(STATUS "Adding DAQIRI engine ${ENGINE} to the application configuration")
+    target_compile_definitions(${PROJECT_NAME} PUBLIC "DAQIRI_ENGINE_${ENGINE_UPPER}=1")
 endforeach()
 
 # Copy config files

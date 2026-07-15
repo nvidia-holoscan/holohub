@@ -29,12 +29,12 @@
 #                            `--pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0`.
 #   HOLOSCAN_CLI_BASE_SDK_VERSION
 #                            Holoscan SDK version for container base images
-#                            (required by run/build/package). Default: 4.3.0.
+#                            (required by run/build/package). Default: 4.4.0.
 #   HOLOSCAN_CLI_PYTHON_BIN  Python interpreter (default: python3).
 #
 # Examples:
 #   ./holohubCLI_wrapper --help
-#   HOLOSCAN_CLI_INSTALL_ARGS="holoscan-cli==4.3.0" ./holohubCLI_wrapper list
+#   HOLOSCAN_CLI_INSTALL_ARGS="holoscan-cli==4.4.0" ./holohubCLI_wrapper list
 # ==============================================================================
 
 set -euo pipefail
@@ -51,7 +51,7 @@ export HOLOSCAN_CLI_ROOT="${SCRIPT_DIR}"
 # longer ship a built-in default, so `run`/`build`/`package` error out unless
 # this is set (or `--base-img` is passed). Override to match the SDK your
 # external project targets. Env var takes precedence.
-export HOLOSCAN_CLI_BASE_SDK_VERSION="${HOLOSCAN_CLI_BASE_SDK_VERSION:-4.3.0}"
+export HOLOSCAN_CLI_BASE_SDK_VERSION="${HOLOSCAN_CLI_BASE_SDK_VERSION:-4.4.0}"
 
 PYTHON_BIN="${HOLOSCAN_CLI_PYTHON_BIN:-python3}"
 export HOLOSCAN_CLI_INSTALL_ARGS="${HOLOSCAN_CLI_INSTALL_ARGS:---pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0}"
@@ -89,16 +89,5 @@ if ! _holoscan_cli_has_source_project_dispatch; then
     fi
     _install_holoscan_cli
 fi
-
-# Forward wrapper-selected CLI install args into project Docker builds so the
-# in-container CLI matches the host wrapper. holoscan-cli shlex-splits
-# HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS, so single-quote each KEY=VALUE to
-# preserve spaces and quotes in pip arguments.
-_q() {
-    local value="${1//\'/\'\"\'\"\'}"
-    printf "'%s'" "${value}"
-}
-extras=" --build-arg $(_q "HOLOSCAN_CLI_INSTALL_ARGS=${HOLOSCAN_CLI_INSTALL_ARGS}")"
-export HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS="${HOLOSCAN_CLI_DEFAULT_DOCKER_BUILD_ARGS:-}${extras}"
 
 exec "${PYTHON_BIN}" -m holoscan_cli "$@"

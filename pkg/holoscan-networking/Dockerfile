@@ -17,7 +17,7 @@
 
 # Define arguments for holoscan installation
 ARG HOLOSCAN_DEB_SRC="remote" # or "local"
-ARG HOLOSCAN_DEB_REMOTE_VERSION=4.3.0 # only used if HOLOSCAN_DEB_SRC is "remote"
+ARG HOLOSCAN_DEB_REMOTE_VERSION=4.4.0 # only used if HOLOSCAN_DEB_SRC is "remote"
 ARG HOLOSCAN_DEB_LOCAL_PATH="./holoscan.deb" # only used if HOLOSCAN_DEB_SRC is "local"
 ARG DAQIRI_REPO="https://github.com/NVIDIA/daqiri.git"
 ARG DAQIRI_REF="main"
@@ -224,8 +224,6 @@ RUN git clone "${DAQIRI_REPO}" /tmp/daqiri-src \
     && git checkout "${DAQIRI_REF}" \
     && git submodule update --init --recursive \
     && sed -i "s/^set(CMAKE_CUDA_ARCHITECTURES .*/set(CMAKE_CUDA_ARCHITECTURES \"${DAQIRI_CUDA_ARCHITECTURES}\")/" src/CMakeLists.txt \
-    && DAQIRI_VERSION="$(sed -n 's/^project(daqiri VERSION \([^ ]*\).*$/\1/p' CMakeLists.txt)" \
-    && test -n "${DAQIRI_VERSION}" \
     && cmake -S /tmp/daqiri-src -B /tmp/daqiri-build \
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_INSTALL_PREFIX="${DAQIRI_INSTALL_PREFIX}" \
@@ -234,6 +232,8 @@ RUN git clone "${DAQIRI_REPO}" /tmp/daqiri-src \
         -DDAQIRI_BUILD_EXAMPLES="${DAQIRI_BUILD_EXAMPLES}" \
         -DDAQIRI_BUILD_PYTHON="${DAQIRI_BUILD_PYTHON}" \
         -DDAQIRI_MGR="${DAQIRI_MGR}" \
+    && DAQIRI_VERSION="$(sed -n 's/^set(PACKAGE_VERSION "\([^"]*\)").*$/\1/p' /tmp/daqiri-build/daqiriConfigVersion.cmake)" \
+    && [[ "${DAQIRI_VERSION}" =~ ^[0-9] ]] \
     && cmake --build /tmp/daqiri-build -j "$(nproc)" \
     && DESTDIR=/tmp/daqiri-package-root cmake --install /tmp/daqiri-build \
     && mkdir -p /tmp/daqiri-package-root/DEBIAN \

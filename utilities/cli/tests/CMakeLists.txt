@@ -44,7 +44,7 @@ add_test(
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 set_tests_properties(test_holohub_list PROPERTIES
-  PASS_REGULAR_EXPRESSION "APPLICATIONS.*BENCHMARKS.*PACKAGES.*OPERATORS.*WORKFLOWS"
+  PASS_REGULAR_EXPRESSION "APPLICATIONS.*BENCHMARKS.*PACKAGES.*OPERATORS"
 )
 
 # Autocompletion list: shell completion depends on the wrapper printing one

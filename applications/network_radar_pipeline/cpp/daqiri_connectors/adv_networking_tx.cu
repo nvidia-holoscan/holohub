@@ -120,9 +120,9 @@ void AdvConnectorOpTx::initialize() {
         mr.second.kind_ == MemoryKind::DEVICE)
       gpu_direct_ = true;
   }
-  mgr_ = manager_type_to_string(cfg_.get().common_.manager_type);
+  engine_ = engine_type_to_string(cfg_.get().common_.engine_type);
 
-  HOLOSCAN_LOG_INFO("mgr_: {}", mgr_.c_str());
+  HOLOSCAN_LOG_INFO("engine_: {}", engine_.c_str());
   HOLOSCAN_LOG_INFO("gpu_direct_: {}", gpu_direct_);
   HOLOSCAN_LOG_INFO("hds_: {}", hds_);
 

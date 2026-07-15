@@ -22,7 +22,8 @@ This application demonstrates the latency differences between USB and EVT camera
 ## Running the Application
 
 ```bash
-[sudo] LD_PRELOAD=/usr/lib/aarch64-linux-gnu/nvidia/libnvjpeg.so ./holohub run laser_detection
+LD_PRELOAD=/usr/lib/aarch64-linux-gnu/nvidia/libnvjpeg.so \
+    ./holohub run laser_detection --local --as-root
 ```
 
 ## Usage
@@ -38,4 +39,4 @@ This application demonstrates the latency differences between USB and EVT camera
 - Ensure proper lighting conditions
 - Use only safe laser pointers designed for viewing purposes
 - If detection is inaccurate, recalibrate both cameras
-- The application requires sudo privileges to run
+- The application requires root; run with `--as-root`

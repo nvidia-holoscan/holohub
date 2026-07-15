@@ -1,0 +1,11 @@
+{#-
+  Desktop top tab bar for the NVIDIA Holoscan GitHub Pages sites.
+  The menu is defined once in partials/hs-nav.html and shared with the mobile
+  drawer (partials/nav.html) so both stay perfectly in sync.
+
+  This file is intentionally IDENTICAL between:
+    - nvidia-holoscan.github.io/overrides/partials/tabs.html
+    - holohub/doc/website/overrides/partials/tabs.html
+-#}
+{% import "partials/hs-nav.html" as hsnav with context %}
+{{ hsnav.tabs((page.canonical_url if page else "") or "") }}
