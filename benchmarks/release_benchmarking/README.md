@@ -96,7 +96,7 @@ Alternatively, collect results across platforms. On each machine:
 1. Add platform configuration information:
 
 ```bash
-./holohub run release_benchmarking --no-local-build --run-args "--print" > benchmarks/release_benchmarking/output/platform.txt
+./holohub run release_benchmarking --no-local-build --run-args="--print" > benchmarks/release_benchmarking/output/platform.txt
 ```
 
 1. Transfer output contents from each platform to a single machine:
@@ -120,7 +120,7 @@ tar xvf benchmarks-<platform-name>
 ./holohub run release_benchmarking --no-local-build --run-args "\
     --process benchmarks/release_benchmarking/2.4/x86_64 \
     --process benchmarks/release_benchmarking/2.4/IGX_iGPU \
-    --process benchmarks/release/benchmarking/2.4/IGX_dGPU"
+    --process benchmarks/release_benchmarking/2.4/IGX_dGPU"
 ```
 
 ## Presenting Data

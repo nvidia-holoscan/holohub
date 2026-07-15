@@ -66,7 +66,12 @@ To build and run in a containerized environment you will need:
 - the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html) (v1.12.2 or later)
 - [Docker](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository), including the buildx plugin (`docker-buildx-plugin`)
 - `git` version control
-- (optional) [Python 3.10+](https://www.python.org/downloads/) with `venv` support on the host machine to run the `./holohub` infrastructure script; its first run installs the [holoscan-cli](https://github.com/nvidia-holoscan/holoscan-cli) package into a user-owned environment (see [utilities/cli/README.md](utilities/cli/README.md))
+- [Python 3.10+](https://www.python.org/downloads/) on the host. Unless you
+  select an existing compatible environment, `venv` support is also required;
+  the first `./holohub` invocation installs
+  [holoscan-cli](https://github.com/nvidia-holoscan/holoscan-cli) into a
+  user-owned managed environment (see
+  [utilities/cli/README.md](utilities/cli/README.md))
 
 You will also need to set up your NVIDIA NGC credentials at [ngc.nvidia.com](https://catalog.ngc.nvidia.com/).
 
@@ -95,7 +100,7 @@ If you want to use a specific based image for the application, you can use the `
 ./holohub run --base-img <base_image> <application_name>
 ```
 
-> **NOTE:** The build_and_run command is not supported for all applications and operators, especially applications that requires manual configurations or applications that requires additional datasets. Please refer to the README of each application or operator for more information.
+> **NOTE:** The `./holohub run` command is not sufficient for all applications and operators, especially those requiring manual configuration or additional datasets. Refer to each project's README for details.
 
 If you want a more detailed command to build and run a specific application, please follow the instructions below.
 
@@ -117,7 +122,7 @@ Check to verify that the image is created:
 $ docker images
 REPOSITORY      TAG               IMAGE ID       CREATED         SIZE
 ...
-holohub         ngc-v3.5.0-dgpu   c93e9f90a263   1 minutes ago   19.1GB
+holohub         ngc-v4.4.0-cuda13   c93e9f90a263   1 minute ago   19.1GB
 ...
 ```
 
@@ -152,11 +157,16 @@ The development container has been tested on the following platforms:
 
 (1) On AGX Orin Dev Kit the launch script will add ```--privileged``` and ```--group-add video``` to the docker run command for the reference applications to work. Please also make sure that the current user is member of the group video.
 
-(2) When building Holoscan SDK on AGX Orin Dev Kit from source please add the option  ```--build-args="--cudaarchs all"``` to the ```./holohub build-container``` command to include support for AGX Orin's iGPU.
+(2) When building Holoscan SDK from source for AGX Orin, pass
+`--cudaarchs all` to the SDK repository's `./run` build command. This is a
+Holoscan SDK option, not a `./holohub build-container` option.
 
 ## Building Operators, Applications, and Packages
 
-> *Make sure you have either launched your [development container](#container-build-recommended) or [set up your local environment](./doc/developer.md#native-build) before attempting to build Holohub components.*
+> By default, `./holohub build` and `./holohub run` create and enter the
+> appropriate development container automatically. Use
+> [native setup](./doc/developer.md#native-build) only when you intentionally
+> pass `--local`.
 
 This repository provides a convenience `holohub` script to abstract some of the CMake build process below.
 
@@ -170,7 +180,7 @@ Then run the following to build the component of your choice:
 
   ```sh
   # Build using the component name
-  ./holohub build <package|application|operator>
+  ./holohub build <project_name>
   # Ex: ./holohub build endoscopy_tool_tracking
   ```
 
@@ -201,8 +211,9 @@ endoscopy application:
     ./holohub run endoscopy_tool_tracking --language=python
   ```
 
-The run script reads the "run" command from the metadata.json file for a given application and runs from the "workdir" directory.
-Make sure you build the application (if applicable) before running it.
+The run command resolves the selected application's `metadata.json`, builds it
+unless a supported skip option is active, and executes its configured command
+from the `workdir` directory.
 
 ## Cleanup
 

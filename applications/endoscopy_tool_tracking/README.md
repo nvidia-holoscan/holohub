@@ -121,6 +121,10 @@ Arguments:
 
 ## Containerize the application
 
-To containerize the application using [Holoscan CLI](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/cli_packager), first build the application using `./holohub install endoscopy_tool_tracking`, run the `package-app.sh` script in the [cpp](./cpp/package-app.sh) or the [python](./python/package-app.sh) directory and then follow the generated output to package and run the application.
+> [!IMPORTANT]
+> These scripts require the application packager from `holoscan-cli` 4.2.0 or
+> earlier. Current `./holohub package` builds Holoscan Module artifacts instead.
 
-Refer to the [Packaging Holoscan Applications](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/cli_packager) section of the [Holoscan User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/introduction/getting-started) to learn more about installing the Holoscan CLI or packaging your application using Holoscan CLI.
+To containerize the application using the legacy [Holoscan CLI](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/cli_packager), first build the application using `./holohub install endoscopy_tool_tracking`, run the `package-app.sh` script in the [cpp](./cpp/package-app.sh) or the [python](./python/package-app.sh) directory and then follow the generated output to package and run the application.
+
+Refer to the [Packaging Holoscan Applications](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/cli_packager) section of the [Holoscan User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/introduction/getting-started) to learn more about installing the legacy Holoscan CLI or packaging your application using Holoscan CLI.
