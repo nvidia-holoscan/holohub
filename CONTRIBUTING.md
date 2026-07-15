@@ -520,7 +520,8 @@ You can also run lint directly. If `pre-commit` is not already available in the
 environment, `./holohub lint` installs it automatically before running checks:
 
 ```bash
-./holohub run-container -- ./holohub lint
+./holohub run-container -- \
+  "./holohub lint --install-dependencies; ./holohub lint"
 ```
 
 The container reuses `.local/` and `.cache/pre-commit/` from the mounted
@@ -653,8 +654,8 @@ For examples, see existing test files like:
 
 - VSCode Dev Container support available in Holoscan SDK
 - `holohub` CLI tool with debugging options:
-  - `--as_root`: Launch as root for expanded debugging permissions
-  - `--local_sdk_root`: Mount local SDK for debug symbol access
+  - `--as-root`: Run the application phase, or a development container, as root
+  - `--local-sdk-root`: Mount a local SDK build for debug symbol access
 
 **Debugging Tools:**
 
