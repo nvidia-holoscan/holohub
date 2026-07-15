@@ -101,7 +101,7 @@ RUN git clone https://github.com/nvidia-holoscan/holoscan-sensor-bridge.git \
 WORKDIR /deps/holoscan-sensor-bridge
 RUN mkdir -p build
 WORKDIR /deps/holoscan-sensor-bridge/build
-RUN cmake .. -DHOLOLINK_BUILD_ROCE=OFF && make -j$(nproc)
+RUN cmake .. -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DHOLOLINK_BUILD_ROCE=OFF && make -j$(nproc)
 
 # Install the holoscan-sensor-bridge Python package
 WORKDIR /deps/holoscan-sensor-bridge/python

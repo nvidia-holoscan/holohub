@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include <chrono>
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -117,6 +118,23 @@ class Vb1940PublisherOp : public holoscan::ros2::ops::PublisherOp<sensor_msgs::m
           continue;
         }
 
+        // The conversion kernel reads the complete HxWx3 uint16 payload, so the
+        // dimensions must be positive and the byte count must match exactly.
+        const int64_t height = shape.dimension(0);
+        const int64_t width = shape.dimension(1);
+        const size_t rgb16_payload_size =
+            static_cast<size_t>(height) * static_cast<size_t>(width) * 3 * sizeof(uint16_t);
+        if (height <= 0 || width <= 0 || bytes_size != rgb16_payload_size) {
+          HOLOSCAN_LOG_ERROR(
+              "Skipping tensor with inconsistent geometry: {}x{}x3 uint16 expects {} bytes, "
+              "got {}",
+              height,
+              width,
+              rgb16_payload_size,
+              bytes_size);
+          continue;
+        }
+
         // Initialize message metadata only once if not already done
         if (!message_initialized_) {
           message_.header.frame_id = "vb1940";
@@ -127,9 +145,6 @@ class Vb1940PublisherOp : public holoscan::ros2::ops::PublisherOp<sensor_msgs::m
           message_.step =
               shape.dimension(1) * 3 * sizeof(uint8_t);  // width * 3 channels * bytes_per_channel
           message_initialized_ = true;
-
-          // Calculate expected bytes size for validation
-          expected_bytes_size_ = bytes_size;
 
           // Calculate sizes for initial resize
           int input_channels = shape.dimension(2);  // RGB = 3 channels
@@ -146,11 +161,15 @@ class Vb1940PublisherOp : public holoscan::ros2::ops::PublisherOp<sensor_msgs::m
                             output_size);
         }
 
-        // Verify the incoming data size matches our expectations
-        if (bytes_size != expected_bytes_size_) {
-          HOLOSCAN_LOG_ERROR("Tensor size changed unexpectedly ({} != {}); skipping frame",
-                             bytes_size,
-                             expected_bytes_size_);
+        // The message metadata is fixed after the first frame; reject tensors
+        // whose resolution no longer matches it.
+        if (height != message_.height || width != message_.width) {
+          HOLOSCAN_LOG_ERROR(
+              "Tensor dimensions changed unexpectedly ({}x{} != {}x{}); skipping frame",
+              height,
+              width,
+              message_.height,
+              message_.width);
           continue;
         }
 
@@ -218,7 +237,6 @@ class Vb1940PublisherOp : public holoscan::ros2::ops::PublisherOp<sensor_msgs::m
   size_t rgb8_buffer_size_ = 0;       // RGB8 buffer size
   sensor_msgs::msg::Image message_;   // ROS2 message
   bool message_initialized_ = false;  // Flag to check if message is initialized
-  size_t expected_bytes_size_ = 0;    // Expected bytes size for validation
 };
 
 class HoloscanVb1940PublisherApplication : public holoscan::Application {
