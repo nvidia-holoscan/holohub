@@ -215,7 +215,7 @@ Artifacts are produced under `./build/<operator_name>/` (e.g. `./build/csi_to_ba
 ##### Build Options
 
 - **Debug build**: `./holohub build <operator_name> --build-type debug`
-- **Extra CMake options**: `./holohub build <operator_name> --configure-args '-DCMAKE_VERBOSE_MAKEFILE=ON'`
+- **Extra CMake options**: `./holohub build <operator_name> --configure-args='-DCMAKE_VERBOSE_MAKEFILE=ON'`
 
 Run `./holohub build --help` for more options.
 

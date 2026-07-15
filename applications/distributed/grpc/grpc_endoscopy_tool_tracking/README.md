@@ -149,9 +149,13 @@ replayer->output: 683
 
 ## Containerization
 
+> [!IMPORTANT]
+> These helpers require the application packager from `holoscan-cli` 4.2.0 or
+> earlier. Current `./holohub package` builds Holoscan Module artifacts instead.
+
 To containerize the application:
 
-1. Install [Holoscan CLI](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/cli_packager)
+1. Install a compatible legacy [Holoscan CLI](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/cli_packager)
 2. Build the application:
 
    ```bash

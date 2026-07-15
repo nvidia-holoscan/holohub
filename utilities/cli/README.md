@@ -9,25 +9,29 @@ The Python implementation that used to live under this directory
 one of its downstream consumers alongside Isaac OS and the I4H Workflows
 repos.
 
-For the canonical command, option, and environment-variable reference, run
-`holoscan --help` (or `holoscan env-info` for the full env-var surface), or
-visit the [holoscan-cli](https://github.com/nvidia-holoscan/holoscan-cli)
-repository — that is now the single source of truth and stays current as
-the CLI evolves. The historical `cli_reference.md` in this directory
-documents the old in-tree CLI and is no longer authoritative.
+For the canonical HoloHub command and option reference, run
+`./holohub --help` or `./holohub <command> --help`. Run
+`./holohub env-info` for the effective package, interpreter, paths, and
+environment variables. The standalone
+[holoscan-cli](https://github.com/nvidia-holoscan/holoscan-cli) repository is
+the source of truth for parser and runtime implementation. The local CLI
+reference is a curated HoloHub wrapper guide. Treat current help as
+authoritative for accepted command-line syntax and the selected holoscan-cli
+source as authoritative for runtime behavior.
 
 This directory keeps the user-facing CLI documentation:
 
 | Document                                | Description                                                                                                                  |
 | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| [CLI Reference](cli_reference.md)       | HoloHub-oriented command examples, modes, and environment variables.                                                         |
 | [CLI Developer Guide](cli_dev_guide.md) | Workflow tips, implementation invariants, and extension guide. For the canonical source layout, see the holoscan-cli repo.   |
 
 ## Quick Start
 
 ```bash
 ./holohub <command> [options] [arguments]
-./holohub -h | --help                    # List all commands
-./holohub <command> -h | --help          # Options for a specific command
+./holohub --help                         # List all commands
+./holohub <command> --help               # Options for a specific command
 ./holohub list                           # List available projects
 ```
 
@@ -119,9 +123,10 @@ through Docker build args or environment variables.
 
 ```bash
 HOLOSCAN_CLI_SOURCE=/path/to/holoscan-cli \
-  pytest -q utilities/cli/tests/test_holoscan_cli_consolidation.py
+  python -m pytest -q -o addopts='' --noconftest \
+  utilities/cli/tests/test_holoscan_cli_consolidation.py
 ```
 
-That single test exercises the wrapper -> install -> delegate path and
-asserts that `holoscan list` / `modes` / `run --dryrun` work against this
-repo.
+That test exercises both the direct Python package entry point and the
+wrapper -> install -> delegate path against this repository, including
+project discovery and a wrapper-driven `run --dryrun`.

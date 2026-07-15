@@ -232,14 +232,15 @@ echo $LD_LIBRARY_PATH
 /usr/local/cuda-12.6/compat/lib:/usr/local/cuda-12.6/compat:/usr/local/cuda-12.6/lib64:
 ```
 
-**2. Be sure to pass `-v /tmp/nvidia-mps:/tmp/nvidia-mps  -v /tmp/nvidia-log:/tmp/nvidia-log -v
-/usr/local/cuda-12.6:/usr/local/cuda-12.6` to `./holohub run` command to ensure that the container is
-connected to the MPS control and server**
+**2. Use `--mps` so the container shares the host MPS control and log
+directories. If the required CUDA installation is not already present in the
+image, mount it explicitly with `--docker-opts`.**
 
 Example:
 
 ```bash
-./holohub run --img holohub:v2.1 --docker-opts="-v /tmp/nvidia-mps:/tmp/nvidia-mps  -v /tmp/nvidia-log:/tmp/nvidia-log -v /usr/local/cuda-12.6:/usr/local/cuda-12.6"
+./holohub run-container model_benchmarking --as-root --mps \
+  --docker-opts "-v /usr/local/cuda-12.6:/usr/local/cuda-12.6"
 ```
 
 **3. Inside the container, be sure to set the following environment variables:**
