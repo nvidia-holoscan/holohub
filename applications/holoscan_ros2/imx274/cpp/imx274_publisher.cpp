@@ -94,6 +94,10 @@ class Imx274PublisherOp : public holoscan::ros2::ops::PublisherOp<sensor_msgs::m
       return;
     }
 
+    // Synchronize with the stream(s) the upstream operators used to produce
+    // the tensor; the conversion kernel and copy below run on this stream.
+    const cudaStream_t cuda_stream = op_input.receive_cuda_stream("input");
+
     // Use findAll to get all tensors in the entity
     const auto tensors = entity.nvidia::gxf::Entity::findAll<nvidia::gxf::Tensor>();
     if (tensors) {
@@ -198,7 +202,7 @@ class Imx274PublisherOp : public holoscan::ros2::ops::PublisherOp<sensor_msgs::m
             message_.width,
             message_.height,
             input_channels,
-            cudaStreamDefault);
+            cuda_stream);
         if (kernel_status != cudaSuccess) {
           HOLOSCAN_LOG_ERROR("CUDA conversion kernel launch failed: {}",
                              cudaGetErrorString(kernel_status));
@@ -207,9 +211,16 @@ class Imx274PublisherOp : public holoscan::ros2::ops::PublisherOp<sensor_msgs::m
 
         message_.header.stamp = rclcpp::Clock().now();
 
-        // Copy converted RGB8 data from device to host
-        auto copy_status = cudaMemcpy(
-            message_.data.data(), d_rgb8_buffer_.get(), output_size, cudaMemcpyDeviceToHost);
+        // Copy converted RGB8 data from device to host on the same stream and
+        // wait for it, so the message buffer is complete before publishing.
+        auto copy_status = cudaMemcpyAsync(message_.data.data(),
+                                           d_rgb8_buffer_.get(),
+                                           output_size,
+                                           cudaMemcpyDeviceToHost,
+                                           cuda_stream);
+        if (copy_status == cudaSuccess) {
+          copy_status = cudaStreamSynchronize(cuda_stream);
+        }
         if (copy_status != cudaSuccess) {
           HOLOSCAN_LOG_ERROR("cudaMemcpy failed: {}; skipping frame",
                              cudaGetErrorString(copy_status));
