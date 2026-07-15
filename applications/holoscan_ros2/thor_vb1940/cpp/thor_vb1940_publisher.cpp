@@ -349,6 +349,15 @@ int main(int argc, char** argv) {
 
   auto variables_map = Parser().parse_command_line(argc, argv, options_description);
 
+  // Validate the frame limit before composing the application; 0 means unlimited
+  const int frame_limit = variables_map["frame-limit"].as<int>();
+  if (frame_limit < 0) {
+    HOLOSCAN_LOG_ERROR("Invalid --frame-limit {}: expected a non-negative frame count",
+                       frame_limit);
+    rclcpp::shutdown();
+    return -1;
+  }
+
   try {
     auto check_cuda = [](CUresult result, const char* what) {
       if (result != CUDA_SUCCESS) {
@@ -388,7 +397,7 @@ int main(int argc, char** argv) {
         hololink_channel,
         camera,
         camera_mode,
-        variables_map["frame-limit"].as<int>());
+        frame_limit);
     const auto configuration = variables_map["configuration"].as<std::string>();
     if (!configuration.empty()) {
       app->config(configuration);
