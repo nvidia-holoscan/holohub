@@ -19,6 +19,7 @@
 #include <chrono>
 #include <cstdint>
 #include <memory>
+#include <stdexcept>
 #include <string>
 
 #include <holoscan/holoscan.hpp>
@@ -102,6 +103,18 @@ class Imx274PublisherOp : public holoscan::ros2::ops::PublisherOp<sensor_msgs::m
         auto element_type = tensor_ptr->element_type();
         size_t bytes_size = tensor_ptr->bytes_size();
 
+        // Validate the tensor layout before treating the data as HxWx3 uint16 RGB
+        if (shape.rank() != 3 || shape.dimension(2) != 3 ||
+            element_type != nvidia::gxf::PrimitiveType::kUnsigned16) {
+          HOLOSCAN_LOG_ERROR(
+              "Skipping tensor with unexpected layout: rank={}, channels={}, element_type={} "
+              "(expected rank 3, 3 channels, uint16)",
+              shape.rank(),
+              shape.rank() == 3 ? shape.dimension(2) : -1,
+              static_cast<int>(element_type));
+          continue;
+        }
+
         // Initialize message metadata only once if not already done
         if (!message_initialized_) {
           message_.header.frame_id = "imx274";
@@ -131,8 +144,13 @@ class Imx274PublisherOp : public holoscan::ros2::ops::PublisherOp<sensor_msgs::m
                             output_size);
         }
 
-        // Assert that the incoming data size matches our expectations
-        assert(bytes_size == expected_bytes_size_ && "Tensor size changed unexpectedly");
+        // Verify the incoming data size matches our expectations
+        if (bytes_size != expected_bytes_size_) {
+          HOLOSCAN_LOG_ERROR("Tensor size changed unexpectedly ({} != {}); skipping frame",
+                             bytes_size,
+                             expected_bytes_size_);
+          continue;
+        }
 
         // Calculate sizes
         int input_channels = shape.dimension(2);  // RGB = 3 channels
@@ -143,24 +161,41 @@ class Imx274PublisherOp : public holoscan::ros2::ops::PublisherOp<sensor_msgs::m
 
         // Allocate CUDA buffer only once if not already allocated or if size changed
         if (!d_rgb8_buffer_ || output_size != rgb8_buffer_size_) {
-          uint8_t* new_buffer;
-          cudaMalloc(&new_buffer, output_size);
+          uint8_t* new_buffer = nullptr;
+          auto alloc_status = cudaMalloc(&new_buffer, output_size);
+          if (alloc_status != cudaSuccess) {
+            HOLOSCAN_LOG_ERROR("cudaMalloc failed: {}; skipping frame",
+                               cudaGetErrorString(alloc_status));
+            continue;
+          }
           d_rgb8_buffer_.reset(new_buffer);
           rgb8_buffer_size_ = output_size;
         }
 
         // Launch CUDA kernel to convert 16-bit to 8-bit per channel
-        launch_convert_16bit_to_8bit_kernel(
+        auto kernel_status = launch_convert_16bit_to_8bit_kernel(
             reinterpret_cast<const uint16_t*>(tensor_ptr->pointer()),
             d_rgb8_buffer_.get(),
             message_.width,
             message_.height,
-            input_channels);
+            input_channels,
+            cudaStreamDefault);
+        if (kernel_status != cudaSuccess) {
+          HOLOSCAN_LOG_ERROR("CUDA conversion kernel launch failed: {}",
+                             cudaGetErrorString(kernel_status));
+          continue;
+        }
 
         message_.header.stamp = rclcpp::Clock().now();
 
         // Copy converted RGB8 data from device to host
-        cudaMemcpy(message_.data.data(), d_rgb8_buffer_.get(), output_size, cudaMemcpyDeviceToHost);
+        auto copy_status = cudaMemcpy(
+            message_.data.data(), d_rgb8_buffer_.get(), output_size, cudaMemcpyDeviceToHost);
+        if (copy_status != cudaSuccess) {
+          HOLOSCAN_LOG_ERROR("cudaMemcpy failed: {}; skipping frame",
+                             cudaGetErrorString(copy_status));
+          continue;
+        }
 
         HOLOSCAN_LOG_TRACE(
             "Publishing Image: {}x{}x{} bytes", message_.height, message_.width, message_.step);
@@ -201,11 +236,16 @@ class HoloscanImx274PublisherApplication : public holoscan::Application {
   void compose() override {
     using namespace holoscan;
 
-    std::shared_ptr<Condition> condition;
+    // Each operator needs its own Condition instance; a Condition is owned by
+    // the operator it is assigned to and must not be shared.
+    std::shared_ptr<Condition> receiver_condition;
+    std::shared_ptr<Condition> publisher_condition;
     if (frame_limit_) {
-      condition = make_condition<CountCondition>("count", frame_limit_);
+      receiver_condition = make_condition<CountCondition>("receiver_count", frame_limit_);
+      publisher_condition = make_condition<CountCondition>("publisher_count", frame_limit_);
     } else {
-      condition = make_condition<BooleanCondition>("ok", true);
+      receiver_condition = make_condition<BooleanCondition>("receiver_ok", true);
+      publisher_condition = make_condition<BooleanCondition>("publisher_ok", true);
     }
     camera_->set_mode(camera_mode_);
 
@@ -226,7 +266,7 @@ class HoloscanImx274PublisherApplication : public holoscan::Application {
     // network stack (Jetson Thor MGBE ports); no ConnectX NIC / RoCE required.
     auto receiver_operator = make_operator<hololink::operators::LinuxReceiverOp>(
         "receiver",
-        condition,
+        receiver_condition,
         Arg("frame_size", frame_size),
         Arg("frame_context", cuda_context_),
         Arg("hololink_channel", &hololink_channel_),
@@ -261,7 +301,7 @@ class HoloscanImx274PublisherApplication : public holoscan::Application {
         make_resource<holoscan::ros2::Bridge>("imx274_bridge_resource", "imx274_bridge_node");
     auto imx274_publisher =
         make_operator<Imx274PublisherOp>("imx274_publisher",
-                                         condition,
+                                         publisher_condition,
                                          Arg("ros2_bridge", ros2_bridge),
                                          Arg("topic_name", std::string("imx274/image")),
                                          Arg("qos", holoscan::ros2::QoS(10)));
@@ -313,14 +353,42 @@ int main(int argc, char** argv) {
 
   auto variables_map = Parser().parse_command_line(argc, argv, options_description);
 
+  // Validate the test pattern before any sensor access
+  const int pattern = variables_map["pattern"].as<int>();
+  if (pattern < -1 || pattern > 11) {
+    HOLOSCAN_LOG_ERROR("Invalid --pattern {}: expected 0-11, or -1 to disable", pattern);
+    rclcpp::shutdown();
+    return -1;
+  }
+
+  // Validate the I2C expander configuration before any sensor access
+  const int expander_configuration = variables_map["expander-configuration"].as<int>();
+  if (expander_configuration != 0 && expander_configuration != 1) {
+    HOLOSCAN_LOG_ERROR("Invalid --expander-configuration {}: expected 0 or 1",
+                       expander_configuration);
+    rclcpp::shutdown();
+    return -1;
+  }
+
   try {
+    auto check_cuda = [](CUresult result, const char* what) {
+      if (result != CUDA_SUCCESS) {
+        throw std::runtime_error(std::string(what) + " failed (" +
+                                 std::to_string(static_cast<int>(result)) + ")");
+      }
+    };
     // Initialize CUDA
-    cuInit(0);
+    check_cuda(cuInit(0), "cuInit");
     CUdevice cu_device;
     int cu_device_ordinal = 0;
-    cuDeviceGet(&cu_device, cu_device_ordinal);
+    check_cuda(cuDeviceGet(&cu_device, cu_device_ordinal), "cuDeviceGet");
     CUcontext cu_context;
-    cuDevicePrimaryCtxRetain(&cu_context, cu_device);
+    check_cuda(cuDevicePrimaryCtxRetain(&cu_context, cu_device), "cuDevicePrimaryCtxRetain");
+    // Release the primary context on all exit paths, including exceptions
+    struct CudaContextGuard {
+      CUdevice device;
+      ~CudaContextGuard() { cuDevicePrimaryCtxRelease(device); }
+    } cuda_context_guard{cu_device};
 
     // Get a handle to the Hololink device
     auto channel_metadata =
@@ -329,7 +397,7 @@ int main(int argc, char** argv) {
 
     // Get a handle to the camera
     auto camera = std::make_shared<hololink::sensors::NativeImx274Sensor>(
-        hololink_channel, variables_map["expander-configuration"].as<int>());
+        hololink_channel, expander_configuration);
 
     // Convert camera_mode to proper enum
     auto camera_mode =
@@ -350,20 +418,27 @@ int main(int argc, char** argv) {
 
     auto hololink = hololink_channel.hololink();
     hololink->start();
+    // Stop the hololink device on all exit paths, including exceptions
+    struct HololinkStopGuard {
+      decltype(hololink) link;
+      ~HololinkStopGuard() {
+        try {
+          link->stop();
+        } catch (...) { /* never throw from a destructor during unwinding */
+        }
+      }
+    } hololink_stop_guard{hololink};
     hololink->reset();
     camera->setup_clock();
     camera->configure(camera_mode);
     camera->set_digital_gain_reg(0x4);
-    const int pattern = variables_map["pattern"].as<int>();
     if (pattern >= 0) {
       camera->test_pattern(pattern);
     }
 
     app->run();
-    hololink->stop();
 
-    cuDevicePrimaryCtxRelease(cu_device);
-    // Shutdown ROS2
+    // Shutdown ROS2 (hololink stop and CUDA context release run via the scope guards)
     rclcpp::shutdown();
     return 0;
   } catch (const std::exception& e) {
