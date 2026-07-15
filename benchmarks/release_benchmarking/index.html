@@ -19861,7 +19861,7 @@ definitions and background</li>
 <ol>
 <li>Add platform configuration information:</li>
 </ol>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>release_benchmarking<span class="w"> </span>--no-local-build<span class="w"> </span>--run-args<span class="w"> </span><span class="s2">&quot;--print&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>benchmarks/release_benchmarking/output/platform.txt
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>release_benchmarking<span class="w"> </span>--no-local-build<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--print&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>benchmarks/release_benchmarking/output/platform.txt
 </code></pre></div>
 <ol>
 <li>Transfer output contents from each platform to a single machine:</li>
@@ -19883,7 +19883,7 @@ tar<span class="w"> </span>xvf<span class="w"> </span>benchmarks-&lt;platform-na
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>release_benchmarking<span class="w"> </span>--no-local-build<span class="w"> </span>--run-args<span class="w"> </span><span class="s2">&quot;\</span>
 <span class="s2">    --process benchmarks/release_benchmarking/2.4/x86_64 \</span>
 <span class="s2">    --process benchmarks/release_benchmarking/2.4/IGX_iGPU \</span>
-<span class="s2">    --process benchmarks/release/benchmarking/2.4/IGX_dGPU&quot;</span>
+<span class="s2">    --process benchmarks/release_benchmarking/2.4/IGX_dGPU&quot;</span>
 </code></pre></div>
 <h2 id="presenting-data">Presenting Data<a class="headerlink" href="#presenting-data" title="Permanent link">#</a></h2>
 <p>You can use the template markdown file in the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/release_benchmarking/template"><code>template</code></a> folder to generate a markdown

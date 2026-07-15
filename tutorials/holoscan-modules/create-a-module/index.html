@@ -20189,8 +20189,9 @@ local Python environment:</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>setup<span class="w"> </span>--scripts<span class="w"> </span>template
 </code></pre></div>
 <h3 id="32-scaffold-with-holohub-create">3.2 Scaffold with <code>./holohub create</code><a class="headerlink" href="#32-scaffold-with-holohub-create" title="Permanent link">#</a></h3>
-<p>From your HoloHub clone:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>create<span class="w"> </span>holoscan-my-sensor<span class="w"> </span><span class="se">\</span>
+<p>From your HoloHub clone, pass the unprefixed module name; the template creates
+the <code>holoscan-&lt;name&gt;</code> repository directory:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>create<span class="w"> </span>my-sensor<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--template<span class="w"> </span>modules/template<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--directory<span class="w"> </span>~/repos
 </code></pre></div>
@@ -20255,7 +20256,7 @@ or customize with your own:</p>
 <li><code>module_repo_name=holoscan-my-sensor</code> → directory + PyPI/Debian package names.</li>
 </ul>
 <p><em>Advanced Users and AI Agents:</em> For non-interactive use, pass values directly:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>create<span class="w"> </span>holoscan-my-sensor<span class="w"> </span><span class="se">\</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>create<span class="w"> </span>my-sensor<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--template<span class="w"> </span>modules/template<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--directory<span class="w"> </span><span class="nv">$HOME</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--interactive<span class="w"> </span><span class="nb">false</span><span class="w"> </span><span class="se">\</span>
@@ -20284,7 +20285,7 @@ Git repository initialised. Push to a remote when ready:
   git push -u origin main
 
 Register your module at https://nvidia-holoscan.github.io/ when ready.
-Successfully created new project: holoscan-my-sensor
+Successfully created new project: my-sensor
 Directory: /home/myuser/holoscan-my-sensor
 
 Possible next steps:
@@ -20614,8 +20615,8 @@ for a working example.</p>
 <tbody>
 <tr>
 <td>Scaffold</td>
-<td><code>./holohub create &lt;repo&gt; --template modules/template --directory &lt;dir&gt;</code></td>
-<td><code>&lt;dir&gt;/&lt;repo&gt;/</code></td>
+<td><code>./holohub create &lt;name&gt; --template modules/template --directory &lt;dir&gt;</code></td>
+<td><code>&lt;dir&gt;/holoscan-&lt;name&gt;/</code></td>
 </tr>
 <tr>
 <td>Build</td>

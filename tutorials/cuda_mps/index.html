@@ -20053,11 +20053,12 @@ It reduces the number of context switches and related inferences, resulting in i
 <span class="nb">echo</span><span class="w"> </span><span class="nv">$LD_LIBRARY_PATH</span>
 /usr/local/cuda-12.6/compat/lib:/usr/local/cuda-12.6/compat:/usr/local/cuda-12.6/lib64:
 </code></pre></div>
-<p><strong>2. Be sure to pass <code>-v /tmp/nvidia-mps:/tmp/nvidia-mps  -v /tmp/nvidia-log:/tmp/nvidia-log -v
-/usr/local/cuda-12.6:/usr/local/cuda-12.6</code> to <code>./holohub run</code> command to ensure that the container is
-connected to the MPS control and server</strong></p>
+<p><strong>2. Use <code>--mps</code> so the container shares the host MPS control and log
+directories. If the required CUDA installation is not already present in the
+image, mount it explicitly with <code>--docker-opts</code>.</strong></p>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>--img<span class="w"> </span>holohub:v2.1<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">&quot;-v /tmp/nvidia-mps:/tmp/nvidia-mps  -v /tmp/nvidia-log:/tmp/nvidia-log -v /usr/local/cuda-12.6:/usr/local/cuda-12.6&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>model_benchmarking<span class="w"> </span>--as-root<span class="w"> </span>--mps<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--docker-opts<span class="w"> </span><span class="s2">&quot;-v /usr/local/cuda-12.6:/usr/local/cuda-12.6&quot;</span>
 </code></pre></div>
 <p><strong>3. Inside the container, be sure to set the following environment variables:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">CUDA_VISIBLE_DEVICES</span><span class="o">=</span><span class="m">0</span>

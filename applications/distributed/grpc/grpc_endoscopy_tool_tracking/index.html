@@ -20034,9 +20034,14 @@ replayer-&gt;output:<span class="w"> </span><span class="m">683</span>
 <li>The client may require manual termination (CTRL+C) if errors occur during execution</li>
 </ul>
 <h2 id="containerization">Containerization<a class="headerlink" href="#containerization" title="Permanent link">#</a></h2>
+<blockquote>
+<p>[!IMPORTANT]
+These helpers require the application packager from <code>holoscan-cli</code> 4.2.0 or
+earlier. Current <code>./holohub package</code> builds Holoscan Module artifacts instead.</p>
+</blockquote>
 <p>To containerize the application:</p>
 <ol>
-<li>Install <a href="https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/cli_packager">Holoscan CLI</a></li>
+<li>Install a compatible legacy <a href="https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/cli_packager">Holoscan CLI</a></li>
 <li>Build the application:</li>
 </ol>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>install<span class="w"> </span>grpc_endoscopy_tool_tracking

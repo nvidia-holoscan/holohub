@@ -20059,9 +20059,9 @@ embedded in the Holoscan SDK development container:</p>
 <h3 id="running-the-application">Running the Application<a class="headerlink" href="#running-the-application" title="Permanent link">#</a></h3>
 <h4 id="use-holohub-container-from-outside-of-the-container">Use Holohub Container from Outside of the Container<a class="headerlink" href="#use-holohub-container-from-outside-of-the-container" title="Permanent link">#</a></h4>
 <p>Using the Holohub container, you can run the application without building it again:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>ai_surgical_video<span class="w"> </span>--no-build
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>ai_surgical_video<span class="w"> </span>--no-docker-build<span class="w"> </span>--no-local-build
 </code></pre></div>
-<p>However, if you want to build the application, you can just remove the <code>--no-build</code> flag:</p>
+<p>Remove the skip flags to fully rebuild the container image and application:</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>ai_surgical_video
 </code></pre></div>
 <p>Alternatively, you can run the application directly from the source directory:</p>

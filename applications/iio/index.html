@@ -20053,13 +20053,13 @@
 <p>Connect your ADALM-Pluto to your computer via USB. The device will appear as a network interface with IP address 192.168.2.1.</p>
 <h3 id="2-build-the-application">2. Build the Application<a class="headerlink" href="#2-build-the-application" title="Permanent link">#</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># From HoloHub root directory</span>
-./dev_container<span class="w"> </span>build_and_run<span class="w"> </span>iio
+./holohub<span class="w"> </span>run<span class="w"> </span>iio
 </code></pre></div>
 <h3 id="3-run-examples">3. Run Examples<a class="headerlink" href="#3-run-examples" title="Permanent link">#</a></h3>
 <p>The application includes several example modes:</p>
 <h4 id="transmit-a-test-signal">Transmit a Test Signal<a class="headerlink" href="#transmit-a-test-signal" title="Permanent link">#</a></h4>
 <div class="highlight"><pre><span></span><code><span class="c1"># Transmits a sine wave on the configured frequency</span>
-./run<span class="w"> </span>launch<span class="w"> </span>iio<span class="w"> </span>python
+./holohub<span class="w"> </span>run<span class="w"> </span>iio<span class="w"> </span>--language<span class="w"> </span>python
 </code></pre></div>
 <h4 id="read-device-attributes">Read Device Attributes<a class="headerlink" href="#read-device-attributes" title="Permanent link">#</a></h4>
 <p>Uncomment the <code>attr_read_example()</code> line in the compose() method to read device parameters.</p>
@@ -20068,8 +20068,8 @@
 <h4 id="run-the-pluto-fft-example">Run the Pluto FFT example<a class="headerlink" href="#run-the-pluto-fft-example" title="Permanent link">#</a></h4>
 <p>The C++ FFT example (<code>cpp/pluto_fft_example</code>) demonstrates real-time FFT visualization of RF signals captured from the ADALM-Pluto:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Build and run the FFT example</span>
-./run<span class="w"> </span>build<span class="w"> </span>iio<span class="w"> </span>cpp
-./run<span class="w"> </span>launch<span class="w"> </span>iio<span class="w"> </span>cpp
+./holohub<span class="w"> </span>build<span class="w"> </span>iio<span class="w"> </span>--language<span class="w"> </span>cpp
+./holohub<span class="w"> </span>run<span class="w"> </span>iio<span class="w"> </span>--language<span class="w"> </span>cpp
 </code></pre></div>
 <p>This example captures IQ samples from the Pluto SDR and displays a real-time FFT spectrum:</p>
 <p><img alt="Pluto FFT Real-time Visualization" src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/iio/images/pluto_fft_realtime.png?raw=true" /></p>

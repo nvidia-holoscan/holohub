@@ -20102,8 +20102,8 @@
 <p><code>volume_rendering_xr</code> can be packaged in a self-contained release container with datasets and binaries.</p>
 <p>To build the release container:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Generate HoloHub `volume_rendering_xr` installation in the &quot;holohub/install&quot; folder</span>
-./holohub<span class="w"> </span>build<span class="w"> </span>volume_rendering_xr<span class="w"> </span>--configure-args<span class="o">=</span><span class="s2">&quot;-DCMAKE_INSTALL_PREFIX:PATH=/workspace/holohub/install&quot;</span>
-./holohub<span class="w"> </span>run-container<span class="w"> </span>volume_rendering_xr<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">&quot;--entrypoint=bash&quot;</span><span class="w"> </span>--<span class="w"> </span>-c<span class="w"> </span>cmake<span class="w"> </span>--build<span class="w"> </span>./build<span class="w"> </span>--target<span class="w"> </span>install
+./holohub<span class="w"> </span>install<span class="w"> </span>volume_rendering_xr<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--configure-args<span class="o">=</span><span class="s2">&quot;-DCMAKE_INSTALL_PREFIX:PATH=/workspace/holohub/install&quot;</span>
 
 <span class="c1"># Copy files into a release container</span>
 ./holohub<span class="w"> </span>build-container<span class="w"> </span>--img<span class="w"> </span>holohub:volume_rendering_xr_rel<span class="w"> </span>--docker-file<span class="w"> </span>./applications/volume_rendering_xr/scripts/Dockerfile.rel<span class="w"> </span>--base-img<span class="w"> </span>nvcr.io/nvidia/cuda:12.4.1-runtime-ubuntu22.04
@@ -20191,9 +20191,9 @@ code appears, try any of the following:</p>
 <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">ML_START_OPTIONS</span><span class="o">=</span><span class="s2">&quot;debug&quot;</span>
 </code></pre></div>
 <ol>
-<li>Follow <a href="#advanced-setup">Advanced Setup Instructions</a> and add the <code>-u root</code> option to launch the container with root permissions.</li>
+<li>Follow <a href="#advanced-setup">Advanced Setup Instructions</a> and add the <code>--as-root</code> option to run the application phase as root.</li>
 </ol>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>--img<span class="w"> </span>holohub:volume_rendering_xr<span class="w"> </span>--docker-opts<span class="s2">&quot;-u root&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>volume_rendering_xr<span class="w"> </span>--img<span class="w"> </span>holohub:volume_rendering_xr<span class="w"> </span>--as-root
 </code></pre></div>
 <ol>
 <li>Clear the build cache and any home cache folders in the HoloHub workspace.</li>

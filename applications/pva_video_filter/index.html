@@ -19774,7 +19774,7 @@ Please note that only PVA executables with signatures included in a secure allow
 <p>Build the application inside docker</p>
 <div class="highlight"><pre><span></span><code>$<span class="w"> </span>./holohub<span class="w"> </span>build-container<span class="w"> </span>pva_video_filter<span class="w"> </span>--base-img<span class="w"> </span>nvcr.io/nvidia/clara-holoscan/holoscan:v2.1.0-dgpu
 <span class="c1"># Check which version of CUPVA is installed on your platform at /opt/nvidia</span>
-$<span class="w"> </span>./holohub<span class="w"> </span>run-container<span class="w"> </span>pva_video_filter<span class="w"> </span>--no-docker-build<span class="w"> </span>--docker_opts<span class="w"> </span><span class="s2">&quot;-v /opt/nvidia/cupva-&lt;version&gt;:/opt/nvidia/cupva-&lt;version&gt; --device /dev/nvhost-ctrl-pva0:/dev/nvhost-ctrl-pva0 --device /dev/nvmap:/dev/nvmap --device /dev/dri/renderD129:/dev/dri/renderD129&quot;</span>
+$<span class="w"> </span>./holohub<span class="w"> </span>run-container<span class="w"> </span>pva_video_filter<span class="w"> </span>--no-docker-build<span class="w"> </span>--docker-opts<span class="w"> </span><span class="s2">&quot;-v /opt/nvidia/cupva-&lt;version&gt;:/opt/nvidia/cupva-&lt;version&gt; --device /dev/nvhost-ctrl-pva0:/dev/nvhost-ctrl-pva0 --device /dev/nvmap:/dev/nvmap --device /dev/dri/renderD129:/dev/dri/renderD129&quot;</span>
 </code></pre></div>
 <p>Inside docker, add to your environment variable the following directories:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># inside docker</span>
@@ -19791,7 +19791,7 @@ HoloViz window.</p>
 sudo<span class="w"> </span>pva_allow
 </code></pre></div>
 <p>Run the same docker container you used to build your application</p>
-<div class="highlight"><pre><span></span><code>$<span class="w"> </span>./holohub<span class="w"> </span>run-container<span class="w"> </span>pva_video_filter<span class="w"> </span>--no-docker-build<span class="w"> </span>--docker_opts<span class="w"> </span><span class="s2">&quot;-v /opt/nvidia/cupva-&lt;version&gt;:/opt/nvidia/cupva-&lt;version&gt; --device /dev/nvhost-ctrl-pva0:/dev/nvhost-ctrl-pva0 --device /dev/nvmap:/dev/nvmap --device /dev/dri/renderD129:/dev/dri/renderD129&quot;</span>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>./holohub<span class="w"> </span>run-container<span class="w"> </span>pva_video_filter<span class="w"> </span>--no-docker-build<span class="w"> </span>--docker-opts<span class="w"> </span><span class="s2">&quot;-v /opt/nvidia/cupva-&lt;version&gt;:/opt/nvidia/cupva-&lt;version&gt; --device /dev/nvhost-ctrl-pva0:/dev/nvhost-ctrl-pva0 --device /dev/nvmap:/dev/nvmap --device /dev/dri/renderD129:/dev/dri/renderD129&quot;</span>
 
 <span class="c1"># inside docker</span>
 <span class="c1"># don&#39;t forget the line below to export the environment variables</span>

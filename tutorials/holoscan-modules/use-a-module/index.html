@@ -20142,10 +20142,8 @@ each path's section below calls out anything extra it needs.</p>
 dependency.</p>
 <h3 id="41-optional-scaffold-a-holohub-subproject">4.1 (Optional) Scaffold a HoloHub subproject<a class="headerlink" href="#41-optional-scaffold-a-holohub-subproject" title="Permanent link">#</a></h3>
 <p>If you don't already have a subproject, you can use the HoloHub CLI to create one.
-Pick the template that matches the type of project you want to build, then fill in
-the interactive prompts with your project details.</p>
+The application template produces metadata ready for a module dependency.</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>create<span class="w"> </span>my_app<span class="w"> </span>--template<span class="w"> </span>applications/template
-./holohub<span class="w"> </span>create<span class="w"> </span>my_op<span class="w">  </span>--template<span class="w"> </span>operators/template
 </code></pre></div>
 <p>The scaffolded subproject ships a <code>metadata.json</code> ready for you to add a
 <code>dependencies.modules[]</code> block as shown below. Run <code>./holohub list</code> to see existing

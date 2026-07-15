@@ -8210,7 +8210,8 @@ Options:
   -r, --publish_rate    Publish rate in Hz (default: 2.0)
 </code></pre></div>
 <p>Example with custom settings:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>pipeline_visualization<span class="w"> </span>--nats_url<span class="w"> </span>nats://0.0.0.0:4222<span class="w"> </span>--subject_prefix<span class="w"> </span>my_demo<span class="w"> </span>--publish_rate<span class="w"> </span><span class="m">5</span>.0
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>pipeline_visualization<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--run-args<span class="o">=</span><span class="s2">"--nats_url nats://0.0.0.0:4222 --subject_prefix my_demo --publish_rate 5.0"</span>
 </code></pre></div>
 <h3 id="step-4-visualize-the-data">Step 4: Visualize the Data<a class="headerlink" href="#step-4-visualize-the-data" title="Permanent link">#</a></h3>
 <ol>

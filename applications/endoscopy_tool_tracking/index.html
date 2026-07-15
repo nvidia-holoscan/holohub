@@ -19933,8 +19933,13 @@ sed<span class="w"> </span>-i<span class="w"> </span>-e<span class="w"> </span><
 <li><code>--docker-file</code>: instructs the script to use the <code>operators/vtk_renderer/Dockerfile</code> that includes VTK libraries</li>
 </ul>
 <h2 id="containerize-the-application">Containerize the application<a class="headerlink" href="#containerize-the-application" title="Permanent link">#</a></h2>
-<p>To containerize the application using <a href="https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/cli_packager">Holoscan CLI</a>, first build the application using <code>./holohub install endoscopy_tool_tracking</code>, run the <code>package-app.sh</code> script in the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/endoscopy_tool_tracking/cpp/package-app.sh">cpp</a> or the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/endoscopy_tool_tracking/python/package-app.sh">python</a> directory and then follow the generated output to package and run the application.</p>
-<p>Refer to the <a href="https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/cli_packager">Packaging Holoscan Applications</a> section of the <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/introduction/getting-started">Holoscan User Guide</a> to learn more about installing the Holoscan CLI or packaging your application using Holoscan CLI.</p>
+<blockquote>
+<p>[!IMPORTANT]
+These scripts require the application packager from <code>holoscan-cli</code> 4.2.0 or
+earlier. Current <code>./holohub package</code> builds Holoscan Module artifacts instead.</p>
+</blockquote>
+<p>To containerize the application using the legacy <a href="https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/cli_packager">Holoscan CLI</a>, first build the application using <code>./holohub install endoscopy_tool_tracking</code>, run the <code>package-app.sh</code> script in the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/endoscopy_tool_tracking/cpp/package-app.sh">cpp</a> or the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/endoscopy_tool_tracking/python/package-app.sh">python</a> directory and then follow the generated output to package and run the application.</p>
+<p>Refer to the <a href="https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/examples/cli_packager">Packaging Holoscan Applications</a> section of the <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/introduction/getting-started">Holoscan User Guide</a> to learn more about installing the legacy Holoscan CLI or packaging your application using Holoscan CLI.</p>
 
 
 
