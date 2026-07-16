@@ -28,7 +28,10 @@ ARG CUDA_VER=13.0.1
 
 ARG DAQIRI_REPO="https://github.com/NVIDIA/daqiri.git"
 ARG DAQIRI_REF="main"
-ARG DAQIRI_MGR="dpdk socket rdma"
+# Optional engines to build. Upstream renamed DAQIRI_MGR to DAQIRI_ENGINE and
+# only accepts "dpdk" and "ibverbs" (Linux sockets are always built in, and the
+# old "rdma" engine is now "ibverbs", which also backs the socket RoCE path).
+ARG DAQIRI_ENGINE="dpdk ibverbs"
 ARG DAQIRI_BUILD_PYTHON=ON
 ARG DAQIRI_BUILD_EXAMPLES=OFF
 ARG DAQIRI_CUDA_ARCHITECTURES="80;89;90;120;121"
@@ -48,6 +51,10 @@ SHELL ["/bin/bash", "-eou", "pipefail", "-c"]
 ARG CUDA_VER
 RUN [[ "${CUDA_VER%%.*}" == "13" ]] \
     || { echo "CUDA_VER must be 13.x (got '${CUDA_VER}') to match the holoscan-cuda-13 dependency in pkg/holoscan-networking/CMakeLists.txt" >&2; exit 1; }
+
+# Allow pip to install into the system Python on PEP 668 (externally-managed)
+# Ubuntu 24.04, matching the root ./Dockerfile.
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
 
 # Basic system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -176,6 +183,12 @@ ENV LD_LIBRARY_PATH=/opt/nvidia/holoscan/lib:/usr/local/lib/python3.12/dist-pack
 # non-root HoloHub container users do not need to write to site-packages.
 RUN python3 -c "import holoscan"
 
+# Install the wrapper-pinned holoscan-cli so in-container `./holohub build`/`run`
+# find the CLI (env-info bootstraps it into the system Python as root). Copying
+# only the wrapper keeps this layer cached until the pin changes.
+COPY --chmod=755 holohub /tmp/scripts/
+RUN /tmp/scripts/holohub env-info
+
 # ==============================================================
 # dpdk-deps: Build upstream DPDK from source
 # ==============================================================
@@ -247,7 +260,7 @@ FROM rdma AS daqiri-package
 
 ARG DAQIRI_REPO
 ARG DAQIRI_REF
-ARG DAQIRI_MGR
+ARG DAQIRI_ENGINE
 ARG DAQIRI_BUILD_PYTHON
 ARG DAQIRI_BUILD_EXAMPLES
 ARG DAQIRI_CUDA_ARCHITECTURES
@@ -268,7 +281,7 @@ RUN git clone "${DAQIRI_REPO}" /tmp/daqiri-src \
         -DBUILD_SHARED_LIBS="${BUILD_SHARED_LIBS}" \
         -DDAQIRI_BUILD_EXAMPLES="${DAQIRI_BUILD_EXAMPLES}" \
         -DDAQIRI_BUILD_PYTHON="${DAQIRI_BUILD_PYTHON}" \
-        -DDAQIRI_MGR="${DAQIRI_MGR}" \
+        -DDAQIRI_ENGINE="${DAQIRI_ENGINE}" \
     && DAQIRI_VERSION="$(sed -n 's/^set(PACKAGE_VERSION "\([^"]*\)").*$/\1/p' /tmp/daqiri-build/daqiriConfigVersion.cmake)" \
     && [[ "${DAQIRI_VERSION}" =~ ^[0-9] ]] \
     && cmake --build /tmp/daqiri-build -j "$(nproc)" \
