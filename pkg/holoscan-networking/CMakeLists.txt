@@ -29,7 +29,9 @@ holohub_configure_deb(
     # daqiri_raw_ethernet_bench-py
     # daqiri_socket_ping-py
   EXPORT_NAME holoscan-networking-targets
-  DEPENDS "holoscan (>= 3.0), holoscan (<< 4.0), daqiri"
+  # Must stay in sync with pkg/holoscan-networking/Dockerfile: CUDA_VER 13.x guard,
+  # hsdk-remote HOLOSCAN_DEB_REMOTE_VERSION bounds, and hsdk-local deb validation.
+  DEPENDS "holoscan-cuda-13 (>= 4.0), holoscan-cuda-13 (<< 5.0), daqiri"
   RECOMMENDS "infiniband-diags, ibverbs-utils, mlnx-ofed-kernel-utils, mft, libhugetlbfs-bin"
 )
 
