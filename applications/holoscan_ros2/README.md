@@ -82,6 +82,25 @@ Advanced examples using real camera hardware:
 
 **Best for**: Production-like scenarios, understanding performance characteristics, hardware integration
 
+### [IMX274 Camera Examples](imx274/)
+
+Advanced examples using an IMX274 camera on a Holoscan Sensor Bridge:
+
+- Camera data received over the standard Linux network stack (Jetson Thor MGBE ethernet, no ConnectX NIC / RoCE required)
+- GPU-accelerated image processing pipeline
+- Real-time visualization and ROS2 topic publishing
+
+**Best for**: Jetson Thor deployments, sensor bridge integration without RDMA-capable NICs
+
+### [Thor VB1940 Camera Examples](thor_vb1940/)
+
+The VB1940 (Eagle) camera examples adapted for NVIDIA Jetson Thor:
+
+- Camera data received over the standard Linux network stack (Jetson Thor MGBE ethernet, no ConnectX NIC / RoCE required)
+- Same GPU-accelerated processing pipeline as the original VB1940 examples
+
+**Best for**: Running the VB1940 camera on Jetson Thor without an RDMA-capable NIC
+
 ## Getting Started
 
 1. **Choose your example**: Start with [pubsub examples](pubsub/) for basic concepts, or jump to [VB1940 examples](vb1940/) for advanced use cases
