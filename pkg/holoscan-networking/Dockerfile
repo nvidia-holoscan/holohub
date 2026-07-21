@@ -19,20 +19,35 @@
 ARG HOLOSCAN_DEB_SRC="remote" # or "local"
 ARG HOLOSCAN_DEB_REMOTE_VERSION=4.4.0 # only used if HOLOSCAN_DEB_SRC is "remote"
 ARG HOLOSCAN_DEB_LOCAL_PATH="./holoscan.deb" # only used if HOLOSCAN_DEB_SRC is "local"
+
+# CUDA toolkit version, single source of truth. CUDA_VER sets the base image;
+# its major (derived in-stage as ${CUDA_VER%%.*}) selects the matching Holoscan
+# CUDA variant (holoscan-cuda-<major> deb, holoscan-cu<major> wheel).
+# CUDA 13+ is required for DGX Spark (GB10, sm_121).
+ARG CUDA_VER=13.0.1
+
 ARG DAQIRI_REPO="https://github.com/NVIDIA/daqiri.git"
 ARG DAQIRI_REF="main"
 ARG DAQIRI_MGR="dpdk socket rdma"
 ARG DAQIRI_BUILD_PYTHON=ON
 ARG DAQIRI_BUILD_EXAMPLES=OFF
-ARG DAQIRI_CUDA_ARCHITECTURES="80;89;90"
+ARG DAQIRI_CUDA_ARCHITECTURES="80;89;90;120;121"
 ARG BUILD_SHARED_LIBS=ON
 ARG DAQIRI_INSTALL_PREFIX=/opt/daqiri
 
 # ============================================================
 # base: Base layer
 # ============================================================
-FROM nvcr.io/nvidia/cuda:12.6.3-base-ubuntu24.04 AS base
+FROM nvcr.io/nvidia/cuda:${CUDA_VER}-base-ubuntu24.04 AS base
 SHELL ["/bin/bash", "-eou", "pipefail", "-c"]
+
+# The holoscan-networking package metadata (pkg/holoscan-networking/CMakeLists.txt)
+# hard-codes a holoscan-cuda-13 dependency, so this image must install the CUDA 13
+# Holoscan variant. Constrain CUDA_VER to 13.x so the package installed here and the
+# generated .deb metadata stay in sync.
+ARG CUDA_VER
+RUN [[ "${CUDA_VER%%.*}" == "13" ]] \
+    || { echo "CUDA_VER must be 13.x (got '${CUDA_VER}') to match the holoscan-cuda-13 dependency in pkg/holoscan-networking/CMakeLists.txt" >&2; exit 1; }
 
 # Basic system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -64,8 +79,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 FROM base AS hsdk-remote
 
 ARG HOLOSCAN_DEB_REMOTE_VERSION
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        holoscan="${HOLOSCAN_DEB_REMOTE_VERSION}*" \
+ARG CUDA_VER
+RUN CUDA_MAJOR="${CUDA_VER%%.*}" \
+    && dpkg --compare-versions "${HOLOSCAN_DEB_REMOTE_VERSION}" ge "4.0" \
+    && dpkg --compare-versions "${HOLOSCAN_DEB_REMOTE_VERSION}" lt "5.0" \
+    || { echo "HOLOSCAN_DEB_REMOTE_VERSION '${HOLOSCAN_DEB_REMOTE_VERSION}' must satisfy holoscan-cuda-13 (>= 4.0), holoscan-cuda-13 (<< 5.0) in pkg/holoscan-networking/CMakeLists.txt" >&2; exit 1; } \
+    && apt-get update && apt-get install -y --no-install-recommends \
+        "holoscan-cuda-${CUDA_MAJOR}=${HOLOSCAN_DEB_REMOTE_VERSION}*" \
     && rm -rf /var/lib/apt/lists/*
 
 # ============================================================
@@ -74,8 +94,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 FROM base AS hsdk-local
 
 ARG HOLOSCAN_DEB_LOCAL_PATH
+ARG CUDA_VER
 RUN --mount=type=bind,source=${HOLOSCAN_DEB_LOCAL_PATH},target=/tmp/holoscan.deb \
-    apt-get update && apt-get install -y --no-install-recommends \
+    CUDA_MAJOR="${CUDA_VER%%.*}" \
+    && EXPECTED_PKG="holoscan-cuda-${CUDA_MAJOR}" \
+    && LOCAL_PKG="$(dpkg-deb -f /tmp/holoscan.deb Package)" \
+    && LOCAL_VER="$(dpkg-deb -f /tmp/holoscan.deb Version)" \
+    && [[ "${LOCAL_PKG}" == "${EXPECTED_PKG}" ]] \
+    || { echo "Local Holoscan deb Package is '${LOCAL_PKG}' (expected '${EXPECTED_PKG}' to match holoscan-networking DEPENDS in pkg/holoscan-networking/CMakeLists.txt)" >&2; exit 1; } \
+    && dpkg --compare-versions "${LOCAL_VER}" ge "4.0" \
+    && dpkg --compare-versions "${LOCAL_VER}" lt "5.0" \
+    || { echo "Local Holoscan deb Version '${LOCAL_VER}' must satisfy holoscan-cuda-13 (>= 4.0), holoscan-cuda-13 (<< 5.0) in pkg/holoscan-networking/CMakeLists.txt" >&2; exit 1; } \
+    && apt-get update && apt-get install -y --no-install-recommends \
         /tmp/holoscan.deb \
     && rm -rf /var/lib/apt/lists/*
 
@@ -89,7 +119,7 @@ FROM hsdk-${HOLOSCAN_DEB_SRC} AS hsdk-installed
 # ==============================================================
 FROM hsdk-installed AS base-deps
 
-ARG HOLOSCAN_DEB_REMOTE_VERSION
+ARG CUDA_VER
 ARG TARGETARCH
 ARG CACHEBUST=1
 ARG DEBIAN_FRONTEND=noninteractive
@@ -121,13 +151,20 @@ RUN CUDA_VERSION=$(nvcc --version | sed -n 's/^.*release \([0-9]\+\.[0-9]\+\).*$
     && rm -rf /var/lib/apt/lists/*
 
 # PIP installs
-# - holoscan: Python SDK bindings for Python HoloHub examples
+# - holoscan-cu<major>: Python SDK bindings for Python HoloHub examples. Pin the
+#   wheel to the Holoscan version actually installed above (deb) so the deb and
+#   wheel stay aligned on both the remote and local paths, regardless of
+#   HOLOSCAN_DEB_REMOTE_VERSION. The deb version (e.g. 4.4.0.1-1) is trimmed to
+#   its upstream X.Y.Z to match the wheel's version scheme.
 # - pytest: test harness
 # - pyyaml: to parse yaml configs in tests
 # - scapy: for debugging and mocking network packets for tests
-RUN python3 -m pip install --no-cache-dir --break-system-packages --ignore-installed pip \
+RUN CUDA_MAJOR="${CUDA_VER%%.*}" \
+    && HOLOSCAN_DEB_VERSION="$(dpkg-query -W -f='${Version}' "holoscan-cuda-${CUDA_MAJOR}")" \
+    && HOLOSCAN_WHEEL_VERSION="$(echo "${HOLOSCAN_DEB_VERSION}" | cut -d- -f1 | cut -d. -f1-3)" \
+    && python3 -m pip install --no-cache-dir --break-system-packages --ignore-installed pip \
     && python3 -m pip install --no-cache-dir --break-system-packages \
-        holoscan==${HOLOSCAN_DEB_REMOTE_VERSION} \
+        "holoscan-cu${CUDA_MAJOR}==${HOLOSCAN_WHEEL_VERSION}" \
         pybind11 \
         pytest \
         pyyaml \
