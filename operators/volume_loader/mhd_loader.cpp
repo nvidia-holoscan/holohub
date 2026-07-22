@@ -191,6 +191,10 @@ bool load_mhd(const std::string& file_name, Volume& volume) {
     }
     data_size *= static_cast<size_t>(dim);
   }
+  if (data_size > static_cast<size_t>(std::numeric_limits<std::streamsize>::max())) {
+    holoscan::log_error("MHD payload size exceeds the supported range");
+    return false;
+  }
   std::unique_ptr<uint8_t> data(new uint8_t[data_size]);
 
   std::ifstream file;
@@ -233,11 +237,6 @@ bool load_mhd(const std::string& file_name, Volume& volume) {
       return false;
     }
   } else {
-    if (data_size > static_cast<size_t>(std::numeric_limits<std::streamsize>::max())) {
-      holoscan::log_error("MHD raw payload size exceeds the supported range");
-      return false;
-    }
-
     const auto expected_size = static_cast<std::streamsize>(data_size);
     file.read(reinterpret_cast<char*>(data.get()), expected_size);
     if (!file || file.gcount() != expected_size) {

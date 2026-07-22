@@ -32,6 +32,13 @@ class MhdLoaderHeaderTest : public testing::Test {
   void SetUp() override {
     header_path_ = std::filesystem::temp_directory_path() / "holohub_mhd_loader_test.mhd";
     raw_path_ = std::filesystem::temp_directory_path() / "holohub_mhd_loader_test.raw";
+
+    std::ofstream raw_file(raw_path_, std::ios::binary);
+    ASSERT_TRUE(raw_file.is_open());
+    raw_file.put('\0');
+    ASSERT_TRUE(raw_file.good());
+    raw_file.close();
+    ASSERT_FALSE(raw_file.fail());
   }
 
   void TearDown() override {
@@ -63,38 +70,46 @@ class MhdLoaderHeaderTest : public testing::Test {
     return load_mhd(header_path_.string(), volume);
   }
 
+  std::string complete_header(const std::string& ndims,
+                              const std::string& dim_size,
+                              const std::string& element_spacing = "1 1 1") const {
+    return "NDims = " + ndims + "\nDimSize = " + dim_size +
+           "\nElementSpacing = " + element_spacing +
+           "\nElementType = MET_UCHAR\nElementDataFile = holohub_mhd_loader_test.raw\n";
+  }
+
   std::filesystem::path header_path_;
   std::filesystem::path raw_path_;
 };
 
 TEST_F(MhdLoaderHeaderTest, RejectsTooFewDimensions) {
-  EXPECT_FALSE(load_header("NDims = 3\nDimSize = 10 20\n"));
+  EXPECT_FALSE(load_header(complete_header("3", "1 1")));
 }
 
 TEST_F(MhdLoaderHeaderTest, RejectsInvalidDimensionCount) {
-  EXPECT_FALSE(load_header("NDims = 3abc\nDimSize = 10 20 30\n"));
+  EXPECT_FALSE(load_header(complete_header("3abc", "1 1 1")));
 }
 
 TEST_F(MhdLoaderHeaderTest, RejectsTooManyDimensions) {
-  EXPECT_FALSE(load_header("NDims = 3\nDimSize = 10 20 30 40\n"));
+  EXPECT_FALSE(load_header(complete_header("3", "1 1 1 1")));
 }
 
 TEST_F(MhdLoaderHeaderTest, RejectsNonPositiveDimensions) {
-  EXPECT_FALSE(load_header("NDims = 3\nDimSize = 10 0 30\n"));
-  EXPECT_FALSE(load_header("NDims = 3\nDimSize = 10 -20 30\n"));
+  EXPECT_FALSE(load_header(complete_header("3", "1 0 1")));
+  EXPECT_FALSE(load_header(complete_header("3", "1 -1 1")));
 }
 
 TEST_F(MhdLoaderHeaderTest, RejectsTooFewSpacingValues) {
-  EXPECT_FALSE(load_header("NDims = 3\nDimSize = 10 20 30\nElementSpacing = 1 1\n"));
+  EXPECT_FALSE(load_header(complete_header("3", "1 1 1", "1 1")));
 }
 
 TEST_F(MhdLoaderHeaderTest, RejectsTooManySpacingValues) {
-  EXPECT_FALSE(load_header("NDims = 3\nDimSize = 10 20 30\nElementSpacing = 1 1 1 1\n"));
+  EXPECT_FALSE(load_header(complete_header("3", "1 1 1", "1 1 1 1")));
 }
 
 TEST_F(MhdLoaderHeaderTest, RejectsNonPositiveSpacing) {
-  EXPECT_FALSE(load_header("NDims = 3\nDimSize = 10 20 30\nElementSpacing = 1 0 1\n"));
-  EXPECT_FALSE(load_header("NDims = 3\nDimSize = 10 20 30\nElementSpacing = 1 -1 1\n"));
+  EXPECT_FALSE(load_header(complete_header("3", "1 1 1", "1 0 1")));
+  EXPECT_FALSE(load_header(complete_header("3", "1 1 1", "1 -1 1")));
 }
 
 TEST_F(MhdLoaderHeaderTest, RejectsMissingRequiredFields) {
@@ -106,6 +121,13 @@ TEST_F(MhdLoaderHeaderTest, RejectsOverflowingVolumeSize) {
                            "DimSize = 2147483647 2147483647 2147483647\n"
                            "ElementType = MET_FLOAT\n"
                            "ElementDataFile = unused.raw\n"));
+}
+
+TEST_F(MhdLoaderHeaderTest, RejectsPayloadLargerThanStreamSize) {
+  EXPECT_FALSE(load_header("NDims = 3\n"
+                           "DimSize = 2097152 2097152 2097152\n"
+                           "ElementType = MET_UCHAR\n"
+                           "ElementDataFile = holohub_mhd_loader_test.raw\n"));
 }
 
 TEST_F(MhdLoaderHeaderTest, RejectsTruncatedRawPayload) {
