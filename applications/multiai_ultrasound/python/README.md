@@ -21,7 +21,7 @@ homogeneous discrete-GPU system with both GPUs on the same PCIe network. Seeing 
 in `nvidia-smi` does not by itself guarantee that the configuration is supported.
 
 The heterogeneous iGPU and dGPU combination on IGX Thor is not supported by this sample.
-Through CUDA 13.2, an IGX Thor process cannot enumerate both types of GPU together; CUDA
+As of CUDA 13.2, an IGX Thor process cannot enumerate both types of GPU together; CUDA
 13.2 supports their concurrent use only from separate processes. On IGX Thor, use the
 default single-GPU configuration and select one GPU for the application.
 
