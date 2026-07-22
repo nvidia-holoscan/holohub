@@ -1,5 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2026 NVIDIA CORPORATION & AFFILIATES. All rights
+ * reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,14 +18,38 @@
 
 #include "mhd_loader.hpp"
 
+#include <algorithm>
 #include <array>
+#include <cmath>
 #include <filesystem>
+#include <limits>
+#include <sstream>
 
 #include <zlib.h>
 
 #include "volume.hpp"
 
 namespace holoscan::ops {
+
+namespace {
+
+template <typename T, size_t N>
+bool parse_exact_vector(const std::string& value, std::array<T, N>& result) {
+  std::istringstream value_stream(value);
+  std::array<T, N> parsed;
+
+  for (T& component : parsed) {
+    if (!(value_stream >> component)) { return false; }
+  }
+
+  value_stream >> std::ws;
+  if (!value_stream.eof()) { return false; }
+
+  result = parsed;
+  return true;
+}
+
+}  // namespace
 
 bool is_mhd(const std::string& file_name) {
   std::filesystem::path path(file_name);
@@ -36,9 +61,12 @@ bool is_mhd(const std::string& file_name) {
 
 bool load_mhd(const std::string& file_name, Volume& volume) {
   bool compressed = false;
+  bool has_dims = false;
+  bool has_element_type = false;
+  bool has_ndims = false;
   std::string data_file_name;
-  nvidia::gxf::PrimitiveType primitive_type;
-  std::array<int32_t, 3> dims;
+  nvidia::gxf::PrimitiveType primitive_type{};
+  std::array<int32_t, 3> dims{};
 
   {
     std::stringstream meta_header;
@@ -68,11 +96,19 @@ bool load_mhd(const std::string& file_name, Volume& volume) {
       while ((it != value.end()) && (std::isspace(*it))) { it = value.erase(it); }
 
       if (parameter == "NDims") {
-        int dims = std::stoi(value);
-        if (dims != 3) {
-          holoscan::log_error("MHD expected a three dimensional input, instead NDims is {}", dims);
+        std::istringstream value_stream(value);
+        int dimensions;
+        if (!(value_stream >> dimensions)) {
+          holoscan::log_error("MHD invalid NDims value");
           return false;
         }
+        value_stream >> std::ws;
+        if (!value_stream.eof() || dimensions != 3) {
+          holoscan::log_error(
+              "MHD expected a three dimensional input, instead NDims is {}", dimensions);
+          return false;
+        }
+        has_ndims = true;
       } else if (parameter == "CompressedData") {
         if (value == "True") {
           compressed = true;
@@ -83,17 +119,31 @@ bool load_mhd(const std::string& file_name, Volume& volume) {
           return false;
         }
       } else if (parameter == "DimSize") {
-        std::stringstream value_stream(value);
-        std::string value;
-        for (int index = 0; std::getline(value_stream, value, ' ') && (index < 3); ++index) {
-          dims[2 - index] = std::stoi(value);
+        std::array<int32_t, 3> parsed_dims;
+        if (!parse_exact_vector(value, parsed_dims)) {
+          holoscan::log_error("MHD DimSize must contain exactly three integers");
+          return false;
         }
+        if (std::any_of(
+                parsed_dims.begin(), parsed_dims.end(), [](int32_t dim) { return dim <= 0; })) {
+          holoscan::log_error("MHD DimSize values must be positive");
+          return false;
+        }
+        dims = {parsed_dims[2], parsed_dims[1], parsed_dims[0]};
+        has_dims = true;
       } else if (parameter == "ElementSpacing") {
-        std::stringstream value_stream(value);
-        std::string value;
-        for (int index = 0; std::getline(value_stream, value, ' ') && (index < 3); ++index) {
-          volume.spacing_[index] = std::stof(value);
+        std::array<float, 3> spacing;
+        if (!parse_exact_vector(value, spacing)) {
+          holoscan::log_error("MHD ElementSpacing must contain exactly three numbers");
+          return false;
         }
+        if (std::any_of(spacing.begin(), spacing.end(), [](float value) {
+              return !std::isfinite(value) || value <= 0.f;
+            })) {
+          holoscan::log_error("MHD ElementSpacing values must be finite and positive");
+          return false;
+        }
+        volume.spacing_ = spacing;
       } else if (parameter == "ElementType") {
         if (value == "MET_CHAR") {
           primitive_type = nvidia::gxf::PrimitiveType::kInt8;
@@ -113,6 +163,7 @@ bool load_mhd(const std::string& file_name, Volume& volume) {
           holoscan::log_error("MHD unexpected value for {}: {}", parameter, value);
           return false;
         }
+        has_element_type = true;
       } else if (parameter == "ElementDataFile") {
         const std::string path = file_name.substr(0, file_name.find_last_of("/\\") + 1);
         data_file_name = path + value;
@@ -122,8 +173,20 @@ bool load_mhd(const std::string& file_name, Volume& volume) {
     }
   }
 
-  const size_t data_size =
-      dims[0] * dims[1] * dims[2] * nvidia::gxf::PrimitiveTypeSize(primitive_type);
+  if (!has_ndims || !has_dims || !has_element_type || data_file_name.empty()) {
+    holoscan::log_error(
+        "MHD is missing one or more required fields: NDims, DimSize, ElementType, ElementDataFile");
+    return false;
+  }
+
+  size_t data_size = nvidia::gxf::PrimitiveTypeSize(primitive_type);
+  for (const int32_t dim : dims) {
+    if (data_size > std::numeric_limits<size_t>::max() / static_cast<size_t>(dim)) {
+      holoscan::log_error("MHD volume size exceeds the supported range");
+      return false;
+    }
+    data_size *= static_cast<size_t>(dim);
+  }
   std::unique_ptr<uint8_t> data(new uint8_t[data_size]);
 
   std::ifstream file;
