@@ -19697,6 +19697,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#multi-gpu-requirements-and-limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-GPU requirements and limitations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#requirements" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -19934,7 +19945,17 @@
 <li>a Viewpoint Classifier model, that determines confidence of each frame to known 28 cardiac anatomical view as defined by the guidelines of the American Society of Echocardiography</li>
 <li>an Aortic Stenosis Classification model, that provides a score which determines likeability for the presence of aortic stenosis</li>
 </ul>
-<p>The default configuration (<code>multiai_ultrasound.yaml</code>) runs on default GPU (GPU-0). Multi-AI Ultrasound application can be executed on multiple GPUs with the Holoscan SDK version 0.6 onwards. A sample configuration file for multi GPU configuration for multi-AI ultrasound application (<code>mgpu_multiai_ultrasound.yaml</code>) is present in both <code>cpp</code> and <code>python</code> applications. The multi-GPU configuration file is designed for a system with at least 2 GPUs connected to the same PCIE network.</p>
+<p>The default configuration (<code>multiai_ultrasound.yaml</code>) runs on the default GPU (GPU 0).</p>
+<h2 id="multi-gpu-requirements-and-limitations">Multi-GPU requirements and limitations<a class="headerlink" href="#multi-gpu-requirements-and-limitations" title="Permanent link">#</a></h2>
+<p>The sample multi-GPU configuration (<code>mgpu_multiai_ultrasound.yaml</code>) assigns inference
+models to GPU 0 and GPU 1 from a single application process. It requires at least two
+compatible GPUs that CUDA can enumerate together in that process, such as a supported
+homogeneous discrete-GPU system with both GPUs on the same PCIe network. Seeing both GPUs
+in <code>nvidia-smi</code> does not by itself guarantee that the configuration is supported.</p>
+<p>The heterogeneous iGPU and dGPU combination on IGX Thor is not supported by this sample.
+As of CUDA 13.2, an IGX Thor process cannot enumerate both types of GPU together; CUDA
+13.2 supports their concurrent use only from separate processes. On IGX Thor, use the
+default single-GPU configuration and select one GPU for the application.</p>
 <h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h2>
 <p>The provided applications are configured to either use the AJA capture card for input stream, or a pre-recorded video of the echocardiogram (replayer). Follow the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/operators/aja_source/setup.md">AJA Video Systems setup guide</a> to use the AJA capture card.</p>
 <h3 id="data">Data<a class="headerlink" href="#data" title="Permanent link">#</a></h3>
@@ -19948,6 +19969,11 @@ If you want to manually convert the video data, please refer to the instructions
 ./holohub<span class="w"> </span>run<span class="w"> </span>multiai_ultrasound<span class="w"> </span>--language<span class="o">=</span>cpp<span class="w"> </span><span class="o">[</span>--local<span class="o">]</span>
 </code></pre></div>
 <h3 id="using-a-pre-recorded-video-on-multi-gpu-system">Using a pre-recorded video on multi-GPU system<a class="headerlink" href="#using-a-pre-recorded-video-on-multi-gpu-system" title="Permanent link">#</a></h3>
+<blockquote>
+<p><strong>Note:</strong> This command uses both GPUs from one process and is not supported with the
+IGX Thor iGPU and dGPU combination. See
+<a href="#multi-gpu-requirements-and-limitations">Multi-GPU requirements and limitations</a>.</p>
+</blockquote>
 <div class="highlight"><pre><span></span><code>sed<span class="w"> </span>-i<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;s#^source:.*#source: replayer#&#39;</span><span class="w"> </span>applications/multiai_ultrasound/cpp/mgpu_multiai_ultrasound.yaml
 ./holohub<span class="w"> </span>run<span class="w"> </span>multiai_ultrasound<span class="w"> </span>--language<span class="o">=</span>cpp<span class="w"> </span><span class="o">[</span>--local<span class="o">]</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--run-args<span class="o">=</span><span class="s2">&quot;--config applications/multiai_ultrasound/cpp/mgpu_multiai_ultrasound.yaml&quot;</span>
