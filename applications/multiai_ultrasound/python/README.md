@@ -10,7 +10,20 @@ The applications uses models and echocardiogram data from iCardio.ai. The models
 - a Viewpoint Classifier model, that determines confidence of each frame to known 28 cardiac anatomical view as defined by the guidelines of the American Society of Echocardiography
 - an Aortic Stenosis Classification model, that provides a score which determines likeability for the presence of aortic stenosis
 
-The default configuration (`multiai_ultrasound.yaml`) runs on default GPU (GPU-0). Multi-AI Ultrasound application can be executed on multiple GPUs with the Holoscan SDK version 0.6 onwards. A sample configuration file for multi GPU configuration for multi-AI ultrasound application (`mgpu_multiai_ultrasound.yaml`) is present in both `cpp` and `python` applications. The multi-GPU configuration file is designed for a system with at least 2 GPUs connected to the same PCIE network.
+The default configuration (`multiai_ultrasound.yaml`) runs on the default GPU (GPU 0).
+
+## Multi-GPU requirements and limitations
+
+The sample multi-GPU configuration (`mgpu_multiai_ultrasound.yaml`) assigns inference
+models to GPU 0 and GPU 1 from a single application process. It requires at least two
+compatible GPUs that CUDA can enumerate together in that process, such as a supported
+homogeneous discrete-GPU system with both GPUs on the same PCIe network. Seeing both GPUs
+in `nvidia-smi` does not by itself guarantee that the configuration is supported.
+
+The heterogeneous iGPU and dGPU combination on IGX Thor is not supported by this sample.
+Through CUDA 13.2, an IGX Thor process cannot enumerate both types of GPU together; CUDA
+13.2 supports their concurrent use only from separate processes. On IGX Thor, use the
+default single-GPU configuration and select one GPU for the application.
 
 ## Requirements
 
@@ -55,6 +68,10 @@ Next, run the commands of your choice:
     ```
 
 - Using a pre-recorded video on multi-GPU system
+
+    > **Note:** This command uses both GPUs from one process and is not supported with the
+    > IGX Thor iGPU and dGPU combination. See
+    > [Multi-GPU requirements and limitations](#multi-gpu-requirements-and-limitations).
 
     ```bash
     cd <HOLOHUB_SOURCE_DIR>/applications/multiai_ultrasound/python
