@@ -4,8 +4,8 @@
     "description": "Replay-first visualization application for Atracsys visible, infrared, structured-light, and tracking data with an optional live camera mode.",
     "authors": [
       {
-        "name": "Artrit Telaku",
-        "affiliation": "Wayland Technologies"
+        "name": "Wayland Technologies Inc.",
+        "affiliation": "Wayland Technologies Inc."
       }
     ],
     "language": "C++",
@@ -47,7 +47,7 @@
       "atracsys_sdk": {
         "type": "software",
         "name": "Atracsys SDK and S3DK",
-        "description": "Required only for live_camera mode. The public Dockerfile provides CUDA-enabled OpenCV, but the proprietary Atracsys SDK and S3DK must still be installed locally or added in a private derivative image."
+        "description": "Required only for live_camera mode. The public Dockerfile provides CUDA-enabled OpenCV. Live mode uses integration-specific engineering SDK components for evaluation and development only; these are not certified or officially supported Atracsys releases."
       }
     },
     "default_mode": "replayer",

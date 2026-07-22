@@ -4,8 +4,8 @@
     "description": "Optional live-camera operators for Atracsys hardware, including the master source and structured-light point-cloud conversion path.",
     "authors": [
       {
-        "name": "Artrit Telaku",
-        "affiliation": "Wayland Technologies"
+        "name": "Wayland Technologies Inc.",
+        "affiliation": "Wayland Technologies Inc."
       }
     ],
     "language": [
@@ -42,7 +42,7 @@
       "software": [
         {
           "name": "Atracsys SDK, S3DK, and CUDA-enabled OpenCV",
-          "description": "The live camera operator depends on the vendor SDKs plus an OpenCV build with CUDA support."
+          "description": "The live camera operator uses integration-specific engineering SDK components for evaluation and development only; these are not certified or officially supported Atracsys releases. It also requires an OpenCV build with CUDA support."
         }
       ]
     }
