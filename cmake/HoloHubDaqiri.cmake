@@ -11,7 +11,7 @@ function(holohub_link_daqiri target_name)
   endif()
 
   set(_daqiri_targets daqiri::daqiri)
-  foreach(_daqiri_engine IN ITEMS dpdk socket rdma)
+  foreach(_daqiri_engine IN ITEMS dpdk socket rdma ibverbs)
     if(TARGET "daqiri::${_daqiri_engine}")
       list(APPEND _daqiri_targets "daqiri::${_daqiri_engine}")
     endif()
