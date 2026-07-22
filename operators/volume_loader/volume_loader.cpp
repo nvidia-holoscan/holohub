@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -80,20 +80,21 @@ void VolumeLoaderOp::compute(InputContext& input, OutputContext& output,
   volume.tensor_ =
       static_cast<nvidia::gxf::Entity&>(entity).add<nvidia::gxf::Tensor>("volume").value();
 
+  bool loaded = false;
   if (is_nifty(file_name)) {
-    if (!load_nifty(file_name, volume)) {
-      holoscan::log_error("Failed to load nifty file {}", file_name);
-    }
+    loaded = load_nifty(file_name, volume);
   } else if (is_mhd(file_name)) {
-    if (!load_mhd(file_name, volume)) {
-      holoscan::log_error("Failed to load mhd file {}", file_name);
-    }
+    loaded = load_mhd(file_name, volume);
   } else if (is_nrrd(file_name)) {
-    if (!load_nrrd(file_name, volume)) {
-      holoscan::log_error("Failed to load nrrd file {}", file_name);
-    }
+    loaded = load_nrrd(file_name, volume);
   } else {
     holoscan::log_error("File is not a supported volume format {}", file_name);
+    return;
+  }
+
+  if (!loaded) {
+    holoscan::log_error("Failed to load volume file {}", file_name);
+    return;
   }
 
   output.emit(entity, "volume");
