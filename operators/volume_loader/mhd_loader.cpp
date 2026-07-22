@@ -103,7 +103,11 @@ bool load_mhd(const std::string& file_name, Volume& volume) {
           return false;
         }
         value_stream >> std::ws;
-        if (!value_stream.eof() || dimensions != 3) {
+        if (!value_stream.eof()) {
+          holoscan::log_error("MHD invalid NDims value");
+          return false;
+        }
+        if (dimensions != 3) {
           holoscan::log_error(
               "MHD expected a three dimensional input, instead NDims is {}", dimensions);
           return false;
@@ -229,7 +233,21 @@ bool load_mhd(const std::string& file_name, Volume& volume) {
       return false;
     }
   } else {
-    file.read(reinterpret_cast<char*>(data.get()), data_size);
+    if (data_size > static_cast<size_t>(std::numeric_limits<std::streamsize>::max())) {
+      holoscan::log_error("MHD raw payload size exceeds the supported range");
+      return false;
+    }
+
+    const auto expected_size = static_cast<std::streamsize>(data_size);
+    file.read(reinterpret_cast<char*>(data.get()), expected_size);
+    if (!file || file.gcount() != expected_size) {
+      holoscan::log_error(
+          "MHD raw payload {} is truncated: expected {} bytes, read {} bytes",
+          data_file_name,
+          data_size,
+          file.gcount());
+      return false;
+    }
   }
 
   // allocate the tensor

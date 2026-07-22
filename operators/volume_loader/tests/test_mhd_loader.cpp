@@ -31,27 +31,48 @@ class MhdLoaderHeaderTest : public testing::Test {
  protected:
   void SetUp() override {
     header_path_ = std::filesystem::temp_directory_path() / "holohub_mhd_loader_test.mhd";
+    raw_path_ = std::filesystem::temp_directory_path() / "holohub_mhd_loader_test.raw";
   }
 
   void TearDown() override {
     std::error_code error;
     std::filesystem::remove(header_path_, error);
+    std::filesystem::remove(raw_path_, error);
   }
 
   bool load_header(const std::string& header) {
     std::ofstream header_file(header_path_);
+    if (!header_file.is_open()) {
+      ADD_FAILURE() << "Failed to open test MHD header " << header_path_;
+      return false;
+    }
+
     header_file << header;
+    if (!header_file.good()) {
+      ADD_FAILURE() << "Failed to write test MHD header " << header_path_;
+      return false;
+    }
+
     header_file.close();
+    if (header_file.fail()) {
+      ADD_FAILURE() << "Failed to close test MHD header " << header_path_;
+      return false;
+    }
 
     Volume volume;
     return load_mhd(header_path_.string(), volume);
   }
 
   std::filesystem::path header_path_;
+  std::filesystem::path raw_path_;
 };
 
 TEST_F(MhdLoaderHeaderTest, RejectsTooFewDimensions) {
   EXPECT_FALSE(load_header("NDims = 3\nDimSize = 10 20\n"));
+}
+
+TEST_F(MhdLoaderHeaderTest, RejectsInvalidDimensionCount) {
+  EXPECT_FALSE(load_header("NDims = 3abc\nDimSize = 10 20 30\n"));
 }
 
 TEST_F(MhdLoaderHeaderTest, RejectsTooManyDimensions) {
@@ -85,6 +106,20 @@ TEST_F(MhdLoaderHeaderTest, RejectsOverflowingVolumeSize) {
                            "DimSize = 2147483647 2147483647 2147483647\n"
                            "ElementType = MET_FLOAT\n"
                            "ElementDataFile = unused.raw\n"));
+}
+
+TEST_F(MhdLoaderHeaderTest, RejectsTruncatedRawPayload) {
+  std::ofstream raw_file(raw_path_, std::ios::binary);
+  ASSERT_TRUE(raw_file.is_open());
+  raw_file.write("1234567", 7);
+  ASSERT_TRUE(raw_file.good());
+  raw_file.close();
+  ASSERT_FALSE(raw_file.fail());
+
+  EXPECT_FALSE(load_header("NDims = 3\n"
+                           "DimSize = 2 2 2\n"
+                           "ElementType = MET_UCHAR\n"
+                           "ElementDataFile = holohub_mhd_loader_test.raw\n"));
 }
 
 }  // namespace holoscan::ops
