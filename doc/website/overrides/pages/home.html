@@ -1,5 +1,8 @@
 <!-- Custom HTML site displayed as the Home chapter -->
 {% extends "main.html" %}
+{% block htmltitle %}
+  <title>Holohub – The Holoscan Ecosystem</title>
+{% endblock %}
 {% block extrahead %}
   <script src="https://kit.fontawesome.com/1512963100.js" crossorigin="anonymous"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -542,20 +545,20 @@
     <div class="md-grid md-typeset">
       <div class="tx-hero">
         <div class="tx-hero__content">
-            <h1>Accelerate Sensor Processing</h1>
-            <p>Bring Real-time AI to the world with NVIDIA Holoscan</p>
-            <a href="applications" title="Explore applications" class="md-button md-button--primary" style="padding-top: 0.7rem; padding-bottom: 0.7rem;">
+            <h1>Holohub: The Holoscan Ecosystem</h1>
+            <p>Explore reference applications, operators, modules, tutorials, and benchmarks for real-time AI sensor processing with NVIDIA Holoscan.</p>
+            <a href="applications" title="Explore Holoscan applications" class="md-button md-button--primary" style="padding-top: 0.7rem; padding-bottom: 0.7rem;">
                 Explore Applications
             </a>
-            <a href="modules" title="Explore modules" class="md-button md-button--primary" style="padding-top: 0.7rem; padding-bottom: 0.7rem;">
+            <a href="modules" title="Explore Holoscan modules" class="md-button md-button--primary" style="padding-top: 0.7rem; padding-bottom: 0.7rem;">
                 Explore Modules
             </a>
-            <a href="https://developer.nvidia.com/holoscan-sdk" style="padding-top: 0.6rem; padding-bottom: 0.6rem;" title="Explore Holoscan" class="md-button" target="_blank">
+            <a href="https://developer.nvidia.com/holoscan-sdk" style="padding-top: 0.6rem; padding-bottom: 0.6rem;" title="Learn more about NVIDIA Holoscan" class="md-button" target="_blank">
                 <i class="bi"></i>&nbsp;Learn more about Holoscan
             </a>
         </div>
         <div class="tx-hero__image">
-            <img src="./assets/images/jetson-for-dev-ai-labs-icon-2974266-r3_ai-lab-text-generation-28.png" draggable="false">
+            <img src="./assets/images/jetson-for-dev-ai-labs-icon-2974266-r3_ai-lab-text-generation-28.png" alt="Holohub – The Holoscan Ecosystem" draggable="false">
         </div>
       </div>
     </div>
@@ -565,7 +568,7 @@
     <div class="top-hr">
         <div class="row justify-content-center">
             <div class="col-12 text-center">
-                <h2 class="section-title"><a href="applications">Latest Applications</a></h2>
+                <h2 class="section-title"><a href="applications">Latest Holoscan Applications</a></h2>
             </div>
             {% include '_pages/featured-applications.html' %}
             </div>
@@ -577,7 +580,7 @@
     <div class="top-hr">
         <div class="row justify-content-center">
             <div class="col-12 text-center">
-                <h2 class="section-title"><a href="tutorials">Latest Tutorials</a></h2>
+                <h2 class="section-title"><a href="tutorials">Latest Holoscan Tutorials</a></h2>
             </div>
             {% include '_pages/featured-tutorials.html' %}
             </div>
@@ -591,7 +594,7 @@
     <div class="top-hr">
         <div class="row justify-content-center">
             <div class="col-12 text-center">
-                <h2 class="section-title"><a href="benchmarks">Latest Benchmarks</a></h2>
+                <h2 class="section-title"><a href="benchmarks">Latest Holoscan Benchmarks</a></h2>
             </div>
             {% include '_pages/featured-benchmarks.html' %}
             </div>

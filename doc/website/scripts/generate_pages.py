@@ -141,8 +141,21 @@ def create_frontmatter(metadata: dict, archive_version: str = None) -> str:
     for tag in tags:
         tags_str += f"\n - {tag}"
 
+    # SEO description from metadata (fallback to name-based blurb)
+    description = metadata.get("description") or ""
+    description = re.sub(r"\s+", " ", description).strip()
+    if not description:
+        description = (
+            f"{metadata['name']} — a Holoscan component in Holohub, the Holoscan Ecosystem."
+        )
+    if len(description) > 160:
+        description = description[:157].rstrip() + "..."
+    # Escape for YAML double-quoted string
+    description_yaml = description.replace("\\", "\\\\").replace('"', '\\"')
+
     return f"""---
 title: "{title}"
+description: "{description_yaml}"
 tags:{tags_str}
 ---
 """

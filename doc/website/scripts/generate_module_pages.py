@@ -15,7 +15,7 @@
 """Generate Holoscan Modules website pages from module-sites.json.
 
 Runs as a mkdocs gen-files plugin script. For each module in modules/module-sites.json:
-  - In-tree modules: reads metadata.json and README from the HoloHub tree directly.
+  - In-tree modules: reads metadata.json and README from the Holohub tree directly.
   - External modules: shallow git-clones the repo at the pinned ref, reads those files.
 
 Writes per-module detail .md pages via mkdocs_gen_files, and writes the card/nav HTML
@@ -312,7 +312,17 @@ def generate_detail_page(
     tags = metadata_module.get("tags", [])
     tags_yaml = "\n".join(f"  - {t}" for t in tags)
 
-    frontmatter = f'---\ntitle: "{name}"\ntags:\n{tags_yaml}\n---\n\n'
+    description = metadata_module.get("description") or ""
+    description = re.sub(r"\s+", " ", str(description)).strip()
+    if not description:
+        description = f"{name} — a Holoscan module in Holohub, the Holoscan Ecosystem."
+    if len(description) > 160:
+        description = description[:157].rstrip() + "..."
+    description_yaml = description.replace("\\", "\\\\").replace('"', '\\"')
+
+    frontmatter = (
+        f'---\ntitle: "{name}"\ndescription: "{description_yaml}"\ntags:\n{tags_yaml}\n---\n\n'
+    )
 
     metadata_header = build_metadata_header(metadata_module, entry)
 

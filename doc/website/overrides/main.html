@@ -1,0 +1,91 @@
+{# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved. #}
+{# SPDX-License-Identifier: Apache-2.0 #}
+{% extends "base.html" %}
+
+{# Shared SEO helpers #}
+{% set seo_description = (
+  page.meta.description
+  if page and page.meta and page.meta.description
+  else config.site_description
+) %}
+{% if page and page.is_homepage %}
+  {% set seo_title = "Holohub – The Holoscan Ecosystem" %}
+{% elif page and page.meta and page.meta.title %}
+  {% set seo_title = page.meta.title ~ " - " ~ config.site_name %}
+{% elif page and page.title %}
+  {% set seo_title = (page.title | striptags) ~ " - " ~ config.site_name %}
+{% else %}
+  {% set seo_title = config.site_name %}
+{% endif %}
+{% set seo_image = config.site_url ~ "/assets/images/jetson-for-dev-ai-labs-icon-2974266-r3_ai-lab-text-generation-28.png" %}
+
+{% block extrahead %}
+  {{ super() }}
+  {% if seo_description %}
+  <meta property="og:description" content="{{ seo_description }}" />
+  <meta name="twitter:description" content="{{ seo_description }}" />
+  {% endif %}
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="{{ seo_title }}" />
+  <meta property="og:site_name" content="{{ config.site_name }}" />
+  <meta property="og:url" content="{{ page.canonical_url }}" />
+  <meta property="og:image" content="{{ seo_image }}" />
+  <meta property="og:locale" content="en_US" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="{{ seo_title }}" />
+  <meta name="twitter:image" content="{{ seo_image }}" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "{{ config.site_url }}/#website",
+        "name": "Holohub – The Holoscan Ecosystem",
+        "alternateName": [
+          "Holohub",
+          "The Holoscan Ecosystem",
+          "NVIDIA Holoscan Ecosystem",
+          "Holoscan Applications"
+        ],
+        "url": "{{ config.site_url }}/",
+        "description": {{ seo_description | tojson }},
+        "publisher": { "@id": "{{ config.site_url }}/#organization" },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "{{ config.site_url }}/?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      },
+      {
+        "@type": "Organization",
+        "@id": "{{ config.site_url }}/#organization",
+        "name": "NVIDIA",
+        "url": "https://www.nvidia.com/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "{{ config.site_url }}/assets/images/favicon.png"
+        }
+      },
+      {
+        "@type": "SoftwareSourceCode",
+        "@id": "{{ config.site_url }}/#holohub",
+        "name": "Holohub",
+        "alternateName": "The Holoscan Ecosystem",
+        "description": {{ seo_description | tojson }},
+        "url": "{{ config.site_url }}/",
+        "codeRepository": "https://github.com/nvidia-holoscan/holohub",
+        "programmingLanguage": ["Python", "C++"],
+        "runtimePlatform": "NVIDIA Holoscan",
+        "applicationCategory": "DeveloperApplication",
+        "isPartOf": {
+          "@type": "SoftwareApplication",
+          "name": "NVIDIA Holoscan",
+          "url": "https://developer.nvidia.com/holoscan-sdk"
+        },
+        "publisher": { "@id": "{{ config.site_url }}/#organization" }
+      }
+    ]
+  }
+  </script>
+{% endblock %}

@@ -1,10 +1,12 @@
-# Holoscan Reference Applications
+# Holohub – The Holoscan Ecosystem
 
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/nvidia-holoscan/holohub/main.svg)](https://results.pre-commit.ci/latest/github/nvidia-holoscan/holohub/main)
 ![Metadata](https://img.shields.io/github/actions/workflow/status/nvidia-holoscan/holohub/check_metadata.yml?branch=main&label=Metadata
 )
 
-Visit [https://nvidia-holoscan.github.io/holohub](https://nvidia-holoscan.github.io/holohub) for a searchable catalog of all available components.
+**Holohub is the Holoscan Ecosystem:** a community-driven collection of reference applications, operators, modules, tutorials, and benchmarks for real-time AI sensor processing.
+
+Visit [https://nvidia-holoscan.github.io/holohub](https://nvidia-holoscan.github.io/holohub) for a searchable catalog of all available Holoscan applications and components.
 
 This is a central repository for the NVIDIA Holoscan AI sensor processing community to share reference applications, operators, tutorials and benchmarks. We invite users and developers of the Holoscan platform to reuse and contribute to this repository.
 
@@ -86,7 +88,7 @@ cd holohub
 
 Alternatively, download sources as a ZIP archive from the GitHub homepage.
 
-#### HoloHub run command (recommended)
+#### Holohub run command (recommended)
 
 The easiest way to build and run Holohub applications is to use the `./holohub run` command.
 
