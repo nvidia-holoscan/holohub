@@ -1,0 +1,31 @@
+[
+  {
+    "id": "holohub-debug-build-run-002",
+    "question": "A C++ HoloHub application now fails in ./holohub build after I changed its operator dependency. Find the first causal error and make the smallest fix while preserving my unrelated edits.",
+    "expected_skill": "holohub-debug-build-run",
+    "expected_script": null,
+    "ground_truth": "The agent freezes the existing checkout and exact command, previews and reproduces the failure, isolates metadata/CMake/dependency/image/compiler boundaries, tests one hypothesis at a time, changes only the owning root cause, and validates with the identical build plus focused tests and lint.",
+    "expected_behavior": [
+      "Activates holohub-debug-build-run",
+      "Records the full revision and dirty baseline without cloning, switching revisions, or disturbing unrelated changes",
+      "Uses --dryrun --verbose on the exact build shape before real reproduction",
+      "Uses the first actionable CMake or compiler failure rather than final shutdown noise",
+      "Checks metadata, registration, operator targets, include/link paths, language, mode, and build type as separate boundaries",
+      "Does not reset, clear caches, upgrade dependencies, use host-local execution, or commit without authorization"
+    ]
+  },
+  {
+    "id": "holohub-debug-build-run-009",
+    "question": "./holohub install my-module --dev succeeded, but the Python used by my consumer still cannot import it. Diagnose the environment mismatch.",
+    "expected_skill": "holohub-debug-build-run",
+    "expected_script": null,
+    "ground_truth": "The agent treats this as an environment-scoped editable-hook failure. It records ./holohub environment identity and the hook target, compares it with the consumer environment/container, changes only the mismatched selection or consumer path, verifies the import, and removes stale diagnostic hooks.",
+    "expected_behavior": [
+      "Activates holohub-debug-build-run rather than the non-failing module lifecycle",
+      "Uses ./holohub env-info and inspects the exact editable-hook destination with sensitive paths redacted",
+      "Compares the selected and consuming environments instead of changing module source first",
+      "Does not assume a host editable hook is forwarded into a project container",
+      "Verifies import in the corrected environment and removes stale diagnostic hooks"
+    ]
+  }
+]

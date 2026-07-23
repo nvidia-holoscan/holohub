@@ -15,3 +15,7 @@ repository's `./holohub` command.
 Each skill directory is self-contained: start with its `SKILL.md` and read only
 the linked references needed for the task. The checked-out HoloHub revision,
 local command help, schemas, and repository guidance remain the live authority.
+
+Keep the publication artifacts in each directory together. The skill card,
+external evaluation dataset, benchmark, and detached `skill.oms.sig` allow the
+package to be verified and mirrored into the NVIDIA skills catalog.
