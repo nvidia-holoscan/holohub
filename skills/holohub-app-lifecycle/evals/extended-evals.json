@@ -1,0 +1,69 @@
+[
+  {
+    "id": "holohub-app-lifecycle-001",
+    "question": "You are already inside a clean existing Holohub checkout. Create a task branch and build a new Python application from my brief. It should replay a publicly redistributable video, add a per-frame Holoviz overlay, provide a 30-frame headless smoke check, record the rendered output, and produce a reproducible flow benchmark. Manage the public sample as Holohub data.",
+    "expected_skill": "holohub-app-lifecycle",
+    "expected_script": null,
+    "ground_truth": "The agent uses the current clean checkout directly at its existing revision, records its provenance and state, and creates a validated collision-free task branch before source edits. It selects and records relevant high-quality local applications for graph/domain, same-language metadata/build/test, and visual/benchmark patterns, verifying their actual maturity rather than trusting ranking alone. It verifies that the checkout's data directory is Git-ignored before placing public reproducible sample data there, records input origin, license, and hash, and never stages or force-adds the data. It then follows the normal previewed ./holohub scaffold, build, run, test, visual-evidence, benchmark, restoration, and lint lifecycle.",
+    "expected_behavior": [
+      "Activates holohub-app-lifecycle and uses the current clean checkout without creating another clone",
+      "Records the full HEAD, remotes, branch, and clean state without switching to the skill's tested revision",
+      "Creates a validated collision-free task branch from the current HEAD before the first source edit",
+      "Inspects two or three relevant high-quality local applications and states which graph, metadata/CMake/test, visualization, data, or benchmark patterns will be adapted",
+      "Runs template setup first as preview then real in the selected wrapper environment before previewing and running the matching create command",
+      "Uses an app-specific path under the checkout's data directory only after proving it is ignored, and never stages or force-adds the sample",
+      "Records the public input's origin, redistribution terms, and content hash so the sample can be reproduced",
+      "Uses explicit language and finite modes, inspects visual evidence, preserves raw benchmark evidence, verifies restoration, and runs the required lint workflow"
+    ]
+  },
+  {
+    "id": "holohub-app-lifecycle-008",
+    "question": "I started Codex in ~/Documents/holohub-app-demo. It is not a Git checkout and contains private, irreplaceable endoscopy input at endoscopy/. I did not provide a Holohub path. One clean, compatible Holohub checkout with my fork as origin and the official NVIDIA remote as upstream exists at ~/Documents/holohub. Build a new Python Holohub app from my idea and keep generated output under ~/Documents/holohub-app-demo/output.",
+    "expected_skill": "holohub-app-lifecycle",
+    "expected_script": null,
+    "ground_truth": "The agent preserves the starting directory as the external data/output workspace, performs bounded read-only discovery, validates the single clean local Holohub checkout, reports its provenance and state, and uses that checkout directly at its current HEAD. It creates a validated collision-free task branch before editing and does not create a sibling or nested replacement clone. Before implementation it inspects strong local endoscopy, same-language lifecycle/testing, and Holoviz examples and records the distinct patterns being reused. Before scaffolding it previews and successfully runs template setup in the selected wrapper environment, then previews and runs the matching create command. It keeps the sensitive input external and read-only at runtime, uses a distinct writable output directory, and follows the normal application lifecycle from the selected Holohub root.",
+    "expected_behavior": [
+      "Activates holohub-app-lifecycle and distinguishes the initial data workspace from the Holohub source root",
+      "Checks only explicit, current, project-local, sibling, and named conventional Holohub locations rather than recursively scanning the home directory",
+      "Validates Git root, wrapper, guidance, schemas, project layout, remotes, full HEAD, branch, and clean state before executing ./holohub",
+      "Reports and directly reuses the unambiguous clean ~/Documents/holohub checkout at its current HEAD without forcing the tested revision",
+      "Creates a validated collision-free task branch before source edits and does not create ~/Documents/holohub-app-demo-holohub or another replacement checkout merely because Holohub was auto-discovered",
+      "Actively inspects relevant high-quality in-repo endoscopy, same-language metadata/test, and Holoviz patterns instead of relying only on the scaffold",
+      "Runs setup --scripts template first as preview then real in the selected wrapper environment before create preview and matching real create, and stops before create if setup fails",
+      "Keeps endoscopy/ external and read-only, keeps output/ separately writable, avoids mounting the whole workspace, and verifies the resolved runtime mounts",
+      "Builds without exposing sensitive input when possible and limits runtime network, credentials, IPC, devices, display, and writable-checkout exposure to what the app requires"
+    ]
+  },
+  {
+    "id": "holohub-app-lifecycle-009",
+    "question": "Create a Holohub application from this nonempty, non-Git project workspace and its licensed input data. The bounded search finds no valid local Holohub checkout, <workspace>/holohub does not exist, and I did not specify a clone destination or revision.",
+    "expected_skill": "holohub-app-lifecycle",
+    "expected_script": null,
+    "ground_truth": "The agent preserves the project workspace and its data, prepares the absent <workspace>/holohub directory as the default Holohub root, clones only the official repository without an initial checkout, checks out and verifies the skill's full tested SHA, and creates a validated collision-free task branch before source edits. It never initializes the workspace root as Holohub, chooses a sibling clone, or falls back to main.",
+    "expected_behavior": [
+      "Activates holohub-app-lifecycle and leaves every existing project and input file untouched",
+      "Verifies that the exact <workspace>/holohub target is absent and contained safely within the canonical workspace",
+      "Uses <workspace>/holohub as the default clone destination rather than <parent>/holohub or <workspace-name>-holohub",
+      "Clones only the official Holohub repository and checks out 777d65830a7b50a324370f4d4bb65d2420e495f7",
+      "Verifies the full HEAD and never silently falls back to main when the pin is unavailable",
+      "Validates and creates a collision-free task-derived branch before the first source edit",
+      "Runs template setup first as preview then real in the selected wrapper environment before previewing and running the matching create command",
+      "Keeps input and output outside the child Holohub Git root and follows the normal previewed ./holohub lifecycle"
+    ]
+  },
+  {
+    "id": "holohub-app-lifecycle-010",
+    "question": "I started in an external project workspace. Its existing nonempty holohub/ directory contains unrelated project files and must be preserved. The only valid local Holohub checkout has unrelated uncommitted edits and another task is actively using it. Create a new Holohub app without disturbing either location.",
+    "expected_skill": "holohub-app-lifecycle",
+    "expected_script": null,
+    "ground_truth": "The agent validates and reports the dirty or busy checkout but does not switch its branch, edit it, execute its wrapper, stash, reset, or clean it. Because the clean-checkout strategy is unavailable and the default <workspace>/holohub destination conflicts, it preserves that directory and asks for another absent destination instead of overwriting it or silently choosing a sibling. After destination resolution, it clones the official repository at the full tested SHA, verifies the pin, and creates a new collision-free task branch; uncommitted state from the busy checkout is not copied.",
+    "expected_behavior": [
+      "Activates holohub-app-lifecycle and recognizes the valid checkout as dirty or busy rather than modifying it",
+      "Does not switch branches, edit files, execute ./holohub, stash, reset, clean, remove locks, or delete anything in the active checkout",
+      "Does not mistake the workspace's existing holohub/ directory for a checkout or overwrite, empty, move, or adopt it",
+      "Explains that a separate checkout is warranted specifically because the discovered checkout is dirty or busy",
+      "Reports the default destination collision and asks for another absent destination rather than silently choosing a sibling path",
+      "Uses the official repository and full tested SHA after destination resolution, states that uncommitted source state will not transfer, and creates a new task branch only in the new checkout"
+    ]
+  }
+]

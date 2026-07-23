@@ -1,0 +1,29 @@
+[
+  {
+    "id": "holohub-module-lifecycle-008",
+    "question": "Before executing anything, state the exact preview/action command order required to scaffold a new external Python Holoscan Module from modules/template. Do not run commands or install anything.",
+    "expected_skill": "holohub-module-lifecycle",
+    "expected_script": null,
+    "ground_truth": "The agent activates the module lifecycle and states this order in one selected wrapper environment: ./holohub setup --scripts template --dryrun; ./holohub setup --scripts template; a fully specified non-interactive ./holohub create command with modules/template, an existing parent, explicit Python language, all required context, and --dryrun; review; then the identical create command without --dryrun. It says not to attempt create when setup fails and executes nothing.",
+    "expected_behavior": [
+      "Activates holohub-module-lifecycle",
+      "Places template setup preview and real execution before any create invocation in the same selected wrapper environment",
+      "Uses modules/template, an existing parent, explicit Python language, non-interactive mode, and complete module context for create",
+      "Places the fully specified create preview before the matching real create command and stops before create if setup fails",
+      "Does not execute commands, install packages, create a repository, or publish anything"
+    ]
+  },
+  {
+    "id": "holohub-module-lifecycle-006",
+    "question": "./holohub package fails on my module partway through CMake. Reproduce it and make the smallest fix.",
+    "expected_skill": null,
+    "expected_script": null,
+    "ground_truth": "The module-lifecycle skill stays silent because one exact command fails. The agent should use holohub-debug-build-run, preserve and preview the command, isolate the first causal layer, and prove a minimal fix.",
+    "expected_behavior": [
+      "Does not activate holohub-module-lifecycle's happy path",
+      "Routes to holohub-debug-build-run",
+      "Preserves the exact failing command, full revision, dirty state, and meaningful inputs",
+      "Avoids speculative cache deletion, broad dependency upgrades, or publishing"
+    ]
+  }
+]
