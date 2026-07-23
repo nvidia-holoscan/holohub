@@ -11,7 +11,7 @@ metadata:
     - debugging
 ---
 
-# Debug HoloHub commands
+# Debug Holohub commands
 
 ## Purpose
 
@@ -22,7 +22,7 @@ command with focused regression proof.
 
 Require:
 
-- the affected user-provided HoloHub checkout;
+- the affected user-provided Holohub checkout;
 - one exact failing, hanging, regressed, or semantically wrong `./holohub`
   command;
 - expected and observed results, relevant inputs, and the point where progress

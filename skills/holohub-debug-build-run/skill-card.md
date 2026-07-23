@@ -7,9 +7,9 @@ This skill is ready for commercial/non-commercial use. <br>
 NVIDIA <br>
 
 ### License/Terms of Use: <br>
-Apache-2.0 <br>
+Apache 2.0 <br>
 ## Use Case: <br>
-Developers and engineers who need to diagnose and fix failing, hanging, or regressed ./holohub commands through reproducible debugging and minimal correction. <br>
+Developers and engineers diagnosing and fixing concrete Holohub wrapper command failures, hangs, regressions, or incorrect output through reproducible diagnosis and minimal repair. <br>
 
 ### Deployment Geography for Use: <br>
 Global <br>
@@ -25,14 +25,14 @@ Risk: Review before execution as proposals could introduce incorrect or misleadi
 Mitigation: Review and scan skill before deployment. <br>
 
 ## Reference(s): <br>
-- [debug-workflow.md](references/debug-workflow.md) <br>
-- [holohub-cli-contract.md](references/holohub-cli-contract.md) <br>
-- [known-issues.md](references/known-issues.md) <br>
-- [NVIDIA HoloHub Repository](https://github.com/nvidia-holoscan/holohub) <br>
+- [Debug Workflow](references/debug-workflow.md) <br>
+- [Holohub CLI Contract](references/holohub-cli-contract.md) <br>
+- [Known Issues](references/known-issues.md) <br>
+- [NVIDIA Holohub Repository](https://github.com/nvidia-holoscan/holohub) <br>
 
 
 ## Skill Output: <br>
-**Output Type(s):** [Analysis, Shell commands] <br>
+**Output Type(s):** [Analysis, Shell commands, Code] <br>
 **Output Format:** [Markdown with inline bash code blocks] <br>
 **Output Parameters:** [1D] <br>
 **Other Properties Related to Output:** [None] <br>
@@ -44,7 +44,7 @@ Mitigation: Review and scan skill before deployment. <br>
 
 
 ## Evaluation Tasks: <br>
-Evaluated against 3 tasks (1 positive, 2 negative) in k8s-sandbox environment with Skill Evaluator external profile. <br>
+Evaluated against 3 evaluation tasks (1 positive skill-activation, 2 negative activation) in the external profile on k8s-sandbox. <br>
 
 ## Evaluation Metrics Used: <br>
 Reported benchmark dimensions: <br>
@@ -67,14 +67,14 @@ Underlying evaluation signals used in this run: <br>
 ## Evaluation Results: <br>
 | Dimension | Num | Claude Code (`aws/anthropic/bedrock-claude-opus-4-8`) | Codex (`openai/openai/gpt-5.5`) |
 |---|---:|---:|---:|
-| Security | 3 | 100% (+33%) | 67% (+33%) |
-| Correctness | 3 | 100% (+7%) | 87% (+20%) |
-| Discoverability | 3 | 100% (+33%) | 67% (+0%) |
-| Effectiveness | 3 | 92% (+6%) | 69% (+8%) |
-| Efficiency | 3 | 100% (+33%) | 67% (+0%) |
+| Security | 3 | 67% (+0%) | N/A |
+| Correctness | 3 | 100% (+13%) | N/A |
+| Discoverability | 3 | 100% (+33%) | N/A |
+| Effectiveness | 3 | 96% (+24%) | N/A |
+| Efficiency | 3 | 100% (+33%) | N/A |
 
 ## Skill Version(s): <br>
-387c2d13 (source: git SHA, committed 2026-07-23) <br>
+dbf260b8 (source: git SHA, committed 2026-07-23) <br>
 
 ## Ethical Considerations: <br>
 NVIDIA believes Trustworthy AI is a shared responsibility and we have established policies and practices to enable development for a wide array of AI applications. When downloaded or used in accordance with our terms of service, developers should work with their internal team to ensure this skill meets requirements for the relevant industry and use case and addresses unforeseen product misuse. <br>

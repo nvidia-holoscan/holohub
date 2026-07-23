@@ -15,6 +15,10 @@ The current `./holohub` source override is
 metadata dependency entry's `name`: replace non-alphanumeric runs with `_`,
 trim leading/trailing underscores, and uppercase. For example,
 `holoscan-my-module` becomes `HOLOSCAN_CLI_LOCAL_HOLOSCAN_MY_MODULE`.
+The public consolidated CLI defines this mapping in
+[`external_resolver.py`](https://github.com/nvidia-holoscan/holoscan-cli/blob/main/src/holoscan_cli/utils/external_resolver.py).
+Confirm the selected CLI version with `./holohub version` before relying on
+version-sensitive override behavior.
 
 A host export is not automatically forwarded into the normal project
 container. Mount the source and set the override to its container path inside
@@ -24,12 +28,14 @@ one workflow. Preview the complete command before running it:
 ./holohub run-container <consumer-app> <mode> --language <cpp-or-python> \
   --add-volume /absolute/path/holoscan-my-module \
   --dryrun --verbose -- \
-  'set -e; export HOLOSCAN_CLI_LOCAL_HOLOSCAN_MY_MODULE=/workspace/volumes/holoscan-my-module; ./holohub build <consumer-app> <mode> --local --language <cpp-or-python> --verbose; ./holohub run <consumer-app> <mode> --local --no-local-build --language <cpp-or-python> --verbose'
+  'set -e; export HOLOSCAN_CLI_LOCAL_HOLOSCAN_MY_MODULE=/workspace/volumes/holoscan-my-module; test -f "$HOLOSCAN_CLI_LOCAL_HOLOSCAN_MY_MODULE/metadata.json"; ./holohub build <consumer-app> <mode> --local --language <cpp-or-python> --verbose; ./holohub run <consumer-app> <mode> --local --no-local-build --language <cpp-or-python> --verbose'
 ```
 
-Review the preview, run without `--dryrun`, and require the finite consumer
-result. If using `--docker-opts`, preserve required mode options because the
-override flag replaces rather than extends them.
+Review the preview and confirm that the dependency resolves to the mounted
+source. Stop if it does not, rather than falling back to a fetched dependency.
+Then run without `--dryrun` and require the finite consumer result. If using
+`--docker-opts`, preserve required mode options because the override flag
+replaces rather than extends them.
 
 ## Editable install
 
@@ -89,6 +95,6 @@ Rerun focused producer tests and clean consumer smoke. Run `git diff --check`,
 inspect the complete diff/status, and ensure packages, staged installs, and
 editable hooks are not staged.
 
-Use the current `AGENTS.md` lint workflow in HoloHub and the generated
+Use the current `AGENTS.md` lint workflow in Holohub and the generated
 repository's own guidance externally. Preview supported lint commands, inspect
 auto-fixes, and do not commit, push, publish, or release unless requested.

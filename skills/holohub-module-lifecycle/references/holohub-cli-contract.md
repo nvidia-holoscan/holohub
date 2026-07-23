@@ -1,6 +1,6 @@
 # `./holohub` contract
 
-**Verified:** 2026-07-15 against HoloHub commit
+**Verified:** 2026-07-15 against Holohub commit
 `777d65830a7b50a324370f4d4bb65d2420e495f7`.
 
 Treat the tested revision as a reproducible fallback, not authority over an
@@ -33,9 +33,9 @@ Resolve disagreements in this order:
 4. project source and documentation matching the selected revision;
 5. release-matched Holoscan SDK documentation.
 
-Use `./holohub` as the public HoloHub command surface. Current `package` creates
-Holoscan Module DEB/WHEEL artifacts, not application packages, and public
-HoloHub no longer accepts new `workflows/` contributions.
+Use `./holohub` as the public Holohub command surface. Current `package` creates
+Holoscan Module DEB/WHEEL artifacts, not application packages. Holohub no
+longer accepts new `workflows/` contributions.
 
 ## Operating loop
 

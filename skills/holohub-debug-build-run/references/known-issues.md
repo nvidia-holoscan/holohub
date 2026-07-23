@@ -1,6 +1,6 @@
 # Version-sensitive diagnostic priors
 
-Verified in 2026-07 against HoloHub commit
+Verified in 2026-07 against Holohub commit
 `777d65830a7b50a324370f4d4bb65d2420e495f7`. Treat these as hypotheses and
 recheck local help, metadata, source, and exact reproduction.
 

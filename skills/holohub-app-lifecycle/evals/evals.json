@@ -15,7 +15,7 @@
   },
   {
     "id": "holohub-app-lifecycle-011",
-    "question": "Before executing anything, state the exact preview/action command order required to scaffold a new Python HoloHub application named sensor_demo. Do not run commands or install anything.",
+    "question": "Before executing anything, state the exact preview/action command order required to scaffold a new Python Holohub application named sensor_demo. Do not run commands or install anything.",
     "expected_skill": "holohub-app-lifecycle",
     "expected_script": null,
     "ground_truth": "The agent activates the application lifecycle and states this order in one selected wrapper environment: ./holohub setup --scripts template --dryrun; ./holohub setup --scripts template; ./holohub create sensor_demo --language python -i False --dryrun; review the scaffold and registration; then the identical create command without --dryrun. It says not to attempt create when setup fails and executes nothing.",
@@ -29,7 +29,7 @@
   },
   {
     "id": "holohub-app-lifecycle-004",
-    "question": "Before touching the checkout, classify this request: an existing HoloHub application built yesterday, but today ./holohub run fails inside its container. Is holohub-app-lifecycle the right workflow? Name the workflow to use and the state it should preserve first. Do not diagnose the failure or run commands yet.",
+    "question": "Before touching the checkout, classify this request: an existing Holohub application built yesterday, but today ./holohub run fails inside its container. Is holohub-app-lifecycle the right workflow? Name the workflow to use and the state it should preserve first. Do not diagnose the failure or run commands yet.",
     "expected_skill": null,
     "expected_script": null,
     "ground_truth": "The agent classifies this as diagnosis of one concrete failing command, so the app-lifecycle skill stays silent. It routes to holohub-debug-build-run and names the exact command, full revision, dirty state, and unrelated edits as the state to preserve before diagnosis. It does not execute commands during this routing step.",

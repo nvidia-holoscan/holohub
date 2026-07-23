@@ -1,4 +1,4 @@
-# HoloHub flow benchmarking
+# Holohub flow benchmarking
 
 Use this reference only after the application passes its normal finite and
 visual acceptance checks.
@@ -6,7 +6,7 @@ visual acceptance checks.
 ## Preconditions
 
 1. Read the checked-in flow-benchmark README, tutorial, runner source, and
-   analyzer help from the same HoloHub revision.
+   analyzer help from the same Holohub revision.
 2. Reconcile examples with local `./holohub` help. The tested revision uses
    `--extra-scripts` (plural).
 3. Run the normal finite application once so compilation or engine generation

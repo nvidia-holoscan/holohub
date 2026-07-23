@@ -6,7 +6,7 @@
   from `modules/template`, including its wrapper, operators, demos, tests,
   Dockerfile, packaging, and CI. Prefer this for independent releases.
 - **In-tree module:** create a descriptor under `modules/holoscan-<name>/`
-  while sources remain under HoloHub operators/applications. Prefer this when
+  while sources remain under Holohub operators/applications. Prefer this when
   maintained and tested with the monorepo.
 
 Keep these identities consistent:
@@ -21,7 +21,7 @@ self-contained build/test/package structure.
 
 ## External scaffold
 
-From HoloHub, preview and run template setup in the same selected wrapper
+From Holohub, preview and run template setup in the same selected wrapper
 environment before `create`:
 
 ```bash
@@ -56,7 +56,7 @@ fails, stop before creation. Then preview the complete create command.
 Review target and context and obtain any required authorization before
 repeating the identical create command without `--dryrun`. The parent must
 exist. The template initializes and stages a new Git repository; inspect it and
-never push without an explicit request. Record the source HoloHub checkout's
+never push without an explicit request. Record the source Holohub checkout's
 full SHA as generator provenance, not as the generated repository's revision.
 
 ## In-tree descriptor
@@ -91,7 +91,7 @@ Preview and run matching explicit-language commands:
 ./holohub run <demo-app> <mode> --language <cpp-or-python> --verbose
 ```
 
-Current HoloHub test drivers do not scope `test <module>` to one module. Test
+Current Holohub test drivers do not scope `test <module>` to one module. Test
 declared operators and demo apps individually:
 
 ```bash

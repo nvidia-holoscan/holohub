@@ -1,7 +1,7 @@
 [
   {
     "id": "holohub-debug-build-run-002",
-    "question": "A C++ HoloHub application now fails in ./holohub build after I changed its operator dependency. Find the first causal error and make the smallest fix while preserving my unrelated edits.",
+    "question": "A C++ Holohub application now fails in ./holohub build after I changed its operator dependency. Find the first causal error and make the smallest fix while preserving my unrelated edits.",
     "expected_skill": "holohub-debug-build-run",
     "expected_script": null,
     "ground_truth": "The agent freezes the existing checkout and exact command, previews and reproduces the failure, isolates metadata/CMake/dependency/image/compiler boundaries, tests one hypothesis at a time, changes only the owning root cause, and validates with the identical build plus focused tests and lint.",

@@ -1,6 +1,6 @@
-# HoloHub agent skills
+# Holohub agent skills
 
-These skills guide coding agents through public HoloHub workflows using the
+These skills guide coding agents through public Holohub workflows using the
 repository's `./holohub` command.
 
 - [`holohub-app-lifecycle`](holohub-app-lifecycle/SKILL.md) covers non-failing
@@ -13,7 +13,7 @@ repository's `./holohub` command.
   packaging.
 
 Each skill directory is self-contained: start with its `SKILL.md` and read only
-the linked references needed for the task. The checked-out HoloHub revision,
+the linked references needed for the task. The checked-out Holohub revision,
 local command help, schemas, and repository guidance remain the live authority.
 
 Keep the publication artifacts in each directory together. The skill card,

@@ -11,7 +11,7 @@ metadata:
     - modules
 ---
 
-# HoloHub Holoscan Module lifecycle
+# Holohub Holoscan Module lifecycle
 
 ## Purpose
 
@@ -26,7 +26,7 @@ authoritative repository source. If consequential release metadata remains
 unknown, stop before scaffolding or packaging rather than guessing.
 
 - a reusable producer/consumer API contract rather than an ordinary app;
-- the user-provided HoloHub checkout;
+- the user-provided Holohub checkout;
 - external self-contained repository or in-tree descriptor layout;
 - language, module/operator/package identities, minimum SDK version, license,
   maintainer details, and requested package formats;
@@ -59,7 +59,7 @@ Troubleshooting with its exact context.
    and unrelated work.
 2. **Choose the layout.** Use an external `holoscan-<name>` repository for
    independent release or an in-tree descriptor under `modules/` for code
-   maintained with HoloHub.
+   maintained with Holohub.
 3. **Fix identities before files.** Keep display name, `snake_case`
    module/namespace, `holoscan-<kebab-case>` repository/package, and
    `snake_case_op` operator slug consistent.
@@ -73,7 +73,7 @@ Troubleshooting with its exact context.
    consumes the same public surface as another project. Keep demo policy out of
    the reusable operator.
 6. **Build and test honestly.** Preview and run container-first module and demo
-   commands. In HoloHub, test every declared operator and demo because
+   commands. In Holohub, test every declared operator and demo because
    `test <module>` is not module-scoped. In a generated repository, combine its
    repository-wide test with focused pytest or CTest targets.
 7. **Prove a real consumer.** Declare the exact metadata dependency and an

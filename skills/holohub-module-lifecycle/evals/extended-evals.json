@@ -1,10 +1,10 @@
 [
   {
     "id": "holohub-module-lifecycle-001",
-    "question": "Create a self-contained Python Holoscan Module from HoloHub with one reusable operator, a finite demo application, tests, and metadata suitable for future wheel and Debian packaging.",
+    "question": "Create a self-contained Python Holoscan Module from Holohub with one reusable operator, a finite demo application, tests, and metadata suitable for future wheel and Debian packaging.",
     "expected_skill": "holohub-module-lifecycle",
     "expected_script": null,
-    "ground_truth": "The agent chooses an external module, preserves the user-provided HoloHub checkout and full revision, previews and successfully runs template setup in the selected wrapper environment before previewing and running a fully non-interactive create command with an existing parent, inspects the generated staged repository, implements operator/demo/test contracts, and builds and validates through ./holohub without publishing.",
+    "ground_truth": "The agent chooses an external module, preserves the user-provided Holohub checkout and full revision, previews and successfully runs template setup in the selected wrapper environment before previewing and running a fully non-interactive create command with an existing parent, inspects the generated staged repository, implements operator/demo/test contracts, and builds and validates through ./holohub without publishing.",
     "expected_behavior": [
       "Activates holohub-module-lifecycle",
       "Uses the existing checkout without an implicit clone or revision switch and records its full SHA and dirty state",
@@ -32,7 +32,7 @@
   },
   {
     "id": "holohub-module-lifecycle-007",
-    "question": "Create an ordinary HoloHub video application with finite replay and recording modes; it does not expose a reusable module API.",
+    "question": "Create an ordinary Holohub video application with finite replay and recording modes; it does not expose a reusable module API.",
     "expected_skill": null,
     "expected_script": null,
     "ground_truth": "The module-lifecycle skill stays silent because this is an ordinary application with no reusable module API. The agent should use holohub-app-lifecycle.",

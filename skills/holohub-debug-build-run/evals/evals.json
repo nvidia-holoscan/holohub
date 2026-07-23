@@ -1,7 +1,7 @@
 [
   {
     "id": "holohub-debug-build-run-004",
-    "question": "Create a new Python HoloHub application from this sensor-processing brief, including a scaffold, finite smoke mode, visual recording, tests, and a flow benchmark.",
+    "question": "Create a new Python Holohub application from this sensor-processing brief, including a scaffold, finite smoke mode, visual recording, tests, and a flow benchmark.",
     "expected_skill": null,
     "expected_script": null,
     "ground_truth": "The debug skill stays silent because no concrete command is failing. The agent should use holohub-app-lifecycle for the scaffold-to-evidence happy path.",

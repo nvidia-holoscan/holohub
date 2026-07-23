@@ -37,7 +37,7 @@ manufacturing a change.
 | Module install/package | Selected Python, build dir/hook, metadata, generator, artifact/consumer |
 | Data/model | Origin/license, exact path/hash, permissions, format, engine compatibility |
 | Application | Ports, tensors, conditions, resources, scheduler, termination, CUDA streams |
-| Visual/recording | Mode, HoloViz layers, render path, display/headless, decoded pixels |
+| Visual/recording | Mode, Holoviz layers, render path, display/headless, decoded pixels |
 | Benchmark | Healthy normal app, instrumentation, workload, logs, analyzer, restoration |
 
 Test the boundary between the two most plausible layers before editing. For
