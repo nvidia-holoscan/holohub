@@ -52,7 +52,7 @@ Task composition is derived from the evaluation dataset when possible. Entries w
 ## Results
 
 | Dimension | Num | Claude Code (`aws/anthropic/bedrock-claude-opus-4-8`) | Codex (`openai/openai/gpt-5.5`) |
-| --- | ---: | ---: | ---: |
+|---|---:|---:|---:|
 | Security | 2 | 100% (+0%) | 50% (-50%) |
 | Correctness | 2 | 50% (+50%) | 40% (-20%) |
 | Discoverability | 2 | 100% (+25%) | 50% (-25%) |
