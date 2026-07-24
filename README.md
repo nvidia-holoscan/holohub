@@ -1,8 +1,7 @@
 # HoloHub – The Holoscan Ecosystem
 
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/nvidia-holoscan/holohub/main.svg)](https://results.pre-commit.ci/latest/github/nvidia-holoscan/holohub/main)
-![Metadata](https://img.shields.io/github/actions/workflow/status/nvidia-holoscan/holohub/check_metadata.yml?branch=main&label=Metadata
-)
+![Metadata](https://img.shields.io/github/actions/workflow/status/nvidia-holoscan/holohub/check_metadata.yml?branch=main&label=Metadata)
 
 **HoloHub is the entrypoint to the Holoscan Ecosystem:** a community-driven collection of reference applications, operators, modules, tutorials, and benchmarks for real-time AI sensor processing.
 
