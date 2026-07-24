@@ -1,4 +1,4 @@
-# Holohub Website
+# HoloHub Website
 
 ## Viewing the current HoloHub GitHub Pages
 

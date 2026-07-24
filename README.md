@@ -1,10 +1,11 @@
-# Holoscan Reference Applications
+# HoloHub – The Holoscan Ecosystem
 
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/nvidia-holoscan/holohub/main.svg)](https://results.pre-commit.ci/latest/github/nvidia-holoscan/holohub/main)
-![Metadata](https://img.shields.io/github/actions/workflow/status/nvidia-holoscan/holohub/check_metadata.yml?branch=main&label=Metadata
-)
+![Metadata](https://img.shields.io/github/actions/workflow/status/nvidia-holoscan/holohub/check_metadata.yml?branch=main&label=Metadata)
 
-Visit [https://nvidia-holoscan.github.io/holohub](https://nvidia-holoscan.github.io/holohub) for a searchable catalog of all available components.
+**HoloHub is the entrypoint to the Holoscan Ecosystem:** a community-driven collection of reference applications, operators, modules, tutorials, and benchmarks for real-time AI sensor processing.
+
+Visit [https://nvidia-holoscan.github.io/holohub](https://nvidia-holoscan.github.io/holohub) for a searchable catalog of all available Holoscan applications and components.
 
 This is a central repository for the NVIDIA Holoscan AI sensor processing community to share reference applications, operators, tutorials and benchmarks. We invite users and developers of the Holoscan platform to reuse and contribute to this repository.
 
@@ -53,7 +54,7 @@ We strongly recommend new users follow our [Container Build](#container-build-re
 
 If you prefer to build locally without `docker`, take a look at our [Native Build](./doc/developer.md#native-build) instructions.
 
-Once your development environment is configured you may move on to [Building the Holohub components you are interested in](#building-operators-applications-and-packages).
+Once your development environment is configured you may move on to [Building the HoloHub components you are interested in](#building-operators-applications-and-packages).
 
 > **NOTE:** Several applications and operators require additional dependencies beyond the basic prerequisites listed above. Please refer to the README of the specific application or operator for detailed dependency information before attempting to build or run it.
 
@@ -88,7 +89,7 @@ Alternatively, download sources as a ZIP archive from the GitHub homepage.
 
 #### HoloHub run command (recommended)
 
-The easiest way to build and run Holohub applications is to use the `./holohub run` command.
+The easiest way to build and run HoloHub applications is to use the `./holohub run` command.
 
 ```sh
 ./holohub run <application_name>
@@ -106,7 +107,7 @@ If you want a more detailed command to build and run a specific application, ple
 
 #### Build
 
-Holohub provides a default development container that can be used to build and run applications. However several applications and operator requires specific dependencies that are not available in the default development container and are provided by specific docker files. Please refer to the README of each application or operator for more information.
+HoloHub provides a default development container that can be used to build and run applications. However, several applications and operators require specific dependencies that are not available in the default development container and are provided by specific Dockerfiles. Please refer to the README of each application or operator for more information.
 
 Run the following command to build the development container for a given project. The build may take a few minutes.
 
@@ -138,7 +139,7 @@ Launch the Docker container environment:
 ./holohub run-container [my_project]
 ```
 
-You are now ready to [build Holohub operators, applications, or packages!](#building-operators-applications-and-packages)
+You are now ready to [build HoloHub operators, applications, or packages!](#building-operators-applications-and-packages)
 
 ***Note***  The `run-container` option will use the default development container built using Holoscan SDK's container from NGC for the local GPU. The script will also inspect for available video devices (V4L2, AJA capture boards, Deltacast capture boards) and the presence of Deltacast's Videomaster SDK and map it into the development container.
 

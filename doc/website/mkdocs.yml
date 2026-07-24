@@ -1,4 +1,8 @@
-site_name: NVIDIA Holoscan Ecosystem
+site_name: HoloHub – The Holoscan Ecosystem
+site_description: >-
+  HoloHub is the Holoscan Ecosystem: reference applications, operators, modules,
+  tutorials, and benchmarks for real-time AI sensor processing.
+site_author: NVIDIA
 site_url: https://nvidia-holoscan.github.io/holohub
 repo_url: https://github.com/nvidia-holoscan/holohub
 repo_name: nvidia-holoscan/holohub
