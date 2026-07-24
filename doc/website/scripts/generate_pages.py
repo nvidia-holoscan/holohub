@@ -143,7 +143,7 @@ def create_frontmatter(metadata: dict, archive_version: str = None) -> str:
 
     # SEO description from metadata (fallback to name-based blurb)
     description = metadata.get("description") or ""
-    description = re.sub(r"\s+", " ", description).strip()
+    description = re.sub(r"\s+", " ", str(description)).strip()
     if not description:
         description = (
             f"{metadata['name']} — a Holoscan component in Holohub, the Holoscan Ecosystem."

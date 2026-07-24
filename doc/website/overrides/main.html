@@ -28,7 +28,7 @@
   <meta property="og:type" content="website" />
   <meta property="og:title" content="{{ seo_title }}" />
   <meta property="og:site_name" content="{{ config.site_name }}" />
-  <meta property="og:url" content="{{ page.canonical_url }}" />
+  <meta property="og:url" content="{{ page.canonical_url if page else config.site_url }}" />
   <meta property="og:image" content="{{ seo_image }}" />
   <meta property="og:locale" content="en_US" />
   <meta name="twitter:card" content="summary_large_image" />
@@ -41,7 +41,7 @@
       {
         "@type": "WebSite",
         "@id": "{{ config.site_url }}/#website",
-        "name": "Holohub – The Holoscan Ecosystem",
+        "name": "Holohub – The Holoscan Ecosystem Gateway",
         "alternateName": [
           "Holohub",
           "The Holoscan Ecosystem",
