@@ -146,7 +146,7 @@ def create_frontmatter(metadata: dict, archive_version: str = None) -> str:
     description = re.sub(r"\s+", " ", str(description)).strip()
     if not description:
         description = (
-            f"{metadata['name']} — a Holoscan component in Holohub, the Holoscan Ecosystem."
+            f"{metadata['name']} — a Holoscan component in HoloHub, the Holoscan Ecosystem."
         )
     if len(description) > 160:
         description = description[:157].rstrip() + "..."

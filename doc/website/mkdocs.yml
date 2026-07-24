@@ -1,6 +1,6 @@
-site_name: Holohub – The Holoscan Ecosystem
+site_name: HoloHub – The Holoscan Ecosystem
 site_description: >-
-  Holohub is the Holoscan Ecosystem: reference applications, operators, modules,
+  HoloHub is the Holoscan Ecosystem: reference applications, operators, modules,
   tutorials, and benchmarks for real-time AI sensor processing.
 site_author: NVIDIA
 site_url: https://nvidia-holoscan.github.io/holohub
@@ -146,7 +146,7 @@ extra:
     alias: true
   github_url: https://github.com/nvidia-holoscan/holohub
   generator: false
-  # Keep Holohub's own deep applications/operators tree in the mobile drawer,
+  # Keep HoloHub's own deep applications/operators tree in the mobile drawer,
   # rendered below the shared unified menu (see overrides/partials/nav.html).
   hs_drawer_native_nav: true
   analytics:

@@ -9,7 +9,7 @@
   else config.site_description
 ) %}
 {% if page and page.is_homepage %}
-  {% set seo_title = "Holohub – The Holoscan Ecosystem" %}
+  {% set seo_title = "HoloHub – The Holoscan Ecosystem" %}
 {% elif page and page.meta and page.meta.title %}
   {% set seo_title = page.meta.title ~ " - " ~ config.site_name %}
 {% elif page and page.title %}
@@ -41,9 +41,9 @@
       {
         "@type": "WebSite",
         "@id": "{{ config.site_url }}/#website",
-        "name": "Holohub – The Holoscan Ecosystem Gateway",
+        "name": "HoloHub – The Holoscan Ecosystem Gateway",
         "alternateName": [
-          "Holohub",
+          "HoloHub",
           "The Holoscan Ecosystem",
           "NVIDIA Holoscan Ecosystem",
           "Holoscan Applications"
@@ -70,7 +70,7 @@
       {
         "@type": "SoftwareSourceCode",
         "@id": "{{ config.site_url }}/#holohub",
-        "name": "Holohub",
+        "name": "HoloHub",
         "alternateName": "The Holoscan Ecosystem",
         "description": {{ seo_description | tojson }},
         "url": "{{ config.site_url }}/",
