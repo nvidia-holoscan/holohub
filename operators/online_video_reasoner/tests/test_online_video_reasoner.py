@@ -500,12 +500,16 @@ def test_transport_isolates_local_http_and_splits_timeouts(
             "user information",
         ),
         ({"endpoint": "https://:invalid/v1/chat/completions"}, "valid HTTP or HTTPS"),
-        ({"max_tokens": 0}, "max_tokens"),
+        ({"max_tokens": 0}, "positive integer"),
+        ({"max_tokens": 1.5}, "positive integer"),
+        ({"max_tokens": True}, "positive integer"),
+        ({"max_tokens": float("nan")}, "positive integer"),
         ({"max_response_chars": 0}, "max_response_chars"),
         ({"request_options": {"max_tokens": 64}}, "max_tokens"),
         ({"connect_timeout_s": 0}, "connect_timeout_s"),
         ({"sample_fps": 1, "clip_duration_s": 1}, "at least two frames"),
         ({"max_frame_gap_s": 0}, "max_frame_gap_s"),
+        ({"max_frame_gap_s": 0.2}, "at least one sample period"),
     ],
 )
 def test_operator_rejects_invalid_configuration(override, message):
@@ -535,8 +539,8 @@ def test_operator_rejects_invalid_configuration(override, message):
         "timeout_s",
     ],
 )
-@pytest.mark.parametrize("value", [float("nan"), float("inf"), float("-inf")])
-def test_operator_rejects_non_finite_timing_configuration(field, value):
+@pytest.mark.parametrize("value", [True, float("nan"), float("inf"), float("-inf")])
+def test_operator_rejects_invalid_timing_configuration(field, value):
     options = {
         "endpoint": "http://127.0.0.1:1/v1/chat/completions",
         "model": "test-model",

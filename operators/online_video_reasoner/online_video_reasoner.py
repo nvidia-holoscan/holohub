@@ -36,7 +36,7 @@ _RESPONSE_ENVELOPE_ALLOWANCE_BYTES = 64 * 1024
 def _validate_positive_finite(name: str, value: float) -> None:
     """Require a positive finite timing value."""
     try:
-        valid = math.isfinite(value) and value > 0
+        valid = not isinstance(value, bool) and math.isfinite(value) and value > 0
     except TypeError:
         valid = False
     if not valid:
@@ -199,10 +199,14 @@ class OnlineVideoReasonerOp(Operator):
         _validate_positive_finite("request_interval_s", request_interval_s)
         if max_frame_gap_s is not None:
             _validate_positive_finite("max_frame_gap_s", max_frame_gap_s)
+            if mode == "video" and max_frame_gap_s < 1.0 / sample_fps:
+                raise ValueError(
+                    "max_frame_gap_s must be at least one sample period (1 / sample_fps)"
+                )
         _validate_positive_finite("connect_timeout_s", connect_timeout_s)
         _validate_positive_finite("timeout_s", timeout_s)
-        if max_tokens <= 0:
-            raise ValueError("max_tokens must be positive")
+        if not isinstance(max_tokens, int) or isinstance(max_tokens, bool) or max_tokens <= 0:
+            raise ValueError("max_tokens must be a positive integer")
         if (
             not isinstance(max_response_chars, int)
             or isinstance(max_response_chars, bool)

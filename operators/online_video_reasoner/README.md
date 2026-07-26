@@ -46,8 +46,8 @@ describe activity and change instead of unrelated still images.
 | `sample_fps` | `4.0` | Frame sampling rate and MP4 frame rate. |
 | `clip_duration_s` | `4.0` | Target temporal window; video mode retains `round(sample_fps * clip_duration_s)` frames. |
 | `request_interval_s` | `4.0` | Minimum interval between accepted requests. |
-| `max_frame_gap_s` | `2 / sample_fps` | Maximum interval between sampled video frames before the rolling window is reset. |
-| `max_tokens` | `128` | Maximum generated tokens requested from the model. |
+| `max_frame_gap_s` | `2 / sample_fps` | Maximum interval between sampled video frames before the rolling window is reset; in video mode this must be at least `1 / sample_fps`. |
+| `max_tokens` | `128` | Positive integer maximum for generated tokens requested from the model. |
 | `max_response_chars` | `1048576` | Maximum completion text retained; non-streaming JSON also has a 64 KiB envelope allowance. |
 | `connect_timeout_s` | `10.0` | Endpoint connection timeout in seconds. |
 | `timeout_s` | `60.0` | Response read timeout and maximum response duration in seconds. |
