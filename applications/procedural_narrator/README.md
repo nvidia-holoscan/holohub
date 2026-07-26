@@ -66,7 +66,7 @@ Run the service on the same host or on a network-reachable server. The
 application sends base64-encoded MP4 clips to
 `http://127.0.0.1:8000/v1/chat/completions` by default.
 Video is sent to this configurable network endpoint. HTTP is accepted only for
-`localhost` or a literal loopback address; every non-local endpoint must use
+a literal loopback address; hostnames and every non-local endpoint must use
 HTTPS.
 
 Set `reasoner.endpoint` and `reasoner.model` in

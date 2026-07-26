@@ -281,7 +281,7 @@ class NarrativeDisplayOp(Operator):
                 import cupy as cp
 
                 stream_ptr = op_input.receive_cuda_stream("video", allocate=False)
-                if stream_ptr:
+                if stream_ptr is not None:
                     with cp.cuda.ExternalStream(stream_ptr):
                         self._latest_frame = cp.asnumpy(cp.asarray(tensor))
                 else:

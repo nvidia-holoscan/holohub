@@ -30,6 +30,7 @@ from .media import encode_jpeg, encode_mp4, validate_rgb_frame
 
 LOGGER = logging.getLogger(__name__)
 _RESERVED_REQUEST_OPTIONS = {"max_tokens", "messages", "model", "stream"}
+_RESPONSE_ENVELOPE_ALLOWANCE_BYTES = 64 * 1024
 
 
 def _validate_positive_finite(name: str, value: float) -> None:
@@ -70,16 +71,14 @@ def _validate_endpoint(endpoint: str) -> bool:
     if parsed.scheme == "https":
         return False
 
-    if hostname == "localhost":
-        return True
     try:
         address = ip_address(hostname)
     except ValueError:
         address = None
     if address is None or not address.is_loopback:
         raise ValueError(
-            "HTTP endpoints must use localhost or a literal loopback address; "
-            "use HTTPS for non-local endpoints"
+            "HTTP endpoints must use a literal loopback address; "
+            "use HTTPS for hostnames and non-local endpoints"
         )
     return True
 
@@ -370,7 +369,7 @@ class OnlineVideoReasonerOp(Operator):
                 frame = cp.asnumpy(cp.asarray(tensor))
             else:
                 stream = input_context.receive_cuda_stream("input", allocate=False)
-                if stream:
+                if stream is not None:
                     with cp.cuda.ExternalStream(stream):
                         frame = cp.asnumpy(cp.asarray(tensor))
                 else:
@@ -437,38 +436,39 @@ class OnlineVideoReasonerOp(Operator):
                 if self.stream:
                     completion = io.StringIO()
                     completion_chars = 0
-                    deadline = time.monotonic() + self.timeout_s
-                    # Larger buffers can delay events until EOF on non-chunked SSE responses.
-                    lines = self._interruptible_lines(
-                        response.iter_lines(chunk_size=1),
-                        deadline=deadline,
-                    )
-                    for text in iter_sse_text(lines):
-                        if self._stop_event.is_set():
-                            return
-                        next_chars = completion_chars + len(text)
-                        if next_chars > self.max_response_chars:
-                            raise ValueError(
-                                "response exceeded max_response_chars "
-                                f"({self.max_response_chars})"
+                    lines = self._iter_sse_lines(response)
+                    try:
+                        for text in iter_sse_text(lines):
+                            if self._stop_event.is_set():
+                                return
+                            next_chars = completion_chars + len(text)
+                            if next_chars > self.max_response_chars:
+                                raise ValueError(
+                                    "response exceeded max_response_chars "
+                                    f"({self.max_response_chars})"
+                                )
+                            completion.write(text)
+                            completion_chars = next_chars
+                            queued = self._push_event(
+                                {
+                                    "request_id": request_id,
+                                    "kind": "delta",
+                                    "sequence": sequence,
+                                    "text": text,
+                                }
                             )
-                        completion.write(text)
-                        completion_chars = next_chars
-                        queued = self._push_event(
-                            {
-                                "request_id": request_id,
-                                "kind": "delta",
-                                "sequence": sequence,
-                                "text": text,
-                            }
-                        )
-                        deltas_dropped = deltas_dropped or not queued
-                        sequence += 1
+                            deltas_dropped = deltas_dropped or not queued
+                            sequence += 1
+                    finally:
+                        lines.close()
                     completed_text = completion.getvalue()
                     if not completed_text:
                         raise ValueError("stream completed without text")
                 else:
-                    completed_text = extract_completion_text(response.json())
+                    response_payload = self._read_non_streaming_json(response)
+                    if response_payload is None:
+                        return
+                    completed_text = extract_completion_text(response_payload)
                     if len(completed_text) > self.max_response_chars:
                         raise ValueError(
                             f"response exceeded max_response_chars ({self.max_response_chars})"
@@ -501,6 +501,99 @@ class OnlineVideoReasonerOp(Operator):
                         "message": str(error),
                     }
                 )
+
+    def _iter_response_chunks(
+        self,
+        response: requests.Response,
+        *,
+        response_name: str,
+        chunk_size: int = 8192,
+    ) -> Iterable[bytes]:
+        """Yield raw response chunks within the configured total deadline."""
+        deadline = time.monotonic() + self.timeout_s
+        deadline_expired = threading.Event()
+        timeout_message = (
+            f"{response_name} response exceeded timeout_s ({self.timeout_s:g} seconds)"
+        )
+
+        def interrupt_at_deadline():
+            deadline_expired.set()
+            self._interrupt_response(response)
+
+        deadline_timer = threading.Timer(self.timeout_s, interrupt_at_deadline)
+        deadline_timer.daemon = True
+        deadline_timer.start()
+        try:
+            for chunk in response.iter_content(chunk_size=chunk_size):
+                if self._stop_event.is_set():
+                    return
+                if deadline_expired.is_set() or time.monotonic() >= deadline:
+                    raise TimeoutError(timeout_message)
+                if chunk:
+                    yield chunk
+            if self._stop_event.is_set():
+                return
+            if deadline_expired.is_set() or time.monotonic() >= deadline:
+                raise TimeoutError(timeout_message)
+        except Exception as error:
+            if deadline_expired.is_set():
+                raise TimeoutError(timeout_message) from error
+            raise
+        finally:
+            deadline_timer.cancel()
+
+    def _iter_sse_lines(self, response: requests.Response) -> Iterable[bytes]:
+        """Frame bounded SSE lines directly from raw response chunks."""
+        line = bytearray()
+        line_limit = self.max_response_chars + _RESPONSE_ENVELOPE_ALLOWANCE_BYTES
+        chunks = self._iter_response_chunks(response, response_name="SSE", chunk_size=1)
+        try:
+            for chunk in chunks:
+                start = 0
+                while start < len(chunk):
+                    newline = chunk.find(b"\n", start)
+                    end = len(chunk) if newline < 0 else newline
+                    segment = chunk[start:end]
+                    if len(line) + len(segment) > line_limit:
+                        raise ValueError(f"SSE line exceeded limit ({line_limit} bytes)")
+                    line.extend(segment)
+                    if newline < 0:
+                        break
+                    yield bytes(line)
+                    line.clear()
+                    start = newline + 1
+            if line and not self._stop_event.is_set():
+                yield bytes(line)
+        finally:
+            chunks.close()
+
+    def _read_non_streaming_json(
+        self,
+        response: requests.Response,
+    ) -> dict[str, Any] | None:
+        """Read one JSON response within bounded memory and wall-clock time."""
+        body = bytearray()
+        body_limit = self.max_response_chars + _RESPONSE_ENVELOPE_ALLOWANCE_BYTES
+        chunks = self._iter_response_chunks(response, response_name="non-streaming")
+        try:
+            for chunk in chunks:
+                if len(body) + len(chunk) > body_limit:
+                    raise ValueError(
+                        "non-streaming response body exceeded limit " f"({body_limit} bytes)"
+                    )
+                body.extend(chunk)
+        finally:
+            chunks.close()
+
+        if self._stop_event.is_set():
+            return None
+        try:
+            payload = json.loads(body)
+        except (json.JSONDecodeError, UnicodeDecodeError) as error:
+            raise ValueError("non-streaming response is not valid JSON") from error
+        if not isinstance(payload, dict):
+            raise ValueError("non-streaming response must be a JSON object")
+        return payload
 
     def _post_interruptibly(
         self, payload: dict[str, Any], headers: dict[str, str]
@@ -573,19 +666,6 @@ class OnlineVideoReasonerOp(Operator):
             if isinstance(result, Exception):
                 raise result
             return result
-
-    def _interruptible_lines(
-        self,
-        lines: Iterable[str | bytes],
-        *,
-        deadline: float | None = None,
-    ) -> Iterable[str | bytes]:
-        for line in lines:
-            if self._stop_event.is_set():
-                return
-            if deadline is not None and time.monotonic() >= deadline:
-                raise TimeoutError(f"SSE response exceeded timeout_s ({self.timeout_s:g} seconds)")
-            yield line
 
     @staticmethod
     def _interrupt_response(response: requests.Response):

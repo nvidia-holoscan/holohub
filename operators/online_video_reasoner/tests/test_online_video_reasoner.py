@@ -309,16 +309,12 @@ def test_operator_waits_for_upstream_cuda_stream():
     )
 
 
-@pytest.mark.parametrize("missing_stream", [None, 0])
-def test_cuda_input_without_stream_uses_default_copy(reasoning_server, monkeypatch, missing_stream):
+def test_cuda_input_without_stream_uses_default_copy(reasoning_server, monkeypatch):
     operator = _operator(reasoning_server, mode="image", stream=False)
     expected = np.arange(12 * 16 * 3, dtype=np.uint8).reshape(12, 16, 3)
     calls = []
 
-    class CudaTensor:
-        __cuda_array_interface__ = {}
-
-    tensor = CudaTensor()
+    tensor = SimpleNamespace(__cuda_array_interface__={})
 
     def asarray(value):
         calls.append(("asarray", value))
@@ -345,7 +341,7 @@ def test_cuda_input_without_stream_uses_default_copy(reasoning_server, monkeypat
         def receive_cuda_stream(self, port, *, allocate):
             assert port == "input"
             assert not allocate
-            return missing_stream
+            return None
 
     frame = operator._to_host_rgb({"": tensor}, input_context=InputContext())
 
@@ -355,12 +351,68 @@ def test_cuda_input_without_stream_uses_default_copy(reasoning_server, monkeypat
     np.testing.assert_array_equal(frame, expected)
 
 
+def test_cuda_default_stream_is_synchronised(reasoning_server, monkeypatch):
+    operator = _operator(reasoning_server, mode="image", stream=False)
+    expected = np.arange(12 * 16 * 3, dtype=np.uint8).reshape(12, 16, 3)
+    calls = []
+
+    tensor = SimpleNamespace(__cuda_array_interface__={})
+
+    def asarray(value):
+        calls.append(("asarray", value))
+        return expected
+
+    def asnumpy(value):
+        calls.append(("asnumpy", value))
+        return value
+
+    class StreamContext:
+        def __init__(self, stream):
+            self.stream = stream
+
+        def __enter__(self):
+            calls.append(("enter", self.stream))
+
+        def __exit__(self, *args):
+            calls.append(("exit", self.stream))
+
+    def external_stream(stream):
+        calls.append(("external_stream", stream))
+        return StreamContext(stream)
+
+    monkeypatch.setitem(
+        sys.modules,
+        "cupy",
+        SimpleNamespace(
+            asarray=asarray,
+            asnumpy=asnumpy,
+            cuda=SimpleNamespace(ExternalStream=external_stream),
+        ),
+    )
+
+    class InputContext:
+        def receive_cuda_stream(self, port, *, allocate):
+            assert port == "input"
+            assert not allocate
+            return 0
+
+    frame = operator._to_host_rgb({"": tensor}, input_context=InputContext())
+
+    assert calls == [
+        ("external_stream", 0),
+        ("enter", 0),
+        ("asarray", tensor),
+        ("asnumpy", expected),
+        ("exit", 0),
+    ]
+    assert frame is expected
+    np.testing.assert_array_equal(frame, expected)
+
+
 @pytest.mark.parametrize(
     "endpoint",
     [
         "https://reasoner.example/v1/chat/completions",
-        "http://localhost:8000/v1/chat/completions",
-        "http://LOCALHOST:8000/v1/chat/completions",
         "http://127.42.0.1:8000/v1/chat/completions",
         "http://[::1]:8000/v1/chat/completions",
     ],
@@ -439,6 +491,8 @@ def test_transport_isolates_local_http_and_splits_timeouts(
         ({"endpoint": "grpc://localhost"}, "HTTP or HTTPS"),
         ({"endpoint": "http://reasoner.example/v1/chat/completions"}, "use HTTPS"),
         ({"endpoint": "http://192.0.2.1/v1/chat/completions"}, "use HTTPS"),
+        ({"endpoint": "http://localhost:8000/v1/chat/completions"}, "use HTTPS"),
+        ({"endpoint": "http://LOCALHOST:8000/v1/chat/completions"}, "use HTTPS"),
         ({"endpoint": "http://localhost.evil/v1/chat/completions"}, "use HTTPS"),
         ({"endpoint": "http://localhost./v1/chat/completions"}, "use HTTPS"),
         (
@@ -729,7 +783,7 @@ def test_truncated_sse_emits_error_not_completed(reasoning_server, monkeypatch):
         def raise_for_status(self):
             pass
 
-        def iter_lines(self, chunk_size):
+        def iter_content(self, chunk_size):
             assert chunk_size == 1
             yield b'data: {"choices":[{"delta":{"content":"partial"}}]}'
 
@@ -778,12 +832,12 @@ def test_stream_response_respects_character_limit(
         def raise_for_status(self):
             pass
 
-        def iter_lines(self, chunk_size):
+        def iter_content(self, chunk_size):
             assert chunk_size == 1
             for text in parts:
                 event = {"choices": [{"delta": {"content": text}}]}
-                yield f"data: {json.dumps(event)}".encode()
-            yield b"data: [DONE]"
+                yield f"data: {json.dumps(event)}\n".encode()
+            yield b"data: [DONE]\n"
 
         def close(self):
             pass
@@ -821,10 +875,10 @@ def test_sse_deadline_applies_to_heartbeat_lines(reasoning_server, monkeypatch):
         def raise_for_status(self):
             pass
 
-        def iter_lines(self, chunk_size):
+        def iter_content(self, chunk_size):
             assert chunk_size == 1
-            yield b": heartbeat"
-            yield b": heartbeat"
+            yield b": heartbeat\n"
+            yield b": heartbeat\n"
 
         def close(self):
             pass
@@ -854,6 +908,42 @@ def test_sse_deadline_applies_to_heartbeat_lines(reasoning_server, monkeypatch):
     assert events[-1]["message"] == "SSE response exceeded timeout_s (1 seconds)"
 
 
+def test_sse_unterminated_line_is_bounded_before_framing(reasoning_server, monkeypatch):
+    operator = _operator(reasoning_server, mode="image", stream=True)
+    operator.max_response_chars = 4
+
+    class Response:
+        def raise_for_status(self):
+            pass
+
+        def iter_content(self, chunk_size):
+            assert chunk_size == 1
+            yield b"x" * (4 + 64 * 1024 + 1)
+
+        def close(self):
+            pass
+
+    class Session:
+        def close(self):
+            pass
+
+    monkeypatch.setattr(
+        operator,
+        "_post_interruptibly",
+        lambda payload, headers: (Response(), Session()),
+    )
+    monkeypatch.setattr(
+        "operators.online_video_reasoner.online_video_reasoner.encode_jpeg",
+        lambda frame, *, ffmpeg, cancel_event: b"\xff\xd8\xff\xd9",
+    )
+
+    operator._run_request("bounded-sse-line", np.zeros((12, 16, 3), dtype=np.uint8))
+
+    events = _queued_events(operator)
+    assert [event["kind"] for event in events] == ["started", "error"]
+    assert events[-1]["message"] == "SSE line exceeded limit (65540 bytes)"
+
+
 def test_non_stream_response_respects_character_limit(reasoning_server, monkeypatch):
     operator = _operator(reasoning_server, mode="image", stream=False)
     operator.max_response_chars = 4
@@ -862,8 +952,10 @@ def test_non_stream_response_respects_character_limit(reasoning_server, monkeypa
         def raise_for_status(self):
             pass
 
-        def json(self):
-            return {"choices": [{"message": {"content": "five!"}}]}
+        def iter_content(self, chunk_size):
+            assert chunk_size == 8192
+            payload = {"choices": [{"message": {"content": "five!"}}]}
+            yield json.dumps(payload).encode()
 
         def close(self):
             pass
@@ -887,6 +979,84 @@ def test_non_stream_response_respects_character_limit(reasoning_server, monkeypa
     events = _queued_events(operator)
     assert [event["kind"] for event in events] == ["started", "error"]
     assert events[-1]["message"] == "response exceeded max_response_chars (4)"
+
+
+def test_non_stream_response_body_is_bounded_before_parsing(reasoning_server, monkeypatch):
+    operator = _operator(reasoning_server, mode="image", stream=False)
+    operator.max_response_chars = 4
+
+    class Response:
+        def raise_for_status(self):
+            pass
+
+        def iter_content(self, chunk_size):
+            assert chunk_size == 8192
+            yield b"x" * (4 + 64 * 1024 + 1)
+
+        def close(self):
+            pass
+
+    class Session:
+        def close(self):
+            pass
+
+    monkeypatch.setattr(
+        operator,
+        "_post_interruptibly",
+        lambda payload, headers: (Response(), Session()),
+    )
+    monkeypatch.setattr(
+        "operators.online_video_reasoner.online_video_reasoner.encode_jpeg",
+        lambda frame, *, ffmpeg, cancel_event: b"\xff\xd8\xff\xd9",
+    )
+
+    operator._run_request("bounded-body", np.zeros((12, 16, 3), dtype=np.uint8))
+
+    events = _queued_events(operator)
+    assert [event["kind"] for event in events] == ["started", "error"]
+    assert events[-1]["message"] == ("non-streaming response body exceeded limit (65540 bytes)")
+
+
+def test_non_stream_response_has_total_deadline(reasoning_server, monkeypatch):
+    operator = _operator(reasoning_server, mode="image", stream=False)
+    operator.timeout_s = 1
+    moments = iter((0.0, 0.5, 1.0))
+
+    class Response:
+        def raise_for_status(self):
+            pass
+
+        def iter_content(self, chunk_size):
+            assert chunk_size == 8192
+            yield b"{"
+            yield b"}"
+
+        def close(self):
+            pass
+
+    class Session:
+        def close(self):
+            pass
+
+    monkeypatch.setattr(
+        operator,
+        "_post_interruptibly",
+        lambda payload, headers: (Response(), Session()),
+    )
+    monkeypatch.setattr(
+        "operators.online_video_reasoner.online_video_reasoner.encode_jpeg",
+        lambda frame, *, ffmpeg, cancel_event: b"\xff\xd8\xff\xd9",
+    )
+    monkeypatch.setattr(
+        "operators.online_video_reasoner.online_video_reasoner.time.monotonic",
+        lambda: next(moments),
+    )
+
+    operator._run_request("timed-response", np.zeros((12, 16, 3), dtype=np.uint8))
+
+    events = _queued_events(operator)
+    assert [event["kind"] for event in events] == ["started", "error"]
+    assert events[-1]["message"] == ("non-streaming response exceeded timeout_s (1 seconds)")
 
 
 def test_stop_interrupts_stalled_sse_request(stalled_sse_server):

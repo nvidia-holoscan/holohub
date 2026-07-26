@@ -38,7 +38,7 @@ describe activity and change instead of unrelated still images.
 
 | Parameter | Default | Description |
 | --------- | ------- | ----------- |
-| `endpoint` | Required | Full HTTPS chat-completions URL, or HTTP URL on `localhost` or a literal loopback address. |
+| `endpoint` | Required | Full HTTPS chat-completions URL, or HTTP URL on a literal loopback address. |
 | `model` | Required | Model identifier sent in each request. |
 | `prompt` | Required | Text instruction sent with every observation. |
 | `mode` | `video` | `video` sends an MP4 clip; `image` sends one JPEG. |
@@ -48,9 +48,9 @@ describe activity and change instead of unrelated still images.
 | `request_interval_s` | `4.0` | Minimum interval between accepted requests. |
 | `max_frame_gap_s` | `2 / sample_fps` | Maximum interval between sampled video frames before the rolling window is reset. |
 | `max_tokens` | `128` | Maximum generated tokens requested from the model. |
-| `max_response_chars` | `1048576` | Maximum completion text retained from one response. |
+| `max_response_chars` | `1048576` | Maximum completion text retained; non-streaming JSON also has a 64 KiB envelope allowance. |
 | `connect_timeout_s` | `10.0` | Endpoint connection timeout in seconds. |
-| `timeout_s` | `60.0` | Response read timeout and maximum SSE event-stream duration in seconds. |
+| `timeout_s` | `60.0` | Response read timeout and maximum response duration in seconds. |
 | `api_key_env` | `REASONER_API_KEY` | Environment variable read for an optional bearer token. |
 | `stream` | `true` | Consume SSE deltas when true; otherwise consume one JSON response. |
 | `request_options` | `{}` | Additional top-level request fields; `max_tokens`, `messages`, `model`, and `stream` cannot be overridden. |
@@ -67,12 +67,15 @@ video.
 
 SSE deltas are bounded; the final `completed` event contains the full response
 and sets `deltas_dropped` if backpressure discarded any intermediate chunks.
-The operator rejects a response that exceeds `max_response_chars`, and the SSE
-deadline also applies while the endpoint sends only heartbeat events. Stopping
-the operator cancels active FFmpeg encoding or closes an active HTTP response
-before waiting for the worker to finish. Local cleartext HTTP requests ignore
-environment proxy settings so their media and credentials cannot be forwarded
-outside the host.
+The operator rejects completion text that exceeds `max_response_chars`.
+Non-streaming JSON and each raw SSE line are read incrementally and capped at
+`max_response_chars` plus a 64 KiB envelope allowance. The total response
+deadline also applies while an endpoint trickles an unterminated SSE line,
+trickles JSON bytes, or sends only SSE heartbeat events. Stopping the operator
+cancels active FFmpeg encoding or closes an active HTTP response before waiting
+for the worker to finish. Local cleartext HTTP requests ignore environment
+proxy settings so their media and credentials cannot be forwarded outside the
+host.
 
 Pass a `PeriodicCondition` when constructing the operator. Its input is
 optional so periodic ticks can drain response events after a finite source
@@ -84,7 +87,7 @@ from datetime import timedelta
 reasoner = OnlineVideoReasonerOp(
     fragment,
     PeriodicCondition(fragment, recess_period=timedelta(seconds=1 / 60)),
-    endpoint="http://localhost:8000/v1/chat/completions",
+    endpoint="http://127.0.0.1:8000/v1/chat/completions",
     model="nvidia/Cosmos3-Edge",
     prompt="Describe what changes during this clip in one sentence.",
     mode="video",
@@ -96,7 +99,7 @@ reasoner = OnlineVideoReasonerOp(
 
 The API key is read from `REASONER_API_KEY` by default. Local vLLM endpoints
 that do not require authentication can leave it unset. HTTP is accepted only
-for `localhost` or a literal loopback IP address; use HTTPS for every non-local
+for a literal loopback IP address; use HTTPS for hostnames and every non-local
 endpoint.
 
 ## Validation status

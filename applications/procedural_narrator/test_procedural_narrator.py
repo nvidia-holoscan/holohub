@@ -3,7 +3,9 @@
 
 """HoloViz overlay tests for procedural_narrator."""
 
+import sys
 from collections import defaultdict
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
@@ -283,6 +285,80 @@ def test_display_repaints_no_signal_without_a_new_frame(monkeypatch):
 
     assert np.all(output.values["tensors"][1]["frame"] == 17)
     assert output.values["specs"][1][4].color == narrator_module.TRANSPARENT
+
+
+def test_display_synchronises_cuda_default_stream(monkeypatch):
+    state = narrator_module.NarrativeState(clip_duration_s=4.0)
+    display = NarrativeDisplayOp(
+        Application(),
+        state=state,
+        frame_width=4,
+        frame_height=3,
+        input_tensor_name="converted_video",
+    )
+    tensor = SimpleNamespace(__cuda_array_interface__={})
+    expected = np.full((3, 4, 3), 23, dtype=np.uint8)
+    calls = []
+
+    class StreamContext:
+        def __enter__(self):
+            calls.append(("enter", 0))
+
+        def __exit__(self, *args):
+            calls.append(("exit", 0))
+
+    def external_stream(stream):
+        calls.append(("external_stream", stream))
+        return StreamContext()
+
+    def asarray(value):
+        calls.append(("asarray", value))
+        return expected
+
+    def asnumpy(value):
+        calls.append(("asnumpy", value))
+        return value
+
+    monkeypatch.setitem(
+        sys.modules,
+        "cupy",
+        SimpleNamespace(
+            asarray=asarray,
+            asnumpy=asnumpy,
+            cuda=SimpleNamespace(ExternalStream=external_stream),
+        ),
+    )
+    monkeypatch.setattr(narrator_module.time, "monotonic", lambda: 10.0)
+    monkeypatch.setattr(narrator_module, "build_overlay", lambda *args, **kwargs: ({}, []))
+
+    class Input:
+        def receive(self, port):
+            assert port == "video"
+            return {"converted_video": tensor}
+
+        def receive_cuda_stream(self, port, *, allocate):
+            assert port == "video"
+            assert not allocate
+            return 0
+
+    class Output:
+        def __init__(self):
+            self.values = {}
+
+        def emit(self, value, port):
+            self.values[port] = value
+
+    output = Output()
+    display.compute(Input(), output, None)
+
+    assert calls == [
+        ("external_stream", 0),
+        ("enter", 0),
+        ("asarray", tensor),
+        ("asnumpy", expected),
+        ("exit", 0),
+    ]
+    assert output.values["tensors"]["frame"] is expected
 
 
 def test_display_missing_tensor_error_names_configured_input(monkeypatch):

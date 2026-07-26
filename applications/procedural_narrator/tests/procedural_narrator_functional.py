@@ -213,7 +213,12 @@ def main():
         print(f"FAIL: application raised {run_error}")
         return 1
     if stop_failure:
-        print(f"FAIL: {stop_failure[0]}")
+        print(
+            f"FAIL: {stop_failure[0]}; "
+            f"request_received={server.request_payload is not None}; "
+            f"request_error={server.request_error!r}; "
+            f"events={TrackingNarrativeState.event_kinds}"
+        )
         return 1
     if server.request_error is not None:
         print(f"FAIL: mock endpoint rejected request: {server.request_error}")
