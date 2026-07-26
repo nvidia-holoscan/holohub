@@ -8,10 +8,12 @@ from __future__ import annotations
 import base64
 import json
 import queue
+import sys
 import threading
 import time
 from datetime import timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
@@ -45,6 +47,8 @@ class _ReasoningHandler(BaseHTTPRequestHandler):
                 event = {"choices": [{"delta": {"content": text}}]}
                 self.wfile.write(f"data: {json.dumps(event)}\n\n".encode())
                 self.wfile.flush()
+            usage = {"choices": [], "usage": {"completion_tokens": 4}}
+            self.wfile.write(f"data: {json.dumps(usage)}\n\n".encode())
             self.wfile.write(b"data: [DONE]\n\n")
         else:
             self.send_header("Content-Type", "application/json")
@@ -52,7 +56,7 @@ class _ReasoningHandler(BaseHTTPRequestHandler):
             response = {"choices": [{"message": {"content": "A static scene."}}]}
             self.wfile.write(json.dumps(response).encode())
 
-    def log_message(self, format, *args):
+    def log_message(self, format_string, *args):
         pass
 
 
@@ -71,7 +75,7 @@ class _StalledSSEHandler(BaseHTTPRequestHandler):
         self.server.request_received.set()
         self.server.release_response.wait()
 
-    def log_message(self, format, *args):
+    def log_message(self, format_string, *args):
         pass
 
 
@@ -305,12 +309,146 @@ def test_operator_waits_for_upstream_cuda_stream():
     )
 
 
+@pytest.mark.parametrize("missing_stream", [None, 0])
+def test_cuda_input_without_stream_uses_default_copy(reasoning_server, monkeypatch, missing_stream):
+    operator = _operator(reasoning_server, mode="image", stream=False)
+    expected = np.arange(12 * 16 * 3, dtype=np.uint8).reshape(12, 16, 3)
+    calls = []
+
+    class CudaTensor:
+        __cuda_array_interface__ = {}
+
+    tensor = CudaTensor()
+
+    def asarray(value):
+        calls.append(("asarray", value))
+        return expected
+
+    def asnumpy(value):
+        calls.append(("asnumpy", value))
+        return value
+
+    def external_stream(stream):
+        pytest.fail(f"ExternalStream must not be constructed for {stream!r}")
+
+    monkeypatch.setitem(
+        sys.modules,
+        "cupy",
+        SimpleNamespace(
+            asarray=asarray,
+            asnumpy=asnumpy,
+            cuda=SimpleNamespace(ExternalStream=external_stream),
+        ),
+    )
+
+    class InputContext:
+        def receive_cuda_stream(self, port, *, allocate):
+            assert port == "input"
+            assert not allocate
+            return missing_stream
+
+    frame = operator._to_host_rgb({"": tensor}, input_context=InputContext())
+
+    assert calls == [("asarray", tensor), ("asnumpy", expected)]
+    assert frame is expected
+    assert frame.flags.c_contiguous
+    np.testing.assert_array_equal(frame, expected)
+
+
+@pytest.mark.parametrize(
+    "endpoint",
+    [
+        "https://reasoner.example/v1/chat/completions",
+        "http://localhost:8000/v1/chat/completions",
+        "http://LOCALHOST:8000/v1/chat/completions",
+        "http://127.42.0.1:8000/v1/chat/completions",
+        "http://[::1]:8000/v1/chat/completions",
+    ],
+)
+def test_operator_accepts_https_and_explicit_loopback_http(endpoint):
+    operator = OnlineVideoReasonerOp(
+        Application(),
+        endpoint=endpoint,
+        model="test-model",
+        prompt="Describe change.",
+        mode="image",
+    )
+
+    assert operator.endpoint == endpoint
+
+
+@pytest.mark.parametrize(
+    ("endpoint", "trust_environment"),
+    [
+        ("http://127.0.0.1:8000/v1/chat/completions", False),
+        ("https://reasoner.example/v1/chat/completions", True),
+    ],
+)
+def test_transport_isolates_local_http_and_splits_timeouts(
+    endpoint,
+    trust_environment,
+    monkeypatch,
+):
+    operator = OnlineVideoReasonerOp(
+        Application(),
+        endpoint=endpoint,
+        model="test-model",
+        prompt="Describe change.",
+        mode="image",
+        connect_timeout_s=3,
+        timeout_s=17,
+    )
+    observed = {}
+
+    class Response:
+        def close(self):
+            pass
+
+    def post(session, url, **kwargs):
+        observed["trust_env"] = session.trust_env
+        observed["url"] = url
+        observed["timeout"] = kwargs["timeout"]
+        return Response()
+
+    monkeypatch.setenv("HTTP_PROXY", "http://proxy.example:8080")
+    monkeypatch.delenv("NO_PROXY", raising=False)
+    monkeypatch.setattr(
+        "operators.online_video_reasoner.online_video_reasoner.requests.Session.post",
+        post,
+    )
+
+    response_handle = operator._post_interruptibly({}, {})
+
+    assert response_handle is not None
+    response, session = response_handle
+    try:
+        assert observed == {
+            "trust_env": trust_environment,
+            "url": endpoint,
+            "timeout": (3, 17),
+        }
+    finally:
+        response.close()
+        session.close()
+
+
 @pytest.mark.parametrize(
     ("override", "message"),
     [
         ({"mode": "frames"}, "mode"),
         ({"endpoint": "grpc://localhost"}, "HTTP or HTTPS"),
+        ({"endpoint": "http://reasoner.example/v1/chat/completions"}, "use HTTPS"),
+        ({"endpoint": "http://192.0.2.1/v1/chat/completions"}, "use HTTPS"),
+        ({"endpoint": "http://localhost.evil/v1/chat/completions"}, "use HTTPS"),
+        ({"endpoint": "http://localhost./v1/chat/completions"}, "use HTTPS"),
+        (
+            {"endpoint": r"http://reasoner.example\@localhost/v1/chat/completions"},
+            "user information",
+        ),
+        ({"endpoint": "https://:invalid/v1/chat/completions"}, "valid HTTP or HTTPS"),
         ({"max_tokens": 0}, "max_tokens"),
+        ({"request_options": {"max_tokens": 64}}, "max_tokens"),
+        ({"connect_timeout_s": 0}, "connect_timeout_s"),
         ({"sample_fps": 1, "clip_duration_s": 1}, "at least two frames"),
         ({"max_frame_gap_s": 0}, "max_frame_gap_s"),
     ],
@@ -359,8 +497,15 @@ def test_build_chat_payload_uses_one_multimodal_media_item(media_type, content_t
     assert payload["temperature"] == 0
 
 
-def test_request_options_cannot_replace_protocol_fields():
-    with pytest.raises(ValueError, match="messages"):
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("max_tokens", 64),
+        ("messages", []),
+    ],
+)
+def test_request_options_cannot_replace_protocol_fields(field, value):
+    with pytest.raises(ValueError, match=field):
         build_chat_payload(
             model="model",
             prompt="prompt",
@@ -368,7 +513,7 @@ def test_request_options_cannot_replace_protocol_fields():
             media=b"media",
             max_tokens=32,
             stream=True,
-            request_options={"messages": []},
+            request_options={field: value},
         )
 
 
@@ -379,10 +524,18 @@ def test_sse_parser_yields_text_deltas_and_stops_at_done():
         b'data: {"choices":[{"delta":{"content":"one "}}]}',
         b'data: {"choices":[{"delta":{"role":"assistant"}}]}',
         b'data: {"choices":[{"delta":{"content":"two"}}]}',
+        b'data: {"choices":[],"usage":{"completion_tokens":2}}',
         b"data: [DONE]",
         b'data: {"choices":[{"delta":{"content":"ignored"}}]}',
     ]
     assert list(iter_sse_text(lines)) == ["one ", "two"]
+
+
+def test_sse_parser_rejects_stream_without_done_marker():
+    lines = [b'data: {"choices":[{"delta":{"content":"partial"}}]}']
+
+    with pytest.raises(ValueError, match=r"before \[DONE\]"):
+        list(iter_sse_text(lines))
 
 
 def test_completion_parser_requires_text():
@@ -498,15 +651,47 @@ def test_started_event_follows_media_encoding(reasoning_server, monkeypatch):
     assert [event["kind"] for event in _queued_events(operator)] == ["started", "completed"]
 
 
+def test_truncated_sse_emits_error_not_completed(reasoning_server, monkeypatch):
+    operator = _operator(reasoning_server, mode="image", stream=True)
+
+    class TruncatedResponse:
+        def raise_for_status(self):
+            pass
+
+        def iter_lines(self, chunk_size):
+            assert chunk_size == 1
+            yield b'data: {"choices":[{"delta":{"content":"partial"}}]}'
+
+        def close(self):
+            pass
+
+    class Session:
+        def close(self):
+            pass
+
+    monkeypatch.setattr(
+        operator,
+        "_post_interruptibly",
+        lambda payload, headers: (TruncatedResponse(), Session()),
+    )
+    monkeypatch.setattr(
+        "operators.online_video_reasoner.online_video_reasoner.encode_jpeg",
+        lambda frame, *, ffmpeg: b"\xff\xd8\xff\xd9",
+    )
+
+    operator._run_request("truncated-stream", np.zeros((12, 16, 3), dtype=np.uint8))
+
+    events = _queued_events(operator)
+    assert [event["kind"] for event in events] == ["started", "delta", "error"]
+    assert events[-1]["message"] == "SSE stream ended before [DONE]"
+
+
 def test_stop_interrupts_stalled_sse_request(stalled_sse_server):
     operator = _operator(stalled_sse_server, mode="image", stream=True)
     operator.start()
     operator._accept_frame({"": np.zeros((12, 16, 3), dtype=np.uint8)}, now=0.0)
     assert stalled_sse_server.request_received.wait(timeout=2)
-    deadline = time.monotonic() + 1
-    while operator._events.qsize() < 2 and time.monotonic() < deadline:
-        time.sleep(0.01)
-    assert operator._events.qsize() == 2
+    events = [operator._events.get(timeout=1) for _ in range(2)]
 
     stopped = threading.Event()
 
@@ -525,7 +710,8 @@ def test_stop_interrupts_stalled_sse_request(stalled_sse_server):
         stop_thread.join(timeout=2)
 
     assert not stop_thread.is_alive()
-    assert [event["kind"] for event in _queued_events(operator)] == ["started", "delta"]
+    assert [event["kind"] for event in events] == ["started", "delta"]
+    assert _queued_events(operator) == []
 
 
 def test_stop_interrupts_request_before_response_headers(reasoning_server, monkeypatch):
@@ -533,18 +719,25 @@ def test_stop_interrupts_request_before_response_headers(reasoning_server, monke
     request_started = threading.Event()
     release_request = threading.Event()
     request_finished = threading.Event()
+    response_closed = threading.Event()
+    session_closed = threading.Event()
 
-    def pending_request(*args, **kwargs):
+    def pending_request(session, *args, **kwargs):
+        assert kwargs["allow_redirects"] is False
         request_started.set()
         try:
             release_request.wait()
-            raise RuntimeError("request released")
+            return SimpleNamespace(close=response_closed.set)
         finally:
             request_finished.set()
 
     monkeypatch.setattr(
-        "operators.online_video_reasoner.online_video_reasoner.requests.post",
+        "operators.online_video_reasoner.online_video_reasoner.requests.Session.post",
         pending_request,
+    )
+    monkeypatch.setattr(
+        "operators.online_video_reasoner.online_video_reasoner.requests.Session.close",
+        lambda session: session_closed.set(),
     )
     operator.start()
     operator._accept_frame({"": np.zeros((12, 16, 3), dtype=np.uint8)}, now=0.0)
@@ -558,6 +751,8 @@ def test_stop_interrupts_request_before_response_headers(reasoning_server, monke
         release_request.set()
 
     assert request_finished.wait(timeout=1)
+    assert response_closed.wait(timeout=1)
+    assert session_closed.wait(timeout=1)
     assert [event["kind"] for event in _queued_events(operator)] == ["started"]
 
 

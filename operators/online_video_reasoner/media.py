@@ -13,6 +13,8 @@ from pathlib import Path
 
 import numpy as np
 
+_FFMPEG_TIMEOUT_S = 60.0
+
 
 class MediaEncodingError(RuntimeError):
     """Raised when FFmpeg cannot encode a reasoning input."""
@@ -39,7 +41,12 @@ def _run_ffmpeg(command: list[str], payload: bytes, executable: str) -> bytes:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             check=False,
+            timeout=_FFMPEG_TIMEOUT_S,
         )
+    except subprocess.TimeoutExpired as exc:
+        raise MediaEncodingError(
+            f"FFmpeg encoding timed out after {_FFMPEG_TIMEOUT_S:g} seconds"
+        ) from exc
     except OSError as exc:
         raise MediaEncodingError(f"cannot run FFmpeg executable {executable!r}: {exc}") from exc
 

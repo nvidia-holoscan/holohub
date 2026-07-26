@@ -138,14 +138,15 @@ def test_working_message_pulses_without_dimming_narration():
     assert working_pulse_alpha(2.25) == pytest.approx(narrator_module.WORKING_PULSE_MIN_ALPHA)
 
 
-def test_application_rejects_unknown_source():
+def test_application_rejects_unknown_source(tmp_path):
     with pytest.raises(ValueError, match="source"):
-        ProceduralNarratorApp("/tmp/data", source="file")
+        ProceduralNarratorApp(str(tmp_path), source="file")
 
 
 def test_event_sink_ignores_an_empty_receive():
     class State:
-        events = []
+        def __init__(self):
+            self.events = []
 
         def apply_event(self, event):
             self.events.append(event)
@@ -163,19 +164,28 @@ def test_event_sink_ignores_an_empty_receive():
     assert state.events == []
 
 
-def test_compose_uses_reasoner_default_clip_duration_when_omitted(monkeypatch):
-    captured_clip_durations = []
+def test_compose_wires_reasoner_state_and_converter_tensor_name(monkeypatch):
+    captured_state_args = []
+    captured_reasoner_tensor_names = []
+    captured_display_tensor_names = []
 
     def stub_operator(*args, **kwargs):
+        return object()
+
+    def stub_display(*args, **kwargs):
+        captured_display_tensor_names.append(kwargs["input_tensor_name"])
         return object()
 
     class Reasoner:
         def __init__(self, *args, **kwargs):
             self.clip_duration_s = kwargs.get("clip_duration_s", 7.5)
+            self.max_frame_gap_s = kwargs.get("max_frame_gap_s", 0.25)
+            self.request_options = dict(kwargs.get("request_options", {}))
+            captured_reasoner_tensor_names.append(kwargs["tensor_name"])
 
     class State:
-        def __init__(self, clip_duration_s):
-            captured_clip_durations.append(clip_duration_s)
+        def __init__(self, clip_duration_s, max_frame_gap_s, thinking_mode):
+            captured_state_args.append((clip_duration_s, max_frame_gap_s, thinking_mode))
 
     class App:
         _endpoint = None
@@ -183,8 +193,18 @@ def test_compose_uses_reasoner_default_clip_duration_when_omitted(monkeypatch):
 
         def kwargs(self, name):
             return {
-                "format_converter": {"resize_width": 640, "resize_height": 480},
-                "reasoner": {},
+                "format_converter": {
+                    "out_tensor_name": "converted_video",
+                    "resize_width": 640,
+                    "resize_height": 480,
+                },
+                "reasoner": {
+                    "request_options": {
+                        "chat_template_kwargs": {
+                            "enable_thinking": True,
+                        }
+                    }
+                },
                 "holoviz": {},
             }[name]
 
@@ -202,17 +222,30 @@ def test_compose_uses_reasoner_default_clip_duration_when_omitted(monkeypatch):
         "CudaStreamPool",
         "FormatConverterOp",
         "NarrativeEventSinkOp",
-        "NarrativeDisplayOp",
         "HolovizOp",
         "PeriodicCondition",
     ):
         monkeypatch.setattr(narrator_module, name, stub_operator)
+    monkeypatch.setattr(narrator_module, "NarrativeDisplayOp", stub_display)
     monkeypatch.setattr(narrator_module, "OnlineVideoReasonerOp", Reasoner)
     monkeypatch.setattr(narrator_module, "NarrativeState", State)
 
     ProceduralNarratorApp.compose(App())
 
-    assert captured_clip_durations == [7.5]
+    assert captured_state_args == [(7.5, 0.25, True)]
+    assert captured_reasoner_tensor_names == ["converted_video"]
+    assert captured_display_tensor_names == ["converted_video"]
+
+
+def test_display_rejects_a_non_string_input_tensor_name():
+    with pytest.raises(ValueError, match="input_tensor_name"):
+        NarrativeDisplayOp(
+            Application(),
+            state=narrator_module.NarrativeState(clip_duration_s=4.0),
+            frame_width=4,
+            frame_height=3,
+            input_tensor_name=None,
+        )
 
 
 def test_display_repaints_no_signal_without_a_new_frame(monkeypatch):
@@ -222,11 +255,12 @@ def test_display_repaints_no_signal_without_a_new_frame(monkeypatch):
         state=state,
         frame_width=4,
         frame_height=3,
+        input_tensor_name="converted_video",
     )
     source_frame = np.full((3, 4, 3), 17, dtype=np.uint8)
 
     class Input:
-        messages = iter(({"frame": source_frame}, None))
+        messages = iter(({"converted_video": source_frame}, None))
 
         def receive(self, port):
             assert port == "video"
@@ -249,3 +283,23 @@ def test_display_repaints_no_signal_without_a_new_frame(monkeypatch):
 
     assert np.all(output.values["tensors"][1]["frame"] == 17)
     assert output.values["specs"][1][4].color == narrator_module.TRANSPARENT
+
+
+def test_display_missing_tensor_error_names_configured_input(monkeypatch):
+    display = NarrativeDisplayOp(
+        Application(),
+        state=narrator_module.NarrativeState(clip_duration_s=4.0),
+        frame_width=4,
+        frame_height=3,
+        input_tensor_name="converted_video",
+    )
+
+    class Input:
+        def receive(self, port):
+            assert port == "video"
+            return {"frame": np.zeros((3, 4, 3), dtype=np.uint8)}
+
+    monkeypatch.setattr(narrator_module.time, "monotonic", lambda: 10.0)
+
+    with pytest.raises(ValueError, match="'converted_video'"):
+        display.compute(Input(), None, None)

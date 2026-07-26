@@ -17,7 +17,9 @@ import time
 import uuid
 from collections import deque
 from concurrent.futures import Future, ThreadPoolExecutor
+from ipaddress import ip_address
 from typing import Any, Iterable
+from urllib.parse import urlsplit
 
 import numpy as np
 import requests
@@ -26,7 +28,49 @@ from holoscan.core import ConditionType, Operator, OperatorSpec
 from .media import encode_jpeg, encode_mp4, validate_rgb_frame
 
 LOGGER = logging.getLogger(__name__)
-_RESERVED_REQUEST_OPTIONS = {"messages", "model", "stream"}
+_RESERVED_REQUEST_OPTIONS = {"max_tokens", "messages", "model", "stream"}
+
+
+def _close_response_handle(handle: tuple[requests.Response, requests.Session]) -> None:
+    """Close a streamed response and its owning session."""
+    response, session = handle
+    try:
+        response.close()
+    finally:
+        session.close()
+
+
+def _validate_endpoint(endpoint: str) -> bool:
+    """Validate the endpoint and report whether it uses local cleartext HTTP."""
+    if not isinstance(endpoint, str):
+        raise ValueError("endpoint must be a valid HTTP or HTTPS URL")
+    try:
+        parsed = urlsplit(endpoint)
+        hostname = parsed.hostname
+        # Accessing port validates both its syntax and range.
+        _ = parsed.port
+    except ValueError as error:
+        raise ValueError("endpoint must be a valid HTTP or HTTPS URL") from error
+
+    if parsed.scheme not in {"http", "https"} or hostname is None:
+        raise ValueError("endpoint must be a valid HTTP or HTTPS URL")
+    if parsed.username is not None or parsed.password is not None or "\\" in parsed.netloc:
+        raise ValueError("endpoint must not include user information")
+    if parsed.scheme == "https":
+        return False
+
+    if hostname == "localhost":
+        return True
+    try:
+        address = ip_address(hostname)
+    except ValueError:
+        address = None
+    if address is None or not address.is_loopback:
+        raise ValueError(
+            "HTTP endpoints must use localhost or a literal loopback address; "
+            "use HTTPS for non-local endpoints"
+        )
+    return True
 
 
 def build_chat_payload(
@@ -96,7 +140,10 @@ def iter_sse_text(lines: Iterable[str | bytes]) -> Iterable[str]:
             return
         try:
             event = json.loads(data)
-            content = event["choices"][0]["delta"].get("content")
+            choices = event["choices"]
+            if choices == [] and "usage" in event:
+                continue
+            content = choices[0]["delta"].get("content")
         except (json.JSONDecodeError, KeyError, IndexError, TypeError) as error:
             raise ValueError("invalid chat-completion SSE event") from error
         if content is not None:
@@ -104,6 +151,7 @@ def iter_sse_text(lines: Iterable[str | bytes]) -> Iterable[str]:
                 raise ValueError("SSE delta content must be a string")
             if content:
                 yield content
+    raise ValueError("SSE stream ended before [DONE]")
 
 
 class OnlineVideoReasonerOp(Operator):
@@ -122,6 +170,7 @@ class OnlineVideoReasonerOp(Operator):
         request_interval_s: float = 4.0,
         max_frame_gap_s: float | None = None,
         max_tokens: int = 128,
+        connect_timeout_s: float = 10.0,
         timeout_s: float = 60.0,
         api_key_env: str = "REASONER_API_KEY",
         stream: bool = True,
@@ -131,8 +180,7 @@ class OnlineVideoReasonerOp(Operator):
     ):
         if mode not in {"image", "video"}:
             raise ValueError("mode must be 'image' or 'video'")
-        if not endpoint.startswith(("http://", "https://")):
-            raise ValueError("endpoint must be an HTTP or HTTPS URL")
+        uses_local_http = _validate_endpoint(endpoint)
         if not model or not prompt:
             raise ValueError("model and prompt are required")
         if sample_fps <= 0 or clip_duration_s <= 0 or request_interval_s <= 0:
@@ -141,8 +189,8 @@ class OnlineVideoReasonerOp(Operator):
             not math.isfinite(max_frame_gap_s) or max_frame_gap_s <= 0
         ):
             raise ValueError("max_frame_gap_s must be a positive finite number")
-        if max_tokens <= 0 or timeout_s <= 0:
-            raise ValueError("max_tokens and timeout_s must be positive")
+        if max_tokens <= 0 or connect_timeout_s <= 0 or timeout_s <= 0:
+            raise ValueError("max_tokens, connect_timeout_s and timeout_s must be positive")
         frame_count = round(sample_fps * clip_duration_s)
         if mode == "video" and frame_count < 2:
             raise ValueError("video mode requires at least two frames per clip")
@@ -162,11 +210,13 @@ class OnlineVideoReasonerOp(Operator):
         self.request_interval_s = request_interval_s
         self.max_frame_gap_s = max_frame_gap_s or 2.0 / sample_fps
         self.max_tokens = max_tokens
+        self.connect_timeout_s = connect_timeout_s
         self.timeout_s = timeout_s
         self.api_key_env = api_key_env
         self.stream = stream
         self.request_options = options
         self.ffmpeg = ffmpeg
+        self._trust_environment = not uses_local_http
         self._frame_count = frame_count
         self._frames: deque[np.ndarray] = deque(maxlen=frame_count)
         self._frame_times: deque[float] = deque(maxlen=frame_count)
@@ -290,18 +340,24 @@ class OnlineVideoReasonerOp(Operator):
         if tensor is None:
             raise ValueError(f"input does not contain tensor {self.tensor_name!r}")
 
-        if hasattr(tensor, "__cuda_array_interface__"):
+        is_cuda = hasattr(tensor, "__cuda_array_interface__")
+        if is_cuda:
             import cupy as cp
 
             if input_context is None:
                 frame = cp.asnumpy(cp.asarray(tensor))
             else:
                 stream = input_context.receive_cuda_stream("input", allocate=False)
-                with cp.cuda.ExternalStream(stream):
+                if stream:
+                    with cp.cuda.ExternalStream(stream):
+                        frame = cp.asnumpy(cp.asarray(tensor))
+                else:
                     frame = cp.asnumpy(cp.asarray(tensor))
         else:
             frame = np.asarray(tensor)
         validate_rgb_frame(frame)
+        if is_cuda:
+            return frame
         return np.array(frame, copy=True, order="C")
 
     def _run_request(self, request_id: str, media: np.ndarray | list[np.ndarray]):
@@ -336,18 +392,20 @@ class OnlineVideoReasonerOp(Operator):
                     "frame_count": 1 if self.mode == "image" else len(media),
                 }
             )
-            response = self._post_interruptibly(payload, headers)
-            if response is None:
+            response_handle = self._post_interruptibly(payload, headers)
+            if response_handle is None:
                 return
+            response, _ = response_handle
             with self._response_lock:
                 if self._stop_event.is_set():
-                    response.close()
+                    _close_response_handle(response_handle)
                     return
                 self._active_response = response
             try:
                 response.raise_for_status()
                 if self.stream:
                     chunks = []
+                    # Larger buffers can delay events until EOF on non-chunked SSE responses.
                     lines = self._interruptible_lines(response.iter_lines(chunk_size=1))
                     for text in iter_sse_text(lines):
                         if self._stop_event.is_set():
@@ -373,7 +431,7 @@ class OnlineVideoReasonerOp(Operator):
                 with self._response_lock:
                     if self._active_response is response:
                         self._active_response = None
-                response.close()
+                _close_response_handle(response_handle)
 
             if self._stop_event.is_set():
                 return
@@ -399,29 +457,42 @@ class OnlineVideoReasonerOp(Operator):
 
     def _post_interruptibly(
         self, payload: dict[str, Any], headers: dict[str, str]
-    ) -> requests.Response | None:
-        results: queue.Queue[requests.Response | Exception] = queue.Queue(maxsize=1)
+    ) -> tuple[requests.Response, requests.Session] | None:
+        results: queue.Queue[tuple[requests.Response, requests.Session] | Exception] = queue.Queue(
+            maxsize=1
+        )
         handoff_lock = threading.Lock()
         abandoned = False
 
         def post_request():
+            session: requests.Session | None = None
             try:
-                result: requests.Response | Exception = requests.post(
+                session = requests.Session()
+                session.trust_env = self._trust_environment
+                response = session.post(
                     self.endpoint,
                     json=payload,
                     headers=headers,
+                    # Keep transport validation bound to the configured URL.
+                    allow_redirects=False,
                     # Always defer reading the body so stop() can interrupt
                     # streaming and non-streaming API responses alike.
                     stream=True,
-                    timeout=self.timeout_s,
+                    timeout=(self.connect_timeout_s, self.timeout_s),
+                )
+                result: tuple[requests.Response, requests.Session] | Exception = (
+                    response,
+                    session,
                 )
             except Exception as error:
+                if session is not None:
+                    session.close()
                 result = error
 
             with handoff_lock:
                 if abandoned:
-                    if isinstance(result, requests.Response):
-                        result.close()
+                    if isinstance(result, tuple):
+                        _close_response_handle(result)
                 else:
                     results.put_nowait(result)
 
@@ -444,13 +515,13 @@ class OnlineVideoReasonerOp(Operator):
                         pending_result = results.get_nowait()
                     except queue.Empty:
                         pending_result = None
-                if isinstance(pending_result, requests.Response):
-                    pending_result.close()
+                if isinstance(pending_result, tuple):
+                    _close_response_handle(pending_result)
                 return None
 
             if self._stop_event.is_set():
-                if isinstance(result, requests.Response):
-                    result.close()
+                if isinstance(result, tuple):
+                    _close_response_handle(result)
                 return None
             if isinstance(result, Exception):
                 raise result

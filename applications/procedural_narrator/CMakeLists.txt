@@ -39,18 +39,9 @@ if(BUILD_TESTING)
       ${CMAKE_CURRENT_SOURCE_DIR}
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
   )
-  add_test(
-    NAME procedural_narrator_functional
-    COMMAND
-      ${Python3_EXECUTABLE}
-      ${CMAKE_CURRENT_SOURCE_DIR}/tests/procedural_narrator_functional.py
-      --data ${HOLOHUB_DATA_DIR}/endoscopy
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-  )
   set_tests_properties(
     procedural_narrator_cli
     procedural_narrator_pytest
-    procedural_narrator_functional
     PROPERTIES
       ENVIRONMENT "PYTHONPATH=${CMAKE_SOURCE_DIR}:$ENV{PYTHONPATH}"
   )
@@ -58,6 +49,7 @@ if(BUILD_TESTING)
     procedural_narrator_cli
     PROPERTIES
       PASS_REGULAR_EXPRESSION "Narrate a clinical replay or camera feed"
+      TIMEOUT 60
   )
   set_tests_properties(
     procedural_narrator_pytest
@@ -65,11 +57,22 @@ if(BUILD_TESTING)
       LABELS "application;python;unit"
       TIMEOUT 60
   )
-  set_tests_properties(
-    procedural_narrator_functional
-    PROPERTIES
-      LABELS "application;functional;gpu"
-      PASS_REGULAR_EXPRESSION "SUCCESS: replay, temporal reasoner"
-      TIMEOUT 90
-  )
+  if(HOLOHUB_DOWNLOAD_DATASETS)
+    add_test(
+      NAME procedural_narrator_functional
+      COMMAND
+        ${Python3_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/procedural_narrator_functional.py
+        --data ${HOLOHUB_DATA_DIR}/endoscopy
+      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    )
+    set_tests_properties(
+      procedural_narrator_functional
+      PROPERTIES
+        ENVIRONMENT "PYTHONPATH=${CMAKE_SOURCE_DIR}:$ENV{PYTHONPATH}"
+        LABELS "application;functional;gpu"
+        PASS_REGULAR_EXPRESSION "SUCCESS: replay, temporal reasoner"
+        TIMEOUT 90
+    )
+  endif()
 endif()

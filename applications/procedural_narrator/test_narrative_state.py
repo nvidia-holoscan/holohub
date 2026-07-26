@@ -26,6 +26,22 @@ def test_state_reports_video_collection_and_staleness():
     assert state.snapshot(14.0).input_label == "VIDEO · NO SIGNAL"
 
 
+def test_state_restarts_collection_timing_after_a_frame_gap():
+    state = NarrativeState(
+        clip_duration_s=4.0,
+        input_timeout_s=1.0,
+        max_frame_gap_s=0.5,
+    )
+    state.note_frame(10.0)
+    assert state.snapshot(14.0).model_label == "MODEL · READY"
+
+    state.note_frame(15.0)
+    resumed = state.snapshot(15.0)
+
+    assert resumed.input_label == "VIDEO · LIVE"
+    assert resumed.model_label == "MODEL · COLLECTING 0%"
+
+
 def test_state_tracks_waiting_streaming_and_completed_response():
     state = NarrativeState(clip_duration_s=4.0)
     state.note_frame(1.0)
@@ -112,6 +128,44 @@ def test_state_strips_thinking_blocks_from_streamed_and_completed_text():
         }
     )
     assert state.snapshot(0.0).narrative == "Visible narrative."
+
+
+def test_thinking_mode_buffers_openerless_preamble_until_close():
+    state = NarrativeState(clip_duration_s=4.0, thinking_mode=True)
+    state.apply_event(
+        {
+            "request_id": "r0",
+            "kind": "completed",
+            "text": "</think>\nPrevious narrative.",
+        }
+    )
+    state.apply_event({"request_id": "r1", "kind": "started"})
+    state.apply_event({"request_id": "r1", "kind": "delta", "text": "private analysis"})
+
+    assert state.snapshot(0.0).narrative == "Previous narrative."
+
+    state.apply_event({"request_id": "r1", "kind": "delta", "text": "</th" + "i"})
+    assert state.snapshot(0.0).narrative == "Previous narrative."
+
+    state.apply_event(
+        {
+            "request_id": "r1",
+            "kind": "delta",
+            "text": "nk>\nVisible narrative.",
+        }
+    )
+    assert state.snapshot(0.0).narrative == "Visible narrative."
+
+    state.apply_event({"request_id": "r2", "kind": "started"})
+    state.apply_event({"request_id": "r2", "kind": "delta", "text": "unclosed analysis"})
+    state.apply_event(
+        {
+            "request_id": "r2",
+            "kind": "completed",
+            "text": "unclosed analysis",
+        }
+    )
+    assert state.snapshot(0.0).narrative == "Previous narrative."
 
 
 def test_state_reports_model_error_and_ignores_unknown_events():

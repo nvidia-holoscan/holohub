@@ -14,6 +14,7 @@ import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from typing import ClassVar
 
 import yaml
 
@@ -48,7 +49,7 @@ class ReasoningHandler(BaseHTTPRequestHandler):
             if payload.get("chat_template_kwargs") != {"enable_thinking": False}:
                 raise ValueError("request did not disable thinking mode")
             self.server.request_payload = payload
-        except Exception as error:
+        except Exception as error:  # noqa: BLE001 - report any fixture validation failure.
             self.server.request_error = str(error)
             self.send_error(400, str(error))
             return
@@ -63,15 +64,15 @@ class ReasoningHandler(BaseHTTPRequestHandler):
         self.wfile.write(b"data: [DONE]\n\n")
         self.wfile.flush()
 
-    def log_message(self, format, *args):
+    def log_message(self, format_string, *args):
         """Suppress HTTP access logs in CTest output."""
 
 
 class TrackingNarrativeState(NarrativeState):
     """Expose graph progress without replacing any application operator."""
 
-    event_kinds: list[str] = []
-    rendered = threading.Event()
+    event_kinds: ClassVar[list[str]] = []
+    rendered: ClassVar[threading.Event] = threading.Event()
 
     def apply_event(self, event):
         accepted = super().apply_event(event)
@@ -116,6 +117,7 @@ def make_config(path: Path):
             "clip_duration_s": 0.3,
             "request_interval_s": 60,
             "max_tokens": 32,
+            "connect_timeout_s": 3,
             "timeout_s": 10,
             "api_key_env": "REASONER_API_KEY",
             "stream": True,
@@ -197,7 +199,7 @@ def main():
         run_error = None
         try:
             app.run()
-        except Exception as error:
+        except Exception as error:  # noqa: BLE001 - surface any application failure.
             run_error = error
         finally:
             run_finished.set()

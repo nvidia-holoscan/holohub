@@ -62,6 +62,19 @@ def test_encoder_reports_missing_ffmpeg():
         encode_jpeg(frame, ffmpeg="/does/not/exist")
 
 
+def test_encoder_reports_ffmpeg_timeout(monkeypatch):
+    frame = np.zeros((4, 6, 3), dtype=np.uint8)
+
+    def timeout(*args, **kwargs):
+        assert kwargs["timeout"] == 60.0
+        raise subprocess.TimeoutExpired(args[0], kwargs["timeout"])
+
+    monkeypatch.setattr(media.subprocess, "run", timeout)
+
+    with pytest.raises(MediaEncodingError, match="timed out after 60 seconds"):
+        encode_jpeg(frame)
+
+
 @pytest.mark.skipif(FFMPEG is None, reason="ffmpeg is not installed")
 def test_encode_jpeg_has_jpeg_signature():
     frame = np.arange(12 * 16 * 3, dtype=np.uint8).reshape(12, 16, 3)

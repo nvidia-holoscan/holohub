@@ -38,7 +38,7 @@ describe activity and change instead of unrelated still images.
 
 | Parameter | Default | Description |
 | --------- | ------- | ----------- |
-| `endpoint` | Required | Full HTTP or HTTPS chat-completions URL. |
+| `endpoint` | Required | Full HTTPS chat-completions URL, or HTTP URL on `localhost` or a literal loopback address. |
 | `model` | Required | Model identifier sent in each request. |
 | `prompt` | Required | Text instruction sent with every observation. |
 | `mode` | `video` | `video` sends an MP4 clip; `image` sends one JPEG. |
@@ -48,10 +48,11 @@ describe activity and change instead of unrelated still images.
 | `request_interval_s` | `4.0` | Minimum interval between accepted requests. |
 | `max_frame_gap_s` | `2 / sample_fps` | Maximum interval between sampled video frames before the rolling window is reset. |
 | `max_tokens` | `128` | Maximum generated tokens requested from the model. |
-| `timeout_s` | `60.0` | Requests connection and read timeout in seconds. |
+| `connect_timeout_s` | `10.0` | Endpoint connection timeout in seconds. |
+| `timeout_s` | `60.0` | Response read timeout in seconds. |
 | `api_key_env` | `REASONER_API_KEY` | Environment variable read for an optional bearer token. |
 | `stream` | `true` | Consume SSE deltas when true; otherwise consume one JSON response. |
-| `request_options` | `{}` | Additional top-level request fields; `messages`, `model`, and `stream` cannot be overridden. |
+| `request_options` | `{}` | Additional top-level request fields; `max_tokens`, `messages`, `model`, and `stream` cannot be overridden. |
 | `ffmpeg` | `ffmpeg` | FFmpeg executable name or path. |
 
 ## Behaviour
@@ -66,7 +67,8 @@ video.
 SSE deltas are bounded; the final `completed` event always contains the full
 response and sets `deltas_dropped` if backpressure discarded any intermediate
 chunks. Stopping the operator closes an active HTTP response before waiting for
-the worker to finish.
+the worker to finish. Local cleartext HTTP requests ignore environment proxy
+settings so their media and credentials cannot be forwarded outside the host.
 
 Pass a `PeriodicCondition` when constructing the operator. Its input is
 optional so periodic ticks can drain response events after a finite source
@@ -89,7 +91,9 @@ reasoner = OnlineVideoReasonerOp(
 ```
 
 The API key is read from `REASONER_API_KEY` by default. Local vLLM endpoints
-that do not require authentication can leave it unset.
+that do not require authentication can leave it unset. HTTP is accepted only
+for `localhost` or a literal loopback IP address; use HTTPS for every non-local
+endpoint.
 
 ## Validation status
 

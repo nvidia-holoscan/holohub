@@ -42,15 +42,15 @@ Two circles in the card's upper-right corner show input and model status:
 ### Start a Cosmos3-Edge endpoint
 
 The [`nvidia/Cosmos3-Edge` model card](https://huggingface.co/nvidia/Cosmos3-Edge#vllm)
-is the authoritative deployment reference. Its vLLM recipe uses the
-`vllm/vllm-openai:cosmos3` container and the following reasoner command:
+is the authoritative deployment reference. With its
+`vllm/vllm-openai:cosmos3` container, this application's data-URL-only workflow
+can use the following reasoner command:
 
 ```bash
 vllm serve nvidia/Cosmos3-Edge \
   --host 0.0.0.0 \
   --port 8000 \
   --max-model-len 131072 \
-  --allowed-local-media-path / \
   --mm-processor-kwargs \
     '{"do_resize": true, "min_pixels": 4096, "max_pixels": 16777216}' \
   --media-io-kwargs '{"video": {"num_frames": 256}}'
@@ -65,8 +65,9 @@ curl --fail http://127.0.0.1:8000/v1/models
 Run the service on the same host or on a network-reachable server. The
 application sends base64-encoded MP4 clips to
 `http://127.0.0.1:8000/v1/chat/completions` by default.
-Video is sent to this configurable network endpoint; use HTTPS for any
-non-local endpoint.
+Video is sent to this configurable network endpoint. HTTP is accepted only for
+`localhost` or a literal loopback address; every non-local endpoint must use
+HTTPS.
 
 Set `reasoner.endpoint` and `reasoner.model` in
 [`procedural_narrator.yaml`](procedural_narrator.yaml). If authentication is
@@ -80,7 +81,7 @@ The standard `./holohub run` modes automatically forward this variable into
 the application container.
 
 For a temporary endpoint override, pass
-`--run-args="--endpoint http://host:port/v1/chat/completions"`.
+`--run-args="--endpoint https://host:port/v1/chat/completions"`.
 
 ## Reasoning output and thinking mode
 
@@ -102,8 +103,10 @@ reasoner:
 ```
 
 Thinking mode increases output length and latency. Only enable it when another
-consumer needs the full reasoning output; Procedural Narrator still removes it
-from the concise on-screen narration.
+consumer needs the full reasoning output. With the flag explicitly enabled,
+Procedural Narrator buffers streamed text until the closing `</think>` delimiter
+arrives, then displays only the concise narration. A response without that
+delimiter is not shown.
 
 ## Run a replay
 
@@ -118,19 +121,29 @@ The default mode downloads and replays the standard Holohub surgical video:
 
 ## Run a camera
 
-The default camera is `/dev/video0`:
+The `v4l2` mode maps the default camera, `/dev/video0`, into the application
+container:
 
 ```bash
 ./holohub run procedural_narrator v4l2 --dryrun --verbose
 ./holohub run procedural_narrator v4l2
 ```
 
-Override it without editing the YAML:
+To use a different device without editing the YAML, map that device into the
+container and pass the same path to the application:
 
 ```bash
 ./holohub run procedural_narrator v4l2 \
+  --dryrun --verbose \
+  --docker-opts="--env=REASONER_API_KEY --device=/dev/video2:/dev/video2" \
+  --run-args="--video-device /dev/video2"
+./holohub run procedural_narrator v4l2 \
+  --docker-opts="--env=REASONER_API_KEY --device=/dev/video2:/dev/video2" \
   --run-args="--video-device /dev/video2"
 ```
+
+`--docker-opts` replaces the mode's default Docker arguments, so the override
+also repeats the API-key forwarding.
 
 The default `v4l2_source.pixel_format` is `YUYV`. Check the formats advertised
 by the selected camera before running:

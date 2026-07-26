@@ -63,27 +63,28 @@
 					"reasoner_service",
 					"sample_video"
 				],
-					"run": {
-						"command": "python3 <holohub_app_source>/procedural_narrator.py --config <holohub_app_source>/procedural_narrator.yaml --data <holohub_data_dir>/endoscopy --source replayer",
-						"workdir": "holohub_bin",
-						"docker_run_args": [
-							"--env=REASONER_API_KEY"
-						]
-					}
-				},
+				"run": {
+					"command": "python3 <holohub_app_source>/procedural_narrator.py --config <holohub_app_source>/procedural_narrator.yaml --data <holohub_data_dir>/endoscopy --source replayer",
+					"workdir": "holohub_bin",
+					"docker_run_args": [
+						"--env=REASONER_API_KEY"
+					]
+				}
+			},
 			"v4l2": {
 				"description": "Narrate a live V4L2-compatible camera feed.",
 				"requirements": [
 					"reasoner_service",
 					"camera"
 				],
-					"run": {
-						"command": "python3 <holohub_app_source>/procedural_narrator.py --config <holohub_app_source>/procedural_narrator.yaml --source v4l2",
-						"workdir": "holohub_bin",
-						"docker_run_args": [
-							"--env=REASONER_API_KEY"
-						]
-					}
+				"run": {
+					"command": "python3 <holohub_app_source>/procedural_narrator.py --config <holohub_app_source>/procedural_narrator.yaml --source v4l2",
+					"workdir": "holohub_bin",
+					"docker_run_args": [
+						"--env=REASONER_API_KEY",
+						"--device=/dev/video0"
+					]
+				}
 			}
 		}
 	}

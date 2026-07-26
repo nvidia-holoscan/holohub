@@ -28,11 +28,11 @@ reasoner:
     motion, and procedural actions only when visible. Do not infer identity,
     diagnosis, intent, or outcome.
   mode: "video"
-  tensor_name: "frame"
   sample_fps: 4
   clip_duration_s: 4
   request_interval_s: 4
   max_tokens: 256
+  connect_timeout_s: 10
   timeout_s: 120
   api_key_env: "REASONER_API_KEY"
   stream: true

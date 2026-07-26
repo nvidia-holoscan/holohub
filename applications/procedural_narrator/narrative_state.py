@@ -15,6 +15,7 @@ _THINK_BLOCK = re.compile(r"<think>.*?</think>\s*", re.IGNORECASE | re.DOTALL)
 _UNCLOSED_THINK_BLOCK = re.compile(r"<think>.*\Z", re.IGNORECASE | re.DOTALL)
 _THINK_WITHOUT_OPEN = re.compile(r"\A.*?</think>\s*", re.IGNORECASE | re.DOTALL)
 _THINK_OPEN_TAG = "<think>"
+_THINK_CLOSE_TAG = "</think>"
 
 
 def _strip_thinking_blocks(text: str) -> str:
@@ -32,6 +33,13 @@ def _strip_thinking_blocks(text: str) -> str:
     return visible.lstrip()
 
 
+def _visible_narrative(text: str, *, thinking_mode: bool) -> str:
+    """Return displayable text, buffering an explicitly enabled thinking preamble."""
+    if thinking_mode and _THINK_CLOSE_TAG not in text.lower():
+        return ""
+    return _strip_thinking_blocks(text)
+
+
 @dataclass(frozen=True)
 class NarrativeSnapshot:
     """Display-ready state for one UI update."""
@@ -47,14 +55,24 @@ class NarrativeSnapshot:
 class NarrativeState:
     """Track video availability and one in-flight reasoning response."""
 
-    def __init__(self, clip_duration_s: float, input_timeout_s: float = 1.0):
+    def __init__(
+        self,
+        clip_duration_s: float,
+        input_timeout_s: float = 1.0,
+        max_frame_gap_s: float | None = None,
+        thinking_mode: bool = False,
+    ):
         if clip_duration_s <= 0:
             raise ValueError("clip_duration_s must be positive")
         if input_timeout_s <= 0:
             raise ValueError("input_timeout_s must be positive")
+        if max_frame_gap_s is not None and max_frame_gap_s <= 0:
+            raise ValueError("max_frame_gap_s must be positive")
 
         self.clip_duration_s = clip_duration_s
         self.input_timeout_s = input_timeout_s
+        self.max_frame_gap_s = max_frame_gap_s
+        self.thinking_mode = thinking_mode
         self.first_frame_at: float | None = None
         self.last_frame_at: float | None = None
         self.active_request_id: str | None = None
@@ -68,7 +86,12 @@ class NarrativeState:
     def note_frame(self, now: float):
         """Update timestamps used to detect whether the video input is live."""
         with self._lock:
-            if self.first_frame_at is None:
+            collection_restarted = (
+                self.max_frame_gap_s is not None
+                and self.last_frame_at is not None
+                and now - self.last_frame_at > self.max_frame_gap_s
+            )
+            if self.first_frame_at is None or collection_restarted:
                 self.first_frame_at = now
             self.last_frame_at = now
 
@@ -91,10 +114,16 @@ class NarrativeState:
                     self._raw_stream_text = ""
                 self.model_phase = "narrating"
                 self._raw_stream_text += str(event.get("text", ""))
-                self.stream_text = _strip_thinking_blocks(self._raw_stream_text)
+                self.stream_text = _visible_narrative(
+                    self._raw_stream_text,
+                    thinking_mode=self.thinking_mode,
+                )
                 self.error_message = ""
             elif kind == "completed":
-                text = _strip_thinking_blocks(str(event.get("text", ""))).strip()
+                text = _visible_narrative(
+                    str(event.get("text", "")),
+                    thinking_mode=self.thinking_mode,
+                ).strip()
                 if text:
                     self.completed_text = text
                 self.stream_text = ""

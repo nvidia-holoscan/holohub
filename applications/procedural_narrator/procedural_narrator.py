@@ -253,11 +253,15 @@ class NarrativeDisplayOp(Operator):
         state: NarrativeState,
         frame_width: int,
         frame_height: int,
+        input_tensor_name: str,
         **kwargs,
     ):
         if frame_width <= 0 or frame_height <= 0:
             raise ValueError("frame dimensions must be positive")
+        if not isinstance(input_tensor_name, str):
+            raise ValueError("input_tensor_name must be a string")
         self._state = state
+        self._input_tensor_name = input_tensor_name
         self._latest_frame = np.zeros((frame_height, frame_width, 3), dtype=np.uint8)
         super().__init__(fragment, *args, **kwargs)
 
@@ -270,9 +274,9 @@ class NarrativeDisplayOp(Operator):
         message = op_input.receive("video")
         now = time.monotonic()
         if message is not None:
-            tensor = message.get("frame")
+            tensor = message.get(self._input_tensor_name)
             if tensor is None:
-                raise ValueError("video input does not contain tensor 'frame'")
+                raise ValueError(f"video input does not contain tensor {self._input_tensor_name!r}")
             if hasattr(tensor, "__cuda_array_interface__"):
                 import cupy as cp
 
@@ -331,6 +335,9 @@ class ProceduralNarratorApp(Application):
 
         source, source_output, in_dtype = self._make_source(allocator)
         converter_args = dict(self.kwargs("format_converter"))
+        converter_output_tensor_name = converter_args.get("out_tensor_name", "")
+        if not isinstance(converter_output_tensor_name, str):
+            raise ValueError("format_converter.out_tensor_name must be a string")
         converter = FormatConverterOp(
             self,
             name="format_converter",
@@ -341,6 +348,7 @@ class ProceduralNarratorApp(Application):
         )
 
         reasoner_args = dict(self.kwargs("reasoner"))
+        reasoner_args["tensor_name"] = converter_output_tensor_name
         if self._endpoint is not None:
             reasoner_args["endpoint"] = self._endpoint
         reasoner = OnlineVideoReasonerOp(
@@ -353,7 +361,19 @@ class ProceduralNarratorApp(Application):
             name="reasoner",
             **reasoner_args,
         )
-        state = NarrativeState(clip_duration_s=float(reasoner.clip_duration_s))
+        chat_template_kwargs = reasoner.request_options.get("chat_template_kwargs")
+        thinking_mode = (
+            chat_template_kwargs.get("enable_thinking", False)
+            if isinstance(chat_template_kwargs, dict)
+            else False
+        )
+        if not isinstance(thinking_mode, bool):
+            raise ValueError("reasoner thinking mode must be true or false")
+        state = NarrativeState(
+            clip_duration_s=float(reasoner.clip_duration_s),
+            max_frame_gap_s=float(reasoner.max_frame_gap_s),
+            thinking_mode=thinking_mode,
+        )
         event_sink = NarrativeEventSinkOp(self, state=state, name="narrative_event_sink")
         display = NarrativeDisplayOp(
             self,
@@ -365,6 +385,7 @@ class ProceduralNarratorApp(Application):
             state=state,
             frame_width=int(converter_args["resize_width"]),
             frame_height=int(converter_args["resize_height"]),
+            input_tensor_name=converter_output_tensor_name,
             name="narrative_display",
         )
 
