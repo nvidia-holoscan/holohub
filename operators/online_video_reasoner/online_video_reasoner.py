@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import base64
+import io
 import json
 import logging
 import math
@@ -29,6 +30,16 @@ from .media import encode_jpeg, encode_mp4, validate_rgb_frame
 
 LOGGER = logging.getLogger(__name__)
 _RESERVED_REQUEST_OPTIONS = {"max_tokens", "messages", "model", "stream"}
+
+
+def _validate_positive_finite(name: str, value: float) -> None:
+    """Require a positive finite timing value."""
+    try:
+        valid = math.isfinite(value) and value > 0
+    except TypeError:
+        valid = False
+    if not valid:
+        raise ValueError(f"{name} must be a positive finite number")
 
 
 def _close_response_handle(handle: tuple[requests.Response, requests.Session]) -> None:
@@ -170,6 +181,7 @@ class OnlineVideoReasonerOp(Operator):
         request_interval_s: float = 4.0,
         max_frame_gap_s: float | None = None,
         max_tokens: int = 128,
+        max_response_chars: int = 1_048_576,
         connect_timeout_s: float = 10.0,
         timeout_s: float = 60.0,
         api_key_env: str = "REASONER_API_KEY",
@@ -183,14 +195,21 @@ class OnlineVideoReasonerOp(Operator):
         uses_local_http = _validate_endpoint(endpoint)
         if not model or not prompt:
             raise ValueError("model and prompt are required")
-        if sample_fps <= 0 or clip_duration_s <= 0 or request_interval_s <= 0:
-            raise ValueError("sample_fps, clip_duration_s and request_interval_s must be positive")
-        if max_frame_gap_s is not None and (
-            not math.isfinite(max_frame_gap_s) or max_frame_gap_s <= 0
+        _validate_positive_finite("sample_fps", sample_fps)
+        _validate_positive_finite("clip_duration_s", clip_duration_s)
+        _validate_positive_finite("request_interval_s", request_interval_s)
+        if max_frame_gap_s is not None:
+            _validate_positive_finite("max_frame_gap_s", max_frame_gap_s)
+        _validate_positive_finite("connect_timeout_s", connect_timeout_s)
+        _validate_positive_finite("timeout_s", timeout_s)
+        if max_tokens <= 0:
+            raise ValueError("max_tokens must be positive")
+        if (
+            not isinstance(max_response_chars, int)
+            or isinstance(max_response_chars, bool)
+            or max_response_chars <= 0
         ):
-            raise ValueError("max_frame_gap_s must be a positive finite number")
-        if max_tokens <= 0 or connect_timeout_s <= 0 or timeout_s <= 0:
-            raise ValueError("max_tokens, connect_timeout_s and timeout_s must be positive")
+            raise ValueError("max_response_chars must be a positive integer")
         frame_count = round(sample_fps * clip_duration_s)
         if mode == "video" and frame_count < 2:
             raise ValueError("video mode requires at least two frames per clip")
@@ -210,6 +229,7 @@ class OnlineVideoReasonerOp(Operator):
         self.request_interval_s = request_interval_s
         self.max_frame_gap_s = max_frame_gap_s or 2.0 / sample_fps
         self.max_tokens = max_tokens
+        self.max_response_chars = max_response_chars
         self.connect_timeout_s = connect_timeout_s
         self.timeout_s = timeout_s
         self.api_key_env = api_key_env
@@ -221,6 +241,7 @@ class OnlineVideoReasonerOp(Operator):
         self._frames: deque[np.ndarray] = deque(maxlen=frame_count)
         self._frame_times: deque[float] = deque(maxlen=frame_count)
         self._events: queue.Queue[dict[str, Any]] = queue.Queue(maxsize=128)
+        self._events_lock = threading.Lock()
         self._executor: ThreadPoolExecutor | None = None
         self._future: Future[None] | None = None
         self._stop_event = threading.Event()
@@ -240,6 +261,7 @@ class OnlineVideoReasonerOp(Operator):
     def start(self):
         self._frames.clear()
         self._frame_times.clear()
+        self._clear_events()
         self._stop_event.clear()
         self._future = None
         self._active_response = None
@@ -365,9 +387,18 @@ class OnlineVideoReasonerOp(Operator):
         deltas_dropped = False
         try:
             if self.mode == "image":
-                encoded = encode_jpeg(media, ffmpeg=self.ffmpeg)
+                encoded = encode_jpeg(
+                    media,
+                    ffmpeg=self.ffmpeg,
+                    cancel_event=self._stop_event,
+                )
             else:
-                encoded = encode_mp4(media, self.sample_fps, ffmpeg=self.ffmpeg)
+                encoded = encode_mp4(
+                    media,
+                    self.sample_fps,
+                    ffmpeg=self.ffmpeg,
+                    cancel_event=self._stop_event,
+                )
             payload = build_chat_payload(
                 model=self.model,
                 prompt=self.prompt,
@@ -404,13 +435,25 @@ class OnlineVideoReasonerOp(Operator):
             try:
                 response.raise_for_status()
                 if self.stream:
-                    chunks = []
+                    completion = io.StringIO()
+                    completion_chars = 0
+                    deadline = time.monotonic() + self.timeout_s
                     # Larger buffers can delay events until EOF on non-chunked SSE responses.
-                    lines = self._interruptible_lines(response.iter_lines(chunk_size=1))
+                    lines = self._interruptible_lines(
+                        response.iter_lines(chunk_size=1),
+                        deadline=deadline,
+                    )
                     for text in iter_sse_text(lines):
                         if self._stop_event.is_set():
                             return
-                        chunks.append(text)
+                        next_chars = completion_chars + len(text)
+                        if next_chars > self.max_response_chars:
+                            raise ValueError(
+                                "response exceeded max_response_chars "
+                                f"({self.max_response_chars})"
+                            )
+                        completion.write(text)
+                        completion_chars = next_chars
                         queued = self._push_event(
                             {
                                 "request_id": request_id,
@@ -421,11 +464,15 @@ class OnlineVideoReasonerOp(Operator):
                         )
                         deltas_dropped = deltas_dropped or not queued
                         sequence += 1
-                    completed_text = "".join(chunks)
+                    completed_text = completion.getvalue()
                     if not completed_text:
                         raise ValueError("stream completed without text")
                 else:
                     completed_text = extract_completion_text(response.json())
+                    if len(completed_text) > self.max_response_chars:
+                        raise ValueError(
+                            f"response exceeded max_response_chars ({self.max_response_chars})"
+                        )
 
             finally:
                 with self._response_lock:
@@ -527,10 +574,17 @@ class OnlineVideoReasonerOp(Operator):
                 raise result
             return result
 
-    def _interruptible_lines(self, lines: Iterable[str | bytes]) -> Iterable[str | bytes]:
+    def _interruptible_lines(
+        self,
+        lines: Iterable[str | bytes],
+        *,
+        deadline: float | None = None,
+    ) -> Iterable[str | bytes]:
         for line in lines:
             if self._stop_event.is_set():
                 return
+            if deadline is not None and time.monotonic() >= deadline:
+                raise TimeoutError(f"SSE response exceeded timeout_s ({self.timeout_s:g} seconds)")
             yield line
 
     @staticmethod
@@ -544,33 +598,85 @@ class OnlineVideoReasonerOp(Operator):
             LOGGER.debug("Could not interrupt active reasoning response", exc_info=True)
 
     def _push_event(self, event: dict[str, Any]) -> bool:
-        try:
-            self._events.put_nowait(event)
-            return True
-        except queue.Full:
-            # Partial deltas may be dropped under backpressure because the
-            # completed event always carries the full response.
-            if event["kind"] == "delta":
-                return False
-            if event["kind"] == "completed":
-                event["deltas_dropped"] = True
+        with self._events_lock:
             try:
-                self._events.get_nowait()
-            except queue.Empty:
-                pass
+                self._events.put_nowait(event)
+                return True
+            except queue.Full:
+                # Partial deltas may be dropped under backpressure because the
+                # completed event always carries the full response.
+                if event["kind"] == "delta":
+                    return False
+
+            dropped = self._drop_newest_queued_delta()
+            if dropped is None:
+                # A bounded queue cannot retain unlimited canonical events.
+                # Preserve those already queued instead of evicting one.
+                return False
+
+            dropped_request_id = dropped.get("request_id")
+            if (
+                event["kind"] == "completed"
+                and dropped_request_id is not None
+                and event.get("request_id") == dropped_request_id
+            ):
+                event["deltas_dropped"] = True
             try:
                 self._events.put_nowait(event)
             except queue.Full:
-                # Another producer may refill the queue between eviction and
-                # insertion. Treat that as backpressure rather than failing.
-                pass
+                return False
             return False
+
+    def _drop_newest_queued_delta(self) -> dict[str, Any] | None:
+        """Remove one queued delta while retaining canonical events and order."""
+        queued = []
+        while True:
+            try:
+                queued.append(self._events.get_nowait())
+                self._events.task_done()
+            except queue.Empty:
+                break
+
+        dropped_index = next(
+            (
+                index
+                for index in range(len(queued) - 1, -1, -1)
+                if queued[index].get("kind") == "delta"
+            ),
+            None,
+        )
+        dropped = queued.pop(dropped_index) if dropped_index is not None else None
+        if dropped is not None:
+            dropped_request_id = dropped.get("request_id")
+            if dropped_request_id is not None:
+                for queued_event in queued:
+                    if (
+                        queued_event.get("kind") == "completed"
+                        and queued_event.get("request_id") == dropped_request_id
+                    ):
+                        queued_event["deltas_dropped"] = True
+
+        for queued_event in queued:
+            self._events.put_nowait(queued_event)
+        return dropped
+
+    def _clear_events(self) -> None:
+        """Discard events retained from an earlier operator run."""
+        with self._events_lock:
+            while True:
+                try:
+                    self._events.get_nowait()
+                    self._events.task_done()
+                except queue.Empty:
+                    return
 
     def _emit_available_events(self, op_output):
         # The default Holoscan output connector has capacity one. Emit one
         # event per periodic tick and leave the remainder in the bounded queue.
-        try:
-            event = self._events.get_nowait()
-        except queue.Empty:
-            return
+        with self._events_lock:
+            try:
+                event = self._events.get_nowait()
+                self._events.task_done()
+            except queue.Empty:
+                return
         op_output.emit(event, "events")

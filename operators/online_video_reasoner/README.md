@@ -48,8 +48,9 @@ describe activity and change instead of unrelated still images.
 | `request_interval_s` | `4.0` | Minimum interval between accepted requests. |
 | `max_frame_gap_s` | `2 / sample_fps` | Maximum interval between sampled video frames before the rolling window is reset. |
 | `max_tokens` | `128` | Maximum generated tokens requested from the model. |
+| `max_response_chars` | `1048576` | Maximum completion text retained from one response. |
 | `connect_timeout_s` | `10.0` | Endpoint connection timeout in seconds. |
-| `timeout_s` | `60.0` | Response read timeout in seconds. |
+| `timeout_s` | `60.0` | Response read timeout and maximum SSE event-stream duration in seconds. |
 | `api_key_env` | `REASONER_API_KEY` | Environment variable read for an optional bearer token. |
 | `stream` | `true` | Consume SSE deltas when true; otherwise consume one JSON response. |
 | `request_options` | `{}` | Additional top-level request fields; `max_tokens`, `messages`, `model`, and `stream` cannot be overridden. |
@@ -64,11 +65,14 @@ span by more than one sampling period, resets the window. This prevents frames
 from opposite sides of a source interruption being encoded as continuous
 video.
 
-SSE deltas are bounded; the final `completed` event always contains the full
-response and sets `deltas_dropped` if backpressure discarded any intermediate
-chunks. Stopping the operator closes an active HTTP response before waiting for
-the worker to finish. Local cleartext HTTP requests ignore environment proxy
-settings so their media and credentials cannot be forwarded outside the host.
+SSE deltas are bounded; the final `completed` event contains the full response
+and sets `deltas_dropped` if backpressure discarded any intermediate chunks.
+The operator rejects a response that exceeds `max_response_chars`, and the SSE
+deadline also applies while the endpoint sends only heartbeat events. Stopping
+the operator cancels active FFmpeg encoding or closes an active HTTP response
+before waiting for the worker to finish. Local cleartext HTTP requests ignore
+environment proxy settings so their media and credentials cannot be forwarded
+outside the host.
 
 Pass a `PeriodicCondition` when constructing the operator. Its input is
 optional so periodic ticks can drain response events after a finite source

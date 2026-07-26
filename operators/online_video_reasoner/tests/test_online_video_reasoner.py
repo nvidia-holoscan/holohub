@@ -447,6 +447,7 @@ def test_transport_isolates_local_http_and_splits_timeouts(
         ),
         ({"endpoint": "https://:invalid/v1/chat/completions"}, "valid HTTP or HTTPS"),
         ({"max_tokens": 0}, "max_tokens"),
+        ({"max_response_chars": 0}, "max_response_chars"),
         ({"request_options": {"max_tokens": 64}}, "max_tokens"),
         ({"connect_timeout_s": 0}, "connect_timeout_s"),
         ({"sample_fps": 1, "clip_duration_s": 1}, "at least two frames"),
@@ -466,6 +467,34 @@ def test_operator_rejects_invalid_configuration(override, message):
     options.update(override)
 
     with pytest.raises(ValueError, match=message):
+        OnlineVideoReasonerOp(Application(), **options)
+
+
+@pytest.mark.parametrize(
+    "field",
+    [
+        "sample_fps",
+        "clip_duration_s",
+        "request_interval_s",
+        "max_frame_gap_s",
+        "connect_timeout_s",
+        "timeout_s",
+    ],
+)
+@pytest.mark.parametrize("value", [float("nan"), float("inf"), float("-inf")])
+def test_operator_rejects_non_finite_timing_configuration(field, value):
+    options = {
+        "endpoint": "http://127.0.0.1:1/v1/chat/completions",
+        "model": "test-model",
+        "prompt": "Describe change.",
+        "mode": "video",
+        "sample_fps": 4,
+        "clip_duration_s": 0.5,
+        "request_interval_s": 1,
+    }
+    options[field] = value
+
+    with pytest.raises(ValueError, match=field):
         OnlineVideoReasonerOp(Application(), **options)
 
 
@@ -627,7 +656,8 @@ def test_started_event_follows_media_encoding(reasoning_server, monkeypatch):
     encoding_started = threading.Event()
     release_encoding = threading.Event()
 
-    def blocking_encoder(frame, *, ffmpeg):
+    def blocking_encoder(frame, *, ffmpeg, cancel_event):
+        assert not cancel_event.is_set()
         encoding_started.set()
         release_encoding.wait()
         return b"\xff\xd8\xff\xd9"
@@ -649,6 +679,47 @@ def test_started_event_follows_media_encoding(reasoning_server, monkeypatch):
 
     assert not worker.is_alive()
     assert [event["kind"] for event in _queued_events(operator)] == ["started", "completed"]
+
+
+@pytest.mark.parametrize(
+    ("mode", "encoder_name"),
+    [
+        ("image", "encode_jpeg"),
+        ("video", "encode_mp4"),
+    ],
+)
+def test_stop_interrupts_media_encoding(reasoning_server, monkeypatch, mode, encoder_name):
+    operator = _operator(reasoning_server, mode=mode, stream=False)
+    encoding_started = threading.Event()
+
+    def blocking_encoder(*args, ffmpeg, cancel_event):
+        encoding_started.set()
+        assert cancel_event.wait(timeout=2)
+        return b"encoded"
+
+    monkeypatch.setattr(
+        f"operators.online_video_reasoner.online_video_reasoner.{encoder_name}",
+        blocking_encoder,
+    )
+    frame = np.zeros((12, 16, 3), dtype=np.uint8)
+    media = frame if mode == "image" else [frame, frame]
+    operator.start()
+    assert operator._executor is not None
+    operator._future = operator._executor.submit(
+        operator._run_request,
+        "cancelled-encoding",
+        media,
+    )
+    try:
+        assert encoding_started.wait(timeout=1)
+        started_at = time.monotonic()
+        operator.stop()
+        assert time.monotonic() - started_at < 1
+    finally:
+        if operator._executor is not None:
+            operator.stop()
+
+    assert _queued_events(operator) == []
 
 
 def test_truncated_sse_emits_error_not_completed(reasoning_server, monkeypatch):
@@ -676,7 +747,7 @@ def test_truncated_sse_emits_error_not_completed(reasoning_server, monkeypatch):
     )
     monkeypatch.setattr(
         "operators.online_video_reasoner.online_video_reasoner.encode_jpeg",
-        lambda frame, *, ffmpeg: b"\xff\xd8\xff\xd9",
+        lambda frame, *, ffmpeg, cancel_event: b"\xff\xd8\xff\xd9",
     )
 
     operator._run_request("truncated-stream", np.zeros((12, 16, 3), dtype=np.uint8))
@@ -684,6 +755,138 @@ def test_truncated_sse_emits_error_not_completed(reasoning_server, monkeypatch):
     events = _queued_events(operator)
     assert [event["kind"] for event in events] == ["started", "delta", "error"]
     assert events[-1]["message"] == "SSE stream ended before [DONE]"
+
+
+@pytest.mark.parametrize(
+    ("parts", "limit", "expected_kinds"),
+    [
+        (("four",), 4, ["started", "delta", "completed"]),
+        (("four", "!"), 4, ["started", "delta", "error"]),
+    ],
+)
+def test_stream_response_respects_character_limit(
+    reasoning_server,
+    monkeypatch,
+    parts,
+    limit,
+    expected_kinds,
+):
+    operator = _operator(reasoning_server, mode="image", stream=True)
+    operator.max_response_chars = limit
+
+    class Response:
+        def raise_for_status(self):
+            pass
+
+        def iter_lines(self, chunk_size):
+            assert chunk_size == 1
+            for text in parts:
+                event = {"choices": [{"delta": {"content": text}}]}
+                yield f"data: {json.dumps(event)}".encode()
+            yield b"data: [DONE]"
+
+        def close(self):
+            pass
+
+    class Session:
+        def close(self):
+            pass
+
+    monkeypatch.setattr(
+        operator,
+        "_post_interruptibly",
+        lambda payload, headers: (Response(), Session()),
+    )
+    monkeypatch.setattr(
+        "operators.online_video_reasoner.online_video_reasoner.encode_jpeg",
+        lambda frame, *, ffmpeg, cancel_event: b"\xff\xd8\xff\xd9",
+    )
+
+    operator._run_request("bounded-stream", np.zeros((12, 16, 3), dtype=np.uint8))
+
+    events = _queued_events(operator)
+    assert [event["kind"] for event in events] == expected_kinds
+    if expected_kinds[-1] == "completed":
+        assert events[-1]["text"] == "four"
+    else:
+        assert events[-1]["message"] == "response exceeded max_response_chars (4)"
+
+
+def test_sse_deadline_applies_to_heartbeat_lines(reasoning_server, monkeypatch):
+    operator = _operator(reasoning_server, mode="image", stream=True)
+    operator.timeout_s = 1
+    moments = iter((0.0, 0.5, 1.0))
+
+    class Response:
+        def raise_for_status(self):
+            pass
+
+        def iter_lines(self, chunk_size):
+            assert chunk_size == 1
+            yield b": heartbeat"
+            yield b": heartbeat"
+
+        def close(self):
+            pass
+
+    class Session:
+        def close(self):
+            pass
+
+    monkeypatch.setattr(
+        operator,
+        "_post_interruptibly",
+        lambda payload, headers: (Response(), Session()),
+    )
+    monkeypatch.setattr(
+        "operators.online_video_reasoner.online_video_reasoner.encode_jpeg",
+        lambda frame, *, ffmpeg, cancel_event: b"\xff\xd8\xff\xd9",
+    )
+    monkeypatch.setattr(
+        "operators.online_video_reasoner.online_video_reasoner.time.monotonic",
+        lambda: next(moments),
+    )
+
+    operator._run_request("timed-stream", np.zeros((12, 16, 3), dtype=np.uint8))
+
+    events = _queued_events(operator)
+    assert [event["kind"] for event in events] == ["started", "error"]
+    assert events[-1]["message"] == "SSE response exceeded timeout_s (1 seconds)"
+
+
+def test_non_stream_response_respects_character_limit(reasoning_server, monkeypatch):
+    operator = _operator(reasoning_server, mode="image", stream=False)
+    operator.max_response_chars = 4
+
+    class Response:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return {"choices": [{"message": {"content": "five!"}}]}
+
+        def close(self):
+            pass
+
+    class Session:
+        def close(self):
+            pass
+
+    monkeypatch.setattr(
+        operator,
+        "_post_interruptibly",
+        lambda payload, headers: (Response(), Session()),
+    )
+    monkeypatch.setattr(
+        "operators.online_video_reasoner.online_video_reasoner.encode_jpeg",
+        lambda frame, *, ffmpeg, cancel_event: b"\xff\xd8\xff\xd9",
+    )
+
+    operator._run_request("bounded-response", np.zeros((12, 16, 3), dtype=np.uint8))
+
+    events = _queued_events(operator)
+    assert [event["kind"] for event in events] == ["started", "error"]
+    assert events[-1]["message"] == "response exceeded max_response_chars (4)"
 
 
 def test_stop_interrupts_stalled_sse_request(stalled_sse_server):
@@ -782,34 +985,81 @@ def test_compute_drains_events_without_an_input_message(reasoning_server):
     assert operator._events.qsize() == 1
 
 
+def test_start_discards_events_from_previous_run(reasoning_server):
+    operator = _operator(reasoning_server, mode="image", stream=False)
+    operator.start()
+    operator._events.put({"request_id": "stale", "kind": "completed", "text": "old"})
+    operator.stop()
+
+    operator.start()
+    try:
+        assert _queued_events(operator) == []
+    finally:
+        operator.stop()
+
+
 def test_completed_event_marks_dropped_stream_deltas(reasoning_server):
     operator = _operator(reasoning_server, mode="image", stream=False)
     operator._events = queue.Queue(maxsize=1)
-    assert operator._push_event({"kind": "delta", "text": "partial"})
+    assert operator._push_event({"request_id": "r", "kind": "delta", "text": "partial"})
 
-    completed = {"kind": "completed", "text": "complete", "deltas_dropped": False}
+    completed = {
+        "request_id": "r",
+        "kind": "completed",
+        "text": "complete",
+        "deltas_dropped": False,
+    }
     assert not operator._push_event(completed)
 
     assert _queued_events(operator) == [
-        {"kind": "completed", "text": "complete", "deltas_dropped": True}
+        {
+            "request_id": "r",
+            "kind": "completed",
+            "text": "complete",
+            "deltas_dropped": True,
+        }
     ]
 
 
-def test_completed_event_tolerates_concurrent_queue_refill(reasoning_server):
+def test_backpressure_preserves_queued_completion_and_marks_dropped_delta(
+    reasoning_server,
+):
     operator = _operator(reasoning_server, mode="image", stream=False)
+    operator._events = queue.Queue(maxsize=2)
+    operator._events.put({"request_id": "r", "kind": "delta", "text": "partial"})
+    operator._events.put(
+        {
+            "request_id": "r",
+            "kind": "completed",
+            "text": "complete",
+            "deltas_dropped": False,
+        }
+    )
 
-    class ConcurrentlyRefilledQueue:
-        def put_nowait(self, event):
-            raise queue.Full
+    started = {"request_id": "next", "kind": "started"}
+    assert not operator._push_event(started)
 
-        def get_nowait(self):
-            return {"kind": "started"}
+    assert _queued_events(operator) == [
+        {
+            "request_id": "r",
+            "kind": "completed",
+            "text": "complete",
+            "deltas_dropped": True,
+        },
+        started,
+    ]
 
-    operator._events = ConcurrentlyRefilledQueue()
-    completed = {"kind": "completed", "text": "complete", "deltas_dropped": False}
 
-    assert not operator._push_event(completed)
-    assert completed["deltas_dropped"]
+def test_backpressure_does_not_evict_canonical_events(reasoning_server):
+    operator = _operator(reasoning_server, mode="image", stream=False)
+    operator._events = queue.Queue(maxsize=2)
+    completed = {"request_id": "r", "kind": "completed", "text": "complete"}
+    error = {"request_id": "s", "kind": "error", "message": "failed"}
+    operator._events.put(completed)
+    operator._events.put(error)
+
+    assert not operator._push_event({"request_id": "next", "kind": "started"})
+    assert _queued_events(operator) == [completed, error]
 
 
 def test_holoscan_graph_streams_video_reasoning_events(reasoning_server):

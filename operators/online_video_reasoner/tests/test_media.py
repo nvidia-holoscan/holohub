@@ -5,6 +5,7 @@ import importlib.util
 import json
 import shutil
 import subprocess
+import threading
 from fractions import Fraction
 from pathlib import Path
 
@@ -64,15 +65,67 @@ def test_encoder_reports_missing_ffmpeg():
 
 def test_encoder_reports_ffmpeg_timeout(monkeypatch):
     frame = np.zeros((4, 6, 3), dtype=np.uint8)
+    process = _StalledProcess()
+    moments = iter((0.0, 0.0, 61.0))
 
-    def timeout(*args, **kwargs):
-        assert kwargs["timeout"] == 60.0
-        raise subprocess.TimeoutExpired(args[0], kwargs["timeout"])
-
-    monkeypatch.setattr(media.subprocess, "run", timeout)
+    monkeypatch.setattr(media.subprocess, "Popen", lambda *args, **kwargs: process)
+    monkeypatch.setattr(media.time, "monotonic", lambda: next(moments))
 
     with pytest.raises(MediaEncodingError, match="timed out after 60 seconds"):
         encode_jpeg(frame)
+
+    assert process.communicate_calls[0][1] == 0.05
+    assert process.killed
+    assert process.reaped
+
+
+class _StalledProcess:
+    def __init__(self):
+        self.returncode = None
+        self.killed = False
+        self.reaped = False
+        self.communicate_calls = []
+        self.communication_started = threading.Event()
+
+    def communicate(self, input=None, timeout=None):
+        self.communicate_calls.append((input, timeout))
+        if self.killed:
+            self.returncode = -9
+            self.reaped = True
+            return b"", b""
+        self.communication_started.set()
+        raise subprocess.TimeoutExpired("ffmpeg", timeout)
+
+    def kill(self):
+        self.killed = True
+
+
+def test_encoder_cancellation_kills_and_reaps_ffmpeg(monkeypatch):
+    frame = np.zeros((4, 6, 3), dtype=np.uint8)
+    cancel_event = threading.Event()
+    process = _StalledProcess()
+    errors = []
+
+    monkeypatch.setattr(media.subprocess, "Popen", lambda *args, **kwargs: process)
+
+    def encode():
+        try:
+            encode_jpeg(frame, cancel_event=cancel_event)
+        except Exception as error:
+            errors.append(error)
+
+    worker = threading.Thread(target=encode)
+    worker.start()
+    assert process.communication_started.wait(timeout=1)
+    cancel_event.set()
+    worker.join(timeout=1)
+
+    assert not worker.is_alive()
+    assert len(errors) == 1
+    assert isinstance(errors[0], MediaEncodingError)
+    assert str(errors[0]) == "FFmpeg encoding cancelled"
+    assert process.killed
+    assert process.reaped
 
 
 @pytest.mark.skipif(FFMPEG is None, reason="ffmpeg is not installed")

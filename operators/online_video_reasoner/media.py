@@ -8,12 +8,15 @@ from __future__ import annotations
 import math
 import subprocess
 import tempfile
+import threading
+import time
 from collections.abc import Iterable
 from pathlib import Path
 
 import numpy as np
 
 _FFMPEG_TIMEOUT_S = 60.0
+_FFMPEG_POLL_INTERVAL_S = 0.05
 
 
 class MediaEncodingError(RuntimeError):
@@ -33,32 +36,72 @@ def validate_rgb_frame(frame: np.ndarray) -> np.ndarray:
     return frame
 
 
-def _run_ffmpeg(command: list[str], payload: bytes, executable: str) -> bytes:
+def _kill_and_reap(process: subprocess.Popen) -> None:
+    """Kill an owned FFmpeg child and close its pipes."""
     try:
-        result = subprocess.run(
+        process.kill()
+    except ProcessLookupError:
+        pass
+    process.communicate()
+
+
+def _run_ffmpeg(
+    command: list[str],
+    payload: bytes,
+    executable: str,
+    *,
+    cancel_event: threading.Event | None = None,
+) -> bytes:
+    if cancel_event is not None and cancel_event.is_set():
+        raise MediaEncodingError("FFmpeg encoding cancelled")
+
+    try:
+        process = subprocess.Popen(
             command,
-            input=payload,
+            stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            check=False,
-            timeout=_FFMPEG_TIMEOUT_S,
         )
-    except subprocess.TimeoutExpired as exc:
-        raise MediaEncodingError(
-            f"FFmpeg encoding timed out after {_FFMPEG_TIMEOUT_S:g} seconds"
-        ) from exc
     except OSError as exc:
         raise MediaEncodingError(f"cannot run FFmpeg executable {executable!r}: {exc}") from exc
 
-    if result.returncode != 0:
-        detail = result.stderr.decode("utf-8", errors="replace").strip()
+    deadline = time.monotonic() + _FFMPEG_TIMEOUT_S
+    pending_input: bytes | None = payload
+    while True:
+        if cancel_event is not None and cancel_event.is_set():
+            _kill_and_reap(process)
+            raise MediaEncodingError("FFmpeg encoding cancelled")
+
+        remaining_s = deadline - time.monotonic()
+        if remaining_s <= 0:
+            _kill_and_reap(process)
+            raise MediaEncodingError(
+                f"FFmpeg encoding timed out after {_FFMPEG_TIMEOUT_S:g} seconds"
+            )
+        try:
+            stdout, stderr = process.communicate(
+                input=pending_input,
+                timeout=min(_FFMPEG_POLL_INTERVAL_S, remaining_s),
+            )
+            break
+        except subprocess.TimeoutExpired:
+            # Popen retains partially written input across communicate() calls.
+            pending_input = None
+
+    if process.returncode != 0:
+        detail = stderr.decode("utf-8", errors="replace").strip()
         if not detail:
-            detail = f"exit status {result.returncode}"
+            detail = f"exit status {process.returncode}"
         raise MediaEncodingError(f"FFmpeg encoding failed: {detail}")
-    return result.stdout
+    return stdout
 
 
-def encode_jpeg(frame: np.ndarray, ffmpeg: str = "ffmpeg") -> bytes:
+def encode_jpeg(
+    frame: np.ndarray,
+    ffmpeg: str = "ffmpeg",
+    *,
+    cancel_event: threading.Event | None = None,
+) -> bytes:
     """Encode one RGB frame as JPEG using a single FFmpeg process."""
     validate_rgb_frame(frame)
     height, width, _ = frame.shape
@@ -86,7 +129,12 @@ def encode_jpeg(frame: np.ndarray, ffmpeg: str = "ffmpeg") -> bytes:
         "image2pipe",
         "pipe:1",
     ]
-    encoded = _run_ffmpeg(command, frame.tobytes(order="C"), ffmpeg)
+    encoded = _run_ffmpeg(
+        command,
+        frame.tobytes(order="C"),
+        ffmpeg,
+        cancel_event=cancel_event,
+    )
     if not encoded:
         raise MediaEncodingError("FFmpeg produced an empty JPEG")
     return encoded
@@ -96,6 +144,8 @@ def encode_mp4(
     frames: Iterable[np.ndarray],
     fps: float,
     ffmpeg: str = "ffmpeg",
+    *,
+    cancel_event: threading.Event | None = None,
 ) -> bytes:
     """Encode ordered RGB frames as a seekable H.264 MP4."""
     try:
@@ -159,7 +209,7 @@ def encode_mp4(
             "-y",
             str(output_path),
         ]
-        _run_ffmpeg(command, payload, ffmpeg)
+        _run_ffmpeg(command, payload, ffmpeg, cancel_event=cancel_event)
         try:
             encoded = output_path.read_bytes()
         except OSError as exc:

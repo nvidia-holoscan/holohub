@@ -117,6 +117,7 @@ def make_config(path: Path):
             "clip_duration_s": 0.3,
             "request_interval_s": 60,
             "max_tokens": 32,
+            "max_response_chars": 4096,
             "connect_timeout_s": 3,
             "timeout_s": 10,
             "api_key_env": "REASONER_API_KEY",
