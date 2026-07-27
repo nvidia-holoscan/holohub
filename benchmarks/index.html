@@ -1,5 +1,7 @@
 <!-- Custom HTML site displayed as the Benchmarks chapter -->
 
+
+
 <!doctype html>
 <html lang="en" class="no-js">
   <head>
@@ -7,6 +9,10 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
+        <meta name="description" content="Measure Holoscan performance with HoloHub benchmarks — tools and examples for evaluating real-time AI sensor processing pipelines.">
+      
+      
+        <meta name="author" content="NVIDIA">
       
       
         <link rel="canonical" href="https://nvidia-holoscan.github.io/holohub/benchmarks/">
@@ -26,7 +32,7 @@
     
     
       
-        <title>Benchmarks - NVIDIA Holoscan Ecosystem</title>
+        <title>Holoscan Benchmarks - HoloHub – Explore The Holoscan Ecosystem</title>
       
     
     
@@ -83,6 +89,75 @@
   <link rel="stylesheet" href="../assets/shared-cards.css">
   <script src="../assets/shared-filter.js"></script>
   
+  
+  
+  <meta property="og:description" content="Measure Holoscan performance with HoloHub benchmarks — tools and examples for evaluating real-time AI sensor processing pipelines." />
+  <meta name="twitter:description" content="Measure Holoscan performance with HoloHub benchmarks — tools and examples for evaluating real-time AI sensor processing pipelines." />
+  
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Holoscan Benchmarks - HoloHub – Explore The Holoscan Ecosystem" />
+  <meta property="og:site_name" content="HoloHub – Explore The Holoscan Ecosystem" />
+  <meta property="og:url" content="https://nvidia-holoscan.github.io/holohub/benchmarks/" />
+  <meta property="og:image" content="https://nvidia-holoscan.github.io/holohub/assets/images/jetson-for-dev-ai-labs-icon-2974266-r3_ai-lab-text-generation-28.png" />
+  <meta property="og:locale" content="en_US" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Holoscan Benchmarks - HoloHub – Explore The Holoscan Ecosystem" />
+  <meta name="twitter:image" content="https://nvidia-holoscan.github.io/holohub/assets/images/jetson-for-dev-ai-labs-icon-2974266-r3_ai-lab-text-generation-28.png" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://nvidia-holoscan.github.io/holohub/#website",
+        "name": "HoloHub – The Holoscan Ecosystem Gateway",
+        "alternateName": [
+          "HoloHub",
+          "The Holoscan Ecosystem",
+          "NVIDIA Holoscan Ecosystem",
+          "Holoscan Applications"
+        ],
+        "url": "https://nvidia-holoscan.github.io/holohub/",
+        "description": "Measure Holoscan performance with HoloHub benchmarks \u2014 tools and examples for evaluating real-time AI sensor processing pipelines.",
+        "publisher": { "@id": "https://nvidia-holoscan.github.io/holohub/#organization" },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://nvidia-holoscan.github.io/holohub/?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://nvidia-holoscan.github.io/holohub/#organization",
+        "name": "NVIDIA",
+        "url": "https://www.nvidia.com/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://nvidia-holoscan.github.io/holohub/assets/images/favicon.png"
+        }
+      },
+      {
+        "@type": "SoftwareSourceCode",
+        "@id": "https://nvidia-holoscan.github.io/holohub/#holohub",
+        "name": "HoloHub",
+        "alternateName": "The Holoscan Ecosystem",
+        "description": "Measure Holoscan performance with HoloHub benchmarks \u2014 tools and examples for evaluating real-time AI sensor processing pipelines.",
+        "url": "https://nvidia-holoscan.github.io/holohub/",
+        "codeRepository": "https://github.com/nvidia-holoscan/holohub",
+        "programmingLanguage": ["Python", "C++"],
+        "runtimePlatform": "NVIDIA Holoscan",
+        "applicationCategory": "DeveloperApplication",
+        "isPartOf": {
+          "@type": "SoftwareApplication",
+          "name": "NVIDIA Holoscan",
+          "url": "https://developer.nvidia.com/holoscan-sdk"
+        },
+        "publisher": { "@id": "https://nvidia-holoscan.github.io/holohub/#organization" }
+      }
+    ]
+  }
+  </script>
+
 
   </head>
   
@@ -116,7 +191,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="NVIDIA Holoscan Ecosystem" class="md-header__button md-logo" aria-label="NVIDIA Holoscan Ecosystem" data-md-component="logo">
+    <a href=".." title="HoloHub – Explore The Holoscan Ecosystem" class="md-header__button md-logo" aria-label="HoloHub – Explore The Holoscan Ecosystem" data-md-component="logo">
       
   
   <?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -138,13 +213,13 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            NVIDIA Holoscan Ecosystem
+            HoloHub – Explore The Holoscan Ecosystem
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Benchmarks
+              Holoscan Benchmarks
             
           </span>
         </div>
@@ -495,12 +570,11 @@
             <div style="flex: 1; min-width: 0;">
                 <div class="row justify-content-center">
                     <div class="col-12" style="text-align: left; padding-left: 2rem; padding-right: 2rem;">
-                        <h3 class="section-title" id="category-title" style="font-size: 0.9rem; text-align: left;">All Benchmarks</h3>
+                        <h1 class="section-title" id="category-title" style="font-size: 0.9rem; text-align: left;">Holoscan Benchmarks</h1>
                         <p style="margin-bottom: 1.5rem; line-height: 1.6; color: var(--md-default-fg-color); font-size: 0.7rem;">
-                            Benchmarks provide performance measurements and comparative analysis of NVIDIA Holoscan capabilities.
-                            These examples demonstrate real-world performance characteristics including threading models, visualization techniques,
-                            and system optimization strategies. Use these benchmarks to understand performance implications and optimize your applications
-                            for specific hardware configurations and use cases.
+                            Measure Holoscan performance with HoloHub benchmarks — tools and examples for evaluating real-time AI
+                            sensor processing pipelines, threading models, visualization, and system optimization across the
+                            Holoscan ecosystem.
                         </p>
                     </div>
                     
@@ -597,7 +671,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="NVIDIA Holoscan Ecosystem" class="md-nav__button md-logo" aria-label="NVIDIA Holoscan Ecosystem" data-md-component="logo">
+    <a href=".." title="HoloHub – Explore The Holoscan Ecosystem" class="md-nav__button md-logo" aria-label="HoloHub – Explore The Holoscan Ecosystem" data-md-component="logo">
       
   
   <?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -611,7 +685,7 @@
 </svg>
 
     </a>
-    NVIDIA Holoscan Ecosystem
+    HoloHub – Explore The Holoscan Ecosystem
   </label>
   
     <div class="md-nav__source">
@@ -810,7 +884,7 @@
   
     
       <li class="md-nav__item hs-drawer-only hs-drawer-divider">
-        <span class="md-nav__link hs-drawer-divider__label">NVIDIA Holoscan Ecosystem</span>
+        <span class="md-nav__link hs-drawer-divider__label">HoloHub – Explore The Holoscan Ecosystem</span>
       </li>
       
         

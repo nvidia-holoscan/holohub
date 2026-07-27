@@ -5,12 +5,14 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
+<meta content="Optional live-camera operators for Atracsys hardware, including the master source and structured-light point-cloud conversion path." name="description"/>
+<meta content="NVIDIA" name="author"/>
 <link href="https://nvidia-holoscan.github.io/holohub/operators/atracsys_camera/" rel="canonical"/>
 <link href="../apriltag_detector/" rel="prev"/>
 <link href="../atracsys_mode_switcher/" rel="next"/>
 <link href="../../assets/images/favicon.png" rel="icon"/>
 <meta content="mkdocs-1.6.1, mkdocs-material-9.7.7" name="generator"/>
-<title>Atracsys Camera Operators (latest) - NVIDIA Holoscan Ecosystem</title>
+<title>Atracsys Camera Operators (latest) - HoloHub – Explore The Holoscan Ecosystem</title>
 <link href="../../assets/stylesheets/main.ec1eaa64.min.css" rel="stylesheet"/>
 <link href="../../assets/stylesheets/palette.ab4e12ef.min.css" rel="stylesheet"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -24,6 +26,71 @@
 <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
 <script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-S5CCWVS2B6"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-S5CCWVS2B6",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-S5CCWVS2B6",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
 <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+<meta content="Optional live-camera operators for Atracsys hardware, including the master source and structured-light point-cloud conversion path." property="og:description"/>
+<meta content="Optional live-camera operators for Atracsys hardware, including the master source and structured-light point-cloud conversion path." name="twitter:description"/>
+<meta content="website" property="og:type"/>
+<meta content="Atracsys Camera Operators (latest) - HoloHub – Explore The Holoscan Ecosystem" property="og:title"/>
+<meta content="HoloHub – Explore The Holoscan Ecosystem" property="og:site_name"/>
+<meta content="https://nvidia-holoscan.github.io/holohub/operators/atracsys_camera/" property="og:url"/>
+<meta content="https://nvidia-holoscan.github.io/holohub/assets/images/jetson-for-dev-ai-labs-icon-2974266-r3_ai-lab-text-generation-28.png" property="og:image"/>
+<meta content="en_US" property="og:locale"/>
+<meta content="summary_large_image" name="twitter:card"/>
+<meta content="Atracsys Camera Operators (latest) - HoloHub – Explore The Holoscan Ecosystem" name="twitter:title"/>
+<meta content="https://nvidia-holoscan.github.io/holohub/assets/images/jetson-for-dev-ai-labs-icon-2974266-r3_ai-lab-text-generation-28.png" name="twitter:image"/>
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://nvidia-holoscan.github.io/holohub/#website",
+        "name": "HoloHub – The Holoscan Ecosystem Gateway",
+        "alternateName": [
+          "HoloHub",
+          "The Holoscan Ecosystem",
+          "NVIDIA Holoscan Ecosystem",
+          "Holoscan Applications"
+        ],
+        "url": "https://nvidia-holoscan.github.io/holohub/",
+        "description": "Optional live-camera operators for Atracsys hardware, including the master source and structured-light point-cloud conversion path.",
+        "publisher": { "@id": "https://nvidia-holoscan.github.io/holohub/#organization" },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://nvidia-holoscan.github.io/holohub/?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://nvidia-holoscan.github.io/holohub/#organization",
+        "name": "NVIDIA",
+        "url": "https://www.nvidia.com/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://nvidia-holoscan.github.io/holohub/assets/images/favicon.png"
+        }
+      },
+      {
+        "@type": "SoftwareSourceCode",
+        "@id": "https://nvidia-holoscan.github.io/holohub/#holohub",
+        "name": "HoloHub",
+        "alternateName": "The Holoscan Ecosystem",
+        "description": "Optional live-camera operators for Atracsys hardware, including the master source and structured-light point-cloud conversion path.",
+        "url": "https://nvidia-holoscan.github.io/holohub/",
+        "codeRepository": "https://github.com/nvidia-holoscan/holohub",
+        "programmingLanguage": ["Python", "C++"],
+        "runtimePlatform": "NVIDIA Holoscan",
+        "applicationCategory": "DeveloperApplication",
+        "isPartOf": {
+          "@type": "SoftwareApplication",
+          "name": "NVIDIA Holoscan",
+          "url": "https://developer.nvidia.com/holoscan-sdk"
+        },
+        "publisher": { "@id": "https://nvidia-holoscan.github.io/holohub/#organization" }
+      }
+    ]
+  }
+  </script>
 </head>
 <body data-md-color-accent="lime" data-md-color-primary="custom" data-md-color-scheme="light" dir="ltr">
 <input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
@@ -40,7 +107,7 @@
 </div>
 <header class="md-header" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
-<a aria-label="NVIDIA Holoscan Ecosystem" class="md-header__button md-logo" data-md-component="logo" href="../.." title="NVIDIA Holoscan Ecosystem">
+<a aria-label="HoloHub – Explore The Holoscan Ecosystem" class="md-header__button md-logo" data-md-component="logo" href="../.." title="HoloHub – Explore The Holoscan Ecosystem">
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 
@@ -59,7 +126,7 @@
 <div class="md-header__ellipsis">
 <div class="md-header__topic">
 <span class="md-ellipsis">
-            NVIDIA Holoscan Ecosystem
+            HoloHub – Explore The Holoscan Ecosystem
           </span>
 </div>
 <div class="md-header__topic" data-md-component="header-topic">
@@ -307,7 +374,7 @@
 <div class="md-sidebar__inner">
 <nav aria-label="Navigation" class="md-nav md-nav--primary md-nav--lifted" data-md-level="0">
 <label class="md-nav__title" for="__drawer">
-<a aria-label="NVIDIA Holoscan Ecosystem" class="md-nav__button md-logo" data-md-component="logo" href="../.." title="NVIDIA Holoscan Ecosystem">
+<a aria-label="HoloHub – Explore The Holoscan Ecosystem" class="md-nav__button md-logo" data-md-component="logo" href="../.." title="HoloHub – Explore The Holoscan Ecosystem">
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 
@@ -319,7 +386,7 @@
 </g>
 </svg>
 </a>
-    NVIDIA Holoscan Ecosystem
+    HoloHub – Explore The Holoscan Ecosystem
   </label>
 <div class="md-nav__source">
 <a class="md-source" data-md-component="source" href="https://github.com/nvidia-holoscan/holohub" title="Go to repository">
@@ -462,7 +529,7 @@
 </a>
 </li>
 <li class="md-nav__item hs-drawer-only hs-drawer-divider">
-<span class="md-nav__link hs-drawer-divider__label">NVIDIA Holoscan Ecosystem</span>
+<span class="md-nav__link hs-drawer-divider__label">HoloHub – Explore The Holoscan Ecosystem</span>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="../..">
