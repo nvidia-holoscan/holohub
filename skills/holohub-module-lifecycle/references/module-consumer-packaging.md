@@ -17,8 +17,8 @@ trim leading/trailing underscores, and uppercase. For example,
 `holoscan-my-module` becomes `HOLOSCAN_CLI_LOCAL_HOLOSCAN_MY_MODULE`.
 The public consolidated CLI defines this mapping in
 [`external_resolver.py`](https://github.com/nvidia-holoscan/holoscan-cli/blob/main/src/holoscan_cli/utils/external_resolver.py).
-Confirm the selected CLI version with `./holohub version` before relying on
-version-sensitive override behavior.
+Confirm the selected CLI version with `./holohub version --json` before
+relying on version-sensitive override behavior.
 
 A host export is not automatically forwarded into the normal project
 container. Mount the source and set the override to its container path inside
@@ -44,10 +44,10 @@ selected by `./holohub`; it is not the normal project-container install path.
 Use it only when that exact environment is the consumer:
 
 ```bash
-./holohub env-info
+./holohub env-info --json
 ./holohub install <module> --dev --build-dir <exact-build-dir> --dryrun --verbose
 ./holohub install <module> --dev --build-dir <exact-build-dir> --verbose
-# verify import with the exact environment reported by env-info
+# verify import with the exact environment reported by env-info --json
 ./holohub install <module> --dev --uninstall --dryrun --verbose
 ./holohub install <module> --dev --uninstall --verbose
 ```
@@ -67,10 +67,13 @@ Package only after producer and consumer behavior is proved:
   --pkg-generator DEB,WHEEL --verbose
 ```
 
-Dry-run can still prepare package directories. Record actual artifact paths.
-Inspect wheel file lists and `*.dist-info/METADATA`; compare name, version,
-dependencies, and namespace with module metadata. Inspect `dpkg-deb --info`
-and `--contents`; compare package identity, dependencies, and payload paths.
+With holoscan-cli 4.5.0 or newer, the package dry run does not create package
+directories. It also honors the explicit `<module>` argument; a real package
+action fails when that module produces no CPack configuration. Record actual
+artifact paths from the action. Inspect wheel file lists and
+`*.dist-info/METADATA`; compare name, version, dependencies, and namespace
+with module metadata. Inspect `dpkg-deb --info` and `--contents`; compare
+package identity, dependencies, and payload paths.
 
 ## Clean consumer proof
 
@@ -95,6 +98,6 @@ Rerun focused producer tests and clean consumer smoke. Run `git diff --check`,
 inspect the complete diff/status, and ensure packages, staged installs, and
 editable hooks are not staged.
 
-Use the current `AGENTS.md` lint workflow in Holohub and the generated
+Use the current `AGENTS.md` lint workflow in HoloHub and the generated
 repository's own guidance externally. Preview supported lint commands, inspect
 auto-fixes, and do not commit, push, publish, or release unless requested.

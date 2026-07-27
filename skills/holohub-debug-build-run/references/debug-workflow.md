@@ -9,10 +9,12 @@ and local help. Record project, mode, language, build type, image, input,
 display/headless state, devices, output path, full HEAD, and concise status.
 
 The launcher selects a command environment before parsing the verb, so even
-help or dry-run output can include environment setup or repair. Use `version`
-and `env-info` to identify that environment, `env-check` for host/GPU/Docker/
-display/device health, and `status` for image/cache facts. Compare outer and
-container `env-info` when their behavior differs.
+help or dry-run output can include environment setup or repair. Use
+`version --json` and `env-info --json` to identify that environment,
+`env-check --json` for
+host/GPU/Docker/display/device health, and `status --json` for image/cache
+facts. Compare outer and container `env-info --json` when their behavior
+differs.
 
 Preview the original command without changing its effect-bearing arguments.
 Inspect selected project/mode/language, image, mounts, devices, environment,
@@ -29,8 +31,8 @@ manufacturing a change.
 | --- | --- |
 | Launcher | Selected environment, active virtual environment, ownership, package/index access, checkout pin |
 | Create/setup/lint | Complete unattended inputs, parent, template dependencies, privileges, auto-fixes |
-| Discovery/metadata | Project/language/mode, schema, registration, `list`, `modes` |
-| Host | `env-check`, platform, driver, Docker, disk, display, devices/permissions |
+| Discovery/metadata | Project/language/mode, schema, registration, `list --json`, `modes --json` |
+| Host | `env-check --json`, platform, driver, Docker, disk, display, devices/permissions |
 | Image/container | Dockerfile/base image, image age, registry, mounts, workdir, user, display |
 | Configure/build | First CMake/compiler error, targets, include/link paths, bindings, cache |
 | Test | Selected driver/CTest target, language, xvfb, registration, first failure |

@@ -4,6 +4,7 @@ description: "Use when a concrete ./holohub command fails, hangs, regresses, or 
 license: Apache-2.0
 metadata:
   author: "Holoscan Team <holoscan-team@nvidia.com>"
+  compatibility: "holoscan-cli>=4.5.0"
   github-url: "https://github.com/nvidia-holoscan/holohub"
   tags:
     - holoscan
@@ -11,7 +12,7 @@ metadata:
     - debugging
 ---
 
-# Debug Holohub commands
+# Debug HoloHub commands
 
 ## Purpose
 
@@ -22,7 +23,7 @@ command with focused regression proof.
 
 Require:
 
-- the affected user-provided Holohub checkout;
+- the affected user-provided HoloHub checkout;
 - one exact failing, hanging, regressed, or semantically wrong `./holohub`
   command;
 - expected and observed results, relevant inputs, and the point where progress
@@ -52,8 +53,8 @@ user, system, or safety constraints.
    boundary, first useful error, expected versus observed result, full HEAD,
    concise status, and relevant input/image/artifact identities.
 2. **Identify syntax and environment.** Read wrapper and subcommand help.
-   Capture `version`, `env-info`, relevant `env-check`, and `status`, reviewing
-   sensitive values before sharing.
+   Capture `version --json`, `env-info --json`, relevant `env-check --json`,
+   and `status --json`, reviewing sensitive values before sharing.
 3. **Locate the failing phase.** Separate launcher bootstrap from the verb,
    then distinguish host, image setup, container, configure/build/test/package,
    and application behavior.

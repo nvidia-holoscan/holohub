@@ -1,11 +1,17 @@
 # `./holohub` contract
 
-**Verified:** 2026-07-15 against Holohub commit
+**Evidence snapshot:** verified 2026-07-15 against HoloHub commit
 `777d65830a7b50a324370f4d4bb65d2420e495f7`.
 
-Treat the tested revision as a reproducible fallback, not authority over an
-existing checkout. Recheck all version-sensitive behavior with local help and
-the exact checkout.
+Requires `holoscan-cli>=4.5.0`. The 4.5.0 behavior below was verified against
+release commit `cb79b8cb0f3d7e9c50d3570fee0df15df379074e`.
+
+HoloHub is rolling: current official `main` is the normal fresh-checkout
+target. Treat the evidence snapshot as provenance for this contract and its
+evaluation, not as the checkout default or a compatibility ceiling. Nightly
+coverage is a freshness signal for the HoloHub paths it exercises, not a
+substitute for skill evaluation. Recheck all version-sensitive behavior with
+local help and the exact checkout.
 
 ## Checkout and authority
 
@@ -13,17 +19,22 @@ the exact checkout.
   revisions, or changing branches.
 - In an existing checkout, record full HEAD and
   `git status --short --branch`; preserve its revision and user edits.
-- For an explicitly requested fresh checkout, or the application skill's safe
-  fallback, clone the official repository into an absent destination and
-  detach the tested SHA:
+- For an explicitly requested fresh checkout without a requested revision,
+  clone official rolling `main` into an absent destination and immediately
+  record the resolved full SHA:
 
   ```bash
-  git clone --no-checkout https://github.com/nvidia-holoscan/holohub.git <holohub-dir>
-  git -C <holohub-dir> switch --detach 777d65830a7b50a324370f4d4bb65d2420e495f7
+  git clone --branch main https://github.com/nvidia-holoscan/holohub.git <holohub-dir>
+  git -C <holohub-dir> rev-parse HEAD
   ```
 
-  Verify the full SHA and create a task branch before editing. Never force this
-  revision onto an existing checkout.
+  Verify the official remote and full SHA, then create a task branch before
+  editing.
+- If the user requests an immutable revision or explicitly asks to reproduce
+  the evidence snapshot, clone without checkout, detach that full SHA, verify
+  it, then create a task branch before editing. Never silently replace current
+  `main` with the evidence snapshot or force either revision onto an existing
+  checkout.
 
 Resolve disagreements in this order:
 
@@ -33,16 +44,23 @@ Resolve disagreements in this order:
 4. project source and documentation matching the selected revision;
 5. release-matched Holoscan SDK documentation.
 
-Use `./holohub` as the public Holohub command surface. Current `package` creates
-Holoscan Module DEB/WHEEL artifacts, not application packages. Holohub no
-longer accepts new `workflows/` contributions.
+Use `./holohub` as the public HoloHub command surface. Current `package` creates
+Holoscan Module DEB/WHEEL artifacts, not application packages. HoloHub no
+longer accepts new `workflows/` contributions, and holoscan-cli 4.5.0 removes
+the `workflow` project type.
+
+Use `--json` with `version`, `list`, `modes`, `env-info`, `env-check`, and
+`status`. Each 4.5.0 payload begins with `"schema_version": 1`; tolerate
+additive fields. Parse stdout separately from diagnostics on stderr.
+`env-check --json` still exits nonzero when a check fails, so preserve and
+parse its JSON before triage. Never assume `--json` is global.
 
 ## Operating loop
 
 ```text
 preserve  revision + dirty state + relevant inputs/artifacts
-inspect   version + env-info + relevant env-check/status
-discover  list + modes + metadata/CMake/source
+inspect   version/env-info/env-check/status --json
+discover  list --json + modes --json + metadata/CMake/source
 preview   exact mutating command with locally supported flags
 act       same effect-bearing command without dry-run
 verify    focused test + observable result/artifact + final status
@@ -53,12 +71,13 @@ verify    focused test + observable result/artifact + final status
   support only `--dryrun`; read-only diagnostics need neither.
 - Keep project, mode, language, image, inputs, privileges, and task arguments
   identical between preview and action.
-- A dry run previews planned children; it is not a no-write transaction.
-  Environment bootstrap, prompts, or local directory preparation can happen
-  before the preview completes.
+- In 4.5.0, build, package, and sccache-enabled container dry runs do not
+  create CLI-owned state. Wrapper environment bootstrap, prompts, and other
+  previewed commands can still have side effects; dry run is not an offline
+  guarantee.
 - The first wrapper invocation can select, create, or repair its command
-  environment before parsing the verb. Use `version` and `env-info` instead of
-  guessing which environment is active.
+  environment before parsing the verb. Use `version --json` and
+  `env-info --json` instead of guessing which environment is active.
 
 ## Project and container rules
 

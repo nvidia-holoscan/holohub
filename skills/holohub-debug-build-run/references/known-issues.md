@@ -1,6 +1,6 @@
 # Version-sensitive diagnostic priors
 
-Verified in 2026-07 against Holohub commit
+Verified in 2026-07 against HoloHub commit
 `777d65830a7b50a324370f4d4bb65d2420e495f7`. Treat these as hypotheses and
 recheck local help, metadata, source, and exact reproduction.
 
@@ -8,11 +8,12 @@ recheck local help, metadata, source, and exact reproduction.
 
 - The wrapper selects a Python command environment before parsing the verb.
   An active virtual environment can take priority; otherwise it may select or
-  repair a wrapper-managed or container environment. Inspect `env-info`.
+  repair a wrapper-managed or container environment. Inspect
+  `env-info --json`.
 - Even help and dry-run invocations can bootstrap that environment.
 - Root image provisioning and normal runtime can select different command
-  environments. Compare outer and container `env-info`; rebuild an image whose
-  committed command contract is stale.
+  environments. Compare outer and container `env-info --json`; rebuild an
+  image whose committed command contract is stale.
 - Never run `sudo ./holohub`; it can create foreign-owned environments and
   artifacts. Use `--as-root` only for an approved operation that requires it.
 
@@ -20,8 +21,11 @@ recheck local help, metadata, source, and exact reproduction.
 
 - Local help is the accepted-syntax authority. Generated templates, tutorials,
   and project READMEs can contain retired flags.
-- Dry run suppresses planned child commands, not all wrapper-side setup,
-  prompts, or directory/cache preparation.
+- In holoscan-cli 4.5.0 or newer, build, package, and sccache-enabled container
+  dry runs do not create CLI-owned state. Wrapper setup, prompts, and other
+  previews can still have side effects.
+- `HOLOSCAN_CLI_BUILD_LOCAL=false` no longer selects local execution; 4.5.0
+  parses common true and false spellings as booleans.
 - `create` can update parent application registration. Review its preview and
   obtain any repository-required approval before running it.
 - Current container setup uses repeatable `--extra-scripts`; older benchmark
@@ -35,18 +39,23 @@ recheck local help, metadata, source, and exact reproduction.
   preserve required devices, mounts, dependencies, and environment.
 - An application defines top-level `run` or `modes`, not both. Multiple modes
   require a default.
+- Holoscan CLI 4.5.0 removes the `workflow` project type.
 
 ## Environment, tests, and output
 
-- `status` build markers do not prove compilation or tests. Host changes do not
-  update an already-built project image.
+- `status --json` build markers do not prove compilation or tests. Host changes
+  do not update an already-built project image.
 - `./holohub test` resolves its driver inside the image. A missing or stale
   image-side test script is distinct from an application test failure.
+- In 4.5.0 or newer, an in-container test honors
+  `HOLOSCAN_CLI_CTEST_SCRIPT` before importing an installed CLI package.
 - The tested CTest driver recognizes APP/OP/PKG/EXT but not MODULE, so
   `test <module>` falls through to broader testing. Test declared operators and
   demos directly.
 - `install --dev` changes the wrapper-selected Python environment immediately.
   Verify and uninstall with that same environment and exact build directory.
+- `package <module>` honors the explicit module in 4.5.0 or newer and a real
+  action fails if that module produces no CPack configuration.
 - Host local-module overrides do not automatically reach a project container;
   set the override to the mounted container path in one workflow.
 - Missing registry authentication can look like a generic pull error. Identify

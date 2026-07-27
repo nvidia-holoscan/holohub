@@ -1,7 +1,7 @@
 [
   {
     "id": "holohub-debug-build-run-002",
-    "question": "A C++ Holohub application now fails in ./holohub build after I changed its operator dependency. Find the first causal error and make the smallest fix while preserving my unrelated edits.",
+    "question": "A C++ HoloHub application now fails in ./holohub build after I changed its operator dependency. Find the first causal error and make the smallest fix while preserving my unrelated edits.",
     "expected_skill": "holohub-debug-build-run",
     "expected_script": null,
     "ground_truth": "The agent freezes the existing checkout and exact command, previews and reproduces the failure, isolates metadata/CMake/dependency/image/compiler boundaries, tests one hypothesis at a time, changes only the owning root cause, and validates with the identical build plus focused tests and lint.",
@@ -22,7 +22,7 @@
     "ground_truth": "The agent treats this as an environment-scoped editable-hook failure. It records ./holohub environment identity and the hook target, compares it with the consumer environment/container, changes only the mismatched selection or consumer path, verifies the import, and removes stale diagnostic hooks.",
     "expected_behavior": [
       "Activates holohub-debug-build-run rather than the non-failing module lifecycle",
-      "Uses ./holohub env-info and inspects the exact editable-hook destination with sensitive paths redacted",
+      "Uses ./holohub env-info --json and inspects the exact editable-hook destination with sensitive paths redacted",
       "Compares the selected and consuming environments instead of changing module source first",
       "Does not assume a host editable hook is forwarded into a project container",
       "Verifies import in the corrected environment and removes stale diagnostic hooks"

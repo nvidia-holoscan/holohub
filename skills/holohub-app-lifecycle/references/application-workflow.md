@@ -1,15 +1,15 @@
-# Holohub application workflow
+# HoloHub application workflow
 
 Use this reference for a non-failing application task. Validate every command
 against the selected checkout's local help.
 
 ## Resolve the workspace
 
-Keep the initial project/data workspace distinct from the Holohub checkout.
+Keep the initial project/data workspace distinct from the HoloHub checkout.
 Look only at:
 
 1. a path explicitly named by the user;
-2. the initial directory's Git root when it is Holohub;
+2. the initial directory's Git root when it is HoloHub;
 3. an exact `holohub/` child of the initial directory;
 4. an exact conventional location already known to the agent.
 
@@ -33,8 +33,9 @@ If no checkout is usable, place a fresh clone only at an absent
 `<initial-workspace>/holohub` when the workspace is writable and not another
 Git worktree. Never clone into the workspace root, overwrite an existing
 destination, or follow a symlink outside the workspace. Otherwise ask for an
-absent destination. Follow the pinned fallback in the CLI contract, verify its
-full SHA, then create the task branch.
+absent destination. Follow the rolling-main fresh-checkout policy in the CLI
+contract unless the user requested an immutable revision. Verify the official
+remote and resolved full SHA, then create the task branch.
 
 ## Define inputs and evidence
 
@@ -78,10 +79,10 @@ documentation, schemas, metadata, and nearby source. Capture:
 ```bash
 git rev-parse HEAD
 git status --short --branch
-./holohub version
-./holohub env-info
-./holohub env-check
-./holohub status
+./holohub version --json
+./holohub env-info --json
+./holohub env-check --json
+./holohub status --json
 ```
 
 Review environment output before sharing it.
@@ -103,7 +104,8 @@ instead of duplicating it.
 ## Scaffold only new applications
 
 Use current contribution guidance to select application, operator-plus-demo,
-tutorial, or fix. Public Holohub no longer accepts new `workflows/`.
+tutorial, or fix. Holoscan CLI 4.5.0 removes the `workflow` project type, and
+public HoloHub no longer accepts new `workflows/`.
 
 In one selected wrapper environment, preview and complete template dependency
 setup before any create invocation:
@@ -132,8 +134,8 @@ Validate current schemas and nearby examples. Use top-level `run` or `modes`,
 never both; define a default when multiple modes exist. Inspect discovery:
 
 ```bash
-./holohub list
-./holohub modes <app> --language <cpp-or-python>
+./holohub list --json
+./holohub modes <app> --language <cpp-or-python> --json
 ```
 
 Give automated modes a finite frame/message count and nonzero exit on
@@ -142,7 +144,7 @@ mode, expected and observed counts, artifact paths, and pass/fail state.
 Document graph ports, tensor names/shapes/types/memory domains, CUDA streams,
 resources, scheduling conditions, and termination.
 
-Reuse public Holohub or SDK operators when they meet the brief. Keep data,
+Reuse public HoloHub or SDK operators when they meet the brief. Keep data,
 models, engines, recordings, build/install output, and generated evidence out
 of Git. Update only the needed source, metadata, README, local CMake,
 registration, and deterministic tests. Ask before changing shared schemas,
