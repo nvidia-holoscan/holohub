@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,10 +15,9 @@
 
 import asyncio
 import logging
-from typing import List
 
-import mcp.types as types
 import uvicorn
+from mcp import types
 from mcp.server.lowlevel import Server
 from mcp.server.sse import SseServerTransport
 from starlette.applications import Starlette
@@ -50,7 +49,7 @@ class HoloscanContextServer:
         """Register the MCP tools for this server"""
 
         @self.server.call_tool()
-        async def fetch_context(name: str, arguments: dict) -> List[types.TextContent]:
+        async def fetch_context(name: str, arguments: dict) -> list[types.TextContent]:
             """Handle tool calls to fetch context from the database"""
             if name != "fetch_context":
                 raise ValueError(f"Unknown tool: {name}")
@@ -93,7 +92,7 @@ class HoloscanContextServer:
             return results
 
         @self.server.list_tools()
-        async def list_tools() -> List[types.Tool]:
+        async def list_tools() -> list[types.Tool]:
             """List the available tools for this server"""
             return [
                 types.Tool(

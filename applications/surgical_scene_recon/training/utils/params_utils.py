@@ -39,7 +39,7 @@ def merge_hparams(args, config: dict):
     """
     params = ["OptimizationParams", "ModelHiddenParams", "ModelParams", "PipelineParams"]
     for param in params:
-        if param in config.keys():
+        if param in config:
             for key, value in config[param].items():
                 if hasattr(args, key):
                     setattr(args, key, value)

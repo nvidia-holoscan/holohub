@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,6 @@
 import copy
 import logging
 import math
-from typing import Dict, List, Union
 
 import numpy as np
 from holoscan.core import ConditionType, Fragment, Operator, OperatorSpec
@@ -65,8 +64,8 @@ class DICOMSeriesToVolumeOperator(Operator):
         op_output.emit(image, self.output_name_image)
 
     def convert_to_image(
-        self, study_selected_series_list: List[StudySelectedSeries]
-    ) -> Union[Image, None]:
+        self, study_selected_series_list: list[StudySelectedSeries]
+    ) -> Image | None:
         """Extracts the pixel data from a DICOM Series and other attributes to create an Image object"""
         # For now, only supports the one and only one selected series.
         if not study_selected_series_list or len(study_selected_series_list) < 1:
@@ -386,7 +385,7 @@ class DICOMSeriesToVolumeOperator(Operator):
 
         series.nifti_affine_transform = m2
 
-    def create_metadata(self, series) -> Dict:
+    def create_metadata(self, series) -> dict:
         """Collects all relevant metadata from the DICOM Series and creates a dictionary.
 
         Args:
@@ -403,7 +402,7 @@ class DICOMSeriesToVolumeOperator(Operator):
         return metadata
 
     @staticmethod
-    def _get_instance_properties(obj: object, not_none: bool = True) -> Dict:
+    def _get_instance_properties(obj: object, not_none: bool = True) -> dict:
         prop_dict = {}
         if obj:
             for attribute in [

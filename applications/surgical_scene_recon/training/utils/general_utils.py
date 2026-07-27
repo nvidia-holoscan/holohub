@@ -25,8 +25,6 @@ General utility functions for EndoGaussian.
 MIT-licensed clean-room implementation.
 """
 
-from typing import Optional, Tuple
-
 import numpy as np
 import torch
 from PIL import Image
@@ -52,9 +50,7 @@ def inverse_sigmoid(x: torch.Tensor, eps: float = 1e-7) -> torch.Tensor:
     return torch.log(x_clamped / (1.0 - x_clamped))
 
 
-def PILtoTorch(
-    pil_image: Image.Image, resolution: Optional[Tuple[int, int]] = None
-) -> torch.Tensor:
+def PILtoTorch(pil_image: Image.Image, resolution: tuple[int, int] | None = None) -> torch.Tensor:
     """
     Convert a PIL image to a PyTorch tensor.
 

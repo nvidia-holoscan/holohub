@@ -17,9 +17,10 @@ import inspect
 import runpy
 import sys
 import warnings
+from collections.abc import Callable
 from importlib import import_module
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Type, Union
+from typing import TYPE_CHECKING, Any, Optional
 
 import pkg_resources
 
@@ -27,7 +28,7 @@ if TYPE_CHECKING:
     from holoscan.core import Application
 
 
-def get_docstring(cls: Type) -> str:
+def get_docstring(cls: type) -> str:
     """Get docstring of a class.
 
     Tries to get docstring from class itself, from its __doc__.
@@ -47,7 +48,7 @@ def get_docstring(cls: Type) -> str:
     return "\n".join([line.strip() for line in doc.split("\n")])
 
 
-def is_subclass(cls: Type, class_or_tuple: Union[str, Tuple[str]]) -> bool:
+def is_subclass(cls: type, class_or_tuple: str | tuple[str]) -> bool:
     """Check if the given type is a subclass of a MONAI Deploy App SDK class.
 
     Args:
@@ -71,7 +72,7 @@ def is_subclass(cls: Type, class_or_tuple: Union[str, Tuple[str]]) -> bool:
     return False
 
 
-def get_application(path: Union[str, Path]) -> Optional["Application"]:
+def get_application(path: str | Path) -> Optional["Application"]:
     """Get application object from path."""
     from holoscan.core import Application
 
@@ -90,7 +91,7 @@ def get_application(path: Union[str, Path]) -> Optional["Application"]:
     # Get the Application class from the module and return an instance of it
     for var in vars.keys():
         if not var.startswith("_"):  # skip private variables
-            app_cls: Type[Application] = vars[var]
+            app_cls: type[Application] = vars[var]
 
             if is_subclass(app_cls, Application._class_id):
                 if path.is_file():
@@ -104,7 +105,7 @@ def get_application(path: Union[str, Path]) -> Optional["Application"]:
     return None
 
 
-def get_class_file_path(cls: Type) -> Path:
+def get_class_file_path(cls: type) -> Path:
     """Get the file path of a class.
 
     If the file path is not available, it tries to see each frame information
@@ -179,7 +180,7 @@ def optional_import(
     version_args: Any = None,
     allow_namespace_pkg: bool = False,
     as_type: str = "default",
-) -> Tuple[Any, bool]:
+) -> tuple[Any, bool]:
     """
     Imports an optional module specified by `module` string.
     Any importing related exceptions will be stored, and exceptions raise lazily
@@ -307,7 +308,7 @@ def optional_import(
 
 
 def is_dist_editable(project_name: str) -> bool:
-    distributions: Dict = {v.key: v for v in pkg_resources.working_set}
+    distributions: dict = {v.key: v for v in pkg_resources.working_set}
     dist: Any = distributions.get(project_name)
     if not hasattr(dist, "egg_info"):
         return False
@@ -332,7 +333,7 @@ def is_dist_editable(project_name: str) -> bool:
 
 
 def dist_module_path(project_name: str) -> str:
-    distributions: Dict = {v.key: v for v in pkg_resources.working_set}
+    distributions: dict = {v.key: v for v in pkg_resources.working_set}
     dist: Any = distributions.get(project_name)
     if hasattr(dist, "egg_info"):
         egg_info = Path(dist.egg_info)
@@ -357,7 +358,7 @@ def dist_module_path(project_name: str) -> str:
 
 
 def is_module_installed(project_name: str) -> bool:
-    distributions: Dict = {v.key: v for v in pkg_resources.working_set}
+    distributions: dict = {v.key: v for v in pkg_resources.working_set}
     dist: Any = distributions.get(project_name)
     if dist:
         return True
@@ -365,8 +366,8 @@ def is_module_installed(project_name: str) -> bool:
         return False
 
 
-def dist_requires(project_name: str) -> List[str]:
-    distributions: Dict = {v.key: v for v in pkg_resources.working_set}
+def dist_requires(project_name: str) -> list[str]:
+    distributions: dict = {v.key: v for v in pkg_resources.working_set}
     dist: Any = distributions.get(project_name)
     if hasattr(dist, "requires"):
         return [str(req) for req in dist.requires()]

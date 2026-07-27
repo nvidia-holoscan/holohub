@@ -23,7 +23,6 @@ import socket
 import time
 import xml.etree.ElementTree as ET
 from collections import OrderedDict
-from typing import Optional
 
 import cupy as cp
 import pytak
@@ -44,7 +43,7 @@ class TakCotOp(Operator):
         base_lat: float = 28.53830862,
         base_lon: float = -81.37923400,
         marker_type: str = "a-h-A-M-A",
-        marker_type_map: Optional[dict] = None,
+        marker_type_map: dict | None = None,
         update_interval: float = 2.0,
         detector_op=None,
         **kwargs,
@@ -59,7 +58,7 @@ class TakCotOp(Operator):
         self.update_interval = update_interval
         self.detector_op = detector_op
 
-        self.socket: Optional[socket.socket] = None
+        self.socket: socket.socket | None = None
         self.connected = False
         self.detection_count = 0
         self.last_send_time = 0.0

@@ -15,8 +15,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from enum import Enum
-from typing import Any, Dict, Mapping
+from typing import Any
 
 import streamlit as st
 from streamlit.delta_generator import DeltaGenerator
@@ -86,10 +87,10 @@ def _render_params(
     params: Mapping[str, Any],
     defaults: Mapping[str, Any],
     key_prefix: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Render controls for parameters based on default values."""
 
-    updated: Dict[str, Any] = {}
+    updated: dict[str, Any] = {}
     editable_params = {k: v for k, v in params.items() if k != "enable"}
 
     for name, value in editable_params.items():

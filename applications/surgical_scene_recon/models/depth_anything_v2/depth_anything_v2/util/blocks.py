@@ -3,7 +3,7 @@
 #
 # Modified from Depth Anything V2 (Meta Platforms). Original license: Apache-2.0.
 
-import torch.nn as nn
+from torch import nn
 
 
 def _make_scratch(in_shape, out_shape, groups=1, expand=False):
@@ -111,7 +111,7 @@ class FeatureFusionBlock(nn.Module):
         Args:
             features (int): number of features
         """
-        super(FeatureFusionBlock, self).__init__()
+        super().__init__()
 
         self.deconv = deconv
         self.align_corners = align_corners

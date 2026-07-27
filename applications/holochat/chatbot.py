@@ -116,13 +116,12 @@ def main():
             gr.Image(img_path, show_label=False, elem_classes="gr-image")
 
         with gr.Group(visible=True):
-            with gr.Row():
-                with gr.Column(scale=60):
-                    chatbot = gr.Chatbot(
-                        value=[{"role": "assistant", "content": initial_prompt}],
-                        label="HoloChat",
-                        elem_id="chatbot",
-                    )
+            with gr.Row(), gr.Column(scale=60):
+                chatbot = gr.Chatbot(
+                    value=[{"role": "assistant", "content": initial_prompt}],
+                    label="HoloChat",
+                    elem_id="chatbot",
+                )
             with gr.Row():
                 with gr.Column(scale=8):
                     tbInput = gr.Textbox(

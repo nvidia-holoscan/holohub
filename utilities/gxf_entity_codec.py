@@ -13,18 +13,19 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-"""  # noqa: E501
+"""
 
 import os
 import struct
 import time
+from collections.abc import Generator, Sequence
 from enum import Enum
 from io import BufferedIOBase, BytesIO
-from typing import Any, Generator, List, Sequence, Tuple, Union
+from typing import Any, Union
 
 import numpy as np
 
-ArrayLike = Union[np.ndarray, List[float]]
+ArrayLike = Union[np.ndarray, list[float]]
 ReadOnlyBuffer = bytes
 WriteableBuffer = Union[bytearray, memoryview]
 ReadableBuffer = Union[ReadOnlyBuffer, WriteableBuffer]
@@ -53,7 +54,7 @@ class EntityIndex:
     def __init__(
         self,
         *,
-        data: Tuple[int, int, int] = None,
+        data: tuple[int, int, int] = None,
         buffer: Sequence = None,
         reader: BufferedIOBase = None,
         offset: int = 0,
@@ -86,7 +87,7 @@ class EntityIndex:
     def read(
         self,
         *,
-        data: Tuple[int, int, int] = None,
+        data: tuple[int, int, int] = None,
         buffer: ReadableBuffer = None,
         reader: BufferedIOBase = None,
         offset: int = 0,
@@ -169,7 +170,7 @@ class EntityHeader:
     def __init__(
         self,
         *,
-        data: Tuple[int, int, int, int, int, int] = None,
+        data: tuple[int, int, int, int, int, int] = None,
         buffer: Sequence = None,
         reader: BufferedIOBase = None,
         offset: int = 0,
@@ -202,12 +203,12 @@ class EntityHeader:
         return self._reserved
 
     def __repr__(self) -> str:
-        return f"EntityHeader(serialized_size={self.serialized_size}, checksum={self.checksum}, sequence_number={self.sequence_number}, flags={self.flags}, component_count={self.component_count}, reserved={self.reserved})"  # noqa
+        return f"EntityHeader(serialized_size={self.serialized_size}, checksum={self.checksum}, sequence_number={self.sequence_number}, flags={self.flags}, component_count={self.component_count}, reserved={self.reserved})"
 
     def deserialize(
         self,
         *,
-        data: Tuple[int, int, int, int, int, int] = None,
+        data: tuple[int, int, int, int, int, int] = None,
         buffer: ReadableBuffer = None,
         reader: BufferedIOBase = None,
         offset: int = 0,
@@ -309,7 +310,7 @@ class ComponentHeader:
     def __init__(
         self,
         *,
-        data: Tuple[int, int, int, int] = None,
+        data: tuple[int, int, int, int] = None,
         buffer: Sequence = None,
         reader: BufferedIOBase = None,
         offset: int = 0,
@@ -330,12 +331,12 @@ class ComponentHeader:
         return self._name_size
 
     def __repr__(self) -> str:
-        return f"ComponentHeader(serialized_size={self.serialized_size}, tid={self.tid}, name_size={self.name_size})"  # noqa
+        return f"ComponentHeader(serialized_size={self.serialized_size}, tid={self.tid}, name_size={self.name_size})"
 
     def deserialize(
         self,
         *,
-        data: Tuple[int, int, int, int] = None,
+        data: tuple[int, int, int, int] = None,
         buffer: ReadableBuffer = None,
         reader: BufferedIOBase = None,
         offset: int = 0,
@@ -461,7 +462,7 @@ class TensorHeader:
     def __init__(
         self,
         *,
-        data: Tuple[int, int, int, int, Tuple[int, ...], Tuple[int, ...]] = None,
+        data: tuple[int, int, int, int, tuple[int, ...], tuple[int, ...]] = None,
         buffer: Sequence = None,
         reader: BufferedIOBase = None,
         offset: int = 0,
@@ -486,11 +487,11 @@ class TensorHeader:
         return self._rank
 
     @property
-    def dims(self) -> Tuple[int, ...]:
+    def dims(self) -> tuple[int, ...]:
         return self._dims
 
     @property
-    def strides(self) -> Tuple[int, ...]:
+    def strides(self) -> tuple[int, ...]:
         return self._strides
 
     @property
@@ -498,12 +499,12 @@ class TensorHeader:
         return PrimitiveType2DType[self.element_type]
 
     def __repr__(self) -> str:
-        return f"TensorHeader(storage_type={self.storage_type}, element_type={self.element_type}, bytes_per_element={self.bytes_per_element}, rank={self.rank}, dims={self.dims}, strides={self.strides})"  # noqa
+        return f"TensorHeader(storage_type={self.storage_type}, element_type={self.element_type}, bytes_per_element={self.bytes_per_element}, rank={self.rank}, dims={self.dims}, strides={self.strides})"
 
     def deserialize(
         self,
         *,
-        data: Tuple[int, int, int, int, Tuple[int, ...], Tuple[int, ...]] = None,
+        data: tuple[int, int, int, int, tuple[int, ...], tuple[int, ...]] = None,
         buffer: ReadableBuffer = None,
         reader: BufferedIOBase = None,
         offset: int = 0,
@@ -584,7 +585,7 @@ class Tensor:
     def __init__(
         self,
         *,
-        data: Tuple[TensorHeader, ArrayLike] = None,
+        data: tuple[TensorHeader, ArrayLike] = None,
         buffer: Sequence = None,
         reader: BufferedIOBase = None,
         offset: int = 0,
@@ -610,7 +611,7 @@ class Tensor:
     def read(
         self,
         *,
-        data: Tuple[TensorHeader, ArrayLike] = None,
+        data: tuple[TensorHeader, ArrayLike] = None,
         buffer: ReadableBuffer = None,
         reader: BufferedIOBase = None,
         offset: int = 0,
@@ -677,7 +678,7 @@ class Entity:
     def __init__(
         self,
         *,
-        data: Tuple[EntityHeader, List["Component"]] = None,
+        data: tuple[EntityHeader, list["Component"]] = None,
         buffer: Sequence = None,
         reader: BufferedIOBase = None,
         offset: int = 0,
@@ -690,7 +691,7 @@ class Entity:
         return self._header
 
     @property
-    def components(self) -> List["Component"]:
+    def components(self) -> list["Component"]:
         return self._components
 
     @property
@@ -725,7 +726,7 @@ class Entity:
     def read(
         self,
         *,
-        data: Tuple[EntityHeader, List["Component"]] = None,
+        data: tuple[EntityHeader, list["Component"]] = None,
         buffer: ReadableBuffer = None,
         reader: BufferedIOBase = None,
         offset: int = 0,
@@ -792,7 +793,7 @@ class Component:
     def __init__(
         self,
         *,
-        data: Tuple[ComponentHeader, str, Tensor] = None,
+        data: tuple[ComponentHeader, str, Tensor] = None,
         buffer: Sequence = None,
         reader: BufferedIOBase = None,
         offset: int = 0,
@@ -822,7 +823,7 @@ class Component:
     def read(
         self,
         *,
-        data: Tuple[ComponentHeader, str, Tensor] = None,
+        data: tuple[ComponentHeader, str, Tensor] = None,
         buffer: ReadableBuffer = None,
         reader: BufferedIOBase = None,
         offset: int = 0,
@@ -877,7 +878,7 @@ class Component:
         return curr_offset - orig_offset
 
 
-def get_file_size(path_or_reader: Union[os.PathLike, BufferedIOBase]) -> int:
+def get_file_size(path_or_reader: os.PathLike | BufferedIOBase) -> int:
     if isinstance(path_or_reader, os.PathLike):
         return os.stat(path_or_reader).st_size
 
@@ -911,7 +912,7 @@ class EntityReader:
     def __exit__(self, exception_type, exception_value, exception_traceback):
         self.close()
 
-    def open(self) -> None:  # noqa: A003
+    def open(self) -> None:
         """Open the recording."""
         self._index_file = open(self._index_path, "rb")  # noqa: SIM115
         self._entities_file = open(self._entities_path, "rb")  # noqa: SIM115
@@ -1006,7 +1007,7 @@ class EntityWriter:
         directory: os.PathLike = "./",
         basename: str = "tensor",
         *,
-        framerate: Union[int, float] = 30,
+        framerate: float = 30,
     ) -> None:
         """Initialize the writer.
 
@@ -1035,7 +1036,7 @@ class EntityWriter:
         self._index = 0
         self._start_timestemp = int(time.time() * 10**9)
 
-    def open(self):  # noqa: A003
+    def open(self):
         self.close()
         self._index_file = open(self._index_path, "wb")  # noqa: SIM115
         self._entities_file = open(self._entities_path, "wb")  # noqa: SIM115

@@ -43,7 +43,7 @@ def run_command(cmd: str, stream_output: bool = False) -> CompletedProcess:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             shell=True,
-            universal_newlines=True,
+            text=True,
             check=False,
         )
 

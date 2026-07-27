@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -156,7 +156,6 @@ class UsbCamCalibrationApplication(holoscan.core.Application):
             fullscreen=True,
             **self.kwargs("holoviz"),
         )
-        #
         self.add_flow(source, preprocessor)
         self.add_flow(preprocessor, apriltag, {("", "input")})
         self.add_flow(apriltag, back_view, {("output", "input")})

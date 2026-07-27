@@ -27,7 +27,7 @@ MIT-licensed implementation derived from 4DGaussians project.
 """
 
 import abc
-from typing import Sequence
+from collections.abc import Sequence
 
 import torch
 from torch import nn

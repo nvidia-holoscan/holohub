@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +20,6 @@ import signal
 import sys
 import time
 from threading import Thread
-from typing import Optional
 
 import zmq
 from langchain.schema.document import Document
@@ -53,7 +52,7 @@ PERSISTENT_FOLDER = "/workspace/holohub/applications/ehr_query_llm/lmm/rag/ehr/d
 
 
 def get_ehr_data(
-    allow_requested_only: Optional[bool] = True,
+    allow_requested_only: bool | None = True,
 ):
     global ehr_data
     global ehr_request_ids
@@ -238,7 +237,6 @@ def create_ehr_database(identifier: str = ID_DEFAULT):
     global ehr_data
     global t_receiver
     global t_sender
-    #
 
     t_receiver = Thread(target=get_ehr_data)
     t_receiver.daemon = True

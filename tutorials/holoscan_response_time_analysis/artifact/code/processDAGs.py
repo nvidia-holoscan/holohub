@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 UNIVERSITY OF BRITISH COLUMBIA. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, UNIVERSITY OF BRITISH COLUMBIA. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,8 +25,8 @@ def add_edges(graph, edgeset):
         if rawedge != "":
             processededge = rawedge.split(",")
             graph.add_edge(
-                processededge[0].lstrip(("('")).rstrip("'"),
-                processededge[1].lstrip(("( '")).rstrip("'"),
+                processededge[0].lstrip("('").rstrip("'"),
+                processededge[1].lstrip("( '").rstrip("'"),
             )
 
 
@@ -143,7 +143,7 @@ def retstructure(graph, numvars):
     for i in range(numvars):
         nodesret = []
 
-        for node in reference.keys():
+        for node in reference:
             val = graph.nodes[node]["executiontimes" + str(i)]
             nodesret.append((val, val))
 

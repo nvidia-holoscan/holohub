@@ -15,9 +15,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping
 from enum import Enum
 from pathlib import Path
-from typing import Any, Iterable, Mapping, Optional, Tuple, Union
+from typing import Any
 
 import yaml
 from ultra_post.filters.registry import DEFAULT_PARAMS, FILTERS
@@ -77,7 +78,7 @@ def run_pipeline(
 
 
 def pipeline_to_dict(
-    pipeline: Iterable[PipelineNode], *, display: Optional[dict[str, Any]] = None
+    pipeline: Iterable[PipelineNode], *, display: dict[str, Any] | None = None
 ) -> dict[str, Any]:
     """Convert a pipeline into a serializable dictionary."""
 
@@ -127,7 +128,7 @@ def pipeline_from_dict(
 
 
 def dump_pipeline_config(
-    path: str | Path, pipeline: Iterable[PipelineNode], *, display: Optional[dict[str, Any]] = None
+    path: str | Path, pipeline: Iterable[PipelineNode], *, display: dict[str, Any] | None = None
 ) -> None:
     """Serialize the pipeline to a YAML file."""
 
@@ -149,7 +150,7 @@ def load_pipeline_config(path: str | Path, *, filters: Mapping[str, Any] | None 
 
 
 def pipeline_to_yaml(
-    pipeline: Iterable[PipelineNode], *, display: Optional[dict[str, Any]] = None
+    pipeline: Iterable[PipelineNode], *, display: dict[str, Any] | None = None
 ) -> str:
     """Return a YAML string representing the pipeline."""
 
@@ -158,7 +159,7 @@ def pipeline_to_yaml(
 
 def pipeline_from_yaml(
     data: str | bytes, *, filters: Mapping[str, Any] | None = None, include_config: bool = False
-) -> Union[Pipeline, Tuple[Pipeline, Mapping[str, Any]]]:
+) -> Pipeline | tuple[Pipeline, Mapping[str, Any]]:
     """Parse a pipeline YAML string into a pipeline list.
 
     Set ``include_config=True`` to receive a tuple
@@ -168,7 +169,7 @@ def pipeline_from_yaml(
     if isinstance(data, bytes):
         data = data.decode("utf-8")
 
-    parsed: Optional[Any] = yaml.safe_load(data)
+    parsed: Any | None = yaml.safe_load(data)
     if parsed is None:
         parsed = {"version": CONFIG_VERSION, "graph": []}
 
@@ -176,7 +177,7 @@ def pipeline_from_yaml(
         raise ValueError("Pipeline YAML must describe a mapping.")
 
     pipeline = pipeline_from_dict(parsed, filters=filters)
-    result: Union[Pipeline, Tuple[Pipeline, Mapping[str, Any]]] = pipeline
+    result: Pipeline | tuple[Pipeline, Mapping[str, Any]] = pipeline
     if include_config:
         result = (pipeline, dict(parsed))
     return result

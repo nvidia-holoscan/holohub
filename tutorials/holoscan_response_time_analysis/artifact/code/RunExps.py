@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 UNIVERSITY OF BRITISH COLUMBIA. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, UNIVERSITY OF BRITISH COLUMBIA. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -70,9 +70,9 @@ def main(graphs, numvars):
                     # Compile the temporary file
                     os.system(f"./build/graph{i+1}")
 
-                    print("")
+                    print()
                     print("Graph " + str(i + 1) + " variation " + str(var) + " complete")
-                    print("")
+                    print()
 
                     dest.write(
                         "Graph "
@@ -106,9 +106,9 @@ def overheadmain():
         # Run the experiment
         os.system(f"./build/overheadgraph{i+1}")
 
-        print("")
+        print()
         print("Overhead graph " + str(i + 1) + " complete")
-        print("")
+        print()
 
         dest.write(
             "Chain Length " + str(i + 1) + " observed WCRT = " + str(parselog("logger.log")) + "\n"

@@ -17,7 +17,6 @@
 import argparse
 import os
 import sys
-from typing import Optional
 
 import numpy as np
 import torch
@@ -44,9 +43,9 @@ class TapNextONNXWrapper(torch.nn.Module):
         self,
         video: torch.Tensor,
         query_points: torch.Tensor,
-        step: Optional[torch.Tensor] = None,
-        rg_lru_state: Optional[torch.Tensor] = None,
-        conv1d_state: Optional[torch.Tensor] = None,
+        step: torch.Tensor | None = None,
+        rg_lru_state: torch.Tensor | None = None,
+        conv1d_state: torch.Tensor | None = None,
     ):
         """
         Forward pass for ONNX export.

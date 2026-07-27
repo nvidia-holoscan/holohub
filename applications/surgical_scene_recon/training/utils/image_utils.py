@@ -25,8 +25,6 @@ Image quality metrics and utilities for EndoGaussian.
 MIT-licensed clean-room implementation.
 """
 
-from typing import Optional
-
 import numpy as np
 import torch
 from PIL import Image
@@ -63,9 +61,7 @@ def mse(img1: torch.Tensor, img2: torch.Tensor) -> torch.Tensor:
 
 
 @torch.no_grad()
-def psnr(
-    img1: torch.Tensor, img2: torch.Tensor, mask: Optional[torch.Tensor] = None
-) -> torch.Tensor:
+def psnr(img1: torch.Tensor, img2: torch.Tensor, mask: torch.Tensor | None = None) -> torch.Tensor:
     """
     Compute Peak Signal-to-Noise Ratio (PSNR) between two images.
 
@@ -106,7 +102,7 @@ def psnr(
     return 20 * torch.log10(1.0 / torch.sqrt(mse_val))
 
 
-def rmse(a, b, mask: Optional[np.ndarray] = None) -> float:
+def rmse(a, b, mask: np.ndarray | None = None) -> float:
     """
     Compute Root Mean Squared Error between two images.
 

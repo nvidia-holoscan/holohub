@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,9 +26,9 @@ from holoscan.core import Application, Operator, OperatorSpec
 from operators.unzip.unzip_op import UnzipOp
 
 logger = logging.getLogger("httpx")
-logger.setLevel(logging.WARN)
+logger.setLevel(logging.WARNING)
 logger = logging.getLogger("openai")
-logger.setLevel(logging.WARN)
+logger.setLevel(logging.WARNING)
 logger = logging.getLogger("NVIDIA_NIM_CHAT")
 logging.basicConfig(level=logging.INFO)
 
@@ -60,7 +60,7 @@ def get_api_key(app):
         logger.warning(
             "Set 'api-key' in the nvidia_nim.yaml config file or set the environment variable 'API_KEY'."
         )
-        print("")
+        print()
     return api_key
 
 

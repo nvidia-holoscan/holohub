@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import csv
 from pathlib import Path
-from typing import Dict, NamedTuple, Tuple
+from typing import NamedTuple
 
 import cupy as cp
 
@@ -27,7 +27,7 @@ class ExtinctionCoefficient(NamedTuple):
     GdTex: float
 
     @classmethod
-    def from_csv(cls, path: Path) -> Dict[int, ExtinctionCoefficient]:
+    def from_csv(cls, path: Path) -> dict[int, ExtinctionCoefficient]:
         def _parse_wavelength(value: str) -> int:
             # Some datasets store wavelength as scientific notation (e.g. "6.0000000e+02").
             # Parse as float then round to nearest integer nm.
@@ -59,7 +59,7 @@ class ExtinctionCoefficient(NamedTuple):
 
 
 class HbO:
-    def __init__(self, coefficients: Dict[int, ExtinctionCoefficient]) -> None:
+    def __init__(self, coefficients: dict[int, ExtinctionCoefficient]) -> None:
         self._coefficients = coefficients
         self._cached_coefficients: cp.ndarray | None = None
 
@@ -97,7 +97,7 @@ class HbO:
         data_mua: cp.ndarray,
         wavelengths: tuple,
         idxs_significant_voxels: cp.ndarray,
-    ) -> Tuple[cp.ndarray, cp.ndarray]:
+    ) -> tuple[cp.ndarray, cp.ndarray]:
         """Converts mua to Hb in voxel space.
 
         Parameters

@@ -30,25 +30,27 @@ EndoNeRF format and imports (scene.cameras, utils.graphics_utils). Not a bundled
 third-party library—derived implementation under the stated license.
 """
 
-import glob  # noqa: E402
-import json  # noqa: E402
-import os  # noqa: E402
-import os.path as osp  # noqa: E402
-from dataclasses import dataclass  # noqa: E402
-from typing import NamedTuple  # noqa: E402
+import glob
+import json
+import os
+import os.path as osp
+from dataclasses import dataclass
+from typing import NamedTuple
 
-import cv2  # noqa: E402
-import fpsample  # noqa: E402
-import imageio.v2 as iio  # noqa: E402
-import numpy as np  # noqa: E402
-import open3d as o3d  # noqa: E402
-import torch  # noqa: E402
-from PIL import Image  # noqa: E402
-from scene.cameras import Camera  # noqa: E402
-from torchvision import transforms as T  # noqa: E402
-from tqdm import tqdm  # noqa: E402
-from tqdm import trange  # noqa: E402
-from utils.graphics_utils import focal2fov  # noqa: E402
+import cv2
+import fpsample
+import imageio.v2 as iio
+import numpy as np
+import open3d as o3d
+import torch
+from PIL import Image
+from scene.cameras import Camera
+from torchvision import transforms as T
+from tqdm import (
+    tqdm,
+    trange,
+)
+from utils.graphics_utils import focal2fov
 
 
 class CameraInfo(NamedTuple):
@@ -69,7 +71,7 @@ class CameraInfo(NamedTuple):
     Znear: float
 
 
-class EndoNeRF_Dataset(object):
+class EndoNeRF_Dataset:
     """EndoNeRF dataset. Use mode='binocular' for pipeline output (depth/ only; no monodepth/)."""
 
     def __init__(self, datadir, downsample=1.0, test_every=8, mode="binocular"):
@@ -307,7 +309,7 @@ class EndoNeRF_Dataset(object):
         return self.maxtime
 
 
-class SCARED_Dataset(object):
+class SCARED_Dataset:
     def __init__(
         self,
         datadir,
@@ -323,9 +325,7 @@ class SCARED_Dataset(object):
             skip_every = 1
         elif "dataset_3" in datadir:
             skip_every = 4
-        elif "dataset_6" in datadir:
-            skip_every = 8
-        elif "dataset_7" in datadir:
+        elif "dataset_6" in datadir or "dataset_7" in datadir:
             skip_every = 8
 
         self.img_wh = (

@@ -168,8 +168,7 @@ def check_copyright(f, update_current_year, ignore_year_mismatch=False):
                 for _, line_num, __, replacement in errs_update:
                     lines[line_num - 1] = replacement
                 with open(f, "w", encoding="utf-8") as out_file:
-                    for new_line in lines:
-                        out_file.write(new_line)
+                    out_file.writelines(lines)
         errs = [x for x in errs if x[-1] is None]
 
     return errs
@@ -313,7 +312,7 @@ def check_copyright_main():
         print("Copyright headers incomplete in some of the files!")
         for file_name, line_no, err_msg, _ in errors:
             print(f"  {file_name}:{line_no} Issue: {err_msg}")
-        print("")
+        print()
         n_fixable = sum(1 for e in errors if e[-1] is not None)
         if n_fixable > 0:
             print(

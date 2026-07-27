@@ -68,7 +68,7 @@ def register_vcs_handler(vcs, method):  # decorator
     return decorate
 
 
-# pylint:disable=too-many-arguments,consider-using-with # noqa
+# pylint:disable=too-many-arguments,consider-using-with
 def run_command(commands, args, cwd=None, verbose=False, hide_stderr=False, env=None):
     """Call the given command(s)."""
     assert isinstance(commands, list)
@@ -85,7 +85,7 @@ def run_command(commands, args, cwd=None, verbose=False, hide_stderr=False, env=
                 stderr=(subprocess.PIPE if hide_stderr else None),
             )
             break
-        except EnvironmentError:
+        except OSError:
             e = sys.exc_info()[1]
             if e.errno == errno.ENOENT:
                 continue
@@ -159,7 +159,7 @@ def git_get_keywords(versionfile_abs):
                     mo = re.search(r'=\s*"(.*)"', line)
                     if mo:
                         keywords["date"] = mo.group(1)
-    except EnvironmentError:
+    except OSError:
         pass
     return keywords
 

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,6 @@ import asyncio
 import logging
 from queue import Queue
 from threading import Thread
-from typing import Optional
 
 import grpc
 from holoscan.conditions import BooleanCondition
@@ -43,8 +42,8 @@ class EntityClientService:
         self.request_queue: Queue = request_queue
         self.response_queue: Queue = response_queue
         self.source_operator: Operator = source_operator
-        self.streaming_thread: Optional[Thread] = None
-        self.streaming_status_thread: Optional[Thread] = None
+        self.streaming_thread: Thread | None = None
+        self.streaming_status_thread: Thread | None = None
         self.timeout_seconds = 5000
         self.abort_connection = False
 

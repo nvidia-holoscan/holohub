@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +15,6 @@
 import logging
 import sys
 from enum import Enum
-from typing import Dict, Union
 
 import cupy as cp
 import numpy as np
@@ -71,14 +70,14 @@ class TensorProto:
         TensorProto._gxf_tensors_to_proto_tensors(gxf_entity, response.tensors)
 
     @staticmethod
-    def tensor_to_proto(gxf_entity: Dict) -> holoscan_proto.EntityRequest:
+    def tensor_to_proto(gxf_entity: dict) -> holoscan_proto.EntityRequest:
         entity_request = holoscan_proto.EntityRequest()
         TensorProto._gxf_tensors_to_proto_tensors(gxf_entity, entity_request.tensors)
         return entity_request
 
     @staticmethod
     def proto_to_tensor(
-        entity_request: Union[holoscan_proto.EntityRequest, holoscan_proto.EntityResponse], context
+        entity_request: holoscan_proto.EntityRequest | holoscan_proto.EntityResponse, context
     ) -> Entity:
         gxf_entity = Entity(context)
         TensorProto._proto_tensors_to_gxf_tensors(entity_request, gxf_entity)
@@ -115,7 +114,7 @@ class TensorProto:
                     tensor.data = cp.asnumpy(cp_array).tobytes()
 
             except Exception as e:
-                logger.error(f"Failed to convert tensor with key {key}: {str(e)}")
+                logger.error(f"Failed to convert tensor with key {key}: {e!s}")
                 raise
 
     @staticmethod
@@ -143,7 +142,7 @@ class TensorProto:
 
                 gxf_entity.add(tensor, key if key != TensorProto.NULL_KEY_NAME else "")
             except Exception as e:
-                logger.error(f"Failed to convert tensor with key {key}: {str(e)}")
+                logger.error(f"Failed to convert tensor with key {key}: {e!s}")
                 raise
 
     @staticmethod

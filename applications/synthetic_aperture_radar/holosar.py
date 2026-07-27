@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -115,7 +115,7 @@ class Signal_GeneratorOp(Operator):
         super().__init__(*args, **kwargs)
         self.timer_inited = 0
         if Target_PRF > 0:
-            self.time_per_pulse = float(1.0) / Target_PRF
+            self.time_per_pulse = 1.0 / Target_PRF
         else:
             self.time_per_pulse = 0
 

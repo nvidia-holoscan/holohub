@@ -99,7 +99,7 @@ class Camera(nn.Module):
             Znear: Near clipping plane (optional)
             Zfar: Far clipping plane (optional)
         """
-        super(Camera, self).__init__()
+        super().__init__()
 
         # Initialize default translation if not provided
         if trans is None:

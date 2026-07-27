@@ -13,9 +13,9 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-"""  # noqa: E501
+"""
 
-import cupy as cp  # noqa
+import cupy as cp
 from holoscan.conditions import CountCondition
 from holoscan.core import Application, Operator, OperatorSpec, Tensor  # noqa
 from holoscan.operators import HolovizOp

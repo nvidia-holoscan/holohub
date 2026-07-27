@@ -16,7 +16,7 @@
 
 import logging
 import os
-from typing import Any, Dict
+from typing import Any
 
 import yaml
 
@@ -24,7 +24,7 @@ import yaml
 logger = logging.getLogger(__name__)
 
 
-def read_yaml_file(yaml_path: str) -> Dict[str, Any]:
+def read_yaml_file(yaml_path: str) -> dict[str, Any]:
     """
     Read a YAML file and return its contents as a dictionary.
 
@@ -43,7 +43,7 @@ def read_yaml_file(yaml_path: str) -> Dict[str, Any]:
         return {}
 
 
-def write_yaml_file(yaml_path: str, data: Dict[str, Any]) -> bool:
+def write_yaml_file(yaml_path: str, data: dict[str, Any]) -> bool:
     """
     Write a dictionary to a YAML file.
 
@@ -67,7 +67,7 @@ def write_yaml_file(yaml_path: str, data: Dict[str, Any]) -> bool:
         return False
 
 
-def update_yaml_file(yaml_path: str, output_path: str, updates: Dict[str, Any]) -> bool:
+def update_yaml_file(yaml_path: str, output_path: str, updates: dict[str, Any]) -> bool:
     """
     Update multiple fields in a YAML file using dot-notation paths.
 
@@ -97,7 +97,7 @@ def update_yaml_file(yaml_path: str, output_path: str, updates: Dict[str, Any]) 
     # Load YAML data
     yaml_data = read_yaml_file(yaml_path)
     if not yaml_data:
-        raise IOError(f"Failed to read YAML file: {yaml_path}")
+        raise OSError(f"Failed to read YAML file: {yaml_path}")
 
     # Process all updates
     for field_path, value in updates.items():
@@ -105,12 +105,12 @@ def update_yaml_file(yaml_path: str, output_path: str, updates: Dict[str, Any]) 
 
     # Write the updated YAML
     if not write_yaml_file(output_path, yaml_data):
-        raise IOError(f"Failed to write YAML file: {output_path}")
+        raise OSError(f"Failed to write YAML file: {output_path}")
 
     return True
 
 
-def _update_yaml_field(yaml_data: Dict[str, Any], field_path: str, value: Any) -> bool:
+def _update_yaml_field(yaml_data: dict[str, Any], field_path: str, value: Any) -> bool:
     """
     Update a single field in a YAML data structure using a dot-notation path.
     If path components don't exist, they will be created.

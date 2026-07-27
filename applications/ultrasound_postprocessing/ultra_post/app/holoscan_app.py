@@ -32,8 +32,9 @@ from __future__ import annotations
 import argparse
 import os
 import sys
+from collections.abc import Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional, Sequence, Tuple
+from typing import TYPE_CHECKING
 
 from ultra_post.app.holoscan_operators import (
     FuncOp,
@@ -133,7 +134,7 @@ def _parse_args(argv: list[str]) -> argparse.Namespace:
     return p.parse_args(argv)
 
 
-def _load_pipeline_from_yaml(path: Optional[str]) -> Pipeline:
+def _load_pipeline_from_yaml(path: str | None) -> Pipeline:
     filters = FILTERS
     if not path:
         pipeline: Pipeline = []
@@ -159,7 +160,7 @@ def _build_raysim_generator(
     sim_radius: float,
     sim_frequency: float,
     sim_world: str,
-) -> "RaysimFrameGenerator":
+) -> RaysimFrameGenerator:
     from ultra_post.sim.raysim_source import RaysimFrameGenerator, RaysimSweepConfig
 
     sweep_cfg = RaysimSweepConfig(
@@ -175,7 +176,7 @@ def _build_raysim_generator(
     return RaysimFrameGenerator(sweep_cfg)
 
 
-def _pair(values: Sequence[float], default: Tuple[float, float]) -> Tuple[float, float]:
+def _pair(values: Sequence[float], default: tuple[float, float]) -> tuple[float, float]:
     pair = default
     if len(values) == 2:
         pair = (float(values[0]), float(values[1]))
@@ -220,7 +221,7 @@ def run_holoscan_app(args: argparse.Namespace) -> None:
         def __init__(self) -> None:
             super().__init__()
 
-        def compose(self) -> None:  # noqa: D401
+        def compose(self) -> None:
             # Schedule the source periodically via a PeriodicCondition.
             # Use integer nanoseconds for recess_period as required by the API.
             freq_hz = max(1.0, float(args.fps))
@@ -289,7 +290,7 @@ def run_holoscan_app(args: argparse.Namespace) -> None:
         print("Tracker context exited.")
 
 
-def main(argv: Optional[list[str]] = None) -> None:
+def main(argv: list[str] | None = None) -> None:
     args = _parse_args(argv or sys.argv[1:])
 
     if args.source == "uff":

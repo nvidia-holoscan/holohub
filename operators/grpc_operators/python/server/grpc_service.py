@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,6 @@
 import logging
 from concurrent import futures
 from queue import Queue
-from typing import List, Optional
 
 import grpc
 from grpc_health.v1 import health, health_pb2_grpc
@@ -33,15 +32,15 @@ class GrpcService:
         Create a singleton instance of the GrpcService class
         """
         if not hasattr(cls, "instance"):
-            cls.instance = super(GrpcService, cls).__new__(cls)
+            cls.instance = super().__new__(cls)
             cls.instance.__initialized = False
         return cls.instance
 
     def __init__(self):
         if self.__initialized:
             return
-        self.server: Optional[grpc.aio.Server] = None
-        self.services: Optional[List[HoloscanEntityServicer]] = None
+        self.server: grpc.aio.Server | None = None
+        self.services: list[HoloscanEntityServicer] | None = None
         self.logger: logging.Logger = logging.getLogger(__name__)
         self.__initialized: bool = True
 
@@ -50,7 +49,7 @@ class GrpcService:
         self.application_factory: ApplicationFactory = application_factory
 
     async def start(
-        self, services: List[HoloscanEntityServicer], enable_health_check_service: bool = True
+        self, services: list[HoloscanEntityServicer], enable_health_check_service: bool = True
     ):
         if len(services) == 0:
             raise ValueError("At least one service must be provided")

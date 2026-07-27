@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,6 @@ import fractions
 import logging
 import time
 from threading import Condition, Event
-from typing import Tuple
 
 import cupy as cp
 import numpy as np
@@ -48,7 +47,7 @@ class VideoStreamTrack(MediaStreamTrack):
         self._timestamp = 0
         self._first_frame = True
 
-    async def next_timestamp(self) -> Tuple[int, fractions.Fraction]:
+    async def next_timestamp(self) -> tuple[int, fractions.Fraction]:
         VIDEO_TIME_BASE = fractions.Fraction(1, 1000)  # ms
 
         if self._first_frame:

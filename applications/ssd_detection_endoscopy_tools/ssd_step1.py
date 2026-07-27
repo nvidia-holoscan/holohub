@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -81,7 +81,7 @@ def calc_iou_tensor(box1, box2):
 
 
 # This function is from https://github.com/kuangliu/pytorch-ssd.
-class Encoder(object):
+class Encoder:
     """
     Inspired by https://github.com/kuangliu/pytorch-src
     Transform between (bboxes, labels) <-> SSD output
@@ -210,7 +210,7 @@ class Encoder(object):
         return bboxes_out[max_ids, :], labels_out[max_ids], scores_out[max_ids]
 
 
-class DefaultBoxes(object):
+class DefaultBoxes:
     def __init__(
         self, fig_size, feat_size, steps, scales, aspect_ratios, scale_xy=0.1, scale_wh=0.2
     ):

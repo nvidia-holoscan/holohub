@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Generator, Iterable
+from collections.abc import Generator, Iterable
 
 import riva.client.audio_io
 import riva.client.proto.riva_asr_pb2 as rasr
@@ -107,7 +107,6 @@ class RivaASROp(Operator):
         # Stop the mic streaming & the key listener
         self.mic_instance.close()
         self.listener.stop()
-        pass
 
     def compute(self, op_input, op_output, context):
         if self.is_streaming:

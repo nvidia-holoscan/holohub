@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,8 +15,8 @@
 
 import asyncio
 import logging
+from collections.abc import AsyncIterable, Callable
 from queue import Queue
-from typing import AsyncIterable, Callable, Optional
 
 import grpc
 
@@ -37,10 +37,10 @@ class HoloscanEntityServicer(EntityServicer):
         application_name: str,
     ):
         self.application_name: str = application_name
-        self.new_entity_stream_rpc: Optional[
-            Callable[[str, Queue, Queue], HoloscanGrpcApplication]
-        ] = None
-        self.entity_stream_rpc_complete: Optional[Callable[[HoloscanGrpcApplication], None]] = None
+        self.new_entity_stream_rpc: (
+            Callable[[str, Queue, Queue], HoloscanGrpcApplication] | None
+        ) = None
+        self.entity_stream_rpc_complete: Callable[[HoloscanGrpcApplication], None] | None = None
         self.logger: logging.Logger = logging.getLogger(__name__)
 
     def configure_callbacks(

@@ -221,9 +221,7 @@ class AddViewOperator(holoscan.core.Operator):
         }
         op_output.emit(out_message, "outputs")
 
-        #
         specs = []
-        #
         spec = HolovizOp.InputSpec("video", HolovizOp.InputType.COLOR)
         view = HolovizOp.InputSpec.View()
         view.offset_x = 0.0
@@ -233,7 +231,6 @@ class AddViewOperator(holoscan.core.Operator):
         spec.views = [view]
         specs.append(spec)
 
-        #
         spec = HolovizOp.InputSpec("image", HolovizOp.InputType.COLOR)
         view = HolovizOp.InputSpec.View()
         view.offset_x = X2 - (self.left_w * 0.4) / self.display_width

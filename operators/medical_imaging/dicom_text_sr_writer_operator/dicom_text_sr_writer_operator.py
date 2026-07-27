@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +15,6 @@
 
 import logging
 from pathlib import Path
-from typing import Dict, Optional, Union
 
 from holoscan.core import ConditionType, Fragment, Operator, OperatorSpec
 
@@ -63,11 +62,11 @@ class DICOMTextSRWriterOperator(Operator):
         self,
         fragment: Fragment,
         *args,
-        output_folder: Union[str, Path],
+        output_folder: str | Path,
         model_info: ModelInfo,
         copy_tags: bool = True,
-        equipment_info: Optional[EquipmentInfo] = None,
-        custom_tags: Optional[Dict[str, str]] = None,
+        equipment_info: EquipmentInfo | None = None,
+        custom_tags: dict[str, str] | None = None,
         **kwargs,
     ):
         """Class to write DICOM SR SOP Instance for AI textual result in memory or in a file.
@@ -86,7 +85,7 @@ class DICOMTextSRWriterOperator(Operator):
             ValueError: If copy_tags is true and no DICOMSeries object provided, or
                         if result cannot be found either in memory or from file.
         """
-        self._logger = logging.getLogger("{}.{}".format(__name__, type(self).__name__))
+        self._logger = logging.getLogger(f"{__name__}.{type(self).__name__}")
 
         # Need to init the output folder until the execution context supports dynamic FS path
         # Not trying to create the folder to avoid exception on init
@@ -150,7 +149,7 @@ class DICOMTextSRWriterOperator(Operator):
         # Gets the input, prepares the output folder, and then delegates the processing.
         result_text = str(op_input.receive(self.input_name_text)).strip()
         if not result_text:
-            raise IOError("Input is read but blank.")
+            raise OSError("Input is read but blank.")
 
         study_selected_series_list = None
         try:
@@ -178,7 +177,7 @@ class DICOMTextSRWriterOperator(Operator):
         # Now ready to starting writing the DICOM instance
         self.write(result_text, dicom_series, self.output_folder)
 
-    def write(self, content_text, dicom_series: Optional[DICOMSeries], output_dir: Path):
+    def write(self, content_text, dicom_series: DICOMSeries | None, output_dir: Path):
         """Writes DICOM object
 
         Args:

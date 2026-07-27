@@ -53,7 +53,7 @@ class TracksAssemblerOp(Operator):
         self._initialize_ids()
 
     def _initialize_ids(self):
-        self.last_ids_0 = list(range(0, self.n_points_per_op))
+        self.last_ids_0 = list(range(self.n_points_per_op))
         self.last_ids_1 = list(range(self.n_points_per_op, 2 * self.n_points_per_op))
         self.last_ids_2 = list(range(2 * self.n_points_per_op, 3 * self.n_points_per_op))
 

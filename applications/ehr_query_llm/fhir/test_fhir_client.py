@@ -164,7 +164,7 @@ def sender():
 
             print("Sending query:")
             print(query)
-            print("")
+            print()
             socket.send_multipart([topic_request.encode("utf-8"), query.to_json().encode("utf-8")])
 
 

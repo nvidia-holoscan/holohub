@@ -328,8 +328,7 @@ def get_full_image_url(relative_path, readme_path=None):
         relative_path: The relative path to the image from the README
         readme_path: Path object pointing to the README file that referenced the image
     """
-    if relative_path.startswith("./"):
-        relative_path = relative_path[2:]
+    relative_path = relative_path.removeprefix("./")
     if relative_path.startswith(("http://", "https://")):
         return relative_path
     if readme_path:

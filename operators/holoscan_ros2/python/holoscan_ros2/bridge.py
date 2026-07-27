@@ -193,9 +193,7 @@ class Bridge(holoscan.core.Resource):
                 raise ValueError("message_queue_max_size must be >= 0")
             self.message_queue_max_size = message_queue_max_size
 
-            self.message_queue = Queue(
-                maxsize=message_queue_max_size if message_queue_max_size > 0 else 0
-            )
+            self.message_queue = Queue(maxsize=max(0, message_queue_max_size))
             self.promise_queue = Queue()
             self.lock = threading.Lock()
 

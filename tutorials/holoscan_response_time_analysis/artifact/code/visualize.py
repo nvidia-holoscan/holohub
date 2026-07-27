@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 UNIVERSITY OF BRITISH COLUMBIA. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, UNIVERSITY OF BRITISH COLUMBIA. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -79,7 +79,7 @@ def overheadmain():
 
     observed = open("observedoverheads.txt", "r")
 
-    observedoverheads = [int(float(x.split(" ")[-1].rstrip())) for x in observed.readlines()]
+    observedoverheads = [int(float(x.split(" ")[-1].rstrip())) for x in observed]
 
     plt.ylabel("Response time (ms)", fontsize=20)
     plt.xlabel("# Operators", fontsize=20)

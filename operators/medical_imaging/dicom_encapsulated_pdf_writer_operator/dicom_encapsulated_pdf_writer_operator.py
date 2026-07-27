@@ -17,7 +17,6 @@ import logging
 import os
 from io import BytesIO
 from pathlib import Path
-from typing import Dict, Optional, Union
 
 from holoscan.core import ConditionType, Fragment, Operator, OperatorSpec
 
@@ -65,11 +64,11 @@ class DICOMEncapsulatedPDFWriterOperator(Operator):
         self,
         fragment: Fragment,
         *args,
-        output_folder: Union[str, Path],
+        output_folder: str | Path,
         model_info: ModelInfo,
-        equipment_info: Optional[EquipmentInfo] = None,
+        equipment_info: EquipmentInfo | None = None,
         copy_tags: bool = True,
-        custom_tags: Optional[Dict[str, str]] = None,
+        custom_tags: dict[str, str] | None = None,
         **kwargs,
     ):
         """Class to write DICOM Encapsulated PDF Instance with PDF bytes in memory or in a file.
@@ -90,7 +89,7 @@ class DICOMEncapsulatedPDFWriterOperator(Operator):
                         if PDF bytes cannot be found in memory or loaded from the file.
         """
 
-        self._logger = logging.getLogger("{}.{}".format(__name__, type(self).__name__))
+        self._logger = logging.getLogger(f"{__name__}.{type(self).__name__}")
 
         # Need to init the output folder until the execution context supports dynamic FS path
         # Not trying to create the folder to avoid exception on init
@@ -157,7 +156,7 @@ class DICOMEncapsulatedPDFWriterOperator(Operator):
         pdf_bytes: bytes = b""
         pdf_bytes = op_input.receive(self.input_name_bytes)
         if not pdf_bytes or not len(pdf_bytes.strip()):
-            raise IOError("Input is read but blank.")
+            raise OSError("Input is read but blank.")
 
         study_selected_series_list = None
         try:
@@ -185,7 +184,7 @@ class DICOMEncapsulatedPDFWriterOperator(Operator):
         # Now ready to starting writing the DICOM instance
         self.write(pdf_bytes, dicom_series, self.output_folder)
 
-    def write(self, content_bytes, dicom_series: Optional[DICOMSeries], output_dir: Path):
+    def write(self, content_bytes, dicom_series: DICOMSeries | None, output_dir: Path):
         """Writes DICOM object
 
         Args:

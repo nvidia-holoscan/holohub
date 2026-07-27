@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,8 +25,8 @@ from holoscan.core import Application, Operator, OperatorSpec
 from openai import APIConnectionError, AuthenticationError, OpenAI
 from requests.models import PreparedRequest
 
-logging.getLogger("httpx").setLevel(logging.WARN)
-logging.getLogger("openai").setLevel(logging.WARN)
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("openai").setLevel(logging.WARNING)
 
 logger = logging.getLogger("NVIDIA_NIM_CHAT")
 logging.basicConfig(level=logging.INFO)
@@ -57,7 +57,7 @@ class OpenAIOperator(Operator):
             logger.warning(
                 "Set 'api-key' in the nvidia_nim.yaml config file or set the environment variable 'API_KEY'."
             )
-            print("")
+            print()
         self.client = OpenAI(base_url=base_url, api_key=self.api_key)
 
         # Need to call the base class constructor last

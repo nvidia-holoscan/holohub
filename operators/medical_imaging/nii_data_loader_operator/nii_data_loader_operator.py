@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,7 +43,7 @@ class NiftiDataLoader(Operator):
             fragment (Fragment): An instance of the Application class which is derived from Fragment.
             input_path (Path): The file Path to read from, overridden by valid named input on compute.
         """
-        self._logger = logging.getLogger("{}.{}".format(__name__, type(self).__name__))
+        self._logger = logging.getLogger(f"{__name__}.{type(self).__name__}")
         self.input_path = input_path  # Allow to be None, to be overridden when compute is called.
         self.input_name_path = "image_path"
         self.output_name_image = "image"

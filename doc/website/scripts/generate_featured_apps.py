@@ -22,7 +22,7 @@ from pathlib import Path
 script_dir = Path(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, str(script_dir)) if str(script_dir) not in sys.path else None
 
-from common_utils import (  # noqa: E402
+from common_utils import (
     COMPONENT_TYPES,
     extract_first_sentences,
     extract_image_from_readme,

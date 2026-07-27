@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,9 +16,10 @@
 import datetime
 import logging
 import os
+from collections.abc import Sequence
 from pathlib import Path
 from random import randint
-from typing import TYPE_CHECKING, Dict, List, Optional, Sequence, Union
+from typing import TYPE_CHECKING
 
 import numpy as np
 from holoscan.core import ConditionType, Fragment, Operator, OperatorSpec
@@ -55,10 +56,10 @@ class SegmentDescription:
         algorithm_name: str,
         algorithm_version: str,
         algorithm_family: Code = codes.DCM.ArtificialIntelligence,
-        tracking_id: Optional[str] = None,
-        tracking_uid: Optional[str] = None,
-        anatomic_regions: Optional[Sequence[Code]] = None,
-        primary_anatomic_structures: Optional[Sequence[Code]] = None,
+        tracking_id: str | None = None,
+        tracking_uid: str | None = None,
+        anatomic_regions: Sequence[Code] | None = None,
+        primary_anatomic_structures: Sequence[Code] | None = None,
     ):
         """Class encapsulating the description of a segment within the segmentation.
 
@@ -184,9 +185,9 @@ class DICOMSegmentationWriterOperator(Operator):
         self,
         fragment: Fragment,
         *args,
-        segment_descriptions: List[SegmentDescription],
+        segment_descriptions: list[SegmentDescription],
         output_folder: Path,
-        custom_tags: Optional[Dict[str, str]] = None,
+        custom_tags: dict[str, str] | None = None,
         omit_empty_frames: bool = True,
         **kwargs,
     ):
@@ -292,8 +293,8 @@ class DICOMSegmentationWriterOperator(Operator):
 
     def process_images(
         self,
-        image: Union[Image, Path],
-        study_selected_series_list: List[StudySelectedSeries],
+        image: Image | Path,
+        study_selected_series_list: list[StudySelectedSeries],
         output_dir: Path,
     ):
         """ """
@@ -376,7 +377,7 @@ class DICOMSegmentationWriterOperator(Operator):
             # Test reading back
             _ = self._read_from_dcm(str(output_path))
         except Exception as ex:
-            print("DICOMSeg creation failed. Error:\n{}".format(ex))
+            print(f"DICOMSeg creation failed. Error:\n{ex}")
             raise
 
     def _read_from_dcm(self, file_path: str):
@@ -412,13 +413,13 @@ class DICOMSegmentationWriterOperator(Operator):
                     ext = which_supported_ext(file_path, extensions)
                     if ext:
                         return file_path, ext
-            raise IOError("No supported input file found ({})".format(extensions))
+            raise OSError(f"No supported input file found ({extensions})")
         elif os.path.isfile(input_folder):
             ext = which_supported_ext(input_folder, extensions)
             if ext:
                 return input_folder, ext
         else:
-            raise FileNotFoundError("{} is not found.".format(input_folder))
+            raise FileNotFoundError(f"{input_folder} is not found.")
 
     def _image_file_to_numpy(self, input_path: str):
         """Converts image file to numpy"""
@@ -426,13 +427,13 @@ class DICOMSegmentationWriterOperator(Operator):
         img = sitk.ReadImage(input_path)
         data_np = sitk.GetArrayFromImage(img)
         if data_np is None:
-            raise RuntimeError("Failed to convert image file to numpy: {}".format(input_path))
+            raise RuntimeError(f"Failed to convert image file to numpy: {input_path}")
         return data_np.astype(np.uint8)
 
 
 def random_with_n_digits(n):
     assert isinstance(n, int), "Argument n must be a int."
-    n = n if n >= 1 else 1
+    n = max(n, 1)
     range_start = 10 ** (n - 1)
     range_end = (10**n) - 1
     return randint(range_start, range_end)

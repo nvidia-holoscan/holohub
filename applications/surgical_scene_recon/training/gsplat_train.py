@@ -35,7 +35,7 @@ import math
 import os
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Literal
 
 import imageio
 import numpy as np
@@ -52,7 +52,6 @@ from torch.utils.tensorboard import SummaryWriter
 from torchmetrics.functional.regression import pearson_corrcoef
 from torchmetrics.image import PeakSignalNoiseRatio, StructuralSimilarityIndexMeasure
 from torchmetrics.image.lpip import LearnedPerceptualImagePatchSimilarity
-from typing_extensions import Literal
 from utils.image_utils import psnr
 
 # Local imports
@@ -151,7 +150,7 @@ class EndoConfig:
 
     # Deformation network architecture
     bounds: float = 1.5
-    kplanes_config: Dict = field(
+    kplanes_config: dict = field(
         default_factory=lambda: {
             "grid_dimensions": 2,
             "input_coordinate_dim": 4,
@@ -159,7 +158,7 @@ class EndoConfig:
             "resolution": [64, 64, 64, 100],
         }
     )
-    multires: List[int] = field(default_factory=lambda: [1, 2, 4, 8])
+    multires: list[int] = field(default_factory=lambda: [1, 2, 4, 8])
     defor_depth: int = 0
     net_width: int = 32
     timebase_pe: int = 6
@@ -175,7 +174,7 @@ class EndoConfig:
     no_do: bool = False
 
     # ========== Densification Strategy ==========
-    strategy: Union[DefaultStrategy, MCMCStrategy] = field(
+    strategy: DefaultStrategy | MCMCStrategy = field(
         default_factory=lambda: DefaultStrategy(verbose=True)
     )
     packed: bool = False
@@ -200,14 +199,14 @@ class EndoConfig:
     # ========== Logging & Saving ==========
     tb_every: int = 100
     tb_save_image: bool = False
-    eval_steps: List[int] = field(
+    eval_steps: list[int] = field(
         default_factory=lambda: [1_200, 1_500]
     )  # Eval at end of fine stage
-    save_steps: List[int] = field(
+    save_steps: list[int] = field(
         default_factory=lambda: [1_200, 1_500]
     )  # Save at end of fine stage
     save_ply: bool = False
-    ply_steps: List[int] = field(default_factory=lambda: [1_200, 1_500])
+    ply_steps: list[int] = field(default_factory=lambda: [1_200, 1_500])
     disable_video: bool = False
 
     # ========== Viewer ==========
@@ -706,12 +705,12 @@ class EndoRunner:
         Ks: Tensor,
         width: int,
         height: int,
-        time_idx: Optional[Tensor] = None,
+        time_idx: Tensor | None = None,
         stage: str = "fine",  # Phase 6: Stage determines if deformation is applied
-        rasterize_mode: Optional[Literal["classic", "antialiased"]] = None,
-        camera_model: Optional[Literal["pinhole", "ortho", "fisheye"]] = None,
+        rasterize_mode: Literal["classic", "antialiased"] | None = None,
+        camera_model: Literal["pinhole", "ortho", "fisheye"] | None = None,
         **kwargs,
-    ) -> Tuple[Tensor, Tensor, Dict]:
+    ) -> tuple[Tensor, Tensor, dict]:
         """Rasterize Gaussian splats with stage-dependent deformation
 
         Phase 4: Implemented using gsplat.rasterization()
@@ -1799,7 +1798,7 @@ def create_splats_with_optimizers(
     device: str = "cuda",
     world_rank: int = 0,
     world_size: int = 1,
-) -> Tuple[torch.nn.ParameterDict, Dict[str, torch.optim.Optimizer]]:
+) -> tuple[torch.nn.ParameterDict, dict[str, torch.optim.Optimizer]]:
     """Create Gaussian splats and optimizers from point cloud
 
     Adapted from gsplat's create_splats_with_optimizers for EndoNeRF data.
@@ -1922,7 +1921,7 @@ def set_random_seed(seed: int):
 # ============================================================================
 
 
-def create_invisible_mask_from_paths(mask_paths: List[str], device: str = "cuda") -> Tensor:
+def create_invisible_mask_from_paths(mask_paths: list[str], device: str = "cuda") -> Tensor:
     """
     Create invisible mask from list of mask file paths.
 
@@ -1989,7 +1988,7 @@ def dilate_invisible_mask(mask: Tensor, kernel_size: int = 5, iterations: int = 
     return dilated
 
 
-def compute_tv_loss_targeted(image: Tensor, mask: Optional[Tensor] = None) -> Tensor:
+def compute_tv_loss_targeted(image: Tensor, mask: Tensor | None = None) -> Tensor:
     """
     Compute total variation loss, optionally on masked region only.
 
@@ -2039,7 +2038,7 @@ def accumulate_multiframe_pointcloud(
     sample_rate: int = 3,
     use_masks: bool = True,
     device: str = "cuda",
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Accumulate depth and color across ALL frames using SurgicalGaussian approach.
 

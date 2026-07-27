@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,10 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections.abc import Generator, Iterable
 from queue import Queue
 from threading import Thread
 from time import sleep
-from typing import Generator, Iterable
 
 import numpy as np
 import riva.client
@@ -80,7 +80,7 @@ class RivaASROp(Operator):
         self.sample_rate_hz = cli_args.sample_rate_hz
         self.whisper_response = ""
         # Used to store input microphone audio bytes
-        self.audio_bytes = bytes()
+        self.audio_bytes = b""
         self.whisper_pipeline = self._get_whisper_pipeline()
         super().__init__(fragment, *args, **kwargs)
 
@@ -123,7 +123,7 @@ class RivaASROp(Operator):
         audio_data /= np.iinfo(np.int16).max
         audio_data = self._resample_to_16k(audio_data, self.sample_rate_hz)
         transcription = self.whisper_pipeline(audio_data)["text"]
-        self.audio_bytes = bytes()
+        self.audio_bytes = b""
         return transcription
 
     @staticmethod

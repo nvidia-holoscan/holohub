@@ -1,5 +1,5 @@
 """
-SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 SPDX-License-Identifier: Apache-2.0
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,13 +23,12 @@ import os
 import numpy as np
 import pytorch_lightning as pl
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
-import torch.optim as optim
-import torch.utils.data as data
 import torchvision
 from PIL import Image
 from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
+from torch import nn, optim
+from torch.utils import data
 from torchvision import transforms
 
 # Ensure that all operations are deterministic on GPU (if used) for reproducibility
@@ -64,9 +63,8 @@ contrast_transforms = transforms.Compose(
 
 
 def pil_loader(path):
-    with open(path, "rb") as f:
-        with Image.open(f) as img:
-            return img.convert("RGB")
+    with open(path, "rb") as f, Image.open(f) as img:
+        return img.convert("RGB")
 
 
 class SurgicalVisionDataset_json(data.Dataset):
@@ -154,7 +152,7 @@ class SimCLR(pl.LightningModule):
             )
 
         else:
-            raise ValueError("Model Arch {} not supported currently".format(backbone))
+            raise ValueError(f"Model Arch {backbone} not supported currently")
 
     def configure_optimizers(self):
         optimizer = optim.AdamW(

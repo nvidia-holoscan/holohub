@@ -13,7 +13,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-"""  # noqa: E501
+"""
 
 import ctypes  # noqa
 
@@ -373,8 +373,6 @@ class CudaRxOp(CudaOperator):
         class CudaArray:
             """Class to represent a CUDA array interface object."""
 
-            pass
-
         cuda_array = CudaArray()
 
         # Reference: https://numba.readthedocs.io/en/stable/cuda/cuda_array_interface.html
@@ -389,7 +387,6 @@ class CudaRxOp(CudaOperator):
         }
 
         op_output.emit({"": cuda_array}, "out")
-        return
         # # This is same with the following code
         # op_output.emit({"": Tensor.as_tensor(cuda_array)}, "out")
         # return

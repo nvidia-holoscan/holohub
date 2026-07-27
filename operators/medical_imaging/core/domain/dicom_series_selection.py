@@ -1,5 +1,5 @@
 #!/bin/bash
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List, Optional, Union
 
 from .dicom_series import DICOMSeries
 from .dicom_study import DICOMStudy
@@ -32,8 +31,8 @@ class SelectedSeries(Domain):
         self,
         selection_name: str,
         dicom_series: DICOMSeries,
-        image: Optional[Image] = None,
-        metadata: Optional[Dict] = None,
+        image: Image | None = None,
+        metadata: dict | None = None,
     ) -> None:
         """Creates an instance of this class
 
@@ -72,11 +71,11 @@ class SelectedSeries(Domain):
         return self._name
 
     @property
-    def image(self) -> Union[Image, None]:
+    def image(self) -> Image | None:
         return self._image
 
     @image.setter
-    def image(self, val: Optional[Image]):
+    def image(self, val: Image | None):
         if not val:
             self._image = None
         elif isinstance(val, Image):
@@ -91,7 +90,7 @@ class StudySelectedSeries(Domain):
     It references the DICOMStudy object and a dictionary of SelectedSeries objects.
     """
 
-    def __init__(self, study: DICOMStudy, metadata: Optional[Dict] = None) -> None:
+    def __init__(self, study: DICOMStudy, metadata: dict | None = None) -> None:
         """Creates a instance with a DICOMStudy object.
 
         Args:
@@ -105,7 +104,7 @@ class StudySelectedSeries(Domain):
             raise ValueError("A DICOMStudy object is required.")
         super().__init__(metadata)
         self._study: DICOMStudy = study
-        self._select_series_dict: Dict = {}  # "selection_name": [SelectedSeries]
+        self._select_series_dict: dict = {}  # "selection_name": [SelectedSeries]
 
     @property
     def study(self) -> DICOMStudy:
@@ -117,7 +116,7 @@ class StudySelectedSeries(Domain):
         return self._study
 
     @property
-    def selected_series(self) -> List[SelectedSeries]:
+    def selected_series(self) -> list[SelectedSeries]:
         """Returns a view of the list of all the SelectedSeries objects.
 
         Returns:
@@ -127,7 +126,7 @@ class StudySelectedSeries(Domain):
         return [item for sublist in list_of_sublists for item in sublist]
 
     @property
-    def series_by_selection_name(self) -> Dict:
+    def series_by_selection_name(self) -> dict:
         """Returns the list of SelectedSeries by selection names in a dictionary.
 
         Returns:

@@ -32,7 +32,7 @@ _scripts_dir = str(Path(__file__).resolve().parent)
 if _scripts_dir not in sys.path:
     sys.path.insert(0, _scripts_dir)
 
-from generate_api_docs import get_api_reference_for_operator  # noqa: E402
+from generate_api_docs import get_api_reference_for_operator
 
 # log stuff
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -873,7 +873,7 @@ def process_archived_versions(
     Returns:
         Navigation content string for archived versions
     """
-    logger.info(f"Processing versioned documentation for {str(dest_dir)}")
+    logger.info(f"Processing versioned documentation for {dest_dir!s}")
 
     nav_content = """
 nav:

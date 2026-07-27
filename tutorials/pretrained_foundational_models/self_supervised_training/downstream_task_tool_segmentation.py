@@ -1,5 +1,5 @@
 """
-SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 SPDX-License-Identifier: Apache-2.0
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -254,7 +254,7 @@ def training_pipeline(
     phase_list = ["train", "valid", "test"]
     # Making the save path and the modelname.
     if not os.path.exists(data_path):
-        raise Exception("Path {} doesn't exists.".format(data_path))
+        raise Exception(f"Path {data_path} doesn't exists.")
     os.makedirs(save_path, exist_ok=True)
     save_model = os.path.join(save_path, model_name)
 

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,6 @@ import logging
 import numbers
 import re
 from json import loads as json_loads
-from typing import List
 
 from holoscan.core import ConditionType, Fragment, Operator, OperatorSpec
 
@@ -117,7 +116,7 @@ class DICOMSeriesSelectorOperator(Operator):
 
     def filter(
         self, selection_rules, dicom_study_list, all_matched: bool = False
-    ) -> List[StudySelectedSeries]:
+    ) -> list[StudySelectedSeries]:
         """Selects the series with the given matching rules.
 
         If rules object is None, all series will be returned with series instance UID as the selection name.
@@ -144,7 +143,7 @@ class DICOMSeriesSelectorOperator(Operator):
 
         if not selection_rules:
             # Return all series if no selection rules are supplied
-            logging.warn("No selection rules given; select all series.")
+            logging.warning("No selection rules given; select all series.")
             return self._select_all_series(dicom_study_list)
 
         selections = selection_rules.get("selections", None)  # TODO type is not json now.
@@ -183,7 +182,7 @@ class DICOMSeriesSelectorOperator(Operator):
     def _load_rules(self):
         return json_loads(self._rules_json_str) if self._rules_json_str else None
 
-    def _select_all_series(self, dicom_study_list: List[DICOMStudy]) -> List[StudySelectedSeries]:
+    def _select_all_series(self, dicom_study_list: list[DICOMStudy]) -> list[StudySelectedSeries]:
         """Select all series in studies
 
         Returns:
@@ -195,7 +194,7 @@ class DICOMSeriesSelectorOperator(Operator):
             logging.info(f"Working on study, instance UID: {study.StudyInstanceUID}")
             study_selected_series = StudySelectedSeries(study)
             for series in study.get_all_series():
-                logging.info(f"Working on series, instance UID: {str(series.SeriesInstanceUID)}")
+                logging.info(f"Working on series, instance UID: {series.SeriesInstanceUID!s}")
                 selected_series = SelectedSeries(
                     "", series, None
                 )  # No selection name or Image obj.
@@ -205,7 +204,7 @@ class DICOMSeriesSelectorOperator(Operator):
 
     def _select_series(
         self, attributes: dict, study: DICOMStudy, all_matched=False
-    ) -> List[DICOMSeries]:
+    ) -> list[DICOMSeries]:
         """Finds series whose attributes match the given attributes.
 
         Args:

@@ -185,4 +185,4 @@ def op_output():
 @pytest.fixture
 def execution_context():
     """Provide a mock execution context (None for Python bindings)."""
-    return None
+    return

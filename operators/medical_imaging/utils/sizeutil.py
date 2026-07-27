@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import re
-from typing import Union
 
 BYTES_UNIT = {
     "kib": 2**10,
@@ -45,7 +44,7 @@ BYTES_UNIT = {
 }
 
 
-def get_bytes(size: Union[str, int]) -> int:
+def get_bytes(size: str | int) -> int:
     """Converts string representation of bytes to a number of bytes.
 
     If an integer is passed, it is returned as is (no conversion).
@@ -88,7 +87,7 @@ def get_bytes(size: Union[str, int]) -> int:
     return int(parsed_size * BYTES_UNIT[parsed_unit])
 
 
-def convert_bytes(num_bytes: int, unit: str = "Mi") -> Union[str, int]:
+def convert_bytes(num_bytes: int, unit: str = "Mi") -> str | int:
     """Converts a number of bytes to a string representation.
 
     By default, the output is in MiB('Mi') format.

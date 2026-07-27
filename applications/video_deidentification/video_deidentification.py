@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -142,9 +142,7 @@ class BlurOp(Operator):
             if bb.area() > 0:
                 newrois.append(bb)
         for i in reversed(range(len(self.rois))):
-            if (self.count - self.rois[i].t) > self.time_thresh:
-                del self.rois[i]
-            elif (
+            if (self.count - self.rois[i].t) > self.time_thresh or (
                 self.rois[i].area_intersect_union(newrois) / self.rois[i].area()
             ) > self.overlap_thresh:
                 del self.rois[i]

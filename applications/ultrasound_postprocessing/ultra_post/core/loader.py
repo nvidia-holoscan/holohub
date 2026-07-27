@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import math
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 try:
     import cupy as cp
@@ -42,7 +42,7 @@ def load_uff_frame(
     path: str | Path,
     dataset: str | None = None,
     frame_index: int = 0,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Load a single B-mode frame from a UFF file directly into GPU memory."""
 
     resolved = Path(path)
@@ -82,7 +82,7 @@ def load_uff_frame(
     )
     tensor = _normalize_unit_interval(tensor)
 
-    meta: Dict[str, Any] = {
+    meta: dict[str, Any] = {
         "path": str(resolved),
         "dataset": chosen_dataset,
         "frame_index": frame_index,
@@ -147,13 +147,13 @@ def _select_frame(
     tensor: cp.ndarray,
     payload: Any,
     frame_index: int,
-) -> Tuple[cp.ndarray, Tuple[int, ...], Optional[Tuple[int, int]]]:
+) -> tuple[cp.ndarray, tuple[int, ...], tuple[int, int] | None]:
     """Reduce tensor to 2D by iteratively slicing along the smallest axes."""
 
     if frame_index < 0:
         raise IndexError("Frame index must be non-negative.")
 
-    axes_taken: List[int] = []
+    axes_taken: list[int] = []
     current = tensor
 
     while current.ndim > 2:
@@ -165,7 +165,7 @@ def _select_frame(
         current = cp.take(current, indices=frame_index, axis=axis)
         axes_taken.append(axis)
 
-    inferred_shape: Optional[Tuple[int, int]] = None
+    inferred_shape: tuple[int, int] | None = None
     if current.ndim == 1:
         current, inferred_shape = _reshape_flat_tensor(current, payload)
     elif current.ndim == 2 and min(current.shape) <= 1 and max(current.shape) > STREAMLIT_MAX_DIM:
@@ -193,11 +193,11 @@ def _normalize_unit_interval(tensor: cp.ndarray) -> cp.ndarray:
 def _reshape_flat_tensor(
     vector: cp.ndarray,
     payload: Any,
-) -> Tuple[cp.ndarray, Optional[Tuple[int, int]]]:
+) -> tuple[cp.ndarray, tuple[int, int] | None]:
     """Reshape a 1D vector into a 2D image using scan metadata when possible."""
 
     length = int(vector.shape[0])
-    inferred_shape: Optional[Tuple[int, int]] = None
+    inferred_shape: tuple[int, int] | None = None
     reshaped = vector
     if length == 0:
         reshaped = vector.reshape((0, 0))
@@ -207,7 +207,7 @@ def _reshape_flat_tensor(
             reshaped = cp.reshape(vector, inferred, order="F")
             inferred_shape = inferred
         else:
-            width = int(math.isqrt(length))
+            width = math.isqrt(length)
             while width > 1 and length % width != 0:
                 width -= 1
             if width > 1:
@@ -224,13 +224,13 @@ def _reshape_flat_tensor(
     return cp.ascontiguousarray(reshaped), inferred_shape
 
 
-def _infer_image_shape(payload: Any, numel: int) -> Optional[Tuple[int, int]]:
+def _infer_image_shape(payload: Any, numel: int) -> tuple[int, int] | None:
     """Infer a 2D image shape from scan metadata."""
 
     scan = getattr(payload, "scan", None)
-    inferred: Optional[Tuple[int, int]] = None
+    inferred: tuple[int, int] | None = None
     if scan is not None:
-        candidates: List[Tuple[int, int]] = []
+        candidates: list[tuple[int, int]] = []
 
         nx = _coerce_int(getattr(scan, "N_x_axis", None))
         nz = _coerce_int(getattr(scan, "N_z_axis", None))
@@ -258,8 +258,8 @@ def _infer_image_shape(payload: Any, numel: int) -> Optional[Tuple[int, int]]:
     return inferred
 
 
-def _coerce_int(value: Any) -> Optional[int]:
-    intval: Optional[int] = None
+def _coerce_int(value: Any) -> int | None:
+    intval: int | None = None
     try:
         intval_candidate = int(value)
         if intval_candidate > 0:
@@ -269,8 +269,8 @@ def _coerce_int(value: Any) -> Optional[int]:
     return intval
 
 
-def _unique_coordinate_count(axis: Any) -> Optional[int]:
-    count: Optional[int] = None
+def _unique_coordinate_count(axis: Any) -> int | None:
+    count: int | None = None
     if axis is not None:
         try:
             arr = cp.asarray(axis)
@@ -283,16 +283,16 @@ def _unique_coordinate_count(axis: Any) -> Optional[int]:
     return count
 
 
-def _extract_metadata(payload: Any) -> Dict[str, Any]:
+def _extract_metadata(payload: Any) -> dict[str, Any]:
     """Extract a small metadata snapshot for UI display."""
 
-    meta: Dict[str, Any] = {}
+    meta: dict[str, Any] = {}
     if hasattr(payload, "title"):
-        meta["title"] = getattr(payload, "title")
+        meta["title"] = payload.title
     if hasattr(payload, "probe"):
-        meta["probe"] = getattr(payload, "probe")
+        meta["probe"] = payload.probe
     if hasattr(payload, "sequence"):
-        meta["sequence"] = getattr(payload, "sequence")
+        meta["sequence"] = payload.sequence
 
     scan = getattr(payload, "scan", None)
     if scan:
@@ -307,7 +307,7 @@ def _extract_metadata(payload: Any) -> Dict[str, Any]:
     return meta
 
 
-def _calculate_spacing(axis: Any) -> Optional[float]:
+def _calculate_spacing(axis: Any) -> float | None:
     try:
         arr = cp.unique(cp.asarray(axis))
         return float(arr[1] - arr[0]) if arr.size > 1 else None

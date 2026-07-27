@@ -9,7 +9,7 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import Callable, Optional
+from collections.abc import Callable
 
 import torch.nn.functional as F
 from torch import Tensor, nn
@@ -21,8 +21,8 @@ class SwiGLUFFN(nn.Module):
     def __init__(
         self,
         in_features: int,
-        hidden_features: Optional[int] = None,
-        out_features: Optional[int] = None,
+        hidden_features: int | None = None,
+        out_features: int | None = None,
         act_layer: Callable[..., nn.Module] = None,  # API compatibility only, unused
         drop: float = 0.0,  # API compatibility only, unused
         bias: bool = True,
@@ -55,8 +55,8 @@ class SwiGLUFFNFused(SwiGLU):
     def __init__(
         self,
         in_features: int,
-        hidden_features: Optional[int] = None,
-        out_features: Optional[int] = None,
+        hidden_features: int | None = None,
+        out_features: int | None = None,
         act_layer: Callable[..., nn.Module] = None,  # API compatibility only, unused
         drop: float = 0.0,  # API compatibility only, unused
         bias: bool = True,

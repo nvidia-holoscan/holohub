@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import argparse
 import sys
-from typing import Any, Dict
+from typing import Any
 
 import numpy as np
 
@@ -68,8 +68,8 @@ def parse_v4l2_pixel_format(value: str) -> str:
     return pixel_format
 
 
-def parse_key_value_properties(items: list[str]) -> Dict[str, Any]:
-    props: Dict[str, Any] = {}
+def parse_key_value_properties(items: list[str]) -> dict[str, Any]:
+    props: dict[str, Any] = {}
     for item in items:
         if "=" not in item:
             raise SystemExit(f"invalid --property '{item}', expected KEY=VALUE")

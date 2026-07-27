@@ -34,8 +34,8 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 holohub_root = os.path.abspath(os.path.join(script_dir, os.pardir, os.pardir))
 
 try:
-    from holoscan_cli.cli import HoloscanCLI  # noqa: E402
-    from holoscan_cli.utils.holohub import (  # noqa: E402
+    from holoscan_cli.cli import HoloscanCLI
+    from holoscan_cli.utils.holohub import (
         build_holohub_path_mapping,
         resolve_path_prefix,
     )
@@ -92,7 +92,7 @@ def run_command(app_launch_command, env):
             [app_launch_command],
             shell=True,
             env=env,
-            universal_newlines=True,
+            text=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )

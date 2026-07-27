@@ -164,7 +164,7 @@ class TestStreamingServerUpstreamOpBinding:
         """Test that required methods and properties are available."""
         op = upstream_operator_factory(resource=default_resource)
         assert hasattr(op, "setup")
-        assert callable(getattr(op, "setup"))
+        assert callable(op.setup)
         assert hasattr(op, "name")
         # name is a property, not a method - verify it's accessible and returns a string
         assert isinstance(op.name, str)
@@ -216,7 +216,7 @@ class TestStreamingServerDownstreamOpBinding:
         """Test that required methods and properties are available."""
         op = downstream_operator_factory(resource=default_resource)
         assert hasattr(op, "setup")
-        assert callable(getattr(op, "setup"))
+        assert callable(op.setup)
         assert hasattr(op, "name")
         # name is a property, not a method - verify it's accessible and returns a string
         assert isinstance(op.name, str)
@@ -532,7 +532,7 @@ class TestStreamingServerUpstreamOpCompute:
         op = upstream_operator_factory(name="sig_test", resource=resource)
 
         assert hasattr(op, "compute")
-        compute_method = getattr(op, "compute")
+        compute_method = op.compute
         assert callable(compute_method)
 
         # Note: inspect.signature() on pybind11 methods may not reliably report parameters
@@ -636,7 +636,7 @@ class TestStreamingServerDownstreamOpCompute:
         op = downstream_operator_factory(name="sig_test", resource=resource)
 
         assert hasattr(op, "compute")
-        compute_method = getattr(op, "compute")
+        compute_method = op.compute
         assert callable(compute_method)
 
         # Note: inspect.signature() on pybind11 methods may not reliably report parameters

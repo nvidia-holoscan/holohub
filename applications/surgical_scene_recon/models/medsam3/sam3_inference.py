@@ -14,7 +14,6 @@ following the instructions in the project README.
 """
 
 from pathlib import Path
-from typing import Optional, Tuple
 
 import numpy as np
 import sam3 as _sam3_pkg
@@ -59,7 +58,7 @@ class SAM3Model:
         self,
         confidence_threshold: float = 0.1,
         device: str = "cuda",
-        checkpoint_path: Optional[str] = None,
+        checkpoint_path: str | None = None,
     ):
         """
         Initialize SAM3 model.
@@ -174,8 +173,8 @@ class SAM3Model:
         return inference_state
 
     def predict_box(
-        self, inference_state: dict, bbox: Tuple[int, int, int, int], img_size: Tuple[int, int]
-    ) -> Optional[np.ndarray]:
+        self, inference_state: dict, bbox: tuple[int, int, int, int], img_size: tuple[int, int]
+    ) -> np.ndarray | None:
         """
         Run inference with bounding box prompt.
 
@@ -216,7 +215,7 @@ class SAM3Model:
 
         return None
 
-    def predict_text(self, inference_state: dict, text_prompt: str) -> Optional[np.ndarray]:
+    def predict_text(self, inference_state: dict, text_prompt: str) -> np.ndarray | None:
         """
         Run inference with text prompt.
 
@@ -253,7 +252,7 @@ class SAM3Model:
         text_prompt: str,
         score_threshold: float = 0.3,
         max_masks: int = 0,
-    ) -> Optional[np.ndarray]:
+    ) -> np.ndarray | None:
         """
         Run inference with text prompt and return union of masks above threshold.
 
@@ -313,11 +312,11 @@ class SAM3Model:
     def predict_box_union(
         self,
         inference_state: dict,
-        bbox: Tuple[int, int, int, int],
-        img_size: Tuple[int, int],
+        bbox: tuple[int, int, int, int],
+        img_size: tuple[int, int],
         score_threshold: float = 0.3,
         max_masks: int = 0,
-    ) -> Optional[np.ndarray]:
+    ) -> np.ndarray | None:
         """
         Run inference with bounding box prompt and return union of masks above threshold.
 
@@ -411,7 +410,7 @@ class SAM3Model:
         return states
 
 
-def generate_bbox_from_mask(mask: np.ndarray) -> Optional[Tuple[int, int, int, int]]:
+def generate_bbox_from_mask(mask: np.ndarray) -> tuple[int, int, int, int] | None:
     """
     Generate bounding box from binary mask.
 
@@ -439,7 +438,7 @@ def generate_bbox_from_mask(mask: np.ndarray) -> Optional[Tuple[int, int, int, i
     return (x_min, y_min, x_max, y_max)
 
 
-def resize_mask(mask: np.ndarray, target_shape: Tuple[int, int]) -> np.ndarray:
+def resize_mask(mask: np.ndarray, target_shape: tuple[int, int]) -> np.ndarray:
     """
     Resize a binary mask to target shape.
 

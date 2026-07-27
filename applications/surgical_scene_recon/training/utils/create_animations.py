@@ -37,14 +37,13 @@ import glob
 import os
 import sys
 from pathlib import Path
-from typing import List
 
 import imageio
 from PIL import Image
 from tqdm import tqdm
 
 
-def natural_sort_key(s: str) -> List:
+def natural_sort_key(s: str) -> list:
     """
     Sort strings naturally (handles numbers correctly).
 
@@ -56,7 +55,7 @@ def natural_sort_key(s: str) -> List:
     return [int(c) if c.isdigit() else c.lower() for c in re.split("([0-9]+)", s)]
 
 
-def create_gif(image_paths: List[str], output_path: str, fps: int = 10, loop: int = 0):
+def create_gif(image_paths: list[str], output_path: str, fps: int = 10, loop: int = 0):
     """
     Create an animated GIF from a list of image paths.
 
@@ -101,7 +100,7 @@ def create_gif(image_paths: List[str], output_path: str, fps: int = 10, loop: in
     print(f"  Actual FPS: {fps} ({duration_ms}ms per frame)")
 
 
-def create_mp4(image_paths: List[str], output_path: str, fps: int = 10, quality: int = 8):
+def create_mp4(image_paths: list[str], output_path: str, fps: int = 10, quality: int = 8):
     """
     Create an MP4 video from a list of image paths.
 
