@@ -55,4 +55,5 @@ the linked references needed for the task.
 Keep the publication artifacts in each directory together. The skill card,
 external evaluation dataset, benchmark, and detached `skill.oms.sig` allow the
 package to be verified and mirrored into the NVIDIA skills catalog. Generated
-Markdown is linted without auto-fixes so validation cannot alter signed bytes.
+Markdown remains byte-identical to the signed source; verify its detached
+signature instead of auto-formatting it after publication.
