@@ -3,8 +3,9 @@
 **Evidence snapshot:** verified 2026-07-15 against HoloHub commit
 `777d65830a7b50a324370f4d4bb65d2420e495f7`.
 
-Requires `holoscan-cli>=4.5.0`. The 4.5.0 behavior below was verified against
-release commit `cb79b8cb0f3d7e9c50d3570fee0df15df379074e`.
+Requires `holoscan-cli>=4.5.0rc1`, which includes HoloHub's current wrapper pin
+and the final 4.5.0 release. The final-release behavior below was verified
+against commit `cb79b8cb0f3d7e9c50d3570fee0df15df379074e`.
 
 HoloHub is rolling: current official `main` is the normal fresh-checkout
 target. Treat the evidence snapshot as provenance for this contract and its

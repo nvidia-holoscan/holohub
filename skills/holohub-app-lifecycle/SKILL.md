@@ -4,7 +4,7 @@ description: "Use for non-failing HoloHub app work with ./holohub: scaffold, bui
 license: Apache-2.0
 metadata:
   author: "Holoscan Team <holoscan-team@nvidia.com>"
-  compatibility: "holoscan-cli>=4.5.0"
+  compatibility: "holoscan-cli>=4.5.0rc1"
   github-url: "https://github.com/nvidia-holoscan/holohub"
   tags:
     - holoscan
@@ -63,13 +63,15 @@ Troubleshooting with its exact context.
    be clean. Proceed in a dirty checkout only when the user explicitly selected
    it and comparing the requested paths with the existing working-tree changes
    proves they do not overlap. If scope is uncertain, preserve the checkout and
-   use the documented project-local clone fallback. Never overwrite a workspace
-   or coerce an existing checkout to the contract's evidence snapshot.
+   request authorization for the documented project-local clone fallback.
+   Never overwrite a workspace or coerce an existing checkout to the contract's
+   evidence snapshot.
 2. **Preserve and orient.** Record both roots, provenance, full HEAD, and
    concise status. Create a task branch before editing a new app only in a clean
    checkout. In an explicitly selected dirty checkout, switch branches only
-   with user authorization; otherwise use the fallback. Run wrapper commands
-   from the checkout root and confirm syntax with local help.
+   with user authorization; otherwise request authorization for the fallback.
+   Run wrapper commands from the checkout root and confirm syntax with local
+   help.
 3. **Define the proof.** Confirm the contribution type, licensed inputs,
    input integrity/schema when applicable, and a verdict bounded by an explicit
    frame/message count, timeout, or artifact completion. Include visual evidence

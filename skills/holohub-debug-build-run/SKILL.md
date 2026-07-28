@@ -4,7 +4,7 @@ description: "Use when a concrete ./holohub command fails, hangs, regresses, or 
 license: Apache-2.0
 metadata:
   author: "Holoscan Team <holoscan-team@nvidia.com>"
-  compatibility: "holoscan-cli>=4.5.0"
+  compatibility: "holoscan-cli>=4.5.0rc1"
   github-url: "https://github.com/nvidia-holoscan/holohub"
   tags:
     - holoscan

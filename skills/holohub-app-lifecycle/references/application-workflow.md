@@ -29,11 +29,13 @@ For a new app in a clean selected checkout, create an unused task branch from
 its current HEAD before editing. A dirty checkout may contain required work;
 do not touch overlapping paths or silently substitute another revision.
 
-If no checkout is usable, place a fresh clone only at an absent
-`<initial-workspace>/holohub` when the workspace is writable and not another
-Git worktree. Never clone into the workspace root, overwrite an existing
-destination, or follow a symlink outside the workspace. Otherwise ask for an
-absent destination. Follow the rolling-main fresh-checkout policy in the CLI
+If no checkout is usable, stop and request explicit authorization to clone,
+naming the official repository URL and exact proposed destination. Propose
+`<initial-workspace>/holohub` only when that path is absent, the workspace is
+writable, and it is not another Git worktree; do not create it before the user
+authorizes both the clone and destination. Never clone into the workspace root,
+overwrite an existing destination, or follow a symlink outside the workspace.
+After authorization, follow the rolling-main fresh-checkout policy in the CLI
 contract unless the user requested an immutable revision. Verify the official
 remote and resolved full SHA, then create the task branch.
 

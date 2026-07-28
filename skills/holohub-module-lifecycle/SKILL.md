@@ -4,7 +4,7 @@ description: "Use for reusable Holoscan Module work with ./holohub: scaffold, te
 license: Apache-2.0
 metadata:
   author: "Holoscan Team <holoscan-team@nvidia.com>"
-  compatibility: "holoscan-cli>=4.5.0"
+  compatibility: "holoscan-cli>=4.5.0rc1"
   github-url: "https://github.com/nvidia-holoscan/holohub"
   tags:
     - holoscan

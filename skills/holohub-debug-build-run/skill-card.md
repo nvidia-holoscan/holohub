@@ -9,7 +9,7 @@ NVIDIA <br>
 ### License/Terms of Use: <br>
 Apache-2.0 <br>
 ## Use Case: <br>
-Developers and engineers use this skill to diagnose and fix concrete HoloHub wrapper command failures through reproducible, minimally scoped debugging with focused regression proof. <br>
+Developers and engineers use this skill to diagnose and fix concrete ./holohub wrapper command failures, hangs, regressions, or semantically wrong output through reproducible diagnosis and minimal-fix verification. <br>
 
 ### Deployment Geography for Use: <br>
 Global <br>
@@ -25,14 +25,14 @@ Risk: Review before execution as proposals could introduce incorrect or misleadi
 Mitigation: Review and scan skill before deployment. <br>
 
 ## Reference(s): <br>
-- [HoloHub CLI Contract](references/holohub-cli-contract.md) <br>
 - [Debug Workflow](references/debug-workflow.md) <br>
+- [HoloHub CLI Contract](references/holohub-cli-contract.md) <br>
 - [Known Issues](references/known-issues.md) <br>
-- [NVIDIA HoloHub Repository](https://github.com/nvidia-holoscan/holohub) <br>
+- [HoloHub Repository](https://github.com/nvidia-holoscan/holohub) <br>
 
 
 ## Skill Output: <br>
-**Output Type(s):** [Analysis, Shell commands, Configuration instructions] <br>
+**Output Type(s):** [Analysis, Shell commands, Code] <br>
 **Output Format:** [Markdown with inline bash code blocks] <br>
 **Output Parameters:** [1D] <br>
 **Other Properties Related to Output:** [None] <br>
@@ -44,7 +44,7 @@ Mitigation: Review and scan skill before deployment. <br>
 
 
 ## Evaluation Tasks: <br>
-Evaluated against 3 evaluation tasks (1 positive skill-activation, 2 negative activation). <br>
+Evaluated against 3 evaluation tasks (1 positive skill-activation, 2 negative activation) in k8s-sandbox environment. <br>
 
 ## Evaluation Metrics Used: <br>
 Reported benchmark dimensions: <br>
@@ -67,14 +67,14 @@ Underlying evaluation signals used in this run: <br>
 ## Evaluation Results: <br>
 | Dimension | Num | Claude Code (`aws/anthropic/bedrock-claude-opus-4-8`) | Codex (`openai/openai/gpt-5.5`) |
 |---|---:|---:|---:|
-| Security | 3 | 67% (+0%) | 67% (+0%) |
-| Correctness | 3 | 93% (+7%) | 80% (-7%) |
+| Security | 3 | 100% (+33%) | 67% (+33%) |
+| Correctness | 3 | 100% (+20%) | 87% (-13%) |
 | Discoverability | 3 | 100% (+33%) | 67% (+0%) |
-| Effectiveness | 3 | 75% (+1%) | 76% (+7%) |
+| Effectiveness | 3 | 96% (+18%) | 71% (+2%) |
 | Efficiency | 3 | 100% (+33%) | 67% (+0%) |
 
 ## Skill Version(s): <br>
-54df7419 (source: git SHA, committed 2026-07-28) <br>
+f5537cea (source: git SHA, committed 2026-07-28) <br>
 
 ## Ethical Considerations: <br>
 NVIDIA believes Trustworthy AI is a shared responsibility and we have established policies and practices to enable development for a wide array of AI applications. When downloaded or used in accordance with our terms of service, developers should work with their internal team to ensure this skill meets requirements for the relevant industry and use case and addresses unforeseen product misuse. <br>
