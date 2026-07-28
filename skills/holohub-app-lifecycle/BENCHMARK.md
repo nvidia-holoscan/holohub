@@ -7,7 +7,7 @@ This benchmark summarizes 3-Tier Evaluation from Skill Evaluator results for the
 ## Evaluation Summary
 
 - Skill: `holohub-app-lifecycle`
-- Evaluation date: 2026-07-27
+- Evaluation date: 2026-07-28
 - Environment: `k8s-sandbox`
 - Dataset: 4 evaluation tasks
 - Attempts per task: 1
@@ -52,11 +52,11 @@ Task composition is derived from the evaluation dataset when possible. Entries w
 
 | Dimension | Num | Claude Code (`aws/anthropic/bedrock-claude-opus-4-8`) | Codex (`openai/openai/gpt-5.5`) |
 |---|---:|---:|---:|
-| Security | 4 | 100% (+0%) | 100% (+25%) |
-| Correctness | 4 | 100% (+15%) | 75% (+20%) |
-| Discoverability | 4 | 100% (+25%) | 72% (+3%) |
-| Effectiveness | 4 | 88% (+41%) | 60% (+33%) |
-| Efficiency | 4 | 100% (+35%) | 75% (+18%) |
+| Security | 4 | 100% (+0%) | 100% (+0%) |
+| Correctness | 4 | 100% (+30%) | 85% (+15%) |
+| Discoverability | 4 | 100% (+25%) | 73% (+2%) |
+| Effectiveness | 4 | 80% (+32%) | 72% (+34%) |
+| Efficiency | 4 | 100% (+29%) | 75% (+20%) |
 
 Score values show skill-assisted performance. Values in parentheses show uplift versus the no-skill baseline when baseline data is available.
 

@@ -59,13 +59,17 @@ At any step, a failing wrapper command ends this happy path; follow
 Troubleshooting with its exact context.
 
 1. **Resolve one safe checkout.** Preserve the starting workspace. Reuse one
-   validated checkout at its current revision. Proceed in a dirty checkout only
-   when task paths do not overlap existing work; otherwise use the documented
-   project-local clone fallback. Never overwrite a workspace or coerce an
-   existing checkout to the contract's evidence snapshot.
+   validated checkout at its current revision. An auto-discovered checkout must
+   be clean. Proceed in a dirty checkout only when the user explicitly selected
+   it and comparing the requested paths with the existing working-tree changes
+   proves they do not overlap. If scope is uncertain, preserve the checkout and
+   use the documented project-local clone fallback. Never overwrite a workspace
+   or coerce an existing checkout to the contract's evidence snapshot.
 2. **Preserve and orient.** Record both roots, provenance, full HEAD, and
-   concise status. Create a task branch before editing a new app. Run wrapper
-   commands from the checkout root and confirm syntax with local help.
+   concise status. Create a task branch before editing a new app only in a clean
+   checkout. In an explicitly selected dirty checkout, switch branches only
+   with user authorization; otherwise use the fallback. Run wrapper commands
+   from the checkout root and confirm syntax with local help.
 3. **Define the proof.** Confirm the contribution type, licensed inputs,
    input integrity/schema when applicable, and a verdict bounded by an explicit
    frame/message count, timeout, or artifact completion. Include visual evidence

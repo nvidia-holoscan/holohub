@@ -22,20 +22,31 @@ relying on version-sensitive override behavior.
 
 A host export is not automatically forwarded into the normal project
 container. Mount the source and set the override to its container path inside
-one workflow. Preview the complete command before running it:
+one workflow. Preview the outer container launch first:
 
 ```bash
 ./holohub run-container <consumer-app> <mode> --language <cpp-or-python> \
   --add-volume /absolute/path/holoscan-my-module \
   --dryrun --verbose -- \
-  'set -e; export HOLOSCAN_CLI_LOCAL_HOLOSCAN_MY_MODULE=/workspace/volumes/holoscan-my-module; test -f "$HOLOSCAN_CLI_LOCAL_HOLOSCAN_MY_MODULE/metadata.json"; ./holohub build <consumer-app> <mode> --local --language <cpp-or-python> --verbose; ./holohub run <consumer-app> <mode> --local --no-local-build --language <cpp-or-python> --verbose'
+  'set -e; export HOLOSCAN_CLI_LOCAL_HOLOSCAN_MY_MODULE=/workspace/volumes/holoscan-my-module; test -f "$HOLOSCAN_CLI_LOCAL_HOLOSCAN_MY_MODULE/metadata.json"; ./holohub build <consumer-app> <mode> --local --language <cpp-or-python> --dryrun --verbose; ./holohub run <consumer-app> <mode> --local --no-local-build --language <cpp-or-python> --dryrun --verbose'
 ```
 
-Review the preview and confirm that the dependency resolves to the mounted
+The outer dry run does not execute its quoted shell. After reviewing it, launch
+the previewed container with the same mounts and options so the nested build
+and run dry runs execute:
+
+```bash
+./holohub run-container <consumer-app> <mode> --language <cpp-or-python> \
+  --add-volume /absolute/path/holoscan-my-module --verbose -- \
+  'set -e; export HOLOSCAN_CLI_LOCAL_HOLOSCAN_MY_MODULE=/workspace/volumes/holoscan-my-module; test -f "$HOLOSCAN_CLI_LOCAL_HOLOSCAN_MY_MODULE/metadata.json"; ./holohub build <consumer-app> <mode> --local --language <cpp-or-python> --dryrun --verbose; ./holohub run <consumer-app> <mode> --local --no-local-build --language <cpp-or-python> --dryrun --verbose'
+```
+
+Confirm in the nested previews that the dependency resolves to the mounted
 source. Stop if it does not, rather than falling back to a fetched dependency.
-Then run without `--dryrun` and require the finite consumer result. If using
-`--docker-opts`, preserve required mode options because the override flag
-replaces rather than extends them.
+Then repeat the same outer invocation with both nested `--dryrun` flags removed
+and require the finite consumer result. If using `--docker-opts`, preserve
+required mode options because the override flag replaces rather than extends
+them.
 
 ## Editable install
 

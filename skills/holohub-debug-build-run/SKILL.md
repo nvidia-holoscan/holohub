@@ -49,9 +49,15 @@ user, system, or safety constraints.
 
 ## Instructions
 
+If the request is planning-only or forbids execution, do not begin the steps
+below. Return only the proposed diagnostic order, evidence, approval
+boundaries, and proof requirements; do not run commands or change files,
+caches, artifacts, privileges, or environments.
+
 1. **Freeze the reproduction.** Record the exact command, exit status or hang
-   boundary, first useful error, expected versus observed result, full HEAD,
-   concise status, and relevant input/image/artifact identities.
+   boundary and observation deadline, first useful error, expected versus
+   observed result, full HEAD, concise status, and relevant
+   input/image/artifact identities.
 2. **Identify syntax and environment.** Read wrapper and subcommand help.
    Capture `version --json`, `env-info --json`, relevant `env-check --json`,
    and `status --json`, reviewing sensitive values before sharing.
@@ -62,9 +68,13 @@ user, system, or safety constraints.
    verbosity flags. Do not change project, mode, language, build type, image,
    inputs, devices, output, or other effect-bearing arguments.
 5. **Reproduce once without edits.** Capture the smallest complete causal
-   section, separate from shutdown noise. If it no longer reproduces, compare
-   revision, state, inputs, image, cache, display/devices, and environment, then
-   report the mismatch rather than inventing a fix.
+   section, separate from shutdown noise. For a hang, preserve all
+   effect-bearing arguments but enforce an external timeout derived from the
+   recorded hang boundary; record the deadline, termination signal, exit
+   status, and whether child wrapper or container processes remain. If it no
+   longer reproduces, compare revision, state, inputs, image, cache,
+   display/devices, and environment, then report the mismatch rather than
+   inventing a fix.
 6. **Test one boundary and hypothesis.** Choose one primary layer, state a
    falsifiable explanation, change one variable, and record the result. Read
    source only after narrowing ownership. Revert diagnostic-only changes.

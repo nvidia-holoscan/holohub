@@ -7,9 +7,9 @@ This skill is ready for commercial/non-commercial use. <br>
 NVIDIA <br>
 
 ### License/Terms of Use: <br>
-Apache 2.0 <br>
+Apache-2.0 <br>
 ## Use Case: <br>
-Developers and engineers building, testing, and benchmarking HoloHub applications using the Holoscan SDK and the ./holohub CLI workflow. <br>
+Developers and engineers building, testing, and benchmarking HoloHub applications through the ./holohub CLI workflow. <br>
 
 ### Deployment Geography for Use: <br>
 Global <br>
@@ -25,14 +25,14 @@ Risk: Review before execution as proposals could introduce incorrect or misleadi
 Mitigation: Review and scan skill before deployment. <br>
 
 ## Reference(s): <br>
-- [Application Workflow](references/application-workflow.md) <br>
-- [Flow Benchmarking](references/flow-benchmarking.md) <br>
+- [HoloHub Application Workflow](references/application-workflow.md) <br>
+- [HoloHub Flow Benchmarking](references/flow-benchmarking.md) <br>
 - [HoloHub CLI Contract](references/holohub-cli-contract.md) <br>
 - [NVIDIA HoloHub Repository](https://github.com/nvidia-holoscan/holohub) <br>
 
 
 ## Skill Output: <br>
-**Output Type(s):** [Analysis, Shell commands, Files] <br>
+**Output Type(s):** [Analysis, Shell commands, Configuration instructions] <br>
 **Output Format:** [Markdown with inline bash code blocks] <br>
 **Output Parameters:** [1D] <br>
 **Other Properties Related to Output:** [None] <br>
@@ -44,7 +44,7 @@ Mitigation: Review and scan skill before deployment. <br>
 
 
 ## Evaluation Tasks: <br>
-Evaluated against 4 evaluation tasks (2 positive, 2 negative) in k8s-sandbox environment. <br>
+Evaluated against 4 evaluation tasks (2 positive skill-activation, 2 negative) in k8s-sandbox environment. <br>
 
 ## Evaluation Metrics Used: <br>
 Reported benchmark dimensions: <br>
@@ -67,14 +67,14 @@ Underlying evaluation signals used in this run: <br>
 ## Evaluation Results: <br>
 | Dimension | Num | Claude Code (`aws/anthropic/bedrock-claude-opus-4-8`) | Codex (`openai/openai/gpt-5.5`) |
 |---|---:|---:|---:|
-| Security | 4 | 100% (+0%) | 100% (+25%) |
-| Correctness | 4 | 100% (+15%) | 75% (+20%) |
-| Discoverability | 4 | 100% (+25%) | 72% (+3%) |
-| Effectiveness | 4 | 88% (+41%) | 60% (+33%) |
-| Efficiency | 4 | 100% (+35%) | 75% (+18%) |
+| Security | 4 | 100% (+0%) | 100% (+0%) |
+| Correctness | 4 | 100% (+30%) | 85% (+15%) |
+| Discoverability | 4 | 100% (+25%) | 73% (+2%) |
+| Effectiveness | 4 | 80% (+32%) | 72% (+34%) |
+| Efficiency | 4 | 100% (+29%) | 75% (+20%) |
 
 ## Skill Version(s): <br>
-208ef00b (source: git SHA, committed 2026-07-27) <br>
+54df7419 (source: git SHA, committed 2026-07-28) <br>
 
 ## Ethical Considerations: <br>
 NVIDIA believes Trustworthy AI is a shared responsibility and we have established policies and practices to enable development for a wide array of AI applications. When downloaded or used in accordance with our terms of service, developers should work with their internal team to ensure this skill meets requirements for the relevant industry and use case and addresses unforeseen product misuse. <br>

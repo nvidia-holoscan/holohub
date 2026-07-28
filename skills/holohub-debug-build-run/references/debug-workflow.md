@@ -8,6 +8,12 @@ Read applicable `AGENTS.md`, project and CLI documentation, metadata, schemas,
 and local help. Record project, mode, language, build type, image, input,
 display/headless state, devices, output path, full HEAD, and concise status.
 
+If the request is planning-only or forbids execution, return only the proposed
+diagnostic command order, inspection points, approval boundaries, and proof
+requirements. Do not invoke `./holohub` or any other command, edit files, clear
+caches or artifacts, install or repair an environment, or perform setup.
+Continue below only for an execution-authorized request.
+
 The launcher selects a command environment before parsing the verb, so even
 help or dry-run output can include environment setup or repair. Use
 `version --json` and `env-info --json` to identify that environment,
@@ -19,7 +25,10 @@ differs.
 Preview the original command without changing its effect-bearing arguments.
 Inspect selected project/mode/language, image, mounts, devices, environment,
 workdir, child commands, and output. Reproduce once without edits and capture
-the first causal error rather than only shutdown noise.
+the first causal error rather than only shutdown noise. Bound a hanging
+reproduction with an external timeout derived from the recorded hang boundary;
+record the deadline, how the process was terminated, and whether wrapper or
+container children remain.
 
 If the failure does not reproduce, compare revision, dirty state, input hashes,
 image, cache, display/devices, and environment. Report the mismatch instead of
