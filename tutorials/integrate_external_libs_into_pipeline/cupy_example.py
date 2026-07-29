@@ -150,7 +150,7 @@ class ProbeOp(Operator):
     def compute(self, op_input, op_output, context):
         value = op_input.receive("in")  # type: dict[str, holoscan.core.Tensor]
 
-        for key, tensor in value.items():
+        for tensor in value.values():
             if hasattr(tensor, "__cuda_array_interface__"):
                 array_interface = tensor.__cuda_array_interface__
                 # print("#tensor.__cuda_array_interface__", tensor.__cuda_array_interface__)
@@ -210,7 +210,7 @@ class TestCudaApp(Application):
             height=height,
             tensors=[
                 # `name=""` here to match the output of VideoStreamReplayerOp
-                dict(name="", type="color", opacity=1.0, priority=0),
+                {"name": "", "type": "color", "opacity": 1.0, "priority": 0},
             ],
         )
 

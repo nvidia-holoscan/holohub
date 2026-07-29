@@ -98,8 +98,8 @@ class TransformerApp(Application):
             height=1080,
             headless=self._headless,
             tensors=[
-                dict(name="camera_image", type="color", views=[camera_image_view]),
-                dict(name="camera_image_sobel", type="color", views=[camera_image_sobel_view]),
+                {"name": "camera_image", "type": "color", "views": [camera_image_view]},
+                {"name": "camera_image_sobel", "type": "color", "views": [camera_image_sobel_view]},
             ],
         )
 

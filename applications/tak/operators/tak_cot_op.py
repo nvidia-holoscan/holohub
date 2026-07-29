@@ -93,7 +93,18 @@ class TakCotOp(Operator):
             self.socket = socket.create_connection((self.tak_host, self.tak_port), timeout=5.0)
             self.connected = True
             logger.info("Connected to TAK server successfully")
-        except Exception as e:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as e:
             logger.error("Connection error: %s", e)
             self.connected = False
             if self.socket:
@@ -135,7 +146,18 @@ class TakCotOp(Operator):
             self.socket.sendall(presence_cot.encode("utf-8") + b"\n")
             self._presence_sent = True
             logger.info("EUD presence CoT sent successfully")
-        except Exception as e:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as e:
             logger.error("Failed to send EUD presence: %s", e)
 
     def _generate_cot_xml(
@@ -189,7 +211,18 @@ class TakCotOp(Operator):
             self.socket.sendall(cot_message + b"\n")
             logger.info("Sent CoT marker: %s at (%.6f, %.6f)", label, lat, lon)
             return True
-        except Exception as e:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as e:
             logger.error("CoT send error: %s", e)
             self.connected = False
             self._connect()
@@ -281,8 +314,8 @@ class TakCotOp(Operator):
 
                 cot_type = self.marker_type_map.get(cls_name, "")
                 self._send_cot_marker(detection_id, lat, lon, detection_label, cot_type=cot_type)
-        except Exception as e:
-            logger.error("Error processing detections: %s", e, exc_info=True)
+        except Exception:
+            logger.exception("Error processing detections")
 
     def stop(self):
         logger.info("Sent %d CoT detections total", self.detection_count)

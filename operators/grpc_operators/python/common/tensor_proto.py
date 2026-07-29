@@ -15,6 +15,7 @@
 import logging
 import sys
 from enum import Enum
+from typing import ClassVar
 
 import cupy as cp
 import numpy as np
@@ -53,13 +54,13 @@ class DLDataTypeCode(Enum):
 class TensorProto:
     NULL_KEY_NAME = "__NULL__"
 
-    STORAGE_TYPES = {
+    STORAGE_TYPES: ClassVar = {
         holoscan_proto.Tensor.MemoryStorageType.kHost: DLDeviceType.DLCPU,
         holoscan_proto.Tensor.MemoryStorageType.kDevice: DLDeviceType.DLCUDA,
         holoscan_proto.Tensor.MemoryStorageType.kSystem: DLDeviceType.DLCUDAHOST,
     }
 
-    PRIMITIVE_TYPES = {
+    PRIMITIVE_TYPES: ClassVar = {
         holoscan_proto.Tensor.PrimitiveType.kUnsigned8: np.uint8,
         holoscan_proto.Tensor.PrimitiveType.kUnsigned16: np.uint16,
         holoscan_proto.Tensor.PrimitiveType.kFloat32: np.float32,

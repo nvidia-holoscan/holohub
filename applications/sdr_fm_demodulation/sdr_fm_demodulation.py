@@ -47,7 +47,7 @@ audio_fs = int(48e3)
 buffer_size = 1024 * (sdr_fs // audio_fs)
 
 try:
-    args = dict(driver="rtlsdr")
+    args = {"driver": "rtlsdr"}
 except ImportError:
     raise ImportError("Ensure SDR is connected and appropriate drivers are installed.")
 

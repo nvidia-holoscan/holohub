@@ -23,6 +23,8 @@ from holoscan.core import ConditionType, Fragment, Operator, OperatorSpec
 from operators.medical_imaging.core.domain.dicom_series_selection import StudySelectedSeries
 from operators.medical_imaging.core.domain.image import Image
 
+logger = logging.getLogger(__name__)
+
 
 class DICOMSeriesToVolumeOperator(Operator):
     """This operator converts an instance of DICOMSeries into an Image object.
@@ -73,7 +75,7 @@ class DICOMSeriesToVolumeOperator(Operator):
 
         for study_selected_series in study_selected_series_list:
             if not isinstance(study_selected_series, StudySelectedSeries):
-                raise ValueError("Element in input is not expected type, 'StudySelectedSeries'.")
+                raise TypeError("Element in input is not expected type, 'StudySelectedSeries'.")
             selected_series = study_selected_series.selected_series[0]
             dicom_series = selected_series.series
             selection_name = selected_series.selection_name
@@ -139,11 +141,11 @@ class DICOMSeriesToVolumeOperator(Operator):
         )
 
         if not photometric_interpretation:
-            logging.warning("Cannot get value of attribute Photometric Interpretation.")
+            logger.warning("Cannot get value of attribute Photometric Interpretation.")
 
         if photometric_interpretation != "MONOCHROME2":
             if photometric_interpretation == "MONOCHROME1" or presentation_lut_shape == "INVERSE":
-                logging.debug("Applying INVERSE transformation as required for MONOCHROME1 image.")
+                logger.debug("Applying INVERSE transformation as required for MONOCHROME1 image.")
                 vol_data = np.amax(vol_data) - vol_data
             else:
                 raise ValueError(

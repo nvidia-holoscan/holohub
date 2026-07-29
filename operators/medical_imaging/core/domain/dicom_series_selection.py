@@ -46,7 +46,7 @@ class SelectedSeries(Domain):
             ValueError: If argument dicom_series is not a DICOMSeries object.
         """
         if not isinstance(dicom_series, DICOMSeries):
-            raise ValueError("Argument dicom_series must be a DICOMSeries object.")
+            raise TypeError("Argument dicom_series must be a DICOMSeries object.")
         super().__init__(metadata)
         self._series = dicom_series
 
@@ -101,7 +101,7 @@ class StudySelectedSeries(Domain):
             ValueError: If argument study is not a DICOMStudy object.
         """
         if not isinstance(study, DICOMStudy):
-            raise ValueError("A DICOMStudy object is required.")
+            raise TypeError("A DICOMStudy object is required.")
         super().__init__(metadata)
         self._study: DICOMStudy = study
         self._select_series_dict: dict = {}  # "selection_name": [SelectedSeries]
@@ -147,7 +147,7 @@ class StudySelectedSeries(Domain):
             ValueError: If argument selected_series is not a SelectedSeries object.
         """
         if not isinstance(selected_series, SelectedSeries):
-            raise ValueError("A SelectedSeries object is required.")
+            raise TypeError("A SelectedSeries object is required.")
         selected_series_list = self._select_series_dict.get(selected_series.selection_name, [])
         selected_series_list.append(selected_series)
         self._select_series_dict[selected_series.selection_name] = selected_series_list

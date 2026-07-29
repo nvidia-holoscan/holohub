@@ -25,6 +25,8 @@ from holoscan.core import ConditionType, Fragment, Operator, OperatorSpec
 from operators.medical_imaging.core import Image
 from operators.medical_imaging.utils.importutil import optional_import
 
+logger = logging.getLogger(__name__)
+
 nib, _ = optional_import("nibabel")
 sitk, _ = optional_import("SimpleITK")
 label, _ = optional_import("skimage.measure", name="label")
@@ -112,12 +114,11 @@ class STLConversionOperator(Operator):
             raise ValueError("Input image is not received.")
 
         _output_file = op_input.receive(self.input_name_output_file)
-        if not _output_file:
+        if not _output_file and self._output_file and len(str(self._output_file)) > 0:
             # Use the object's attribute to get the STL output path, if any.
-            if self._output_file and len(str(self._output_file)) > 0:
-                _output_file = Path(self._output_file)
-                _output_file.parent.mkdir(parents=True, exist_ok=True)
-                self._logger.info(f"Output will be saved in file {_output_file}.")
+            _output_file = Path(self._output_file)
+            _output_file.parent.mkdir(parents=True, exist_ok=True)
+            self._logger.info(f"Output will be saved in file {_output_file}.")
 
         stl_bytes = self._convert(input_image, _output_file)
         op_output.emit(stl_bytes, self.output_name_stl_bytes)
@@ -261,7 +262,7 @@ class STLConverter:
     # Helper functions
     @staticmethod
     def get_largest_cc(nda):
-        logging.debug(f"ndarray shape: {nda.shape}")
+        logger.debug(f"ndarray shape: {nda.shape}")
         labels = label(nda)
 
         # assume at least 1 CC

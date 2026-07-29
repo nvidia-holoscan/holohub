@@ -138,7 +138,7 @@ def _download_dataset(api_key, validate_file_checksum):
 
     if (
         validate_file_checksum
-        and hashlib.md5(open(nifti_filename, "rb").read()).hexdigest()
+        and hashlib.md5(pathlib.Path(nifti_filename).read_bytes()).hexdigest()
         != "56bed2308a195b4cdbb3a875bcf113a2"
     ):
         raise ValueError("File checksum did not match.")
@@ -197,8 +197,19 @@ def main():
 
     try:
         app.run()
-    except Exception as e:
-        logger.error("Error:", str(e))
+    except (
+        ArithmeticError,
+        AssertionError,
+        AttributeError,
+        EOFError,
+        ImportError,
+        LookupError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ) as e:
+        logger.error("Error: %s", e)
 
 
 if __name__ == "__main__":

@@ -231,7 +231,7 @@ class MonaiSegInferenceOperator(InferenceOperator):
     @inferer.setter
     def inferer(self, val: InfererType):
         if not isinstance(val, InfererType):
-            raise ValueError(f"Value must be of the correct type {InfererType}.")
+            raise TypeError(f"Value must be of the correct type {InfererType}.")
         self._inferer = val
 
     def _convert_dicom_metadata_datatype(self, metadata: dict):
@@ -253,18 +253,51 @@ class MonaiSegInferenceOperator(InferenceOperator):
         if metadata.get("SeriesInstanceUID", None):
             try:
                 metadata["SeriesInstanceUID"] = str(metadata["SeriesInstanceUID"])
-            except Exception:
-                pass
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ):
+                logging.getLogger(__name__).debug("Expected operation failure", exc_info=True)
         if metadata.get("row_pixel_spacing", None):
             try:
                 metadata["row_pixel_spacing"] = float(metadata["row_pixel_spacing"])
-            except Exception:
-                pass
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ):
+                logging.getLogger(__name__).debug("Expected operation failure", exc_info=True)
         if metadata.get("col_pixel_spacing", None):
             try:
                 metadata["col_pixel_spacing"] = float(metadata["col_pixel_spacing"])
-            except Exception:
-                pass
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ):
+                logging.getLogger(__name__).debug("Expected operation failure", exc_info=True)
 
         self._logger.info("Converted Image object metadata:")
         for k, v in metadata.items():
@@ -521,10 +554,9 @@ class InMemImageReader(ImageReader):
 # Reuse MONAI code for the derived ImageReader
 def _copy_compatible_dict(from_dict: dict, to_dict: dict):
     if not isinstance(to_dict, dict):
-        raise ValueError(f"to_dict must be a Dict, got {type(to_dict)}.")
+        raise TypeError(f"to_dict must be a Dict, got {type(to_dict)}.")
     if not to_dict:
-        for key in from_dict:
-            datum = from_dict[key]
+        for key, datum in from_dict.items():
             if (
                 isinstance(datum, np.ndarray)
                 and np_str_obj_array_pattern.search(datum.dtype.str) is not None

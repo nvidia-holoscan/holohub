@@ -138,6 +138,6 @@ def modified_files(target=None, absolute_path=False):
 
     if absolute_path:
         git_dir = dir_()
-        return list(map(lambda fn: os.path.join(git_dir, fn), all_files))
+        return [os.path.join(git_dir, fn) for fn in all_files]
     else:
         return all_files

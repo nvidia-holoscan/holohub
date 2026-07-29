@@ -33,7 +33,7 @@ class GrpcClientRequestOp(Operator):
         self.frame_count: int = 0
 
         if not isinstance(request_queue, AsyncIoQueue):
-            raise ValueError("request_queue must be a AsyncIoQueue")
+            raise TypeError("request_queue must be a AsyncIoQueue")
 
         super().__init__(fragment, *args, **kwargs)
 

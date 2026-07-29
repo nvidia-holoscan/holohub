@@ -176,7 +176,7 @@ class Encoder:
             if score.size(0) == 0:
                 continue
 
-            score_sorted, score_idx_sorted = score.sort(dim=0)
+            _score_sorted, score_idx_sorted = score.sort(dim=0)
 
             # select max_output indices
             score_idx_sorted = score_idx_sorted[-max_num:]
@@ -339,7 +339,7 @@ class DetectionPostprocessorOp(Operator):
             locs_pyt, labels_pyt, criteria=0.5, max_output=20
         )  # TIME SINK, TODO: OPTIMIZE
 
-        bboxes, classes, confidences = [
+        bboxes, _classes, confidences = [
             x.detach().cpu().numpy().astype(np.float32) for x in encoded[0]
         ]
 
@@ -449,14 +449,14 @@ class SSDDetectionApp(Application):
             self,
             name="detection_visualizer",
             tensors=[
-                dict(name="", type="color"),
-                dict(
-                    name="rectangles",
-                    type="rectangles",
-                    opacity=0.5,
-                    line_width=4,
-                    color=[1.0, 0.0, 0.0, 1.0],
-                ),
+                {"name": "", "type": "color"},
+                {
+                    "name": "rectangles",
+                    "type": "rectangles",
+                    "opacity": 0.5,
+                    "line_width": 4,
+                    "color": [1.0, 0.0, 0.0, 1.0],
+                },
             ],
             **self.kwargs("detection_visualizer"),
         )

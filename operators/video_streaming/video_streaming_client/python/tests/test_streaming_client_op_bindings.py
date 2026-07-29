@@ -26,6 +26,8 @@ operator, focusing on:
 - Memory management
 """
 
+import logging
+
 import pytest
 
 
@@ -394,7 +396,18 @@ class TestStreamingClientOpCompute:
         # Call compute - should not raise
         try:
             op.compute(op_input, op_output, execution_context)
-        except Exception as e:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as e:
             # Compute may fail due to network not being set up, but method should be callable
             # We're primarily testing that the binding works
             assert "compute" not in str(e).lower() or "not found" not in str(e).lower()
@@ -417,9 +430,20 @@ class TestStreamingClientOpCompute:
             # Test that compute is callable with different frame sizes
             try:
                 op.compute(op_input, op_output, execution_context)
-            except Exception:
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ):
                 # Expected to fail without network, but binding should work
-                pass
+                logging.getLogger(__name__).debug("Expected operation failure", exc_info=True)
 
     def test_compute_with_float_frames(
         self, operator_factory, op_input_factory, op_output, execution_context, mock_image
@@ -434,9 +458,20 @@ class TestStreamingClientOpCompute:
         # Test compute with float data
         try:
             op.compute(op_input, op_output, execution_context)
-        except Exception:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ):
             # Expected to fail without network, but binding should work
-            pass
+            logging.getLogger(__name__).debug("Expected operation failure", exc_info=True)
 
     def test_compute_method_signature(self, operator_factory):
         """Test that compute method has correct signature."""

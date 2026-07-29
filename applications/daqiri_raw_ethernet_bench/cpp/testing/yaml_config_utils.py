@@ -38,7 +38,18 @@ def read_yaml_file(yaml_path: str) -> dict[str, Any]:
         with open(yaml_path, "r") as file:
             # Parse YAML preserving the order of items
             return yaml.safe_load(file)
-    except Exception as e:
+    except (
+        ArithmeticError,
+        AssertionError,
+        AttributeError,
+        EOFError,
+        ImportError,
+        LookupError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ) as e:
         logger.error(f"Failed to read YAML file {yaml_path}: {e}")
         return {}
 
@@ -62,7 +73,18 @@ def write_yaml_file(yaml_path: str, data: dict[str, Any]) -> bool:
             # Write YAML preserving the original style if possible
             yaml.dump(data, file, default_flow_style=False, sort_keys=False)
         return True
-    except Exception as e:
+    except (
+        ArithmeticError,
+        AssertionError,
+        AttributeError,
+        EOFError,
+        ImportError,
+        LookupError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ) as e:
         logger.error(f"Failed to write YAML file {yaml_path}: {e}")
         return False
 

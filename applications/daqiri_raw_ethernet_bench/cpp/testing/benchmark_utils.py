@@ -280,7 +280,7 @@ class BenchmarkResults:
         """
         success = True
 
-        for tx_port, rx_port in port_map.items():
+        for rx_port in port_map.values():
             rx_throughput = self.get_rx_throughput(rx_port)
 
             if rx_throughput < threshold:

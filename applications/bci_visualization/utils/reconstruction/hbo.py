@@ -31,7 +31,7 @@ class ExtinctionCoefficient(NamedTuple):
         def _parse_wavelength(value: str) -> int:
             # Some datasets store wavelength as scientific notation (e.g. "6.0000000e+02").
             # Parse as float then round to nearest integer nm.
-            return int(round(float(value)))
+            return round(float(value))
 
         with open(path, "r") as f:
             csv_reader = csv.DictReader(f)
@@ -84,7 +84,7 @@ class HbO:
             Extinction coefficients in [m^-1 / µM] for oxy and deoxy-hemoglobin, water, lipids, LuTex, and GdTex.
         """
 
-        coefficient = self._coefficients.get(round(wavelength))
+        coefficient = self._coefficients.get(wavelength)
         if coefficient is None:
             raise ValueError(
                 f"No entry found for {wavelength} nm. Please enter a valid integer wavelength between 600-1000 nm."

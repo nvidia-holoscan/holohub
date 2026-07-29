@@ -136,7 +136,7 @@ class CudaOperator(Operator):
             result = log.decode()
             if len(result) > 1:
                 print(result)
-            raise Exception("Failed to compile the program")
+            raise RuntimeError("Failed to compile the program")
 
         # Get PTX from compilation
         err, ptx_size = nvrtc.nvrtcGetPTXSize(prog)
@@ -171,7 +171,7 @@ class CudaOperator(Operator):
     def launch_kernel(self, args, stream=None):
         args = np.array([arg.ctypes.data for arg in args], dtype=np.uint64)
 
-        (err,) = cuda.cuLaunchKernel(
+        (_err,) = cuda.cuLaunchKernel(
             self._kernel,
             self.grid_dims[0],  # grid x dim
             self.grid_dims[1],  # grid y dim
@@ -419,7 +419,7 @@ class ProbeOp(Operator):
     def compute(self, op_input, op_output, context):
         value = op_input.receive("in")  # type: dict[str, holoscan.core.Tensor]
 
-        for key, tensor in value.items():
+        for tensor in value.values():
             if hasattr(tensor, "__cuda_array_interface__"):
                 array_interface = tensor.__cuda_array_interface__
                 # print("#tensor.__cuda_array_interface__", tensor.__cuda_array_interface__)
@@ -493,7 +493,7 @@ class TestCudaApp(Application):
             height=height,
             tensors=[
                 # `name=""` here to match the output of VideoStreamReplayerOp
-                dict(name="", type="color", opacity=1.0, priority=0),
+                {"name": "", "type": "color", "opacity": 1.0, "priority": 0},
             ],
         )
 

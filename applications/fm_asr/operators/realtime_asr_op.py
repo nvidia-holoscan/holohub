@@ -93,8 +93,7 @@ class RealtimeAsrOp(Operator):
 
     def _req_generator(self):
         yield rasr.StreamingRecognizeRequest(streaming_config=self.streaming_rasr_config)
-        for b in self.batch:
-            yield b
+        yield from self.batch
 
     def _get_audio_length(self):
         pcm_dtype = np.int16

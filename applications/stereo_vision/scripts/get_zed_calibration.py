@@ -104,17 +104,17 @@ r[1] = calib["STEREO"]["CV_" + rez]
 r[2] = calib["STEREO"]["RZ_" + rez]
 R = Rotation.from_rotvec(r).as_matrix()
 
-calibration = dict(
-    SN=serial_number,
-    M1=str(M1.flatten().tolist()),
-    d1=str(d1.tolist()),
-    M2=str(M2.flatten().tolist()),
-    d2=str(d2.tolist()),
-    t=str(t.tolist()),
-    R=str(R.flatten().tolist()),
-    width=width,
-    height=height,
-)
+calibration = {
+    "SN": serial_number,
+    "M1": str(M1.flatten().tolist()),
+    "d1": str(d1.tolist()),
+    "M2": str(M2.flatten().tolist()),
+    "d2": str(d2.tolist()),
+    "t": str(t.tolist()),
+    "R": str(R.flatten().tolist()),
+    "width": width,
+    "height": height,
+}
 
 output_yaml = yaml.dump(
     calibration, default_style=None, default_flow_style=False, sort_keys=False

@@ -28,9 +28,11 @@ from skimage.io import imread
 
 from holohub.apriltag_detector import ApriltagDetectorOp
 
+logger = logging.getLogger(__name__)
+
 
 def perspective_transform_evt(corners, width, height):
-    top_l, top_r, bottom_r, bottom_l = corners
+    _top_l, _top_r, _bottom_r, _bottom_l = corners
     dimensions = np.array(
         [[0, 0], [width - 1, 0], [width - 1, height - 1], [0, height - 1]], dtype="float32"
     )
@@ -55,7 +57,7 @@ class AddBackgroundViewOperator(holoscan.core.Operator):
         self.height = height
 
     def setup(self, spec):
-        logging.info("setup")
+        logger.info("setup")
         spec.input("input")
         spec.output("outputs")
         spec.output("output_specs")

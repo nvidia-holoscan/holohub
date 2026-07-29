@@ -43,7 +43,7 @@ def load_model_and_export(modelname, outname, height, width):
     """
     isopen = os.path.exists(modelname)
     if not isopen:
-        raise Exception("The specified model to load does not exist!")
+        raise RuntimeError("The specified model to load does not exist!")
 
     model = build_predictor(modelname)
     model = model.cuda()
@@ -122,7 +122,7 @@ if __name__ == "__main__":
     width = args.width
 
     if os.path.exists(outname):
-        raise Exception(
+        raise RuntimeError(
             "The specified outpath already exists! Change the outpath to avoid "
             "overwriting your saved model."
         )

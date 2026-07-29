@@ -82,7 +82,18 @@ class FhirClientOperator(Operator):
             self._logger.debug("FHIR Client op processing request...")
             request_str = op_input.receive("request")
             query_parameters = FHIRQuery.from_json(request_str)
-        except Exception as ex:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as ex:
             raise InvalidRequestBodyError(request_str, ex)
 
         start = pc()
@@ -102,7 +113,18 @@ class FhirClientOperator(Operator):
                     FHIRQueryResponse(query_parameters.request_id, patient_resources), "out"
                 )
 
-        except Exception as ex:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as ex:
             self._logger.error(
                 f"{query_parameters.request_id}: Error performing FHIR query", str(ex)
             )
@@ -167,7 +189,7 @@ class FhirClientOperator(Operator):
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 500 and len(entries) > 0:
                 return
-            raise e
+            raise
 
         data = response.json()
 

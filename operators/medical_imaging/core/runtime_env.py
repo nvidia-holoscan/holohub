@@ -15,6 +15,7 @@
 
 import os
 from abc import ABC
+from typing import ClassVar
 
 
 class RuntimeEnv(ABC):
@@ -24,7 +25,7 @@ class RuntimeEnv(ABC):
     and they can be set to override the defaults.
     """
 
-    ENV_DEFAULT: dict[str, tuple[str, ...]] = {
+    ENV_DEFAULT: ClassVar[dict[str, tuple[str, ...]]] = {
         "input": ("HOLOSCAN_INPUT_PATH", "input"),
         "output": ("HOLOSCAN_OUTPUT_PATH", "output"),
         "model": ("HOLOSCAN_MODEL_PATH", "models"),

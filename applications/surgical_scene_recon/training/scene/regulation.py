@@ -43,7 +43,7 @@ def compute_plane_tv(t):
 
 
 def compute_plane_smoothness(t):
-    batch_size, c, h, w = t.shape
+    _batch_size, _c, h, _w = t.shape
     # Compute second derivative in the spatial height dimension (h)
     # This measures smoothness of the feature grid in the vertical direction
     first_difference = t[..., 1:, :] - t[..., : h - 1, :]  # [batch, c, h-1, w]

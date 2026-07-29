@@ -221,7 +221,7 @@ class Simulator:
             self._world.step(render=True)
 
             # get the data from the simulation and push it to the Holoscan application
-            push_data = dict()
+            push_data = {}
             if self._image_size[2] == 3:
                 push_data["camera_image"] = self._camera.get_current_frame()["rgba"][:, :, :3]
             else:

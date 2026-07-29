@@ -53,7 +53,7 @@ class FormatInferenceInputOp(Operator):
         tensor = cp.ascontiguousarray(tensor)
 
         # Create output message
-        op_output.emit(dict(preprocessed=tensor), "out")
+        op_output.emit({"preprocessed": tensor}, "out")
 
 
 class PostprocessorOp(Operator):

@@ -13,8 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import timeit
-from code.processDAGs import construct_graphs, get_unique, propose_execution_times
+from code.process_dags import construct_graphs, get_unique, propose_execution_times
+from contextlib import ExitStack
+from pathlib import Path
 
 import networkx as nx
 
@@ -103,14 +106,22 @@ def get_response_time(DG, source, sink):
 
 
 def main(filepath, numvars, timing=False):
-    source = open(filepath, "r")
+    source = Path(filepath).read_text(encoding="utf-8").splitlines()
+    file_stack = ExitStack()
     # For if you want to run with a saved set of execution times
     saved = None  # open("savedgeneratedexectimes.txt", "r")
-    generatedexectimes = open("generatedexectimes.txt", "w")
-    predictedresponsetimes = open("predictedresponsetimes.txt", "w")
+    output_flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
+    generatedexectimes = file_stack.enter_context(
+        os.fdopen(os.open("generatedexectimes.txt", output_flags, 0o666), "w")
+    )
+    predictedresponsetimes = file_stack.enter_context(
+        os.fdopen(os.open("predictedresponsetimes.txt", output_flags, 0o666), "w")
+    )
 
     if timing:
-        analysistimes = open("analysistimes.txt", "w")
+        analysistimes = file_stack.enter_context(
+            os.fdopen(os.open("analysistimes.txt", output_flags, 0o666), "w")
+        )
 
     graphs = construct_graphs(source)
 
@@ -137,7 +148,7 @@ def main(filepath, numvars, timing=False):
                     graph.nodes[node]["WCET"] = graph.nodes[node]["executiontimes" + str(i)]
                 else:
                     saved.readline()
-                    graph.nodes[node]["WCET"] = int(saved.readline().lstrip("   WCET: "))
+                    graph.nodes[node]["WCET"] = int(saved.readline().removeprefix("   WCET: "))
                 generatedexectimes.write(node + ": " + "\n")
                 generatedexectimes.write(
                     "  WCET: " + str(graph.nodes[node]["executiontimes" + str(i)]) + "\n"
@@ -182,6 +193,7 @@ def main(filepath, numvars, timing=False):
             generatedexectimes.write("\n")
         graphindex += 1
 
+    file_stack.close()
     return [[(len(graph.nodes), len(graph.edges)) for graph in unique], unique]
 
 

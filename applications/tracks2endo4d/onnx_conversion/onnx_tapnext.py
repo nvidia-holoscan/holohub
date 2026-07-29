@@ -137,7 +137,7 @@ def export_to_onnx(
         torch.onnx.export(
             model,
             args=(),
-            kwargs=dict(video=video_tensor, query_points=query_points),
+            kwargs={"video": video_tensor, "query_points": query_points},
             f=os.path.join(output_path, name),
             export_params=True,
             opset_version=20,
@@ -158,13 +158,13 @@ def export_to_onnx(
         torch.onnx.export(
             model,
             args=(),
-            kwargs=dict(
-                video=video_tensor,
-                query_points=query_points,
-                step=step,
-                rg_lru_state=rg_lru_state,
-                conv1d_state=conv1d_state,
-            ),
+            kwargs={
+                "video": video_tensor,
+                "query_points": query_points,
+                "step": step,
+                "rg_lru_state": rg_lru_state,
+                "conv1d_state": conv1d_state,
+            },
             f=os.path.join(output_path, name),
             export_params=True,
             opset_version=20,

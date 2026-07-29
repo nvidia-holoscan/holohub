@@ -73,15 +73,23 @@ def update_op_edge_latency(
 def parse_log(
     log_file,
     startline=0,
-    operator_avg_latencies={},
-    operator_max_latencies={},
-    edge_avg_latencies={},
-    edge_max_latencies={},
+    operator_avg_latencies=None,
+    operator_max_latencies=None,
+    edge_avg_latencies=None,
+    edge_max_latencies=None,
     num_samples=0,
     skip_begin_messages=10,
     discard_last_messages=10,
     livefile=False,
 ):
+    if edge_max_latencies is None:
+        edge_max_latencies = {}
+    if edge_avg_latencies is None:
+        edge_avg_latencies = {}
+    if operator_max_latencies is None:
+        operator_max_latencies = {}
+    if operator_avg_latencies is None:
+        operator_avg_latencies = {}
     with open(log_file, "r") as f:
         read_lines = 0
         if startline:
@@ -244,7 +252,6 @@ def parse_arguments():
 
 def create_dot_file(filenames, output_filename, live_graph, verbose, highlight):
     if not live_graph:
-        filenames = filenames
         operator_avg_latencies = {}
         operator_max_latencies = {}
         edge_avg_latencies = {}

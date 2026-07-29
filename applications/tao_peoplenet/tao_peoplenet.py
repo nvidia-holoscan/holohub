@@ -291,8 +291,8 @@ class FaceDetectApp(Application):
             "face_detect": os.path.join(self.sample_data_path, "resnet34_peoplenet_int8.onnx")
         }
 
-        device_map = dict()
-        if "device_map" in inference_args.keys():
+        device_map = {}
+        if "device_map" in inference_args:
             device_map = inference_args["device_map"]
             for k, v in device_map.items():
                 device_map[k] = str(v)

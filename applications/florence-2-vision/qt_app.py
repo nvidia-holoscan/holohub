@@ -101,7 +101,6 @@ class Window(QMainWindow):
         entered_text = self.text_input.text()
 
         # Set parameters in the Holoscan application
-        global gApp
         if gApp:
             gApp.set_parameters(selected_option, entered_text)
 

@@ -47,11 +47,11 @@ class CloudInferenceFragment(Fragment):
         self.source_num_blocks = source_num_blocks
 
     def compose(self):
-        source_pool_kwargs = dict(
-            storage_type=MemoryStorageType.DEVICE,
-            block_size=self.source_block_size,
-            num_blocks=self.source_num_blocks,
-        )
+        source_pool_kwargs = {
+            "storage_type": MemoryStorageType.DEVICE,
+            "block_size": self.source_block_size,
+            "num_blocks": self.source_num_blocks,
+        }
 
         cuda_stream_pool = CudaStreamPool(
             self,

@@ -20,7 +20,7 @@ import logging
 import os
 import re
 import subprocess
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urljoin
 
@@ -56,10 +56,21 @@ def get_current_git_ref() -> str:
             ["git", "describe", "--tags", "--exact-match"],
             ["git", "rev-parse", "--short", "HEAD"],
         ]:
-            result = subprocess.run(cmd, capture_output=True, text=True)
+            result = subprocess.run(cmd, capture_output=True, text=True, check=False)
             if result.returncode == 0 and result.stdout.strip() and result.stdout.strip() != "HEAD":
                 return result.stdout.strip()
-    except Exception as e:
+    except (
+        ArithmeticError,
+        AssertionError,
+        AttributeError,
+        EOFError,
+        ImportError,
+        LookupError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ) as e:
         logger.warning(f"Failed to determine git reference: {e}")
         return "main"  # Default fallback
 
@@ -90,7 +101,18 @@ def get_git_root() -> Path:
             ["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True, check=True
         )
         return Path(result.stdout.strip())
-    except Exception as e:
+    except (
+        ArithmeticError,
+        AssertionError,
+        AttributeError,
+        EOFError,
+        ImportError,
+        LookupError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ) as e:
         logger.error(f"Error getting Git root: {e}")
         return Path(".")
 
@@ -99,7 +121,7 @@ def parse_metadata_file(metadata_path: Path) -> dict:
     """Parse metadata.json file and extract relevant information."""
     with metadata_path.open("r") as f:
         data = json.load(f)
-    component_type = next(k for k in data.keys() if not k.startswith("$"))
+    component_type = next(k for k in data if not k.startswith("$"))
     metadata = data[component_type]
     return metadata, component_type
 
@@ -137,11 +159,11 @@ def get_metadata_file_commit_date(metadata_path: Path, git_repo_path: Path) -> d
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         timestamps = result.stdout.strip().split("\n")
         if timestamps and timestamps[0]:
-            return datetime.fromtimestamp(int(timestamps[0]))
+            return datetime.fromtimestamp(int(timestamps[0]), tz=timezone.utc)
     except (subprocess.CalledProcessError, ValueError) as e:
         logger.error(f"Error getting creation date for {metadata_path}: {e}")
     # Fallback to file modification time if git fails
-    return datetime.fromtimestamp(metadata_path.stat().st_mtime)
+    return datetime.fromtimestamp(metadata_path.stat().st_mtime, tz=timezone.utc)
 
 
 def get_recent_source_code_update_date(metadata_path: Path, git_repo_path: Path):
@@ -179,7 +201,7 @@ def get_recent_source_code_update_date(metadata_path: Path, git_repo_path: Path)
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         timestamp_str = result.stdout.strip()
         if timestamp_str:
-            return datetime.fromtimestamp(int(timestamp_str))
+            return datetime.fromtimestamp(int(timestamp_str), tz=timezone.utc)
     except (subprocess.CalledProcessError, ValueError) as e:
         logger.debug(f"No recent source code updates found for {component_dir.name}: {e}")
 
@@ -248,7 +270,7 @@ def get_file_from_git(file_path: Path, git_ref: str, git_repo_path: Path) -> str
             logger.error(f"Git error: {e.stderr}")
         else:
             logger.error(f"Path {file_path} is not within the Git repository")
-        raise e
+        raise
 
 
 def extract_image_from_readme(readme_content):
@@ -316,7 +338,18 @@ def get_readme_content(component_type, component_name, href=None):
         logger.warning(f"No README found for {component_type}/{component_name} (href: {href})")
         return None, None
 
-    except Exception as e:
+    except (
+        ArithmeticError,
+        AssertionError,
+        AttributeError,
+        EOFError,
+        ImportError,
+        LookupError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ) as e:
         logger.warning(f"Error reading README for {component_type}/{component_name}: {e}")
         return None, None
 

@@ -22,9 +22,13 @@ import torch.utils.checkpoint
 from torch import nn
 from torch.nn.init import trunc_normal_
 
-from .dinov2_layers import MemEffAttention, Mlp
-from .dinov2_layers import NestedTensorBlock as Block
-from .dinov2_layers import PatchEmbed, SwiGLUFFNFused
+from .dinov2_layers import (
+    MemEffAttention,
+    Mlp,
+    NestedTensorBlock as Block,
+    PatchEmbed,
+    SwiGLUFFNFused,
+)
 
 logger = logging.getLogger("dinov2")
 
@@ -35,7 +39,7 @@ def named_apply(
     if not depth_first and include_root:
         fn(module=module, name=name)
     for child_name, child_module in module.named_children():
-        child_name = ".".join((name, child_name)) if name else child_name
+        child_name = f"{name}.{child_name}" if name else child_name
         named_apply(
             fn=fn, module=child_module, name=child_name, depth_first=depth_first, include_root=True
         )
@@ -228,7 +232,7 @@ class DinoVisionTransformer(nn.Module):
         return torch.cat((class_pos_embed.unsqueeze(0), patch_pos_embed), dim=1).to(previous_dtype)
 
     def prepare_tokens_with_masks(self, x, masks=None):
-        B, nc, w, h = x.shape
+        _B, _nc, w, h = x.shape
         x = self.patch_embed(x)
         if masks is not None:
             mask_tok = self.mask_token.to(dtype=x.dtype, device=x.device).unsqueeze(0)

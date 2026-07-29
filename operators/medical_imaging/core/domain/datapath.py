@@ -16,10 +16,9 @@
 
 from pathlib import Path
 
-from operators.medical_imaging.exceptions import IOMappingError as IOMappingError
-from operators.medical_imaging.exceptions import ItemNotExistsError as ItemNotExistsError
+from operators.medical_imaging.exceptions import IOMappingError, ItemNotExistsError
 
-from .domain import Domain as Domain
+from .domain import Domain
 
 
 class DataPath(Domain):

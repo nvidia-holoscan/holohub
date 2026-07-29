@@ -131,7 +131,7 @@ class SAM3Model:
             state_dict = ckpt
 
         # Check if keys have 'detector.' prefix
-        sample_key = list(state_dict.keys())[0] if state_dict else ""
+        sample_key = next(iter(state_dict.keys())) if state_dict else ""
         has_detector_prefix = "detector." in sample_key
 
         if has_detector_prefix:

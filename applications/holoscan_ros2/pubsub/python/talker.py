@@ -23,6 +23,8 @@ from holoscan_ros2.operators.publisher import PublisherOp
 from rclpy.node import Node
 from std_msgs.msg import String
 
+logger = logging.getLogger(__name__)
+
 
 class SimplePublisherOp(PublisherOp):
     def __init__(self, fragment, *args, **kwargs):
@@ -32,7 +34,7 @@ class SimplePublisherOp(PublisherOp):
     def compute(self, op_input, op_output, context):
         msg = String()
         msg.data = f"Hello, world! {self.count}"
-        logging.info(f"Publishing: '{msg.data}'")
+        logger.info(f"Publishing: '{msg.data}'")
         self.publish(msg)
         self.count += 1
 

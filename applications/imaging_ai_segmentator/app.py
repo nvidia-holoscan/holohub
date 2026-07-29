@@ -32,6 +32,8 @@ from operators.medical_imaging import (
     SegmentDescription,
 )
 
+logger = logging.getLogger(__name__)
+
 # Labels for the channels/segments
 CHANNEL_DEF = {
     "0": "background",
@@ -273,9 +275,9 @@ if __name__ == "__main__":
     # e.g.
     #     python3 app.py -i input -m model/model.ts
     #
-    logging.info(f"Begin {__name__}")
+    logger.info(f"Begin {__name__}")
 
     app = AISegApp()
     app.run()
 
-    logging.info(f"End {__name__}")
+    logger.info(f"End {__name__}")

@@ -68,7 +68,7 @@ class ControlOp(Operator):
 
         # move the arm to a random position every two seconds
         if time.time() > self._next_move:
-            data = np.asarray(list(message.values())[0])
+            data = np.asarray(next(iter(message.values())))
 
             for i in range(data.shape[1]):
                 data[0][i] = random.uniform(-1.5, 1.5)

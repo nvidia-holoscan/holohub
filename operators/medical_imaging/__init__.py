@@ -27,9 +27,7 @@ including DICOM handling, visualization, and AI model inference.
     exceptions
 """
 
-from . import _version
-from . import exceptions as exceptions
-from . import utils as utils
+from . import _version, exceptions as exceptions, utils as utils
 
 # Import all operators
 from .clara_viz_operator import ClaraVizOperator

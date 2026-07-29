@@ -35,17 +35,19 @@ class FHIRQuery:
         identifier: str | None = "",
         patient_name: str | None = "",
         patient_dob: str | None = "",
-        resources_to_retrieve: list[str] | None = [
-            "Observation",
-            "ImagingStudy",
-            "FamilyMemberHistory",
-            "Condition",
-            "DiagnosticReport",
-            "DocumentReference",
-        ],
+        resources_to_retrieve: list[str] | None = None,
         start_date: str | None = "",
         end_date: str | None = "",
     ):
+        if resources_to_retrieve is None:
+            resources_to_retrieve = [
+                "Observation",
+                "ImagingStudy",
+                "FamilyMemberHistory",
+                "Condition",
+                "DiagnosticReport",
+                "DocumentReference",
+            ]
         self.request_id = request_id
         self.patient_name = patient_name
         self.patient_dob = patient_dob

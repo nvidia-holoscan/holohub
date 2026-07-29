@@ -139,10 +139,12 @@ def main():
                         ["What hardware does Holoscan support?"],
                         ["How do I create a C++ Holoscan Operator?"],
                         [
-                            "Create a Python Holoscan 'hello world' app with video "
-                            "as input, use HoloViz to print 'Hello World' on each frame, "
-                            "and then output it to the user. After the code explain the "
-                            "process step-by-step."
+                            (
+                                "Create a Python Holoscan 'hello world' app with video "
+                                "as input, use HoloViz to print 'Hello World' on each frame, "
+                                "and then output it to the user. After the code explain the "
+                                "process step-by-step."
+                            )
                         ],
                     ],
                     inputs=tbInput,

@@ -62,7 +62,18 @@ class VLM:
                             output = data["text"][len(prompt) :].strip()
                             yield output
                 return response
-            except Exception:
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ):
                 self._logger.debug("Failed connection to VLM server, retrying in 5 seconds...")
                 time.sleep(5)
         raise ConnectionError("VILA server unavailable after 60 seconds")

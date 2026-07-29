@@ -79,7 +79,7 @@ class HoloscanEntityServicer(EntityServicer):
             self.logger.warning("grpc: EntityStream - client cancelled")
         except Exception as ex:
             self.logger.error(f"grpc: EntityStream - exception occurred: {ex}")
-            raise ex
+            raise
         finally:
             self.entity_stream_rpc_complete(app)
 
@@ -118,5 +118,16 @@ class HoloscanEntityServicer(EntityServicer):
                     self.logger.debug(
                         f"grpc: outgoing_frame {status.outgoing_frames} - last received frame {status.last_received_frame_no}"
                     )
-        except Exception as ex:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as ex:
             self.logger.error(f"grpc: EntityStream - exception occurred: {ex}")

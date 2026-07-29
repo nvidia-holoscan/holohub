@@ -26,6 +26,8 @@ operators, focusing on:
 - Parameter handling across language boundaries
 """
 
+import logging
+
 import pytest
 
 
@@ -492,9 +494,20 @@ class TestStreamingServerUpstreamOpCompute:
             op.compute(op_input, op_output, execution_context)
             # If compute succeeds, verify output was emitted
             if op_output.emitted is not None:
-                out_msg, out_port = op_output.emitted
+                _out_msg, out_port = op_output.emitted
                 assert out_port == "output_frames"
-        except Exception as e:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as e:
             # May fail without actual server connection, but binding should work
             assert "compute" not in str(e).lower() or "not found" not in str(e).lower()
 
@@ -522,9 +535,20 @@ class TestStreamingServerUpstreamOpCompute:
 
             try:
                 op.compute(op_input, op_output, execution_context)
-            except Exception:
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ):
                 # Expected to fail without server, but binding should work
-                pass
+                logging.getLogger(__name__).debug("Expected operation failure", exc_info=True)
 
     def test_upstream_compute_method_signature(self, upstream_operator_factory, resource_factory):
         """Test that upstream compute method has correct signature."""
@@ -573,7 +597,18 @@ class TestStreamingServerDownstreamOpCompute:
         try:
             op.compute(op_input, op_output, execution_context)
             # Downstream sends frames, so no output expected in this test
-        except Exception as e:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as e:
             # May fail without actual server connection, but binding should work
             assert "compute" not in str(e).lower() or "not found" not in str(e).lower()
 
@@ -601,9 +636,20 @@ class TestStreamingServerDownstreamOpCompute:
 
             try:
                 op.compute(op_input, op_output, execution_context)
-            except Exception:
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ):
                 # Expected to fail without server, but binding should work
-                pass
+                logging.getLogger(__name__).debug("Expected operation failure", exc_info=True)
 
     def test_downstream_compute_with_float_frames(
         self,
@@ -624,9 +670,20 @@ class TestStreamingServerDownstreamOpCompute:
 
         try:
             op.compute(op_input, op_output, execution_context)
-        except Exception:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ):
             # Expected to fail without server, but binding should work
-            pass
+            logging.getLogger(__name__).debug("Expected operation failure", exc_info=True)
 
     def test_downstream_compute_method_signature(
         self, downstream_operator_factory, resource_factory
@@ -673,8 +730,19 @@ class TestBidirectionalServerCompute:
 
         try:
             upstream_op.compute(upstream_input, op_output, execution_context)
-        except Exception:
-            pass  # Expected without server
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ):
+            logging.getLogger(__name__).debug("Expected operation failure", exc_info=True)
 
         # Test downstream compute with outgoing frame
         outgoing_frame = mock_image(shape=(1080, 1920, 3), backend="cupy", seed=2)
@@ -682,8 +750,19 @@ class TestBidirectionalServerCompute:
 
         try:
             downstream_op.compute(downstream_input, op_output, execution_context)
-        except Exception:
-            pass  # Expected without server
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ):
+            logging.getLogger(__name__).debug("Expected operation failure", exc_info=True)
 
         # Verify both operators have compute methods
         assert hasattr(upstream_op, "compute")

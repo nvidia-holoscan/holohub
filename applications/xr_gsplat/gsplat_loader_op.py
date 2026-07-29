@@ -73,7 +73,7 @@ class GsplatLoaderOp(Operator):
         pass
 
     def compute(self, op_input: InputContext, op_output: OutputContext, context: ExecutionContext):
-        splats = dict()
+        splats = {}
         splats["means"] = self.means
         splats["quats"] = self.quats
         splats["scales"] = self.scales

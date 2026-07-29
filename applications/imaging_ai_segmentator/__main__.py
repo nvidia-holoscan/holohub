@@ -19,9 +19,11 @@ import logging
 
 from app import AISegApp
 
+logger = logging.getLogger(__name__)
+
 if __name__ == "__main__":
-    logging.info(f"Begin {__name__}")
+    logger.info(f"Begin {__name__}")
 
     AISegApp().run()
 
-    logging.info(f"End {__name__}")
+    logger.info(f"End {__name__}")

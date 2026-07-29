@@ -36,11 +36,11 @@ class EndoscopyToolTrackingPipeline(HoloscanGrpcApplication):
         width = 854
         height = 480
 
-        source_pool_kwargs = dict(
-            storage_type=MemoryStorageType.DEVICE,
-            block_size=width * height * 3 * 4,
-            num_blocks=2,
-        )
+        source_pool_kwargs = {
+            "storage_type": MemoryStorageType.DEVICE,
+            "block_size": width * height * 3 * 4,
+            "num_blocks": 2,
+        }
         cuda_stream_pool = CudaStreamPool(
             self,
             name="cuda_stream",

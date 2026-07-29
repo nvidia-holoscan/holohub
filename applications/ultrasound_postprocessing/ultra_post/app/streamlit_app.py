@@ -56,7 +56,18 @@ def init_state() -> None:
         try:
             st.session_state["frame"] = load_uff_frame(DEFAULT_UFF)
             st.session_state["source"] = DEFAULT_UFF.name
-        except Exception:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ):
             st.session_state["frame"] = None
             st.session_state["source"] = "None"
 

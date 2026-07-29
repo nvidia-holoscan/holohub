@@ -284,7 +284,18 @@ def run_holoscan_app(args: argparse.Namespace) -> None:
             print("App run finished.")
     except KeyboardInterrupt:
         print("User interrupted.")
-    except Exception as e:
+    except (
+        ArithmeticError,
+        AssertionError,
+        AttributeError,
+        EOFError,
+        ImportError,
+        LookupError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ) as e:
         print(f"Error during run: {e}")
     finally:
         print("Tracker context exited.")

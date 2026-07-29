@@ -16,6 +16,7 @@
 import os
 import sys
 import time
+from contextlib import ExitStack
 
 import cupy as cp
 import holoscan as hs
@@ -238,7 +239,7 @@ class BP_Image_FormationOp(Operator):
         self.pulses_to_integrate = Pulses_To_Integrate
         self.buffer_head = 0
         self.buffer_tail = 0
-        self.pulse_buffer = list({} for i in range(Pulses_To_Integrate))
+        self.pulse_buffer = [{} for i in range(Pulses_To_Integrate)]
         self.total_time = 0
         min_x = (-self.image_size_x / 2.0 + 0.5) * self.pixel_spacing
         max_y = (self.image_size_y - 1) / 2 * self.pixel_spacing
@@ -345,9 +346,9 @@ class Image_OutputOp(Operator):
         mf = ImageFont.truetype("font.ttf", 24)
         text = (
             "TX: ("
-            + "%4.2f" % xyz[0]
+            + f"{xyz[0]:4.2f}"
             + ", "
-            + "%4.2f" % xyz[1]
+            + f"{xyz[1]:4.2f}"
             + ") "
             + " Pulses="
             + str(self.count)
@@ -414,7 +415,10 @@ class SAR_ImagingApp(Application):
         fft_input = int(self.from_config("SAR_Input.Fourier_Transform_Input"))
         print("FFT Input=", fft_input)
 
-        self.bfile = open(input_filename, "rb")
+        self._resources = ExitStack()
+        self.bfile = self._resources.enter_context(
+            os.fdopen(os.open(input_filename, os.O_RDONLY), "rb")
+        )
         bfile = self.bfile
         np = cp.fromfile(bfile, count=1, dtype=cp.uint32)
         ns = cp.fromfile(bfile, count=1, dtype=cp.uint32)
@@ -484,7 +488,11 @@ def main():
     app = SAR_ImagingApp()
     config_file = os.path.join(os.path.dirname(__file__), "app_config.yaml")
     app.config(config_file)
-    app.run()
+    try:
+        app.run()
+    finally:
+        if hasattr(app, "_resources"):
+            app._resources.close()
 
 
 if __name__ == "__main__":

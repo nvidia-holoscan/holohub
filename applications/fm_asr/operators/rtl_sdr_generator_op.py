@@ -32,7 +32,7 @@ class RtlSdrGeneratorOp(Operator):
         # Start streams and allocate buffers
         self.buffer = cusignal.get_shared_mem(self.buffer_size, dtype=cp.complex64)
 
-        sdr_args = dict(driver="rtlsdr")
+        sdr_args = {"driver": "rtlsdr"}
         self.sdr = SoapySDR.Device(sdr_args)
         self.sdr.setSampleRate(SOAPY_SDR_RX, 0, self.sdr_fs)
         self.sdr.setFrequency(SOAPY_SDR_RX, 0, self.fm_freq)

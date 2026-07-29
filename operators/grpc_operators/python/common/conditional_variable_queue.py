@@ -20,10 +20,10 @@ from holoscan.core import Resource
 
 
 class ConditionVariableQueue(Resource):
-    def __init__(self, fragment, queue: Queue = Queue(), *args, **kwargs):
+    def __init__(self, fragment, queue: Queue | None = None, *args, **kwargs):
         super().__init__(fragment, *args, **kwargs)
         self.condition = Condition()
-        self.queue = queue
+        self.queue = queue if queue is not None else Queue()
 
     def push(self, value):
         with self.condition:

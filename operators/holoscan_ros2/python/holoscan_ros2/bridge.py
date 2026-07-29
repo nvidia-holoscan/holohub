@@ -99,7 +99,18 @@ class Bridge(holoscan.core.Resource):
         except rclpy.executors.ExternalShutdownException:
             # Expected when ROS2 shuts down externally (e.g., Ctrl+C)
             pass
-        except Exception as e:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as e:
             # Log other unexpected exceptions but don't crash
             print(f"ROS2 spinning thread encountered an error: {e}")
 

@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from io import StringIO
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -26,11 +29,11 @@ def main(graphs, constraint=False):
     graphsim = plt.figure(1)
 
     if constraint:
-        predicted = open("constraintresponsetimes.txt", "r")
+        predicted = StringIO(Path("constraintresponsetimes.txt").read_text(encoding="utf-8"))
     else:
-        predicted = open("predictedresponsetimes.txt", "r")
-    observed = open("observedresponsetimes.txt", "r")
-    simul = open("simulatedresponsetimes.txt", "r")
+        predicted = StringIO(Path("predictedresponsetimes.txt").read_text(encoding="utf-8"))
+    observed = StringIO(Path("observedresponsetimes.txt").read_text(encoding="utf-8"))
+    simul = StringIO(Path("simulatedresponsetimes.txt").read_text(encoding="utf-8"))
 
     for i, data in enumerate(graphs[0]):
         predictedvals = []
@@ -77,7 +80,7 @@ def overheadmain():
 
     base = np.array([200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200])
 
-    observed = open("observedoverheads.txt", "r")
+    observed = Path("observedoverheads.txt").read_text(encoding="utf-8").splitlines()
 
     observedoverheads = [int(float(x.split(" ")[-1].rstrip())) for x in observed]
 
@@ -106,17 +109,15 @@ def scalabilitymain(graphs, constraint=False):
 
     labels = ["20 edges", "40 edges", "60 edges", "80 edges", "100 edges"]
 
-    translate = dict(
-        [(19, 0), (20, 0), (39, 1), (40, 1), (59, 2), (60, 2), (79, 3), (80, 3), (99, 4), (100, 4)]
-    )
+    translate = {19: 0, 20: 0, 39: 1, 40: 1, 59: 2, 60: 2, 79: 3, 80: 3, 99: 4, 100: 4}
 
     graphsim = plt.figure(3)
 
     if constraint:
-        predicted = open("constraintresponsetimes.txt", "r")
+        predicted = StringIO(Path("constraintresponsetimes.txt").read_text(encoding="utf-8"))
     else:
-        predicted = open("predictedresponsetimes.txt", "r")
-    simul = open("simulatedresponsetimes.txt", "r")
+        predicted = StringIO(Path("predictedresponsetimes.txt").read_text(encoding="utf-8"))
+    simul = StringIO(Path("simulatedresponsetimes.txt").read_text(encoding="utf-8"))
 
     for nodecount, edgecount in graphs[0]:
         predictedvals = []
@@ -148,14 +149,12 @@ def scalabilitymain(graphs, constraint=False):
 
     graphsim.savefig("evalscalability.pdf", bbox_inches="tight")
 
-    predicted.close
-    simul.close
+    predicted.close()
+    simul.close()
 
 
 def scalabilitypess():
-    translate = dict(
-        [(19, 0), (20, 0), (39, 1), (40, 1), (59, 2), (60, 2), (79, 3), (80, 3), (99, 4), (100, 4)]
-    )
+    translate = {19: 0, 20: 0, 39: 1, 40: 1, 59: 2, 60: 2, 79: 3, 80: 3, 99: 4, 100: 4}
     data = [[], [], [], [], []]
 
     with open("predictedresponsetimes.txt", "r") as predicted, open(

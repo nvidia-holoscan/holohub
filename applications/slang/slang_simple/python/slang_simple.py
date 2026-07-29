@@ -42,7 +42,7 @@ class SourceOp(Operator):
 
     def compute(self, op_input, op_output, context):
         value = cp.array([self.index], dtype=cp.int32)
-        op_output.emit(dict(output=value), "output")
+        op_output.emit({"output": value}, "output")
         self.index += 1
 
 

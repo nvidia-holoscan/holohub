@@ -40,7 +40,7 @@ class GrpcServerRequestOp(Operator):
         self.logger: logging.Logger = logging.getLogger(__name__)
 
         if not isinstance(request_queue, ConditionVariableQueue):
-            raise ValueError("request_queue must be a ConditionVariableQueue")
+            raise TypeError("request_queue must be a ConditionVariableQueue")
 
         super().__init__(fragment, *args, **kwargs)
 

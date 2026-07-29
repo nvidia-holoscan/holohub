@@ -79,7 +79,7 @@ def print_latest_diagnostic_report(resources):
     ]
 
     if len(diagnostic_reports) == 0:
-        raise Exception("No reports found for patient")
+        raise RuntimeError("No reports found for patient")
 
     diagnostic_report = diagnostic_reports[0]
     print(f"Report ID: {diagnostic_report['id']}")
@@ -99,23 +99,34 @@ def print_latest_diagnostic_report(resources):
 
 def data_handler():
     global busy
-    global option
     receiver = MessageReceiver(topic_response, "tcp://localhost:5601")
     while True:
         response = receiver.receive_json()
 
         # Only saving the last none empty message received, if needed
-        if saving_query_response:
-            if isinstance(response, str) or (isinstance(response, dict) and response.keys()):
-                with open("fhir_response_jason.txt", "w+") as f:
-                    f.write(response)
+        if saving_query_response and (
+            isinstance(response, str) or (isinstance(response, dict) and response.keys())
+        ):
+            with open("fhir_response_jason.txt", "w+") as f:
+                f.write(response)
 
         fhir_response = FHIRQueryResponse.from_json(response)
         if len(fhir_response.patient_resources) > 0:
             if option == "4":
                 try:
                     print_latest_diagnostic_report(fhir_response.patient_resources)
-                except Exception as e:
+                except (
+                    ArithmeticError,
+                    AssertionError,
+                    AttributeError,
+                    EOFError,
+                    ImportError,
+                    LookupError,
+                    OSError,
+                    RuntimeError,
+                    TypeError,
+                    ValueError,
+                ) as e:
                     print(e)
             for key in fhir_response.patient_resources:
                 print_patient(key, fhir_response.patient_resources[key])
@@ -183,8 +194,6 @@ def show_prompt():
 
 
 if __name__ == "__main__":
-    global t_receiver
-    global t_sender
     signal.signal(signal.SIGINT, stop)
 
     t_receiver = Thread(target=data_handler)

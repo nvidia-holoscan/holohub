@@ -20,6 +20,8 @@ import os
 from Simulator import Simulator
 from TransformerApp import TransformerApp
 
+logger = logging.getLogger(__name__)
+
 
 class IsaacSimHoloscan:
     """A class that integrates Isaac Sim with Holoscan for simulation and data processing.
@@ -59,7 +61,7 @@ class IsaacSimHoloscan:
 
         The method ensures proper error handling and cleanup of resources.
         """
-        logging.info("Starting simulator")
+        logger.info("Starting simulator")
 
         # start the simulator
         self._simulator = Simulator(
@@ -69,7 +71,7 @@ class IsaacSimHoloscan:
             frame_count=self._args.frame_count,
         )
 
-        logging.info("Starting Holoscan pipeline")
+        logger.info("Starting Holoscan pipeline")
 
         # Set up the Holoscan transformer application
         self._transformer_app = TransformerApp(
@@ -92,7 +94,7 @@ class IsaacSimHoloscan:
         # Run the simulator, this will return if the simulator is finished
         self._simulator.run(self._transformer_app.push_data)
 
-        logging.info("Simulator finished")
+        logger.info("Simulator finished")
 
         # Shutdown the transformer application
         self._transformer_app.shutdown_async_executor()
@@ -101,7 +103,7 @@ class IsaacSimHoloscan:
         for future in self._futures:
             future.result()
 
-        logging.info("Transformer application finished")
+        logger.info("Transformer application finished")
 
 
 def main():

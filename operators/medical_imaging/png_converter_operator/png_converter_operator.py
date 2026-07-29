@@ -86,7 +86,7 @@ class PNGConverterOperator(Operator):
         elif isinstance(image, np.ndarray):
             image_data = image
         else:
-            raise ValueError(f"Input is not Image or ndarray, {type(image)}.")
+            raise TypeError(f"Input is not Image or ndarray, {type(image)}.")
         image_shape = image_data.shape
 
         num_images = image_shape[0]

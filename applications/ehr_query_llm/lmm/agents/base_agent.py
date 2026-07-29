@@ -280,7 +280,7 @@ class Agent(ABC):
         try:
             # Read the existing content of the file
             with open(file_path, "r") as file:
-                content = file.read().rstrip("\n\n,] ") + ","
+                content = file.read().rstrip().removesuffix("]").rstrip().removesuffix(",") + ","
 
             # If the file is not empty and already contains a JSON array
             if content:

@@ -264,7 +264,7 @@ class OptixOrthoOp(Operator):
         load_sensor_texture(optix_state, sensor_pix)
         build_sensor_geom(optix_state)
 
-        gas_handle, d_gas_output_buffer = create_accel(optix_state, self.ctx, self.stream)
+        gas_handle, _d_gas_output_buffer = create_accel(optix_state, self.ctx, self.stream)
 
         sbt = create_sbt(self.prog_groups)
         ortho_pix = launch(optix_state, self.pipeline, sbt, gas_handle, self.stream)

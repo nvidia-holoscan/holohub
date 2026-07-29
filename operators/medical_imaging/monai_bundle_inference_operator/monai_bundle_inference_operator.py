@@ -23,7 +23,7 @@ import zipfile
 from copy import deepcopy
 from pathlib import Path
 from threading import Lock
-from typing import Any
+from typing import Any, ClassVar
 
 import numpy as np
 from holoscan.core import Fragment, OperatorSpec
@@ -31,6 +31,8 @@ from holoscan.core import Fragment, OperatorSpec
 from operators.medical_imaging.core import AppContext, Image, IOType
 from operators.medical_imaging.inference_operator import InferenceOperator
 from operators.medical_imaging.utils.importutil import optional_import
+
+logger = logging.getLogger(__name__)
 
 MONAI_UTILS = "monai.utils"
 nibabel, _ = optional_import("nibabel", "3.2.1")
@@ -83,21 +85,32 @@ def get_bundle_config(bundle_path, config_names):
         for suffix in bundle_suffixes:
             path = Path(root_name, config_folder, config_name).with_suffix(suffix)
             try:
-                logging.debug(f"Trying to read config {config_name!r} content from {path!r}.")
+                logger.debug(f"Trying to read config {config_name!r} content from {path!r}.")
                 content_text = archive.read(str(path))
                 break
-            except Exception:
-                logging.debug(f"Error reading from {path}. Will try alternative ways.")
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ):
+                logger.debug(f"Error reading from {path}. Will try alternative ways.")
                 continue
 
         # Try search for the name in the name list of the archive
         if not content_text and do_search:
-            logging.debug(f"Trying to find the file in the archive for config {config_name!r}.")
+            logger.debug(f"Trying to find the file in the archive for config {config_name!r}.")
             name_list = archive.namelist()
             for suffix in bundle_suffixes:
                 for n in name_list:
                     if (f"{config_name}{suffix}").casefold in n.casefold():
-                        logging.debug(
+                        logger.debug(
                             f"Trying to read content of config {config_name!r} from {n!r}."
                         )
                         content_text = archive.read(n)
@@ -129,23 +142,34 @@ def get_bundle_config(bundle_path, config_names):
         # Try directly read first with path into the archive
         for suffix in bundle_suffixes:
             try:
-                logging.debug(f"Trying to extract {config_names} with ext {suffix}.")
+                logger.debug(f"Trying to extract {config_names} with ext {suffix}.")
                 file_list = [
                     str(Path(root_name, config_folder, cn).with_suffix(suffix))
                     for cn in config_names
                 ]
                 archive.extractall(members=file_list, path=dest_folder)
                 break
-            except Exception as ex:
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ) as ex:
                 file_list = []
-                logging.debug(
+                logger.debug(
                     f"Will try file search after error on extracting {config_names} with {file_list}: {ex}"
                 )
                 continue
 
         # If files not extracted, try search for expected files in the name list of the archive
         if (len(file_list) < 1) and do_search:
-            logging.debug(f"Trying to find the config files in the archive for {config_names}.")
+            logger.debug(f"Trying to find the config files in the archive for {config_names}.")
             name_list = archive.namelist()
             leftovers = deepcopy(config_names)  # to track any that are not found.
             for cn in config_names:
@@ -317,7 +341,7 @@ class MonaiBundleInferenceOperator(InferenceOperator):
     For the time being, the input and output to this operator are limited to in_memory object.
     """
 
-    known_io_data_types = {
+    known_io_data_types: ClassVar = {
         "image": Image,  # Image object
         "series": np.ndarray,
         "tuples": np.ndarray,
@@ -390,12 +414,23 @@ class MonaiBundleInferenceOperator(InferenceOperator):
                 self._init_config(self._bundle_config_names.config_names)
                 self._init_completed = True
             else:
-                logging.debug(
+                logger.debug(
                     f"Bundle, at path {self._bundle_path}, not available. Will get it in the execution context."
                 )
                 self._bundle_path = None
-        except Exception:
-            logging.warning(
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ):
+            logger.warning(
                 "Bundle parsing is not completed on init, delayed till this operator is called to execute."
             )
             self._bundle_path = None
@@ -490,10 +525,10 @@ class MonaiBundleInferenceOperator(InferenceOperator):
         # Customized metadata key names are not supported as of now.
         self._meta_key_postfix = self._get_meta_key_postfix(self._preproc)
 
-        logging.debug(
+        logger.debug(
             f"Effective transforms in pre-processing: {[type(t).__name__ for t in self._preproc.transforms]}"
         )
-        logging.debug(
+        logger.debug(
             f"Effective Transforms in post-processing: {[type(t).__name__ for t in self._preproc.transforms]}"
         )
 
@@ -545,7 +580,7 @@ class MonaiBundleInferenceOperator(InferenceOperator):
         elif isinstance(ctype, type):  # type object
             return ctype
         else:  # don't know, something that hasn't been figured out
-            logging.warning(
+            logger.warning(
                 f"I/O data type, {ctype}, is not a known/supported type. Return as Type object."
             )
             return object
@@ -594,14 +629,14 @@ class MonaiBundleInferenceOperator(InferenceOperator):
                 with self._lock:
                     if not self._init_completed:
                         self._bundle_path = self._model_network.path
-                        logging.info(f"Parsing from bundle_path: {self._bundle_path}")
+                        logger.info(f"Parsing from bundle_path: {self._bundle_path}")
                         self._init_config(self._bundle_config_names.config_names)
                         self._init_completed = True
         elif self._bundle_path:
             # For the case of local dev/testing when the bundle path is not passed in as an exec cmd arg.
             # When run as a MAP docker, the bundle file is expected to be in the context, even if the model
             # network is loaded on a remote inference server (when the feature is introduced).
-            logging.debug(
+            logger.debug(
                 f"Model network not loaded. Trying to load from model path: {self._bundle_path}"
             )
             self._model_network = torch.jit.load(self.bundle_path, map_location=self._device).eval()
@@ -614,13 +649,13 @@ class MonaiBundleInferenceOperator(InferenceOperator):
             inputs: Any = {}  # Use type Any to quiet MyPy type checking complaints.
 
             start = time.time()
-            for name in self._inputs.keys():
+            for name in self._inputs:
                 # Input MetaTensor creation is based on the same logic in monai LoadImage
                 # value: NdarrayOrTensor  # MyPy complaints
                 value, meta_data = self._receive_input(name, op_input, context)
                 value = convert_to_dst_type(value, dst=value)[0]
                 if not isinstance(meta_data, dict):
-                    raise ValueError("`meta_data` must be a dict.")
+                    raise TypeError("`meta_data` must be a dict.")
                 value = MetaTensor.ensure_torch_and_prune_meta(value, meta_data)
                 inputs[name] = value
                 # Named metadata dict not needed any more, as it is in the MetaTensor
@@ -639,15 +674,13 @@ class MonaiBundleInferenceOperator(InferenceOperator):
             other_inputs.update(
                 {k: inputs[k] for k in other_names if not isinstance(inputs[k], torch.Tensor)}
             )
-            logging.debug(
-                f"Ingest and Pre-processing elapsed time (seconds): {time.time() - start}"
-            )
+            logger.debug(f"Ingest and Pre-processing elapsed time (seconds): {time.time() - start}")
 
             start = time.time()
             outputs: Any = self.predict(
                 data=first_input, **other_inputs
             )  # Use type Any to quiet MyPy complaints.
-            logging.debug(f"Inference elapsed time (seconds): {time.time() - start}")
+            logger.debug(f"Inference elapsed time (seconds): {time.time() - start}")
 
             # Note that the `inputs` are needed because the `invert` transform requires it. With metadata being
             # in the keyed MetaTensors of inputs, e.g. `image`, the whole inputs are needed.
@@ -655,7 +688,7 @@ class MonaiBundleInferenceOperator(InferenceOperator):
             inputs[first_input_name] = first_input_v
             kw_args = {self.kw_preprocessed_inputs: inputs}
             outputs = self.post_process(ensure_tuple(outputs)[0], **kw_args)
-            logging.debug(f"Post-processing elapsed time (seconds): {time.time() - start}")
+            logger.debug(f"Post-processing elapsed time (seconds): {time.time() - start}")
         if isinstance(outputs, (tuple, list)):
             output_dict = dict(zip(self._outputs.keys(), outputs))
         elif not isinstance(outputs, dict):
@@ -663,7 +696,7 @@ class MonaiBundleInferenceOperator(InferenceOperator):
         else:
             output_dict = outputs
 
-        for name in self._outputs.keys():
+        for name in self._outputs:
             # Note that the input metadata needs to be passed.
             # Please see the comments in the called function for the reasons.
             self._send_output(output_dict[name], name, first_input_v.meta, op_output, context)
@@ -671,7 +704,7 @@ class MonaiBundleInferenceOperator(InferenceOperator):
     def predict(self, data: Any, *args, **kwargs) -> Image | Any | tuple[Any, ...] | dict[Any, Any]:
         """Predicts output using the inferer."""
 
-        return self._inferer(inputs=data, network=self._model_network, *args, **kwargs)
+        return self._inferer(*args, inputs=data, network=self._model_network, **kwargs)
 
     def pre_process(
         self, data: Any, *args, **kwargs
@@ -705,7 +738,7 @@ class MonaiBundleInferenceOperator(InferenceOperator):
 
             # Need to add back the inputs including metadata as they are needed by the invert transform.
             outputs_dict.update(inputs)
-            logging.debug(f"Effective output dict keys: {outputs_dict.keys()}")
+            logger.debug(f"Effective output dict keys: {outputs_dict.keys()}")
             return self._postproc(outputs_dict)
         else:
             if isinstance(data, (list, tuple)):
@@ -754,8 +787,8 @@ class MonaiBundleInferenceOperator(InferenceOperator):
         if isinstance(value, Image):
             # Need to get the image ndarray as well as metadata
             value, metadata = self._convert_from_image(value)
-            logging.debug(f"Shape of the converted input image: {value.shape}")
-            logging.debug(f"Metadata of the converted input image: {metadata}")
+            logger.debug(f"Shape of the converted input image: {value.shape}")
+            logger.debug(f"Metadata of the converted input image: {metadata}")
         elif isinstance(value, np.ndarray):
             value = torch.from_numpy(value).to(self._device)
 
@@ -766,7 +799,7 @@ class MonaiBundleInferenceOperator(InferenceOperator):
     def _send_output(self, value: Any, name: str, metadata: dict, op_output, context):
         """Send the given output value to the output context."""
 
-        logging.debug(f"Setting output {name}")
+        logger.debug(f"Setting output {name}")
 
         out_conf = self._outputs[name]
         otype = self._get_io_data_type(out_conf)
@@ -787,15 +820,15 @@ class MonaiBundleInferenceOperator(InferenceOperator):
             elif not isinstance(value, np.ndarray):
                 raise TypeError("arg 1 must be of type torch.Tensor or ndarray.")
 
-            logging.debug(f"Output {name} numpy image shape: {value.shape}")
+            logger.debug(f"Output {name} numpy image shape: {value.shape}")
             result: Any = Image(
                 np.swapaxes(np.squeeze(value, 0), 0, 2).astype(np.uint8), metadata=metadata
             )
-            logging.debug(f"Converted Image shape: {result.asnumpy().shape}")
+            logger.debug(f"Converted Image shape: {result.asnumpy().shape}")
         elif otype == np.ndarray:
             result = np.asarray(value)
         elif out_conf["type"] == "probabilities":
-            _, value_class = value.max(dim=0)
+            _, _value_class = value.max(dim=0)
             prediction = [out_conf["channel_def"][str(int(v))] for v in value.flatten()]
 
             result = {"result": prediction, "probabilities": value.cpu().numpy()}
@@ -818,7 +851,18 @@ class MonaiBundleInferenceOperator(InferenceOperator):
                 # op_output.set(str(output_file), name)
             else:
                 op_output.emit(result, name)
-        except Exception:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ):
             # The following throws if the output storage type is DISK, but The OutputContext
             # currently does not expose the storage type. Try and let it throw if need be.
             op_output.emit(result, name)

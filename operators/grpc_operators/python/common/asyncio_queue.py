@@ -19,7 +19,7 @@ from holoscan.core import Resource
 
 
 class AsyncIoQueue(Resource):
-    def __init__(self, fragment, queue: asyncio.Queue = None, *args, **kwargs):
+    def __init__(self, fragment, queue: asyncio.Queue | None = None, *args, **kwargs):
         super().__init__(fragment, *args, **kwargs)
         self.queue = queue if queue is not None else asyncio.Queue()
 

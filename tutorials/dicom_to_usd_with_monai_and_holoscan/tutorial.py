@@ -143,7 +143,7 @@ class AISpleenSegmentationApp(Application):
             self, CountCondition(self, 1), g_stage=self._existing_stage, name="nt"
         )
         self.add_flow(stl_conversion_op, nt_op, {("stl_bytes", "stl_bytes")})
-        logging.info(f"End {self.compose.__name__}")
+        logger.info(f"End {self.compose.__name__}")
 
 
 def main():
@@ -180,7 +180,7 @@ def main():
     # Set the default prim as an assembly to support using component references
     Usd.ModelAPI(default_prim).SetKind(Kind.Tokens.assembly)
 
-    logging.debug(f"Stage: {existing_stage}")
+    logger.debug(f"Stage: {existing_stage}")
 
     myapp = AISpleenSegmentationApp(existing_stage=existing_stage)
     myapp.run()

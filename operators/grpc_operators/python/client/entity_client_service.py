@@ -62,12 +62,23 @@ class EntityClientService:
                 try:
                     write = asyncio.create_task(self._write_to_stream(self.channel, stream))
                     await write
-                except Exception as e:
+                except Exception:
                     read.cancel()
                     write.cancel()
-                    raise e
+                    raise
                 await read
-        except Exception as e:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as e:
             self.logger.error(f"grpc: please exit the application with CTRL+C: {e}")
             await self.channel.close()
             asyncio.get_running_loop().stop()
@@ -112,7 +123,18 @@ class EntityClientService:
                     self.logger.error("grpc: Max retries reached. Stopping streaming.")
                     self.abort_connection = True
                     break
-            except Exception as e:
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ) as e:
                 self.logger.error(f"grpc:_read_from_stream: Error reading from stream: {e}")
                 break
 
@@ -139,8 +161,8 @@ class EntityClientService:
             except grpc.aio.AioRpcError as e:
                 self.logger.error(f"grpc: Error writing to stream: {e}")
                 break
-            except Exception as e:
-                raise e
+            except Exception:
+                raise
 
     def _end_of_video_reached(self) -> bool:
         boolean_scheduling_term = next(
@@ -159,5 +181,16 @@ class EntityClientService:
     async def stop_entity_stream(self):
         try:
             await self.channel.close()
-        except Exception as e:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as e:
             self.logger.error(f"grpc: Failed to close gRPC channel {e}")

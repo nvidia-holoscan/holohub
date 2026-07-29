@@ -98,7 +98,7 @@ def percentile_torch(t: torch.Tensor, q: float) -> float:
     """
     # Compute the k-th value index (1-based)
     # Note: kthvalue is 1-based, so k=1 gives the minimum value
-    k = 1 + int(round(0.01 * float(q) * (t.numel() - 1)))
+    k = 1 + round(0.01 * float(q) * (t.numel() - 1))
 
     # Get the k-th smallest value
     result = t.view(-1).kthvalue(k).values.item()

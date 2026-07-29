@@ -245,7 +245,7 @@ class DepthApp(Application):
         )
 
         postprocessor = DepthPostProcessingOp(
-            self, name="postprocessor", pool=host_allocator, *self.kwargs("postprocessor")
+            self, *self.kwargs("postprocessor"), name="postprocessor", pool=host_allocator
         )
 
         visualizer = HolovizOp(

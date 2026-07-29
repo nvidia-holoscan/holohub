@@ -19,7 +19,7 @@ import os
 from collections.abc import Sequence
 from pathlib import Path
 from random import randint
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 import numpy as np
 from holoscan.core import ConditionType, Fragment, Operator, OperatorSpec
@@ -30,6 +30,8 @@ from operators.medical_imaging.core.domain.dicom_series_selection import StudySe
 from operators.medical_imaging.core.domain.image import Image
 from operators.medical_imaging.utils.importutil import optional_import
 from operators.medical_imaging.utils.version import get_sdk_semver
+
+logger = logging.getLogger(__name__)
 
 dcmread, _ = optional_import("pydicom", name="dcmread")
 generate_uid, _ = optional_import("pydicom.uid", name="generate_uid")
@@ -177,8 +179,11 @@ class DICOMSegmentationWriterOperator(Operator):
 
     DEFAULT_OUTPUT_FOLDER = Path.cwd() / "output"
     # Supported input image format, based on extension. Intended for file based input.
-    SUPPORTED_EXTENSIONS = [".nii", ".nii.gz", ".mhd"]
-    # DICOM instance file extension. Case insensitive in string comparison.
+    SUPPORTED_EXTENSIONS: ClassVar = [
+        ".nii",
+        ".nii.gz",
+        ".mhd",
+    ]  # DICOM instance file extension. Case insensitive in string comparison.
     DCM_EXTENSION = ".dcm"
 
     def __init__(
@@ -265,7 +270,7 @@ class DICOMSegmentationWriterOperator(Operator):
             raise ValueError(f"Missing input, [{StudySelectedSeries}].")
         for study_selected_series in study_selected_series_list:
             if not isinstance(study_selected_series, StudySelectedSeries):
-                raise ValueError(f"Element in input is not expected type, {StudySelectedSeries}.")
+                raise TypeError(f"Element in input is not expected type, {StudySelectedSeries}.")
 
         seg_image = op_input.receive(self.input_name_seg)
 
@@ -282,8 +287,19 @@ class DICOMSegmentationWriterOperator(Operator):
         output_folder = None
         try:
             output_folder = op_input.receive(self.input_name_output_folder)
-        except Exception:
-            pass
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ):
+            logging.getLogger(__name__).debug("Expected operation failure", exc_info=True)
 
         if not output_folder or not isinstance(output_folder, (Path, str)):
             output_folder = self.output_folder
@@ -297,20 +313,19 @@ class DICOMSegmentationWriterOperator(Operator):
         study_selected_series_list: list[StudySelectedSeries],
         output_dir: Path,
     ):
-        """ """
 
         if isinstance(image, Image):
             seg_image_numpy = image.asnumpy()
         elif isinstance(image, (Path, str)):
             seg_image_numpy = self._image_file_to_numpy(str(image))
         elif not isinstance(image, np.ndarray):
-            raise ValueError("'image' is not a numpy array, Image object, or supported image file.")
+            raise TypeError("'image' is not a numpy array, Image object, or supported image file.")
 
         # Pick DICOM Series that was used as input for getting the seg image.
         # For now, first one in the list.
         for study_selected_series in study_selected_series_list:
             if not isinstance(study_selected_series, StudySelectedSeries):
-                raise ValueError(f"Element in input is not expected type, {StudySelectedSeries}.")
+                raise TypeError(f"Element in input is not expected type, {StudySelectedSeries}.")
             selected_series = study_selected_series.selected_series[0]
             dicom_series = selected_series.series
             self.create_dicom_seg(seg_image_numpy, dicom_series, output_dir)
@@ -329,7 +344,18 @@ class DICOMSegmentationWriterOperator(Operator):
 
         try:
             version_str = get_sdk_semver()  # SDK Version
-        except Exception:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ):
             version_str = ""  # Fall back to blank for unknown version
 
         seg = hd.seg.Segmentation(
@@ -350,7 +376,7 @@ class DICOMSegmentationWriterOperator(Operator):
 
         # Adding a few tags that are not in the Dataset
         # Also try to set the custom tags that are of string type
-        dt_now = datetime.datetime.now()
+        dt_now = datetime.datetime.now(datetime.timezone.utc)
         seg.SeriesDate = dt_now.strftime("%Y%m%d")
         seg.SeriesTime = dt_now.strftime("%H%M%S")
         seg.TimezoneOffsetFromUTC = (
@@ -367,9 +393,20 @@ class DICOMSegmentationWriterOperator(Operator):
                                 data_element.value = v
                         else:
                             seg.update({k: v})  # type: ignore
-                    except Exception as ex:
+                    except (
+                        ArithmeticError,
+                        AssertionError,
+                        AttributeError,
+                        EOFError,
+                        ImportError,
+                        LookupError,
+                        OSError,
+                        RuntimeError,
+                        TypeError,
+                        ValueError,
+                    ) as ex:
                         # Best effort for now.
-                        logging.warning(f"Tag {k} was not written, due to {ex}")
+                        logger.warning(f"Tag {k} was not written, due to {ex}")
 
         seg.save_as(output_path)
 

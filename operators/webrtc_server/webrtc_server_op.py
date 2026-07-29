@@ -16,6 +16,7 @@
 import asyncio
 import fractions
 import logging
+import sys
 import time
 from threading import Condition, Event
 
@@ -25,6 +26,8 @@ from aiortc import RTCPeerConnection, RTCSessionDescription
 from aiortc.contrib.media import MediaStreamTrack
 from av import VideoFrame
 from holoscan.core import Operator, OperatorSpec
+
+logger = logging.getLogger(__name__)
 
 
 class VideoStreamTrack(MediaStreamTrack):
@@ -99,7 +102,7 @@ class WebRTCServerOp(Operator):
 
         @pc.on("connectionstatechange")
         async def on_connectionstatechange():
-            logging.info(f"Connection state {pc.connectionState}")
+            logger.info(f"Connection state {pc.connectionState}")
             if pc.connectionState == "connected":
                 self._connected = True
                 self._connected_event.set()
@@ -130,7 +133,7 @@ class WebRTCServerOp(Operator):
     def start(self):
         self._connected_event.wait()
         if not self._connected:
-            exit(-1)
+            sys.exit(-1)
 
     def stop(self):
         pass
@@ -144,7 +147,7 @@ class WebRTCServerOp(Operator):
             # convert tensor to numpy
             frame = cp.asnumpy(cp.asarray(tensor))
         else:
-            raise Exception("Unexpected type ", type(message))
+            raise TypeError("Unexpected type ", type(message))
 
         # wait for the previous frame to be consumed
         with self._video_frame_consumed:

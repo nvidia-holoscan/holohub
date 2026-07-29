@@ -30,7 +30,7 @@ import json
 import pathlib
 from collections.abc import Callable
 from pathlib import PurePosixPath as GPath
-from typing import Any, Union
+from typing import Any
 
 import numpy as np
 import torch
@@ -42,7 +42,7 @@ Array = Any
 Activation = Callable[[Array], Array]
 Initializer = Callable[[PRNGKey, Shape, Dtype], Array]
 Normalizer = Callable[[], Callable[[Array], Array]]
-PathType = Union[str, pathlib.PurePosixPath]
+PathType = str | pathlib.PurePosixPath
 
 
 def _compute_residual_and_jacobian(
@@ -355,7 +355,7 @@ class Camera:
             radial_distortion=self.radial_distortion.copy(),
             tangential_distortion=self.tangential_distortion.copy(),
             image_size=np.array(
-                (int(round(self.image_size[0] * scale)), int(round(self.image_size[1] * scale)))
+                (round(self.image_size[0] * scale), round(self.image_size[1] * scale))
             ),
         )
         return new_camera

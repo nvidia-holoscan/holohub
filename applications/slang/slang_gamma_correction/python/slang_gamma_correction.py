@@ -64,7 +64,7 @@ class SourceOp(Operator):
 
     def compute(self, op_input, op_output, context):
         # Emit the pre-generated image data
-        op_output.emit(dict(output=cp.asarray(self.data)), "output")
+        op_output.emit({"output": cp.asarray(self.data)}, "output")
 
 
 # @brief Application class for demonstrating gamma correction using SLANG shaders

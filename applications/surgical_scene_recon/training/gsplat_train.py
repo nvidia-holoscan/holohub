@@ -319,7 +319,7 @@ class EndoNeRFParser:
         else:
             # Original: Single/random frame approach
             print(f"[Phase 2] Loading initial point cloud from {dataset_type} dataset...")
-            pts, colors, normals = self.endo_dataset.get_init_pts()
+            pts, colors, _normals = self.endo_dataset.get_init_pts()
             self.points = pts.astype(np.float32)
             self.points_rgb = (colors * 255.0).astype(np.uint8)  # gsplat expects 0-255
 
@@ -578,7 +578,7 @@ class EndoRunner:
         elif isinstance(cfg.strategy, MCMCStrategy):
             self.strategy_state = cfg.strategy.initialize_state()
         else:
-            raise ValueError(f"Unknown strategy: {type(cfg.strategy)}")
+            raise TypeError(f"Unknown strategy: {type(cfg.strategy)}")
 
         # Phase 6: Initialize deformation network
         if cfg.use_deformation:
@@ -1075,7 +1075,7 @@ class EndoRunner:
             sh_degree_to_use = min(step // cfg.sh_degree_interval, cfg.sh_degree)
 
             # Forward pass - render
-            renders, alphas, info = self.rasterize_splats(
+            renders, _alphas, info = self.rasterize_splats(
                 camtoworlds=camtoworld,
                 Ks=K,
                 width=width,
@@ -1231,44 +1231,47 @@ class EndoRunner:
 
             # 6. Deformation regularization (Phase 6)
             deform_reg_loss = torch.tensor(0.0, device=device)
-            if hasattr(self, "deform_net") and self.deform_net is not None:
-                if (
+            if (
+                hasattr(self, "deform_net")
+                and self.deform_net is not None
+                and (
                     cfg.time_smoothness_weight > 0
                     or cfg.l1_time_planes_weight > 0
                     or cfg.plane_tv_weight > 0
-                ):
-                    # Import regulation from gaussian_model
-                    from scene.regulation import compute_plane_smoothness
+                )
+            ):
+                # Import regulation from gaussian_model
+                from scene.regulation import compute_plane_smoothness
 
-                    multi_res_grids = self.deform_net.deformation_net.grid.grids
-                    plane_tv = 0.0
-                    time_smooth = 0.0
-                    l1_time = 0.0
+                multi_res_grids = self.deform_net.deformation_net.grid.grids
+                plane_tv = 0.0
+                time_smooth = 0.0
+                l1_time = 0.0
 
-                    for grids in multi_res_grids:
-                        if len(grids) == 3:
-                            pass  # Spatial grids only
-                        else:
-                            time_grids_smooth = [2, 4, 5]  # Temporal grids
-                            time_grids_spatial = [0, 1, 3]  # Spatial grids
+                for grids in multi_res_grids:
+                    if len(grids) == 3:
+                        pass  # Spatial grids only
+                    else:
+                        time_grids_smooth = [2, 4, 5]  # Temporal grids
+                        time_grids_spatial = [0, 1, 3]  # Spatial grids
 
-                            # Time smoothness
-                            for grid_id in time_grids_smooth:
-                                time_smooth += compute_plane_smoothness(grids[grid_id])
+                        # Time smoothness
+                        for grid_id in time_grids_smooth:
+                            time_smooth += compute_plane_smoothness(grids[grid_id])
 
-                            # Plane TV
-                            for grid_id in time_grids_spatial:
-                                plane_tv += compute_plane_smoothness(grids[grid_id])
+                        # Plane TV
+                        for grid_id in time_grids_spatial:
+                            plane_tv += compute_plane_smoothness(grids[grid_id])
 
-                            # L1 regularization
-                            for grid_id in time_grids_smooth:
-                                l1_time += torch.abs(1 - grids[grid_id]).mean()
+                        # L1 regularization
+                        for grid_id in time_grids_smooth:
+                            l1_time += torch.abs(1 - grids[grid_id]).mean()
 
-                    deform_reg_loss = (
-                        cfg.plane_tv_weight * plane_tv
-                        + cfg.time_smoothness_weight * time_smooth
-                        + cfg.l1_time_planes_weight * l1_time
-                    )
+                deform_reg_loss = (
+                    cfg.plane_tv_weight * plane_tv
+                    + cfg.time_smoothness_weight * time_smooth
+                    + cfg.l1_time_planes_weight * l1_time
+                )
 
             # Total loss (monocular: use pearson_lambda; binocular: use depth_lambda)
             depth_weight = cfg.pearson_lambda if cfg.depth_mode == "monocular" else cfg.depth_lambda

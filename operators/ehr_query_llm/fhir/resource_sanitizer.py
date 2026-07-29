@@ -121,7 +121,7 @@ class FHIRResourceSanitizer:
         # If using fhir.resources 7.0.0, then the error type is
         #      pydantic.error_wrappers.ValidationError
         except pydantic.v1.error_wrappers.ValidationError:
-            logger.error("Validation error while processing: ", resource)
+            logger.error("Validation error while processing: %s", resource)
             return None
 
         if resource_type in map:
@@ -662,13 +662,13 @@ if __name__ == "__main__":
         if entry_items:
             print(f"'entry' attribute exists, containing {len(entry_items)} itenms.\n")
 
-        for key in patient_resources.keys():
+        for key in patient_resources:
             for entry_item in patient_resources[key]:
                 if type(entry_item) is dict:
                     try:
                         sanitized_record = FHIRResourceSanitizer.sanitize(entry_item)
                         print(f"{sanitized_record}\n")
                     except NotImplementedError as e:
-                        logging.warning(e)
+                        logger.warning(e)
     else:
         print(f"Test data file is not found as expected at {data_path}.")

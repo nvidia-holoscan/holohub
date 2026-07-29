@@ -56,7 +56,7 @@ def run_pipeline(
             continue
         filter_name = node.get("op")
         if not isinstance(filter_name, str):
-            raise ValueError("Pipeline node missing 'op' string.")
+            raise TypeError("Pipeline node missing 'op' string.")
         func = registry.get(filter_name)
         if func is None:
             raise KeyError(f"Filter '{filter_name}' not found.")
@@ -95,7 +95,7 @@ def pipeline_from_dict(
     """Create a pipeline from a parsed configuration dictionary."""
 
     if not isinstance(data, Mapping):
-        raise ValueError("Pipeline configuration must be a mapping.")
+        raise TypeError("Pipeline configuration must be a mapping.")
 
     version = str(data.get("version", CONFIG_VERSION))
     if version != CONFIG_VERSION:
@@ -103,19 +103,19 @@ def pipeline_from_dict(
 
     graph = data.get("graph")
     if not isinstance(graph, Iterable):
-        raise ValueError("Pipeline configuration missing 'graph' list.")
+        raise TypeError("Pipeline configuration missing 'graph' list.")
 
     nodes: Pipeline = []
     registry = filters if filters is not None else FILTERS
     for node in graph:
         if not isinstance(node, Mapping):
-            raise ValueError("Each pipeline node must be a mapping.")
+            raise TypeError("Each pipeline node must be a mapping.")
         op_name = node.get("op")
         if not isinstance(op_name, str):
-            raise ValueError("Pipeline node missing 'op' string.")
+            raise TypeError("Pipeline node missing 'op' string.")
         params = node.get("params") or {}
         if not isinstance(params, Mapping):
-            raise ValueError("Pipeline node 'params' must be a mapping.")
+            raise TypeError("Pipeline node 'params' must be a mapping.")
         params = dict(params)
         enabled = bool(node.get("enabled", params.pop("enable", True)))
 
@@ -174,7 +174,7 @@ def pipeline_from_yaml(
         parsed = {"version": CONFIG_VERSION, "graph": []}
 
     if not isinstance(parsed, Mapping):
-        raise ValueError("Pipeline YAML must describe a mapping.")
+        raise TypeError("Pipeline YAML must describe a mapping.")
 
     pipeline = pipeline_from_dict(parsed, filters=filters)
     result: Pipeline | tuple[Pipeline, Mapping[str, Any]] = pipeline

@@ -23,7 +23,7 @@ class SwiGLUFFN(nn.Module):
         in_features: int,
         hidden_features: int | None = None,
         out_features: int | None = None,
-        act_layer: Callable[..., nn.Module] = None,  # API compatibility only, unused
+        act_layer: Callable[..., nn.Module] | None = None,  # API compatibility only, unused
         drop: float = 0.0,  # API compatibility only, unused
         bias: bool = True,
     ) -> None:
@@ -57,7 +57,7 @@ class SwiGLUFFNFused(SwiGLU):
         in_features: int,
         hidden_features: int | None = None,
         out_features: int | None = None,
-        act_layer: Callable[..., nn.Module] = None,  # API compatibility only, unused
+        act_layer: Callable[..., nn.Module] | None = None,  # API compatibility only, unused
         drop: float = 0.0,  # API compatibility only, unused
         bias: bool = True,
     ) -> None:

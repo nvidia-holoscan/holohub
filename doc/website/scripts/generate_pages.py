@@ -125,10 +125,10 @@ def get_file_from_git(file_path: Path, git_ref: str, git_repo_path: Path) -> str
             logger.error(f"Git error: {e.stderr}")
         else:
             logger.error(f"Path {file_path} is not within the Git repository")
-        raise e
+        raise
 
 
-def create_frontmatter(metadata: dict, archive_version: str = None) -> str:
+def create_frontmatter(metadata: dict, archive_version: str | None = None) -> str:
     """Create the frontmatter for the documentation page."""
 
     # Title
@@ -344,7 +344,7 @@ def detect_all_languages(app_path: str, git_repo_path: Path) -> str:
 def create_metadata_header(
     metadata: dict,
     last_modified: str,
-    archive_version: str = None,
+    archive_version: str | None = None,
     version_selector_html: str = "",
     run_locally_html: str = "",
     alt_language_link: str = "",
@@ -446,7 +446,7 @@ def create_metadata_header(
 def _get_path_relative_to_repo(
     original_path: Path,
     git_repo_path: Path,
-    base_dir: Path = None,  # for relative paths
+    base_dir: Path | None = None,  # for relative paths
 ) -> Path | None:
     """Calculates the path relative to the git repo root.
 
@@ -609,7 +609,7 @@ def extract_markdown_header(md_txt: str) -> tuple[str, str, str] | None:
 
 
 def create_version_selector_html(
-    current_version: str, archives: dict, dest_dir: Path, latest_version: str = None
+    current_version: str, archives: dict, dest_dir: Path, latest_version: str | None = None
 ) -> tuple[str, str]:
     """Create HTML and JavaScript for version selector dropdown.
 
@@ -739,8 +739,8 @@ def create_page(
     dest_path: Path,
     last_modified: str,
     git_repo_path: Path,
-    archive: dict = {"version": None, "git_ref": "main"},
-    archives: dict = None,
+    archive: dict | None = None,
+    archives: dict | None = None,
 ):
     """Create a documentation page, handling both versioned and non-versioned cases.
 
@@ -758,6 +758,8 @@ def create_page(
     """
 
     # Frontmatter
+    if archive is None:
+        archive = {"version": None, "git_ref": "main"}
     archive_version = archive["version"] if archive and "version" in archive else None
     output_text = create_frontmatter(metadata, archive_version)
 
@@ -971,7 +973,7 @@ def parse_metadata_path(
     with metadata_path.open("r") as metadata_file:
         metadata = json.load(metadata_file)
 
-    project_type = next((k for k in metadata.keys() if k != "$schema"), None)
+    project_type = next((k for k in metadata if k != "$schema"), None)
     if not project_type:
         logger.error(f"Skipping {metadata_rel_path}: no valid project type found (only $schema)")
         return
@@ -1005,13 +1007,12 @@ def parse_metadata_path(
     # - don't track operators under application folders
     # - only track once for cpp and python
     # - don't track metadata.json in parent directories of multiple operators
-    if component_type == metadata_rel_path.parts[0]:
-        if "Operators" not in metadata["name"]:
-            components[component_type].add(language_agnostic_dir)
+    if component_type == metadata_rel_path.parts[0] and "Operators" not in metadata["name"]:
+        components[component_type].add(language_agnostic_dir)
 
     # Process the README content and extract title
     readme_text = ""
-    readme_title = metadata["name"] if "name" in metadata else metadata_path.name
+    readme_title = metadata.get("name", metadata_path.name)
 
     if readme_path.exists():
         with readme_path.open("r") as readme_file:
@@ -1038,7 +1039,7 @@ def parse_metadata_path(
     dest_path = dest_dir / "README.md"
     last_modified = get_last_modified_date(metadata_path, git_repo_path)
     # Check for archives in metadata for version selector
-    archives = metadata["archives"] if "archives" in metadata else None
+    archives = metadata.get("archives", None)
     create_page(metadata, readme_text, dest_path, last_modified, git_repo_path, archives=archives)
 
     # Initialize nav file content to set title
@@ -1048,7 +1049,7 @@ title: "{title}"
 """
 
     # Check for archives in metadata
-    archives = metadata["archives"] if "archives" in metadata else None
+    archives = metadata.get("archives", None)
     if archives:
         nav_content += process_archived_versions(
             archives, metadata, metadata_path, readme_path, dest_dir, project_type, git_repo_path
@@ -1134,7 +1135,18 @@ def generate_pages() -> None:
     try:
         git_repo_path = get_git_root()
         logger.info(f"Git repository root: {git_repo_path}")
-    except Exception as e:
+    except (
+        ArithmeticError,
+        AssertionError,
+        AttributeError,
+        EOFError,
+        ImportError,
+        LookupError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ) as e:
         logger.error(f"Failed to find Git repository root: {e}")
         logger.error("This script requires Git and must be run from within a Git repository.")
         sys.exit(1)
@@ -1161,7 +1173,18 @@ def generate_pages() -> None:
                 parse_metadata_path(
                     metadata_path, components, git_repo_path, processed_parent_readmes
                 )
-            except Exception:
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ):
                 logger.error(f"Failed to process {metadata_path}:\n{traceback.format_exc()}")
 
         # Write navigation file to sort components by title

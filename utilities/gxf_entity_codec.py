@@ -21,14 +21,14 @@ import time
 from collections.abc import Generator, Sequence
 from enum import Enum
 from io import BufferedIOBase, BytesIO
-from typing import Any, Union
+from typing import Any
 
 import numpy as np
 
-ArrayLike = Union[np.ndarray, list[float]]
+ArrayLike = np.ndarray | list[float]
 ReadOnlyBuffer = bytes
-WriteableBuffer = Union[bytearray, memoryview]
-ReadableBuffer = Union[ReadOnlyBuffer, WriteableBuffer]
+WriteableBuffer = bytearray | memoryview
+ReadableBuffer = ReadOnlyBuffer | WriteableBuffer
 
 
 class EntityIndex:
@@ -54,9 +54,9 @@ class EntityIndex:
     def __init__(
         self,
         *,
-        data: tuple[int, int, int] = None,
-        buffer: Sequence = None,
-        reader: BufferedIOBase = None,
+        data: tuple[int, int, int] | None = None,
+        buffer: Sequence | None = None,
+        reader: BufferedIOBase | None = None,
         offset: int = 0,
         whence: int = os.SEEK_SET,
     ):
@@ -87,9 +87,9 @@ class EntityIndex:
     def read(
         self,
         *,
-        data: tuple[int, int, int] = None,
+        data: tuple[int, int, int] | None = None,
         buffer: ReadableBuffer = None,
-        reader: BufferedIOBase = None,
+        reader: BufferedIOBase | None = None,
         offset: int = 0,
         whence: int = os.SEEK_SET,
     ) -> None:
@@ -118,7 +118,7 @@ class EntityIndex:
         self,
         *,
         buffer: WriteableBuffer = None,
-        writer: BufferedIOBase = None,
+        writer: BufferedIOBase | None = None,
         offset: int = 0,
         whence: int = os.SEEK_SET,
     ) -> Any:
@@ -170,9 +170,9 @@ class EntityHeader:
     def __init__(
         self,
         *,
-        data: tuple[int, int, int, int, int, int] = None,
-        buffer: Sequence = None,
-        reader: BufferedIOBase = None,
+        data: tuple[int, int, int, int, int, int] | None = None,
+        buffer: Sequence | None = None,
+        reader: BufferedIOBase | None = None,
         offset: int = 0,
         whence: int = os.SEEK_SET,
     ):
@@ -208,9 +208,9 @@ class EntityHeader:
     def deserialize(
         self,
         *,
-        data: tuple[int, int, int, int, int, int] = None,
+        data: tuple[int, int, int, int, int, int] | None = None,
         buffer: ReadableBuffer = None,
-        reader: BufferedIOBase = None,
+        reader: BufferedIOBase | None = None,
         offset: int = 0,
         whence: int = os.SEEK_SET,
     ) -> None:
@@ -254,7 +254,7 @@ class EntityHeader:
         self,
         *,
         buffer: WriteableBuffer = None,
-        writer: BufferedIOBase = None,
+        writer: BufferedIOBase | None = None,
         offset: int = 0,
         whence: int = os.SEEK_SET,
     ) -> Any:
@@ -310,9 +310,9 @@ class ComponentHeader:
     def __init__(
         self,
         *,
-        data: tuple[int, int, int, int] = None,
-        buffer: Sequence = None,
-        reader: BufferedIOBase = None,
+        data: tuple[int, int, int, int] | None = None,
+        buffer: Sequence | None = None,
+        reader: BufferedIOBase | None = None,
         offset: int = 0,
         whence: int = os.SEEK_SET,
     ):
@@ -336,9 +336,9 @@ class ComponentHeader:
     def deserialize(
         self,
         *,
-        data: tuple[int, int, int, int] = None,
+        data: tuple[int, int, int, int] | None = None,
         buffer: ReadableBuffer = None,
-        reader: BufferedIOBase = None,
+        reader: BufferedIOBase | None = None,
         offset: int = 0,
         whence: int = os.SEEK_SET,
     ) -> None:
@@ -370,7 +370,7 @@ class ComponentHeader:
         self,
         *,
         buffer: WriteableBuffer = None,
-        writer: BufferedIOBase = None,
+        writer: BufferedIOBase | None = None,
         offset: int = 0,
         whence: int = os.SEEK_SET,
     ) -> Any:
@@ -462,9 +462,9 @@ class TensorHeader:
     def __init__(
         self,
         *,
-        data: tuple[int, int, int, int, tuple[int, ...], tuple[int, ...]] = None,
-        buffer: Sequence = None,
-        reader: BufferedIOBase = None,
+        data: tuple[int, int, int, int, tuple[int, ...], tuple[int, ...]] | None = None,
+        buffer: Sequence | None = None,
+        reader: BufferedIOBase | None = None,
         offset: int = 0,
         whence: int = os.SEEK_SET,
     ):
@@ -504,9 +504,9 @@ class TensorHeader:
     def deserialize(
         self,
         *,
-        data: tuple[int, int, int, int, tuple[int, ...], tuple[int, ...]] = None,
+        data: tuple[int, int, int, int, tuple[int, ...], tuple[int, ...]] | None = None,
         buffer: ReadableBuffer = None,
-        reader: BufferedIOBase = None,
+        reader: BufferedIOBase | None = None,
         offset: int = 0,
         whence: int = os.SEEK_SET,
     ) -> None:
@@ -543,7 +543,7 @@ class TensorHeader:
         self,
         *,
         buffer: WriteableBuffer = None,
-        writer: BufferedIOBase = None,
+        writer: BufferedIOBase | None = None,
         offset: int = 0,
         whence: int = os.SEEK_SET,
     ) -> Any:
@@ -585,9 +585,9 @@ class Tensor:
     def __init__(
         self,
         *,
-        data: tuple[TensorHeader, ArrayLike] = None,
-        buffer: Sequence = None,
-        reader: BufferedIOBase = None,
+        data: tuple[TensorHeader, ArrayLike] | None = None,
+        buffer: Sequence | None = None,
+        reader: BufferedIOBase | None = None,
         offset: int = 0,
         whence: int = os.SEEK_SET,
     ):
@@ -611,9 +611,9 @@ class Tensor:
     def read(
         self,
         *,
-        data: tuple[TensorHeader, ArrayLike] = None,
+        data: tuple[TensorHeader, ArrayLike] | None = None,
         buffer: ReadableBuffer = None,
-        reader: BufferedIOBase = None,
+        reader: BufferedIOBase | None = None,
         offset: int = 0,
         whence: int = os.SEEK_SET,
     ) -> None:
@@ -644,7 +644,7 @@ class Tensor:
         self,
         *,
         buffer: WriteableBuffer = None,
-        writer: BufferedIOBase = None,
+        writer: BufferedIOBase | None = None,
         offset: int = 0,
         whence: int = os.SEEK_SET,
     ) -> Any:
@@ -678,9 +678,9 @@ class Entity:
     def __init__(
         self,
         *,
-        data: tuple[EntityHeader, list["Component"]] = None,
-        buffer: Sequence = None,
-        reader: BufferedIOBase = None,
+        data: tuple[EntityHeader, list["Component"]] | None = None,
+        buffer: Sequence | None = None,
+        reader: BufferedIOBase | None = None,
         offset: int = 0,
         whence: int = os.SEEK_SET,
     ):
@@ -726,9 +726,9 @@ class Entity:
     def read(
         self,
         *,
-        data: tuple[EntityHeader, list["Component"]] = None,
+        data: tuple[EntityHeader, list["Component"]] | None = None,
         buffer: ReadableBuffer = None,
-        reader: BufferedIOBase = None,
+        reader: BufferedIOBase | None = None,
         offset: int = 0,
         whence: int = os.SEEK_SET,
     ) -> None:
@@ -756,7 +756,7 @@ class Entity:
         self,
         *,
         buffer: WriteableBuffer = None,
-        writer: BufferedIOBase = None,
+        writer: BufferedIOBase | None = None,
         offset: int = 0,
         whence: int = os.SEEK_SET,
     ) -> Any:
@@ -793,9 +793,9 @@ class Component:
     def __init__(
         self,
         *,
-        data: tuple[ComponentHeader, str, Tensor] = None,
-        buffer: Sequence = None,
-        reader: BufferedIOBase = None,
+        data: tuple[ComponentHeader, str, Tensor] | None = None,
+        buffer: Sequence | None = None,
+        reader: BufferedIOBase | None = None,
         offset: int = 0,
         whence: int = os.SEEK_SET,
     ):
@@ -823,9 +823,9 @@ class Component:
     def read(
         self,
         *,
-        data: tuple[ComponentHeader, str, Tensor] = None,
+        data: tuple[ComponentHeader, str, Tensor] | None = None,
         buffer: ReadableBuffer = None,
-        reader: BufferedIOBase = None,
+        reader: BufferedIOBase | None = None,
         offset: int = 0,
         whence: int = os.SEEK_SET,
     ) -> None:
@@ -856,7 +856,7 @@ class Component:
         self,
         *,
         buffer: WriteableBuffer = None,
-        writer: BufferedIOBase = None,
+        writer: BufferedIOBase | None = None,
         offset: int = 0,
         whence: int = os.SEEK_SET,
     ) -> Any:

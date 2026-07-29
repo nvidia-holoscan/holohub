@@ -385,7 +385,18 @@ def main() -> int:
         app.run()
     except KeyboardInterrupt:
         return 130
-    except Exception as exc:
+    except (
+        ArithmeticError,
+        AssertionError,
+        AttributeError,
+        EOFError,
+        ImportError,
+        LookupError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
 

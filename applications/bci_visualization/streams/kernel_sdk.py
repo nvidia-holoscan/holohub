@@ -6,8 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 import logging
 from collections.abc import Iterator
 from queue import Empty, Full, Queue
-from threading import Event as ThreadingEvent
-from threading import Thread
+from threading import Event as ThreadingEvent, Thread
 
 import numpy as np
 from kernel.sdk import MomentNumber, SdkClient, Wavelength

@@ -396,7 +396,7 @@ class SCARED_Dataset:
             if self.mode == "binocular":
                 disp_dir = osp.join(disps_dir, f"{frame_id}.tiff")
                 disp = iio.imread(disp_dir).astype(np.float32)
-                h, w = disp.shape
+                _h, w = disp.shape
                 with open(osp.join(reproj_dir, f"{frame_id}.json"), "r") as json_file:
                     Q = np.array(json.load(json_file)["reprojection-matrix"])
                 fl = Q[2, 3]
@@ -418,7 +418,7 @@ class SCARED_Dataset:
                 # depth = self.depth_near_thresh + (self.depth_far_thresh-self.depth_near_thresh)*depth
                 disp_dir = osp.join(monodisps_dir, f"{frame_id}.png")
                 depth = iio.imread(disp_dir).astype(np.float32) / 255.0
-                h, w = depth.shape
+                _h, w = depth.shape
                 depth = (
                     self.depth_near_thresh
                     + (self.depth_far_thresh - self.depth_near_thresh) * depth

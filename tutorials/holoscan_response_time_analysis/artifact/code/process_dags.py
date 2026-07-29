@@ -15,6 +15,7 @@
 
 import argparse
 import random
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -71,8 +72,8 @@ def construct_graphs(source):
         if linecounter % 3 == 0:
             elseEdges = line
 
-            areifEdges = True if ifEdges != "\n" else False
-            areelseEdges = True if elseEdges != "\n" else False
+            areifEdges = ifEdges != "\n"
+            areelseEdges = elseEdges != "\n"
 
             if areifEdges and areelseEdges:
                 graph = nx.DiGraph()
@@ -103,11 +104,9 @@ def construct_graphs(source):
 def visualize_graphs(graphs):
     index = 1
     for G in graphs:
-        number = 0
         labels = {}
-        for node in list(nx.topological_sort(G)):
+        for number, node in enumerate(nx.topological_sort(G)):
             labels[node] = number
-            number += 1
         # G = nx.convert_node_labels_to_integers(G, label_attribute="operator")
         # nx.draw(G, with_labels=True, font_weight='bold')
         nx.draw(
@@ -157,7 +156,7 @@ if __name__ == "__main__":
     parser.add_argument("file")
     args = parser.parse_args()
 
-    source = open(args.file, "r")
+    source = Path(args.file).read_text(encoding="utf-8").splitlines()
 
     graphs = construct_graphs(source)
 

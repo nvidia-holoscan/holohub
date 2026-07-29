@@ -15,6 +15,7 @@
 
 from __future__ import annotations
 
+import logging
 import math
 from pathlib import Path
 from typing import Any
@@ -278,7 +279,18 @@ def _unique_coordinate_count(axis: Any) -> int | None:
             size = int(unique.size)
             if size > 0:
                 count = size
-        except Exception:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ):
             count = None
     return count
 
@@ -301,8 +313,19 @@ def _extract_metadata(payload: Any) -> dict[str, Any]:
             dz = _calculate_spacing(getattr(scan, "z_axis", None))
             if dx and dz:
                 meta["spacing"] = (dz, dx)
-        except Exception:
-            pass
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ):
+            logging.getLogger(__name__).debug("Expected operation failure", exc_info=True)
 
     return meta
 
@@ -311,7 +334,18 @@ def _calculate_spacing(axis: Any) -> float | None:
     try:
         arr = cp.unique(cp.asarray(axis))
         return float(arr[1] - arr[0]) if arr.size > 1 else None
-    except Exception:
+    except (
+        ArithmeticError,
+        AssertionError,
+        AttributeError,
+        EOFError,
+        ImportError,
+        LookupError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ):
         return None
 
 

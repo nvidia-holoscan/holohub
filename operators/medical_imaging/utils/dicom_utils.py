@@ -23,6 +23,8 @@ from operators.medical_imaging.core.domain.dicom_series import DICOMSeries
 from operators.medical_imaging.utils.importutil import optional_import
 from operators.medical_imaging.utils.version import get_sdk_semver
 
+logger = logging.getLogger(__name__)
+
 dcmread, _ = optional_import("pydicom", name="dcmread")
 dcmwrite, _ = optional_import("pydicom.filewriter", name="dcmwrite")
 generate_uid, _ = optional_import("pydicom.uid", name="generate_uid")
@@ -88,7 +90,18 @@ class EquipmentInfo:
         else:
             try:
                 version_str = get_sdk_semver()  # SDK Version
-            except Exception:
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ):
                 version_str = ""  # Fall back to the initial version
             self.software_version_number = version_str[0:15]
 
@@ -109,16 +122,16 @@ def random_with_n_digits(n):
 def save_dcm_file(data_set: Dataset, file_path: Path, validate_readable: bool = True):
     """Save a DICOM data set, in pydicom Dataset, to the provided file path."""
 
-    logging.debug(f"DICOM dataset to be written:{data_set}")
+    logger.debug(f"DICOM dataset to be written:{data_set}")
 
     if not isinstance(data_set, Dataset):
-        raise ValueError("data_set is not the expected Dataset type.")
+        raise TypeError("data_set is not the expected Dataset type.")
 
     if not str(file_path).strip():
         raise ValueError("file_path to save dcm file not provided.")
 
     dcmwrite(str(file_path).strip(), data_set, write_like_original=False)
-    logging.info(f"Finished writing DICOM instance to file {file_path}")
+    logger.info(f"Finished writing DICOM instance to file {file_path}")
 
     if validate_readable:
         # Test reading back
@@ -162,10 +175,10 @@ def write_common_modules(
         # Get one of the SOP instance's native sop instance dataset
         orig_ds = dicom_series.get_sop_instances()[0].get_native_sop_instance()
 
-    logging.debug("Writing DICOM common modules...")
+    logger.debug("Writing DICOM common modules...")
 
     # Get and format date and time per DICOM standards.
-    dt_now = datetime.datetime.now()
+    dt_now = datetime.datetime.now(datetime.timezone.utc)
     date_now_dcm = dt_now.strftime("%Y%m%d")
     time_now_dcm = dt_now.strftime("%H%M%S")
     offset_from_utc = (
@@ -289,6 +302,6 @@ def write_common_modules(
         seq_contributing_equipment.append(ds_contributing_equipment)
         ds.ContributingEquipmentSequence = seq_contributing_equipment
 
-    logging.debug(f"DICOM common modules written:\n{ds}")
+    logger.debug(f"DICOM common modules written:\n{ds}")
 
     return ds

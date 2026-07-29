@@ -311,12 +311,12 @@ def get_aligned_itemsize(formats, alignment):
 def optix_version_gte(version):
     if optix.version()[0] > version[0]:
         return True
-    if optix.version()[0] == version[0] and optix.version()[1] >= version[1]:
-        return True
-    return False
+    return bool(optix.version()[0] == version[0] and optix.version()[1] >= version[1])
 
 
-def array_to_device_memory(numpy_array, stream=cp.cuda.Stream()):
+def array_to_device_memory(numpy_array, stream=None):
+    if stream is None:
+        stream = cp.cuda.Stream()
     byte_size = numpy_array.size * numpy_array.dtype.itemsize
 
     h_ptr = ctypes.c_void_p(numpy_array.ctypes.data)

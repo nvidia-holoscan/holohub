@@ -16,6 +16,7 @@
 import logging
 import os
 from pathlib import Path
+from typing import ClassVar
 
 from holoscan.core import ConditionType, Fragment, Operator, OperatorSpec
 
@@ -45,7 +46,7 @@ class DICOMDataLoaderOperator(Operator):
 
     DEFAULT_INPUT_FOLDER = Path.cwd() / "input"
     DEFAULT_OUTPUT_NAME = "dicom_study_list"
-    SOP_CLASSES_TO_IGNORE = [
+    SOP_CLASSES_TO_IGNORE: ClassVar = [
         "1.2.840.10008.1.3.10",  # Media Storage Directory Storage, aka DICOMDIR
     ]
 
@@ -99,8 +100,19 @@ class DICOMDataLoaderOperator(Operator):
         input_path = None
         try:
             input_path = op_input.receive(self.input_name)
-        except Exception:
-            pass
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ):
+            logging.getLogger(__name__).debug("Expected operation failure", exc_info=True)
 
         if not input_path or not Path(input_path).is_dir():
             self._logger.info(

@@ -103,7 +103,18 @@ class OpenAIOperator(Operator):
                 )
             else:
                 logger.error(str(e))
-        except Exception as e:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as e:
             print(type(e))
             logger.error("Oops! Something went wrong: %s", repr(e))
         print(" ")
@@ -164,7 +175,18 @@ class ExamplesOp(Operator):
 
             image_b64 = base64.b64encode(response.content).decode("utf-8")
             return f"data:{image_type};base64,{image_b64}"
-        except Exception as e:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as e:
             logger.error("Error downloading image: %s", str(e))
             return None
 
@@ -201,8 +223,19 @@ def main():
 
     try:
         app.run()
-    except Exception as e:
-        logger.error("Error:", str(e))
+    except (
+        ArithmeticError,
+        AssertionError,
+        AttributeError,
+        EOFError,
+        ImportError,
+        LookupError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ) as e:
+        logger.error("Error: %s", e)
 
 
 if __name__ == "__main__":

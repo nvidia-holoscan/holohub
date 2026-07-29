@@ -617,7 +617,7 @@ def main():
         fig, ax = init_cdf_plot()
         for group_name, paths_latencies in grouped_path_latencies.items():
             if paths_latencies:
-                first_path_latency = paths_latencies[list(paths_latencies.keys())[0]]
+                first_path_latency = paths_latencies[next(iter(paths_latencies.keys()))]
                 if len(first_path_latency) > 0:
                     draw_cdf(ax, first_path_latency, group_name)
         complete_cdf_plot(fig, ax)

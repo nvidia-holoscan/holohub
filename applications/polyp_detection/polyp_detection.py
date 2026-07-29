@@ -173,14 +173,14 @@ class PolypDetectionApp(Application):
             self,
             name="detection_visualizer",
             tensors=[
-                dict(name="", type="color"),
-                dict(
-                    name="rectangles",
-                    type="rectangles",
-                    opacity=0.5,
-                    line_width=4,
-                    color=[1.0, 0.0, 0.0, 1.0],
-                ),
+                {"name": "", "type": "color"},
+                {
+                    "name": "rectangles",
+                    "type": "rectangles",
+                    "opacity": 0.5,
+                    "line_width": 4,
+                    "color": [1.0, 0.0, 0.0, 1.0],
+                },
             ],
             **self.kwargs("detection_visualizer"),
         )

@@ -38,9 +38,9 @@ class GrpcClientResponseOp(Operator):
         self.response_queue: AsynchronousConditionQueue = response_queue
         self.condition: AsynchronousCondition = condition
         if not isinstance(condition, AsynchronousCondition):
-            raise ValueError("condition must be a holoscan.condition.AsynchronousCondition")
+            raise TypeError("condition must be a holoscan.condition.AsynchronousCondition")
         if not isinstance(response_queue, AsynchronousConditionQueue):
-            raise ValueError("response_queue must be a AsynchronousConditionQueue")
+            raise TypeError("response_queue must be a AsynchronousConditionQueue")
 
         super().__init__(fragment, *args, **kwargs)
 

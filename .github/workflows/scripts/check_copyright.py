@@ -107,7 +107,7 @@ def check_copyright(f, update_current_year, ignore_year_mismatch=False):
     Checks for copyright headers and their years
     """
     errs = []
-    this_year = datetime.datetime.now().year
+    this_year = datetime.datetime.now(datetime.timezone.utc).year
     line_num = 0
     cr_found = False
     year_matched = False

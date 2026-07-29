@@ -64,8 +64,19 @@ class NiftiDataLoader(Operator):
         input_path = None
         try:
             input_path = op_input.receive(self.input_name_path)
-        except Exception:
-            pass
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ):
+            logging.getLogger(__name__).debug("Expected operation failure", exc_info=True)
 
         if not input_path or not Path(input_path).is_file:
             self._logger.info(f"No or invalid file path from the optional input port: {input_path}")

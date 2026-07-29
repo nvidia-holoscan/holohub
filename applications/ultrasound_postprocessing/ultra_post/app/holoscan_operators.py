@@ -62,7 +62,7 @@ def make_uff_source_op(config: UffSourceConfig):
 class FuncOp(Operator):
     """Generic operator that runs a callable on the input."""
 
-    def __init__(self, fragment, *args, fn: Callable, params: dict = None, **kwargs):
+    def __init__(self, fragment, *args, fn: Callable, params: dict | None = None, **kwargs):
         self.fn = fn
         self.params = params or {}
         super().__init__(fragment, *args, **kwargs)

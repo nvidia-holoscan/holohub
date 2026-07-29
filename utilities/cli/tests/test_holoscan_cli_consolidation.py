@@ -47,8 +47,7 @@ def _run_holoscan_cli(*args: str) -> subprocess.CompletedProcess:
             cwd=REPO_ROOT,
             env=env,
             text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             check=False,
             timeout=CLI_TIMEOUT_SECONDS,
         )
@@ -108,8 +107,7 @@ def _run_holohub_wrapper(
             cwd=cwd,
             env=env,
             text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             check=False,
             timeout=CLI_TIMEOUT_SECONDS,
         )

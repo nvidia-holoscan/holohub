@@ -86,7 +86,7 @@ class OpenAIOperator(Operator):
             self._reset_chat_history()
             self.spinner.succeed("Chat history cleared.")
         elif message.user_input == "/bye":
-            exit()
+            sys.exit()
         else:
             self._chat_history.append({"role": "user", "content": message.user_input})
             self.spinner.stop()
@@ -115,7 +115,18 @@ class OpenAIOperator(Operator):
                     )
                 else:
                     logger.error(str(e))
-            except Exception as e:
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ) as e:
                 print(type(e))
                 logger.error("Oops! Wanna try another model? %s", repr(e))
             print(" ")
@@ -124,7 +135,7 @@ class OpenAIOperator(Operator):
 class UserInputOp(Operator):
     def __init__(self, fragment, *args, models, selected_model, spinner, **kwargs):
         self.models = models
-        self.model_names = [k for k in models.keys()]
+        self.model_names = [k for k in models]
         self.spinner = spinner
         self._use_model(selected_model)
 
@@ -212,8 +223,19 @@ def main():
 
     try:
         app.run()
-    except Exception as e:
-        logger.error("Error:", str(e))
+    except (
+        ArithmeticError,
+        AssertionError,
+        AttributeError,
+        EOFError,
+        ImportError,
+        LookupError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ) as e:
+        logger.error("Error: %s", e)
 
 
 if __name__ == "__main__":
