@@ -20,7 +20,7 @@ from pathlib import Path
 
 # Function to parse output log and find the observed WCRT
 def parselog(filepath):
-    source = Path(filepath).read_text(encoding="utf-8").splitlines()
+    source = Path(filepath).read_text(encoding="utf-8").splitlines(keepends=True)
 
     delays = []
 

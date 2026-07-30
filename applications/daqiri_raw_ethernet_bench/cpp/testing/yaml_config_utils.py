@@ -49,6 +49,7 @@ def read_yaml_file(yaml_path: str) -> dict[str, Any]:
         RuntimeError,
         TypeError,
         ValueError,
+        yaml.YAMLError,
     ) as e:
         logger.error(f"Failed to read YAML file {yaml_path}: {e}")
         return {}
@@ -84,6 +85,7 @@ def write_yaml_file(yaml_path: str, data: dict[str, Any]) -> bool:
         RuntimeError,
         TypeError,
         ValueError,
+        yaml.YAMLError,
     ) as e:
         logger.error(f"Failed to write YAML file {yaml_path}: {e}")
         return False

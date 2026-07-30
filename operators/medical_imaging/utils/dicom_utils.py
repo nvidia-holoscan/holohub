@@ -181,9 +181,7 @@ def write_common_modules(
     dt_now = datetime.datetime.now(datetime.timezone.utc)
     date_now_dcm = dt_now.strftime("%Y%m%d")
     time_now_dcm = dt_now.strftime("%H%M%S")
-    offset_from_utc = (
-        dt_now.astimezone().isoformat()[-6:].replace(":", "")
-    )  # '2022-09-27T22:36:20.143857-07:00'
+    offset_from_utc = dt_now.strftime("%z")
 
     # Generate UIDs and descriptions
     my_sop_instance_uid = generate_uid()

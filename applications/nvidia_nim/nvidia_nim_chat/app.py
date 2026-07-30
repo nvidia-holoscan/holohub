@@ -20,7 +20,7 @@ import sys
 
 from halo import Halo
 from holoscan.core import Application, Operator, OperatorSpec
-from openai import APIConnectionError, AuthenticationError, OpenAI
+from openai import APIConnectionError, AuthenticationError, OpenAI, OpenAIError
 
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("openai").setLevel(logging.WARNING)
@@ -122,6 +122,7 @@ class OpenAIOperator(Operator):
                 EOFError,
                 ImportError,
                 LookupError,
+                OpenAIError,
                 OSError,
                 RuntimeError,
                 TypeError,

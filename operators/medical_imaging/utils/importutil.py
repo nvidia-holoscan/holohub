@@ -242,18 +242,8 @@ def optional_import(
                 raise AssertionError
         if name:  # user specified to load class/function/... from the module
             the_module = getattr(the_module, name)
-    except (
-        ArithmeticError,
-        AssertionError,
-        AttributeError,
-        EOFError,
-        ImportError,
-        LookupError,
-        OSError,
-        RuntimeError,
-        TypeError,
-        ValueError,
-    ) as import_exception:  # any exceptions during import
+    except Exception as import_exception:  # noqa: BLE001
+        # Optional imports defer arbitrary import-time failures until the dependency is used.
         tb = import_exception.__traceback__
         exception_str = f"{import_exception}"
     else:  # found the module

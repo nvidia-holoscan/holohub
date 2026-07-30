@@ -19,6 +19,7 @@ import time
 from collections import deque
 from pathlib import Path
 
+import grpc
 import nvtx
 
 
@@ -67,6 +68,7 @@ class TranscriptHandler(threading.Thread):
                     AssertionError,
                     AttributeError,
                     EOFError,
+                    grpc.RpcError,
                     ImportError,
                     LookupError,
                     OSError,

@@ -379,9 +379,7 @@ class DICOMSegmentationWriterOperator(Operator):
         dt_now = datetime.datetime.now(datetime.timezone.utc)
         seg.SeriesDate = dt_now.strftime("%Y%m%d")
         seg.SeriesTime = dt_now.strftime("%H%M%S")
-        seg.TimezoneOffsetFromUTC = (
-            dt_now.astimezone().isoformat()[-6:].replace(":", "")
-        )  # '2022-09-27T22:36:20.143857-07:00'
+        seg.TimezoneOffsetFromUTC = dt_now.strftime("%z")
 
         if self._custom_tags:
             for k, v in self._custom_tags.items():

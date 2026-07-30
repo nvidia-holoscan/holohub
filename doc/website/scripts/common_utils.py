@@ -110,6 +110,7 @@ def get_git_root() -> Path:
         LookupError,
         OSError,
         RuntimeError,
+        subprocess.CalledProcessError,
         TypeError,
         ValueError,
     ) as e:
