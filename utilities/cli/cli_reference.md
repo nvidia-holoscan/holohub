@@ -77,6 +77,25 @@ Preview mutating commands with the flags they actually support:
 | `create`, `lint`, `setup`, `clear-cache` | `--dryrun` |
 | `list`, `modes`, `env-info`, `env-check`, `status`, `version` | Read-only; no preview flags |
 
+### JSON Output
+
+These read-only commands accept `--json` and print a machine-readable
+document instead of the prose rendering:
+
+| Command | `--json` payload |
+| --- | --- |
+| `list` | `{projects: [{name, project_type, source_folder, language[], modes[]}]}` |
+| `modes` | The resolved `metadata.json` modes object, plus `project` and `language[]` |
+| `env-info` | `{cli, system, python, source_project, git, docker, cuda_gpu, sccache, environment_variables}` |
+| `env-check` | Per-check results and the overall status |
+| `status` | The structured form of the status summary |
+| `version` | `{package, version, executable, module}` |
+
+`--json` replaces the prose output rather than supplementing it, so the
+document can be piped straight into a parser. `list --json` also reports
+`source_folder`, which locates a project on disk and is not available in the
+prose listing.
+
 ### Container Build Options
 
 Used by: `build-container`, `run-container`, `build`, `run`, `install`,
@@ -342,10 +361,21 @@ List all available targets (applications, operators, packages, and so on).
 **Usage:**
 
 ```bash
-./holohub list
+./holohub list [options]
 ```
 
-No arguments or options.
+**Options:**
+
+| Option   | Description                                                       |
+| -------- | ----------------------------------------------------------------- |
+| `--json` | Output the project list as JSON (see [JSON Output](#json-output)) |
+
+**Examples:**
+
+```bash
+./holohub list          # Human-readable listing, grouped by project type
+./holohub list --json   # Machine-readable JSON, including each source_folder
+```
 
 ---
 
@@ -367,14 +397,16 @@ List available modes for an application (from `metadata.json`).
 
 **Options:**
 
-| Option       | Description       |
-| ------------ | ----------------- |
-| `--language` | `cpp` or `python` |
+| Option       | Description                                                |
+| ------------ | ---------------------------------------------------------- |
+| `--language` | `cpp` or `python`                                          |
+| `--json`     | Output the modes as JSON (see [JSON Output](#json-output)) |
 
 **Examples:**
 
 ```bash
 ./holohub modes body_pose_estimation
+./holohub modes body_pose_estimation --json
 ```
 
 ---
@@ -470,9 +502,9 @@ Show a compact overview of the development environment: platform, git state, con
 
 **Options:**
 
-| Option   | Description            |
-| -------- | ---------------------- |
-| `--json` | Output status as JSON  |
+| Option   | Description                                             |
+| -------- | ------------------------------------------------------- |
+| `--json` | Output status as JSON (see [JSON Output](#json-output)) |
 
 **Examples:**
 
@@ -499,10 +531,21 @@ Print environment and path information for debugging.
 **Usage:**
 
 ```bash
-./holohub env-info
+./holohub env-info [options]
 ```
 
-No arguments or options.
+**Options:**
+
+| Option   | Description                                                           |
+| -------- | --------------------------------------------------------------------- |
+| `--json` | Output the full host report as JSON (see [JSON Output](#json-output)) |
+
+**Examples:**
+
+```bash
+./holohub env-info
+./holohub env-info --json
+```
 
 ---
 
@@ -530,9 +573,9 @@ Run quick system checks for GPU, CUDA, Docker, Holoscan SDK, disk, display, devi
 
 **Options:**
 
-| Option   | Description                                                 |
-| -------- | ----------------------------------------------------------- |
-| `--json` | Output results as machine-readable JSON (for CI pipelines)  |
+| Option   | Description                                                                                 |
+| -------- | ------------------------------------------------------------------------------------------- |
+| `--json` | Output results as machine-readable JSON, for CI pipelines (see [JSON Output](#json-output)) |
 
 **Exit code:** `0` when there are no failures, `1` if any check fails.
 
@@ -711,10 +754,21 @@ root, their ancestors, or candidates outside the configured cache roots.
 Display the installed `holoscan-cli` package version selected by the wrapper.
 
 ```bash
-./holohub version
+./holohub version [options]
 ```
 
-This command is read-only and has no command-specific options.
+**Options:**
+
+| Option   | Description                                                         |
+| -------- | ------------------------------------------------------------------- |
+| `--json` | Output the version fields as JSON (see [JSON Output](#json-output)) |
+
+**Examples:**
+
+```bash
+./holohub version
+./holohub version --json
+```
 
 ---
 
