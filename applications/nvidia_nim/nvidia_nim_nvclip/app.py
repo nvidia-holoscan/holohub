@@ -22,7 +22,7 @@ import requests.exceptions
 import torch
 from halo import Halo
 from holoscan.core import Application, Operator, OperatorSpec
-from openai import APIConnectionError, AuthenticationError, OpenAI
+from openai import APIConnectionError, AuthenticationError, OpenAI, OpenAIError
 from requests.models import PreparedRequest
 
 logging.getLogger("httpx").setLevel(logging.WARNING)
@@ -111,6 +111,7 @@ class OpenAIOperator(Operator):
             ImportError,
             LookupError,
             OSError,
+            OpenAIError,
             RuntimeError,
             TypeError,
             ValueError,

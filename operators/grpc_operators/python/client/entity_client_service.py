@@ -75,6 +75,7 @@ class EntityClientService:
             ImportError,
             LookupError,
             OSError,
+            grpc.RpcError,
             RuntimeError,
             TypeError,
             ValueError,
