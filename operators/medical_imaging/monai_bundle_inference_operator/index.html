@@ -20029,6 +20029,23 @@
 <h4 id="monaibundleinferenceoperator"><code>MonaiBundleInferenceOperator</code><a class="headerlink" href="#monaibundleinferenceoperator" title="Permanent link">#</a></h4>
 <p><strong>Inherits from:</strong> <code>InferenceOperator</code></p>
 <p>This inference operator automates the inference operation for a given MONAI Bundle.</p>
+<h5 id="attributes">Attributes<a class="headerlink" href="#attributes" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>known_io_data_types</code></td>
+<td><code>ClassVar</code></td>
+<td><code>{'image': Image, 'series': np.ndarray, 'tuples': np.ndarray, 'probabilities': dict[str, Any]}</code></td>
+</tr>
+</tbody>
+</table>
 <h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
 <table>
 <thead>
