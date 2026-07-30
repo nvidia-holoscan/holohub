@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import os
+from typing import ClassVar
 
 from holoscan.conditions import CountCondition
 from holoscan.core import Application
@@ -21,7 +22,7 @@ from holoscan.schedulers import EventBasedScheduler, GreedyScheduler, MultiThrea
 
 
 class BenchmarkedApplication(Application):
-    conditioned_nodes = set()
+    conditioned_nodes: ClassVar[set] = set()
 
     def add_flow(self, upstream_op, downstream_op, port_pairs=None):
         if port_pairs:
@@ -31,7 +32,7 @@ class BenchmarkedApplication(Application):
 
         if upstream_op not in self.conditioned_nodes:
             # Load the number of source messages from HOLOSCAN_NUM_SOURCE_MESSAGES
-            num_source_messages = int(os.environ.get("HOLOSCAN_NUM_SOURCE_MESSAGES", 100))
+            num_source_messages = int(os.environ.get("HOLOSCAN_NUM_SOURCE_MESSAGES", "100"))
             self.conditioned_nodes.add(upstream_op)
             upstream_op.add_arg(CountCondition(self, num_source_messages))
 

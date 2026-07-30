@@ -16,7 +16,6 @@
 """TAPNext implementation in torch."""
 
 import dataclasses
-from typing import Dict, List, Optional
 
 import numpy as np
 import torch
@@ -67,7 +66,7 @@ class TRecViTBlock(nn.Module):
         self.to_bt_nc = Rearrange("(b n) t c -> (b t) n c", b=b, n=n)
         self.to_btnc = Rearrange("(b t) n c -> b t n c", b=b)
 
-    def forward(self, x: torch.Tensor, cache: Optional[Dict] = None, use_linear_scan: bool = True):
+    def forward(self, x: torch.Tensor, cache: dict | None = None, use_linear_scan: bool = True):
         # b, t, n, _ = x.shape
         x = self.to_bn_tc(x)
         x, ssm_cache = self.ssm_block(x, cache, use_linear_scan=use_linear_scan)
@@ -83,7 +82,7 @@ class TAPNextTrackingState:
 
     step: int
     query_points: torch.Tensor  # Float["*B Q 3"]
-    hidden_state: Optional[List[RecurrentBlockCache]] = None
+    hidden_state: list[RecurrentBlockCache] | None = None
 
 
 class TAPNext(nn.Module):
@@ -241,8 +240,8 @@ class TAPNext(nn.Module):
     def forward(
         self,
         video: torch.Tensor,
-        query_points: Optional[torch.Tensor] = None,
-        state: Optional[Dict] = None,
+        query_points: torch.Tensor | None = None,
+        state: dict | None = None,
     ):
         # video.shape
         b, t, _, _, _ = video.shape

@@ -113,7 +113,7 @@ def _warn_duplicate_projects(metadata_entries: list[dict]) -> None:
                 seen[key] = source_folder
 
 
-def gather_metadata(repo_paths: list[str], exclude_paths: list[str] = None) -> list[dict]:
+def gather_metadata(repo_paths: list[str], exclude_paths: list[str] | None = None) -> list[dict]:
     """
     Collect project metadata from JSON files into a single dictionary
 
@@ -148,7 +148,7 @@ def gather_metadata(repo_paths: list[str], exclude_paths: list[str] = None) -> l
 
                 for data in entries:
                     try:
-                        schema_type = next(key for key in data.keys() if key in SCHEMA_TYPES)
+                        schema_type = next(key for key in data if key in SCHEMA_TYPES)
                     except StopIteration:
                         logger.error(
                             'No valid schema type found in metadata file "%s". Available keys: %s',

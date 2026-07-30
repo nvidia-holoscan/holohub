@@ -104,4 +104,4 @@ def color_map(
     return cp.clip(colored, 0.0, 1.0).astype(cp.float32, copy=False)
 
 
-__all__ = ["color_map", "MapChoice"]
+__all__ = ["MapChoice", "color_map"]

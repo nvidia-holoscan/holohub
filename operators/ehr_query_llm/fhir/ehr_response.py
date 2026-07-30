@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import json
-from typing import Dict, Union
 
 
 class FHIRQueryResponse:
@@ -44,7 +43,7 @@ class FHIRQueryResponse:
         return json.dumps(vars(self))
 
     @staticmethod
-    def from_json(json_dct: Union[str, Dict]):
+    def from_json(json_dct: str | dict):
         if isinstance(json_dct, str):
             json_dct = json.loads(json_dct)
 

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,9 +14,8 @@
 # limitations under the License.
 
 import logging
-from collections.abc import Hashable, Mapping
+from collections.abc import Hashable, Mapping, Sequence
 from pathlib import Path
-from typing import Dict, Sequence, Union
 
 import monai
 import torch
@@ -53,7 +52,7 @@ class Antialiasingd(MapTransform):
     def __init__(
         self,
         keys: KeysCollection,
-        sigma: Union[Sequence[float], float] = 1.0,
+        sigma: Sequence[float] | float = 1.0,
         approx: str = "erf",
         threshold: float = 0.5,
         allow_missing_keys: bool = False,
@@ -63,7 +62,7 @@ class Antialiasingd(MapTransform):
         self.approx = approx
         self.threshold = threshold
 
-    def __call__(self, data: Mapping[Hashable, NdarrayTensor]) -> Dict[Hashable, NdarrayTensor]:
+    def __call__(self, data: Mapping[Hashable, NdarrayTensor]) -> dict[Hashable, NdarrayTensor]:
         d = dict(data)
         for key in self.key_iterator(d):
             img = d[key]
@@ -112,7 +111,7 @@ class MonaiTotalSegOperator(Operator):
         output_folder: Path = DEFAULT_OUTPUT_FOLDER,
         **kwargs,
     ):
-        self._logger = logging.getLogger("{}.{}".format(__name__, type(self).__name__))
+        self._logger = logging.getLogger(f"{__name__}.{type(self).__name__}")
         self._input_dataset_key = "image"
         self._pred_dataset_key = "pred"
 

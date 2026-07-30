@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +23,7 @@ import zipfile
 from copy import deepcopy
 from pathlib import Path
 from threading import Lock
-from typing import Any, Dict, List, Optional, Tuple, Type, Union
+from typing import Any, ClassVar
 
 import numpy as np
 from holoscan.core import Fragment, OperatorSpec
@@ -31,6 +31,8 @@ from holoscan.core import Fragment, OperatorSpec
 from operators.medical_imaging.core import AppContext, Image, IOType
 from operators.medical_imaging.inference_operator import InferenceOperator
 from operators.medical_imaging.utils.importutil import optional_import
+
+logger = logging.getLogger(__name__)
 
 MONAI_UTILS = "monai.utils"
 nibabel, _ = optional_import("nibabel", "3.2.1")
@@ -58,7 +60,7 @@ MapTransform: Any = MapTransform_
 ConfigParser: Any = ConfigParser_
 
 
-__all__ = ["MonaiBundleInferenceOperator", "IOMapping", "BundleConfigNames"]
+__all__ = ["BundleConfigNames", "IOMapping", "MonaiBundleInferenceOperator"]
 
 
 def get_bundle_config(bundle_path, config_names):
@@ -83,28 +85,39 @@ def get_bundle_config(bundle_path, config_names):
         for suffix in bundle_suffixes:
             path = Path(root_name, config_folder, config_name).with_suffix(suffix)
             try:
-                logging.debug(f"Trying to read config {config_name!r} content from {path!r}.")
+                logger.debug(f"Trying to read config {config_name!r} content from {path!r}.")
                 content_text = archive.read(str(path))
                 break
-            except Exception:
-                logging.debug(f"Error reading from {path}. Will try alternative ways.")
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ):
+                logger.debug(f"Error reading from {path}. Will try alternative ways.")
                 continue
 
         # Try search for the name in the name list of the archive
         if not content_text and do_search:
-            logging.debug(f"Trying to find the file in the archive for config {config_name!r}.")
+            logger.debug(f"Trying to find the file in the archive for config {config_name!r}.")
             name_list = archive.namelist()
             for suffix in bundle_suffixes:
                 for n in name_list:
                     if (f"{config_name}{suffix}").casefold in n.casefold():
-                        logging.debug(
+                        logger.debug(
                             f"Trying to read content of config {config_name!r} from {n!r}."
                         )
                         content_text = archive.read(n)
                         break
 
         if not content_text:
-            raise IOError(
+            raise OSError(
                 f"Cannot read config {config_name}{bundle_suffixes} or its content in the archive."
             )
 
@@ -113,8 +126,8 @@ def get_bundle_config(bundle_path, config_names):
     def _extract_from_archive(
         archive,
         root_name: str,
-        config_names: List[str],
-        dest_folder: Union[str, Path],
+        config_names: list[str],
+        dest_folder: str | Path,
         do_search=True,
     ):
         """A helper function for extract files of configs from the archive to the destination folder
@@ -129,23 +142,34 @@ def get_bundle_config(bundle_path, config_names):
         # Try directly read first with path into the archive
         for suffix in bundle_suffixes:
             try:
-                logging.debug(f"Trying to extract {config_names} with ext {suffix}.")
+                logger.debug(f"Trying to extract {config_names} with ext {suffix}.")
                 file_list = [
                     str(Path(root_name, config_folder, cn).with_suffix(suffix))
                     for cn in config_names
                 ]
                 archive.extractall(members=file_list, path=dest_folder)
                 break
-            except Exception as ex:
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ) as ex:
                 file_list = []
-                logging.debug(
+                logger.debug(
                     f"Will try file search after error on extracting {config_names} with {file_list}: {ex}"
                 )
                 continue
 
         # If files not extracted, try search for expected files in the name list of the archive
         if (len(file_list) < 1) and do_search:
-            logging.debug(f"Trying to find the config files in the archive for {config_names}.")
+            logger.debug(f"Trying to find the config files in the archive for {config_names}.")
             name_list = archive.namelist()
             leftovers = deepcopy(config_names)  # to track any that are not found.
             for cn in config_names:
@@ -161,7 +185,7 @@ def get_bundle_config(bundle_path, config_names):
                         break
 
             if len(leftovers) > 0:
-                raise IOError(f"Failed to extract content for these config(s): {leftovers}.")
+                raise OSError(f"Failed to extract content for these config(s): {leftovers}.")
 
         return file_list
 
@@ -176,15 +200,14 @@ def get_bundle_config(bundle_path, config_names):
     parser = ConfigParser()
 
     # Parser to read the required metadata and extra config contents from the archive
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        with zipfile.ZipFile(bundle_path, "r") as archive:
-            metadata_config_name = "metadata"
-            metadata_text = _read_from_archive(archive, name, metadata_config_name)
-            parser.read_meta(f=json.loads(metadata_text))
+    with tempfile.TemporaryDirectory() as tmp_dir, zipfile.ZipFile(bundle_path, "r") as archive:
+        metadata_config_name = "metadata"
+        metadata_text = _read_from_archive(archive, name, metadata_config_name)
+        parser.read_meta(f=json.loads(metadata_text))
 
-            # now get the other named configs
-            file_list = _extract_from_archive(archive, name, config_names, tmp_dir)
-            parser.read_config([Path(tmp_dir, f_path) for f_path in file_list])
+        # now get the other named configs
+        file_list = _extract_from_archive(archive, name, config_names, tmp_dir)
+        parser.read_config([Path(tmp_dir, f_path) for f_path in file_list])
 
     parser.parse()
 
@@ -222,7 +245,7 @@ class IOMapping:
     def __init__(
         self,
         label: str,
-        data_type: Type,
+        data_type: type,
         storage_type: IOType,
     ):
         """Creates an object holding an operator I/O definitions.
@@ -236,7 +259,7 @@ class IOMapping:
             storage_type (IOType): The storage type expected, i.e. IN_MEMORY or DISK.
         """
         self.label: str = label
-        self.data_type: Type = data_type
+        self.data_type: type = data_type
         self.storage_type: IOType = storage_type
 
 
@@ -248,7 +271,7 @@ class BundleConfigNames:
         preproc_name: str = "preprocessing",
         postproc_name: str = "postprocessing",
         inferer_name: str = "inferer",
-        config_names: Union[List[str], Tuple[str], str] = "inference",
+        config_names: list[str] | tuple[str] | str = "inference",
     ) -> None:
         """Creates an object holding the names of relevant config items in a MONAI Bundle.
 
@@ -269,7 +292,7 @@ class BundleConfigNames:
 
         def _ensure_str_list(config_names):
             names = []
-            if isinstance(config_names, (List, Tuple)):
+            if isinstance(config_names, (list, tuple)):
                 if len(config_names) < 1:
                     raise ValueError("At least one config name must be provided.")
                 names = [str(name) for name in config_names]
@@ -281,7 +304,7 @@ class BundleConfigNames:
         self.preproc_name: str = preproc_name
         self.postproc_name: str = postproc_name
         self.inferer_name: str = inferer_name
-        self.config_names: List[str] = _ensure_str_list(config_names)
+        self.config_names: list[str] = _ensure_str_list(config_names)
 
 
 DEFAULT_BundleConfigNames = BundleConfigNames()
@@ -318,11 +341,11 @@ class MonaiBundleInferenceOperator(InferenceOperator):
     For the time being, the input and output to this operator are limited to in_memory object.
     """
 
-    known_io_data_types = {
+    known_io_data_types: ClassVar = {
         "image": Image,  # Image object
         "series": np.ndarray,
         "tuples": np.ndarray,
-        "probabilities": Dict[str, Any],  # dictionary containing probabilities and predicted labels
+        "probabilities": dict[str, Any],  # dictionary containing probabilities and predicted labels
     }
 
     kw_preprocessed_inputs = "preprocessed_inputs"
@@ -335,11 +358,11 @@ class MonaiBundleInferenceOperator(InferenceOperator):
         fragment: Fragment,
         *args,
         app_context: AppContext,
-        input_mapping: List[IOMapping],
-        output_mapping: List[IOMapping],
-        model_name: Optional[str] = "",
-        bundle_path: Optional[Union[Path, str]] = None,
-        bundle_config_names: Optional[BundleConfigNames] = DEFAULT_BundleConfigNames,
+        input_mapping: list[IOMapping],
+        output_mapping: list[IOMapping],
+        model_name: str | None = "",
+        bundle_path: Path | str | None = None,
+        bundle_config_names: BundleConfigNames | None = DEFAULT_BundleConfigNames,
         **kwargs,
     ):
         """Create an instance of this class, associated with an Application/Fragment.
@@ -391,12 +414,23 @@ class MonaiBundleInferenceOperator(InferenceOperator):
                 self._init_config(self._bundle_config_names.config_names)
                 self._init_completed = True
             else:
-                logging.debug(
+                logger.debug(
                     f"Bundle, at path {self._bundle_path}, not available. Will get it in the execution context."
                 )
                 self._bundle_path = None
-        except Exception:
-            logging.warn(
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ):
+            logger.warning(
                 "Bundle parsing is not completed on init, delayed till this operator is called to execute."
             )
             self._bundle_path = None
@@ -420,18 +454,18 @@ class MonaiBundleInferenceOperator(InferenceOperator):
         self._model_name = name
 
     @property
-    def bundle_path(self) -> Union[Path, None]:
+    def bundle_path(self) -> Path | None:
         """The path of the MONAI Bundle model."""
         return self._bundle_path
 
     @bundle_path.setter
-    def bundle_path(self, bundle_path: Union[str, Path]):
+    def bundle_path(self, bundle_path: str | Path):
         if not bundle_path or not Path(bundle_path).expanduser().is_file():
             raise ValueError(f"Value, {bundle_path}, is not a valid file path.")
         self._bundle_path = Path(bundle_path).expanduser().resolve()
 
     @property
-    def parser(self) -> Union[ConfigParser, None]:
+    def parser(self) -> ConfigParser | None:
         """The ConfigParser object."""
         return self._parser
 
@@ -491,10 +525,10 @@ class MonaiBundleInferenceOperator(InferenceOperator):
         # Customized metadata key names are not supported as of now.
         self._meta_key_postfix = self._get_meta_key_postfix(self._preproc)
 
-        logging.debug(
+        logger.debug(
             f"Effective transforms in pre-processing: {[type(t).__name__ for t in self._preproc.transforms]}"
         )
-        logging.debug(
+        logger.debug(
             f"Effective Transforms in post-processing: {[type(t).__name__ for t in self._preproc.transforms]}"
         )
 
@@ -546,17 +580,17 @@ class MonaiBundleInferenceOperator(InferenceOperator):
         elif isinstance(ctype, type):  # type object
             return ctype
         else:  # don't know, something that hasn't been figured out
-            logging.warn(
+            logger.warning(
                 f"I/O data type, {ctype}, is not a known/supported type. Return as Type object."
             )
             return object
 
-    def _add_inputs(self, input_mapping: List[IOMapping]):
+    def _add_inputs(self, input_mapping: list[IOMapping]):
         """Adds operator inputs as specified."""
 
         [self.add_input(v.label, v.data_type, v.storage_type) for v in input_mapping]
 
-    def _add_outputs(self, output_mapping: List[IOMapping]):
+    def _add_outputs(self, output_mapping: list[IOMapping]):
         """Adds operator outputs as specified."""
 
         [self.add_output(v.label, v.data_type, v.storage_type) for v in output_mapping]
@@ -595,19 +629,19 @@ class MonaiBundleInferenceOperator(InferenceOperator):
                 with self._lock:
                     if not self._init_completed:
                         self._bundle_path = self._model_network.path
-                        logging.info(f"Parsing from bundle_path: {self._bundle_path}")
+                        logger.info(f"Parsing from bundle_path: {self._bundle_path}")
                         self._init_config(self._bundle_config_names.config_names)
                         self._init_completed = True
         elif self._bundle_path:
             # For the case of local dev/testing when the bundle path is not passed in as an exec cmd arg.
             # When run as a MAP docker, the bundle file is expected to be in the context, even if the model
             # network is loaded on a remote inference server (when the feature is introduced).
-            logging.debug(
+            logger.debug(
                 f"Model network not loaded. Trying to load from model path: {self._bundle_path}"
             )
             self._model_network = torch.jit.load(self.bundle_path, map_location=self._device).eval()
         else:
-            raise IOError("Model network is not load and model file not found.")
+            raise OSError("Model network is not load and model file not found.")
 
         first_input_name, *other_names = list(self._inputs.keys())
 
@@ -615,13 +649,13 @@ class MonaiBundleInferenceOperator(InferenceOperator):
             inputs: Any = {}  # Use type Any to quiet MyPy type checking complaints.
 
             start = time.time()
-            for name in self._inputs.keys():
+            for name in self._inputs:
                 # Input MetaTensor creation is based on the same logic in monai LoadImage
                 # value: NdarrayOrTensor  # MyPy complaints
                 value, meta_data = self._receive_input(name, op_input, context)
                 value = convert_to_dst_type(value, dst=value)[0]
                 if not isinstance(meta_data, dict):
-                    raise ValueError("`meta_data` must be a dict.")
+                    raise TypeError("`meta_data` must be a dict.")
                 value = MetaTensor.ensure_torch_and_prune_meta(value, meta_data)
                 inputs[name] = value
                 # Named metadata dict not needed any more, as it is in the MetaTensor
@@ -640,15 +674,13 @@ class MonaiBundleInferenceOperator(InferenceOperator):
             other_inputs.update(
                 {k: inputs[k] for k in other_names if not isinstance(inputs[k], torch.Tensor)}
             )
-            logging.debug(
-                f"Ingest and Pre-processing elapsed time (seconds): {time.time() - start}"
-            )
+            logger.debug(f"Ingest and Pre-processing elapsed time (seconds): {time.time() - start}")
 
             start = time.time()
             outputs: Any = self.predict(
                 data=first_input, **other_inputs
             )  # Use type Any to quiet MyPy complaints.
-            logging.debug(f"Inference elapsed time (seconds): {time.time() - start}")
+            logger.debug(f"Inference elapsed time (seconds): {time.time() - start}")
 
             # Note that the `inputs` are needed because the `invert` transform requires it. With metadata being
             # in the keyed MetaTensors of inputs, e.g. `image`, the whole inputs are needed.
@@ -656,7 +688,7 @@ class MonaiBundleInferenceOperator(InferenceOperator):
             inputs[first_input_name] = first_input_v
             kw_args = {self.kw_preprocessed_inputs: inputs}
             outputs = self.post_process(ensure_tuple(outputs)[0], **kw_args)
-            logging.debug(f"Post-processing elapsed time (seconds): {time.time() - start}")
+            logger.debug(f"Post-processing elapsed time (seconds): {time.time() - start}")
         if isinstance(outputs, (tuple, list)):
             output_dict = dict(zip(self._outputs.keys(), outputs))
         elif not isinstance(outputs, dict):
@@ -664,21 +696,19 @@ class MonaiBundleInferenceOperator(InferenceOperator):
         else:
             output_dict = outputs
 
-        for name in self._outputs.keys():
+        for name in self._outputs:
             # Note that the input metadata needs to be passed.
             # Please see the comments in the called function for the reasons.
             self._send_output(output_dict[name], name, first_input_v.meta, op_output, context)
 
-    def predict(
-        self, data: Any, *args, **kwargs
-    ) -> Union[Image, Any, Tuple[Any, ...], Dict[Any, Any]]:
+    def predict(self, data: Any, *args, **kwargs) -> Image | Any | tuple[Any, ...] | dict[Any, Any]:
         """Predicts output using the inferer."""
 
-        return self._inferer(inputs=data, network=self._model_network, *args, **kwargs)
+        return self._inferer(*args, inputs=data, network=self._model_network, **kwargs)
 
     def pre_process(
         self, data: Any, *args, **kwargs
-    ) -> Union[Image, Any, Tuple[Any, ...], Dict[Any, Any]]:
+    ) -> Image | Any | tuple[Any, ...] | dict[Any, Any]:
         """Processes the input dictionary with the stored transform sequence `self._preproc`."""
 
         if is_map_compose(self._preproc):
@@ -687,7 +717,7 @@ class MonaiBundleInferenceOperator(InferenceOperator):
 
     def post_process(
         self, data: Any, *args, **kwargs
-    ) -> Union[Image, Any, Tuple[Any, ...], Dict[Any, Any]]:
+    ) -> Image | Any | tuple[Any, ...] | dict[Any, Any]:
         """Processes the output list/dictionary with the stored transform sequence `self._postproc`.
 
         The "processed_inputs", in fact the metadata in it, need to be passed in so that the
@@ -708,7 +738,7 @@ class MonaiBundleInferenceOperator(InferenceOperator):
 
             # Need to add back the inputs including metadata as they are needed by the invert transform.
             outputs_dict.update(inputs)
-            logging.debug(f"Effective output dict keys: {outputs_dict.keys()}")
+            logger.debug(f"Effective output dict keys: {outputs_dict.keys()}")
             return self._postproc(outputs_dict)
         else:
             if isinstance(data, (list, tuple)):
@@ -757,8 +787,8 @@ class MonaiBundleInferenceOperator(InferenceOperator):
         if isinstance(value, Image):
             # Need to get the image ndarray as well as metadata
             value, metadata = self._convert_from_image(value)
-            logging.debug(f"Shape of the converted input image: {value.shape}")
-            logging.debug(f"Metadata of the converted input image: {metadata}")
+            logger.debug(f"Shape of the converted input image: {value.shape}")
+            logger.debug(f"Metadata of the converted input image: {metadata}")
         elif isinstance(value, np.ndarray):
             value = torch.from_numpy(value).to(self._device)
 
@@ -766,10 +796,10 @@ class MonaiBundleInferenceOperator(InferenceOperator):
 
         return value, metadata
 
-    def _send_output(self, value: Any, name: str, metadata: Dict, op_output, context):
+    def _send_output(self, value: Any, name: str, metadata: dict, op_output, context):
         """Send the given output value to the output context."""
 
-        logging.debug(f"Setting output {name}")
+        logger.debug(f"Setting output {name}")
 
         out_conf = self._outputs[name]
         otype = self._get_io_data_type(out_conf)
@@ -790,15 +820,15 @@ class MonaiBundleInferenceOperator(InferenceOperator):
             elif not isinstance(value, np.ndarray):
                 raise TypeError("arg 1 must be of type torch.Tensor or ndarray.")
 
-            logging.debug(f"Output {name} numpy image shape: {value.shape}")
+            logger.debug(f"Output {name} numpy image shape: {value.shape}")
             result: Any = Image(
                 np.swapaxes(np.squeeze(value, 0), 0, 2).astype(np.uint8), metadata=metadata
             )
-            logging.debug(f"Converted Image shape: {result.asnumpy().shape}")
+            logger.debug(f"Converted Image shape: {result.asnumpy().shape}")
         elif otype == np.ndarray:
             result = np.asarray(value)
         elif out_conf["type"] == "probabilities":
-            _, value_class = value.max(dim=0)
+            _, _value_class = value.max(dim=0)
             prediction = [out_conf["channel_def"][str(int(v))] for v in value.flatten()]
 
             result = {"result": prediction, "probabilities": value.cpu().numpy()}
@@ -821,12 +851,23 @@ class MonaiBundleInferenceOperator(InferenceOperator):
                 # op_output.set(str(output_file), name)
             else:
                 op_output.emit(result, name)
-        except Exception:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ):
             # The following throws if the output storage type is DISK, but The OutputContext
             # currently does not expose the storage type. Try and let it throw if need be.
             op_output.emit(result, name)
 
-    def _convert_from_image(self, img: Image) -> Tuple[np.ndarray, Dict]:
+    def _convert_from_image(self, img: Image) -> tuple[np.ndarray, dict]:
         """Converts the Image object to the expected numpy array with metadata dictionary.
 
         Args:
@@ -841,7 +882,7 @@ class MonaiBundleInferenceOperator(InferenceOperator):
         # one has to inspect certain keys, based on known conversion, to infer the producer.
         # An issues already exists for the improvement of the Image class.
 
-        img_meta_dict: Dict = img.metadata()
+        img_meta_dict: dict = img.metadata()
 
         if (
             not img_meta_dict
@@ -852,14 +893,14 @@ class MonaiBundleInferenceOperator(InferenceOperator):
         else:
             return self._convert_from_image_dicom_source(img)
 
-    def _convert_from_image_dicom_source(self, img: Image) -> Tuple[np.ndarray, Dict]:
+    def _convert_from_image_dicom_source(self, img: Image) -> tuple[np.ndarray, dict]:
         """Converts the Image object to the expected numpy array with metadata dictionary.
 
         Args:
             img: A SDK Image object converted from DICOM instances.
         """
 
-        img_meta_dict: Dict = img.metadata()
+        img_meta_dict: dict = img.metadata()
         meta_dict = deepcopy(img_meta_dict)
 
         # The MONAI ImageReader, e.g. the ITKReader, arranges the image spatial dims in WHD,

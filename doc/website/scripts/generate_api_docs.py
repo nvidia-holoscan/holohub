@@ -70,7 +70,7 @@ def _parse_member_def(member) -> dict | None:
 
     name = _xml_text(member.find("name"))
     # Skip compiler-generated, internal members, and destructors
-    if not name or name.startswith("_") or name.startswith("~"):
+    if not name or name.startswith(("_", "~")):
         return None
 
     # Skip default constructors (not useful in API docs)
@@ -158,20 +158,19 @@ def _parse_compound_file(xml_path: Path) -> dict | None:
 
             if parsed["kind"] == "function":
                 methods.append(parsed)
-            elif parsed["kind"] == "variable":
-                # Holoscan Parameter<T> types are operator parameters
-                if "Parameter<" in parsed.get("type", ""):
-                    param_type = parsed["type"]
-                    # Strip the outer Parameter<...> wrapper. Using string slicing
-                    # rather than a regex avoids truncation for nested template types
-                    # like Parameter<std::vector<int>> (a lazy regex would stop at
-                    # the first ">").
-                    if param_type.startswith("Parameter<") and param_type.endswith(">"):
-                        inner_type = param_type[len("Parameter<") : -1].strip()
-                    else:
-                        inner_type = param_type
-                    parsed["type"] = inner_type
-                    parameters.append(parsed)
+            elif parsed["kind"] == "variable" and "Parameter<" in parsed.get("type", ""):
+                # Holoscan Parameter<T> types are operator parameters.
+                param_type = parsed["type"]
+                # Strip the outer Parameter<...> wrapper. Using string slicing
+                # rather than a regex avoids truncation for nested template types
+                # like Parameter<std::vector<int>> (a lazy regex would stop at
+                # the first ">").
+                if param_type.startswith("Parameter<") and param_type.endswith(">"):
+                    inner_type = param_type[len("Parameter<") : -1].strip()
+                else:
+                    inner_type = param_type
+                parsed["type"] = inner_type
+                parameters.append(parsed)
 
     return {
         "name": compound_name,
@@ -482,9 +481,13 @@ def _parse_numpydoc_params(docstring: str) -> list[dict]:
             continue
 
         # Exit on next section header (Returns, Notes, etc.)
-        if in_params and stripped and not line.startswith(" "):
-            if re.match(r"^[A-Z]\w+$", stripped):
-                break
+        if (
+            in_params
+            and stripped
+            and not line.startswith(" ")
+            and re.match(r"^[A-Z]\w+$", stripped)
+        ):
+            break
 
         if not in_params:
             continue

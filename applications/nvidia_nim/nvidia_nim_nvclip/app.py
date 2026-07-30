@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,11 +22,11 @@ import requests.exceptions
 import torch
 from halo import Halo
 from holoscan.core import Application, Operator, OperatorSpec
-from openai import APIConnectionError, AuthenticationError, OpenAI
+from openai import APIConnectionError, AuthenticationError, OpenAI, OpenAIError
 from requests.models import PreparedRequest
 
-logging.getLogger("httpx").setLevel(logging.WARN)
-logging.getLogger("openai").setLevel(logging.WARN)
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("openai").setLevel(logging.WARNING)
 
 logger = logging.getLogger("NVIDIA_NIM_CHAT")
 logging.basicConfig(level=logging.INFO)
@@ -57,7 +57,7 @@ class OpenAIOperator(Operator):
             logger.warning(
                 "Set 'api-key' in the nvidia_nim.yaml config file or set the environment variable 'API_KEY'."
             )
-            print("")
+            print()
         self.client = OpenAI(base_url=base_url, api_key=self.api_key)
 
         # Need to call the base class constructor last
@@ -103,7 +103,19 @@ class OpenAIOperator(Operator):
                 )
             else:
                 logger.error(str(e))
-        except Exception as e:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            OpenAIError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as e:
             print(type(e))
             logger.error("Oops! Something went wrong: %s", repr(e))
         print(" ")
@@ -164,7 +176,18 @@ class ExamplesOp(Operator):
 
             image_b64 = base64.b64encode(response.content).decode("utf-8")
             return f"data:{image_type};base64,{image_b64}"
-        except Exception as e:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as e:
             logger.error("Error downloading image: %s", str(e))
             return None
 
@@ -201,8 +224,19 @@ def main():
 
     try:
         app.run()
-    except Exception as e:
-        logger.error("Error:", str(e))
+    except (
+        ArithmeticError,
+        AssertionError,
+        AttributeError,
+        EOFError,
+        ImportError,
+        LookupError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ) as e:
+        logger.error("Error: %s", e)
 
 
 if __name__ == "__main__":

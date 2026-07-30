@@ -66,7 +66,18 @@ def main():
             far_plane=100.0,
             render_mode="RGB",
         )
-    except Exception as e:
+    except (
+        ArithmeticError,
+        AssertionError,
+        AttributeError,
+        EOFError,
+        ImportError,
+        LookupError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ) as e:
         print(f"FAIL: rasterization raised {e}")
         return 1
 
