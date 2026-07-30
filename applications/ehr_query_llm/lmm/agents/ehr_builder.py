@@ -57,12 +57,12 @@ class EHRBuilderAgent(Agent):
             # Call the helper module's function to retrieve EHR and build the database
             time_to_build = create_ehr_database()
             self._logger.debug(
-                "DB creation sans EHR retrieval and prep took %.2f seconds." % time_to_build
+                f"DB creation sans EHR retrieval and prep took {time_to_build:.2f} seconds."
             )
             elapsed_seconds = timer() - start_time
             response = (
                 '{"name": "EHRBuilderAgent", "response": "Completed building the EHR database. The database was built in '
-                + " %.2f seconds" % elapsed_seconds
+                + f" {elapsed_seconds:.2f} seconds"
             )
 
             self.response_handler.add_response(response)

@@ -108,7 +108,7 @@ class PostprocessorOp(Operator):
         if visibility.ndim == 4:
             visibility = visibility[:, 0, :, 0]
 
-        T, N = visibility.shape
+        T, _N = visibility.shape
 
         # Store batch buffers for per-frame processing
         self._batch_frames = frames
@@ -246,7 +246,7 @@ class Visualize3DPostprocessorOp(Operator):
 
         visibility = cp.transpose(visibility, (1, 0))  # (T, N)
 
-        T, N = visibility.shape
+        T, _N = visibility.shape
 
         # Store batch buffers for per-frame processing
         self._batch_frames = frames

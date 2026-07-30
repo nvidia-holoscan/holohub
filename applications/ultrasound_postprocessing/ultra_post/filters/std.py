@@ -53,4 +53,4 @@ def unsharp_mask(
     return data + float(amount) * mask
 
 
-__all__ = ["median_filter", "gaussian_filter", "unsharp_mask"]
+__all__ = ["gaussian_filter", "median_filter", "unsharp_mask"]

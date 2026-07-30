@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,7 +43,7 @@ class SendMeshToUSDOp(Operator):
         stl_file_path=None,
         **kwargs,
     ):
-        self.logger = logging.getLogger("{}.{}".format(__name__, type(self).__name__))
+        self.logger = logging.getLogger(f"{__name__}.{type(self).__name__}")
         self.mesh_path = stl_file_path
         self.input_name_stl_bytes = "stl_bytes"  # Alternatively can use a class attribute
         self.existing_stage = g_stage

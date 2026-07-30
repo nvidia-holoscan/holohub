@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 UNIVERSITY OF BRITISH COLUMBIA. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, UNIVERSITY OF BRITISH COLUMBIA. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,12 +14,16 @@
 # limitations under the License.
 
 import heapq
-from code.processDAGs import construct_graphs, get_unique
+import os
+from code.process_dags import construct_graphs, get_unique
+from contextlib import ExitStack
+from io import StringIO
+from pathlib import Path
 
 queuesize = 1
 
 
-class operator(object):
+class operator:
     def __init__(self, name, predecessors, successors, WCET, sink):
         self.name = name
         self.predecessors = predecessors
@@ -140,7 +144,7 @@ def run(stoptime, period, source, operators):
 
 
 def runwithfile(filepath, numvars):
-    rawdata = open(filepath, "r")
+    rawdata = Path(filepath).read_text(encoding="utf-8").splitlines()
 
     # Approximates an hour of real time
     runtime = 400000
@@ -152,14 +156,14 @@ def runwithfile(filepath, numvars):
 
     unique = get_unique(graphs)
 
-    WCETs = open("generatedexectimes.txt", "r")
+    WCETs = StringIO(Path("generatedexectimes.txt").read_text(encoding="utf-8"))
+    file_stack = ExitStack()
+    output_flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
+    dest = file_stack.enter_context(
+        os.fdopen(os.open("simulatedresponsetimes.txt", output_flags, 0o666), "w")
+    )
 
-    dest = open("simulatedresponsetimes.txt", "w")
-
-    count = 0
-
-    for graph in unique:
-        count += 1
+    for count, graph in enumerate(unique, start=1):
         operators = {}
 
         for node in graph.nodes:
@@ -187,7 +191,7 @@ def runwithfile(filepath, numvars):
 
             for i in range(len(graph.nodes)):
                 name = WCETs.readline().rstrip(": \n")
-                WCET = WCETs.readline().lstrip("  WCET: ").rstrip("\n")
+                WCET = WCETs.readline().removeprefix("  WCET: ").rstrip("\n")
 
                 operators[name].WCET = int(WCET)
 
@@ -214,6 +218,9 @@ def runwithfile(filepath, numvars):
 
             sink.finishtimes = []
             source.starttimes = []
+
+    WCETs.close()
+    file_stack.close()
 
 
 if __name__ == "__main__":

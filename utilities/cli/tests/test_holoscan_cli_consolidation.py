@@ -7,7 +7,6 @@ import re
 import subprocess
 import sys
 from pathlib import Path
-from typing import Dict
 
 import pytest
 
@@ -25,7 +24,7 @@ def _timeout_output(exc: subprocess.TimeoutExpired) -> str:
     return "\n".join(streams)
 
 
-def _holoscan_cli_env() -> Dict[str, str]:
+def _holoscan_cli_env() -> dict[str, str]:
     env = os.environ.copy()
     source = env.get("HOLOSCAN_CLI_SOURCE")
     if source:
@@ -48,8 +47,7 @@ def _run_holoscan_cli(*args: str) -> subprocess.CompletedProcess:
             cwd=REPO_ROOT,
             env=env,
             text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             check=False,
             timeout=CLI_TIMEOUT_SECONDS,
         )
@@ -95,8 +93,8 @@ def test_unified_cli_dryruns_holohub_project_run():
 
 def _run_holohub_wrapper(
     *args: str,
-    extra_env: Dict[str, str] | None = None,
-    env: Dict[str, str] | None = None,
+    extra_env: dict[str, str] | None = None,
+    env: dict[str, str] | None = None,
     cwd: Path = REPO_ROOT,
 ) -> subprocess.CompletedProcess:
     if env is None:
@@ -109,8 +107,7 @@ def _run_holohub_wrapper(
             cwd=cwd,
             env=env,
             text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             check=False,
             timeout=CLI_TIMEOUT_SECONDS,
         )

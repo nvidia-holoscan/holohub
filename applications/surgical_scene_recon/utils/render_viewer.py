@@ -92,7 +92,18 @@ def _load_checkpoint(ckpt_path: str):
                 obj = getattr(np_dtypes, name)
                 if isinstance(obj, type):
                     torch.serialization.add_safe_globals([obj])
-        except Exception as e:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as e:
             # Best-effort registration of NumPy dtypes for safe PyTorch deserialization; failures are non-fatal.
             print(
                 f"[Renderer] Warning: failed to register NumPy dtypes for safe globals: {e}",
@@ -359,7 +370,7 @@ class RenderViewerApp(Application):
             headless=args.headless,
             width=win_w,
             height=win_h,
-            tensors=[dict(name="composite", type="color")],
+            tensors=[{"name": "composite", "type": "color"}],
             window_title=f"G-SHARP: {label}",
         )
 

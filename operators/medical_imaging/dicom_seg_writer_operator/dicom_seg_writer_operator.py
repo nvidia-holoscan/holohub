@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,9 +16,10 @@
 import datetime
 import logging
 import os
+from collections.abc import Sequence
 from pathlib import Path
 from random import randint
-from typing import TYPE_CHECKING, Dict, List, Optional, Sequence, Union
+from typing import TYPE_CHECKING, ClassVar
 
 import numpy as np
 from holoscan.core import ConditionType, Fragment, Operator, OperatorSpec
@@ -29,6 +30,8 @@ from operators.medical_imaging.core.domain.dicom_series_selection import StudySe
 from operators.medical_imaging.core.domain.image import Image
 from operators.medical_imaging.utils.importutil import optional_import
 from operators.medical_imaging.utils.version import get_sdk_semver
+
+logger = logging.getLogger(__name__)
 
 dcmread, _ = optional_import("pydicom", name="dcmread")
 generate_uid, _ = optional_import("pydicom.uid", name="generate_uid")
@@ -55,10 +58,10 @@ class SegmentDescription:
         algorithm_name: str,
         algorithm_version: str,
         algorithm_family: Code = codes.DCM.ArtificialIntelligence,
-        tracking_id: Optional[str] = None,
-        tracking_uid: Optional[str] = None,
-        anatomic_regions: Optional[Sequence[Code]] = None,
-        primary_anatomic_structures: Optional[Sequence[Code]] = None,
+        tracking_id: str | None = None,
+        tracking_uid: str | None = None,
+        anatomic_regions: Sequence[Code] | None = None,
+        primary_anatomic_structures: Sequence[Code] | None = None,
     ):
         """Class encapsulating the description of a segment within the segmentation.
 
@@ -176,17 +179,20 @@ class DICOMSegmentationWriterOperator(Operator):
 
     DEFAULT_OUTPUT_FOLDER = Path.cwd() / "output"
     # Supported input image format, based on extension. Intended for file based input.
-    SUPPORTED_EXTENSIONS = [".nii", ".nii.gz", ".mhd"]
-    # DICOM instance file extension. Case insensitive in string comparison.
+    SUPPORTED_EXTENSIONS: ClassVar = [
+        ".nii",
+        ".nii.gz",
+        ".mhd",
+    ]  # DICOM instance file extension. Case insensitive in string comparison.
     DCM_EXTENSION = ".dcm"
 
     def __init__(
         self,
         fragment: Fragment,
         *args,
-        segment_descriptions: List[SegmentDescription],
+        segment_descriptions: list[SegmentDescription],
         output_folder: Path,
-        custom_tags: Optional[Dict[str, str]] = None,
+        custom_tags: dict[str, str] | None = None,
         omit_empty_frames: bool = True,
         **kwargs,
     ):
@@ -264,7 +270,7 @@ class DICOMSegmentationWriterOperator(Operator):
             raise ValueError(f"Missing input, [{StudySelectedSeries}].")
         for study_selected_series in study_selected_series_list:
             if not isinstance(study_selected_series, StudySelectedSeries):
-                raise ValueError(f"Element in input is not expected type, {StudySelectedSeries}.")
+                raise TypeError(f"Element in input is not expected type, {StudySelectedSeries}.")
 
         seg_image = op_input.receive(self.input_name_seg)
 
@@ -281,8 +287,19 @@ class DICOMSegmentationWriterOperator(Operator):
         output_folder = None
         try:
             output_folder = op_input.receive(self.input_name_output_folder)
-        except Exception:
-            pass
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ):
+            logging.getLogger(__name__).debug("Expected operation failure", exc_info=True)
 
         if not output_folder or not isinstance(output_folder, (Path, str)):
             output_folder = self.output_folder
@@ -292,24 +309,23 @@ class DICOMSegmentationWriterOperator(Operator):
 
     def process_images(
         self,
-        image: Union[Image, Path],
-        study_selected_series_list: List[StudySelectedSeries],
+        image: Image | Path,
+        study_selected_series_list: list[StudySelectedSeries],
         output_dir: Path,
     ):
-        """ """
 
         if isinstance(image, Image):
             seg_image_numpy = image.asnumpy()
         elif isinstance(image, (Path, str)):
             seg_image_numpy = self._image_file_to_numpy(str(image))
         elif not isinstance(image, np.ndarray):
-            raise ValueError("'image' is not a numpy array, Image object, or supported image file.")
+            raise TypeError("'image' is not a numpy array, Image object, or supported image file.")
 
         # Pick DICOM Series that was used as input for getting the seg image.
         # For now, first one in the list.
         for study_selected_series in study_selected_series_list:
             if not isinstance(study_selected_series, StudySelectedSeries):
-                raise ValueError(f"Element in input is not expected type, {StudySelectedSeries}.")
+                raise TypeError(f"Element in input is not expected type, {StudySelectedSeries}.")
             selected_series = study_selected_series.selected_series[0]
             dicom_series = selected_series.series
             self.create_dicom_seg(seg_image_numpy, dicom_series, output_dir)
@@ -328,7 +344,18 @@ class DICOMSegmentationWriterOperator(Operator):
 
         try:
             version_str = get_sdk_semver()  # SDK Version
-        except Exception:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ):
             version_str = ""  # Fall back to blank for unknown version
 
         seg = hd.seg.Segmentation(
@@ -349,12 +376,10 @@ class DICOMSegmentationWriterOperator(Operator):
 
         # Adding a few tags that are not in the Dataset
         # Also try to set the custom tags that are of string type
-        dt_now = datetime.datetime.now()
+        dt_now = datetime.datetime.now(datetime.timezone.utc)
         seg.SeriesDate = dt_now.strftime("%Y%m%d")
         seg.SeriesTime = dt_now.strftime("%H%M%S")
-        seg.TimezoneOffsetFromUTC = (
-            dt_now.astimezone().isoformat()[-6:].replace(":", "")
-        )  # '2022-09-27T22:36:20.143857-07:00'
+        seg.TimezoneOffsetFromUTC = dt_now.strftime("%z")
 
         if self._custom_tags:
             for k, v in self._custom_tags.items():
@@ -366,9 +391,20 @@ class DICOMSegmentationWriterOperator(Operator):
                                 data_element.value = v
                         else:
                             seg.update({k: v})  # type: ignore
-                    except Exception as ex:
+                    except (
+                        ArithmeticError,
+                        AssertionError,
+                        AttributeError,
+                        EOFError,
+                        ImportError,
+                        LookupError,
+                        OSError,
+                        RuntimeError,
+                        TypeError,
+                        ValueError,
+                    ) as ex:
                         # Best effort for now.
-                        logging.warning(f"Tag {k} was not written, due to {ex}")
+                        logger.warning(f"Tag {k} was not written, due to {ex}")
 
         seg.save_as(output_path)
 
@@ -376,7 +412,7 @@ class DICOMSegmentationWriterOperator(Operator):
             # Test reading back
             _ = self._read_from_dcm(str(output_path))
         except Exception as ex:
-            print("DICOMSeg creation failed. Error:\n{}".format(ex))
+            print(f"DICOMSeg creation failed. Error:\n{ex}")
             raise
 
     def _read_from_dcm(self, file_path: str):
@@ -412,13 +448,13 @@ class DICOMSegmentationWriterOperator(Operator):
                     ext = which_supported_ext(file_path, extensions)
                     if ext:
                         return file_path, ext
-            raise IOError("No supported input file found ({})".format(extensions))
+            raise OSError(f"No supported input file found ({extensions})")
         elif os.path.isfile(input_folder):
             ext = which_supported_ext(input_folder, extensions)
             if ext:
                 return input_folder, ext
         else:
-            raise FileNotFoundError("{} is not found.".format(input_folder))
+            raise FileNotFoundError(f"{input_folder} is not found.")
 
     def _image_file_to_numpy(self, input_path: str):
         """Converts image file to numpy"""
@@ -426,13 +462,13 @@ class DICOMSegmentationWriterOperator(Operator):
         img = sitk.ReadImage(input_path)
         data_np = sitk.GetArrayFromImage(img)
         if data_np is None:
-            raise RuntimeError("Failed to convert image file to numpy: {}".format(input_path))
+            raise RuntimeError(f"Failed to convert image file to numpy: {input_path}")
         return data_np.astype(np.uint8)
 
 
 def random_with_n_digits(n):
     assert isinstance(n, int), "Argument n must be a int."
-    n = n if n >= 1 else 1
+    n = max(n, 1)
     range_start = 10 ** (n - 1)
     range_end = (10**n) - 1
     return randint(range_start, range_end)
