@@ -9,7 +9,7 @@ NVIDIA <br>
 ### License/Terms of Use: <br>
 Apache-2.0 <br>
 ## Use Case: <br>
-Developers and engineers use this skill to diagnose and fix concrete ./holohub wrapper command failures, hangs, regressions, or semantically wrong output through reproducible diagnosis and minimal-fix verification. <br>
+Developers and engineers debugging HoloHub wrapper command failures, hangs, regressions, or incorrect output through reproducible diagnosis and minimal fix verification. <br>
 
 ### Deployment Geography for Use: <br>
 Global <br>
@@ -28,11 +28,11 @@ Mitigation: Review and scan skill before deployment. <br>
 - [Debug Workflow](references/debug-workflow.md) <br>
 - [HoloHub CLI Contract](references/holohub-cli-contract.md) <br>
 - [Known Issues](references/known-issues.md) <br>
-- [HoloHub Repository](https://github.com/nvidia-holoscan/holohub) <br>
+- [NVIDIA HoloHub (GitHub)](https://github.com/nvidia-holoscan/holohub) <br>
 
 
 ## Skill Output: <br>
-**Output Type(s):** [Analysis, Shell commands, Code] <br>
+**Output Type(s):** [Analysis, Shell commands] <br>
 **Output Format:** [Markdown with inline bash code blocks] <br>
 **Output Parameters:** [1D] <br>
 **Other Properties Related to Output:** [None] <br>
@@ -44,37 +44,38 @@ Mitigation: Review and scan skill before deployment. <br>
 
 
 ## Evaluation Tasks: <br>
-Evaluated against 3 evaluation tasks (1 positive skill-activation, 2 negative activation) in k8s-sandbox environment. <br>
+3 evaluation tasks (1 positive, 2 negative) in isolated k8s-sandbox pods. <br>
 
 ## Evaluation Metrics Used: <br>
 Reported benchmark dimensions: <br>
-- Security: Checks whether skill-assisted execution avoids unsafe behavior such as secret leakage, destructive commands, or unauthorized access. <br>
-- Correctness: Checks whether the agent follows the expected workflow and produces the correct final output. <br>
-- Discoverability: Checks whether the agent loads the skill when relevant and avoids using it when irrelevant. <br>
-- Effectiveness: Checks whether the agent performs measurably better with the skill than without it. <br>
-- Efficiency: Checks whether the agent uses fewer tokens and avoids redundant work. <br>
+- Security: Whether the skill is safe to use (unsafe operations, secret leakage, unauthorized access). <br>
+- Correctness: Whether the answer is correct against the reference answer. <br>
+- Discoverability: Whether the right skill was found and executed when needed. <br>
+- Effectiveness: Whether the skill helped complete the user's goal and expected workflow. <br>
+- Efficiency: Whether the skill avoided wasted tool or skill usage. <br>
 
 Underlying evaluation signals used in this run: <br>
 - `security`: Checks for unsafe operations, secret leakage, and unauthorized access. <br>
-- `skill_execution`: Verifies that the agent loaded the expected skill and workflow. <br>
-- `skill_efficiency`: Checks routing quality, decoy avoidance, and redundant tool usage. <br>
-- `accuracy`: Grades final-answer correctness against the reference answer. <br>
-- `goal_accuracy`: Checks whether the overall user task completed successfully. <br>
-- `behavior_check`: Verifies expected behavior steps, including safety expectations. <br>
+- `skill_execution`: Whether the expected skill was found and executed. <br>
+- `skill_efficiency`: Routing quality, workspace-aware skill reads, and productive tool use. <br>
+- `accuracy`: Final-answer correctness against the reference answer. <br>
+- `goal_accuracy`: Whether the user's goal was achieved. <br>
+- `behavior_check`: Whether the expected workflow behavior was followed. <br>
 
 
 
 ## Evaluation Results: <br>
-| Dimension | Num | Claude Code (`aws/anthropic/bedrock-claude-opus-4-8`) | Codex (`openai/openai/gpt-5.5`) |
-|---|---:|---:|---:|
-| Security | 3 | 100% (+33%) | 67% (+33%) |
-| Correctness | 3 | 100% (+20%) | 87% (-13%) |
-| Discoverability | 3 | 100% (+33%) | 67% (+0%) |
-| Effectiveness | 3 | 96% (+18%) | 71% (+2%) |
-| Efficiency | 3 | 100% (+33%) | 67% (+0%) |
+| Measure | Claude Code (Baseline → Skill Uplift) | Codex (Baseline → Skill Uplift) |
+|---|---:|---:|
+| Overall | 73% → 88% (+15 points) | 73% → 73% (+1 points) |
+| Security | 67% → 67% (±0 points) | 67% → 67% (±0 points) |
+| Correctness | 80% → 93% (+13 points) | 80% → 87% (+7 points) |
+| Discoverability | 67% → 100% (+33 points) | 67% → 67% (±0 points) |
+| Effectiveness | 87% → 82% (-6 points) | 83% → 80% (-3 points) |
+| Efficiency | 67% → 100% (+33 points) | 67% → 67% (±0 points) |
 
 ## Skill Version(s): <br>
-f5537cea (source: git SHA, committed 2026-07-28) <br>
+8e0bc39c (source: git SHA, committed 2026-07-31) <br>
 
 ## Ethical Considerations: <br>
 NVIDIA believes Trustworthy AI is a shared responsibility and we have established policies and practices to enable development for a wide array of AI applications. When downloaded or used in accordance with our terms of service, developers should work with their internal team to ensure this skill meets requirements for the relevant industry and use case and addresses unforeseen product misuse. <br>

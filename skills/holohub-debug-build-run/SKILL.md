@@ -4,7 +4,7 @@ description: "Use when a concrete ./holohub command fails, hangs, regresses, or 
 license: Apache-2.0
 metadata:
   author: "Holoscan Team <holoscan-team@nvidia.com>"
-  compatibility: "holoscan-cli>=4.5.0rc1"
+  compatibility: "holoscan-cli>=4.5.0"
   github-url: "https://github.com/nvidia-holoscan/holohub"
   tags:
     - holoscan
@@ -68,9 +68,13 @@ caches, artifacts, privileges, or environments.
    verbosity flags. Do not change project, mode, language, build type, image,
    inputs, devices, output, or other effect-bearing arguments.
 5. **Reproduce once without edits.** Capture the smallest complete causal
-   section, separate from shutdown noise. For a hang, preserve all
-   effect-bearing arguments but enforce an external timeout derived from the
-   recorded hang boundary; record the deadline, termination signal, exit
+   section, separate from shutdown noise. If the command or its options clear
+   cached artifacts, including `clear-cache` or `test --clear-cache`, review
+   the resolved affected paths and obtain explicit user authorization before
+   reproduction; receiving a failing-command report is not approval for cache
+   cleanup. For a hang, preserve
+   all effect-bearing arguments but enforce an external timeout derived from
+   the recorded hang boundary; record the deadline, termination signal, exit
    status, and whether child wrapper or container processes remain. If it no
    longer reproduces, compare revision, state, inputs, image, cache,
    display/devices, and environment, then report the mismatch rather than
@@ -84,17 +88,21 @@ caches, artifacts, privileges, or environments.
    use the nearest repeatable boundary check.
 8. **Keep cleanup separate.** Never clear caches speculatively. If stale state
    is proved, preview the narrowest `clear-cache` scope, review every resolved
-   path, and obtain explicit user approval before deletion.
-9. **Prove and restore.** Re-run the identical command with the same inputs,
-   require the expected result, run the nearest focused test, inspect relevant
-   artifacts, remove diagnostic-only changes, and compare final status with the
-   baseline. After benchmark or instrumentation work, search for backups,
+   path, and obtain explicit user approval before clearing those paths.
+9. **Prove and restore.** For a mutating command, preview the post-fix
+   identical shape before re-running it with the same inputs; the pre-fix
+   preview is not proof of the resolved image, mounts, or child commands.
+   Require the expected result, run the nearest focused test, inspect relevant
+   artifacts, remove diagnostic-only changes, and compare final status with
+   the baseline. After benchmark or instrumentation work, search for backups,
    rebuild normally to remove instrumented binaries and cached flags, then run
    a finite smoke case. For a Module, test its declared operators, demos, and
    consumer because `test <module>` is not module-scoped. Run
    `git diff --check`.
-10. **Validate requested commits.** Run the current repository lint workflow,
-    inspect auto-fixes, and rerun once. Report persistent failure or auto-fix
+10. **Validate requested commits.** In a dirty checkout, restrict auto-fixing
+    lint to task paths. Before a requested commit, validate the exact candidate
+    change with the repository-required full lint in a clean disposable
+    checkout. Inspect auto-fixes and rerun once; report persistent failure or
     churn instead of looping. Do not commit or push unless requested.
 
 ## Troubleshooting

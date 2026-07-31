@@ -4,7 +4,7 @@ description: "Use for non-failing HoloHub app work with ./holohub: scaffold, bui
 license: Apache-2.0
 metadata:
   author: "Holoscan Team <holoscan-team@nvidia.com>"
-  compatibility: "holoscan-cli>=4.5.0rc1"
+  compatibility: "holoscan-cli>=4.5.0"
   github-url: "https://github.com/nvidia-holoscan/holohub"
   tags:
     - holoscan
@@ -55,8 +55,10 @@ with user, system, or safety constraints.
 
 ## Instructions
 
-At any step, a failing wrapper command ends this happy path; follow
-Troubleshooting with its exact context.
+At any step, a failing effect-bearing wrapper command ends this happy path;
+follow Troubleshooting with its exact context. Parse read-only diagnostic
+results such as `env-check --json` and stop only when a failed capability is
+required by the selected project's documented needs or the requested proof.
 
 1. **Resolve one safe checkout.** Preserve the starting workspace. Reuse one
    validated checkout at its current revision. An auto-discovered checkout must
@@ -79,11 +81,13 @@ Troubleshooting with its exact context.
 4. **Select strong local examples.** Choose two or three relevant applications
    for graph/domain, language/build/test, and data/Holoviz/benchmark patterns.
    Record what will be reused; do not copy an application wholesale.
-5. **Scaffold only when needed.** For a new app, preview and complete template
-   setup before previewing and running a non-interactive, language-explicit
-   `create`. Treat preview as potentially mutating. Obtain any user or
-   repository-required approval for parent CMake registration; if denied or
-   setup fails, stop before creation. Do not replace an existing app.
+5. **Scaffold only when needed.** For a new app, preview template setup,
+   inspect its host dependency installation, and obtain explicit user
+   authorization before the real setup. Only after setup succeeds, preview and
+   run a non-interactive, language-explicit `create`. Treat preview as
+   potentially mutating. Obtain any repository-required approval for parent
+   CMake registration; if denied or setup fails, stop before creation. Do not
+   replace an existing app.
 6. **Implement the smallest complete path.** Validate metadata, keep automated
    modes finite, register deterministic tests, exclude generated/data/model
    artifacts from Git, and emit an observable verdict or artifact.
@@ -97,9 +101,12 @@ Troubleshooting with its exact context.
    `--no-local-build` only when current artifacts or mounted-source execution
    are proved sufficient. Rebuild after image or setup changes.
 9. **Finish reviewably.** Benchmark only after correctness, then restore normal
-   source/build state. Run focused and wrapper tests, the current repository
-   lint workflow, `git diff --check`, and final status. Do not commit or push
-   unless requested.
+   source/build state. Run focused and wrapper tests, `git diff --check`, and
+   final status. In an explicitly selected dirty checkout, restrict
+   auto-fixing lint to task paths; before a requested commit, validate the
+   exact candidate change with the repository-required full lint in a clean
+   disposable checkout rather than rewriting unrelated work. Do not commit or
+   push unless requested.
 
 ## Troubleshooting
 

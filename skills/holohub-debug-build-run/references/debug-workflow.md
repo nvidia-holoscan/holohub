@@ -24,8 +24,11 @@ differs.
 
 Preview the original command without changing its effect-bearing arguments.
 Inspect selected project/mode/language, image, mounts, devices, environment,
-workdir, child commands, and output. Reproduce once without edits and capture
-the first causal error rather than only shutdown noise. Bound a hanging
+workdir, child commands, and output. If the command performs cache cleanup,
+including `clear-cache` or `test --clear-cache`, review the resolved affected
+paths and obtain explicit user authorization before reproduction; the original
+failure report is not approval for that cleanup. Reproduce once without edits
+and capture the first causal error rather than only shutdown noise. Bound a hanging
 reproduction with an external timeout derived from the recorded hang boundary;
 record the deadline, how the process was terminated, and whether wrapper or
 container children remain.
@@ -86,11 +89,13 @@ Review resolved paths and obtain explicit approval before the action. Never
 manually delete build, data, or install trees, and never prefix the wrapper with
 `sudo`.
 
-Re-run the identical original command and nearest focused test. Inspect
-corrected frames, consumed packages, or benchmark restoration as appropriate.
-Remove diagnostic-only changes, run `git diff --check`, compare final status
-with the baseline, and follow the current checkout's lint workflow before a
-requested commit.
+For a mutating reproduction, preview the post-fix identical command before
+re-running it and the nearest focused test. Inspect corrected frames, consumed
+packages, or benchmark restoration as appropriate. Remove diagnostic-only
+changes, run `git diff --check`, compare final status with the baseline, and
+follow the current checkout's lint workflow before a requested commit. In a
+dirty checkout, keep auto-fixing lint scoped to task paths and run the required
+full lint for an exact commit candidate in a clean disposable checkout.
 
 In the tested revision, `test <module>` is not module-scoped; validate declared
 operators, demo apps, and consumer behavior instead.

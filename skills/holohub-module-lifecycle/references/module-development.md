@@ -21,16 +21,17 @@ self-contained build/test/package structure.
 
 ## External scaffold
 
-From HoloHub, preview and run template setup in the same selected wrapper
-environment before `create`:
+From HoloHub, preview template setup in the selected wrapper environment before
+`create`:
 
 ```bash
 ./holohub setup --scripts template --dryrun
-./holohub setup --scripts template
 ```
 
-Review proposed installation and obtain any required authorization. If setup
-fails, stop before creation. Then preview the complete create command.
+Inspect the previewed host dependency installation and obtain explicit user
+authorization before running `./holohub setup --scripts template` in the same
+environment. If setup fails, stop before creation. Then preview the complete
+create command.
 `--directory` is required even for unattended dry-run in the tested revision.
 
 ```bash

@@ -110,5 +110,8 @@ inspect the complete diff/status, and ensure packages, staged installs, and
 editable hooks are not staged.
 
 Use the current `AGENTS.md` lint workflow in HoloHub and the generated
-repository's own guidance externally. Preview supported lint commands, inspect
-auto-fixes, and do not commit, push, publish, or release unless requested.
+repository's own guidance externally. In a dirty checkout, scope auto-fixing
+lint to task paths and validate an exact requested commit with the required
+full lint in a clean disposable checkout. Preview supported lint commands,
+inspect auto-fixes, and do not commit, push, publish, or release unless
+requested.

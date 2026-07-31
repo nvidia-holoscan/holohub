@@ -1,8 +1,9 @@
 # Version-sensitive diagnostic priors
 
-Verified in 2026-07 against HoloHub commit
-`777d65830a7b50a324370f4d4bb65d2420e495f7`. Treat these as hypotheses and
-recheck local help, metadata, source, and exact reproduction.
+Verified 2026-07-31 at the official HoloHub tag `holoscan-sdk-4.5.0`
+(`0a2f81ef978ccd83a676b1c3189cf5b201315a2b`) and against the published
+`holoscan-cli==4.5.0` command surface. Treat these as hypotheses and recheck
+local help, metadata, source, and exact reproduction.
 
 ## Launcher and command identity
 
@@ -76,11 +77,11 @@ recheck local help, metadata, source, and exact reproduction.
 - Runner and analyzer short options differ; inspect both parsers in the
   benchmark container.
 
-## Cache deletion
+## Cache cleanup
 
-- `clear-cache` has destructive-boundary guards, but deletion remains
-  destructive.
+- `clear-cache` has destructive-boundary guards, but clearing persisted
+  artifacts remains destructive.
 - Use the narrowest preview, review every path, and obtain approval. Repository
-  guidance forbids deleting build, data, or install trees without asking.
+  guidance forbids removing build, data, or install trees without asking.
 - A proved stale build from another image, branch, SDK, or user can justify
   `clear-cache --build`; it is not a first-line diagnostic.

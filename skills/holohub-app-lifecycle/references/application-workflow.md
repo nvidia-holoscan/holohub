@@ -87,7 +87,11 @@ git status --short --branch
 ./holohub status --json
 ```
 
-Review environment output before sharing it.
+Review environment output before sharing it. `env-check --json` exits nonzero
+when any capability check fails; preserve and parse the document, but stop the
+application workflow only when the failed GPU, Docker, display, device, or
+other capability is required by the selected project's documentation or the
+requested proof.
 
 ## Select local patterns
 
@@ -109,17 +113,24 @@ Use current contribution guidance to select application, operator-plus-demo,
 tutorial, or fix. Holoscan CLI 4.5.0 removes the `workflow` project type, and
 public HoloHub no longer accepts new `workflows/`.
 
-In one selected wrapper environment, preview and complete template dependency
-setup before any create invocation:
+In one selected wrapper environment, preview template dependency setup before
+any create invocation:
 
 ```bash
 ./holohub setup --scripts template --dryrun
+```
+
+Inspect the previewed `python3 -m pip install` target and requirements, then
+obtain explicit user authorization for the host dependency installation
+before running:
+
+```bash
 ./holohub setup --scripts template
 ```
 
 If setup fails, stop and hand off that exact failure. After successful setup,
 preview the scaffold, review its destination and parent registration, obtain
-any required approval, then run the identical create command:
+any repository-required approval, then run the identical create command:
 
 ```bash
 ./holohub create <app> --language <cpp-or-python> -i False --dryrun
@@ -174,9 +185,12 @@ base image, build argument, or setup-script changes.
 
 ## Review
 
-Run focused tests and the full wrapper test. Then run `git diff --check`, final
-status, and the exact lint workflow required by the current checkout's
-`AGENTS.md`, including its preview when supported. Inspect auto-fixes and rerun
-until clean. For benchmark work, also restore source, remove instrumentation,
-rebuild normally, and rerun the finite smoke case. Do not commit or push unless
+Run focused tests and the full wrapper test. Then run `git diff --check` and
+final status. In an explicitly selected dirty checkout, run auto-fixing lint
+only on task paths and inspect every change. When a commit is requested, apply
+the exact candidate diff to a clean disposable checkout at the same revision
+and run the full lint workflow required by `AGENTS.md` there before committing;
+do not run repository-wide auto-fixes over the user's unrelated dirty work.
+For benchmark work, also restore source, remove instrumentation, rebuild
+normally, and rerun the finite smoke case. Do not commit or push unless
 requested.

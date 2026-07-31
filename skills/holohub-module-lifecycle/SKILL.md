@@ -4,7 +4,7 @@ description: "Use for reusable Holoscan Module work with ./holohub: scaffold, te
 license: Apache-2.0
 metadata:
   author: "Holoscan Team <holoscan-team@nvidia.com>"
-  compatibility: "holoscan-cli>=4.5.0rc1"
+  compatibility: "holoscan-cli>=4.5.0"
   github-url: "https://github.com/nvidia-holoscan/holohub"
   tags:
     - holoscan
@@ -52,8 +52,10 @@ where they do not conflict with user, system, or safety constraints.
 
 ## Instructions
 
-At any step, a failing wrapper command ends this happy path; follow
-Troubleshooting with its exact context.
+At any step, a failing effect-bearing wrapper command ends this happy path;
+follow Troubleshooting with its exact context. Parse read-only diagnostic
+results and stop only when a failed capability is required by the module,
+consumer, packaging environment, or requested proof.
 
 1. **Preserve and orient.** Record full HEAD, concise status, local wrapper
    version/environment, and discovery output. Preserve the checkout revision
@@ -64,10 +66,11 @@ Troubleshooting with its exact context.
 3. **Fix identities before files.** Keep display name, `snake_case`
    module/namespace, `holoscan-<kebab-case>` repository/package, and
    `snake_case_op` operator slug consistent.
-4. **Scaffold external modules safely.** Preview and complete template setup
-   before any fully specified, non-interactive create preview and action,
-   treating preview as potentially mutating. Stop before creation if setup
-   fails. Require an existing parent, inspect the generated staged Git
+4. **Scaffold external modules safely.** Preview template setup, inspect its
+   host dependency installation, and obtain explicit user authorization before
+   the real setup. Only after setup succeeds, preview and run the fully
+   specified non-interactive create command, treating preview as potentially
+   mutating. Require an existing parent, inspect the generated staged Git
    repository, and never push it without a request.
 5. **Implement the smallest public contract.** Validate metadata, expose one
    useful operator/API, add deterministic tests, and add a finite demo that
@@ -86,10 +89,12 @@ Troubleshooting with its exact context.
    artifacts, inspect identity/metadata/dependencies/payload, and install each
    format in a clean artifact-only consumer with an import/link and finite
    smoke check.
-9. **Validate and hand off.** Rerun producer and clean-consumer checks, the
-   current lint workflow, `git diff --check`, and final status. Confirm no
-   generated artifacts or editable hooks are staged. Do not commit, push,
-   upload, publish, or release unless requested.
+9. **Validate and hand off.** Rerun producer and clean-consumer checks,
+   `git diff --check`, and final status. In a dirty checkout, restrict
+   auto-fixing lint to task paths; before a requested commit, validate the
+   exact candidate change with the repository-required full lint in a clean
+   disposable checkout. Confirm no generated artifacts or editable hooks are
+   staged. Do not commit, push, upload, publish, or release unless requested.
 
 ## Troubleshooting
 
