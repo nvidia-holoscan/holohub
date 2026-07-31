@@ -1,5 +1,5 @@
 """
-SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 SPDX-License-Identifier: Apache-2.0
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -67,14 +67,14 @@ def load_model(modelname, in_channels, backbone):
 def load_simclr_backbone(monai_model, simclr_path):
     monai_keys = [
         key
-        for key in monai_model.state_dict().keys()
+        for key in monai_model.state_dict()
         if ((key.split(".")[0] == "encoder") & (key.split(".")[1] != "_fc"))
     ]
     # filter out MLP layer from SIMCLR
     simclr_checkpoint = torch.load(simclr_path, map_location=device)
     simclr_keys = [
         key
-        for key in simclr_checkpoint["state_dict"].keys()
+        for key in simclr_checkpoint["state_dict"]
         if ((key.split(".")[0] == "convnet") & (key.split(".")[1] != "classifier"))
     ]
     mapping = dict(zip(simclr_keys, monai_keys))
@@ -158,7 +158,7 @@ def train_network(dataloader_dict, dataset_dict, max_epochs, best_model_path, ex
     val_interval = 1
     best_metric = -1
     best_metric_epoch = -1
-    curve_data = dict()
+    curve_data = {}
     curve_data["train_loss"] = []
     curve_data["val_dice"] = []
     curve_data["val_iou"] = []
@@ -254,7 +254,7 @@ def training_pipeline(
     phase_list = ["train", "valid", "test"]
     # Making the save path and the modelname.
     if not os.path.exists(data_path):
-        raise Exception("Path {} doesn't exists.".format(data_path))
+        raise RuntimeError(f"Path {data_path} doesn't exists.")
     os.makedirs(save_path, exist_ok=True)
     save_model = os.path.join(save_path, model_name)
 
@@ -321,9 +321,8 @@ if __name__ == "__main__":
     print(f"Using device: {device}")
 
     train_perc = args.perc
-    model_name = (
-        lambda x: x.split(".")[0] + f"_{args.exp}" + f"_{train_perc}perc." + x.split(".")[1]
-    )(args.modelname)
+    model_name_parts = args.modelname.split(".")
+    model_name = model_name_parts[0] + f"_{args.exp}_{train_perc}perc." + model_name_parts[1]
     training_pipeline(
         data_path,
         save_path,

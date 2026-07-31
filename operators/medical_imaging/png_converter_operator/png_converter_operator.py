@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,6 @@
 from os import getcwd, makedirs
 from os.path import join
 from pathlib import Path
-from typing import Union
 
 import numpy as np
 from holoscan.core import Fragment, Operator, OperatorSpec
@@ -51,7 +50,7 @@ class PNGConverterOperator(Operator):
         self,
         fragment: Fragment,
         *args,
-        output_folder: Union[str, Path],
+        output_folder: str | Path,
         **kwargs,
     ):
         """Class to write out a 3D Volumetric Image to a file folder in a slice by slice manner.
@@ -87,12 +86,12 @@ class PNGConverterOperator(Operator):
         elif isinstance(image, np.ndarray):
             image_data = image
         else:
-            raise ValueError(f"Input is not Image or ndarray, {type(image)}.")
+            raise TypeError(f"Input is not Image or ndarray, {type(image)}.")
         image_shape = image_data.shape
 
         num_images = image_shape[0]
 
-        for i in range(0, num_images):
+        for i in range(num_images):
             input_data = image_data[i, :, :]
             pil_image = PILImage.fromarray(input_data)
             if pil_image.mode != "RGB":

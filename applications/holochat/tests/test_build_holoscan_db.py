@@ -53,7 +53,18 @@ class TestBuildHoloscanDB(unittest.TestCase):
             loader = PyPDFLoader(pdf_path)
             pages = loader.load_and_split()
             self.assertGreater(len(pages), 10, "PDF should have more than 10 pages")
-        except Exception as e:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as e:
             self.fail(f"Failed to load PDF: {e}")
 
     @patch("build_holoscan_db.get_source_chunks")
@@ -80,7 +91,18 @@ class TestBuildHoloscanDB(unittest.TestCase):
             try:
                 main()
                 success = True
-            except Exception as e:
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ) as e:
                 success = False
                 print(f"Database building failed: {e}")
             self.assertTrue(success, "Database building should succeed when PDF is available")

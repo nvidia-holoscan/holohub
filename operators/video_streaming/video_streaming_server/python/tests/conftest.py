@@ -152,7 +152,18 @@ def mock_image():
                 # CuPy can be installed yet unimportable (no GPU/driver, ABI
                 # mismatch), so skip on any import failure, not just ImportError.
                 import cupy as xp
-            except Exception as exc:
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ) as exc:
                 pytest.skip(f"CuPy is unavailable in this test environment: {exc}")
         elif backend == "numpy":
             xp = np
@@ -215,4 +226,4 @@ def op_output():
 @pytest.fixture
 def execution_context():
     """Provide a mock execution context (None for Python bindings)."""
-    return None
+    return

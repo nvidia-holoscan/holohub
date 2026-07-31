@@ -91,7 +91,7 @@ class Visualizer:
             Input("subject", "value"),
             prevent_initial_call=True,
         )
-        def update_source(n_intervals, subject):  # noqa: ARG001
+        def update_source(n_intervals, subject):
             """
             Periodically fetch and update data from NATS for all data streams.
 

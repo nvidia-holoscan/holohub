@@ -1,5 +1,5 @@
 """
-SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 SPDX-License-Identifier: Apache-2.0
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -271,8 +271,8 @@ def get_dlds_dict(data_path, phase_list, train_perc=100):
     Returns:
         two dicts contains train, valid and test datasets and dataloaders.
     """
-    dataset_dict = dict()
-    dataloader_dict = dict()
+    dataset_dict = {}
+    dataloader_dict = {}
     for phase in phase_list:
         data_trans = get_trans(phase)
         # dataset_dict[phase], dataloader_dict[phase] = get_ds_and_dl_by_data_path(
@@ -372,7 +372,7 @@ def save_training_curve(curve_data, save_path):
         cureve_data: a dict that recorded relevant values during training.
         save_path: a path to save the curve image.
     """
-    fig, ax = plt.subplots(1, 1, figsize=(10, 10), facecolor="white")
+    _fig, ax = plt.subplots(1, 1, figsize=(10, 10), facecolor="white")
     ax.set_xlabel("Epoch")
     ax.set_ylabel("Metric")
 
@@ -502,7 +502,7 @@ class IoUMetric(CumulativeIterationMetric):
         """
         data = self.get_buffer()
         if not isinstance(data, torch.Tensor):
-            raise ValueError("the data to aggregate must be PyTorch Tensor.")
+            raise TypeError("the data to aggregate must be PyTorch Tensor.")
 
         # do metric reduction
         f, not_nans = do_metric_reduction(data, reduction or self.reduction)

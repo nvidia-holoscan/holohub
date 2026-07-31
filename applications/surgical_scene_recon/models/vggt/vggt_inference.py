@@ -86,9 +86,8 @@ def _run_single_batch(
     images = load_and_preprocess_images(image_paths).to(device)
     vggt_hw = (int(images.shape[-2]), int(images.shape[-1]))
 
-    with torch.no_grad():
-        with torch.cuda.amp.autocast(dtype=dtype):
-            preds = model(images)
+    with torch.no_grad(), torch.cuda.amp.autocast(dtype=dtype):
+        preds = model(images)
 
     ext, intr = pose_encoding_to_extri_intri(preds["pose_enc"], images.shape[-2:])
     ext_np = ext.cpu().numpy().squeeze(0).astype(np.float64)

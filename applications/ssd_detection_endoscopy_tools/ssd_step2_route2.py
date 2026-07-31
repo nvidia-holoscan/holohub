@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -151,14 +151,14 @@ class SSDDetectionApp(Application):
             self,
             name="detection_visualizer",
             tensors=[
-                dict(name="", type="color"),
-                dict(
-                    name="rectangles",
-                    type="rectangles",
-                    opacity=0.5,
-                    line_width=4,
-                    color=[1.0, 0.0, 0.0, 1.0],
-                ),
+                {"name": "", "type": "color"},
+                {
+                    "name": "rectangles",
+                    "type": "rectangles",
+                    "opacity": 0.5,
+                    "line_width": 4,
+                    "color": [1.0, 0.0, 0.0, 1.0],
+                },
             ],
             **self.kwargs("detection_visualizer"),
         )

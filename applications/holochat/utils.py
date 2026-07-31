@@ -37,7 +37,19 @@ def clone_repository(repo, token):
             env={"GIT_ASKPASS": "", "GIT_USERNAME": "", "GIT_PASSWORD": token},
         )
         print(f"Cloned repository: {repo}")
-    except Exception as e:
+    except (
+        ArithmeticError,
+        AssertionError,
+        AttributeError,
+        EOFError,
+        git.exc.GitCommandError,
+        ImportError,
+        LookupError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ) as e:
         print(f"Failed to clone repository: {repo}. Error: {e}")
 
 
@@ -54,7 +66,19 @@ def clone_general_repository(repo, token):
             env={"GIT_ASKPASS": "", "GIT_USERNAME": "", "GIT_PASSWORD": token},
         )
         print(f"Cloned repository: {repo}")
-    except Exception as e:
+    except (
+        ArithmeticError,
+        AssertionError,
+        AttributeError,
+        EOFError,
+        git.exc.GitCommandError,
+        ImportError,
+        LookupError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ) as e:
         print(f"Failed to clone repository: {repo}. Error: {e}")
 
 

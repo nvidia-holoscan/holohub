@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,7 @@
 # limitations under the License.
 
 import threading
-from typing import Callable
+from collections.abc import Callable
 
 from AsyncDataPushOp import AsyncDataPushOp
 from CallbackOp import CallbackOp
@@ -98,8 +98,8 @@ class TransformerApp(Application):
             height=1080,
             headless=self._headless,
             tensors=[
-                dict(name="camera_image", type="color", views=[camera_image_view]),
-                dict(name="camera_image_sobel", type="color", views=[camera_image_sobel_view]),
+                {"name": "camera_image", "type": "color", "views": [camera_image_view]},
+                {"name": "camera_image_sobel", "type": "color", "views": [camera_image_sobel_view]},
             ],
         )
 

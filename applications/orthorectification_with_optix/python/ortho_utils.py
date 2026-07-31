@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,7 +53,9 @@ def extract_extent_nativeCRS(image_fname):
     return bpts.convex_hull.bounds
 
 
-def load_basemap(basemap_fname, nx, ny, bands=[1, 2, 3]):
+def load_basemap(basemap_fname, nx, ny, bands=None):
+    if bands is None:
+        bands = [1, 2, 3]
     warp_ops = gdal.WarpOptions(
         width=nx, height=ny, resampleAlg="cubic", creationOptions=["COMPRESS=LZW"]
     )

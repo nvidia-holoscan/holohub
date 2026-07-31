@@ -70,7 +70,11 @@ class TestLLM(unittest.TestCase):
     def test_server_can_start(self):
         """Test that the llama.cpp server command can start successfully."""
         result = subprocess.run(
-            [self.server_path, "--help"], capture_output=True, text=True, timeout=self.timeout
+            [self.server_path, "--help"],
+            capture_output=True,
+            text=True,
+            timeout=self.timeout,
+            check=False,
         )
         self.assertIn("usage", result.stdout)
         self.assertEqual(result.returncode, 0)

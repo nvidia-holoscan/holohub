@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 Analog Devices, Inc. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, Analog Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,6 @@
 import math
 import os
 import struct
-from typing import List
 
 import iio
 from holoscan.conditions import CountCondition
@@ -81,7 +80,7 @@ class BasicIIOBufferEmitterOp(Operator):
 
     def generate_sinewave(
         self, num_samples: int, frequency: float, amplitude: float, sample_rate: float
-    ) -> List[int]:
+    ) -> list[int]:
         """Generates an array with samples of a sine wave.
 
         Args:
@@ -189,7 +188,6 @@ class BasicWaitOp(Operator):
 
     def setup(self, spec: OperatorSpec):
         """Setup the operator."""
-        pass
 
     def compute(self, op_input, op_output, context):
         """Compute method to wait."""

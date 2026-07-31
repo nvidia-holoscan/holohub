@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -58,12 +58,12 @@ class MessageReceiver:
         self.context_.destroy()
 
     def receive_json(self, blocking: bool = False):
-        as_json = dict()
+        as_json = {}
         try:
             if blocking:
-                topic, data = self.subscriber_.recv_multipart()
+                _topic, data = self.subscriber_.recv_multipart()
             else:
-                topic, data = self.subscriber_.recv_multipart(zmq.NOBLOCK)
+                _topic, data = self.subscriber_.recv_multipart(zmq.NOBLOCK)
         except zmq.ZMQError as e:
             if e.errno != zmq.Errno.EAGAIN:
                 print(f"ZeroMQ error {e}")

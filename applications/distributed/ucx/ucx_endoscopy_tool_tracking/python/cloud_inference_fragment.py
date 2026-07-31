@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,11 +47,11 @@ class CloudInferenceFragment(Fragment):
         self.source_num_blocks = source_num_blocks
 
     def compose(self):
-        source_pool_kwargs = dict(
-            storage_type=MemoryStorageType.DEVICE,
-            block_size=self.source_block_size,
-            num_blocks=self.source_num_blocks,
-        )
+        source_pool_kwargs = {
+            "storage_type": MemoryStorageType.DEVICE,
+            "block_size": self.source_block_size,
+            "num_blocks": self.source_num_blocks,
+        }
 
         cuda_stream_pool = CudaStreamPool(
             self,
