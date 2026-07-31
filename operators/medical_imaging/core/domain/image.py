@@ -1,5 +1,5 @@
 #!/bin/bash
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 try:
     from numpy.typing import _ArrayLike  # type: ignore
@@ -33,7 +33,7 @@ class Image(Domain):
         Domain (_type_): _description_
     """
 
-    def __init__(self, data: Union[ArrayLike], metadata: Optional[Dict] = None):
+    def __init__(self, data: ArrayLike, metadata: dict | None = None):
         """This class encapsulates array-lile object along with its associated metadata dictionary.
 
         It is designed to represent an image object, without constraining the specific format of its data. Derived

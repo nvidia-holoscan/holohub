@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,6 @@
 # limitations under the License.
 
 from queue import Queue
-from typing import Optional
 
 from holoscan.core import Application
 from holoscan.resources import CudaStreamPool, UnboundedAllocator
@@ -66,8 +65,8 @@ class HoloscanGrpcApplication(Application):
     def __init__(self, incoming_request_queue: Queue, outgoing_response_queue: Queue):
         super().__init__()
         self.name: str = "gRPC Application"
-        self._grpc_request_op: Optional[GrpcServerRequestOp] = None
-        self._grpc_response_op: Optional[GrpcServerResponseOp] = None
+        self._grpc_request_op: GrpcServerRequestOp | None = None
+        self._grpc_response_op: GrpcServerResponseOp | None = None
         self._composed: bool = False
         self._request_queue: ConditionVariableQueue = ConditionVariableQueue(
             self, name="incoming_request_queue", queue=incoming_request_queue

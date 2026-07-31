@@ -52,7 +52,7 @@ class BatchMergerOp(Operator):
         frame = cp.asarray(frame_message.get("video"))  # "frame" / "video"
         if frame.ndim == 5:
             frame = frame[0]
-        tracks_name = [key for key in preds.keys() if "tracks" in key and "visible" not in key][0]
+        tracks_name = next(key for key in preds if "tracks" in key and "visible" not in key)
         visibility_name = "visible_" + tracks_name
 
         # We copy the arrays to free GPU memory
@@ -117,13 +117,13 @@ class BatchMergerSchedulingOp(Operator):
         """Collect individual frames and emit when batch is full."""
         frame_message = op_input.receive("frame_in")
         preds = op_input.receive("predictions_in")
-        if "frame" in frame_message.keys():
+        if "frame" in frame_message:
             frame = cp.asarray(frame_message.get("frame"))
         else:
             frame = cp.asarray(frame_message.get("video"))
         if frame.ndim == 5:
             frame = frame[0]
-        tracks_name = [key for key in preds.keys() if "tracks" in key][0]
+        tracks_name = next(key for key in preds if "tracks" in key)
         # visibility_name = [key for key in preds.keys() if "visible_tracks" in key][0]
         visibility_name = "visible_" + tracks_name
 
@@ -180,7 +180,7 @@ class ReverseBatch(Operator):
         out_message = Entity(context)
 
         if self.do_backwards:
-            for key in in_message.keys():
+            for key in in_message:
                 cp_tensor = cp.asarray(in_message.get(key))
                 cp_tensor = cp.flip(cp_tensor, axis=self.axis)
                 cp_tensor = cp.ascontiguousarray(cp_tensor)

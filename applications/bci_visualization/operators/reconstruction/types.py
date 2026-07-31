@@ -6,7 +6,6 @@ SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Tuple
 
 import numpy as np
 from numpy.typing import NDArray
@@ -16,7 +15,7 @@ from numpy.typing import NDArray
 class VoxelMetadata:
     ijk: NDArray[np.float32]
     xyz: NDArray[np.float32] | None
-    resolution: Tuple[float, float, float]
+    resolution: tuple[float, float, float]
 
 
 @dataclass(frozen=True)
@@ -27,7 +26,7 @@ class BuildRHSOutput:
     idxs_significant_voxels: NDArray[np.int_]
     num_full_voxels: int
     num_features: int
-    wavelengths: Tuple[int, ...]
+    wavelengths: tuple[int, ...]
     voxel_metadata: VoxelMetadata
 
 
@@ -40,11 +39,11 @@ class WavelengthSystem:
 
 @dataclass(frozen=True)
 class NormalizedSolveBatch:
-    systems: Tuple[WavelengthSystem, ...]
+    systems: tuple[WavelengthSystem, ...]
     idxs_significant_voxels: NDArray[np.int_]
     num_full_voxels: int
     num_absorbers: int
-    wavelengths: Tuple[int, ...]
+    wavelengths: tuple[int, ...]
     voxel_metadata: VoxelMetadata
 
 
@@ -54,5 +53,5 @@ class SolverResult:
     data_musp: NDArray[np.float32]
     idxs_significant_voxels: NDArray[np.int_]
     num_full_voxels: int
-    wavelengths: Tuple[int, ...]
+    wavelengths: tuple[int, ...]
     voxel_metadata: VoxelMetadata

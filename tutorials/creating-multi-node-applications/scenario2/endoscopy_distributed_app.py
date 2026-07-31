@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -91,11 +91,11 @@ class Fragment1(Fragment):
             source_block_size = width * height * 3 * 4
             source_num_blocks = 2
 
-        source_pool_kwargs = dict(
-            storage_type=MemoryStorageType.DEVICE,
-            block_size=source_block_size,
-            num_blocks=source_num_blocks,
-        )
+        source_pool_kwargs = {
+            "storage_type": MemoryStorageType.DEVICE,
+            "block_size": source_block_size,
+            "num_blocks": source_num_blocks,
+        }
         if record_type is not None:
             if ((record_type == "input") and (self.source != "replayer")) or (
                 record_type == "visualizer"
@@ -250,7 +250,7 @@ class Fragment2(Fragment):
         model_path_map = {
             "out_of_body": os.path.join(self.model_path, "out_of_body_detection.onnx")
         }
-        for k, v in model_path_map.items():
+        for v in model_path_map.values():
             if not os.path.exists(v):
                 raise RuntimeError(f"Could not find model file: {v}")
         inference_kwargs = self.kwargs("out_of_body_inference")
@@ -297,9 +297,8 @@ class EndoscopyDistributedApp(Application):
 
         # Optional parameters affecting the graph created by compose.
         self.record_type = record_type
-        if record_type is not None:
-            if record_type not in ("input", "visualizer"):
-                raise ValueError("record_type must be either ('input' or 'visualizer')")
+        if record_type is not None and record_type not in ("input", "visualizer"):
+            raise ValueError("record_type must be either ('input' or 'visualizer')")
         self.source = source
 
         if data == "none":

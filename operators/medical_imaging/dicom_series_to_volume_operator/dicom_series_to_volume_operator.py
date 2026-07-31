@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,13 +16,14 @@
 import copy
 import logging
 import math
-from typing import Dict, List, Union
 
 import numpy as np
 from holoscan.core import ConditionType, Fragment, Operator, OperatorSpec
 
 from operators.medical_imaging.core.domain.dicom_series_selection import StudySelectedSeries
 from operators.medical_imaging.core.domain.image import Image
+
+logger = logging.getLogger(__name__)
 
 
 class DICOMSeriesToVolumeOperator(Operator):
@@ -65,8 +66,8 @@ class DICOMSeriesToVolumeOperator(Operator):
         op_output.emit(image, self.output_name_image)
 
     def convert_to_image(
-        self, study_selected_series_list: List[StudySelectedSeries]
-    ) -> Union[Image, None]:
+        self, study_selected_series_list: list[StudySelectedSeries]
+    ) -> Image | None:
         """Extracts the pixel data from a DICOM Series and other attributes to create an Image object"""
         # For now, only supports the one and only one selected series.
         if not study_selected_series_list or len(study_selected_series_list) < 1:
@@ -74,7 +75,7 @@ class DICOMSeriesToVolumeOperator(Operator):
 
         for study_selected_series in study_selected_series_list:
             if not isinstance(study_selected_series, StudySelectedSeries):
-                raise ValueError("Element in input is not expected type, 'StudySelectedSeries'.")
+                raise TypeError("Element in input is not expected type, 'StudySelectedSeries'.")
             selected_series = study_selected_series.selected_series[0]
             dicom_series = selected_series.series
             selection_name = selected_series.selection_name
@@ -140,11 +141,11 @@ class DICOMSeriesToVolumeOperator(Operator):
         )
 
         if not photometric_interpretation:
-            logging.warning("Cannot get value of attribute Photometric Interpretation.")
+            logger.warning("Cannot get value of attribute Photometric Interpretation.")
 
         if photometric_interpretation != "MONOCHROME2":
             if photometric_interpretation == "MONOCHROME1" or presentation_lut_shape == "INVERSE":
-                logging.debug("Applying INVERSE transformation as required for MONOCHROME1 image.")
+                logger.debug("Applying INVERSE transformation as required for MONOCHROME1 image.")
                 vol_data = np.amax(vol_data) - vol_data
             else:
                 raise ValueError(
@@ -386,7 +387,7 @@ class DICOMSeriesToVolumeOperator(Operator):
 
         series.nifti_affine_transform = m2
 
-    def create_metadata(self, series) -> Dict:
+    def create_metadata(self, series) -> dict:
         """Collects all relevant metadata from the DICOM Series and creates a dictionary.
 
         Args:
@@ -403,7 +404,7 @@ class DICOMSeriesToVolumeOperator(Operator):
         return metadata
 
     @staticmethod
-    def _get_instance_properties(obj: object, not_none: bool = True) -> Dict:
+    def _get_instance_properties(obj: object, not_none: bool = True) -> dict:
         prop_dict = {}
         if obj:
             for attribute in [

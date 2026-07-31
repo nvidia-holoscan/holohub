@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -81,13 +81,12 @@ class StreamingPrintOp(Operator):
         prompt_complete = False
         # The prompt is complete only when the user is done speaking
         # and Riva sends the "is_final" flag
-        if is_final and self.waiting_for_final:
-            prompt_complete = True
-        # If the user is done speaking and the last transcript flagged
-        # as 'final' is the same as the current transcript. This means
-        # the user held down the ASR trigger well past when they stopped
-        # speaking
-        elif done_speaking and self.last_final_transcript == transcript:
+        if (
+            is_final
+            and self.waiting_for_final
+            or done_speaking
+            and self.last_final_transcript == transcript
+        ):
             prompt_complete = True
 
         return prompt_complete

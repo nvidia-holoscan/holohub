@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,9 +23,9 @@ import onnx
 import onnxruntime
 import segmentation_models_pytorch as smp
 import torch
-import torch.nn as nn
 import torch.onnx
-import torchvision.transforms as transforms
+from torch import nn
+from torchvision import transforms
 
 
 class Model(nn.Module):
@@ -46,11 +46,12 @@ class ModelImage(nn.Module):
 
         channels = 100
 
-        ArchitectureClass = getattr(smp, "Unet")
+        ArchitectureClass = smp.Unet
         self.architecture = ArchitectureClass(
             classes=19,
             in_channels=channels,
-            **{"encoder_name": "efficientnet-b5", "encoder_weights": "imagenet"},
+            encoder_name="efficientnet-b5",
+            encoder_weights="imagenet",
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:

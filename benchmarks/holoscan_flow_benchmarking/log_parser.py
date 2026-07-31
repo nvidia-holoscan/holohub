@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,18 +45,16 @@ def is_same_path(line1, line2):
         return False
     op_timestamps1 = parse_line_from_log(line1)
     op_timestamps2 = parse_line_from_log(line2)
-    path1, latency1 = get_path_latency(op_timestamps1)
-    path2, latency2 = get_path_latency(op_timestamps2)
+    path1, _latency1 = get_path_latency(op_timestamps1)
+    path2, _latency2 = get_path_latency(op_timestamps2)
     if path1 != path2:
         return False
     # if receive or publish timestamps of the source are not same, then they are different paths
     if op_timestamps1[0][1] != op_timestamps2[0][1] or op_timestamps1[0][2] != op_timestamps2[0][2]:
         return False
     # if the publish timestamps of the sinks are within 20 nanoseconds, then they are considered same path
-    if abs(int(op_timestamps1[-1][2]) - int(op_timestamps2[-1][2])) > 20:
-        return False
-    # if none of the above is true, then they are same path
-    return True
+    # If none of the above is true, they are the same path when sink timestamps are close.
+    return abs(int(op_timestamps1[-1][2]) - int(op_timestamps2[-1][2])) <= 20
 
 
 # parse the log file and return all the latencies for each path

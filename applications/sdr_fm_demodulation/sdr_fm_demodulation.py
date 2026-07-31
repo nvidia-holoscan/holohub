@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,7 +47,7 @@ audio_fs = int(48e3)
 buffer_size = 1024 * (sdr_fs // audio_fs)
 
 try:
-    args = dict(driver="rtlsdr")
+    args = {"driver": "rtlsdr"}
 except ImportError:
     raise ImportError("Ensure SDR is connected and appropriate drivers are installed.")
 

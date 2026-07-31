@@ -244,7 +244,18 @@ def run_training(
                 print("\n❌ No checkpoint found")
                 return None
 
-    except Exception as e:
+    except (
+        ArithmeticError,
+        AssertionError,
+        AttributeError,
+        EOFError,
+        ImportError,
+        LookupError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ) as e:
         print(f"\n❌ Training failed: {e}")
         import traceback
 
@@ -305,4 +316,4 @@ def main():
 
 
 if __name__ == "__main__":
-    exit(main())
+    sys.exit(main())

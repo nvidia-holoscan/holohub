@@ -134,7 +134,7 @@ __all__ = [
     "DisplayCompressionSettings",
     "compress_color",
     "compress_grayscale",
-    "tensor_to_display",
-    "run_pipeline_colormap_last",
     "ensure_rgba",
+    "run_pipeline_colormap_last",
+    "tensor_to_display",
 ]
