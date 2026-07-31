@@ -2,6 +2,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
+import json
 import os
 import re
 import subprocess
@@ -35,7 +36,7 @@ def _holoscan_cli_env() -> dict[str, str]:
     # configured. The ./holohub wrapper sets this; the direct `python -m
     # holoscan_cli` invocations below must supply it too. Mirror the HoloHub
     # default SDK version so the dryrun resolves a base image.
-    env.setdefault("HOLOSCAN_CLI_BASE_SDK_VERSION", "4.4.0")
+    env.setdefault("HOLOSCAN_CLI_BASE_SDK_VERSION", "4.5.0")
     return env
 
 
@@ -75,6 +76,62 @@ def test_unified_cli_lists_holohub_projects():
     assert result.returncode == 0, result.stderr
     assert "== APPLICATIONS" in result.stdout
     assert "endoscopy_tool_tracking" in result.stdout
+
+
+@pytest.mark.parametrize(
+    ("args", "expected_keys", "allowed_returncodes"),
+    [
+        (("list", "--json"), {"projects"}, {0}),
+        (
+            (
+                "modes",
+                "endoscopy_tool_tracking",
+                "--language",
+                "python",
+                "--json",
+            ),
+            {"project", "language", "modes"},
+            {0},
+        ),
+        (
+            ("env-info", "--json"),
+            {
+                "cli",
+                "system",
+                "python",
+                "source_project",
+                "git",
+                "docker",
+                "cuda_gpu",
+                "sccache",
+                "environment_variables",
+            },
+            {0},
+        ),
+        (("env-check", "--json"), {"elapsed_seconds", "checks", "summary"}, {0, 1}),
+        (
+            ("status", "--json"),
+            {
+                "platform",
+                "git",
+                "images",
+                "builds",
+                "build_folders",
+                "data_folders",
+            },
+            {0},
+        ),
+        (("version", "--json"), {"package", "version", "executable", "module"}, {0}),
+    ],
+    ids=["list", "modes", "env-info", "env-check", "status", "version"],
+)
+def test_json_commands_emit_one_versioned_document(args, expected_keys, allowed_returncodes):
+    result = _run_holoscan_cli(*args)
+
+    assert result.returncode in allowed_returncodes, result.stdout + result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["schema_version"] == 1
+    assert expected_keys <= payload.keys()
 
 
 def test_unified_cli_dryruns_holohub_project_run():
