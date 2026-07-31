@@ -156,7 +156,6 @@ def test_event_sink_ignores_an_empty_receive():
     class Input:
         def receive(self, port):
             assert port == "events"
-            return None
 
     state = State()
     sink = NarrativeEventSinkOp(Application(), state=state)

@@ -17,9 +17,10 @@ import threading
 import time
 import uuid
 from collections import deque
+from collections.abc import Iterable
 from concurrent.futures import Future, ThreadPoolExecutor
 from ipaddress import ip_address
-from typing import Any, Iterable
+from typing import Any
 from urllib.parse import urlsplit
 
 import numpy as np

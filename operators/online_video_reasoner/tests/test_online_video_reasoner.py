@@ -341,7 +341,6 @@ def test_cuda_input_without_stream_uses_default_copy(reasoning_server, monkeypat
         def receive_cuda_stream(self, port, *, allocate):
             assert port == "input"
             assert not allocate
-            return None
 
     frame = operator._to_host_rgb({"": tensor}, input_context=InputContext())
 
@@ -1141,7 +1140,6 @@ def test_compute_drains_events_without_an_input_message(reasoning_server):
     class EmptyInput:
         def receive(self, port):
             assert port == "input"
-            return None
 
     class CapturingOutput:
         def __init__(self):
