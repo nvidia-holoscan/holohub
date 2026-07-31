@@ -82,19 +82,21 @@ Preview mutating commands with the flags they actually support:
 These read-only commands accept `--json` and print a machine-readable
 document instead of the prose rendering:
 
-| Command | `--json` payload |
-| --- | --- |
-| `list` | `{projects: [{name, project_type, source_folder, language[], modes[]}]}` |
-| `modes` | The resolved `metadata.json` modes object, plus `project` and `language[]` |
-| `env-info` | `{cli, system, python, source_project, git, docker, cuda_gpu, sccache, environment_variables}` |
-| `env-check` | Per-check results and the overall status |
-| `status` | The structured form of the status summary |
-| `version` | `{package, version, executable, module}` |
+| Command | Top-level fields (schematic) | Description |
+| --- | --- | --- |
+| `list` | `schema_version`; `projects[]`: `name`, `project_type`, `source_folder`, `language[]`, `modes[]` | Discovered project inventory, including source locations and supported languages and modes. |
+| `modes` | `schema_version`, `project`, `language[]`, and the resolved `modes{}` object | Mode definitions for one selected project and language implementation. |
+| `env-info` | `schema_version`, `cli`, `system`, `python`, `source_project`, `git`, `docker`, `cuda_gpu`, `sccache`, `environment_variables` | Host, tool, source-project, and configured-environment details for diagnostics. |
+| `env-check` | `schema_version`, `elapsed_seconds`, `checks[]`, `summary` | Environment check results, timing, and aggregate pass, warning, failure, and skip counts. |
+| `status` | `schema_version`, `platform`, `git`, `images[]`, `builds[]`, `build_folders[]`, `data_folders[]` | Repository, container-image, build, and data status for the current source project. |
+| `version` | `schema_version`, `package`, `version`, `executable`, `module` | Installed package version and the Python executable and module selected by the wrapper. |
 
 `--json` replaces the prose output rather than supplementing it, so the
 document can be piped straight into a parser. `list --json` also reports
 `source_folder`, which locates a project on disk and is not available in the
-prose listing.
+prose listing. Every payload currently reports `schema_version` as `1`; fields
+may be added within schema version 1, but existing fields are not removed or
+renamed.
 
 ### Container Build Options
 
