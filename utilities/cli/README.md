@@ -83,7 +83,7 @@ The next `./holohub` invocation reinstalls the committed version. To install
 and use another published version on the host:
 
 ```bash
-HOLOSCAN_CLI_PINNED_VERSION=4.5.0 ./holohub env-info
+HOLOSCAN_CLI_PINNED_VERSION=4.4.0 ./holohub env-info
 ```
 
 Keep the variable set for later commands; without it, the wrapper restores the
