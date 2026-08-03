@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +40,7 @@ class UnzipOp(Operator):
         output_path=None,
         **kwargs,
     ):
-        self.logger = logging.getLogger("{}.{}".format(__name__, type(self).__name__))
+        self.logger = logging.getLogger(f"{__name__}.{type(self).__name__}")
         self.filter = filter
         self.output_path = Path(output_path).resolve()
         # Call the base class __init__() last.
@@ -54,7 +54,7 @@ class UnzipOp(Operator):
         data = op_input.receive("zip_file_bytes")
         matching_files = self._unzip(data)
         if len(matching_files) == 0:
-            logger.warn("No matching files found")
+            logger.warning("No matching files found")
         else:
             files = ":".join(matching_files)
             op_output.emit(files, "matching_files", "std::string")

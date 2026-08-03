@@ -82,4 +82,4 @@ DEFAULT_PARAMS = {
     "temporal_svd": {"history": 5, "rank": 3},
 }
 
-__all__ = ["FILTERS", "DEFAULT_PARAMS"]
+__all__ = ["DEFAULT_PARAMS", "FILTERS"]

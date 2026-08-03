@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,6 +15,7 @@
 
 import json
 import os
+import sys
 import time
 
 from langchain.schema.document import Document
@@ -107,7 +108,7 @@ def flatten_ehr(ehr_dict):
     num_entry_missing_categories = 0
     num_entry_no_date = 0
 
-    for key, resources in ehr_dict.items():
+    for resources in ehr_dict.values():
         for entry in resources:
             resource = entry["resource"]
             # Parse Condition
@@ -118,13 +119,13 @@ def flatten_ehr(ehr_dict):
             elif resource["resourceType"] == "Observation":
 
                 # Collect stats of entries missing key attributes
-                if "categories" not in [x.lower() for x in resource.keys()]:
+                if "categories" not in [x.lower() for x in resource]:
                     num_entry_missing_categories += 1
                     resource["categories"] = ""
                     print(
                         f"Missing 'categories' attribute in resource entry: {entry.get('fullUrl', '')}"
                     )
-                if "date" not in [x.lower() for x in resource.keys()]:
+                if "date" not in [x.lower() for x in resource]:
                     num_entry_no_date += 1
                     resource["date"] = ""
                     print(f"Missing 'date' attribute in resource entry: {entry.get('fullUrl', '')}")
@@ -169,8 +170,7 @@ def create_db_docs(flattened_ehr):
     This function takes entries with multiple date entries and represents them as a range
     """
     documents = []
-    i = 0
-    for summary, dates in flattened_ehr.items():
+    for i, (summary, dates) in enumerate(flattened_ehr.items()):
         num_dates = len(dates)
         if num_dates == 1:
             summary += f"\n\tDate: {dates[0]}"
@@ -181,7 +181,6 @@ def create_db_docs(flattened_ehr):
 
         new_doc = Document(page_content=summary, seq_num=i)
         documents.append(new_doc)
-        i += 1
 
     return documents
 
@@ -200,7 +199,7 @@ def create_ehr_database():
             "in the JSON format of {<patient ID> : [<FHIR resource>]}"
             "\033[m"
         )
-        exit(1)
+        sys.exit(1)
 
     flattened_ehr = flatten_ehr(ehr_data)
     documents = create_db_docs(flattened_ehr)

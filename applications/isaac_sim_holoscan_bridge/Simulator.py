@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,7 @@
 # limitations under the License.
 
 import queue
-from typing import Callable
+from collections.abc import Callable
 
 import holoscan
 import numpy as np
@@ -221,7 +221,7 @@ class Simulator:
             self._world.step(render=True)
 
             # get the data from the simulation and push it to the Holoscan application
-            push_data = dict()
+            push_data = {}
             if self._image_size[2] == 3:
                 push_data["camera_image"] = self._camera.get_current_frame()["rgba"][:, :, :3]
             else:

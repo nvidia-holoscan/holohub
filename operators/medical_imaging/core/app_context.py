@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,20 +15,21 @@
 
 import logging
 from os.path import abspath
-from typing import Dict, List, Optional
 
 from .arg_parser import parse_args, set_up_logging
 from .models.factory import ModelFactory
 from .models.model import Model
 from .runtime_env import RuntimeEnv
 
+logger = logging.getLogger(__name__)
 
-class AppContext(object):
+
+class AppContext:
     """A class to store the context of an application."""
 
-    def __init__(self, args: Dict[str, str], runtime_env: Optional[RuntimeEnv] = None):
+    def __init__(self, args: dict[str, str], runtime_env: RuntimeEnv | None = None):
         # Set the args
-        self.args: Dict[str, str] = {}
+        self.args: dict[str, str] = {}
         # Set the runtime environment
         self.runtime_env = runtime_env or RuntimeEnv()
 
@@ -36,7 +37,7 @@ class AppContext(object):
         self.model_path = ""  # To be set next.
         self.update(args)
 
-    def update(self, args: Dict[str, str]):
+    def update(self, args: dict[str, str]):
         """Update the context with new args and runtime_env."""
         # Update args
         self.args.update(args)
@@ -53,7 +54,7 @@ class AppContext(object):
             self._model_loaded = False  # path changed, reset the flag to re-load
 
         if not self._model_loaded:
-            self.models: Optional[Model] = ModelFactory.create(abspath(self.model_path))
+            self.models: Model | None = ModelFactory.create(abspath(self.model_path))
             self._model_loaded = True
 
     def __repr__(self):
@@ -64,7 +65,7 @@ class AppContext(object):
 
 
 def init_app_context(
-    argv: Optional[List[str]] = None, runtime_env: Optional[RuntimeEnv] = None
+    argv: list[str] | None = None, runtime_env: RuntimeEnv | None = None
 ) -> AppContext:
     """Initializes the app context with arguments and well-known environment variables.
 
@@ -79,10 +80,10 @@ def init_app_context(
 
     args = parse_args(argv)
     set_up_logging(args.log_level)
-    logging.info(f"Parsed args: {args}")
+    logger.info(f"Parsed args: {args}")
 
     # The parsed args from the command line override that from the environment variables
     app_context = AppContext({key: val for key, val in vars(args).items() if val}, runtime_env)
-    logging.info(f"AppContext object: {app_context}")
+    logger.info(f"AppContext object: {app_context}")
 
     return app_context

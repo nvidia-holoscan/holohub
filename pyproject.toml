@@ -17,6 +17,7 @@
 profile = "black"
 line_length = 100
 known_first_party = "holohub"
+combine_as_imports = true
 skip_glob = ["build*/*", "install*/*", ".cache/*", ".ruff_cache/*", ".local/*"]
 
 [tool.black]
@@ -67,6 +68,8 @@ exclude = [
 
 [tool.ruff.lint.isort]
 known-first-party = ["holohub"]
+combine-as-imports = true
+detect-same-package = false
 
 [tool.pytest.ini_options]
 minversion = "6.0"

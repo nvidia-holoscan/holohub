@@ -6,7 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Tuple, cast
+from typing import Any, cast
 
 import cupy as cp
 import numpy as np
@@ -95,7 +95,7 @@ class ConvertToVoxelsOperator(Operator):
     def __init__(
         self,
         *,
-        coefficients: Dict[int, ExtinctionCoefficient],
+        coefficients: dict[int, ExtinctionCoefficient],
         ijk: NDArray[np.float32],
         xyz: NDArray[np.float32],
         fragment: Any | None = None,
@@ -155,7 +155,7 @@ class ConvertToVoxelsOperator(Operator):
     def _voxelize_hbo(
         self,
         data_hbo: NDArray[np.float32],
-        layout: Tuple[NDArray[np.int_], Tuple[int, int, int], NDArray[np.int_]],
+        layout: tuple[NDArray[np.int_], tuple[int, int, int], NDArray[np.int_]],
     ) -> NDArray[np.float32]:
         scatter_coords, normalized_shape, _ijk_int = layout
         scatter_coords = scatter_coords.astype(np.int32, copy=False)  # for indexing
@@ -176,7 +176,7 @@ class ConvertToVoxelsOperator(Operator):
     def _compute_voxel_layout(
         self,
         metadata: VoxelMetadata,
-    ) -> Tuple[NDArray[np.int_], Tuple[int, int, int], NDArray[np.int_]]:
+    ) -> tuple[NDArray[np.int_], tuple[int, int, int], NDArray[np.int_]]:
         """
         Compute normalized voxel coordinates and grid shape from metadata.
         """
@@ -190,4 +190,4 @@ class ConvertToVoxelsOperator(Operator):
         shape = tuple(int(axis_max) + 1 for axis_max in normalized.max(axis=0))
         if not all(dim > 0 for dim in shape):
             raise ValueError(f"Shape must be positive, got shape {shape}")
-        return normalized, cast(Tuple[int, int, int], shape), ijk_int
+        return normalized, cast(tuple[int, int, int], shape), ijk_int

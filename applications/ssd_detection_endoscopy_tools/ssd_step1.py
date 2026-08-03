@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -81,7 +81,7 @@ def calc_iou_tensor(box1, box2):
 
 
 # This function is from https://github.com/kuangliu/pytorch-ssd.
-class Encoder(object):
+class Encoder:
     """
     Inspired by https://github.com/kuangliu/pytorch-src
     Transform between (bboxes, labels) <-> SSD output
@@ -176,7 +176,7 @@ class Encoder(object):
             if score.size(0) == 0:
                 continue
 
-            score_sorted, score_idx_sorted = score.sort(dim=0)
+            _score_sorted, score_idx_sorted = score.sort(dim=0)
 
             # select max_output indices
             score_idx_sorted = score_idx_sorted[-max_num:]
@@ -210,7 +210,7 @@ class Encoder(object):
         return bboxes_out[max_ids, :], labels_out[max_ids], scores_out[max_ids]
 
 
-class DefaultBoxes(object):
+class DefaultBoxes:
     def __init__(
         self, fig_size, feat_size, steps, scales, aspect_ratios, scale_xy=0.1, scale_wh=0.2
     ):
@@ -339,7 +339,7 @@ class DetectionPostprocessorOp(Operator):
             locs_pyt, labels_pyt, criteria=0.5, max_output=20
         )  # TIME SINK, TODO: OPTIMIZE
 
-        bboxes, classes, confidences = [
+        bboxes, _classes, confidences = [
             x.detach().cpu().numpy().astype(np.float32) for x in encoded[0]
         ]
 
@@ -449,14 +449,14 @@ class SSDDetectionApp(Application):
             self,
             name="detection_visualizer",
             tensors=[
-                dict(name="", type="color"),
-                dict(
-                    name="rectangles",
-                    type="rectangles",
-                    opacity=0.5,
-                    line_width=4,
-                    color=[1.0, 0.0, 0.0, 1.0],
-                ),
+                {"name": "", "type": "color"},
+                {
+                    "name": "rectangles",
+                    "type": "rectangles",
+                    "opacity": 0.5,
+                    "line_width": 4,
+                    "color": [1.0, 0.0, 0.0, 1.0],
+                },
             ],
             **self.kwargs("detection_visualizer"),
         )
