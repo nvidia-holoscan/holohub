@@ -45,7 +45,7 @@ repos:
 
   # Python: isort
   - repo: https://github.com/PyCQA/isort
-    rev: 9.0.0b1
+    rev: 8.0.1
     hooks:
       - id: isort
         args: [--settings-path, .]
