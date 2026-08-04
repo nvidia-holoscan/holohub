@@ -111,7 +111,7 @@ def test_encoder_cancellation_kills_and_reaps_ffmpeg(monkeypatch):
     def encode():
         try:
             encode_jpeg(frame, cancel_event=cancel_event)
-        except Exception as error:
+        except MediaEncodingError as error:
             errors.append(error)
 
     worker = threading.Thread(target=encode)

@@ -239,7 +239,7 @@ def test_compose_wires_reasoner_state_and_converter_tensor_name(monkeypatch):
 
 
 def test_display_rejects_a_non_string_input_tensor_name():
-    with pytest.raises(ValueError, match="input_tensor_name"):
+    with pytest.raises(TypeError, match="input_tensor_name"):
         NarrativeDisplayOp(
             Application(),
             state=narrator_module.NarrativeState(clip_duration_s=4.0),

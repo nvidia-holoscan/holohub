@@ -56,7 +56,7 @@ def _close_response_handle(handle: tuple[requests.Response, requests.Session]) -
 def _validate_endpoint(endpoint: str) -> bool:
     """Validate the endpoint and report whether it uses local cleartext HTTP."""
     if not isinstance(endpoint, str):
-        raise ValueError("endpoint must be a valid HTTP or HTTPS URL")
+        raise TypeError("endpoint must be a valid HTTP or HTTPS URL")
     try:
         parsed = urlsplit(endpoint)
         hostname = parsed.hostname
@@ -297,7 +297,7 @@ class OnlineVideoReasonerOp(Operator):
             return
         try:
             self._future.result()
-        except Exception as error:  # Defensive: _run_request normally handles errors.
+        except Exception as error:  # noqa: BLE001 - surface unexpected worker failures.
             self._push_event(
                 {
                     "request_id": "internal",
@@ -496,7 +496,7 @@ class OnlineVideoReasonerOp(Operator):
                     "deltas_dropped": deltas_dropped,
                 }
             )
-        except Exception as error:
+        except Exception as error:  # noqa: BLE001 - report every request worker failure.
             if not self._stop_event.is_set():
                 self._push_event(
                     {
@@ -597,7 +597,7 @@ class OnlineVideoReasonerOp(Operator):
         except (json.JSONDecodeError, UnicodeDecodeError) as error:
             raise ValueError("non-streaming response is not valid JSON") from error
         if not isinstance(payload, dict):
-            raise ValueError("non-streaming response must be a JSON object")
+            raise TypeError("non-streaming response must be a JSON object")
         return payload
 
     def _post_interruptibly(
@@ -629,7 +629,7 @@ class OnlineVideoReasonerOp(Operator):
                     response,
                     session,
                 )
-            except Exception as error:
+            except Exception as error:  # noqa: BLE001 - hand off every thread failure.
                 if session is not None:
                     session.close()
                 result = error

@@ -259,7 +259,7 @@ class NarrativeDisplayOp(Operator):
         if frame_width <= 0 or frame_height <= 0:
             raise ValueError("frame dimensions must be positive")
         if not isinstance(input_tensor_name, str):
-            raise ValueError("input_tensor_name must be a string")
+            raise TypeError("input_tensor_name must be a string")
         self._state = state
         self._input_tensor_name = input_tensor_name
         self._latest_frame = np.zeros((frame_height, frame_width, 3), dtype=np.uint8)
@@ -337,7 +337,7 @@ class ProceduralNarratorApp(Application):
         converter_args = dict(self.kwargs("format_converter"))
         converter_output_tensor_name = converter_args.get("out_tensor_name", "")
         if not isinstance(converter_output_tensor_name, str):
-            raise ValueError("format_converter.out_tensor_name must be a string")
+            raise TypeError("format_converter.out_tensor_name must be a string")
         converter = FormatConverterOp(
             self,
             name="format_converter",
@@ -368,7 +368,7 @@ class ProceduralNarratorApp(Application):
             else False
         )
         if not isinstance(thinking_mode, bool):
-            raise ValueError("reasoner thinking mode must be true or false")
+            raise TypeError("reasoner thinking mode must be true or false")
         state = NarrativeState(
             clip_duration_s=float(reasoner.clip_duration_s),
             max_frame_gap_s=float(reasoner.max_frame_gap_s),
@@ -396,7 +396,7 @@ class ProceduralNarratorApp(Application):
             name="holoviz",
             allocator=allocator,
             cuda_stream_pool=cuda_stream_pool,
-            tensors=[dict(name="frame", type="color", priority=0)],
+            tensors=[{"name": "frame", "type": "color", "priority": 0}],
             window_close_callback=self.on_window_closed,
             **holoviz_args,
         )
