@@ -9,6 +9,15 @@ SDK pins. The final-release behavior below was verified with the published
 4.5.0 wheel and tag commit
 `33a8a112bdb44aef47b34e8f9a47484fb54e9e31`.
 
+This byte-identical contract is the version-evidence source shared by the
+HoloHub lifecycle skills. Do not duplicate exact verification tags or SHAs in
+their operational instructions. When a committed HoloHub wrapper or base SDK
+pin changes, or a CLI schema, resolver, accepted command, or behavior described
+here changes, update this contract, rerun the affected skill evaluations, and
+regenerate their benchmark, card, and signature through the approved pipeline
+before public sync. Prefer this change-triggered refresh to an unrelated daily
+model run.
+
 HoloHub is rolling: current official `main` is the normal fresh-checkout
 target. Treat the evidence snapshot as provenance for this contract and its
 evaluation, not as the checkout default or a compatibility ceiling. Nightly

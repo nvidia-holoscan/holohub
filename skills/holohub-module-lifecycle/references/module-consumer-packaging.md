@@ -8,7 +8,18 @@ the producer's `metadata.json:module.name`, declares `provides_operators`, and,
 for external source, supplies `source.git_url` plus an immutable 40-character
 commit SHA in `source.ref`. Validate against current schemas and real targets.
 
+For an immutable declared dependency, prefer the ordinary top-level wrapper
+workflow and keep its preview and action identical except for `--dryrun`:
+
+```bash
+./holohub run <consumer-app> <mode> --language <cpp-or-python> --dryrun --verbose
+./holohub run <consumer-app> <mode> --language <cpp-or-python> --verbose
+```
+
 ## Mounted-source iteration
+
+Use this advanced path only when the consumer must exercise a local module
+working tree instead of its immutable declared source.
 
 The current `./holohub` source override is
 `HOLOSCAN_CLI_LOCAL_<SANITIZED_MODULE_NAME>`. Derive it from the consuming
@@ -21,32 +32,34 @@ Confirm the selected CLI version with `./holohub version --json` before
 relying on version-sensitive override behavior.
 
 A host export is not automatically forwarded into the normal project
-container. Mount the source and set the override to its container path inside
-one workflow. Preview the outer container launch first:
+container, and an outer dry run does not execute the inner resolver. The
+nesting below is therefore a two-layer preview requirement, not a preference
+for nested commands. Mount the source and set the override to its container
+path inside one workflow. First preview only the outer container launch:
 
 ```bash
 ./holohub run-container <consumer-app> <mode> --language <cpp-or-python> \
   --add-volume /absolute/path/holoscan-my-module \
   --dryrun --verbose -- \
-  'set -e; export HOLOSCAN_CLI_LOCAL_HOLOSCAN_MY_MODULE=/workspace/volumes/holoscan-my-module; test -f "$HOLOSCAN_CLI_LOCAL_HOLOSCAN_MY_MODULE/metadata.json"; ./holohub build <consumer-app> <mode> --local --language <cpp-or-python> --dryrun --verbose; ./holohub run <consumer-app> <mode> --local --no-local-build --language <cpp-or-python> --dryrun --verbose'
+  'set -eu; module_root=/workspace/volumes/holoscan-my-module; export HOLOSCAN_CLI_LOCAL_HOLOSCAN_MY_MODULE="$module_root"; test -f "$module_root/metadata.json"; ./holohub run <consumer-app> <mode> --local --language <cpp-or-python> --dryrun --verbose'
 ```
 
 The outer dry run does not execute its quoted shell. After reviewing it, launch
-the previewed container with the same mounts and options so the nested build
-and run dry runs execute:
+the previewed container with the same mounts and options so the single nested
+run dry run executes and validates the mounted override:
 
 ```bash
 ./holohub run-container <consumer-app> <mode> --language <cpp-or-python> \
   --add-volume /absolute/path/holoscan-my-module --verbose -- \
-  'set -e; export HOLOSCAN_CLI_LOCAL_HOLOSCAN_MY_MODULE=/workspace/volumes/holoscan-my-module; test -f "$HOLOSCAN_CLI_LOCAL_HOLOSCAN_MY_MODULE/metadata.json"; ./holohub build <consumer-app> <mode> --local --language <cpp-or-python> --dryrun --verbose; ./holohub run <consumer-app> <mode> --local --no-local-build --language <cpp-or-python> --dryrun --verbose'
+  'set -eu; module_root=/workspace/volumes/holoscan-my-module; export HOLOSCAN_CLI_LOCAL_HOLOSCAN_MY_MODULE="$module_root"; test -f "$module_root/metadata.json"; ./holohub run <consumer-app> <mode> --local --language <cpp-or-python> --dryrun --verbose'
 ```
 
-Confirm in the nested previews that the dependency resolves to the mounted
-source. Stop if it does not, rather than falling back to a fetched dependency.
-Then repeat the same outer invocation with both nested `--dryrun` flags removed
-and require the finite consumer result. If using `--docker-opts`, preserve
-required mode options because the override flag replaces rather than extends
-them.
+Require the inner preview to accept the override without a fallback. If its
+output does not identify the selected source, do not claim that it did. After a
+fresh review, repeat the same outer invocation with only the inner `--dryrun`
+removed. Require configure/build evidence that uses the mounted path and a
+finite consumer result. If using `--docker-opts`, preserve required mode
+options because the override flag replaces rather than extends them.
 
 ## Editable install
 

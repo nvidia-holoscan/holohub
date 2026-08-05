@@ -7,9 +7,9 @@ This skill is ready for commercial/non-commercial use. <br>
 NVIDIA <br>
 
 ### License/Terms of Use: <br>
-Apache-2.0 <br>
+Apache 2.0 <br>
 ## Use Case: <br>
-Developers and engineers debugging HoloHub wrapper command failures, hangs, regressions, or incorrect output through reproducible diagnosis and minimal fix verification. <br>
+Developers and engineers debugging concrete HoloHub wrapper command failures, hangs, regressions, or incorrect output through reproducible diagnosis and minimal fix verification. <br>
 
 ### Deployment Geography for Use: <br>
 Global <br>
@@ -25,14 +25,14 @@ Risk: Review before execution as proposals could introduce incorrect or misleadi
 Mitigation: Review and scan skill before deployment. <br>
 
 ## Reference(s): <br>
-- [Debug Workflow](references/debug-workflow.md) <br>
-- [HoloHub CLI Contract](references/holohub-cli-contract.md) <br>
-- [Known Issues](references/known-issues.md) <br>
-- [NVIDIA HoloHub (GitHub)](https://github.com/nvidia-holoscan/holohub) <br>
+- [HoloHub debugging workflow](references/debug-workflow.md) <br>
+- [HoloHub CLI contract](references/holohub-cli-contract.md) <br>
+- [Version-sensitive diagnostic priors](references/known-issues.md) <br>
+- [NVIDIA HoloHub](https://github.com/nvidia-holoscan/holohub) <br>
 
 
 ## Skill Output: <br>
-**Output Type(s):** [Analysis, Shell commands] <br>
+**Output Type(s):** [Analysis, Shell commands, Code] <br>
 **Output Format:** [Markdown with inline bash code blocks] <br>
 **Output Parameters:** [1D] <br>
 **Other Properties Related to Output:** [None] <br>
@@ -48,34 +48,34 @@ Mitigation: Review and scan skill before deployment. <br>
 
 ## Evaluation Metrics Used: <br>
 Reported benchmark dimensions: <br>
-- Security: Whether the skill is safe to use (unsafe operations, secret leakage, unauthorized access). <br>
-- Correctness: Whether the answer is correct against the reference answer. <br>
-- Discoverability: Whether the right skill was found and executed when needed. <br>
-- Effectiveness: Whether the skill helped complete the user's goal and expected workflow. <br>
-- Efficiency: Whether the skill avoided wasted tool or skill usage. <br>
+- Security: Checks for unsafe operations, secret leakage, and unauthorized access. <br>
+- Correctness: Checks final-answer correctness against the reference answer. <br>
+- Discoverability: Checks whether the expected skill was found and executed when needed. <br>
+- Effectiveness: Checks goal completion and expected workflow adherence. <br>
+- Efficiency: Checks routing quality, workspace-aware skill reads, and productive tool use. <br>
 
 Underlying evaluation signals used in this run: <br>
-- `security`: Checks for unsafe operations, secret leakage, and unauthorized access. <br>
-- `skill_execution`: Whether the expected skill was found and executed. <br>
-- `skill_efficiency`: Routing quality, workspace-aware skill reads, and productive tool use. <br>
-- `accuracy`: Final-answer correctness against the reference answer. <br>
-- `goal_accuracy`: Whether the user's goal was achieved. <br>
-- `behavior_check`: Whether the expected workflow behavior was followed. <br>
+- `security`: Verifies no unsafe operations, secret leakage, or unauthorized access. <br>
+- `skill_execution`: Verifies the expected skill was found and executed. <br>
+- `skill_efficiency`: Verifies routing quality and productive tool use. <br>
+- `accuracy`: Verifies final-answer correctness against reference. <br>
+- `goal_accuracy`: Verifies user goal was achieved. <br>
+- `behavior_check`: Verifies expected workflow behavior was followed. <br>
 
 
 
 ## Evaluation Results: <br>
-| Measure | Claude Code (Baseline → Skill Uplift) | Codex (Baseline → Skill Uplift) |
-|---|---:|---:|
-| Overall | 73% → 88% (+15 points) | 73% → 73% (+1 points) |
-| Security | 67% → 67% (±0 points) | 67% → 67% (±0 points) |
-| Correctness | 80% → 93% (+13 points) | 80% → 87% (+7 points) |
-| Discoverability | 67% → 100% (+33 points) | 67% → 67% (±0 points) |
-| Effectiveness | 87% → 82% (-6 points) | 83% → 80% (-3 points) |
-| Efficiency | 67% → 100% (+33 points) | 67% → 67% (±0 points) |
+| Measure | Codex (Baseline → Skill Uplift) |
+|---|---:|
+| Overall | 73% → 75% (+2 points) |
+| Security | 67% → 67% (±0 points) |
+| Correctness | 80% → 87% (+7 points) |
+| Discoverability | 67% → 67% (±0 points) |
+| Effectiveness | 84% → 88% (+4 points) |
+| Efficiency | 67% → 67% (±0 points) |
 
 ## Skill Version(s): <br>
-8e0bc39c (source: git SHA, committed 2026-07-31) <br>
+bc84ed7f (source: git SHA, committed 2026-08-05) <br>
 
 ## Ethical Considerations: <br>
 NVIDIA believes Trustworthy AI is a shared responsibility and we have established policies and practices to enable development for a wide array of AI applications. When downloaded or used in accordance with our terms of service, developers should work with their internal team to ensure this skill meets requirements for the relevant industry and use case and addresses unforeseen product misuse. <br>

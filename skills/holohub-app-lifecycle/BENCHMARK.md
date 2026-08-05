@@ -9,8 +9,8 @@ Recommended for publication based on the completed evaluation evidence in this r
 ## Evaluation Metadata
 
 - Skill: `holohub-app-lifecycle`
-- Evaluation date: 2026-07-31
-- Evaluator version: `0.9.2`
+- Evaluation date: 2026-08-05
+- Evaluator version: `1.0.0`
 - Agents: Claude Code (`aws/anthropic/bedrock-claude-opus-4-8`), Codex (`openai/openai/gpt-5.5`)
 - Tasks: 4 evaluation tasks (2 positive, 2 negative)
 - Dataset digest: `sha256:018f6fca61cefe2c611e9a1335321e75a24c166dbe6980ffbacfbc0f9d571733` (skill-evaluator-dataset-snapshot/1)
@@ -34,12 +34,12 @@ The three-tier evaluation checks whether the skill:
 
 | Measure | Claude Code (Baseline → Skill Uplift) | Codex (Baseline → Skill Uplift) |
 |---|---:|---:|
-| Overall | 69% → 89% (+20 points) | 62% → 71% (+9 points) |
-| Security | 75% → 100% (+25 points) | 100% → 100% (±0 points) |
-| Correctness | 80% → 80% (±0 points) | 45% → 55% (+10 points) |
-| Discoverability | 75% → 100% (+25 points) | 72% → 73% (+2 points) |
-| Effectiveness | 51% → 63% (+12 points) | 29% → 50% (+21 points) |
-| Efficiency | 62% → 100% (+38 points) | 62% → 75% (+12 points) |
+| Overall | 66% → 88% (+22 points) | 67% → 79% (+12 points) |
+| Security | 100% → 100% (±0 points) | 100% → 100% (±0 points) |
+| Correctness | 50% → 80% (+30 points) | 60% → 85% (+25 points) |
+| Discoverability | 73% → 100% (+27 points) | 75% → 72% (-3 points) |
+| Effectiveness | 40% → 60% (+20 points) | 36% → 66% (+31 points) |
+| Efficiency | 68% → 100% (+32 points) | 62% → 72% (+9 points) |
 
 **How to read this table:** baseline is the same task attempted without the target skill. Uplift is `skill score - baseline score`, shown in percentage points.
 

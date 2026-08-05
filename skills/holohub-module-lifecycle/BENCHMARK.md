@@ -9,11 +9,11 @@ Recommended for publication based on the completed evaluation evidence in this r
 ## Evaluation Metadata
 
 - Skill: `holohub-module-lifecycle`
-- Evaluation date: 2026-07-31
-- Evaluator version: `0.9.2`
+- Evaluation date: 2026-08-05
+- Evaluator version: `1.0.0`
 - Agents: Claude Code (`aws/anthropic/bedrock-claude-opus-4-8`), Codex (`openai/openai/gpt-5.5`)
-- Tasks: 2 evaluation tasks (1 positive, 1 negative)
-- Dataset digest: `sha256:7b512b553c6561892c81a856b721cdd418c97eeccd35284a21c0cc728cdd2a14` (skill-evaluator-dataset-snapshot/1)
+- Tasks: 3 evaluation tasks (2 positive, 1 negative)
+- Dataset digest: `sha256:cbdb11772e761dfe177d00b040909b44f6199ac0f2c1b37d2545a438328f2c52` (skill-evaluator-dataset-snapshot/1)
 - Attempts per task: 1
 - Environment: `k8s-sandbox`
 - Tier 3 evidence: required for publication
@@ -34,12 +34,12 @@ The three-tier evaluation checks whether the skill:
 
 | Measure | Claude Code (Baseline → Skill Uplift) | Codex (Baseline → Skill Uplift) |
 |---|---:|---:|
-| Overall | 54% → 94% (+39 points) | 58% → 53% (-5 points) |
+| Overall | 58% → 89% (+31 points) | 47% → 74% (+27 points) |
 | Security | 100% → 100% (±0 points) | 100% → 100% (±0 points) |
-| Correctness | 0% → 100% (+100 points) | 30% → 30% (±0 points) |
-| Discoverability | 75% → 100% (+25 points) | 75% → 50% (-25 points) |
-| Effectiveness | 29% → 69% (+40 points) | 36% → 35% (-1 points) |
-| Efficiency | 68% → 100% (+32 points) | 50% → 50% (±0 points) |
+| Correctness | 33% → 80% (+47 points) | 33% → 67% (+33 points) |
+| Discoverability | 66% → 100% (+34 points) | 50% → 81% (+31 points) |
+| Effectiveness | 34% → 67% (+32 points) | 18% → 57% (+39 points) |
+| Efficiency | 58% → 100% (+42 points) | 33% → 67% (+33 points) |
 
 **How to read this table:** baseline is the same task attempted without the target skill. Uplift is `skill score - baseline score`, shown in percentage points.
 
@@ -51,7 +51,7 @@ Example: `47% → 92% (+45 points)` means the skill-assisted run scored 92%, 45 
 |---|---|---|---|
 | Tier 1 | Static validation | **PASSED** | 1 validator(s); 0 finding(s) |
 | Tier 2 | Semantic deduplication | **NOT RUN** | No result was recorded |
-| Tier 3 | Live agent evaluation | **PASS** | 2 agent(s); 2 task(s) |
+| Tier 3 | Live agent evaluation | **PASS** | 2 agent(s); 3 task(s) |
 
 ## Findings and Observations
 

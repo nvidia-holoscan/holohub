@@ -45,6 +45,10 @@ instead of broadening this workflow.
   naming, scaffold, metadata, implementation, build, and test scope.
 - Read [consumer and packaging](references/module-consumer-packaging.md) when a
   consuming app, editable install, or binary artifact is in scope.
+- Use HoloHub's current [create-a-module](https://github.com/nvidia-holoscan/holohub/tree/main/tutorials/holoscan-modules/create-a-module)
+  and [use-a-module](https://github.com/nvidia-holoscan/holohub/tree/main/tutorials/holoscan-modules/use-a-module)
+  tutorials as producer and consumer walkthroughs, then recheck
+  version-sensitive commands against the selected checkout and CLI contract.
 
 The selected checkout's `AGENTS.md`, local help, module guidance, schemas,
 templates, tutorials, and nearby examples are the live technical authority
