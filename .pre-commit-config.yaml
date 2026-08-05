@@ -15,6 +15,10 @@
 
 # Run `pre-commit autoupdate` to refresh to latest compatible versions.
 
+# These files are generated and covered by each skill's detached signature.
+# Formatting them after signing would invalidate the published artifact.
+exclude: '^skills/[^/]+/(BENCHMARK\.md|skill-card\.md|skill\.oms\.sig)$'
+
 repos:
   # General: pre-commit hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks
