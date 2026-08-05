@@ -197,19 +197,48 @@ add_holohub_application(my_app DEPENDS OPERATORS my_sensor_op)
 This is what tells CMake which operators to enable (`OP_my_sensor_op=ON`), which in
 turn triggers the manifest's lazy fetch for the module that provides them.
 
-### 4.4 Iterate against a local working copy
+### 4.4 Run and iterate against a local working copy
 
-When iterating against an unreleased dep, override the fetched source with
-`HOLOHUB_LOCAL_<UPPER_NAME>` (underscores in place of hyphens, all uppercase):
+For the normal immutable dependency declared in `metadata.json`, use the top-level
+wrapper. Preview and run the same command, removing only `--dryrun`:
 
 ```bash
-export HOLOHUB_LOCAL_HOLOSCAN_MY_SENSOR=/path/to/local/holoscan-my-sensor
-./holohub build my_app
+./holohub run my_app --dryrun --verbose
+./holohub run my_app --verbose
 ```
 
-The resolver emits the local path as a `FETCHCONTENT_SOURCE_DIR_<UPPER>` cache
-variable so FetchContent uses your working tree instead of cloning. The `source.ref`
-in `metadata.json` is ignored while the env var is set.
+Use the following advanced flow only when the consumer must exercise an unreleased
+local Module working tree. The source override is
+`HOLOSCAN_CLI_LOCAL_<SANITIZED_MODULE_NAME>`: replace non-alphanumeric runs in the
+dependency's `name` with underscores, trim leading and trailing underscores, and
+uppercase the result. For `holoscan-my-sensor`, use
+`HOLOSCAN_CLI_LOCAL_HOLOSCAN_MY_SENSOR`.
+
+A host export is not automatically forwarded into the project container. Mount the
+Module and set the override to its container path. First preview only the outer
+container launch:
+
+```bash
+./holohub run-container my_app \
+  --add-volume /absolute/path/holoscan-my-sensor \
+  --dryrun --verbose -- \
+  'set -eu; module_root=/workspace/volumes/holoscan-my-sensor; export HOLOSCAN_CLI_LOCAL_HOLOSCAN_MY_SENSOR="$module_root"; test -f "$module_root/metadata.json"; ./holohub run my_app --local --dryrun --verbose'
+```
+
+The outer dry run does not execute the quoted command. After reviewing it, launch
+the same container without the outer `--dryrun`; the single nested `run` remains a
+dry run and validates the mounted override:
+
+```bash
+./holohub run-container my_app \
+  --add-volume /absolute/path/holoscan-my-sensor --verbose -- \
+  'set -eu; module_root=/workspace/volumes/holoscan-my-sensor; export HOLOSCAN_CLI_LOCAL_HOLOSCAN_MY_SENSOR="$module_root"; test -f "$module_root/metadata.json"; ./holohub run my_app --local --dryrun --verbose'
+```
+
+Review that inner preview, then repeat the same outer invocation with only the inner
+`--dryrun` removed. Require configure or build evidence that uses the mounted path;
+if the output does not identify the selected source, do not claim that it did. While
+the override is set, the resolver uses the working tree instead of `source.ref`.
 
 ### 4.5 Use the operators in your code
 
@@ -248,8 +277,9 @@ target_link_libraries(my_app PRIVATE holoscan::my_sensor_op)
 
 If you are building a Holoscan Module that itself depends on another Module, use the
 `module.dependencies[]` array in your module's `metadata.json` — it follows the same
-schema as the `application.dependencies.modules[]` shown in §4.2 above. Refer to the "Create a Holoscan Module" tutorial for the full schema
-reference, the `HOLOHUB_LOCAL_*` override, and the SHA-pinning discipline.
+schema as the `application.dependencies.modules[]` shown in §4.2 above. Refer to the
+"Create a Holoscan Module" tutorial for the full schema and SHA-pinning discipline,
+and to §4.4 above for mounted-source iteration.
 
 ## 5. Path B — External C++ Project (Binary Install)
 
@@ -358,8 +388,9 @@ and best practices. A binary install (Paths B and C) is usually a simpler choice
 | Declare a Module dep (HoloHub app) | `metadata.json:application.dependencies.modules[]` |
 | Declare a transitive dep (Module → Module) | `metadata.json:module.dependencies[]` |
 | External Module reference | Include `source.{git_url, ref}` (40-char SHA) and `provides_operators` |
-| Local override | `HOLOHUB_LOCAL_<UPPER_NAME>=<path>` env var |
+| Local override | `HOLOSCAN_CLI_LOCAL_<SANITIZED_MODULE_NAME>=<container-path>` env var |
 | Build a HoloHub subproject with deps | `./holohub build <app>` |
+| Run a HoloHub subproject with deps | `./holohub run <app>` |
 | Install binary (C++) | `apt install holoscan-<name>` |
 | Install binary (Python) | `pip install holoscan-<name>` |
 | Use from C++ | `find_package(holoscan-<name> REQUIRED)` + `target_link_libraries(... holoscan::<target>)` |
@@ -378,9 +409,10 @@ and best practices. A binary install (Paths B and C) is usually a simpler choice
   Holoscan SDK wheel is installed in that same env.
 - **Resolver warns "ref is not a 40-character commit SHA".** Replace the tag or branch
   in `source.ref` with the commit SHA it resolves to.
-- **`HOLOHUB_LOCAL_*` override has no effect.** Naming: take the Module name, replace
-  hyphens with underscores, uppercase. `holoscan-my-sensor` →
-  `HOLOHUB_LOCAL_HOLOSCAN_MY_SENSOR`.
+- **`HOLOSCAN_CLI_LOCAL_*` override has no effect.** Derive the suffix from the
+  dependency `name` as described in §4.4, mount the Module into the project
+  container, and set the variable there to the container path. A host-only export is
+  not automatically forwarded.
 - **The operator is not built even though you declared it.** Under FetchContent +
   `PROJECT_IS_TOP_LEVEL` defaults, the Module's `BUILD_ALL` is `OFF`, so only the
   operators marked with `OP_<op>=ON` get built. In a HoloHub tree (Path A or
@@ -485,8 +517,8 @@ and uses the in-tree sources directly.
 
 The `source.{git_url, ref}` field is required only for external Modules; omit it entirely
 for in-tree Modules. Everything else — the build command (`./holohub build my_app`), the
-local-override mechanism (`HOLOHUB_LOCAL_*`), and the operator import — is identical to
-the external-Module flow in Path A.
+local-override mechanism (`HOLOSCAN_CLI_LOCAL_*`), and the operator import — is identical
+to the external-Module flow in Path A.
 
 See `modules/holoscan-gstreamer/metadata.json` for a live in-tree Module you can add as
 a dependency to verify your tooling end-to-end.
