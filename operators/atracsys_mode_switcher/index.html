@@ -19763,6 +19763,59 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#c" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C++
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="C++">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsmodeswitcherkeyboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::ModeSwitcherKeyboard
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -19915,6 +19968,32 @@ emits the currently selected base image, projected overlays, point clouds, and H
 <li><code>out_hw_cmd</code></li>
 </ul>
 <p>The application is responsible for providing a valid camera calibration and the marker geometry file.</p>
+<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
+<h3 id="c">C++<a class="headerlink" href="#c" title="Permanent link">#</a></h3>
+<h4 id="holoscanopsmodeswitcherkeyboard"><code>holoscan::ops::ModeSwitcherKeyboard</code><a class="headerlink" href="#holoscanopsmodeswitcherkeyboard" title="Permanent link">#</a></h4>
+<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void start(bool enabled)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void stop()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>std::optional&lt;char&gt; poll_key()</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
 
 
 

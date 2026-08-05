@@ -19902,6 +19902,117 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#c" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C++
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="C++">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#holoscanros2bridge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ros2::Bridge
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanros2bridgepublisher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ros2::Bridge::Publisher
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanros2bridgesubscriber" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ros2::Bridge::Subscriber
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanros2operator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ros2::Operator
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanros2opspublisherop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ros2::ops::PublisherOp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanros2qos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ros2::QoS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanros2opssubscriberop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ros2::ops::SubscriberOp
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -20100,6 +20211,179 @@
 <li><strong>Python API Reference</strong>: See <code>operators/holoscan_ros2/python/holoscan_ros2/</code> for implementation</li>
 <li><strong>Contributing</strong>: Follow standard Holoscan SDK contribution guidelines</li>
 </ul>
+<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
+<h3 id="c">C++<a class="headerlink" href="#c" title="Permanent link">#</a></h3>
+<h4 id="holoscanros2bridge"><code>holoscan::ros2::Bridge</code><a class="headerlink" href="#holoscanros2bridge" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Resource</code></p>
+<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Bridge(rclcpp::Node::SharedPtr node)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>Bridge(const std::string &amp;node_name, const rclcpp::NodeOptions &amp;options=rclcpp::NodeOptions())</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>Bridge(const std::string &amp;node_name, const std::string &amp;namespace_name, const rclcpp::NodeOptions &amp;options=rclcpp::NodeOptions())</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void initialize() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>bool valid() const</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>std::shared_ptr&lt;Publisher&lt;MessageT&gt;&gt; create_publisher(const std::string &amp;topic_name, const rclcpp::QoS &amp;qos)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>std::shared_ptr&lt;Subscriber&lt;MessageT, ContainerT&gt;&gt; create_subscription(const std::string &amp;topic_name, const rclcpp::QoS &amp;qos)</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanros2bridgepublisher"><code>holoscan::ros2::Bridge::Publisher</code><a class="headerlink" href="#holoscanros2bridgepublisher" title="Permanent link">#</a></h4>
+<h5 id="methods_1">Methods<a class="headerlink" href="#methods_1" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Publisher(rclcpp::Node::SharedPtr node, const std::string &amp;topic_name, const rclcpp::QoS &amp;qos)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void publish(const MessageType &amp;message)</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanros2bridgesubscriber"><code>holoscan::ros2::Bridge::Subscriber</code><a class="headerlink" href="#holoscanros2bridgesubscriber" title="Permanent link">#</a></h4>
+<h5 id="methods_2">Methods<a class="headerlink" href="#methods_2" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Subscriber(rclcpp::Node::SharedPtr node, const std::string &amp;topic_name, const rclcpp::QoS &amp;qos, typename MessageQueue::size_type message_queue_max_size=0)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>std::future&lt;MessageType&gt; receive()</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanros2operator"><code>holoscan::ros2::Operator</code><a class="headerlink" href="#holoscanros2operator" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Operator</code></p>
+<h5 id="methods_3">Methods<a class="headerlink" href="#methods_3" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void setup(holoscan::OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void initialize() override</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanros2opspublisherop"><code>holoscan::ros2::ops::PublisherOp</code><a class="headerlink" href="#holoscanros2opspublisherop" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::ros2::Operator</code></p>
+<p>ROS2 Publisher Operator for Holoscan applications.</p>
+<h5 id="methods_4">Methods<a class="headerlink" href="#methods_4" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void setup(holoscan::OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void initialize() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void publish(const MessageType &amp;message)</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanros2qos"><code>holoscan::ros2::QoS</code><a class="headerlink" href="#holoscanros2qos" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>rclcpp::QoS</code></p>
+<h5 id="methods_5">Methods<a class="headerlink" href="#methods_5" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>QoS()</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanros2opssubscriberop"><code>holoscan::ros2::ops::SubscriberOp</code><a class="headerlink" href="#holoscanros2opssubscriberop" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::ros2::Operator</code></p>
+<p>ROS2 Subscriber Operator for Holoscan applications.</p>
+<h5 id="methods_6">Methods<a class="headerlink" href="#methods_6" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void setup(holoscan::OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void initialize() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>std::future&lt;MessageType&gt; receive()</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
 
 
 

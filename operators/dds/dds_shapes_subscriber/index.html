@@ -19810,6 +19810,62 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#c" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C++
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="C++">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsddsshapessubscriberop_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::DDSShapesSubscriberOp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsddsshapessubscriberopshape" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::DDSShapesSubscriberOp::Shape
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -19958,6 +20014,51 @@ to downstream operators.</p>
 <li><strong><code>output</code></strong>: Output shapes, translated from those read from DDS</li>
 <li>type: <code>holoscan::ops::DDSShapesSubscriberOp::Shape</code></li>
 </ul>
+<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
+<h3 id="c">C++<a class="headerlink" href="#c" title="Permanent link">#</a></h3>
+<h4 id="holoscanopsddsshapessubscriberop_1"><code>holoscan::ops::DDSShapesSubscriberOp</code><a class="headerlink" href="#holoscanopsddsshapessubscriberop_1" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::ops::DDSOperatorBase</code></p>
+<p>Operator class to subscribe to DDS shapes as published by the RTI Connext Shapes demo.</p>
+<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void setup(OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void initialize() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void compute(InputContext &amp;op_input, OutputContext &amp;op_output, ExecutionContext &amp;context) override</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsddsshapessubscriberopshape"><code>holoscan::ops::DDSShapesSubscriberOp::Shape</code><a class="headerlink" href="#holoscanopsddsshapessubscriberopshape" title="Permanent link">#</a></h4>
+<p>Class used by the operator's output to describe a shape.</p>
+<h5 id="methods_1">Methods<a class="headerlink" href="#methods_1" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Shape(Type type, const std::string &amp;color, float x, float y, float width, float height)</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
 
 
 

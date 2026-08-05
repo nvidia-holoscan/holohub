@@ -20089,6 +20089,117 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#c" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C++
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="C++">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsfoxglovecompressedvideoadapterop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::FoxgloveCompressedVideoAdapterOp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsfoxglovedetectionadapterop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::FoxgloveDetectionAdapterOp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsfoxgloveposeadapterop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::FoxglovePoseAdapterOp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsfoxglovepublisherop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::FoxglovePublisherOp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsfoxglovesegmentationmaskadapterop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::FoxgloveSegmentationMaskAdapterOp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsfoxglovetensoradapterop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::FoxgloveTensorAdapterOp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopspinnedhostbufferpool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::PinnedHostBufferPool
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -21150,6 +21261,178 @@ Detection adapters can scale normalized coordinates when <code>image_width</code
 shape match the adapter. Raw image adapters infer common <code>mono8</code>, <code>rgb8</code>,
 <code>bgr8</code>, <code>rgba8</code>, and <code>bgra8</code> layouts; unusual layouts should set <code>encoding</code>,
 <code>width</code>, <code>height</code>, and <code>step</code> explicitly.</p>
+<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
+<h3 id="c">C++<a class="headerlink" href="#c" title="Permanent link">#</a></h3>
+<h4 id="holoscanopsfoxglovecompressedvideoadapterop"><code>holoscan::ops::FoxgloveCompressedVideoAdapterOp</code><a class="headerlink" href="#holoscanopsfoxglovecompressedvideoadapterop" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Operator</code></p>
+<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void setup(OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void compute(InputContext &amp;op_input, OutputContext &amp;op_output, ExecutionContext &amp;context) override</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsfoxglovedetectionadapterop"><code>holoscan::ops::FoxgloveDetectionAdapterOp</code><a class="headerlink" href="#holoscanopsfoxglovedetectionadapterop" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Operator</code></p>
+<h5 id="methods_1">Methods<a class="headerlink" href="#methods_1" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void setup(OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void compute(InputContext &amp;op_input, OutputContext &amp;op_output, ExecutionContext &amp;context) override</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsfoxgloveposeadapterop"><code>holoscan::ops::FoxglovePoseAdapterOp</code><a class="headerlink" href="#holoscanopsfoxgloveposeadapterop" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Operator</code></p>
+<h5 id="methods_2">Methods<a class="headerlink" href="#methods_2" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void setup(OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void compute(InputContext &amp;op_input, OutputContext &amp;op_output, ExecutionContext &amp;context) override</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsfoxglovepublisherop"><code>holoscan::ops::FoxglovePublisherOp</code><a class="headerlink" href="#holoscanopsfoxglovepublisherop" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Operator</code></p>
+<h5 id="methods_3">Methods<a class="headerlink" href="#methods_3" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void setup(OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void start() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void stop() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void compute(InputContext &amp;op_input, OutputContext &amp;op_output, ExecutionContext &amp;context) override</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsfoxglovesegmentationmaskadapterop"><code>holoscan::ops::FoxgloveSegmentationMaskAdapterOp</code><a class="headerlink" href="#holoscanopsfoxglovesegmentationmaskadapterop" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Operator</code></p>
+<h5 id="methods_4">Methods<a class="headerlink" href="#methods_4" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void setup(OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void compute(InputContext &amp;op_input, OutputContext &amp;op_output, ExecutionContext &amp;context) override</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsfoxglovetensoradapterop"><code>holoscan::ops::FoxgloveTensorAdapterOp</code><a class="headerlink" href="#holoscanopsfoxglovetensoradapterop" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Operator</code></p>
+<h5 id="methods_5">Methods<a class="headerlink" href="#methods_5" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void setup(OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void compute(InputContext &amp;op_input, OutputContext &amp;op_output, ExecutionContext &amp;context) override</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopspinnedhostbufferpool"><code>holoscan::ops::PinnedHostBufferPool</code><a class="headerlink" href="#holoscanopspinnedhostbufferpool" title="Permanent link">#</a></h4>
+<h5 id="methods_6">Methods<a class="headerlink" href="#methods_6" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PinnedHostBufferPool(const PinnedHostBufferPool &amp;)=delete</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>PinnedHostBufferPool &amp; operator=(const PinnedHostBufferPool &amp;)=delete</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>PinnedHostBufferPool(PinnedHostBufferPool &amp;&amp;)=delete</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>PinnedHostBufferPool &amp; operator=(PinnedHostBufferPool &amp;&amp;)=delete</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>std::byte * acquire(size_t size)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void clear()</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
 
 
 

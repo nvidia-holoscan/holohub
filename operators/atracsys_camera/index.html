@@ -7958,6 +7958,77 @@
     </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#api-reference">
+<span class="md-ellipsis">
+      
+        API Reference
+      
+    </span>
+</a>
+<nav aria-label="API Reference" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#c">
+<span class="md-ellipsis">
+      
+        C++
+      
+    </span>
+</a>
+<nav aria-label="C++" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#atracsysdevice">
+<span class="md-ellipsis">
+      
+        AtracsysDevice
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#atracsysis3dkinterface">
+<span class="md-ellipsis">
+      
+        atracsys::IS3DKInterface
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#atracsysisdkinterface">
+<span class="md-ellipsis">
+      
+        atracsys::ISDKInterface
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#reals3dkwrapper">
+<span class="md-ellipsis">
+      
+        RealS3DKWrapper
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#realsdkwrapper">
+<span class="md-ellipsis">
+      
+        RealSDKWrapper
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
 </ul>
 </nav>
 </div>
@@ -8033,6 +8104,274 @@ It is not required for the default replay build.</p>
 </ul>
 <p>This operator package is intended to be enabled explicitly as an optional dependency for
 <code>atracsys_visualizer</code> live-camera mode.</p>
+<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
+<h3 id="c">C++<a class="headerlink" href="#c" title="Permanent link">#</a></h3>
+<h4 id="atracsysdevice"><code>AtracsysDevice</code><a class="headerlink" href="#atracsysdevice" title="Permanent link">#</a></h4>
+<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AtracsysDevice &amp; instance()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void init()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void shutdown()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>ftkLibrary lib() const</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>uint64_t serial() const</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>ftkBuffer &amp; buffer()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>const std::map&lt;std::string, uint32_t&gt; &amp; options() const</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="atracsysis3dkinterface"><code>atracsys::IS3DKInterface</code><a class="headerlink" href="#atracsysis3dkinterface" title="Permanent link">#</a></h4>
+<h5 id="methods_1">Methods<a class="headerlink" href="#methods_1" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>StereoParameters * createStereoParameters()=0</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void destroyStereoParameters(StereoParameters *ptr)=0</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>bool initializeDeviceHelper(uint64_t *device_sn, ftkLibrary lib, ImageType3D *image_type)=0</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>stereo_matching_engine * createDefaultEngine()=0</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void destroyDefaultEngine(stereo_matching_engine *ptr)=0</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>GpuFrame3D * createGpu3DFrame(ImageType3D image_type)=0</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void destroyGpu3DFrame(GpuFrame3D *ptr)=0</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>bool computeDispMap(const ftkFrameQuery *frame, const stereo_matching_engine *engine, GpuFrame3D *frame3d, StereoParameters *stereo)=0</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="atracsysisdkinterface"><code>atracsys::ISDKInterface</code><a class="headerlink" href="#atracsysisdkinterface" title="Permanent link">#</a></h4>
+<h5 id="methods_2">Methods<a class="headerlink" href="#methods_2" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ftkError setInt32(ftkLibrary lib, uint64_t sn, uint32_t optID, int32_t val)=0</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>ftkError setData(ftkLibrary lib, uint64_t sn, uint32_t optID, ftkBuffer *buffer)=0</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>ftkError getLastFrame(ftkLibrary lib, uint64_t sn, ftkFrameQuery *frame, uint32_t timeout)=0</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>ftkFrameQuery * createFrame()=0</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void destroyFrame(ftkFrameQuery *frame)=0</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>ftkError setFrameOptions(bool pixels, uint32_t eventsSize, uint32_t leftRawDataSize, uint32_t rightRawDataSize, uint32_t threeDFiducialsSize, uint32_t markersSize, ftkFrameQuery *frame)=0</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>ftkError setRigidBody(ftkLibrary lib, uint64_t sn, ftkRigidBody *rigidBody)=0</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>ftkError enumerateOptions(ftkLibrary lib, uint64_t sn, ftkOptionsEnumCallback cb, void *user)=0</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>ftkError initExt(const char *config, ftkBuffer *buffer)=0</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void close(ftkLibrary *lib)=0</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>ftkError getData(ftkLibrary lib, uint64_t sn, uint32_t optID, ftkBuffer *buffer)=0</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>ftkError getInt32(ftkLibrary lib, uint64_t sn, uint32_t optID, int32_t *val)=0</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>ftkError getLastErrorString(ftkLibrary lib, uint32_t size, char *buffer)=0</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>ftkError loadBody(ftkLibrary lib, const std::string &amp;fileName, ftkRigidBody &amp;geometry)=0</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="reals3dkwrapper"><code>RealS3DKWrapper</code><a class="headerlink" href="#reals3dkwrapper" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>atracsys::IS3DKInterface</code></p>
+<h5 id="methods_3">Methods<a class="headerlink" href="#methods_3" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>StereoParameters * createStereoParameters() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void destroyStereoParameters(StereoParameters *ptr) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>bool initializeDeviceHelper(uint64_t *device_sn, ftkLibrary lib, ImageType3D *image_type) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>stereo_matching_engine * createDefaultEngine() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void destroyDefaultEngine(stereo_matching_engine *ptr) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>GpuFrame3D * createGpu3DFrame(ImageType3D image_type) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void destroyGpu3DFrame(GpuFrame3D *ptr) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>bool computeDispMap(const ftkFrameQuery *frame, const stereo_matching_engine *engine, GpuFrame3D *frame3d, StereoParameters *stereo) override</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="realsdkwrapper"><code>RealSDKWrapper</code><a class="headerlink" href="#realsdkwrapper" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>atracsys::ISDKInterface</code></p>
+<h5 id="methods_4">Methods<a class="headerlink" href="#methods_4" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ftkError setInt32(ftkLibrary lib, uint64_t sn, uint32_t optID, int32_t val) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>ftkError setData(ftkLibrary lib, uint64_t sn, uint32_t optID, ftkBuffer *buffer) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>ftkError getLastFrame(ftkLibrary lib, uint64_t sn, ftkFrameQuery *frame, uint32_t timeout) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>ftkFrameQuery * createFrame() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void destroyFrame(ftkFrameQuery *frame) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>ftkError setFrameOptions(bool pixels, uint32_t eventsSize, uint32_t leftRawDataSize, uint32_t rightRawDataSize, uint32_t threeDFiducialsSize, uint32_t markersSize, ftkFrameQuery *frame) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>ftkError setRigidBody(ftkLibrary lib, uint64_t sn, ftkRigidBody *rigidBody) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>ftkError enumerateOptions(ftkLibrary lib, uint64_t sn, ftkOptionsEnumCallback cb, void *user) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>ftkError initExt(const char *config, ftkBuffer *buffer) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void close(ftkLibrary *lib) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>ftkError getData(ftkLibrary lib, uint64_t sn, uint32_t optID, ftkBuffer *buffer) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>ftkError getInt32(ftkLibrary lib, uint64_t sn, uint32_t optID, int32_t *val) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>ftkError getLastErrorString(ftkLibrary lib, uint32_t size, char *buffer) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>ftkError loadBody(ftkLibrary lib, const std::string &amp;fileName, ftkRigidBody &amp;geometry) override</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
 </article>
 </div>
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>

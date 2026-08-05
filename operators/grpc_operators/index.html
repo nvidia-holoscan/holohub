@@ -19780,6 +19780,205 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#c" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C++
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="C++">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsapplicationfactory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::ApplicationFactory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsapplicationfactoryapplicationfactorydeleter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::ApplicationFactory::ApplicationFactoryDeleter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsasynchronousconditionqueue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::AsynchronousConditionQueue
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsconditionvariablequeue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::ConditionVariableQueue
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsentityclient" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::EntityClient
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsentitycliententitystreaminternal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::EntityClient::EntityStreamInternal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsentityclientservice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::EntityClientService
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsholoscanentityserviceimplentitystreaminternal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::HoloscanEntityServiceImpl::EntityStreamInternal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsholoscanentityserviceimpl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::HoloscanEntityServiceImpl
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsgrpcclientrequestop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::GrpcClientRequestOp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsgrpcclientresponseop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::GrpcClientResponseOp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsgrpcserverrequestop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::GrpcServerRequestOp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsgrpcserverresponseop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::GrpcServerResponseOp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsholoscangrpcapplication" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::HoloscanGrpcApplication
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopstensorproto" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::TensorProto
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -19899,6 +20098,488 @@
 <li><code>common</code>: Tensor &lt;-&gt; protobuf converters and Holoscan Resources to handle incoming and outgoing data.</li>
 </ul>
 <p>Please refer to the <a href="../../applications/distributed/grpc/grpc_h264_endoscopy_tool_tracking/">gRPC h.264 Endoscopy Tool Tracking</a> application for additional details.</p>
+<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
+<h3 id="c">C++<a class="headerlink" href="#c" title="Permanent link">#</a></h3>
+<h4 id="holoscanopsapplicationfactory"><code>holoscan::ops::ApplicationFactory</code><a class="headerlink" href="#holoscanopsapplicationfactory" title="Permanent link">#</a></h4>
+<p>A factory class for creating and managing instances of HoloscanGrpcApplications.</p>
+<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ApplicationFactory(const ApplicationFactory &amp;)=delete</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>ApplicationFactory &amp; operator=(const ApplicationFactory &amp;)=delete</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void register_application(const std::string &amp;service_name, create_application_instance_func func)</code></td>
+<td>Register an application creation function with a service name.</td>
+</tr>
+<tr>
+<td><code>std::shared_ptr&lt;HoloscanGrpcApplication&gt; create_application_instance(const std::string &amp;service_name, std::queue&lt; std::shared_ptr&lt; nvidia::gxf::Entity &gt; &gt; &amp;incoming_request_queue, std::queue&lt; std::shared_ptr&lt; EntityResponse &gt; &gt; &amp;outgoing_response_queue)</code></td>
+<td>Create an instance of HoloscanGrpcApplication.</td>
+</tr>
+<tr>
+<td><code>void destroy_application_instance(std::shared_ptr&lt; HoloscanGrpcApplication &gt; application_instance)</code></td>
+<td>Destroy an instance of HoloscanGrpcApplication.</td>
+</tr>
+<tr>
+<td><code>std::shared_ptr&lt;ApplicationFactory&gt; get_instance()</code></td>
+<td>Get the singleton instance of ApplicationFactory.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsapplicationfactoryapplicationfactorydeleter"><code>holoscan::ops::ApplicationFactory::ApplicationFactoryDeleter</code><a class="headerlink" href="#holoscanopsapplicationfactoryapplicationfactorydeleter" title="Permanent link">#</a></h4>
+<p>A custom deleter for ApplicationFactory.</p>
+<h5 id="methods_1">Methods<a class="headerlink" href="#methods_1" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void operator()(ApplicationFactory *factory)</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsasynchronousconditionqueue"><code>holoscan::ops::AsynchronousConditionQueue</code><a class="headerlink" href="#holoscanopsasynchronousconditionqueue" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Resource</code></p>
+<p>This class is a Holoscan Resource that is responsible for storing a queue of data entities.</p>
+<h5 id="methods_2">Methods<a class="headerlink" href="#methods_2" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AsynchronousConditionQueue(std::shared_ptr&lt; AsynchronousCondition &gt; request_available_condition)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void push(DataT entity)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>DataT pop()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>bool empty()</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsconditionvariablequeue"><code>holoscan::ops::ConditionVariableQueue</code><a class="headerlink" href="#holoscanopsconditionvariablequeue" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Resource</code></p>
+<h5 id="methods_3">Methods<a class="headerlink" href="#methods_3" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ConditionVariableQueue()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>ConditionVariableQueue(std::queue&lt; DataT &gt; &amp;queue)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void push(DataT value)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>DataT pop()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>bool empty()</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsentityclient"><code>holoscan::ops::EntityClient</code><a class="headerlink" href="#holoscanopsentityclient" title="Permanent link">#</a></h4>
+<p>A client class for handling gRPC communication with an entity server.</p>
+<h5 id="methods_4">Methods<a class="headerlink" href="#methods_4" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>EntityClient(const std::string &amp;server_address, const uint32_t rpc_timeout, std::shared_ptr&lt; ConditionVariableQueue&lt; std::shared_ptr&lt; EntityRequest &gt; &gt; &gt; request_queue, std::shared_ptr&lt; AsynchronousConditionQueue&lt; std::shared_ptr&lt; nvidia::gxf::Entity &gt; &gt; &gt; response_queue)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void EntityStream(on_new_response_available_callback response_cb, on_rpc_completed_callback rpc_completed_cb)</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsentitycliententitystreaminternal"><code>holoscan::ops::EntityClient::EntityStreamInternal</code><a class="headerlink" href="#holoscanopsentitycliententitystreaminternal" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>grpc::ClientBidiReactor&lt; EntityRequest, EntityResponse &gt;</code></p>
+<h5 id="methods_5">Methods<a class="headerlink" href="#methods_5" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>EntityStreamInternal(EntityClient *client, on_new_response_available_callback response_cb, on_rpc_completed_callback rpc_completed_cb, uint32_t rpc_timeout)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void OnWriteDone(bool ok) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void OnReadDone(bool ok) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void OnDone(const grpc::Status &amp;status) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>Status Await()</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsentityclientservice"><code>holoscan::ops::EntityClientService</code><a class="headerlink" href="#holoscanopsentityclientservice" title="Permanent link">#</a></h4>
+<p>A service class for handling gRPC client operations.</p>
+<h5 id="methods_6">Methods<a class="headerlink" href="#methods_6" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>EntityClientService(const std::string &amp;server_address, const uint32_t rpc_timeout, const bool interrupt, std::shared_ptr&lt; ConditionVariableQueue&lt; std::shared_ptr&lt; EntityRequest &gt; &gt; &gt; request_queue, std::shared_ptr&lt; AsynchronousConditionQueue&lt; std::shared_ptr&lt; nvidia::gxf::Entity &gt; &gt; &gt; response_queue, std::shared_ptr&lt; GrpcClientRequestOp &gt; grpc_request_operator)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void start_entity_stream()</code></td>
+<td>Starts the entity stream RPC operation.</td>
+</tr>
+<tr>
+<td><code>void stop_entity_stream()</code></td>
+<td>Stops the entity stream RPC operation.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsholoscanentityserviceimplentitystreaminternal"><code>holoscan::ops::HoloscanEntityServiceImpl::EntityStreamInternal</code><a class="headerlink" href="#holoscanopsholoscanentityserviceimplentitystreaminternal" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>grpc::ServerBidiReactor&lt; EntityRequest, EntityResponse &gt;</code></p>
+<h5 id="methods_7">Methods<a class="headerlink" href="#methods_7" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>EntityStreamInternal(HoloscanEntityServiceImpl *server, std::shared_ptr&lt; HoloscanGrpcApplication &gt; app, on_entity_stream_rpc_complete entity_stream_rpc_complete)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void OnWriteDone(bool ok) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void OnReadDone(bool ok) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void OnDone() override</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsholoscanentityserviceimpl"><code>holoscan::ops::HoloscanEntityServiceImpl</code><a class="headerlink" href="#holoscanopsholoscanentityserviceimpl" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>Entity::CallbackService</code></p>
+<p>Implementation of the gRPC Entity Service for Holoscan.</p>
+<h5 id="methods_8">Methods<a class="headerlink" href="#methods_8" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>HoloscanEntityServiceImpl(on_new_entity_stream_rpc new_entity_stream_rpc, on_entity_stream_rpc_complete entity_stream_rpc_complete)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>grpc::ServerBidiReactor&lt;EntityRequest, EntityResponse&gt; * EntityStream(CallbackServerContext *context) override</code></td>
+<td>Handles the bidirectional streaming of entity requests and responses.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsgrpcclientrequestop"><code>holoscan::ops::GrpcClientRequestOp</code><a class="headerlink" href="#holoscanopsgrpcclientrequestop" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Operator</code></p>
+<h5 id="methods_9">Methods<a class="headerlink" href="#methods_9" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void setup(OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void compute(InputContext &amp;op_input, OutputContext &amp;op_output, ExecutionContext &amp;context) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>std::shared_ptr&lt;Allocator&gt; allocator()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>Executor &amp; executor()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>const cudaStream_t get_cuda_stream()</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsgrpcclientresponseop"><code>holoscan::ops::GrpcClientResponseOp</code><a class="headerlink" href="#holoscanopsgrpcclientresponseop" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Operator</code></p>
+<p>A Holoscan Operator class for passing data received from gRPC server to downstream operators.</p>
+<h5 id="methods_10">Methods<a class="headerlink" href="#methods_10" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void start() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void stop() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void initialize() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void setup(OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void compute(InputContext &amp;op_input, OutputContext &amp;op_output, ExecutionContext &amp;context) override</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsgrpcserverrequestop"><code>holoscan::ops::GrpcServerRequestOp</code><a class="headerlink" href="#holoscanopsgrpcserverrequestop" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Operator</code></p>
+<p>A Holoscan Operator class for handling incoming gRPC requests.</p>
+<h5 id="methods_11">Methods<a class="headerlink" href="#methods_11" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void setup(OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void compute(InputContext &amp;op_input, OutputContext &amp;op_output, ExecutionContext &amp;context) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>std::shared_ptr&lt;UnboundedAllocator&gt; allocator()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>const uint32_t rpc_timeout()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>const cudaStream_t get_cuda_stream()</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsgrpcserverresponseop"><code>holoscan::ops::GrpcServerResponseOp</code><a class="headerlink" href="#holoscanopsgrpcserverresponseop" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Operator</code></p>
+<p>A Holoscan Operator class for handling outgoing results.</p>
+<h5 id="methods_12">Methods<a class="headerlink" href="#methods_12" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void setup(OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void compute(InputContext &amp;op_input, OutputContext &amp;op_output, ExecutionContext &amp;context) override</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsholoscangrpcapplication"><code>holoscan::ops::HoloscanGrpcApplication</code><a class="headerlink" href="#holoscanopsholoscangrpcapplication" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Application</code></p>
+<p>A class that represents a gRPC application for Holoscan.</p>
+<h5 id="methods_13">Methods<a class="headerlink" href="#methods_13" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>HoloscanGrpcApplication(std::queue&lt; std::shared_ptr&lt; nvidia::gxf::Entity &gt; &gt; &amp;incoming_request_queue, std::queue&lt; std::shared_ptr&lt; EntityResponse &gt; &gt; &amp;outgoing_response_queue)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void compose() override</code></td>
+<td>Composes the gRPC application by setting up necessary components and configurations.</td>
+</tr>
+<tr>
+<td><code>void set_scheduler(const std::string &amp;config_name)</code></td>
+<td>Sets the scheduler configuration for the Holoscan application.</td>
+</tr>
+<tr>
+<td><code>void set_data_path(const std::string path)</code></td>
+<td>Sets the data path.</td>
+</tr>
+<tr>
+<td><code>void enqueue_request(const EntityRequest &amp;request)</code></td>
+<td>Enqueues an EntityRequest for processing.</td>
+</tr>
+<tr>
+<td><code>void enqueue_response(std::shared_ptr&lt; EntityResponse &gt; response)</code></td>
+<td>Enqueues an EntityResponse to be sent to the client.</td>
+</tr>
+<tr>
+<td><code>bool is_response_available()</code></td>
+<td>Checks if a response is available.</td>
+</tr>
+<tr>
+<td><code>std::shared_ptr&lt;EntityResponse&gt; dequeue_response()</code></td>
+<td>Dequeues a response from the internal queue.</td>
+</tr>
+<tr>
+<td><code>const uint32_t rpc_timeout()</code></td>
+<td>Retrieves the RPC call timeout value.</td>
+</tr>
+<tr>
+<td><code>void start_streaming()</code></td>
+<td>Starts the streaming process.</td>
+</tr>
+<tr>
+<td><code>void stop_streaming()</code></td>
+<td>Stops the streaming process.</td>
+</tr>
+<tr>
+<td><code>std::shared_ptr&lt;GrpcServerRequestOp&gt; get_grpc_request_op() const</code></td>
+<td>Retrieves the gRPC server request operator.</td>
+</tr>
+<tr>
+<td><code>std::shared_ptr&lt;GrpcServerResponseOp&gt; get_grpc_response_op() const</code></td>
+<td>Retrieves the gRPC server response operator.</td>
+</tr>
+<tr>
+<td><code>std::shared_ptr&lt;ConditionVariableQueue&lt;std::shared_ptr&lt;nvidia::gxf::Entity&gt;&gt;&gt; get_request_queue() const</code></td>
+<td>Retrieves the request queue.</td>
+</tr>
+<tr>
+<td><code>std::shared_ptr&lt;ConditionVariableQueue&lt;std::shared_ptr&lt;EntityResponse&gt;&gt;&gt; get_response_queue() const</code></td>
+<td>Retrieves the response queue.</td>
+</tr>
+<tr>
+<td><code>std::shared_ptr&lt;BooleanCondition&gt; get_streaming_enabled() const</code></td>
+<td>Retrieves the current state of the streaming enabled condition.</td>
+</tr>
+<tr>
+<td><code>std::string get_data_path() const</code></td>
+<td>Retrieves the data path.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopstensorproto"><code>holoscan::ops::TensorProto</code><a class="headerlink" href="#holoscanopstensorproto" title="Permanent link">#</a></h4>
+<h5 id="methods_14">Methods<a class="headerlink" href="#methods_14" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void tensor_to_entity_request(const nvidia::gxf::Entity &amp;gxf_entity, std::shared_ptr&lt; EntityRequest &gt; request, const cudaStream_t cuda_stream)</code></td>
+<td>Converts a GXF entity to an EntityRequest.</td>
+</tr>
+<tr>
+<td><code>void tensor_to_entity_response(const nvidia::gxf::Entity &amp;gxf_entity, std::shared_ptr&lt; EntityResponse &gt; response, const cudaStream_t cuda_stream)</code></td>
+<td>Converts a GXF entity to an EntityResponse.</td>
+</tr>
+<tr>
+<td><code>void entity_request_to_tensor(const EntityRequest *entity_request, nvidia::gxf::Entity &amp;gxf_entity, nvidia::gxf::Handle&lt; nvidia::gxf::Allocator &gt; gxf_allocator, const cudaStream_t cuda_stream)</code></td>
+<td>Converts an EntityRequest to a GXF entity.</td>
+</tr>
+<tr>
+<td><code>void entity_response_to_tensor(const EntityResponse &amp;entity_request, nvidia::gxf::Entity &amp;gxf_entity, nvidia::gxf::Handle&lt; nvidia::gxf::Allocator &gt; gxf_allocator, const cudaStream_t cuda_stream)</code></td>
+<td>Converts an EntityResponse to a GXF entity.</td>
+</tr>
+</tbody>
+</table>
 
 
 

@@ -19804,16 +19804,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#python" class="md-nav__link">
+  <a href="#holoscanopsvtkrendererop" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Python
+        holoscan::ops::VtkRendererOp
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Python">
-      <ul class="md-nav__list">
+</li>
         
           <li class="md-nav__item">
   <a href="#vtkrendererop" class="md-nav__link">
@@ -19823,11 +19822,6 @@
       
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
         
@@ -19984,7 +19978,37 @@ which will only create the image and tag it as <code>holohub:vtk_renderer</code>
 <li>type: <code>std::vector&lt;std::string&gt;&gt;</code></li>
 </ul>
 <h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
-<h3 id="python">Python<a class="headerlink" href="#python" title="Permanent link">#</a></h3>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">C++</label><label for="__tabbed_1_2">Python</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<h4 id="holoscanopsvtkrendererop"><code>holoscan::ops::VtkRendererOp</code><a class="headerlink" href="#holoscanopsvtkrendererop" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Operator</code></p>
+<p>This operator is used to render the video stream and annotations on the screen.</p>
+<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void setup(OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void start() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void compute(InputContext &amp;op_input, OutputContext &amp;, ExecutionContext &amp;context) override</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="tabbed-block">
 <h4 id="vtkrendererop"><code>VtkRendererOp</code><a class="headerlink" href="#vtkrendererop" title="Permanent link">#</a></h4>
 <p>Operator for using VTK for rendering.</p>
 <p><strong>==Named Inputs==</strong></p>
@@ -20002,6 +20026,9 @@ window_name: std::string
     Compositor window name.
 name : str, optional
     The name of the operator.</p>
+</div>
+</div>
+</div>
 
 
 

@@ -20220,16 +20220,169 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#python" class="md-nav__link">
+  <a href="#holoscanopscommand" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Python
+        holoscan::ops::Command
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Python">
-      <ul class="md-nav__list">
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopscommandalloc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::CommandAlloc
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopscommandinput" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::CommandInput
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopscommandlaunch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::CommandLaunch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopscommandoutput" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::CommandOutput
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopscommandparameter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::CommandParameter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopscommandreceivecudastream" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::CommandReceiveCudaStream
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopscommandsizeof" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::CommandSizeOf
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopscommandstrideof" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::CommandStrideOf
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopscommandworkspace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::CommandWorkspace
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopscommandzeros" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::CommandZeros
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsnullable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::Nullable
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsscopedpushcucontext" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::ScopedPushCuContext
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsslangshadercompiler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::SlangShaderCompiler
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsslangshaderop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::SlangShaderOp
+      
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#slangshaderop" class="md-nav__link">
@@ -20239,11 +20392,6 @@
       
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
         
@@ -20659,7 +20807,389 @@ void main(uint3 tid : SV_DispatchThreadID) {
 <h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">#</a></h2>
 <p>This operator is licensed under the Apache License 2.0, same as the HoloHub project.</p>
 <h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
-<h3 id="python">Python<a class="headerlink" href="#python" title="Permanent link">#</a></h3>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">C++</label><label for="__tabbed_1_2">Python</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<h4 id="holoscanopscommand"><code>holoscan::ops::Command</code><a class="headerlink" href="#holoscanopscommand" title="Permanent link">#</a></h4>
+<p>Abstract base class for all command types.</p>
+<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void execute(CommandWorkspace &amp;workspace)=0</code></td>
+<td>Executes the command using the provided workspace.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopscommandalloc"><code>holoscan::ops::CommandAlloc</code><a class="headerlink" href="#holoscanopscommandalloc" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::ops::Command</code></p>
+<p>Command for allocating memory with size information.</p>
+<h5 id="methods_1">Methods<a class="headerlink" href="#methods_1" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CommandAlloc(const std::string &amp;port_name, const std::string &amp;item_name, const std::string &amp;resource_name, const std::string &amp;reference_name, uint32_t size_x, uint32_t size_y, uint32_t size_z, const std::string &amp;element_type, uint32_t element_count, const Parameter&lt; std::shared_ptr&lt; Allocator &gt; &gt; &amp;allocator, size_t parameter_offset)</code></td>
+<td>Constructs an allocation command with size information.</td>
+</tr>
+<tr>
+<td><code>CommandAlloc()=delete</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void execute(CommandWorkspace &amp;workspace) override</code></td>
+<td>Executes the allocation command.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopscommandinput"><code>holoscan::ops::CommandInput</code><a class="headerlink" href="#holoscanopscommandinput" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::ops::Command</code></p>
+<p>Command for handling input port operations.</p>
+<h5 id="methods_2">Methods<a class="headerlink" href="#methods_2" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CommandInput(const std::string &amp;port_name, const std::string &amp;item_name, const std::string &amp;resource_name, size_t parameter_offset)</code></td>
+<td>Constructs an input command.</td>
+</tr>
+<tr>
+<td><code>CommandInput()=delete</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void execute(CommandWorkspace &amp;workspace) override</code></td>
+<td>Executes the input command.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopscommandlaunch"><code>holoscan::ops::CommandLaunch</code><a class="headerlink" href="#holoscanopscommandlaunch" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::ops::Command</code></p>
+<p>Command for launching CUDA kernels.</p>
+<h5 id="methods_3">Methods<a class="headerlink" href="#methods_3" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CommandLaunch(const std::string &amp;name, SlangShaderCompiler *shader_compiler, dim3 thread_group_size, const std::string &amp;invocations_size_of_name, dim3 invocations)</code></td>
+<td>Constructs a kernel launch command.</td>
+</tr>
+<tr>
+<td><code>CommandLaunch()=delete</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void execute(CommandWorkspace &amp;workspace) override</code></td>
+<td>Executes the kernel launch command.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopscommandoutput"><code>holoscan::ops::CommandOutput</code><a class="headerlink" href="#holoscanopscommandoutput" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::ops::Command</code></p>
+<p>Command for handling output port operations.</p>
+<h5 id="methods_4">Methods<a class="headerlink" href="#methods_4" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CommandOutput(const std::string &amp;port_name, const std::string &amp;item_name, const std::string &amp;resource_name)</code></td>
+<td>Constructs an output command.</td>
+</tr>
+<tr>
+<td><code>CommandOutput()=delete</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void execute(CommandWorkspace &amp;workspace) override</code></td>
+<td>Executes the output command.</td>
+</tr>
+<tr>
+<td><code>const std::string &amp; port_name() const</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>const std::string &amp; item_name() const</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopscommandparameter"><code>holoscan::ops::CommandParameter</code><a class="headerlink" href="#holoscanopscommandparameter" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::ops::Command</code></p>
+<p>Command for managing parameter values.</p>
+<h5 id="methods_5">Methods<a class="headerlink" href="#methods_5" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CommandParameter(OperatorSpec &amp;spec, Parameter&lt; typeT &gt; *param, const std::string &amp;name, size_t parameter_offset)</code></td>
+<td>Constructs a parameter command.</td>
+</tr>
+<tr>
+<td><code>CommandParameter()=delete</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void execute(CommandWorkspace &amp;workspace) override</code></td>
+<td>Executes the parameter command.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopscommandreceivecudastream"><code>holoscan::ops::CommandReceiveCudaStream</code><a class="headerlink" href="#holoscanopscommandreceivecudastream" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::ops::Command</code></p>
+<p>Command for receiving a CUDA stream.</p>
+<h5 id="methods_6">Methods<a class="headerlink" href="#methods_6" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void execute(CommandWorkspace &amp;workspace) override</code></td>
+<td>Executes the CUDA stream receive command.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopscommandsizeof"><code>holoscan::ops::CommandSizeOf</code><a class="headerlink" href="#holoscanopscommandsizeof" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::ops::Command</code></p>
+<p>Command for handling size-of operations.</p>
+<h5 id="methods_7">Methods<a class="headerlink" href="#methods_7" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CommandSizeOf(const std::string &amp;parameter_name, const std::string &amp;reference_port_name, size_t parameter_offset)</code></td>
+<td>Constructs a size-of command.</td>
+</tr>
+<tr>
+<td><code>CommandSizeOf()=delete</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void execute(CommandWorkspace &amp;workspace) override</code></td>
+<td>Executes the size-of command.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopscommandstrideof"><code>holoscan::ops::CommandStrideOf</code><a class="headerlink" href="#holoscanopscommandstrideof" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::ops::Command</code></p>
+<p>Command for handling stride-of operations.</p>
+<h5 id="methods_8">Methods<a class="headerlink" href="#methods_8" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CommandStrideOf(const std::string &amp;parameter_name, const std::string &amp;reference_port_name, size_t parameter_offset)</code></td>
+<td>Constructs a size-of command.</td>
+</tr>
+<tr>
+<td><code>CommandStrideOf()=delete</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void execute(CommandWorkspace &amp;workspace) override</code></td>
+<td>Executes the size-of command.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopscommandworkspace"><code>holoscan::ops::CommandWorkspace</code><a class="headerlink" href="#holoscanopscommandworkspace" title="Permanent link">#</a></h4>
+<p>Workspace for command execution containing input/output contexts and shared resources.</p>
+<h5 id="methods_9">Methods<a class="headerlink" href="#methods_9" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CommandWorkspace(InputContext &amp;op_input, OutputContext &amp;op_output, ExecutionContext &amp;context)</code></td>
+<td>Constructs a command workspace with the provided contexts.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopscommandzeros"><code>holoscan::ops::CommandZeros</code><a class="headerlink" href="#holoscanopscommandzeros" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::ops::Command</code></p>
+<p>Command for initializing resources to zero.</p>
+<h5 id="methods_10">Methods<a class="headerlink" href="#methods_10" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CommandZeros(const std::string &amp;resource_name)</code></td>
+<td>Constructs a zeros command.</td>
+</tr>
+<tr>
+<td><code>CommandZeros()=delete</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void execute(CommandWorkspace &amp;workspace) override</code></td>
+<td>Executes the zeros command.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsnullable"><code>holoscan::ops::Nullable</code><a class="headerlink" href="#holoscanopsnullable" title="Permanent link">#</a></h4>
+<p>Helper class for using handles with std::unique_ptr which requires that a custom handle type satisfies NullablePointer https://en.cppreference.com/w/cpp/named_req/NullablePointer.
+T
+type to hold</p>
+<h5 id="methods_11">Methods<a class="headerlink" href="#methods_11" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Nullable(T value=0)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>Nullable(std::nullptr_t)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>operator T() const</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>operator bool()</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsscopedpushcucontext"><code>holoscan::ops::ScopedPushCuContext</code><a class="headerlink" href="#holoscanopsscopedpushcucontext" title="Permanent link">#</a></h4>
+<h5 id="methods_12">Methods<a class="headerlink" href="#methods_12" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ScopedPushCuContext(CUcontext cuda_context)</code></td>
+<td>Construct a new scoped cuda context object.</td>
+</tr>
+<tr>
+<td><code>ScopedPushCuContext()=delete</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsslangshadercompiler"><code>holoscan::ops::SlangShaderCompiler</code><a class="headerlink" href="#holoscanopsslangshadercompiler" title="Permanent link">#</a></h4>
+<p>Manages Slang shader compilation and CUDA kernel retrieval.</p>
+<h5 id="methods_13">Methods<a class="headerlink" href="#methods_13" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SlangShaderCompiler(const Slang::ComPtr&lt; slang::ISession &gt; &amp;session, const std::string &amp;shader_source)</code></td>
+<td>Constructs a SlangShaderCompiler with the given session and shader source.</td>
+</tr>
+<tr>
+<td><code>SlangShaderCompiler()=delete</code></td>
+<td>Deleted default constructor.</td>
+</tr>
+<tr>
+<td><code>nlohmann::json get_reflection()</code></td>
+<td>Retrieves reflection information about the compiled shader.</td>
+</tr>
+<tr>
+<td><code>CUkernel get_kernel(const std::string &amp;name)</code></td>
+<td>Retrieves a CUDA kernel function by name.</td>
+</tr>
+<tr>
+<td><code>void update_global_params(const std::string &amp;name, const std::vector&lt; uint8_t &gt; &amp;shader_parameters, cudaStream_t stream)</code></td>
+<td>Updates global parameters for the shader.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsslangshaderop"><code>holoscan::ops::SlangShaderOp</code><a class="headerlink" href="#holoscanopsslangshaderop" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Operator</code></p>
+<p>Slang shader operator.</p>
+<h5 id="methods_14">Methods<a class="headerlink" href="#methods_14" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void setup(OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void initialize() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void compute(InputContext &amp;op_input, OutputContext &amp;op_output, ExecutionContext &amp;context) override</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="tabbed-block">
 <h4 id="slangshaderop"><code>SlangShaderOp</code><a class="headerlink" href="#slangshaderop" title="Permanent link">#</a></h4>
 <p>The <code>slang_shader</code> operator runs a Slang shader.</p>
 <h5 id="constructor-parameters">Constructor Parameters<a class="headerlink" href="#constructor-parameters" title="Permanent link">#</a></h5>
@@ -20711,11 +21241,14 @@ void main(uint3 tid : SV_DispatchThreadID) {
 </tr>
 </tbody>
 </table>
-<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<h5 id="methods_15">Methods<a class="headerlink" href="#methods_15" title="Permanent link">#</a></h5>
 <ul>
 <li><strong><code>initialize</code></strong>: Initialize the operator.</li>
 <li><strong><code>setup</code></strong>: Define the operator specification.</li>
 </ul>
+</div>
+</div>
+</div>
 
 
 

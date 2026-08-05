@@ -19852,6 +19852,73 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#c_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C++
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="C++">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hololinkoperatorsdocacq" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hololink::operators::DocaCq
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hololinkoperatorsdocaqp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hololink::operators::DocaQp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hololinkoperatorsdocarocereceiverop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hololink::operators::DocaRoceReceiverOp
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -20114,6 +20181,112 @@ is selected:</p>
 <li><code>CUDA</code> - CUDA driver and runtime APIs</li>
 <li><code>fmt</code> - Formatting library</li>
 </ul>
+<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
+<h3 id="c_1">C++<a class="headerlink" href="#c_1" title="Permanent link">#</a></h3>
+<h4 id="hololinkoperatorsdocacq"><code>hololink::operators::DocaCq</code><a class="headerlink" href="#hololinkoperatorsdocacq" title="Permanent link">#</a></h4>
+<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DocaCq(uint32_t cqe_num, struct doca_gpu *gdev, struct doca_dev *ndev, struct doca_uar *uar, struct doca_verbs_context *vctx, bool umem_cpu)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>doca_error_t create()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>struct doca_verbs_cq * get() const</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="hololinkoperatorsdocaqp"><code>hololink::operators::DocaQp</code><a class="headerlink" href="#hololinkoperatorsdocaqp" title="Permanent link">#</a></h4>
+<h5 id="methods_1">Methods<a class="headerlink" href="#methods_1" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DocaQp(uint32_t wqe_num, struct doca_gpu *gdev, struct doca_dev *ndev, struct doca_uar *uar, struct doca_verbs_context *vctx, struct doca_verbs_pd *vpd, struct doca_verbs_cq *cq_rq, struct doca_verbs_cq *cq_sq, bool umem_cpu)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>doca_error_t create(struct doca_verbs_context *verbs_ctx, size_t frame_size)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>doca_error_t create_ring(size_t stride_sz, unsigned stride_num, struct ibv_pd *ibv_pd)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>doca_error_t connect(struct doca_verbs_gid &amp;doca_rgid, uint32_t gid_index, uint32_t dest_qp_num)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>struct doca_verbs_qp * get() const</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>struct doca_gpu_verbs_qp * get_gpu() const</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>struct doca_gpu_dev_verbs_qp * get_gpu_dev() const</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="hololinkoperatorsdocarocereceiverop"><code>hololink::operators::DocaRoceReceiverOp</code><a class="headerlink" href="#hololinkoperatorsdocarocereceiverop" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::GPUResidentOperator</code></p>
+<p>GPU-resident operator for DOCA GPUNetIO RoCE reception.
+Used as the data-ready handler: its kernel runs inside the CUDA Graph WHILE node, performs a non-blocking CQ check for an RDMA Write completion, and returns CTRL_DATA_NOT_READY if none is available yet. When a completion arrives it selects the received frame (writing its address to chosen_frame_memory_) and marks CTRL_DATA_READY so the rest of the pipeline proceeds.
+All DOCA resource creation (verbs context, CQ, QP, ring buffer, GPU export) and HSB authentication/configuration happen in initialize().</p>
+<h5 id="methods_2">Methods<a class="headerlink" href="#methods_2" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void setup(holoscan::OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void initialize() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void start() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void stop() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void compute(holoscan::InputContext &amp;, holoscan::OutputContext &amp;, holoscan::ExecutionContext &amp;) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void set_on_chosen_frame_memory_ready(std::function&lt; void(unsigned char **)&gt; callback)</code></td>
+<td>Register a callback invoked during initialize() once chosen_frame_memory_ has been allocated. The callback receives the device pointer-to-pointer so the caller can publish it to the pipeline's frame source operator.</td>
+</tr>
+</tbody>
+</table>
 
 
 

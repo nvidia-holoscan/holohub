@@ -19814,6 +19814,73 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#c" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C++
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="C++">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#openglrenderer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OpenGLRenderer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qtholoscanvideo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        QtHoloscanVideo
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsqtvideoop_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::QtVideoOp
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -19947,6 +20014,98 @@
 <li><strong><code>input</code></strong>: Input frame data</li>
 <li>type: <code>nvidia::gxf::Tensor</code> or <code>nvidia::gxf::VideoBuffer</code></li>
 </ul>
+<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
+<h3 id="c">C++<a class="headerlink" href="#c" title="Permanent link">#</a></h3>
+<h4 id="openglrenderer"><code>OpenGLRenderer</code><a class="headerlink" href="#openglrenderer" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>QObject</code>, <code>QOpenGLExtraFunctions</code></p>
+<p>This class is responsible for rendering the image to the QtHoloscanVideo item.</p>
+<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>OpenGLRenderer(QtHoloscanSharedData *shared_data)</code></td>
+<td>Construct a new OpenGLRenderer object.</td>
+</tr>
+<tr>
+<td><code>OpenGLRenderer()=delete</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void setGeometry(const QRectF &amp;geometry)</code></td>
+<td>Set the geometry of the render area.</td>
+</tr>
+<tr>
+<td><code>void setWindow(QQuickWindow *window)</code></td>
+<td>Set the window object the renderer should use.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="qtholoscanvideo"><code>QtHoloscanVideo</code><a class="headerlink" href="#qtholoscanvideo" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>QQuickItem</code></p>
+<p>This class is a QQuickItem which displays the video frames received by QtVideoOp.</p>
+<h5 id="methods_1">Methods<a class="headerlink" href="#methods_1" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>QtHoloscanVideo()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void processBuffer(void *pointer, const nvidia::gxf::VideoBufferInfo &amp;video_buffer_info, cudaEvent_t cuda_event)</code></td>
+<td>Process a video buffer.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsqtvideoop_1"><code>holoscan::ops::QtVideoOp</code><a class="headerlink" href="#holoscanopsqtvideoop_1" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Operator</code></p>
+<p>This operator inputs VideoBuffer or Tensor and displays it with the QtHoloscanVideo QtQuick item.</p>
+<h5 id="methods_2">Methods<a class="headerlink" href="#methods_2" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>QtVideoOp()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void initialize() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void start() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void stop() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void setup(holoscan::OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void compute(holoscan::InputContext &amp;op_input, holoscan::OutputContext &amp;op_output, holoscan::ExecutionContext &amp;context) override</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
 
 
 

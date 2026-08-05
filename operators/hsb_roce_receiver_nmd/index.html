@@ -19891,6 +19891,62 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#c_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C++
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="C++">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hololinkoperatorsrocereceivernohostmetadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hololink::operators::RoceReceiverNoHostMetadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hololinkoperatorsrocereceiverop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hololink::operators::RoceReceiverOp
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -20173,6 +20229,75 @@ It has an option to skip metadata processing on the host, so that metadata is ne
 <li><code>CUDA</code> - CUDA driver API</li>
 <li><code>fmt</code> - Formatting library</li>
 </ul>
+<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
+<h3 id="c_1">C++<a class="headerlink" href="#c_1" title="Permanent link">#</a></h3>
+<h4 id="hololinkoperatorsrocereceivernohostmetadata"><code>hololink::operators::RoceReceiverNoHostMetadata</code><a class="headerlink" href="#hololinkoperatorsrocereceivernohostmetadata" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>RoceReceiver</code></p>
+<p>RoceReceiver variant that keeps metadata on the GPU and avoids host copies.</p>
+<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void copy_metadata_to_host(unsigned current_page) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>const Hololink::FrameMetadata get_frame_metadata() override</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="hololinkoperatorsrocereceiverop"><code>hololink::operators::RoceReceiverOp</code><a class="headerlink" href="#hololinkoperatorsrocereceiverop" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>BaseReceiverOp</code></p>
+<h5 id="methods_1">Methods<a class="headerlink" href="#methods_1" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void initialize() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void setup(holoscan::OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void start_receiver() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void stop_receiver() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>std::tuple&lt;CUdeviceptr, std::shared_ptr&lt;hololink::Metadata&gt;&gt; get_next_frame(double timeout_ms) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>std::tuple&lt;std::string, uint32_t&gt; local_ip_and_port() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void set_rename_metadata(std::function&lt; std::string(const std::string &amp;)&gt; rename_fn)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>CUdeviceptr frame_memory_base() const</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
 
 
 

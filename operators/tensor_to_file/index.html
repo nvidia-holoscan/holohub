@@ -19965,16 +19965,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#python" class="md-nav__link">
+  <a href="#holoscanopstensortofileop" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Python
+        holoscan::ops::TensorToFileOp
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Python">
-      <ul class="md-nav__list">
+</li>
         
           <li class="md-nav__item">
   <a href="#tensortofileop" class="md-nav__link">
@@ -19984,11 +19983,6 @@
       
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
         
@@ -20263,7 +20257,41 @@
 <li>I/O operation failures</li>
 </ul>
 <h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
-<h3 id="python">Python<a class="headerlink" href="#python" title="Permanent link">#</a></h3>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">C++</label><label for="__tabbed_1_2">Python</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<h4 id="holoscanopstensortofileop"><code>holoscan::ops::TensorToFileOp</code><a class="headerlink" href="#holoscanopstensortofileop" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Operator</code></p>
+<p>Operator to stream tensor data to a file.</p>
+<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void setup(OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void initialize() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void compute(InputContext &amp;op_input, OutputContext &amp;op_output, ExecutionContext &amp;context) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void stop() override</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="tabbed-block">
 <h4 id="tensortofileop"><code>TensorToFileOp</code><a class="headerlink" href="#tensortofileop" title="Permanent link">#</a></h4>
 <p>Nv Video Writer operator.</p>
 <p>This operator writes H.264/H.265 elementary stream files from encoded video frames.
@@ -20312,11 +20340,14 @@ that can be played with standard video players.</p>
 </tr>
 </tbody>
 </table>
-<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<h5 id="methods_1">Methods<a class="headerlink" href="#methods_1" title="Permanent link">#</a></h5>
 <ul>
 <li><strong><code>initialize</code></strong>: Initialize the operator.</li>
 <li><strong><code>setup</code></strong>: Define the operator specification.</li>
 </ul>
+</div>
+</div>
+</div>
 
 
 

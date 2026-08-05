@@ -20221,16 +20221,59 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#python" class="md-nav__link">
+  <a href="#holoscanopsiioattributeread" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Python
+        holoscan::ops::IIOAttributeRead
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Python">
-      <ul class="md-nav__list">
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsiioattributewrite" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::IIOAttributeWrite
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsiiobufferread" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::IIOBufferRead
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsiiobufferwrite" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::IIOBufferWrite
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsiioconfigurator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::IIOConfigurator
+      
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#iioattributeread" class="md-nav__link">
@@ -20284,11 +20327,6 @@
       
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
         
@@ -20681,7 +20719,140 @@ Dual channel:   [Ch0_S0, Ch1_S0, Ch0_S1, Ch1_S1, ...]
 <li><a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/iio">Holoscan IIO Examples</a>: Complete application examples</li>
 </ul>
 <h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
-<h3 id="python">Python<a class="headerlink" href="#python" title="Permanent link">#</a></h3>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">C++</label><label for="__tabbed_1_2">Python</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<h4 id="holoscanopsiioattributeread"><code>holoscan::ops::IIOAttributeRead</code><a class="headerlink" href="#holoscanopsiioattributeread" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Operator</code></p>
+<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void setup(OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void initialize() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void compute(InputContext &amp;op_input, OutputContext &amp;op_output, ExecutionContext &amp;ec) override</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsiioattributewrite"><code>holoscan::ops::IIOAttributeWrite</code><a class="headerlink" href="#holoscanopsiioattributewrite" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Operator</code></p>
+<h5 id="methods_1">Methods<a class="headerlink" href="#methods_1" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void setup(OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void initialize() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void compute(InputContext &amp;op_input, OutputContext &amp;op_output, ExecutionContext &amp;ec) override</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsiiobufferread"><code>holoscan::ops::IIOBufferRead</code><a class="headerlink" href="#holoscanopsiiobufferread" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Operator</code></p>
+<h5 id="methods_2">Methods<a class="headerlink" href="#methods_2" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void stop() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void setup(OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void initialize() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void compute(InputContext &amp;op_input, OutputContext &amp;op_output, ExecutionContext &amp;ec) override</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsiiobufferwrite"><code>holoscan::ops::IIOBufferWrite</code><a class="headerlink" href="#holoscanopsiiobufferwrite" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Operator</code></p>
+<h5 id="methods_3">Methods<a class="headerlink" href="#methods_3" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void stop() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void setup(OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void initialize() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void compute(InputContext &amp;op_input, OutputContext &amp;op_output, ExecutionContext &amp;ec) override</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsiioconfigurator"><code>holoscan::ops::IIOConfigurator</code><a class="headerlink" href="#holoscanopsiioconfigurator" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Operator</code></p>
+<h5 id="methods_4">Methods<a class="headerlink" href="#methods_4" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void setup(OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void compute(InputContext &amp;op_input, OutputContext &amp;op_output, ExecutionContext &amp;ec) override</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="tabbed-block">
 <h4 id="iioattributeread"><code>IIOAttributeRead</code><a class="headerlink" href="#iioattributeread" title="Permanent link">#</a></h4>
 <h5 id="constructor-parameters">Constructor Parameters<a class="headerlink" href="#constructor-parameters" title="Permanent link">#</a></h5>
 <table>
@@ -20738,7 +20909,7 @@ Dual channel:   [Ch0_S0, Ch1_S0, Ch0_S1, Ch1_S1, ...]
 </tr>
 </tbody>
 </table>
-<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<h5 id="methods_5">Methods<a class="headerlink" href="#methods_5" title="Permanent link">#</a></h5>
 <ul>
 <li><strong><code>initialize</code></strong>: Initialize the operator</li>
 </ul>
@@ -20798,7 +20969,7 @@ Dual channel:   [Ch0_S0, Ch1_S0, Ch0_S1, Ch1_S1, ...]
 </tr>
 </tbody>
 </table>
-<h5 id="methods_1">Methods<a class="headerlink" href="#methods_1" title="Permanent link">#</a></h5>
+<h5 id="methods_6">Methods<a class="headerlink" href="#methods_6" title="Permanent link">#</a></h5>
 <ul>
 <li><strong><code>initialize</code></strong>: Initialize the operator</li>
 </ul>
@@ -20858,7 +21029,7 @@ Dual channel:   [Ch0_S0, Ch1_S0, Ch0_S1, Ch1_S1, ...]
 </tr>
 </tbody>
 </table>
-<h5 id="methods_2">Methods<a class="headerlink" href="#methods_2" title="Permanent link">#</a></h5>
+<h5 id="methods_7">Methods<a class="headerlink" href="#methods_7" title="Permanent link">#</a></h5>
 <ul>
 <li><strong><code>initialize</code></strong>: Initialize the operator</li>
 </ul>
@@ -20924,7 +21095,7 @@ Dual channel:   [Ch0_S0, Ch1_S0, Ch0_S1, Ch1_S1, ...]
 </tr>
 </tbody>
 </table>
-<h5 id="methods_3">Methods<a class="headerlink" href="#methods_3" title="Permanent link">#</a></h5>
+<h5 id="methods_8">Methods<a class="headerlink" href="#methods_8" title="Permanent link">#</a></h5>
 <ul>
 <li><strong><code>initialize</code></strong>: Initialize the operator</li>
 </ul>
@@ -20948,6 +21119,9 @@ Dual channel:   [Ch0_S0, Ch1_S0, Ch0_S1, Ch1_S1, ...]
 </tr>
 </tbody>
 </table>
+</div>
+</div>
+</div>
 
 
 

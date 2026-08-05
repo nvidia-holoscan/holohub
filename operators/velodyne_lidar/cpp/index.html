@@ -19826,6 +19826,62 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#c" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C++
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="C++">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#data_collectionsensorsvelodyneconvertxyzhelper" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        data_collection::sensors::VelodyneConvertXYZHelper
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsvelodynelidarop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::VelodyneLidarOp
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -19990,6 +20046,51 @@ over UDP/IP and forward them to this operator.</p>
 <h2 id="acknowledgements">Acknowledgements<a class="headerlink" href="#acknowledgements" title="Permanent link">#</a></h2>
 <p>This operator was developed in part with support from the NVIDIA nvMap team and adapts portions
 of the NVIDIA DeepMap SDK.</p>
+<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
+<h3 id="c">C++<a class="headerlink" href="#c" title="Permanent link">#</a></h3>
+<h4 id="data_collectionsensorsvelodyneconvertxyzhelper"><code>data_collection::sensors::VelodyneConvertXYZHelper</code><a class="headerlink" href="#data_collectionsensorsvelodyneconvertxyzhelper" title="Permanent link">#</a></h4>
+<p>Helper class to convert VLP-16 packets to a list of XYZ points in device memory.</p>
+<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void ConvertRawPacketToDeviceXYZ(const data_collection::sensors::RawVelodynePacket *packet, PointXYZ *gpu_xyz_intensity_destination)</code></td>
+<td>Convert a raw Velodyne VLP-16 packet to a list of XYZ points.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsvelodynelidarop"><code>holoscan::ops::VelodyneLidarOp</code><a class="headerlink" href="#holoscanopsvelodynelidarop" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Operator</code></p>
+<p>Operator class to process Velodyne VLP-16 lidar sensor input.</p>
+<h5 id="methods_1">Methods<a class="headerlink" href="#methods_1" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void initialize() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void setup(OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void compute(holoscan::InputContext &amp;op_input, holoscan::OutputContext &amp;op_output, holoscan::ExecutionContext &amp;) override</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
 
 
 

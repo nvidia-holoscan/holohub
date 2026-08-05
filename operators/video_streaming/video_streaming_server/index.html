@@ -20099,6 +20099,73 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#c" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C++
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="C++">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsstreamingserverdownstreamop_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::StreamingServerDownstreamOp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsstreamingserverresource_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::StreamingServerResource
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsstreamingserverupstreamop_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::StreamingServerUpstreamOp
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -20635,6 +20702,178 @@ docker<span class="w"> </span>push<span class="w"> </span>nvcr.io/04948398935626
 </ul>
 <h2 id="additional-resources">Additional Resources<a class="headerlink" href="#additional-resources" title="Permanent link">#</a></h2>
 <p>For more information on NVCF Cloud functions, please refer to <a href="https://docs.nvidia.com/cloud-functions/user-guide/latest/cloud-function/function-creation.html#function-creation">NVIDIA Cloud Functions documentation</a>.</p>
+<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
+<h3 id="c">C++<a class="headerlink" href="#c" title="Permanent link">#</a></h3>
+<h4 id="holoscanopsstreamingserverdownstreamop_1"><code>holoscan::ops::StreamingServerDownstreamOp</code><a class="headerlink" href="#holoscanopsstreamingserverdownstreamop_1" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Operator</code></p>
+<p>Operator that handles downstream (sending) video streaming to clients.</p>
+<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void setup(OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void initialize() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void start() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void stop() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void compute(InputContext &amp;op_input, OutputContext &amp;op_output, ExecutionContext &amp;context) override</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsstreamingserverresource_1"><code>holoscan::ops::StreamingServerResource</code><a class="headerlink" href="#holoscanopsstreamingserverresource_1" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Resource</code></p>
+<p>Holoscan resource for managing streaming server connections.</p>
+<h5 id="methods_1">Methods<a class="headerlink" href="#methods_1" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void setup(ComponentSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void initialize() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void start()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void stop()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>bool is_running() const</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>bool has_connected_clients() const</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void send_frame(const Frame &amp;frame)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>Frame receive_frame()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>bool try_receive_frame(Frame &amp;frame)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>Config get_config() const</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void update_config(const Config &amp;config)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>StreamingServer::Config get_streaming_server_config() const</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void set_event_callback(EventCallback callback)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void add_event_listener(EventCallback callback)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>bool is_upstream_connected() const</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>bool is_downstream_connected() const</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>size_t get_connected_client_count() const</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>uint64_t get_frames_received() const</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>uint64_t get_frames_sent() const</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>double get_upstream_fps() const</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>double get_downstream_fps() const</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>StreamingServer * get_streaming_server() const</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsstreamingserverupstreamop_1"><code>holoscan::ops::StreamingServerUpstreamOp</code><a class="headerlink" href="#holoscanopsstreamingserverupstreamop_1" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Operator</code></p>
+<p>Operator that handles upstream (receiving) video streaming from clients.</p>
+<h5 id="methods_2">Methods<a class="headerlink" href="#methods_2" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void setup(OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void initialize() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void start() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void stop() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void compute(InputContext &amp;op_input, OutputContext &amp;op_output, ExecutionContext &amp;context) override</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
 
 
 

@@ -20032,6 +20032,62 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#c" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C++
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="C++">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsframesaverop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::FrameSaverOp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsvideostreamingclientop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::VideoStreamingClientOp
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -20459,6 +20515,68 @@ Saved frame 0 to debug_frames/frame_000001.bgr
 <li><strong><a href="../../../applications/video_streaming/video_streaming_client/">Client Application README</a></strong> - Complete Python client implementation</li>
 <li><strong><a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/video_streaming/TESTING.md">Testing Documentation</a></strong> - Integration testing guide</li>
 </ul>
+<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
+<h3 id="c">C++<a class="headerlink" href="#c" title="Permanent link">#</a></h3>
+<h4 id="holoscanopsframesaverop"><code>holoscan::ops::FrameSaverOp</code><a class="headerlink" href="#holoscanopsframesaverop" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Operator</code></p>
+<p>Operator that saves received frames to disk.</p>
+<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void setup(holoscan::OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void initialize() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void compute(holoscan::InputContext &amp;op_input, holoscan::OutputContext &amp;op_output, holoscan::ExecutionContext &amp;context) override</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsvideostreamingclientop"><code>holoscan::ops::VideoStreamingClientOp</code><a class="headerlink" href="#holoscanopsvideostreamingclientop" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Operator</code></p>
+<p>Operator that wraps the VideoStreamingClient for video streaming in Holoscan.</p>
+<h5 id="methods_1">Methods<a class="headerlink" href="#methods_1" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void setup(holoscan::OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void initialize() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void start() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void stop() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void compute(holoscan::InputContext &amp;op_input, holoscan::OutputContext &amp;op_output, holoscan::ExecutionContext &amp;context) override</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
 
 
 

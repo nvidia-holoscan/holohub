@@ -19986,6 +19986,128 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#c" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C++
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="C++">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#holoscanixrplugin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::IXrPlugin
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsxrbeginframeop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::XrBeginFrameOp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanxrcompositionlayermanager" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::XrCompositionLayerManager
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsxremptycompositionlayerop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::XrEmptyCompositionLayerOp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsxrendframeop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::XrEndFrameOp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanxrhandtracker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::XrHandTracker
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanxrsession" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::XrSession
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanxrswapchaincuda" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::XrSwapchainCuda
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -20180,6 +20302,274 @@
 <li><a href="../../applications/xr_holoviz/">xr_holoviz</a>: Simple XR visualization using Holoviz.</li>
 <li><a href="../../applications/xr_gsplat/">xr_gsplat</a>: XR rendering of 3D scenes using Gaussian Splatting.</li>
 </ul>
+<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
+<h3 id="c">C++<a class="headerlink" href="#c" title="Permanent link">#</a></h3>
+<h4 id="holoscanixrplugin"><code>holoscan::IXrPlugin</code><a class="headerlink" href="#holoscanixrplugin" title="Permanent link">#</a></h4>
+<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>IXrPlugin(std::shared_ptr&lt; holoscan::XrSession &gt; xr_session) noexcept(false)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>std::vector&lt;std::string_view&gt; get_required_instance_extensions()=0</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void on_session_created()=0</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsxrbeginframeop"><code>holoscan::ops::XrBeginFrameOp</code><a class="headerlink" href="#holoscanopsxrbeginframeop" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Operator</code></p>
+<h5 id="methods_1">Methods<a class="headerlink" href="#methods_1" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void setup(OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void compute(InputContext &amp;input, OutputContext &amp;output, ExecutionContext &amp;context) override</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanxrcompositionlayermanager"><code>holoscan::XrCompositionLayerManager</code><a class="headerlink" href="#holoscanxrcompositionlayermanager" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Resource</code></p>
+<h5 id="methods_2">Methods<a class="headerlink" href="#methods_2" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void setup(ComponentSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void initialize() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>holoscan::Tensor acquire_color_swapchain_image()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>holoscan::Tensor acquire_depth_swapchain_image()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void release_swapchain_images(cudaStream_t cuda_stream)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>std::shared_ptr&lt;XrCompositionLayerProjectionStorage&gt; create_composition_layer(const xr::FrameState &amp;xr_frame_state)</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsxremptycompositionlayerop"><code>holoscan::ops::XrEmptyCompositionLayerOp</code><a class="headerlink" href="#holoscanopsxremptycompositionlayerop" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Operator</code></p>
+<h5 id="methods_3">Methods<a class="headerlink" href="#methods_3" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void setup(OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void compute(InputContext &amp;input, OutputContext &amp;output, ExecutionContext &amp;context) override</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsxrendframeop"><code>holoscan::ops::XrEndFrameOp</code><a class="headerlink" href="#holoscanopsxrendframeop" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Operator</code></p>
+<h5 id="methods_4">Methods<a class="headerlink" href="#methods_4" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void setup(OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void compute(InputContext &amp;input, OutputContext &amp;output, ExecutionContext &amp;context) override</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanxrhandtracker"><code>holoscan::XrHandTracker</code><a class="headerlink" href="#holoscanxrhandtracker" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Resource</code>, <code>holoscan::IXrPlugin</code></p>
+<h5 id="methods_5">Methods<a class="headerlink" href="#methods_5" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>XrHandTracker(std::shared_ptr&lt; holoscan::XrSession &gt;, xr::HandEXT hand)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>std::vector&lt;std::string_view&gt; get_required_instance_extensions() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void on_session_created() noexcept(false) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>std::optional&lt;std::vector&lt;xr::HandJointLocationEXT&gt;&gt; locate_hand_joints() noexcept(false)</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanxrsession"><code>holoscan::XrSession</code><a class="headerlink" href="#holoscanxrsession" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Resource</code></p>
+<h5 id="methods_6">Methods<a class="headerlink" href="#methods_6" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void setup(ComponentSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void initialize() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void register_plugin(std::reference_wrapper&lt; IXrPlugin &gt; plugin)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>xr::SpaceLocation locate_view_space() const noexcept(false)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>xr::Session &amp; get()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>xr::Instance &amp; instance()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>xr::DispatchLoaderDynamic &amp; dispatch()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>xr::Space &amp; reference_space()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>xr::Space &amp; view_space()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>const std::vector&lt;xr::ViewConfigurationView&gt; &amp; view_configurations()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>xr::ViewConfigurationDepthRangeEXT view_configuration_depth_range()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>xr::EnvironmentBlendMode blend_mode()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>vk::raii::PhysicalDevice &amp; vk_physical_device()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>vk::raii::Device &amp; vk_device()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>uint32_t vk_queue_family_index()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>vk::raii::Queue &amp; vk_queue()</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanxrswapchaincuda"><code>holoscan::XrSwapchainCuda</code><a class="headerlink" href="#holoscanxrswapchaincuda" title="Permanent link">#</a></h4>
+<h5 id="methods_7">Methods<a class="headerlink" href="#methods_7" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>XrSwapchainCuda(XrSession &amp;session, Format format, uint32_t width, uint32_t height)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>holoscan::Tensor acquire()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void release(cudaStream_t cuda_stream)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>xr::Swapchain &amp; get()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>uint32_t width()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>uint32_t height()</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
 
 
 

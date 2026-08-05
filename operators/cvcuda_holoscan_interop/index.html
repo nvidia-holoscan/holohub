@@ -19847,6 +19847,62 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#c" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C++
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="C++">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopscvcudatoholoscan_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::CvCudaToHoloscan
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#holoscanopsholoscantocvcuda_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        holoscan::ops::HoloscanToCvCuda
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -19983,6 +20039,56 @@ tensors: <code>holoscan::ops::CvCudaToHoloscan</code> and <code>holoscan::ops::H
 <li><strong><code>output</code></strong>: a CV-CUDA tensor</li>
 <li>type: <code>nvcv::Tensor</code></li>
 </ul>
+<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
+<h3 id="c">C++<a class="headerlink" href="#c" title="Permanent link">#</a></h3>
+<h4 id="holoscanopscvcudatoholoscan_1"><code>holoscan::ops::CvCudaToHoloscan</code><a class="headerlink" href="#holoscanopscvcudatoholoscan_1" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Operator</code></p>
+<p>This operator converts a CVCUDA tensor to a Holoscan tensor. It only works for tensor with less than or equal to 4 dimensions (i.e., rank in CVCUDA tensor). If the batch size or channel size is 1, then those dimensions are dropped in the Holoscan tensor.</p>
+<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void setup(OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void compute(InputContext &amp;, OutputContext &amp;op_output, ExecutionContext &amp;) override</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="holoscanopsholoscantocvcuda_1"><code>holoscan::ops::HoloscanToCvCuda</code><a class="headerlink" href="#holoscanopsholoscantocvcuda_1" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::Operator</code></p>
+<p>This operator converts a Holoscan tensor to a CVCUDA tensor. It currently works with tensor dimensions of less than or equal to 4. The tensor also needs to be on the device memory.</p>
+<h5 id="methods_1">Methods<a class="headerlink" href="#methods_1" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void setup(OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void compute(InputContext &amp;, OutputContext &amp;op_output, ExecutionContext &amp;) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>nvcv::Tensor to_cvcuda_NHWC_tensor(std::shared_ptr&lt; holoscan::Tensor &gt; in_tensor, std::shared_ptr&lt; void * &gt; &amp;holoscan_tensor_data)</code></td>
+<td>This function converts a Holoscan tensor to a CVCUDA tensor in NHWC format. Even if there is no batch dimension, the output tensor will be created in NHWC format.</td>
+</tr>
+</tbody>
+</table>
 
 
 

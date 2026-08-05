@@ -19852,6 +19852,62 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#c_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C++
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="C++">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hololinkoperatorscsitobayerconverterbase" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hololink::operators::CsiToBayerConverterBase
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hololinkoperatorscsitobayergpuresidentop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hololink::operators::CsiToBayerGpuResidentOp
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -20036,6 +20092,75 @@
 <li><code>fmt</code> - Formatting library</li>
 <li><code>CUDA</code> - CUDA driver API</li>
 </ul>
+<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
+<h3 id="c_1">C++<a class="headerlink" href="#c_1" title="Permanent link">#</a></h3>
+<h4 id="hololinkoperatorscsitobayerconverterbase"><code>hololink::operators::CsiToBayerConverterBase</code><a class="headerlink" href="#hololinkoperatorscsitobayerconverterbase" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>hololink::csi::CsiConverter</code></p>
+<p>Base CSI-to-Bayer conversion state and CsiConverter implementation. Used by both CsiToBayerOp and CsiToBayerGpuResidentOp to avoid code duplication.</p>
+<h5 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>uint32_t receiver_start_byte() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>uint32_t received_line_bytes(uint32_t line_bytes) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>uint32_t transmitted_line_bytes(hololink::csi::PixelFormat pixel_format, uint32_t pixel_width) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void configure(uint32_t start_byte, uint32_t bytes_per_line, uint32_t pixel_width, uint32_t pixel_height, hololink::csi::PixelFormat pixel_format, uint32_t trailing_bytes) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>size_t get_csi_length() const</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>size_t get_frame_size() const</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="hololinkoperatorscsitobayergpuresidentop"><code>hololink::operators::CsiToBayerGpuResidentOp</code><a class="headerlink" href="#hololinkoperatorscsitobayergpuresidentop" title="Permanent link">#</a></h4>
+<p><strong>Inherits from:</strong> <code>holoscan::GPUResidentOperator</code>, <code>hololink::operators::CsiToBayerConverterBase</code></p>
+<h5 id="methods_1">Methods<a class="headerlink" href="#methods_1" title="Permanent link">#</a></h5>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>void setup(holoscan::OperatorSpec &amp;spec) override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void initialize() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void stop() override</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>void compute(holoscan::InputContext &amp;, holoscan::OutputContext &amp;, holoscan::ExecutionContext &amp;) override</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
 
 
 
