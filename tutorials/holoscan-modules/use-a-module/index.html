@@ -20419,14 +20419,17 @@ register the operator as a required or optional dependency for your project in <
 <p>This is what tells CMake which operators to enable (<code>OP_my_sensor_op=ON</code>), which in
 turn triggers the manifest's lazy fetch for the module that provides them.</p>
 <h3 id="44-iterate-against-a-local-working-copy">4.4 Iterate against a local working copy<a class="headerlink" href="#44-iterate-against-a-local-working-copy" title="Permanent link">#</a></h3>
-<p>When iterating against an unreleased dep, override the fetched source with
-<code>HOLOHUB_LOCAL_&lt;UPPER_NAME&gt;</code> (underscores in place of hyphens, all uppercase):</p>
-<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">HOLOHUB_LOCAL_HOLOSCAN_MY_SENSOR</span><span class="o">=</span>/path/to/local/holoscan-my-sensor
-./holohub<span class="w"> </span>build<span class="w"> </span>my_app
-</code></pre></div>
-<p>The resolver emits the local path as a <code>FETCHCONTENT_SOURCE_DIR_&lt;UPPER&gt;</code> cache
-variable so FetchContent uses your working tree instead of cloning. The <code>source.ref</code>
-in <code>metadata.json</code> is ignored while the env var is set.</p>
+<p>When iterating against an unreleased Module, the source override is
+<code>HOLOSCAN_CLI_LOCAL_&lt;SANITIZED_MODULE_NAME&gt;</code>: replace non-alphanumeric runs in the
+dependency's <code>name</code> with underscores, trim leading and trailing underscores, and
+uppercase the result. For <code>holoscan-my-sensor</code>, use
+<code>HOLOSCAN_CLI_LOCAL_HOLOSCAN_MY_SENSOR</code>.</p>
+<p>This is an advanced mounted-source workflow. A host export is not automatically
+forwarded into the project container, so mount the working tree and set the override
+inside the container to its mounted path. See the
+<a href="https://github.com/nvidia-holoscan/holohub/blob/main/skills/holohub-module-lifecycle/references/module-consumer-packaging.md#mounted-source-iteration">mounted-source iteration guidance</a>
+for the safe preview and action sequence. While the override is set, the resolver
+uses the working tree instead of <code>source.ref</code>.</p>
 <h3 id="45-use-the-operators-in-your-code">4.5 Use the operators in your code<a class="headerlink" href="#45-use-the-operators-in-your-code" title="Permanent link">#</a></h3>
 <p>Python application:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">holoscan.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Application</span>
@@ -20453,8 +20456,9 @@ its README) and link via the Module's exported targets in your HoloHub-app
 <h3 id="47-module-to-module-transitive-dependencies">4.7 Module-to-module (transitive) dependencies<a class="headerlink" href="#47-module-to-module-transitive-dependencies" title="Permanent link">#</a></h3>
 <p>If you are building a Holoscan Module that itself depends on another Module, use the
 <code>module.dependencies[]</code> array in your module's <code>metadata.json</code> — it follows the same
-schema as the <code>application.dependencies.modules[]</code> shown in §4.2 above. Refer to the "Create a Holoscan Module" tutorial for the full schema
-reference, the <code>HOLOHUB_LOCAL_*</code> override, and the SHA-pinning discipline.</p>
+schema as the <code>application.dependencies.modules[]</code> shown in §4.2 above. Refer to the
+"Create a Holoscan Module" tutorial for the full schema and SHA-pinning discipline,
+and to §4.4 above for mounted-source iteration.</p>
 <h2 id="5-path-b-external-c-project-binary-install">5. Path B — External C++ Project (Binary Install)<a class="headerlink" href="#5-path-b-external-c-project-binary-install" title="Permanent link">#</a></h2>
 <p>Projects that live outside HoloHub can easily consume external module binaries
 like any other binary package.</p>
@@ -20554,7 +20558,7 @@ and best practices. A binary install (Paths B and C) is usually a simpler choice
 </tr>
 <tr>
 <td>Local override</td>
-<td><code>HOLOHUB_LOCAL_&lt;UPPER_NAME&gt;=&lt;path&gt;</code> env var</td>
+<td><code>HOLOSCAN_CLI_LOCAL_&lt;SANITIZED_MODULE_NAME&gt;=&lt;container-path&gt;</code> env var</td>
 </tr>
 <tr>
 <td>Build a HoloHub subproject with deps</td>
@@ -20600,9 +20604,10 @@ and best practices. A binary install (Paths B and C) is usually a simpler choice
   Holoscan SDK wheel is installed in that same env.</li>
 <li><strong>Resolver warns "ref is not a 40-character commit SHA".</strong> Replace the tag or branch
   in <code>source.ref</code> with the commit SHA it resolves to.</li>
-<li><strong><code>HOLOHUB_LOCAL_*</code> override has no effect.</strong> Naming: take the Module name, replace
-  hyphens with underscores, uppercase. <code>holoscan-my-sensor</code> →
-  <code>HOLOHUB_LOCAL_HOLOSCAN_MY_SENSOR</code>.</li>
+<li><strong><code>HOLOSCAN_CLI_LOCAL_*</code> override has no effect.</strong> Derive the suffix from the
+  dependency <code>name</code> as described in §4.4, mount the Module into the project
+  container, and set the variable there to the container path. A host-only export is
+  not automatically forwarded.</li>
 <li><strong>The operator is not built even though you declared it.</strong> Under FetchContent +
   <code>PROJECT_IS_TOP_LEVEL</code> defaults, the Module's <code>BUILD_ALL</code> is <code>OFF</code>, so only the
   operators marked with <code>OP_&lt;op&gt;=ON</code> get built. In a HoloHub tree (Path A or
@@ -20689,8 +20694,8 @@ and uses the in-tree sources directly.</p>
 </code></pre></div>
 <p>The <code>source.{git_url, ref}</code> field is required only for external Modules; omit it entirely
 for in-tree Modules. Everything else — the build command (<code>./holohub build my_app</code>), the
-local-override mechanism (<code>HOLOHUB_LOCAL_*</code>), and the operator import — is identical to
-the external-Module flow in Path A.</p>
+local-override mechanism (<code>HOLOSCAN_CLI_LOCAL_*</code>), and the operator import — is identical
+to the external-Module flow in Path A.</p>
 <p>See <code>modules/holoscan-gstreamer/metadata.json</code> for a live in-tree Module you can add as
 a dependency to verify your tooling end-to-end.</p>
 
