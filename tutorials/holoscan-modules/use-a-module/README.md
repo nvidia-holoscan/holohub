@@ -197,48 +197,20 @@ add_holohub_application(my_app DEPENDS OPERATORS my_sensor_op)
 This is what tells CMake which operators to enable (`OP_my_sensor_op=ON`), which in
 turn triggers the manifest's lazy fetch for the module that provides them.
 
-### 4.4 Run and iterate against a local working copy
+### 4.4 Iterate against a local working copy
 
-For the normal immutable dependency declared in `metadata.json`, use the top-level
-wrapper. Preview and run the same command, removing only `--dryrun`:
-
-```bash
-./holohub run my_app --dryrun --verbose
-./holohub run my_app --verbose
-```
-
-Use the following advanced flow only when the consumer must exercise an unreleased
-local Module working tree. The source override is
+When iterating against an unreleased Module, the source override is
 `HOLOSCAN_CLI_LOCAL_<SANITIZED_MODULE_NAME>`: replace non-alphanumeric runs in the
 dependency's `name` with underscores, trim leading and trailing underscores, and
 uppercase the result. For `holoscan-my-sensor`, use
 `HOLOSCAN_CLI_LOCAL_HOLOSCAN_MY_SENSOR`.
 
-A host export is not automatically forwarded into the project container. Mount the
-Module and set the override to its container path. First preview only the outer
-container launch:
-
-```bash
-./holohub run-container my_app \
-  --add-volume /absolute/path/holoscan-my-sensor \
-  --dryrun --verbose -- \
-  'set -eu; module_root=/workspace/volumes/holoscan-my-sensor; export HOLOSCAN_CLI_LOCAL_HOLOSCAN_MY_SENSOR="$module_root"; test -f "$module_root/metadata.json"; ./holohub run my_app --local --dryrun --verbose'
-```
-
-The outer dry run does not execute the quoted command. After reviewing it, launch
-the same container without the outer `--dryrun`; the single nested `run` remains a
-dry run and validates the mounted override:
-
-```bash
-./holohub run-container my_app \
-  --add-volume /absolute/path/holoscan-my-sensor --verbose -- \
-  'set -eu; module_root=/workspace/volumes/holoscan-my-sensor; export HOLOSCAN_CLI_LOCAL_HOLOSCAN_MY_SENSOR="$module_root"; test -f "$module_root/metadata.json"; ./holohub run my_app --local --dryrun --verbose'
-```
-
-Review that inner preview, then repeat the same outer invocation with only the inner
-`--dryrun` removed. Require configure or build evidence that uses the mounted path;
-if the output does not identify the selected source, do not claim that it did. While
-the override is set, the resolver uses the working tree instead of `source.ref`.
+This is an advanced mounted-source workflow. A host export is not automatically
+forwarded into the project container, so mount the working tree and set the override
+inside the container to its mounted path. See the
+[mounted-source iteration guidance](../../../skills/holohub-module-lifecycle/references/module-consumer-packaging.md#mounted-source-iteration)
+for the safe preview and action sequence. While the override is set, the resolver
+uses the working tree instead of `source.ref`.
 
 ### 4.5 Use the operators in your code
 
@@ -390,7 +362,6 @@ and best practices. A binary install (Paths B and C) is usually a simpler choice
 | External Module reference | Include `source.{git_url, ref}` (40-char SHA) and `provides_operators` |
 | Local override | `HOLOSCAN_CLI_LOCAL_<SANITIZED_MODULE_NAME>=<container-path>` env var |
 | Build a HoloHub subproject with deps | `./holohub build <app>` |
-| Run a HoloHub subproject with deps | `./holohub run <app>` |
 | Install binary (C++) | `apt install holoscan-<name>` |
 | Install binary (Python) | `pip install holoscan-<name>` |
 | Use from C++ | `find_package(holoscan-<name> REQUIRED)` + `target_link_libraries(... holoscan::<target>)` |
