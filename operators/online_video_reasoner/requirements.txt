@@ -2,5 +2,4 @@
 # SPDX-License-Identifier: Apache-2.0
 
 numpy>=1.24,<3
-pytest>=8,<10
 requests>=2.31,<3

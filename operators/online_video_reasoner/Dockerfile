@@ -18,6 +18,9 @@ RUN apt-get update \
 COPY operators/online_video_reasoner/requirements.txt /tmp/requirements.txt
 RUN python3 -m pip install --no-cache-dir -r /tmp/requirements.txt
 
+# Pytest is development-container tooling used by the CTest target.
+RUN python3 -m pip install --no-cache-dir "pytest>=8,<10"
+
 RUN mkdir -p /tmp/scripts/utilities
 COPY holohub /tmp/scripts/
 COPY utilities /tmp/scripts/utilities/
