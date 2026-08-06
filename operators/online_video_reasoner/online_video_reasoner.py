@@ -33,6 +33,8 @@ from .media import encode_jpeg, encode_mp4, validate_rgb_frame
 LOGGER = logging.getLogger(__name__)
 _RESERVED_REQUEST_OPTIONS = {"max_tokens", "messages", "model", "stream"}
 _RESPONSE_ENVELOPE_ALLOWANCE_BYTES = 64 * 1024
+_MAX_HEADER_HELPER_THREADS = 2
+_RESPONSE_READ_CHUNK_SIZE_BYTES = 8 * 1024
 
 
 def _validate_positive_finite(name: str, value: float) -> None:
@@ -43,6 +45,20 @@ def _validate_positive_finite(name: str, value: float) -> None:
         valid = False
     if not valid:
         raise ValueError(f"{name} must be a positive finite number")
+
+
+def _sse_read_chunk_size(response: requests.Response) -> int:
+    """Avoid buffering sparse close-delimited streams while batching chunked SSE."""
+    raw_response = getattr(response, "raw", None)
+    if getattr(raw_response, "chunked", False):
+        return _RESPONSE_READ_CHUNK_SIZE_BYTES
+    headers = getattr(response, "headers", {})
+    transfer_encoding = headers.get("Transfer-Encoding", "")
+    if any(value.strip().lower() == "chunked" for value in transfer_encoding.split(",")):
+        return _RESPONSE_READ_CHUNK_SIZE_BYTES
+    # urllib3 waits for the requested amount on close-delimited bodies. A byte
+    # read preserves immediate delivery for sparse legacy SSE responses.
+    return 1
 
 
 def _close_response_handle(handle: tuple[requests.Response, requests.Session]) -> None:
@@ -352,8 +368,8 @@ class OnlineVideoReasonerOp(Operator):
         self._stop_event = threading.Event()
         self._response_lock = threading.Lock()
         self._active_response: requests.Response | None = None
-        self._post_thread_lock = threading.Lock()
-        self._post_thread: threading.Thread | None = None
+        self._post_threads_lock = threading.Lock()
+        self._post_threads: set[threading.Thread] = set()
         self._last_sample_at = float("-inf")
         self._next_sample_at = float("-inf")
         self._last_request_at = float("-inf")
@@ -615,7 +631,7 @@ class OnlineVideoReasonerOp(Operator):
         response: requests.Response,
         *,
         response_name: str,
-        chunk_size: int = 8192,
+        chunk_size: int = _RESPONSE_READ_CHUNK_SIZE_BYTES,
         deadline: float | None = None,
     ) -> Iterable[bytes]:
         """Yield raw response chunks within the configured total deadline."""
@@ -669,7 +685,7 @@ class OnlineVideoReasonerOp(Operator):
         chunks = self._iter_response_chunks(
             response,
             response_name="SSE",
-            chunk_size=1,
+            chunk_size=_sse_read_chunk_size(response),
             deadline=deadline,
         )
         try:
@@ -802,23 +818,28 @@ class OnlineVideoReasonerOp(Operator):
                     else:
                         results.put_nowait(result)
             finally:
-                interrupter.close()
-                with self._post_thread_lock:
-                    if self._post_thread is threading.current_thread():
-                        self._post_thread = None
+                try:
+                    interrupter.close()
+                finally:
+                    with self._post_threads_lock:
+                        self._post_threads.discard(threading.current_thread())
 
         request_thread = threading.Thread(
             target=post_request,
             name="online-reasoner-http",
             daemon=True,
         )
-        with self._post_thread_lock:
-            previous_thread = self._post_thread
-            if previous_thread is not None and previous_thread.is_alive():
+        with self._post_threads_lock:
+            if len(self._post_threads) >= _MAX_HEADER_HELPER_THREADS:
                 session.close()
-                raise RuntimeError("previous reasoning request is still terminating")
-            self._post_thread = request_thread
-            request_thread.start()
+                raise RuntimeError("previous reasoning requests are still terminating")
+            self._post_threads.add(request_thread)
+            try:
+                request_thread.start()
+            except Exception:
+                self._post_threads.remove(request_thread)
+                session.close()
+                raise
 
         while True:
             if self._stop_event.is_set():

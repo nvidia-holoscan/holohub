@@ -8,6 +8,7 @@ from __future__ import annotations
 import base64
 import json
 import queue
+import socket
 import sys
 import threading
 import time
@@ -61,6 +62,34 @@ class _ReasoningHandler(BaseHTTPRequestHandler):
 
 
 class _StalledSSEHandler(BaseHTTPRequestHandler):
+    protocol_version = "HTTP/1.1"
+
+    def do_POST(self):
+        length = int(self.headers["Content-Length"])
+        self.rfile.read(length)
+        self.send_response(200)
+        self.send_header("Content-Type", "text/event-stream")
+        self.send_header("Transfer-Encoding", "chunked")
+        self.end_headers()
+        event = {"choices": [{"delta": {"content": "partial"}}]}
+        payload = f"data: {json.dumps(event)}\n\n: keepalive\n\n".encode()
+        self.wfile.write(f"{len(payload):X}\r\n".encode())
+        self.wfile.write(payload)
+        self.wfile.write(b"\r\n")
+        self.wfile.flush()
+        self.server.request_received.set()
+        self.server.release_response.wait()
+        try:
+            self.wfile.write(b"0\r\n\r\n")
+            self.wfile.flush()
+        except OSError:
+            pass
+
+    def log_message(self, format_string, *args):
+        pass
+
+
+class _CloseDelimitedSSEHandler(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.0"
 
     def do_POST(self):
@@ -151,6 +180,22 @@ def stalled_sse_server():
 
 
 @pytest.fixture
+def close_delimited_sse_server():
+    server = ThreadingHTTPServer(("127.0.0.1", 0), _CloseDelimitedSSEHandler)
+    server.request_received = threading.Event()
+    server.release_response = threading.Event()
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        yield server
+    finally:
+        server.release_response.set()
+        server.shutdown()
+        thread.join()
+        server.server_close()
+
+
+@pytest.fixture
 def drip_header_server():
     server = ThreadingHTTPServer(("127.0.0.1", 0), _DripHeaderHandler)
     server.request_received = threading.Event()
@@ -183,6 +228,11 @@ def _operator(server, *, mode, stream):
     )
 
 
+def _route_test_server_through_dns(operator, server):
+    """Force the local HTTP fixture through DNS after endpoint validation."""
+    operator.endpoint = f"http://reasoner.test:{server.server_port}/v1/chat/completions"
+
+
 def _queued_events(operator):
     events = []
     while True:
@@ -190,6 +240,20 @@ def _queued_events(operator):
             events.append(operator._events.get_nowait())
         except queue.Empty:
             return events
+
+
+def _post_helper_count(operator):
+    with operator._post_threads_lock:
+        return len(operator._post_threads)
+
+
+def _wait_for_post_helpers(operator, expected, timeout=1):
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        if _post_helper_count(operator) == expected:
+            return True
+        time.sleep(0.01)
+    return _post_helper_count(operator) == expected
 
 
 def test_operator_initialises_ports_and_bounded_frame_ring(reasoning_server):
@@ -855,11 +919,14 @@ def test_truncated_sse_emits_error_not_completed(reasoning_server, monkeypatch):
     operator = _operator(reasoning_server, mode="image", stream=True)
 
     class TruncatedResponse:
+        def __init__(self):
+            self.headers = {"Transfer-Encoding": "chunked"}
+
         def raise_for_status(self):
             pass
 
         def iter_content(self, chunk_size):
-            assert chunk_size == 1
+            assert chunk_size == 8192
             yield b'data: {"choices":[{"delta":{"content":"partial"}}]}'
 
         def close(self):
@@ -904,11 +971,14 @@ def test_stream_response_respects_character_limit(
     operator.max_response_chars = limit
 
     class Response:
+        def __init__(self):
+            self.headers = {"Transfer-Encoding": "chunked"}
+
         def raise_for_status(self):
             pass
 
         def iter_content(self, chunk_size):
-            assert chunk_size == 1
+            assert chunk_size == 8192
             for text in parts:
                 event = {"choices": [{"delta": {"content": text}}]}
                 yield f"data: {json.dumps(event)}\n".encode()
@@ -947,11 +1017,14 @@ def test_sse_deadline_applies_to_heartbeat_lines(reasoning_server, monkeypatch):
     moments = iter((0.0, 0.5, 1.0))
 
     class Response:
+        def __init__(self):
+            self.headers = {"Transfer-Encoding": "chunked"}
+
         def raise_for_status(self):
             pass
 
         def iter_content(self, chunk_size):
-            assert chunk_size == 1
+            assert chunk_size == 8192
             yield b": heartbeat\n"
             yield b": heartbeat\n"
 
@@ -983,17 +1056,49 @@ def test_sse_deadline_applies_to_heartbeat_lines(reasoning_server, monkeypatch):
     assert events[-1]["message"] == "SSE response exceeded timeout_s (1 seconds)"
 
 
+def test_sse_line_framing_handles_arbitrary_block_boundaries(reasoning_server):
+    operator = _operator(reasoning_server, mode="image", stream=True)
+    content = "\u00e9"
+    event = (
+        "data: "
+        + json.dumps(
+            {"choices": [{"delta": {"content": content}}]},
+            ensure_ascii=False,
+        )
+    ).encode()
+    payload = b": heartbeat\r\n\r\n" + event + b"\r\n\r\ndata: [DONE]\n\n"
+    split = payload.index(b"\xc3\xa9") + 1
+    chunks = (payload[:split], payload[split : split + 11], payload[split + 11 :])
+
+    class Response:
+        def __init__(self):
+            self.headers = {"Transfer-Encoding": "chunked"}
+
+        def iter_content(self, chunk_size):
+            assert chunk_size == 8192
+            yield from chunks
+
+    lines = operator._iter_sse_lines(Response())
+
+    assert list(iter_sse_text(lines)) == [content]
+
+
 def test_sse_unterminated_line_is_bounded_before_framing(reasoning_server, monkeypatch):
     operator = _operator(reasoning_server, mode="image", stream=True)
     operator.max_response_chars = 4
 
     class Response:
+        def __init__(self):
+            self.headers = {"Transfer-Encoding": "chunked"}
+
         def raise_for_status(self):
             pass
 
         def iter_content(self, chunk_size):
-            assert chunk_size == 1
-            yield b"x" * (4 + 64 * 1024 + 1)
+            assert chunk_size == 8192
+            payload = b"x" * (4 + 64 * 1024 + 1)
+            for start in range(0, len(payload), chunk_size):
+                yield payload[start : start + chunk_size]
 
         def close(self):
             pass
@@ -1184,6 +1289,22 @@ def test_stop_interrupts_stalled_sse_request(stalled_sse_server):
     assert _queued_events(operator) == []
 
 
+def test_close_delimited_sse_delivers_partial_event_before_eof(
+    close_delimited_sse_server,
+):
+    operator = _operator(close_delimited_sse_server, mode="image", stream=True)
+    operator.start()
+    try:
+        operator._accept_frame({"": np.zeros((12, 16, 3), dtype=np.uint8)}, now=0.0)
+        assert close_delimited_sse_server.request_received.wait(timeout=2)
+        events = [operator._events.get(timeout=1) for _ in range(2)]
+        assert [event["kind"] for event in events] == ["started", "delta"]
+        assert events[-1]["text"] == "partial"
+    finally:
+        close_delimited_sse_server.release_response.set()
+        operator.stop()
+
+
 def test_stop_interrupts_request_before_response_headers(reasoning_server, monkeypatch):
     operator = _operator(reasoning_server, mode="image", stream=True)
     request_started = threading.Event()
@@ -1246,10 +1367,7 @@ def test_header_deadline_bounds_drip_response(drip_header_server):
         assert events[-1]["message"] == ("reasoning request exceeded timeout_s (0.2 seconds)")
         assert drip_header_server.connection_closed.wait(timeout=1)
 
-        helper_deadline = time.monotonic() + 1
-        while operator._post_thread is not None and time.monotonic() < helper_deadline:
-            time.sleep(0.01)
-        assert operator._post_thread is None
+        assert _wait_for_post_helpers(operator, 0)
 
         operator._run_request("recovered", np.zeros((12, 16, 3), dtype=np.uint8))
         recovery_events = _queued_events(operator)
@@ -1292,17 +1410,101 @@ def test_header_deadline_closes_eventual_late_response(reasoning_server, monkeyp
         events = _queued_events(operator)
         assert [event["kind"] for event in events] == ["started", "error"]
         assert session_closed.wait(timeout=1)
-        with pytest.raises(RuntimeError, match="previous reasoning request is still terminating"):
-            operator._post_interruptibly({}, {})
+        assert _post_helper_count(operator) == 1
     finally:
         release_request.set()
 
     assert response_closed.wait(timeout=1)
-    helper_deadline = time.monotonic() + 1
-    while operator._post_thread is not None and time.monotonic() < helper_deadline:
-        time.sleep(0.01)
-    assert operator._post_thread is None
+    assert _wait_for_post_helpers(operator, 0)
     operator.stop()
+
+
+def test_dns_timeout_preserves_one_recovery_lane(reasoning_server, monkeypatch):
+    operator = _operator(reasoning_server, mode="image", stream=False)
+    _route_test_server_through_dns(operator, reasoning_server)
+    operator.timeout_s = 0.2
+    first_lookup_started = threading.Event()
+    release_first_lookup = threading.Event()
+    lookup_lock = threading.Lock()
+    lookup_count = 0
+    original_getaddrinfo = socket.getaddrinfo
+
+    def controlled_getaddrinfo(host, port, *args, **kwargs):
+        nonlocal lookup_count
+        if host != "reasoner.test":
+            return original_getaddrinfo(host, port, *args, **kwargs)
+        with lookup_lock:
+            lookup_count += 1
+            lookup_number = lookup_count
+        if lookup_number == 1:
+            first_lookup_started.set()
+            release_first_lookup.wait()
+        return original_getaddrinfo("127.0.0.1", port, *args, **kwargs)
+
+    monkeypatch.setattr(socket, "getaddrinfo", controlled_getaddrinfo)
+    payload = {"stream": False}
+    headers = {"Content-Type": "application/json"}
+    try:
+        with pytest.raises(TimeoutError, match="reasoning request exceeded"):
+            operator._post_interruptibly(payload, headers)
+        assert first_lookup_started.is_set()
+        assert _post_helper_count(operator) == 1
+
+        response, session = operator._post_interruptibly(
+            payload,
+            headers,
+            deadline=time.monotonic() + 1,
+        )
+        try:
+            assert response.status_code == 200
+        finally:
+            response.close()
+            session.close()
+        assert lookup_count == 2
+    finally:
+        release_first_lookup.set()
+
+    assert _wait_for_post_helpers(operator, 0)
+
+
+def test_dns_helper_threads_remain_bounded(reasoning_server, monkeypatch):
+    operator = _operator(reasoning_server, mode="image", stream=False)
+    _route_test_server_through_dns(operator, reasoning_server)
+    operator.timeout_s = 0.1
+    lookup_started = (threading.Event(), threading.Event())
+    release_lookups = threading.Event()
+    lookup_lock = threading.Lock()
+    lookup_count = 0
+    original_getaddrinfo = socket.getaddrinfo
+
+    def blocked_getaddrinfo(host, port, *args, **kwargs):
+        nonlocal lookup_count
+        if host != "reasoner.test":
+            return original_getaddrinfo(host, port, *args, **kwargs)
+        with lookup_lock:
+            lookup_count += 1
+            lookup_number = lookup_count
+        lookup_started[lookup_number - 1].set()
+        release_lookups.wait()
+        return original_getaddrinfo("127.0.0.1", port, *args, **kwargs)
+
+    monkeypatch.setattr(socket, "getaddrinfo", blocked_getaddrinfo)
+    payload = {"stream": False}
+    headers = {"Content-Type": "application/json"}
+    try:
+        for started in lookup_started:
+            with pytest.raises(TimeoutError, match="reasoning request exceeded"):
+                operator._post_interruptibly(payload, headers)
+            assert started.is_set()
+
+        assert _post_helper_count(operator) == 2
+        with pytest.raises(RuntimeError, match="previous reasoning requests are still terminating"):
+            operator._post_interruptibly(payload, headers)
+        assert lookup_count == 2
+    finally:
+        release_lookups.set()
+
+    assert _wait_for_post_helpers(operator, 0)
 
 
 def test_compute_drains_events_without_an_input_message(reasoning_server):
