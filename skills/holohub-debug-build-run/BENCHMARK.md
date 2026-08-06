@@ -1,8 +1,10 @@
 # Skill Benchmark: holohub-debug-build-run
 
-> **Overall verdict: NEUTRAL — One or more dimensions remain below PASS**
+> ✅ **Overall verdict: PASS — Recommended for publication**
 
-Live evaluation did not show a material gain or regression. Collect more evidence or improve the skill before making a publication decision.
+## Publication Recommendation
+
+Recommended for publication based on the completed evaluation evidence in this report.
 
 ## Evaluation Metadata
 
@@ -32,12 +34,12 @@ The three-tier evaluation checks whether the skill:
 
 | Measure | Claude Code (Baseline → Skill Uplift) | Codex (Baseline → Skill Uplift) |
 |---|---:|---:|
-| Overall | Not available | 73% → 75% (+2 points) |
-| Security | Not available | 67% → 67% (±0 points) |
-| Correctness | Not available | 80% → 87% (+7 points) |
-| Discoverability | Not available | 67% → 67% (±0 points) |
-| Effectiveness | Not available | 84% → 88% (+4 points) |
-| Efficiency | Not available | 67% → 67% (±0 points) |
+| Overall | 73% → 88% (+15 points) | 71% → 65% (-6 points) |
+| Security | 67% → 67% (±0 points) | 67% → 67% (±0 points) |
+| Correctness | 80% → 87% (+7 points) | 87% → 67% (-20 points) |
+| Discoverability | 67% → 100% (+33 points) | 67% → 67% (±0 points) |
+| Effectiveness | 86% → 89% (+3 points) | 68% → 58% (-9 points) |
+| Efficiency | 67% → 100% (+33 points) | 67% → 67% (±0 points) |
 
 **How to read this table:** baseline is the same task attempted without the target skill. Uplift is `skill score - baseline score`, shown in percentage points.
 
@@ -49,7 +51,7 @@ Example: `47% → 92% (+45 points)` means the skill-assisted run scored 92%, 45 
 |---|---|---|---|
 | Tier 1 | Static validation | **PASSED** | 1 validator(s); 0 finding(s) |
 | Tier 2 | Semantic deduplication | **NOT RUN** | No result was recorded |
-| Tier 3 | Live agent evaluation | **NEUTRAL** | 2 agent(s); 3 task(s) |
+| Tier 3 | Live agent evaluation | **PASS** | 2 agent(s); 3 task(s) |
 
 ## Findings and Observations
 
@@ -57,7 +59,7 @@ Example: `47% → 92% (+45 points)` means the skill-assisted run scored 92%, 45 
 <summary>Show detailed findings and successful checks</summary>
 
 - Schema & Repository Governance: Found skill manifest: SKILL.md
-- AGENT_EVAL: Tier 3 evaluation complete: verdict NEUTRAL; best agent codex
+- AGENT_EVAL: Tier 3 evaluation complete: verdict PASS; best agent claude-code
 
 </details>
 
