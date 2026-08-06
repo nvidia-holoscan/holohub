@@ -42,6 +42,7 @@ WORKING_PULSE_PERIOD_S = 3.0
 WORKING_PULSE_MIN_ALPHA = 0.35
 WORKING_PULSE_MAX_ALPHA = 0.75
 REASONER_TICK_RATE_HZ = 60.0
+REPLAY_SOURCE_FRAME_RATE_HZ = 30.0
 
 
 def _filled_rectangle(x0: float, y0: float, x1: float, y1: float) -> np.ndarray:
@@ -362,6 +363,8 @@ class ProceduralNarratorApp(Application):
             name="reasoner",
             **reasoner_args,
         )
+        if self._source == "replayer" and reasoner.sample_fps > REPLAY_SOURCE_FRAME_RATE_HZ:
+            raise ValueError("reasoner.sample_fps must not exceed the 30 fps replay source rate")
         if reasoner.sample_fps > REASONER_TICK_RATE_HZ:
             raise ValueError("reasoner.sample_fps must not exceed the 60 Hz reasoner tick rate")
         chat_template_kwargs = reasoner.request_options.get("chat_template_kwargs")

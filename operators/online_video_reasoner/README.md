@@ -43,7 +43,7 @@ describe activity and change instead of unrelated still images.
 | `prompt` | Required | Text instruction sent with every observation. |
 | `mode` | `video` | `video` sends an MP4 clip; `image` sends one JPEG. |
 | `tensor_name` | `""` | Name of the RGB tensor in each input entity. |
-| `sample_fps` | `4.0` | Frame sampling rate and MP4 frame rate. |
+| `sample_fps` | `4.0` | Frame sampling rate and MP4 frame rate; in video mode it must not exceed the input source cadence. |
 | `clip_duration_s` | `4.0` | Target temporal window; video mode retains `round(sample_fps * clip_duration_s)` frames. |
 | `request_interval_s` | `4.0` | Minimum interval between accepted requests. |
 | `max_frame_gap_s` | `2 / sample_fps` | Maximum interval between sampled video frames before the rolling window is reset; in video mode this must be at least `1 / sample_fps`. |

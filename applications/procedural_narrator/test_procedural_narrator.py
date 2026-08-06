@@ -165,7 +165,7 @@ def test_event_sink_ignores_an_empty_receive():
     assert state.events == []
 
 
-def test_compose_wires_reasoner_state_and_validates_sample_rate(monkeypatch):
+def test_compose_wires_reasoner_state_and_validates_source_sample_rate(monkeypatch):
     captured_state_args = []
     captured_reasoner_tensor_names = []
     captured_display_tensor_names = []
@@ -193,8 +193,9 @@ def test_compose_wires_reasoner_state_and_validates_sample_rate(monkeypatch):
         _endpoint = None
         _headless = True
 
-        def __init__(self, sample_fps=60.0):
+        def __init__(self, sample_fps=30.0, source="replayer"):
             self.sample_fps = sample_fps
+            self._source = source
 
         def kwargs(self, name):
             return {
@@ -242,8 +243,13 @@ def test_compose_wires_reasoner_state_and_validates_sample_rate(monkeypatch):
     assert captured_reasoner_tensor_names == ["converted_video"]
     assert captured_display_tensor_names == ["converted_video"]
 
+    with pytest.raises(ValueError, match="30 fps replay source rate"):
+        ProceduralNarratorApp.compose(App(sample_fps=30.01))
+
+    ProceduralNarratorApp.compose(App(sample_fps=60.0, source="v4l2"))
+
     with pytest.raises(ValueError, match="60 Hz reasoner tick rate"):
-        ProceduralNarratorApp.compose(App(sample_fps=60.01))
+        ProceduralNarratorApp.compose(App(sample_fps=60.01, source="v4l2"))
 
 
 def test_display_rejects_a_non_string_input_tensor_name():
