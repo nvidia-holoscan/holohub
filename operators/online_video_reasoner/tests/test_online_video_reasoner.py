@@ -79,6 +79,47 @@ class _StalledSSEHandler(BaseHTTPRequestHandler):
         pass
 
 
+class _DripHeaderHandler(BaseHTTPRequestHandler):
+    protocol_version = "HTTP/1.1"
+
+    def do_POST(self):
+        length = int(self.headers["Content-Length"])
+        self.rfile.read(length)
+        with self.server.request_lock:
+            self.server.request_count += 1
+            request_number = self.server.request_count
+
+        if request_number > 1:
+            response = json.dumps(
+                {"choices": [{"message": {"content": "Recovered response."}}]}
+            ).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(response)))
+            self.end_headers()
+            self.wfile.write(response)
+            return
+
+        self.server.request_received.set()
+        self.wfile.write(b"HTTP/1.1 200 OK\r\nX-Drip: ")
+        self.wfile.flush()
+        while not self.server.release_response.wait(timeout=0.025):
+            try:
+                self.wfile.write(b"x")
+                self.wfile.flush()
+            except OSError:
+                self.server.connection_closed.set()
+                return
+        try:
+            self.wfile.write(b"\r\nContent-Length: 2\r\n\r\n{}")
+            self.wfile.flush()
+        except (BrokenPipeError, ConnectionResetError):
+            pass
+
+    def log_message(self, format_string, *args):
+        pass
+
+
 @pytest.fixture
 def reasoning_server():
     server = ThreadingHTTPServer(("127.0.0.1", 0), _ReasoningHandler)
@@ -98,6 +139,25 @@ def stalled_sse_server():
     server = ThreadingHTTPServer(("127.0.0.1", 0), _StalledSSEHandler)
     server.request_received = threading.Event()
     server.release_response = threading.Event()
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        yield server
+    finally:
+        server.release_response.set()
+        server.shutdown()
+        thread.join()
+        server.server_close()
+
+
+@pytest.fixture
+def drip_header_server():
+    server = ThreadingHTTPServer(("127.0.0.1", 0), _DripHeaderHandler)
+    server.request_received = threading.Event()
+    server.release_response = threading.Event()
+    server.connection_closed = threading.Event()
+    server.request_lock = threading.Lock()
+    server.request_count = 0
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     try:
@@ -527,6 +587,18 @@ def test_operator_rejects_invalid_configuration(override, message):
         OnlineVideoReasonerOp(Application(), **options)
 
 
+def test_operator_rejects_non_boolean_stream():
+    with pytest.raises(TypeError, match="stream must be a Boolean"):
+        OnlineVideoReasonerOp(
+            Application(),
+            endpoint="http://127.0.0.1:1/v1/chat/completions",
+            model="test-model",
+            prompt="Describe change.",
+            mode="image",
+            stream="false",
+        )
+
+
 @pytest.mark.parametrize(
     "field",
     [
@@ -800,7 +872,7 @@ def test_truncated_sse_emits_error_not_completed(reasoning_server, monkeypatch):
     monkeypatch.setattr(
         operator,
         "_post_interruptibly",
-        lambda payload, headers: (TruncatedResponse(), Session()),
+        lambda payload, headers, *, deadline: (TruncatedResponse(), Session()),
     )
     monkeypatch.setattr(
         "operators.online_video_reasoner.online_video_reasoner.encode_jpeg",
@@ -852,7 +924,7 @@ def test_stream_response_respects_character_limit(
     monkeypatch.setattr(
         operator,
         "_post_interruptibly",
-        lambda payload, headers: (Response(), Session()),
+        lambda payload, headers, *, deadline: (Response(), Session()),
     )
     monkeypatch.setattr(
         "operators.online_video_reasoner.online_video_reasoner.encode_jpeg",
@@ -893,7 +965,7 @@ def test_sse_deadline_applies_to_heartbeat_lines(reasoning_server, monkeypatch):
     monkeypatch.setattr(
         operator,
         "_post_interruptibly",
-        lambda payload, headers: (Response(), Session()),
+        lambda payload, headers, *, deadline: (Response(), Session()),
     )
     monkeypatch.setattr(
         "operators.online_video_reasoner.online_video_reasoner.encode_jpeg",
@@ -933,7 +1005,7 @@ def test_sse_unterminated_line_is_bounded_before_framing(reasoning_server, monke
     monkeypatch.setattr(
         operator,
         "_post_interruptibly",
-        lambda payload, headers: (Response(), Session()),
+        lambda payload, headers, *, deadline: (Response(), Session()),
     )
     monkeypatch.setattr(
         "operators.online_video_reasoner.online_video_reasoner.encode_jpeg",
@@ -970,7 +1042,7 @@ def test_non_stream_response_respects_character_limit(reasoning_server, monkeypa
     monkeypatch.setattr(
         operator,
         "_post_interruptibly",
-        lambda payload, headers: (Response(), Session()),
+        lambda payload, headers, *, deadline: (Response(), Session()),
     )
     monkeypatch.setattr(
         "operators.online_video_reasoner.online_video_reasoner.encode_jpeg",
@@ -1006,7 +1078,7 @@ def test_non_stream_response_body_is_bounded_before_parsing(reasoning_server, mo
     monkeypatch.setattr(
         operator,
         "_post_interruptibly",
-        lambda payload, headers: (Response(), Session()),
+        lambda payload, headers, *, deadline: (Response(), Session()),
     )
     monkeypatch.setattr(
         "operators.online_video_reasoner.online_video_reasoner.encode_jpeg",
@@ -1020,10 +1092,11 @@ def test_non_stream_response_body_is_bounded_before_parsing(reasoning_server, mo
     assert events[-1]["message"] == ("non-streaming response body exceeded limit (65540 bytes)")
 
 
-def test_non_stream_response_has_total_deadline(reasoning_server, monkeypatch):
+def test_header_wait_consumes_non_stream_response_deadline(reasoning_server, monkeypatch):
     operator = _operator(reasoning_server, mode="image", stream=False)
     operator.timeout_s = 1
-    moments = iter((0.0, 0.5, 1.0))
+    moments = iter((0.0, 0.75, 1.0))
+    timer_delays = []
 
     class Response:
         def raise_for_status(self):
@@ -1041,10 +1114,26 @@ def test_non_stream_response_has_total_deadline(reasoning_server, monkeypatch):
         def close(self):
             pass
 
+    class Timer:
+        daemon = False
+
+        def __init__(self, delay, callback):
+            timer_delays.append(delay)
+
+        def start(self):
+            pass
+
+        def cancel(self):
+            pass
+
+    def response_after_header_wait(payload, headers, *, deadline):
+        assert deadline == 1.0
+        return Response(), Session()
+
     monkeypatch.setattr(
         operator,
         "_post_interruptibly",
-        lambda payload, headers: (Response(), Session()),
+        response_after_header_wait,
     )
     monkeypatch.setattr(
         "operators.online_video_reasoner.online_video_reasoner.encode_jpeg",
@@ -1054,10 +1143,15 @@ def test_non_stream_response_has_total_deadline(reasoning_server, monkeypatch):
         "operators.online_video_reasoner.online_video_reasoner.time.monotonic",
         lambda: next(moments),
     )
+    monkeypatch.setattr(
+        "operators.online_video_reasoner.online_video_reasoner.threading.Timer",
+        Timer,
+    )
 
     operator._run_request("timed-response", np.zeros((12, 16, 3), dtype=np.uint8))
 
     events = _queued_events(operator)
+    assert timer_delays == [0.25]
     assert [event["kind"] for event in events] == ["started", "error"]
     assert events[-1]["message"] == ("non-streaming response exceeded timeout_s (1 seconds)")
 
@@ -1130,6 +1224,85 @@ def test_stop_interrupts_request_before_response_headers(reasoning_server, monke
     assert response_closed.wait(timeout=1)
     assert session_closed.wait(timeout=1)
     assert [event["kind"] for event in _queued_events(operator)] == ["started"]
+
+
+def test_header_deadline_bounds_drip_response(drip_header_server):
+    operator = _operator(drip_header_server, mode="image", stream=False)
+    operator.timeout_s = 0.2
+    operator.start()
+    started_at = time.monotonic()
+    try:
+        operator._accept_frame({"": np.zeros((12, 16, 3), dtype=np.uint8)}, now=0.0)
+        assert drip_header_server.request_received.wait(timeout=1)
+        assert operator._future is not None
+        while not operator._future.done() and time.monotonic() - started_at < 1:
+            time.sleep(0.01)
+        assert operator._future.done()
+        assert time.monotonic() - started_at < 1
+        operator._finish_completed_future()
+
+        events = _queued_events(operator)
+        assert [event["kind"] for event in events] == ["started", "error"]
+        assert events[-1]["message"] == ("reasoning request exceeded timeout_s (0.2 seconds)")
+        assert drip_header_server.connection_closed.wait(timeout=1)
+
+        helper_deadline = time.monotonic() + 1
+        while operator._post_thread is not None and time.monotonic() < helper_deadline:
+            time.sleep(0.01)
+        assert operator._post_thread is None
+
+        operator._run_request("recovered", np.zeros((12, 16, 3), dtype=np.uint8))
+        recovery_events = _queued_events(operator)
+        assert [event["kind"] for event in recovery_events] == ["started", "completed"]
+        assert recovery_events[-1]["text"] == "Recovered response."
+        assert drip_header_server.request_count == 2
+    finally:
+        drip_header_server.release_response.set()
+        operator.stop()
+
+
+def test_header_deadline_closes_eventual_late_response(reasoning_server, monkeypatch):
+    operator = _operator(reasoning_server, mode="image", stream=False)
+    operator.timeout_s = 0.05
+    request_started = threading.Event()
+    release_request = threading.Event()
+    response_closed = threading.Event()
+    session_closed = threading.Event()
+
+    def pending_request(session, *args, **kwargs):
+        request_started.set()
+        release_request.wait()
+        return SimpleNamespace(close=response_closed.set)
+
+    monkeypatch.setattr(
+        "operators.online_video_reasoner.online_video_reasoner.requests.Session.post",
+        pending_request,
+    )
+    monkeypatch.setattr(
+        "operators.online_video_reasoner.online_video_reasoner.requests.Session.close",
+        lambda session: session_closed.set(),
+    )
+    operator.start()
+    operator._accept_frame({"": np.zeros((12, 16, 3), dtype=np.uint8)}, now=0.0)
+    assert request_started.wait(timeout=1)
+    assert operator._future is not None
+    try:
+        assert operator._future.done() or operator._future.exception(timeout=1) is None
+        operator._finish_completed_future()
+        events = _queued_events(operator)
+        assert [event["kind"] for event in events] == ["started", "error"]
+        assert session_closed.wait(timeout=1)
+        with pytest.raises(RuntimeError, match="previous reasoning request is still terminating"):
+            operator._post_interruptibly({}, {})
+    finally:
+        release_request.set()
+
+    assert response_closed.wait(timeout=1)
+    helper_deadline = time.monotonic() + 1
+    while operator._post_thread is not None and time.monotonic() < helper_deadline:
+        time.sleep(0.01)
+    assert operator._post_thread is None
+    operator.stop()
 
 
 def test_compute_drains_events_without_an_input_message(reasoning_server):
@@ -1273,9 +1446,7 @@ def test_holoscan_graph_streams_video_reasoning_events(reasoning_server):
                 CountCondition(self, count=200),
                 PeriodicCondition(self, recess_period=timedelta(milliseconds=5)),
                 name="reasoner",
-                endpoint=(
-                    f"http://127.0.0.1:{reasoning_server.server_port}" "/v1/chat/completions"
-                ),
+                endpoint=(f"http://127.0.0.1:{reasoning_server.server_port}/v1/chat/completions"),
                 model="test-model",
                 prompt="Describe change.",
                 mode="video",

@@ -26,6 +26,7 @@ from urllib.parse import urlsplit
 import numpy as np
 import requests
 from holoscan.core import ConditionType, Operator, OperatorSpec
+from requests.adapters import HTTPAdapter
 
 from .media import encode_jpeg, encode_mp4, validate_rgb_frame
 
@@ -51,6 +52,104 @@ def _close_response_handle(handle: tuple[requests.Response, requests.Session]) -
         response.close()
     finally:
         session.close()
+
+
+def _shutdown_and_close(network_socket: socket.socket | None) -> None:
+    """Interrupt a socket duplicate and release its descriptor."""
+    if network_socket is None:
+        return
+    try:
+        network_socket.shutdown(socket.SHUT_RDWR)
+    except OSError:
+        pass
+    finally:
+        network_socket.close()
+
+
+class _SocketInterrupter:
+    """Keep a cancellable duplicate of the socket used to acquire headers."""
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._socket: socket.socket | None = None
+        self._cancelled = False
+
+    def attach(self, network_socket: socket.socket) -> None:
+        """Capture a socket, immediately interrupting it after cancellation."""
+        try:
+            duplicate = network_socket.dup()
+        except OSError as error:
+            network_socket.close()
+            raise RuntimeError("could not prepare reasoning request cancellation") from error
+
+        with self._lock:
+            previous = self._socket
+            if self._cancelled:
+                interrupt = duplicate
+            else:
+                self._socket = duplicate
+                interrupt = None
+        if previous is not None:
+            previous.close()
+        _shutdown_and_close(interrupt)
+
+    def cancel(self) -> None:
+        """Interrupt the captured socket and any socket attached later."""
+        with self._lock:
+            self._cancelled = True
+            network_socket = self._socket
+            self._socket = None
+        _shutdown_and_close(network_socket)
+
+    def close(self) -> None:
+        """Release the duplicate without affecting a successful response."""
+        with self._lock:
+            network_socket = self._socket
+            self._socket = None
+        if network_socket is not None:
+            network_socket.close()
+
+
+def _capturing_pool_class(pool_class: type, interrupter: _SocketInterrupter) -> type:
+    """Wrap one urllib3 pool class so its newly connected socket is captured."""
+    connection_class = pool_class.ConnectionCls
+
+    class _CapturingConnection(connection_class):
+        def _new_conn(self):
+            network_socket = super()._new_conn()
+            interrupter.attach(network_socket)
+            return network_socket
+
+    class _CapturingPool(pool_class):
+        ConnectionCls = _CapturingConnection
+
+    return _CapturingPool
+
+
+class _InterruptibleHTTPAdapter(HTTPAdapter):
+    """Install per-session urllib3 pools that expose pre-header sockets."""
+
+    def __init__(self, interrupter: _SocketInterrupter) -> None:
+        self._interrupter = interrupter
+        super().__init__()
+
+    def _configure_manager(self, manager: Any) -> None:
+        if getattr(manager, "online_reasoner_interrupter", None) is self._interrupter:
+            return
+        manager.pool_classes_by_scheme = {
+            scheme: _capturing_pool_class(pool_class, self._interrupter)
+            for scheme, pool_class in manager.pool_classes_by_scheme.items()
+        }
+        manager.online_reasoner_interrupter = self._interrupter
+
+    def init_poolmanager(self, connections, maxsize, block=False, **pool_kwargs):
+        super().init_poolmanager(connections, maxsize, block=block, **pool_kwargs)
+        self._configure_manager(self.poolmanager)
+
+    def proxy_manager_for(self, proxy, **proxy_kwargs):
+        manager = super().proxy_manager_for(proxy, **proxy_kwargs)
+        self._configure_manager(manager)
+        return manager
 
 
 def _validate_endpoint(endpoint: str) -> bool:
@@ -206,6 +305,8 @@ class OnlineVideoReasonerOp(Operator):
                 )
         _validate_positive_finite("connect_timeout_s", connect_timeout_s)
         _validate_positive_finite("timeout_s", timeout_s)
+        if not isinstance(stream, bool):
+            raise TypeError("stream must be a Boolean")
         if not isinstance(max_tokens, int) or isinstance(max_tokens, bool) or max_tokens <= 0:
             raise ValueError("max_tokens must be a positive integer")
         if (
@@ -251,6 +352,8 @@ class OnlineVideoReasonerOp(Operator):
         self._stop_event = threading.Event()
         self._response_lock = threading.Lock()
         self._active_response: requests.Response | None = None
+        self._post_thread_lock = threading.Lock()
+        self._post_thread: threading.Thread | None = None
         self._last_sample_at = float("-inf")
         self._next_sample_at = float("-inf")
         self._last_request_at = float("-inf")
@@ -427,7 +530,8 @@ class OnlineVideoReasonerOp(Operator):
                     "frame_count": 1 if self.mode == "image" else len(media),
                 }
             )
-            response_handle = self._post_interruptibly(payload, headers)
+            deadline = time.monotonic() + self.timeout_s
+            response_handle = self._post_interruptibly(payload, headers, deadline=deadline)
             if response_handle is None:
                 return
             response, _ = response_handle
@@ -441,7 +545,7 @@ class OnlineVideoReasonerOp(Operator):
                 if self.stream:
                     completion = io.StringIO()
                     completion_chars = 0
-                    lines = self._iter_sse_lines(response)
+                    lines = self._iter_sse_lines(response, deadline=deadline)
                     try:
                         for text in iter_sse_text(lines):
                             if self._stop_event.is_set():
@@ -449,8 +553,7 @@ class OnlineVideoReasonerOp(Operator):
                             next_chars = completion_chars + len(text)
                             if next_chars > self.max_response_chars:
                                 raise ValueError(
-                                    "response exceeded max_response_chars "
-                                    f"({self.max_response_chars})"
+                                    f"response exceeded max_response_chars ({self.max_response_chars})"
                                 )
                             completion.write(text)
                             completion_chars = next_chars
@@ -470,7 +573,7 @@ class OnlineVideoReasonerOp(Operator):
                     if not completed_text:
                         raise ValueError("stream completed without text")
                 else:
-                    response_payload = self._read_non_streaming_json(response)
+                    response_payload = self._read_non_streaming_json(response, deadline=deadline)
                     if response_payload is None:
                         return
                     completed_text = extract_completion_text(response_payload)
@@ -513,9 +616,11 @@ class OnlineVideoReasonerOp(Operator):
         *,
         response_name: str,
         chunk_size: int = 8192,
+        deadline: float | None = None,
     ) -> Iterable[bytes]:
         """Yield raw response chunks within the configured total deadline."""
-        deadline = time.monotonic() + self.timeout_s
+        if deadline is None:
+            deadline = time.monotonic() + self.timeout_s
         deadline_expired = threading.Event()
         timeout_message = (
             f"{response_name} response exceeded timeout_s ({self.timeout_s:g} seconds)"
@@ -525,7 +630,12 @@ class OnlineVideoReasonerOp(Operator):
             deadline_expired.set()
             self._interrupt_response(response)
 
-        deadline_timer = threading.Timer(self.timeout_s, interrupt_at_deadline)
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            interrupt_at_deadline()
+            raise TimeoutError(timeout_message)
+
+        deadline_timer = threading.Timer(remaining, interrupt_at_deadline)
         deadline_timer.daemon = True
         deadline_timer.start()
         try:
@@ -547,11 +657,21 @@ class OnlineVideoReasonerOp(Operator):
         finally:
             deadline_timer.cancel()
 
-    def _iter_sse_lines(self, response: requests.Response) -> Iterable[bytes]:
+    def _iter_sse_lines(
+        self,
+        response: requests.Response,
+        *,
+        deadline: float | None = None,
+    ) -> Iterable[bytes]:
         """Frame bounded SSE lines directly from raw response chunks."""
         line = bytearray()
         line_limit = self.max_response_chars + _RESPONSE_ENVELOPE_ALLOWANCE_BYTES
-        chunks = self._iter_response_chunks(response, response_name="SSE", chunk_size=1)
+        chunks = self._iter_response_chunks(
+            response,
+            response_name="SSE",
+            chunk_size=1,
+            deadline=deadline,
+        )
         try:
             for chunk in chunks:
                 start = 0
@@ -575,16 +695,22 @@ class OnlineVideoReasonerOp(Operator):
     def _read_non_streaming_json(
         self,
         response: requests.Response,
+        *,
+        deadline: float | None = None,
     ) -> dict[str, Any] | None:
         """Read one JSON response within bounded memory and wall-clock time."""
         body = bytearray()
         body_limit = self.max_response_chars + _RESPONSE_ENVELOPE_ALLOWANCE_BYTES
-        chunks = self._iter_response_chunks(response, response_name="non-streaming")
+        chunks = self._iter_response_chunks(
+            response,
+            response_name="non-streaming",
+            deadline=deadline,
+        )
         try:
             for chunk in chunks:
                 if len(body) + len(chunk) > body_limit:
                     raise ValueError(
-                        "non-streaming response body exceeded limit " f"({body_limit} bytes)"
+                        f"non-streaming response body exceeded limit ({body_limit} bytes)"
                     )
                 body.extend(chunk)
         finally:
@@ -601,73 +727,121 @@ class OnlineVideoReasonerOp(Operator):
         return payload
 
     def _post_interruptibly(
-        self, payload: dict[str, Any], headers: dict[str, str]
+        self,
+        payload: dict[str, Any],
+        headers: dict[str, str],
+        *,
+        deadline: float | None = None,
     ) -> tuple[requests.Response, requests.Session] | None:
+        if deadline is None:
+            deadline = time.monotonic() + self.timeout_s
+        timeout_message = f"reasoning request exceeded timeout_s ({self.timeout_s:g} seconds)"
         results: queue.Queue[tuple[requests.Response, requests.Session] | Exception] = queue.Queue(
             maxsize=1
         )
         handoff_lock = threading.Lock()
         abandoned = False
+        interrupter = _SocketInterrupter()
+        session = requests.Session()
+        session.trust_env = self._trust_environment
+        session.mount("http://", _InterruptibleHTTPAdapter(interrupter))
+        session.mount("https://", _InterruptibleHTTPAdapter(interrupter))
+
+        def abandon_request():
+            nonlocal abandoned
+            with handoff_lock:
+                abandoned = True
+                try:
+                    pending_result = results.get_nowait()
+                except queue.Empty:
+                    pending_result = None
+            interrupter.cancel()
+            if isinstance(pending_result, tuple):
+                _close_response_handle(pending_result)
+            else:
+                session.close()
 
         def post_request():
-            session: requests.Session | None = None
             try:
-                session = requests.Session()
-                session.trust_env = self._trust_environment
-                response = session.post(
-                    self.endpoint,
-                    json=payload,
-                    headers=headers,
-                    # Keep transport validation bound to the configured URL.
-                    allow_redirects=False,
-                    # Always defer reading the body so stop() can interrupt
-                    # streaming and non-streaming API responses alike.
-                    stream=True,
-                    timeout=(self.connect_timeout_s, self.timeout_s),
-                )
-                result: tuple[requests.Response, requests.Session] | Exception = (
-                    response,
-                    session,
-                )
-            except Exception as error:  # noqa: BLE001 - hand off every thread failure.
-                if session is not None:
+                with handoff_lock:
+                    skip_request = (
+                        abandoned or self._stop_event.is_set() or time.monotonic() >= deadline
+                    )
+                if skip_request:
                     session.close()
-                result = error
+                    return
 
-            with handoff_lock:
-                if abandoned:
-                    if isinstance(result, tuple):
-                        _close_response_handle(result)
-                else:
-                    results.put_nowait(result)
+                try:
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0:
+                        session.close()
+                        return
+                    response = session.post(
+                        self.endpoint,
+                        json=payload,
+                        headers=headers,
+                        # Keep transport validation bound to the configured URL.
+                        allow_redirects=False,
+                        # Always defer reading the body so stop() can interrupt
+                        # streaming and non-streaming API responses alike.
+                        stream=True,
+                        timeout=(min(self.connect_timeout_s, remaining), self.timeout_s),
+                    )
+                    result: tuple[requests.Response, requests.Session] | Exception = (
+                        response,
+                        session,
+                    )
+                except Exception as error:  # noqa: BLE001 - hand off every thread failure.
+                    session.close()
+                    result = error
+
+                with handoff_lock:
+                    if abandoned:
+                        if isinstance(result, tuple):
+                            _close_response_handle(result)
+                    else:
+                        results.put_nowait(result)
+            finally:
+                interrupter.close()
+                with self._post_thread_lock:
+                    if self._post_thread is threading.current_thread():
+                        self._post_thread = None
 
         request_thread = threading.Thread(
             target=post_request,
             name="online-reasoner-http",
             daemon=True,
         )
-        request_thread.start()
+        with self._post_thread_lock:
+            previous_thread = self._post_thread
+            if previous_thread is not None and previous_thread.is_alive():
+                session.close()
+                raise RuntimeError("previous reasoning request is still terminating")
+            self._post_thread = request_thread
+            request_thread.start()
 
         while True:
-            try:
-                result = results.get(timeout=0.05)
-            except queue.Empty:
-                if not self._stop_event.is_set():
-                    continue
-                with handoff_lock:
-                    abandoned = True
-                    try:
-                        pending_result = results.get_nowait()
-                    except queue.Empty:
-                        pending_result = None
-                if isinstance(pending_result, tuple):
-                    _close_response_handle(pending_result)
+            if self._stop_event.is_set():
+                abandon_request()
                 return None
+
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                abandon_request()
+                raise TimeoutError(timeout_message)
+            try:
+                result = results.get(timeout=min(0.05, remaining))
+            except queue.Empty:
+                continue
 
             if self._stop_event.is_set():
                 if isinstance(result, tuple):
                     _close_response_handle(result)
                 return None
+            if time.monotonic() >= deadline:
+                if isinstance(result, tuple):
+                    _close_response_handle(result)
+                raise TimeoutError(timeout_message)
             if isinstance(result, Exception):
                 raise result
             return result

@@ -77,8 +77,12 @@ required, export the configured API-key variable:
 export REASONER_API_KEY="<token>"
 ```
 
-The standard `./holohub run` modes automatically forward this variable into
-the application container.
+The standard `./holohub run` modes forward only `REASONER_API_KEY` into the
+application container. If `reasoner.api_key_env` is changed, export the matching
+variable and pass it explicitly with `--docker-opts="--env=<variable>"`.
+`--docker-opts` replaces the mode's default Docker arguments, so the `v4l2`
+mode must also repeat its device mapping, for example
+`--docker-opts="--env=MY_REASONER_API_KEY --device=/dev/video0"`.
 
 For a temporary endpoint override, pass
 `--run-args="--endpoint https://host:port/v1/chat/completions"`.
