@@ -198,6 +198,26 @@ def test_wrap_narrative_can_preserve_the_latest_streamed_text():
 
 
 @pytest.mark.parametrize(
+    ("max_lines", "keep_tail", "expected"),
+    [
+        (2, False, ("abcde", "fghij")),
+        (1, False, ("abcd\u2026",)),
+        (1, True, ("\u2026ghij",)),
+    ],
+)
+def test_wrap_narrative_breaks_oversized_tokens(max_lines, keep_tail, expected):
+    lines = wrap_narrative(
+        "abcdefghij",
+        width=5,
+        max_lines=max_lines,
+        keep_tail=keep_tail,
+    )
+
+    assert lines == expected
+    assert all(len(line) <= 5 for line in lines)
+
+
+@pytest.mark.parametrize(
     ("kwargs", "message"),
     [
         ({"width": 1}, "width"),

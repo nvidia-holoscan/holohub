@@ -41,6 +41,7 @@ TRANSPARENT = [0.0, 0.0, 0.0, 0.0]
 WORKING_PULSE_PERIOD_S = 3.0
 WORKING_PULSE_MIN_ALPHA = 0.35
 WORKING_PULSE_MAX_ALPHA = 0.75
+REASONER_TICK_RATE_HZ = 60.0
 
 
 def _filled_rectangle(x0: float, y0: float, x1: float, y1: float) -> np.ndarray:
@@ -356,11 +357,13 @@ class ProceduralNarratorApp(Application):
             PeriodicCondition(
                 self,
                 name="reasoner_periodic",
-                recess_period=timedelta(seconds=1 / 60),
+                recess_period=timedelta(seconds=1 / REASONER_TICK_RATE_HZ),
             ),
             name="reasoner",
             **reasoner_args,
         )
+        if reasoner.sample_fps > REASONER_TICK_RATE_HZ:
+            raise ValueError("reasoner.sample_fps must not exceed the 60 Hz reasoner tick rate")
         chat_template_kwargs = reasoner.request_options.get("chat_template_kwargs")
         thinking_mode = (
             chat_template_kwargs.get("enable_thinking", False)

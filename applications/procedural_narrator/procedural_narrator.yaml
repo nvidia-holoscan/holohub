@@ -28,6 +28,7 @@ reasoner:
     motion, and procedural actions only when visible. Do not infer identity,
     diagnosis, intent, or outcome.
   mode: "video"
+  # Supported range: greater than 0 and no more than 60.
   sample_fps: 4
   clip_duration_s: 4
   request_interval_s: 4

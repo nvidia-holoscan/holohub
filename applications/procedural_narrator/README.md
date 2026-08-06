@@ -163,6 +163,8 @@ the camera, such as `MJPG`, or use `auto` to let the source negotiate.
 ## Behaviour
 
 The default four-second rolling window is sampled at four frames per second.
+The application schedules the reasoner at 60 Hz and rejects
+`reasoner.sample_fps` values above 60.
 The model circle blinks after an encoded clip is dispatched and while the
 application waits for a response. It turns green when SSE text starts arriving;
 the canonical `completed` text replaces the partial response when the request

@@ -165,7 +165,7 @@ def test_event_sink_ignores_an_empty_receive():
     assert state.events == []
 
 
-def test_compose_wires_reasoner_state_and_converter_tensor_name(monkeypatch):
+def test_compose_wires_reasoner_state_and_validates_sample_rate(monkeypatch):
     captured_state_args = []
     captured_reasoner_tensor_names = []
     captured_display_tensor_names = []
@@ -181,6 +181,7 @@ def test_compose_wires_reasoner_state_and_converter_tensor_name(monkeypatch):
         def __init__(self, *args, **kwargs):
             self.clip_duration_s = kwargs.get("clip_duration_s", 7.5)
             self.max_frame_gap_s = kwargs.get("max_frame_gap_s", 0.25)
+            self.sample_fps = kwargs.get("sample_fps", 4.0)
             self.request_options = dict(kwargs.get("request_options", {}))
             captured_reasoner_tensor_names.append(kwargs["tensor_name"])
 
@@ -192,6 +193,9 @@ def test_compose_wires_reasoner_state_and_converter_tensor_name(monkeypatch):
         _endpoint = None
         _headless = True
 
+        def __init__(self, sample_fps=60.0):
+            self.sample_fps = sample_fps
+
         def kwargs(self, name):
             return {
                 "format_converter": {
@@ -200,11 +204,12 @@ def test_compose_wires_reasoner_state_and_converter_tensor_name(monkeypatch):
                     "resize_height": 480,
                 },
                 "reasoner": {
+                    "sample_fps": self.sample_fps,
                     "request_options": {
                         "chat_template_kwargs": {
                             "enable_thinking": True,
                         }
-                    }
+                    },
                 },
                 "holoviz": {},
             }[name]
@@ -236,6 +241,9 @@ def test_compose_wires_reasoner_state_and_converter_tensor_name(monkeypatch):
     assert captured_state_args == [(7.5, 0.25, True)]
     assert captured_reasoner_tensor_names == ["converted_video"]
     assert captured_display_tensor_names == ["converted_video"]
+
+    with pytest.raises(ValueError, match="60 Hz reasoner tick rate"):
+        ProceduralNarratorApp.compose(App(sample_fps=60.01))
 
 
 def test_display_rejects_a_non_string_input_tensor_name():

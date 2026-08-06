@@ -218,7 +218,7 @@ def wrap_narrative(
     lines = textwrap.wrap(
         normalised,
         width=width,
-        break_long_words=False,
+        break_long_words=True,
         break_on_hyphens=False,
     )
     if len(lines) <= max_lines:
