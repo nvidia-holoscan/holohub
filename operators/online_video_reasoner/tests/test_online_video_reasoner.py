@@ -651,6 +651,21 @@ def test_operator_rejects_invalid_configuration(override, message):
         OnlineVideoReasonerOp(Application(), **options)
 
 
+@pytest.mark.parametrize("field", ["model", "prompt"])
+@pytest.mark.parametrize("value", ["", None, 123, {"text": "Describe change."}])
+def test_operator_rejects_invalid_required_strings(field, value):
+    options = {
+        "endpoint": "http://127.0.0.1:1/v1/chat/completions",
+        "model": "test-model",
+        "prompt": "Describe change.",
+        "mode": "image",
+    }
+    options[field] = value
+
+    with pytest.raises(ValueError, match=rf"^{field} must be a non-empty string$"):
+        OnlineVideoReasonerOp(Application(), **options)
+
+
 def test_operator_rejects_non_boolean_stream():
     with pytest.raises(TypeError, match="stream must be a Boolean"):
         OnlineVideoReasonerOp(

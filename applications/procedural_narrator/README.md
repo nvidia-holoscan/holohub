@@ -114,7 +114,7 @@ delimiter is not shown.
 
 ## Run a replay
 
-The default mode downloads and replays the standard Holohub surgical video:
+The default mode downloads and plays the standard Holohub surgical video once:
 
 ```bash
 ./holohub build procedural_narrator --dryrun --verbose
@@ -163,10 +163,15 @@ the camera, such as `MJPG`, or use `auto` to let the source negotiate.
 ## Behaviour
 
 The default four-second rolling window is sampled at four frames per second.
-The bundled replay runs at 30 frames per second, so replay mode rejects
-`reasoner.sample_fps` values above 30. V4L2 mode rejects values above the
-application's 60 Hz reasoner schedule, and lower values must still not exceed
-the camera's actual delivery rate.
+Replay mode requires a positive explicit `replayer_source.frame_rate` and
+rejects a `reasoner.sample_fps` value above that configured playback rate. The
+default is 30 frames per second. Timestamp-driven playback with `frame_rate: 0`
+is not supported because its cadence is unavailable when the graph is composed.
+`replayer_source.realtime` must remain enabled so this rate controls delivery.
+Replay repetition is also rejected so one temporal clip cannot combine the end
+and beginning of a recording. V4L2 mode rejects values above the application's
+60 Hz reasoner schedule, and lower values must still not exceed the camera's
+actual delivery rate.
 The model circle blinks after an encoded clip is dispatched and while the
 application waits for a response. It turns green when SSE text starts arriving;
 the canonical `completed` text replaces the partial response when the request

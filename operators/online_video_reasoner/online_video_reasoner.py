@@ -308,8 +308,9 @@ class OnlineVideoReasonerOp(Operator):
         if mode not in {"image", "video"}:
             raise ValueError("mode must be 'image' or 'video'")
         uses_local_http = _validate_endpoint(endpoint)
-        if not model or not prompt:
-            raise ValueError("model and prompt are required")
+        for field_name, value in (("model", model), ("prompt", prompt)):
+            if not isinstance(value, str) or not value:
+                raise ValueError(f"{field_name} must be a non-empty string")
         _validate_positive_finite("sample_fps", sample_fps)
         _validate_positive_finite("clip_duration_s", clip_duration_s)
         _validate_positive_finite("request_interval_s", request_interval_s)

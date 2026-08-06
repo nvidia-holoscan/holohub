@@ -4,8 +4,10 @@
 ---
 replayer_source:
   basename: "surgical_video"
-  frame_rate: 0
-  repeat: true
+  # Explicit cadence lets the application validate temporal sampling.
+  frame_rate: 30
+  # A loop boundary is not continuous video and must not enter one clip.
+  repeat: false
   realtime: true
   count: 0
 
@@ -28,7 +30,7 @@ reasoner:
     motion, and procedural actions only when visible. Do not infer identity,
     diagnosis, intent, or outcome.
   mode: "video"
-  # Supported range: > 0 and <= 30 for replayer, <= 60 for v4l2.
+  # Supported range: > 0 and <= replayer_source.frame_rate, or <= 60 for v4l2.
   sample_fps: 4
   clip_duration_s: 4
   request_interval_s: 4

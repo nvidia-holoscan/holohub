@@ -42,7 +42,29 @@ WORKING_PULSE_PERIOD_S = 3.0
 WORKING_PULSE_MIN_ALPHA = 0.35
 WORKING_PULSE_MAX_ALPHA = 0.75
 REASONER_TICK_RATE_HZ = 60.0
-REPLAY_SOURCE_FRAME_RATE_HZ = 30.0
+
+
+def _validate_replayer_settings(replayer_args: dict[str, Any]) -> float:
+    """Return an explicit replay cadence that is safe for temporal windows."""
+    frame_rate = replayer_args.get("frame_rate", 0)
+    try:
+        valid_frame_rate = (
+            not isinstance(frame_rate, bool) and math.isfinite(frame_rate) and frame_rate > 0
+        )
+    except TypeError:
+        valid_frame_rate = False
+    if not valid_frame_rate:
+        raise ValueError("replayer_source.frame_rate must be a positive finite number")
+    if replayer_args.get("realtime", True) is not True:
+        raise ValueError(
+            "replayer_source.realtime must be true so frame_rate defines playback cadence"
+        )
+    if replayer_args.get("repeat", False) is not False:
+        raise ValueError(
+            "replayer_source.repeat must be false to prevent reasoning windows "
+            "from crossing replay boundaries"
+        )
+    return float(frame_rate)
 
 
 def _filled_rectangle(x0: float, y0: float, x1: float, y1: float) -> np.ndarray:
@@ -335,7 +357,7 @@ class ProceduralNarratorApp(Application):
             max_size=5,
         )
 
-        source, source_output, in_dtype = self._make_source(allocator)
+        source, source_output, in_dtype, source_frame_rate = self._make_source(allocator)
         converter_args = dict(self.kwargs("format_converter"))
         converter_output_tensor_name = converter_args.get("out_tensor_name", "")
         if not isinstance(converter_output_tensor_name, str):
@@ -363,8 +385,11 @@ class ProceduralNarratorApp(Application):
             name="reasoner",
             **reasoner_args,
         )
-        if self._source == "replayer" and reasoner.sample_fps > REPLAY_SOURCE_FRAME_RATE_HZ:
-            raise ValueError("reasoner.sample_fps must not exceed the 30 fps replay source rate")
+        if source_frame_rate is not None and reasoner.sample_fps > source_frame_rate:
+            raise ValueError(
+                "reasoner.sample_fps must not exceed replayer_source.frame_rate "
+                f"({source_frame_rate:g} fps)"
+            )
         if reasoner.sample_fps > REASONER_TICK_RATE_HZ:
             raise ValueError("reasoner.sample_fps must not exceed the 60 Hz reasoner tick rate")
         chat_template_kwargs = reasoner.request_options.get("chat_template_kwargs")
@@ -417,7 +442,7 @@ class ProceduralNarratorApp(Application):
     def _make_source(
         self,
         allocator: UnboundedAllocator,
-    ) -> tuple[Operator, str, str]:
+    ) -> tuple[Operator, str, str, float | None]:
         if self._source == "v4l2":
             source_args: dict[str, Any] = dict(self.kwargs("v4l2_source"))
             if self._video_device is not None:
@@ -428,15 +453,17 @@ class ProceduralNarratorApp(Application):
                 allocator=allocator,
                 **source_args,
             )
-            return source, "signal", "rgba8888"
+            return source, "signal", "rgba8888", None
 
+        source_args = dict(self.kwargs("replayer_source"))
+        source_frame_rate = _validate_replayer_settings(source_args)
         source = VideoStreamReplayerOp(
             self,
             name="replayer_source",
             directory=self._data_path,
-            **self.kwargs("replayer_source"),
+            **source_args,
         )
-        return source, "output", "rgb888"
+        return source, "output", "rgb888", source_frame_rate
 
     def on_window_closed(self):
         self.stop_execution()

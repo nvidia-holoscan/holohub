@@ -5,10 +5,12 @@
 
 import sys
 from collections import defaultdict
+from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
 import pytest
+import yaml
 
 pytest.importorskip("holoscan")
 
@@ -145,6 +147,41 @@ def test_application_rejects_unknown_source(tmp_path):
         ProceduralNarratorApp(str(tmp_path), source="file")
 
 
+def test_default_replayer_configuration_has_explicit_cadence_and_no_loop():
+    config_path = Path(narrator_module.__file__).with_name("procedural_narrator.yaml")
+    config = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+
+    assert config["replayer_source"]["frame_rate"] == 30
+    assert config["replayer_source"]["realtime"] is True
+    assert config["replayer_source"]["repeat"] is False
+
+
+def test_replayer_settings_return_the_configured_cadence():
+    assert narrator_module._validate_replayer_settings(
+        {"frame_rate": 15, "repeat": False}
+    ) == pytest.approx(15.0)
+
+
+@pytest.mark.parametrize("frame_rate", [0, -1, float("nan"), float("inf"), True, "30"])
+def test_replayer_settings_require_a_positive_explicit_cadence(frame_rate):
+    with pytest.raises(ValueError, match="frame_rate must be a positive finite number"):
+        narrator_module._validate_replayer_settings({"frame_rate": frame_rate, "repeat": False})
+
+
+@pytest.mark.parametrize("repeat", [True, 1, "false"])
+def test_replayer_settings_reject_repetition(repeat):
+    with pytest.raises(ValueError, match="repeat must be false"):
+        narrator_module._validate_replayer_settings({"frame_rate": 30, "repeat": repeat})
+
+
+@pytest.mark.parametrize("realtime", [False, 0, "true"])
+def test_replayer_settings_require_realtime_playback(realtime):
+    with pytest.raises(ValueError, match="realtime must be true"):
+        narrator_module._validate_replayer_settings(
+            {"frame_rate": 30, "realtime": realtime, "repeat": False}
+        )
+
+
 def test_event_sink_ignores_an_empty_receive():
     class State:
         def __init__(self):
@@ -193,9 +230,10 @@ def test_compose_wires_reasoner_state_and_validates_source_sample_rate(monkeypat
         _endpoint = None
         _headless = True
 
-        def __init__(self, sample_fps=30.0, source="replayer"):
+        def __init__(self, sample_fps=15.0, source="replayer", source_frame_rate=15.0):
             self.sample_fps = sample_fps
             self._source = source
+            self.source_frame_rate = source_frame_rate
 
         def kwargs(self, name):
             return {
@@ -216,7 +254,8 @@ def test_compose_wires_reasoner_state_and_validates_source_sample_rate(monkeypat
             }[name]
 
         def _make_source(self, allocator):
-            return object(), "output", "rgb888"
+            source_frame_rate = self.source_frame_rate if self._source == "replayer" else None
+            return object(), "output", "rgb888", source_frame_rate
 
         def add_flow(self, *args, **kwargs):
             pass
@@ -243,8 +282,8 @@ def test_compose_wires_reasoner_state_and_validates_source_sample_rate(monkeypat
     assert captured_reasoner_tensor_names == ["converted_video"]
     assert captured_display_tensor_names == ["converted_video"]
 
-    with pytest.raises(ValueError, match="30 fps replay source rate"):
-        ProceduralNarratorApp.compose(App(sample_fps=30.01))
+    with pytest.raises(ValueError, match=r"replayer_source\.frame_rate \(15 fps\)"):
+        ProceduralNarratorApp.compose(App(sample_fps=15.01, source_frame_rate=15.0))
 
     ProceduralNarratorApp.compose(App(sample_fps=60.0, source="v4l2"))
 

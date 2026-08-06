@@ -39,8 +39,8 @@ describe activity and change instead of unrelated still images.
 | Parameter | Default | Description |
 | --------- | ------- | ----------- |
 | `endpoint` | Required | Full HTTPS chat-completions URL, or HTTP URL on a literal loopback address. |
-| `model` | Required | Model identifier sent in each request. |
-| `prompt` | Required | Text instruction sent with every observation. |
+| `model` | Required | Non-empty model identifier sent in each request. |
+| `prompt` | Required | Non-empty text instruction sent with every observation. |
 | `mode` | `video` | `video` sends an MP4 clip; `image` sends one JPEG. |
 | `tensor_name` | `""` | Name of the RGB tensor in each input entity. |
 | `sample_fps` | `4.0` | Frame sampling rate and MP4 frame rate; in video mode it must not exceed the input source cadence. |
@@ -64,6 +64,9 @@ fixed-size rolling window while that request runs. A capture gap longer than
 span by more than one sampling period, resets the window. This prevents frames
 from opposite sides of a source interruption being encoded as continuous
 video.
+The operator measures continuity from local frame-arrival time. An upstream
+replay that loops without an arrival gap must disable repetition because the
+loop boundary cannot be inferred from tensor messages.
 
 SSE deltas are bounded; the final `completed` event contains the full response
 and sets `deltas_dropped` if backpressure discarded any intermediate chunks.
