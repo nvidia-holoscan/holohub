@@ -193,10 +193,13 @@ def run_doxygen_and_parse(website_dir: Path) -> dict:
         logger.error(f"Doxyfile not found at {doxyfile}")
         return {}
 
-    # Check for doxygen
+    # C++ API references are a required part of the generated operator pages.
+    # Failing the build prevents publishing a partially generated site when the
+    # build environment is missing this system dependency.
     if not shutil.which("doxygen"):
-        logger.warning("Doxygen not found in PATH. Skipping C++ API doc generation.")
-        return {}
+        raise RuntimeError(
+            "Doxygen is required to generate C++ API references but was not found in PATH."
+        )
 
     xml_output_dir = website_dir / "_build" / "doxygen" / "xml"
 
