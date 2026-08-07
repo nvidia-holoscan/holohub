@@ -1,0 +1,48 @@
+{
+  "$schema": "urn:holohub:operator:v1",
+  "operator": {
+    "name": "OnlineVideoReasonerOp",
+    "description": "Samples live RGB frames, submits either a JPEG or one bounded MP4 clip to an OpenAI-compatible multimodal reasoner, and emits incremental or completed text.",
+    "authors": [
+      {
+        "name": "Chris von Csefalvay",
+        "affiliation": "HCLTech"
+      }
+    ],
+    "language": "Python",
+    "version": "0.1.0",
+    "changelog": {
+      "0.1.0": "Initial image and bounded-video reasoning operator with optional SSE output."
+    },
+    "holoscan_sdk": {
+      "minimum_required_version": "4.4.0",
+      "tested_versions": [
+        "4.4.0"
+      ]
+    },
+    "platforms": [
+      "aarch64",
+      "x86_64"
+    ],
+    "tags": [
+      "Video",
+      "Vision-Language Model",
+      "Generative AI",
+      "Streaming"
+    ],
+    "ranking": 3,
+    "requirements": {
+      "system_packages": [
+        "ffmpeg"
+      ],
+      "python-packages": {
+        "numpy": {
+          "version": ">=1.24"
+        },
+        "requests": {
+          "version": ">=2.31"
+        }
+      }
+    }
+  }
+}
