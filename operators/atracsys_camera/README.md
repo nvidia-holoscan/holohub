@@ -20,11 +20,16 @@ The package provides:
 
 ## Proprietary SDK Dependency
 
-The live camera operator relies on vendor SDKs which are **not included**. To compile and use this operator, you must:
+> **SDK status and usage notice:** This integration uses engineering AArch64 versions of the spryTrack SDK and S3DK for evaluation and development purposes only. The proprietary SDK/S3DK libraries and headers are not included in HoloHub. When approved for this specific integration, the required components must be supplied separately by Wayland. Any extraction, reuse, redistribution, or separate use of those components outside this specific integration requires prior written approval. These engineering components are not certified or officially supported Atracsys releases. For a full-featured or production-ready integration, please contact the Wayland team.
 
-1. Contact **<contact@wayland.io>** to obtain the latest SDK and the S3DK.
-2. Install the Atracsys SDK so that its CMake package is discoverable (e.g., at `/opt/atracsys-4.9.0`).
-3. Install the S3DK such that it is discoverable through `S3DK_ROOT` (e.g., at `/opt/s3dk`).
+The live camera operator requires these separately supplied proprietary components. Access is
+reviewed case by case and is subject to prior written approval. Contact
+**<contact@wayland.io>** to discuss access for this specific integration.
+
+For an approved integration package:
+
+1. Install the Atracsys SDK so that its CMake package is discoverable (e.g., at `/opt/atracsys-4.9.0`).
+2. Install the S3DK such that it is discoverable through `S3DK_ROOT` (e.g., at `/opt/s3dk`).
 
 Build requirements:
 

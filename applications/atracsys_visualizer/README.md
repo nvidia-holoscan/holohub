@@ -43,21 +43,16 @@ The application is split into:
 
 ### Getting the Atracsys SDKs
 
-The Atracsys SDK and S3DK are proprietary hardware drivers and are **not** bundled in this repository.
-To run the `live_camera` mode with your Atracsys spryTrack 300 camera, you must first obtain the SDKs directly from the vendor.
+> **SDK status and usage notice:** This integration uses engineering AArch64 versions of the spryTrack SDK and S3DK for evaluation and development purposes only. The proprietary SDK/S3DK libraries and headers are not included in HoloHub. When approved for this specific integration, the required components must be supplied separately by Wayland. Any extraction, reuse, redistribution, or separate use of those components outside this specific integration requires prior written approval. These engineering components are not certified or officially supported Atracsys releases. For a full-featured or production-ready integration, please contact the Wayland team.
 
-Please contact **<contact@wayland.io>** to request the following packages based on your architecture:
+The `live_camera` mode requires these separately supplied proprietary components. Access is
+reviewed case by case and is subject to prior written approval. Contact
+**<contact@wayland.io>** to discuss access for this specific integration.
 
-- spryTrack SDK v4.9.0 (for x86_64)
-- spryTrack SDK v4.9.0 (for aarch64)
-- S3DK Structured Light SDK (for x86_64)
-- S3DK Structured Light SDK (for aarch64)
+Replay mode remains the default public mode and does not require these proprietary live-camera
+dependencies.
 
 > **Note:** The S3DK SDK dynamically links against OpenCV. The provided wrapper and Dockerfile alias the `libopencv_world.so.4.10.0` library to `libopencv_world.so.410` based on the vendor's tested ABI compatibility with OpenCV 4.10. Ensure your S3DK version matches this requirement.
-
-Once provided:
-
-1. Install them on your local machine.
 
 Recommended live SDK layout for HoloHub:
 
