@@ -237,10 +237,10 @@ def generate_featured_component_card(
     # Generate card HTML with the found image URL
     card_html = f"""
  <div class="col-xl-4 col-lg-6 col-sm-12 mb-1 feature-box"{is_recent_attr}>
-                <div class="shadow padding-feature-box-item text-center d-block match-height app-card" style="cursor: pointer; position: relative;" onclick="window.location.href='/holohub/{component_path}';">
+                <div class="shadow padding-feature-box-item text-center d-block match-height app-card" style="cursor: pointer; position: relative;" onclick="window.location.href='/holohub/{component_path}/';">
                     {badge_html}
                     <img src="{image_url}" alt="{name}" width="120" height="120">
-                    <h3 class="mb-1 mt-0" style="font-size: 0.8rem;">{name}</h3>
+                    <h3 class="mb-1 mt-0" style="font-size: 0.8rem;"><a href="/holohub/{component_path}/">{name}</a></h3>
                     {language_badge_html}
                     <p class="feature-card-desc">{description}</p>
                     {tags_html}
