@@ -136,6 +136,9 @@ add_holohub_application(pipeline_visualization)
 
 add_holohub_application(polyp_detection)
 
+add_holohub_application(procedural_narrator DEPENDS
+                        OPERATORS online_video_reasoner)
+
 add_holohub_application(pva_video_filter)
 add_holohub_application(pva_radar_pipeline DEPENDS OPERATORS pva_radar pva_radar_graphics raw_radar_cube_source)
 

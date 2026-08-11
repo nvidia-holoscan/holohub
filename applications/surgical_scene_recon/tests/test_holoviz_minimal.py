@@ -52,14 +52,25 @@ def main():
                 headless=True,
                 width=4,
                 height=4,
-                tensors=[dict(name="image", type="color")],
+                tensors=[{"name": "image", "type": "color"}],
             )
             self.add_flow(source, holoviz, {("out", "receivers")})
 
     try:
         app = MinimalHolovizApp()
         app.run()
-    except Exception as e:
+    except (
+        ArithmeticError,
+        AssertionError,
+        AttributeError,
+        EOFError,
+        ImportError,
+        LookupError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ) as e:
         print(f"FAIL: minimal Holoviz app raised {e}")
         return 1
 

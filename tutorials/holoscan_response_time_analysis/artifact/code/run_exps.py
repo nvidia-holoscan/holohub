@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 UNIVERSITY OF BRITISH COLUMBIA. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, UNIVERSITY OF BRITISH COLUMBIA. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,12 +14,13 @@
 # limitations under the License.
 
 import os
+from contextlib import ExitStack
+from pathlib import Path
 
 
 # Function to parse output log and find the observed WCRT
 def parselog(filepath):
-
-    source = open(filepath, "r")
+    source = Path(filepath).read_text(encoding="utf-8").splitlines(keepends=True)
 
     delays = []
 
@@ -33,13 +34,15 @@ def parselog(filepath):
             delay = (int(end) - int(start)) / 1000
             delays.append(delay)
 
-    source.close()
-
     return max(delays)
 
 
 def main(graphs, numvars):
-    dest = open("observedresponsetimes.txt", "w")
+    file_stack = ExitStack()
+    output_flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
+    dest = file_stack.enter_context(
+        os.fdopen(os.open("observedresponsetimes.txt", output_flags, 0o666), "w")
+    )
 
     with open("generatedexectimes.txt", "r") as allexectimes:
         for i, data in enumerate(graphs[0]):
@@ -70,9 +73,9 @@ def main(graphs, numvars):
                     # Compile the temporary file
                     os.system(f"./build/graph{i+1}")
 
-                    print("")
+                    print()
                     print("Graph " + str(i + 1) + " variation " + str(var) + " complete")
-                    print("")
+                    print()
 
                     dest.write(
                         "Graph "
@@ -87,11 +90,16 @@ def main(graphs, numvars):
                     # Clean up the temporary file if needed
                     os.remove(temp_file_path)
 
-    dest.close
+    dest.close()
+    file_stack.close()
 
 
 def overheadmain():
-    dest = open("observedoverheads.txt", "w")
+    file_stack = ExitStack()
+    output_flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
+    dest = file_stack.enter_context(
+        os.fdopen(os.open("observedoverheads.txt", output_flags, 0o666), "w")
+    )
 
     with open("experimentbase.yaml", "r") as script:
         scriptbase = script.readlines()
@@ -106,12 +114,13 @@ def overheadmain():
         # Run the experiment
         os.system(f"./build/overheadgraph{i+1}")
 
-        print("")
+        print()
         print("Overhead graph " + str(i + 1) + " complete")
-        print("")
+        print()
 
         dest.write(
             "Chain Length " + str(i + 1) + " observed WCRT = " + str(parselog("logger.log")) + "\n"
         )
 
-    dest.close
+    dest.close()
+    file_stack.close()

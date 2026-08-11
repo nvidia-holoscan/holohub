@@ -26,7 +26,18 @@ try:
     # failures, not skips.
     import cupy as cp  # type: ignore
     import holoscan.core  # noqa: F401
-except Exception as exc:  # pragma: no cover - optional GPU/Holoscan dependency
+except (
+    ArithmeticError,
+    AssertionError,
+    AttributeError,
+    EOFError,
+    ImportError,
+    LookupError,
+    OSError,
+    RuntimeError,
+    TypeError,
+    ValueError,
+) as exc:  # pragma: no cover - optional GPU/Holoscan dependency
     pytest.skip(f"CuPy or the Holoscan SDK is unavailable: {exc}", allow_module_level=True)
 
 from ultra_post.app.holoscan_operators import FuncOp

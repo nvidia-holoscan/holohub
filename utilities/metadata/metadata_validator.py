@@ -107,9 +107,11 @@ def check_name_matches_readme(metadata_path, json_data):
     if found_terms:
         return (
             False,
-            f"The 'name' field in metadata.json (\"{name}\") contains "
-            f"\"{', '.join(found_terms)}\"."
-            f"The name should not include terms like {', '.join(forbidden_terms)}.",
+            (
+                f"The 'name' field in metadata.json (\"{name}\") contains "
+                f"\"{', '.join(found_terms)}\"."
+                f"The name should not include terms like {', '.join(forbidden_terms)}."
+            ),
         )
 
     # Get the title from README.md
@@ -179,7 +181,9 @@ def validate_json(json_data, directory):
     return True, "valid"
 
 
-def validate_json_directory(directory, ignore_patterns=[], metadata_is_required: bool = True):
+def validate_json_directory(directory, ignore_patterns=None, metadata_is_required: bool = True):
+    if ignore_patterns is None:
+        ignore_patterns = []
     exit_code = 0
     # Convert json to python object.
     base_path = Path(os.getcwd()) / directory

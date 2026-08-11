@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import subprocess
 
 
@@ -26,12 +27,23 @@ def has_rocm():
     """
     cmd = "rocminfo"
     try:
-        process = subprocess.run([cmd], stdout=subprocess.PIPE)
+        process = subprocess.run([cmd], stdout=subprocess.PIPE, check=False)
         for line_in in process.stdout.decode().splitlines():
             if "Device Type" in line_in and "GPU" in line_in:
                 return True
-    except Exception:
-        pass
+    except (
+        ArithmeticError,
+        AssertionError,
+        AttributeError,
+        EOFError,
+        ImportError,
+        LookupError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ):
+        logging.getLogger(__name__).debug("Expected operation failure", exc_info=True)
 
     return False
 

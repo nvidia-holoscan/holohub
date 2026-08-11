@@ -109,9 +109,8 @@ class DepthAnythingV2Op(Operator):
 
         frame_bgr = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2BGR)
 
-        with torch.cuda.stream(self._torch_stream):
-            with torch.no_grad():
-                depth = self._model.infer_image(frame_bgr, input_size=self.input_size)
+        with torch.cuda.stream(self._torch_stream), torch.no_grad():
+            depth = self._model.infer_image(frame_bgr, input_size=self.input_size)
         self._torch_stream.synchronize()
 
         depth = np.ascontiguousarray(depth, dtype=np.float32)

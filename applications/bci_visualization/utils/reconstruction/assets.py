@@ -7,7 +7,7 @@ import json
 import logging
 import pathlib
 from dataclasses import dataclass
-from typing import Dict, Tuple, cast
+from typing import cast
 
 import numpy as np
 from numpy.typing import NDArray
@@ -39,8 +39,8 @@ class Assets:
     xyz: NDArray[np.float32]  # voxel xyz coordinates
 
     wavelengths: NDArray[np.int_]  # wavelengths
-    resolution: Tuple[float, float, float]
-    extinction_coefficients: Dict[int, ExtinctionCoefficient]  # HbO and HbR extinction coefficients
+    resolution: tuple[float, float, float]
+    extinction_coefficients: dict[int, ExtinctionCoefficient]  # HbO and HbR extinction coefficients
 
 
 _assets: Assets | None = None

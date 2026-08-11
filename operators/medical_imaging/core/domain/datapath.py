@@ -1,5 +1,5 @@
 #!/bin/bash
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,18 +15,14 @@
 # limitations under the License.
 
 from pathlib import Path
-from typing import Dict, Optional, Union
 
-from operators.medical_imaging.exceptions import IOMappingError as IOMappingError
-from operators.medical_imaging.exceptions import ItemNotExistsError as ItemNotExistsError
+from operators.medical_imaging.exceptions import IOMappingError, ItemNotExistsError
 
-from .domain import Domain as Domain
+from .domain import Domain
 
 
 class DataPath(Domain):
-    def __init__(
-        self, path: Union[str, Path], read_only: bool = False, metadata: Optional[Dict] = None
-    ):
+    def __init__(self, path: str | Path, read_only: bool = False, metadata: dict | None = None):
         """Initializes a DataPath object.
 
         Args:
@@ -65,11 +61,11 @@ class NamedDataPath(Domain):
     If only one data path is available and the name is not specified, the data path is returned.
     """
 
-    def __init__(self, paths: Dict[str, DataPath], metadata: Optional[Dict] = None):
+    def __init__(self, paths: dict[str, DataPath], metadata: dict | None = None):
         super().__init__(metadata=metadata)
         self._paths = paths
 
-    def get(self, name: Optional[str] = "") -> DataPath:
+    def get(self, name: str | None = "") -> DataPath:
         if name not in self._paths:
             if name == "" and len(self._paths) == 1:
                 return next(iter(self._paths.values()))

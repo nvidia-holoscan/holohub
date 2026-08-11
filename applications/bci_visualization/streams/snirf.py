@@ -4,8 +4,9 @@ SPDX-License-Identifier: Apache-2.0
 """
 
 import logging
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Dict, Iterator, List, NamedTuple, cast
+from typing import NamedTuple, cast
 
 import h5py
 import numpy as np
@@ -50,7 +51,7 @@ class SNIRFStream(BaseNirsStream):
         self._unique_channels = [
             ch for ch in self._channels if ch.moment == 0 and ch.wavelength == 0
         ]
-        logger.info("Got {} unique channels".format(len(self._unique_channels)))
+        logger.info(f"Got {len(self._unique_channels)} unique channels")
 
     def stop(self) -> None:
         self._snirf_file.close()
@@ -63,12 +64,12 @@ class SNIRFStream(BaseNirsStream):
             detector_number=np.array([ch.detector_number for ch in self._unique_channels]),
         )
 
-    def _get_channels(self) -> List[SNIRFChannel]:
-        source_pos_3d: List[np.ndarray] = self._snirf_file["nirs"]["probe"]["sourcePos3D"][()]  # type: ignore
-        detector_pos_3d: List[np.ndarray] = self._snirf_file["nirs"]["probe"]["detectorPos3D"][()]  # type: ignore
+    def _get_channels(self) -> list[SNIRFChannel]:
+        source_pos_3d: list[np.ndarray] = self._snirf_file["nirs"]["probe"]["sourcePos3D"][()]  # type: ignore
+        detector_pos_3d: list[np.ndarray] = self._snirf_file["nirs"]["probe"]["detectorPos3D"][()]  # type: ignore
 
-        source_labels: List[bytes] = self._snirf_file["nirs"]["probe"]["sourceLabels"][()]  # type: ignore
-        detector_labels: List[bytes] = self._snirf_file["nirs"]["probe"]["detectorLabels"][()]  # type: ignore
+        source_labels: list[bytes] = self._snirf_file["nirs"]["probe"]["sourceLabels"][()]  # type: ignore
+        detector_labels: list[bytes] = self._snirf_file["nirs"]["probe"]["detectorLabels"][()]  # type: ignore
 
         source_pos_3d_map = {}
         for sourceIdx, sourceLabel in enumerate(source_labels):
@@ -86,7 +87,7 @@ class SNIRFStream(BaseNirsStream):
         # Sort channel keys numerically (e.g., measurementList1, measurementList2, ..., measurementList10)
         # to match the column order in dataTimeSeries
         channel_keys.sort(key=lambda x: int(x.replace("measurementList", "")))
-        channels: List[SNIRFChannel] = []
+        channels: list[SNIRFChannel] = []
         for channel_key in channel_keys:
             channel = cast(h5py.Dataset, data1[channel_key])
             source_module, source = (
@@ -120,7 +121,7 @@ class SNIRFStream(BaseNirsStream):
             (ch.source_module, ch.source_number, ch.detector_module, ch.detector_number): idx
             for idx, ch in enumerate(self._unique_channels)
         }
-        channel_idxs: Dict[int, Dict[int, Dict[str, List[int]]]] = {}
+        channel_idxs: dict[int, dict[int, dict[str, list[int]]]] = {}
         for moment in range(NUM_MOMENTS):
             channel_idxs[moment] = {}
             for wavelength in range(NUM_WAVELENGTHS):
@@ -145,7 +146,7 @@ class SNIRFStream(BaseNirsStream):
                     "unique_channel_idxs": [uniq_idx for _, uniq_idx in channel_order],
                 }
 
-        logger.info("Streaming {} samples from SNIRF".format(len(data)))
+        logger.info(f"Streaming {len(data)} samples from SNIRF")
         for ts, sample in zip(times, data):
             # sample is shape (n_channels,)
             # send (n_moments, n_unique_channels, n_wavelengths)

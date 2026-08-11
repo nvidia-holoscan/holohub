@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,7 +44,7 @@ class ZeroMQPublisherOp(Operator):
         Raises:
             ValueError: if queue_policy is out of range.
         """
-        self._logger = logging.getLogger("{}.{}".format(__name__, type(self).__name__))
+        self._logger = logging.getLogger(f"{__name__}.{type(self).__name__}")
         self._topic = topic
         self._queue = MessageSender(queue_endpoint)
 
@@ -63,4 +63,4 @@ class ZeroMQPublisherOp(Operator):
             self._queue.send_json(self._topic, message)
             self._logger.debug("0ZMQ message sent...")
         else:
-            self._logger.warn("Empty input")
+            self._logger.warning("Empty input")
