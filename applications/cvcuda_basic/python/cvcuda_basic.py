@@ -67,7 +67,7 @@ class ImageProcessingOp(Operator):
             cvcuda.flip_into(src=cv_in, dst=self.cv_out, flipCode=0)
 
         buffer = self.cv_out.cuda()
-        output_tensormap = dict(image=buffer)
+        output_tensormap = {"image": buffer}
         op_output.emit(output_tensormap, "output_tensor")
 
 
@@ -119,7 +119,7 @@ class MyVideoProcessingApp(Application):
             name="holoviz",
             width=width,
             height=height,
-            tensors=[dict(name="image", type="color", opacity=1.0, priority=0)],
+            tensors=[{"name": "image", "type": "color", "opacity": 1.0, "priority": 0}],
         )
 
         self.add_flow(source, image_processing)

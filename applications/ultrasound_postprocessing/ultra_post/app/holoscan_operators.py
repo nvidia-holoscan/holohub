@@ -15,9 +15,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, Optional
+from typing import TYPE_CHECKING
 
 import cupy as cp
 from holoscan.core import Operator
@@ -32,7 +33,7 @@ if TYPE_CHECKING:  # pragma: no cover - optional dependency
 @dataclass
 class UffSourceConfig:
     path: Path
-    dataset: Optional[str] = None
+    dataset: str | None = None
     frame_index: int = 0
 
 
@@ -61,7 +62,7 @@ def make_uff_source_op(config: UffSourceConfig):
 class FuncOp(Operator):
     """Generic operator that runs a callable on the input."""
 
-    def __init__(self, fragment, *args, fn: Callable, params: dict = None, **kwargs):
+    def __init__(self, fragment, *args, fn: Callable, params: dict | None = None, **kwargs):
         self.fn = fn
         self.params = params or {}
         super().__init__(fragment, *args, **kwargs)
@@ -83,7 +84,7 @@ class FuncOp(Operator):
         op_output.emit(self.fn(data, **self.params), "out")
 
 
-def make_raysim_source_op(generator: "RaysimFrameGenerator"):
+def make_raysim_source_op(generator: RaysimFrameGenerator):
     """Create a Holoscan operator that emits frames from a Raysim generator."""
 
     return create_op(outputs="out")(lambda: generator.next_frame())
@@ -100,9 +101,9 @@ def _to_rgba(in_: object, *, op=None) -> object:
 
 
 __all__ = [
-    "UffSourceConfig",
-    "make_uff_source_op",
     "FuncOp",
+    "UffSourceConfig",
     "make_raysim_source_op",
     "make_rgba_formatter_op",
+    "make_uff_source_op",
 ]

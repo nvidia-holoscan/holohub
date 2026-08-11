@@ -85,7 +85,7 @@ class Visualizer:
             State({"type": "graph-container", "id": ALL}, "id"),
             prevent_initial_call=True,
         )
-        def update_source(n_intervals, subject, data_container_ids):  # noqa: ARG001
+        def update_source(n_intervals, subject, data_container_ids):
             """
             Periodically fetch and update data from NATS, dynamically creating graphs as needed.
 

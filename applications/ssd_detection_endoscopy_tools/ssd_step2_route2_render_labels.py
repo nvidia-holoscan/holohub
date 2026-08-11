@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,7 +42,11 @@ class DetectionPostprocessorOp(Operator):
         outputs: "output_tensor"
     """
 
-    def __init__(self, *args, label_dict={}, label_text_size=0.05, scores_threshold=0.3, **kwargs):
+    def __init__(
+        self, *args, label_dict=None, label_text_size=0.05, scores_threshold=0.3, **kwargs
+    ):
+        if label_dict is None:
+            label_dict = {}
         self.label_text_size = label_text_size
         self.scores_threshold = scores_threshold
         self.label_dict = label_dict
@@ -212,35 +216,39 @@ class SSDDetectionApp(Application):
             **self.kwargs("detection_postprocessor"),
         )
 
-        holoviz_tensors = [dict(name="", type="color")]
+        holoviz_tensors = [{"name": "", "type": "color"}]
         if len(label_dict) > 0:
             for label in label_dict:
                 color = label_dict[label]["color"]
                 color.append(1.0)
                 text = [label_dict[label]["text"]]
                 holoviz_tensors.append(
-                    dict(
-                        name="rectangles" + str(label),
-                        type="rectangles",
-                        opacity=0.5,
-                        line_width=4,
-                        color=color,
-                    )
+                    {
+                        "name": "rectangles" + str(label),
+                        "type": "rectangles",
+                        "opacity": 0.5,
+                        "line_width": 4,
+                        "color": color,
+                    }
                 )
                 holoviz_tensors.append(
-                    dict(
-                        name="label" + str(label), type="text", opacity=0.5, color=color, text=text
-                    )
+                    {
+                        "name": "label" + str(label),
+                        "type": "text",
+                        "opacity": 0.5,
+                        "color": color,
+                        "text": text,
+                    }
                 )
         else:
             holoviz_tensors.append(
-                dict(
-                    name="rectangles",
-                    type="rectangles",
-                    opacity=0.5,
-                    line_width=4,
-                    color=[1.0, 0.0, 0.0, 1.0],
-                )
+                {
+                    "name": "rectangles",
+                    "type": "rectangles",
+                    "opacity": 0.5,
+                    "line_width": 4,
+                    "color": [1.0, 0.0, 0.0, 1.0],
+                }
             )
         detection_visualizer = HolovizOp(
             self,

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -90,7 +90,7 @@ def main():
     instances = [x for x in range(1, len(data) + 1)]
 
     # Plotting
-    fig, ax = plt.subplots(figsize=(6, 4.5))
+    _fig, ax = plt.subplots(figsize=(6, 4.5))
     ax.grid(axis="y", linestyle="--", linewidth=0.5)
     bar_width = 0.60
 
@@ -102,7 +102,7 @@ def main():
             if v != "N/A":
                 height = bar.get_height()
                 ax.annotate(
-                    "{}".format(v),
+                    f"{v}",
                     xy=(bar.get_x() + bar.get_width() / 2, height),
                     xytext=(0, 3),  # 3 points vertical offset
                     textcoords="offset points",
@@ -140,7 +140,7 @@ def main():
     ax.tick_params(axis="x", labelsize=14)
     ax.tick_params(axis="y", labelsize=14)
     ax.set_ylim([0, max(data) * 1.2])
-    current_time = datetime.datetime.now().strftime("%m/%d/%Y %H:%M")
+    current_time = datetime.datetime.now(datetime.timezone.utc).strftime("%m/%d/%Y %H:%M")
     title = args.title.format(current_time=current_time)
     ax.set_title(
         f"{title}",

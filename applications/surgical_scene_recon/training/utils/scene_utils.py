@@ -48,7 +48,7 @@ def render_training_image(
             end = "min"
         else:
             end = "mins"
-        label2 = "time:%.2f" % times + end
+        label2 = f"time:{times:.2f}" + end
         image = render_pkg["render"]
         depth = render_pkg["depth"]
         image_np = image.permute(1, 2, 0).cpu().numpy()  # Convert channel order to (H, W, 3)

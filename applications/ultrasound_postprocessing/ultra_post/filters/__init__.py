@@ -17,4 +17,4 @@
 
 from .registry import DEFAULT_PARAMS, FILTERS
 
-__all__ = ["FILTERS", "DEFAULT_PARAMS"]
+__all__ = ["DEFAULT_PARAMS", "FILTERS"]

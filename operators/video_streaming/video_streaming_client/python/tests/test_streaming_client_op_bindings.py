@@ -26,6 +26,8 @@ operator, focusing on:
 - Memory management
 """
 
+import logging
+
 import pytest
 
 
@@ -107,7 +109,7 @@ class TestStreamingClientOpBinding:
 
         # Check core operator methods
         assert hasattr(op, "setup")
-        assert callable(getattr(op, "setup"))
+        assert callable(op.setup)
 
         assert hasattr(op, "name")
         # name is a property, not a method - verify it's accessible and returns a string
@@ -121,7 +123,7 @@ class TestStreamingClientOpBinding:
         # We don't call it directly as it requires proper OperatorSpec context
         # which is managed by the Holoscan framework
         assert hasattr(op, "setup")
-        assert callable(getattr(op, "setup"))
+        assert callable(op.setup)
 
     def test_memory_management(self, operator_factory):
         """Test memory management across Python/C++ boundary."""
@@ -160,7 +162,7 @@ class TestStreamingClientOpBinding:
     def test_docstring_availability(self, streaming_client_op_class):
         """Test that docstrings are available for the Python bindings."""
         assert hasattr(streaming_client_op_class, "__doc__")
-        doc = getattr(streaming_client_op_class, "__doc__")
+        doc = streaming_client_op_class.__doc__
         assert doc is not None
 
     def test_string_parameter_handling(self, operator_factory):
@@ -394,7 +396,18 @@ class TestStreamingClientOpCompute:
         # Call compute - should not raise
         try:
             op.compute(op_input, op_output, execution_context)
-        except Exception as e:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as e:
             # Compute may fail due to network not being set up, but method should be callable
             # We're primarily testing that the binding works
             assert "compute" not in str(e).lower() or "not found" not in str(e).lower()
@@ -417,9 +430,20 @@ class TestStreamingClientOpCompute:
             # Test that compute is callable with different frame sizes
             try:
                 op.compute(op_input, op_output, execution_context)
-            except Exception:
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ):
                 # Expected to fail without network, but binding should work
-                pass
+                logging.getLogger(__name__).debug("Expected operation failure", exc_info=True)
 
     def test_compute_with_float_frames(
         self, operator_factory, op_input_factory, op_output, execution_context, mock_image
@@ -434,9 +458,20 @@ class TestStreamingClientOpCompute:
         # Test compute with float data
         try:
             op.compute(op_input, op_output, execution_context)
-        except Exception:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ):
             # Expected to fail without network, but binding should work
-            pass
+            logging.getLogger(__name__).debug("Expected operation failure", exc_info=True)
 
     def test_compute_method_signature(self, operator_factory):
         """Test that compute method has correct signature."""
@@ -444,7 +479,7 @@ class TestStreamingClientOpCompute:
 
         # Verify compute method exists and is callable
         assert hasattr(op, "compute")
-        compute_method = getattr(op, "compute")
+        compute_method = op.compute
         assert callable(compute_method)
 
         # Note: inspect.signature() doesn't work on pybind11 C++ methods

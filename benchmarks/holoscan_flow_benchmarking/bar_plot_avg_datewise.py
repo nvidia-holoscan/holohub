@@ -52,7 +52,7 @@ def main():
             dates.append(filename.split("_")[-1].split(".")[0])
 
     # Generate bar plots with dates
-    fig, ax = plt.subplots(figsize=(9, 7.5))
+    _fig, ax = plt.subplots(figsize=(9, 7.5))
     ax.bar(dates, all_avg_values, yerr=all_stddev_values, color="tab:blue", alpha=0.6, capsize=5)
     # Label the actual values just on top of the bars
     for i, v in enumerate(all_avg_values):

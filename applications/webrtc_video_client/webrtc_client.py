@@ -19,12 +19,15 @@ import json
 import logging
 import os
 import ssl
+from pathlib import Path
 from threading import Thread
 
 import holoscan
 from aiohttp import web
 
 from operators.webrtc_client.webrtc_client_op import WebRTCClientOp
+
+logger = logging.getLogger(__name__)
 
 ROOT = os.path.dirname(__file__)
 
@@ -54,11 +57,11 @@ class WebAppThread(Thread):
         self._webrtc_client_op.shutdown()
 
     async def _index(self, request):
-        content = open(os.path.join(ROOT, "index.html"), "r").read()
+        content = await asyncio.to_thread(Path(ROOT, "index.html").read_text, encoding="utf-8")
         return web.Response(content_type="text/html", text=content)
 
     async def _javascript(self, request):
-        content = open(os.path.join(ROOT, "client.js"), "r").read()
+        content = await asyncio.to_thread(Path(ROOT, "client.js").read_text, encoding="utf-8")
         return web.Response(content_type="application/javascript", text=content)
 
     async def _offer(self, request):
@@ -76,7 +79,7 @@ class WebAppThread(Thread):
         asyncio.set_event_loop(loop)
         loop.run_until_complete(self._runner.setup())
         site = web.TCPSite(self._runner, self._host, self._port, ssl_context=self._ssl_context)
-        logging.info(f"Starting web server at {self._host}:{self._port}")
+        logger.info(f"Starting web server at {self._host}:{self._port}")
         loop.run_until_complete(site.start())
         loop.run_forever()
 

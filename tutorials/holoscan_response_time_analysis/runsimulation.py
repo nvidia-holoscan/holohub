@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 UNIVERSITY OF BRITISH COLUMBIA. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, UNIVERSITY OF BRITISH COLUMBIA. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@ import networkx as nx
 queuesize = 1
 
 
-class operator(object):
+class operator:
     def __init__(self, name, predecessors, successors, WCET, sink):
         self.name = name
         self.predecessors = predecessors

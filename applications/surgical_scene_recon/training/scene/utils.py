@@ -28,20 +28,21 @@ MIT-licensed implementation derived from NeRF and related projects.
 
 import json
 import pathlib
+from collections.abc import Callable
 from pathlib import PurePosixPath as GPath
-from typing import Any, Callable, Optional, Text, Tuple, Union
+from typing import Any
 
 import numpy as np
 import torch
 
 PRNGKey = Any
-Shape = Tuple[int]
+Shape = tuple[int]
 Dtype = Any  # this could be a real type?
 Array = Any
 Activation = Callable[[Array], Array]
 Initializer = Callable[[PRNGKey, Shape, Dtype], Array]
 Normalizer = Callable[[], Callable[[Array], Array]]
-PathType = Union[Text, pathlib.PurePosixPath]
+PathType = str | pathlib.PurePosixPath
 
 
 def _compute_residual_and_jacobian(
@@ -54,7 +55,7 @@ def _compute_residual_and_jacobian(
     k3: float = 0.0,
     p1: float = 0.0,
     p2: float = 0.0,
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Auxiliary function of radial_and_tangential_undistort()."""
 
     r = x * x + y * y
@@ -89,7 +90,7 @@ def _radial_and_tangential_undistort(
     p2: float = 0,
     eps: float = 1e-9,
     max_iterations=10,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """Computes undistorted (x, y) from (xd, yd)."""
     # Initialize from the distorted point.
     x = xd.copy()
@@ -122,13 +123,13 @@ class Camera:
         self,
         orientation: np.ndarray,
         position: np.ndarray,
-        focal_length: Union[np.ndarray, float],
+        focal_length: np.ndarray | float,
         principal_point: np.ndarray,
         image_size: np.ndarray,
-        skew: Union[np.ndarray, float] = 0.0,
-        pixel_aspect_ratio: Union[np.ndarray, float] = 1.0,
-        radial_distortion: Optional[np.ndarray] = None,
-        tangential_distortion: Optional[np.ndarray] = None,
+        skew: np.ndarray | float = 0.0,
+        pixel_aspect_ratio: np.ndarray | float = 1.0,
+        radial_distortion: np.ndarray | None = None,
+        tangential_distortion: np.ndarray | None = None,
         dtype=np.float32,
     ):
         """Constructor for camera class."""
@@ -354,7 +355,7 @@ class Camera:
             radial_distortion=self.radial_distortion.copy(),
             tangential_distortion=self.tangential_distortion.copy(),
             image_size=np.array(
-                (int(round(self.image_size[0] * scale)), int(round(self.image_size[1] * scale)))
+                (round(self.image_size[0] * scale), round(self.image_size[1] * scale))
             ),
         )
         return new_camera

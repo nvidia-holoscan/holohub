@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,9 +15,10 @@
 
 import logging
 import os
+from collections.abc import Sequence
 from pathlib import Path
 from threading import Lock
-from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
+from typing import Any
 
 import numpy as np
 from holoscan.core import ConditionType, Fragment, OperatorSpec
@@ -50,7 +51,7 @@ Compose_, _ = optional_import("monai.transforms", name="Compose")
 Compose: Any = Compose_
 
 
-__all__ = ["MonaiSegInferenceOperator", "InfererType", "InMemImageReader"]
+__all__ = ["InMemImageReader", "InfererType", "MonaiSegInferenceOperator"]
 
 
 class InfererType(StrEnum):
@@ -83,14 +84,14 @@ class MonaiSegInferenceOperator(InferenceOperator):
         self,
         fragment: Fragment,
         *args,
-        roi_size: Optional[Union[Sequence[int], int]],
+        roi_size: Sequence[int] | int | None,
         pre_transforms: Compose,
         post_transforms: Compose,
         app_context: AppContext,
-        model_name: Optional[str] = "",
+        model_name: str | None = "",
         overlap: float = 0.25,
         sw_batch_size: int = 4,
-        inferer: Union[InfererType, str] = InfererType.SLIDING_WINDOW,
+        inferer: InfererType | str = InfererType.SLIDING_WINDOW,
         model_path: Path = MODEL_LOCAL_PATH,
         **kwargs,
     ):
@@ -113,7 +114,7 @@ class MonaiSegInferenceOperator(InferenceOperator):
             model_path (Path): Path to the model file. Defaults to model/models.ts of current working dir.
         """
 
-        self._logger = logging.getLogger("{}.{}".format(__name__, type(self).__name__))
+        self._logger = logging.getLogger(f"{__name__}.{type(self).__name__}")
         self._executing = False
         self._lock = Lock()
         self._input_dataset_key = "image"
@@ -175,7 +176,7 @@ class MonaiSegInferenceOperator(InferenceOperator):
         return self._roi_size
 
     @roi_size.setter
-    def roi_size(self, roi_size: Union[Sequence[int], int]):
+    def roi_size(self, roi_size: Sequence[int] | int):
         self._roi_size = ensure_tuple(roi_size)
 
     @property
@@ -223,17 +224,17 @@ class MonaiSegInferenceOperator(InferenceOperator):
         self._sw_batch_size = val
 
     @property
-    def inferer(self) -> Union[InfererType, str]:
+    def inferer(self) -> InfererType | str:
         """The type of inferer to use"""
         return self._inferer
 
     @inferer.setter
     def inferer(self, val: InfererType):
         if not isinstance(val, InfererType):
-            raise ValueError(f"Value must be of the correct type {InfererType}.")
+            raise TypeError(f"Value must be of the correct type {InfererType}.")
         self._inferer = val
 
-    def _convert_dicom_metadata_datatype(self, metadata: Dict):
+    def _convert_dicom_metadata_datatype(self, metadata: dict):
         """Converts metadata in pydicom types to the corresponding native types.
 
         It is known that some values of the metadata are of the pydicom types, for images converted
@@ -252,18 +253,51 @@ class MonaiSegInferenceOperator(InferenceOperator):
         if metadata.get("SeriesInstanceUID", None):
             try:
                 metadata["SeriesInstanceUID"] = str(metadata["SeriesInstanceUID"])
-            except Exception:
-                pass
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ):
+                logging.getLogger(__name__).debug("Expected operation failure", exc_info=True)
         if metadata.get("row_pixel_spacing", None):
             try:
                 metadata["row_pixel_spacing"] = float(metadata["row_pixel_spacing"])
-            except Exception:
-                pass
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ):
+                logging.getLogger(__name__).debug("Expected operation failure", exc_info=True)
         if metadata.get("col_pixel_spacing", None):
             try:
                 metadata["col_pixel_spacing"] = float(metadata["col_pixel_spacing"])
-            except Exception:
-                pass
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ):
+                logging.getLogger(__name__).debug("Expected operation failure", exc_info=True)
 
         self._logger.info("Converted Image object metadata:")
         for k, v in metadata.items():
@@ -363,7 +397,7 @@ class MonaiSegInferenceOperator(InferenceOperator):
 
     def pre_process(
         self, data: Any, *args, **kwargs
-    ) -> Union[Any, Image, Tuple[Any, ...], Dict[Any, Any]]:
+    ) -> Any | Image | tuple[Any, ...] | dict[Any, Any]:
         """Transforms input before being used for predicting on a model.
 
         This method must be overridden by a derived class.
@@ -382,7 +416,7 @@ class MonaiSegInferenceOperator(InferenceOperator):
 
     def post_process(
         self, data: Any, *args, **kwargs
-    ) -> Union[Any, Image, Tuple[Any, ...], Dict[Any, Any]]:
+    ) -> Any | Image | tuple[Any, ...] | dict[Any, Any]:
         """Transforms the prediction results from the model(s).
 
         This method must be overridden by a derived class.
@@ -399,9 +433,7 @@ class MonaiSegInferenceOperator(InferenceOperator):
         """
         raise NotImplementedError(f"Subclass {self.__class__.__name__} must implement this method.")
 
-    def predict(
-        self, data: Any, *args, **kwargs
-    ) -> Union[Image, Any, Tuple[Any, ...], Dict[Any, Any]]:
+    def predict(self, data: Any, *args, **kwargs) -> Image | Any | tuple[Any, ...] | dict[Any, Any]:
         """Predicts results using the models(s) with input tensors.
 
         This method is currently not used in this class, instead monai.inferers.sliding_window_inference is used.
@@ -427,16 +459,16 @@ class InMemImageReader(ImageReader):
 
     """
 
-    def __init__(self, input_image: Image, channel_dim: Optional[int] = None, **kwargs):
+    def __init__(self, input_image: Image, channel_dim: int | None = None, **kwargs):
         super().__init__()
         self.input_image = input_image
         self.kwargs = kwargs
         self.channel_dim = channel_dim
 
-    def verify_suffix(self, filename: Union[Sequence[str], str]) -> bool:
+    def verify_suffix(self, filename: Sequence[str] | str) -> bool:
         return True
 
-    def read(self, data: Union[Sequence[str], str], **kwargs) -> Union[Sequence[Any], Any]:
+    def read(self, data: Sequence[str] | str, **kwargs) -> Sequence[Any] | Any:
         # Really does not have anything to do. Simply return the Image object
         return self.input_image
 
@@ -463,8 +495,8 @@ class InMemImageReader(ImageReader):
             input_image (Image): an App SDK Image object.
         """
 
-        img_array: List[np.ndarray] = []
-        compatible_meta: Dict = {}
+        img_array: list[np.ndarray] = []
+        compatible_meta: dict = {}
 
         for i in ensure_tuple(input_image):
             if not isinstance(i, Image):
@@ -481,15 +513,15 @@ class InMemImageReader(ImageReader):
         # Stacking image is not really needed, as there is one image only.
         return _stack_images(img_array, compatible_meta), compatible_meta
 
-    def _get_meta_dict(self, img: Image) -> Dict:
+    def _get_meta_dict(self, img: Image) -> dict:
         """
         Gets the metadata of the image and converts to dict type.
 
         Args:
             img: A SDK Image object.
         """
-        img_meta_dict: Dict = img.metadata()
-        meta_dict = {key: img_meta_dict[key] for key in img_meta_dict.keys()}
+        img_meta_dict: dict = img.metadata()
+        meta_dict = {key: img_meta_dict[key] for key in img_meta_dict}
 
         # Will have to derive some key metadata as the SDK Image lacks the necessary interfaces.
         # So, for now have to get to the Image generator, namely DICOMSeriesToVolumeOperator, and
@@ -520,12 +552,11 @@ class InMemImageReader(ImageReader):
 
 
 # Reuse MONAI code for the derived ImageReader
-def _copy_compatible_dict(from_dict: Dict, to_dict: Dict):
+def _copy_compatible_dict(from_dict: dict, to_dict: dict):
     if not isinstance(to_dict, dict):
-        raise ValueError(f"to_dict must be a Dict, got {type(to_dict)}.")
+        raise TypeError(f"to_dict must be a Dict, got {type(to_dict)}.")
     if not to_dict:
-        for key in from_dict:
-            datum = from_dict[key]
+        for key, datum in from_dict.items():
             if (
                 isinstance(datum, np.ndarray)
                 and np_str_obj_array_pattern.search(datum.dtype.str) is not None
@@ -546,7 +577,7 @@ def _copy_compatible_dict(from_dict: Dict, to_dict: Dict):
             )
 
 
-def _stack_images(image_list: List, meta_dict: Dict):
+def _stack_images(image_list: list, meta_dict: dict):
     if len(image_list) <= 1:
         return image_list[0]
     if meta_dict.get(MetaKeys.ORIGINAL_CHANNEL_DIM, None) not in ("no_channel", None):

@@ -51,7 +51,7 @@ def create_histogram_plots(json_data, output_dir="/tmp/benchmark_plots"):
     realtime_exec = exec_stats["realtime"]["raw_data"]
 
     # 1. Frame Period Over Time (Full + Zoomed + Execution)
-    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(15, 12))
+    _fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(15, 12))
 
     # Calculate time arrays
     normal_period_time = np.arange(len(normal_periods)) * (target_period_ms / 1000)  # seconds
@@ -120,7 +120,7 @@ def create_histogram_plots(json_data, output_dir="/tmp/benchmark_plots"):
     plt.close()
 
     # 2. Simple Histograms
-    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(20, 6))
+    _fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(20, 6))
 
     # Frame period histogram
     if len(normal_periods) > 0 and len(realtime_periods) > 0:
@@ -265,7 +265,18 @@ def main():
     except json.JSONDecodeError as e:
         print(f"Error: Could not parse JSON file {args.input}: {e}")
         sys.exit(1)
-    except Exception as e:
+    except (
+        ArithmeticError,
+        AssertionError,
+        AttributeError,
+        EOFError,
+        ImportError,
+        LookupError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ) as e:
         print(f"Error: Unexpected error reading file {args.input}: {e}")
         sys.exit(1)
 

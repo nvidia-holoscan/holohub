@@ -199,17 +199,18 @@ turn triggers the manifest's lazy fetch for the module that provides them.
 
 ### 4.4 Iterate against a local working copy
 
-When iterating against an unreleased dep, override the fetched source with
-`HOLOHUB_LOCAL_<UPPER_NAME>` (underscores in place of hyphens, all uppercase):
+When iterating against an unreleased Module, the source override is
+`HOLOSCAN_CLI_LOCAL_<SANITIZED_MODULE_NAME>`: replace non-alphanumeric runs in the
+dependency's `name` with underscores, trim leading and trailing underscores, and
+uppercase the result. For `holoscan-my-sensor`, use
+`HOLOSCAN_CLI_LOCAL_HOLOSCAN_MY_SENSOR`.
 
-```bash
-export HOLOHUB_LOCAL_HOLOSCAN_MY_SENSOR=/path/to/local/holoscan-my-sensor
-./holohub build my_app
-```
-
-The resolver emits the local path as a `FETCHCONTENT_SOURCE_DIR_<UPPER>` cache
-variable so FetchContent uses your working tree instead of cloning. The `source.ref`
-in `metadata.json` is ignored while the env var is set.
+This is an advanced mounted-source workflow. A host export is not automatically
+forwarded into the project container, so mount the working tree and set the override
+inside the container to its mounted path. See the
+[mounted-source iteration guidance](../../../skills/holohub-module-lifecycle/references/module-consumer-packaging.md#mounted-source-iteration)
+for the safe preview and action sequence. While the override is set, the resolver
+uses the working tree instead of `source.ref`.
 
 ### 4.5 Use the operators in your code
 
@@ -248,8 +249,9 @@ target_link_libraries(my_app PRIVATE holoscan::my_sensor_op)
 
 If you are building a Holoscan Module that itself depends on another Module, use the
 `module.dependencies[]` array in your module's `metadata.json` — it follows the same
-schema as the `application.dependencies.modules[]` shown in §4.2 above. Refer to the "Create a Holoscan Module" tutorial for the full schema
-reference, the `HOLOHUB_LOCAL_*` override, and the SHA-pinning discipline.
+schema as the `application.dependencies.modules[]` shown in §4.2 above. Refer to the
+"Create a Holoscan Module" tutorial for the full schema and SHA-pinning discipline,
+and to §4.4 above for mounted-source iteration.
 
 ## 5. Path B — External C++ Project (Binary Install)
 
@@ -358,7 +360,7 @@ and best practices. A binary install (Paths B and C) is usually a simpler choice
 | Declare a Module dep (HoloHub app) | `metadata.json:application.dependencies.modules[]` |
 | Declare a transitive dep (Module → Module) | `metadata.json:module.dependencies[]` |
 | External Module reference | Include `source.{git_url, ref}` (40-char SHA) and `provides_operators` |
-| Local override | `HOLOHUB_LOCAL_<UPPER_NAME>=<path>` env var |
+| Local override | `HOLOSCAN_CLI_LOCAL_<SANITIZED_MODULE_NAME>=<container-path>` env var |
 | Build a HoloHub subproject with deps | `./holohub build <app>` |
 | Install binary (C++) | `apt install holoscan-<name>` |
 | Install binary (Python) | `pip install holoscan-<name>` |
@@ -378,9 +380,10 @@ and best practices. A binary install (Paths B and C) is usually a simpler choice
   Holoscan SDK wheel is installed in that same env.
 - **Resolver warns "ref is not a 40-character commit SHA".** Replace the tag or branch
   in `source.ref` with the commit SHA it resolves to.
-- **`HOLOHUB_LOCAL_*` override has no effect.** Naming: take the Module name, replace
-  hyphens with underscores, uppercase. `holoscan-my-sensor` →
-  `HOLOHUB_LOCAL_HOLOSCAN_MY_SENSOR`.
+- **`HOLOSCAN_CLI_LOCAL_*` override has no effect.** Derive the suffix from the
+  dependency `name` as described in §4.4, mount the Module into the project
+  container, and set the variable there to the container path. A host-only export is
+  not automatically forwarded.
 - **The operator is not built even though you declared it.** Under FetchContent +
   `PROJECT_IS_TOP_LEVEL` defaults, the Module's `BUILD_ALL` is `OFF`, so only the
   operators marked with `OP_<op>=ON` get built. In a HoloHub tree (Path A or
@@ -485,8 +488,8 @@ and uses the in-tree sources directly.
 
 The `source.{git_url, ref}` field is required only for external Modules; omit it entirely
 for in-tree Modules. Everything else — the build command (`./holohub build my_app`), the
-local-override mechanism (`HOLOHUB_LOCAL_*`), and the operator import — is identical to
-the external-Module flow in Path A.
+local-override mechanism (`HOLOSCAN_CLI_LOCAL_*`), and the operator import — is identical
+to the external-Module flow in Path A.
 
 See `modules/holoscan-gstreamer/metadata.json` for a live in-tree Module you can add as
 a dependency to verify your tooling end-to-end.

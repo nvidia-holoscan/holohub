@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,13 +14,11 @@
 # limitations under the License.
 
 import hashlib
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable, Union
 
 
-def checksum(
-    path: Union[str, Path], hash_fn: str = "sha256", chunk_num_blocks=8192, **kwargs
-) -> str:
+def checksum(path: str | Path, hash_fn: str = "sha256", chunk_num_blocks=8192, **kwargs) -> str:
     """Return checksum of file or directory.
 
     Args:
@@ -38,7 +36,6 @@ def checksum(
     else:
         raise ValueError("Unknown hash function")
 
-    hashlib.blake2b
     h: hashlib._Hash = hash_func(**kwargs)
     path = Path(path)
 
