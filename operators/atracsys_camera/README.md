@@ -20,13 +20,11 @@ The package provides:
 
 ## Proprietary SDK Dependency
 
-> **SDK status and usage notice:** This integration uses the engineering AArch64 version of the spryTrack SDK and S3DK for evaluation and development purposes only. The SDK libraries and headers are included solely to support this specific integration. Any extraction, reuse, redistribution, or separate use of these SDK/S3DK components outside this specific integration requires prior written approval. For a full-featured or production-ready integration, please contact the Wayland team.
+> **SDK status and usage notice:** This integration uses engineering AArch64 versions of the spryTrack SDK and S3DK for evaluation and development purposes only. The proprietary SDK/S3DK libraries and headers are not included in HoloHub. When approved for this specific integration, the required components must be supplied separately by Wayland. Any extraction, reuse, redistribution, or separate use of those components outside this specific integration requires prior written approval. These engineering components are not certified or officially supported Atracsys releases. For a full-featured or production-ready integration, please contact the Wayland team.
 
-The live camera operator relies on proprietary SDK components that are **not included** in this
-repository. The AArch64 spryTrack SDK and S3DK used here are integration-specific engineering
-versions for evaluation and development only; they are not certified or officially supported
-Atracsys releases. Access and packaging are limited to this integration and require prior written
-approval. Contact **<contact@wayland.io>** for a full-featured or production-ready integration.
+The live camera operator requires these separately supplied proprietary components. Access is
+reviewed case by case and is subject to prior written approval. Contact
+**<contact@wayland.io>** to discuss access for this specific integration.
 
 For an approved integration package:
 
