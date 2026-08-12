@@ -1,0 +1,28 @@
+{
+  "$schema": "urn:holohub:operator:v1",
+  "operator": {
+    "name": "v4l2_source",
+    "authors": [{"name": "Holoscan Team", "affiliation": "NVIDIA"}],
+    "description": "Capture packed YUYV frames from a V4L2 device into CUDA tensors",
+    "language": ["C++"],
+    "version": "0.1.0",
+    "changelog": {"0.1.0": "Initial Holoscan SDK 5.x EA1 implementation"},
+    "holoscan_sdk": {
+      "minimum_required_version": "5.0.0",
+      "tested_versions": ["5.0.0"]
+    },
+    "platforms": ["x86_64", "aarch64"],
+    "tags": ["Camera", "CUDA", "V4L2"],
+    "ranking": 2,
+    "requirements": {
+      "hardware": [
+        {
+          "name": "V4L2 camera",
+          "description": "A camera that supports packed progressive YUYV capture",
+          "required": true
+        }
+      ],
+      "libraries": [{"name": "CUDA Toolkit", "required": true}]
+    }
+  }
+}

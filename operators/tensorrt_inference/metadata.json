@@ -1,0 +1,24 @@
+{
+  "$schema": "urn:holohub:operator:v1",
+  "operator": {
+    "name": "tensorrt_inference",
+    "authors": [{"name": "Holoscan Team", "affiliation": "NVIDIA"}],
+    "description": "Build or load a static TensorRT network and execute CUDA tensor inference",
+    "language": ["C++"],
+    "version": "0.1.0",
+    "changelog": {"0.1.0": "Initial Holoscan SDK 5.x implementation"},
+    "holoscan_sdk": {
+      "minimum_required_version": "5.0.0",
+      "tested_versions": ["5.0.0"]
+    },
+    "platforms": ["x86_64", "aarch64"],
+    "tags": ["CUDA", "Inference", "TensorRT"],
+    "ranking": 2,
+    "requirements": {
+      "libraries": [
+        {"name": "CUDA Toolkit", "required": true},
+        {"name": "TensorRT and ONNX parser", "required": true}
+      ]
+    }
+  }
+}

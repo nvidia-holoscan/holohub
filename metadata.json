@@ -1,0 +1,47 @@
+{
+  "$schema": "urn:holohub:module:v2",
+  "module": {
+    "name": "holoscan-5.0-ea-samples",
+    "version": "0.2.0",
+    "description": "Accelerated vision samples for the Holoscan SDK 5.0 early-access API",
+    "authors": [
+      {
+        "name": "Holoscan Team",
+        "affiliation": "NVIDIA"
+      }
+    ],
+    "license": "Apache-2.0",
+    "language": ["C++"],
+    "namespace": {
+      "cpp": "holoscan::examples"
+    },
+    "holoscan_sdk": {
+      "minimum_required_version": "5.0.0",
+      "tested_versions": ["5.0.0"]
+    },
+    "platforms": ["x86_64", "aarch64"],
+    "tags": [
+      "Early Access",
+      "Camera",
+      "CUDA",
+      "TensorRT"
+    ],
+    "operator_names": [
+      "bgra_to_planar_tensor",
+      "cuda_compositor",
+      "depth_colorizer",
+      "frame_skipper",
+      "tensorrt_inference",
+      "v4l2_source",
+      "x11_display",
+      "yuyv_to_bgra"
+    ],
+    "dockerfile": "Dockerfile",
+    "documentation": {
+      "readme": "README.md"
+    },
+    "testing": {
+      "cpp": "ctest"
+    }
+  }
+}

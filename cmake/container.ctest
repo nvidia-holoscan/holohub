@@ -1,0 +1,88 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 Holoscan Team / NVIDIA. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+# Project-local CTest driver used by `./holohub test`.
+
+set(CTEST_PROJECT_NAME "Holoscan-Modules")
+
+set(PROJ_NAME "")
+set(PROJ_PREFIX APP)
+
+if(OP)
+  set(PROJ_NAME ${OP})
+  set(PROJ_PREFIX OP)
+elseif(APP)
+  set(PROJ_NAME ${APP})
+endif()
+
+get_filename_component(CTEST_SOURCE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/.." ABSOLUTE)
+set(CTEST_BINARY_DIRECTORY "${CTEST_SOURCE_DIRECTORY}/build/ctest-${PROJ_NAME}")
+
+if(NOT CTEST_SITE)
+  set(CTEST_SITE "SITE_NA")
+endif()
+if(NOT TAG)
+  set(TAG "local")
+endif()
+if(NOT PLATFORM_NAME)
+  set(PLATFORM_NAME "linux")
+endif()
+
+set(CTEST_BUILD_NAME "holoscan-5-0-ea-samples-${PLATFORM_NAME}-${PROJ_NAME}-${TAG}")
+set(CTEST_CMAKE_GENERATOR "Ninja")
+set(CTEST_NIGHTLY_START_TIME "06:00:00 UTC")
+
+if(NOT DASHBOARD_MODEL)
+  set(DASHBOARD_MODEL "Experimental")
+endif()
+
+ctest_empty_binary_directory("${CTEST_BINARY_DIRECTORY}")
+
+set(configure_options
+  ${CONFIGURE_OPTIONS}
+  "-DHOLOHUB_DATA_DIR=${CTEST_SOURCE_DIRECTORY}/data"
+  "-DCMAKE_BUILD_TYPE=RelWithDebInfo"
+  "-DHOLOSCAN_5_0_EA_SAMPLES_BUILD_TESTING=ON"
+)
+
+# `./holohub test` mounts either a direct installation tree or its parent at
+# this stable container path.
+set(container_sdk_mount "/workspace/holoscan-sdk")
+set(container_sdk_install
+    "${container_sdk_mount}/install-${CMAKE_HOST_SYSTEM_PROCESSOR}")
+if(EXISTS "${container_sdk_mount}/lib/cmake/holoscan/holoscan-config.cmake")
+  list(APPEND configure_options "-Dholoscan_ROOT=${container_sdk_mount}")
+elseif(EXISTS "${container_sdk_install}/lib/cmake/holoscan/holoscan-config.cmake")
+  list(APPEND configure_options "-Dholoscan_ROOT=${container_sdk_install}")
+elseif(DEFINED ENV{holoscan_ROOT})
+  list(APPEND configure_options "-Dholoscan_ROOT=$ENV{holoscan_ROOT}")
+endif()
+
+if(PROJ_NAME)
+  list(APPEND configure_options "-D${PROJ_PREFIX}_${PROJ_NAME}=ON")
+endif()
+
+ctest_start(${DASHBOARD_MODEL})
+ctest_configure(OPTIONS "${configure_options}" RETURN_VALUE configure_result)
+if(NOT configure_result)
+  ctest_build(RETURN_VALUE build_result)
+endif()
+
+if(NOT configure_result AND NOT build_result)
+  ctest_test(
+    RETURN_VALUE test_result
+    OUTPUT_JUNIT "${CTEST_BINARY_DIRECTORY}/junit.xml"
+  )
+endif()
+
+if(CTEST_SUBMIT_URL)
+  ctest_submit()
+endif()
+
+if(configure_result)
+  message(FATAL_ERROR "Configure failed with return value: ${configure_result}")
+elseif(build_result)
+  message(FATAL_ERROR "Build failed with return value: ${build_result}")
+elseif(test_result)
+  message(FATAL_ERROR "Tests failed with return value: ${test_result}")
+endif()

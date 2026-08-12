@@ -1,0 +1,13 @@
+.git
+.github
+.gitlab
+.cache
+.cmake
+.cupy
+.holohub
+build
+data
+**/__pycache__
+**/*.engine
+**/*.pyc
+compile_commands.json

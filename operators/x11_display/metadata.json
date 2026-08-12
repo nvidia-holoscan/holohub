@@ -1,0 +1,21 @@
+{
+  "$schema": "urn:holohub:operator:v1",
+  "operator": {
+    "name": "x11_display",
+    "authors": [{"name": "Holoscan Team", "affiliation": "NVIDIA"}],
+    "description": "Display contiguous CUDA BGRA tensors in an X11 window",
+    "language": ["C++"],
+    "version": "0.1.0",
+    "changelog": {"0.1.0": "Initial Holoscan SDK 5.x implementation"},
+    "holoscan_sdk": {
+      "minimum_required_version": "5.0.0",
+      "tested_versions": ["5.0.0"]
+    },
+    "platforms": ["x86_64", "aarch64"],
+    "tags": ["CUDA", "Visualization", "X11"],
+    "ranking": 2,
+    "requirements": {
+      "libraries": [{"name": "X11", "required": true}]
+    }
+  }
+}

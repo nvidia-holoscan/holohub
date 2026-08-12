@@ -1,0 +1,9 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 Holoscan Team / NVIDIA. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+MD013:
+  line_length: 800
+  code_block_line_length: 800
+  heading_line_length: 800
+MD046:
+  style: fenced

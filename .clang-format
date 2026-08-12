@@ -1,0 +1,6 @@
+BasedOnStyle: Google
+ColumnLimit: 100
+IndentWidth: 2
+AccessModifierOffset: -1
+IncludeBlocks: Regroup
+PointerAlignment: Left

@@ -1,0 +1,4 @@
+# Build and tool output directories
+build/
+install/
+.cache/
