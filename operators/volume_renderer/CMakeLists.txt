@@ -37,12 +37,8 @@ if(POLICY CMP0135)
   set(CMAKE_POLICY_DEFAULT_CMP0135 NEW)
 endif()
 
-# set CMP0148 policy to OLD to allow FindCUDA to be used by ClaraViz
-if(POLICY CMP0146)
-  cmake_policy(SET CMP0146 OLD)
-  set(CMAKE_POLICY_DEFAULT_CMP0146 OLD)
-endif()
-
+# ClaraViz 0.4.2 requires deprecated FindCUDA support. Suppress the associated
+# CMP0146 OLD warnings only while configuring ClaraViz.
 set(_clara_viz_version "v0.4.2")
 include(FetchContent)
 FetchContent_Declare(
@@ -60,13 +56,24 @@ if(POLICY CMP0169)
   cmake_policy(SET CMP0169 OLD)
 endif()
 
-FetchContent_GetProperties(ClaraViz)
-if(NOT claraviz_POPULATED)
+function(_holohub_configure_claraviz)
+  set(CMAKE_WARN_DEPRECATED OFF)
+  if(POLICY CMP0146)
+    cmake_policy(SET CMP0146 OLD)
+    set(CMAKE_POLICY_DEFAULT_CMP0146 OLD)
+  endif()
+
+  FetchContent_GetProperties(ClaraViz)
+  if(NOT claraviz_POPULATED)
     FetchContent_Populate(ClaraViz)
     set(CLARA_VIZ_PUBLIC_CMAKE_TOOLS_DIR "${claraviz_SOURCE_DIR}/cmake")
     add_subdirectory(${claraviz_SOURCE_DIR}/thirdparty ${claraviz_BINARY_DIR}/thirdparty)
     add_subdirectory(${claraviz_SOURCE_DIR}/src ${claraviz_BINARY_DIR}/src)
-endif()
+  endif()
+
+  set(claraviz_SOURCE_DIR "${claraviz_SOURCE_DIR}" PARENT_SCOPE)
+endfunction()
+_holohub_configure_claraviz()
 
 set(CLARA_VIZ_PUBLIC_CMAKE_TOOLS_DIR "${claraviz_SOURCE_DIR}/cmake")
 set(FETCHCONTENT_QUIET ON)
