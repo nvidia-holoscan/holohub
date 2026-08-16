@@ -24,7 +24,36 @@ FetchContent_Declare(pybind11
   GIT_TAG v2.13.6
   GIT_SHALLOW TRUE
 )
-FetchContent_MakeAvailable(pybind11)
+
+# pybind11 2.13.6 uses deprecated CMake compatibility and CMP0148 OLD behavior.
+# Function scope protects the caller's normal variable when CMP0126 is OLD.
+function(_holohub_fetch_pybind11)
+  set(_cache_was_defined FALSE)
+  if(DEFINED CACHE{CMAKE_WARN_DEPRECATED})
+    get_property(_saved_value CACHE CMAKE_WARN_DEPRECATED PROPERTY VALUE)
+    get_property(_saved_type CACHE CMAKE_WARN_DEPRECATED PROPERTY TYPE)
+    get_property(_saved_help CACHE CMAKE_WARN_DEPRECATED PROPERTY HELPSTRING)
+    set(_cache_was_defined TRUE)
+  endif()
+
+  set(CMAKE_WARN_DEPRECATED OFF)
+  set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "Suppress dependency warnings" FORCE)
+  FetchContent_MakeAvailable(pybind11)
+
+  if(_cache_was_defined)
+    if(_saved_type STREQUAL "UNINITIALIZED")
+      set_property(CACHE CMAKE_WARN_DEPRECATED PROPERTY VALUE "${_saved_value}")
+      set_property(CACHE CMAKE_WARN_DEPRECATED PROPERTY TYPE "${_saved_type}")
+      set_property(CACHE CMAKE_WARN_DEPRECATED PROPERTY HELPSTRING "${_saved_help}")
+    else()
+      set(CMAKE_WARN_DEPRECATED "${_saved_value}"
+        CACHE "${_saved_type}" "${_saved_help}" FORCE)
+    endif()
+  else()
+    unset(CMAKE_WARN_DEPRECATED CACHE)
+  endif()
+endfunction()
+_holohub_fetch_pybind11()
 
 # Helper function to generate pybind11 operator modules
 function(pybind11_add_holohub_module)
