@@ -29,10 +29,13 @@ FetchContent_Declare(pybind11
 # Function scope protects the caller's normal variable when CMP0126 is OLD.
 function(_holohub_fetch_pybind11)
   if(CMAKE_VERSION VERSION_GREATER_EQUAL 4.4)
+    cmake_policy(PUSH)
+    cmake_policy(SET CMP0218 NEW)
     cmake_diagnostic(PUSH)
     cmake_diagnostic(SET CMD_DEPRECATED IGNORE)
     FetchContent_MakeAvailable(pybind11)
     cmake_diagnostic(POP)
+    cmake_policy(POP)
     return()
   endif()
 
