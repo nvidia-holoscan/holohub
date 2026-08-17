@@ -53,7 +53,13 @@ function(_holohub_fetch_pybind11)
     unset(CMAKE_WARN_DEPRECATED CACHE)
   endif()
 endfunction()
-_holohub_fetch_pybind11()
+
+if(NOT DEFINED HOLOHUB_SUPPRESS_DEPENDENCY_DEPRECATION_WARNINGS OR
+   HOLOHUB_SUPPRESS_DEPENDENCY_DEPRECATION_WARNINGS)
+  _holohub_fetch_pybind11()
+else()
+  FetchContent_MakeAvailable(pybind11)
+endif()
 
 # Helper function to generate pybind11 operator modules
 function(pybind11_add_holohub_module)
