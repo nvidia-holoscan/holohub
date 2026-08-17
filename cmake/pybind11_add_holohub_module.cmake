@@ -19,12 +19,83 @@ find_package(Python3 REQUIRED COMPONENTS Interpreter Development.Module)
 # We fetch pybind11 since we need the same version as the Holoscan SDK
 # and it's not necessarily available on all the platforms
 include(FetchContent)
+set(_pybind11_fetch_options)
+if(CMAKE_VERSION VERSION_GREATER_EQUAL 4.4 AND
+   (NOT DEFINED HOLOHUB_SUPPRESS_DEPENDENCY_DEPRECATION_WARNINGS OR
+    HOLOHUB_SUPPRESS_DEPENDENCY_DEPRECATION_WARNINGS))
+  # Populate through MakeAvailable(), then add the dependency in our own
+  # diagnostic scope below.
+  set(_pybind11_fetch_options SOURCE_SUBDIR holohub-fetch-only)
+endif()
 FetchContent_Declare(pybind11
   GIT_REPOSITORY https://github.com/pybind/pybind11
   GIT_TAG v2.13.6
   GIT_SHALLOW TRUE
+  ${_pybind11_fetch_options}
 )
-FetchContent_MakeAvailable(pybind11)
+unset(_pybind11_fetch_options)
+
+# pybind11 2.13.6 uses deprecated CMake compatibility and CMP0148 OLD behavior.
+# Function scope protects the caller's normal variable when CMP0126 is OLD.
+function(_holohub_fetch_pybind11)
+  if(CMAKE_VERSION VERSION_GREATER_EQUAL 4.4)
+    FetchContent_MakeAvailable(pybind11)
+    if(TARGET pybind11::module)
+      return()
+    endif()
+
+    FetchContent_GetProperties(pybind11)
+    if(NOT pybind11_POPULATED OR
+       NOT pybind11_SOURCE_DIR OR NOT pybind11_BINARY_DIR)
+      message(FATAL_ERROR "FetchContent did not provide the pybind11 directories")
+    endif()
+
+    cmake_policy(PUSH)
+    cmake_policy(SET CMP0218 NEW)
+    cmake_diagnostic(PUSH)
+    cmake_diagnostic(SET CMD_DEPRECATED IGNORE)
+    set(CMAKE_POLICY_DEFAULT_CMP0218 NEW)
+    set(CMAKE_EXPORT_FIND_PACKAGE_NAME pybind11)
+    set(CMAKE_VERIFY_INTERFACE_HEADER_SETS FALSE)
+    set(CMAKE_VERIFY_PRIVATE_HEADER_SETS FALSE)
+    add_subdirectory("${pybind11_SOURCE_DIR}" "${pybind11_BINARY_DIR}")
+    cmake_diagnostic(POP)
+    cmake_policy(POP)
+    return()
+  endif()
+
+  set(_cache_was_defined FALSE)
+  if(DEFINED CACHE{CMAKE_WARN_DEPRECATED})
+    get_property(_saved_value CACHE CMAKE_WARN_DEPRECATED PROPERTY VALUE)
+    get_property(_saved_type CACHE CMAKE_WARN_DEPRECATED PROPERTY TYPE)
+    get_property(_saved_help CACHE CMAKE_WARN_DEPRECATED PROPERTY HELPSTRING)
+    set(_cache_was_defined TRUE)
+  endif()
+
+  set(CMAKE_WARN_DEPRECATED OFF)
+  set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "Suppress dependency warnings" FORCE)
+  FetchContent_MakeAvailable(pybind11)
+
+  if(_cache_was_defined)
+    if(_saved_type STREQUAL "UNINITIALIZED")
+      set_property(CACHE CMAKE_WARN_DEPRECATED PROPERTY VALUE "${_saved_value}")
+      set_property(CACHE CMAKE_WARN_DEPRECATED PROPERTY TYPE "${_saved_type}")
+      set_property(CACHE CMAKE_WARN_DEPRECATED PROPERTY HELPSTRING "${_saved_help}")
+    else()
+      set(CMAKE_WARN_DEPRECATED "${_saved_value}"
+        CACHE "${_saved_type}" "${_saved_help}" FORCE)
+    endif()
+  else()
+    unset(CMAKE_WARN_DEPRECATED CACHE)
+  endif()
+endfunction()
+
+if(NOT DEFINED HOLOHUB_SUPPRESS_DEPENDENCY_DEPRECATION_WARNINGS OR
+   HOLOHUB_SUPPRESS_DEPENDENCY_DEPRECATION_WARNINGS)
+  _holohub_fetch_pybind11()
+else()
+  FetchContent_MakeAvailable(pybind11)
+endif()
 
 # Helper function to generate pybind11 operator modules
 function(pybind11_add_holohub_module)
