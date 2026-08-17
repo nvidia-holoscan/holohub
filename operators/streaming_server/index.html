@@ -20313,16 +20313,16 @@
 <h3 id="example-usage">Example Usage<a class="headerlink" href="#example-usage" title="Permanent link">#</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1">// Create the operator with configuration</span>
 <span class="k">auto</span><span class="w"> </span><span class="n">streaming_server</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">ops</span><span class="o">::</span><span class="n">StreamingServerOp</span><span class="o">&gt;</span><span class="p">(</span>
-<span class="w">    </span><span class="s">&quot;streaming_server&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;width&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1920</span><span class="p">,</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;height&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1080</span><span class="p">,</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;fps&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;port&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8080</span><span class="p">,</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;multi_instance&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">,</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;server_name&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;MyStreamingServer&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;receive_frames&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">,</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;send_frames&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">,</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;allocator&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_resource</span><span class="o">&lt;</span><span class="n">UnboundedAllocator</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;pool&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="s">"streaming_server"</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"width"</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1920</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"height"</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1080</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"fps"</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"port"</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8080</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"multi_instance"</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"server_name"</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"MyStreamingServer"</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"receive_frames"</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"send_frames"</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"allocator"</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_resource</span><span class="o">&lt;</span><span class="n">UnboundedAllocator</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"pool"</span><span class="p">)</span>
 <span class="p">);</span>
 
 <span class="c1">//add the streaming_server to the app</span>
@@ -20333,7 +20333,7 @@
 <p>Download the Holoscan Server Cloud Streaming library from NGC:
 <a href="https://catalog.ngc.nvidia.com/orgs/nvidia/resources/holoscan_server_cloud_streaming">https://catalog.ngc.nvidia.com/orgs/nvidia/resources/holoscan_server_cloud_streaming</a></p>
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>&lt;your_holohub_path&gt;/operators/streaming_server
-ngc<span class="w"> </span>registry<span class="w"> </span>resource<span class="w"> </span>download-version<span class="w"> </span><span class="s2">&quot;nvidia/holoscan_server_cloud_streaming:0.1&quot;</span>
+ngc<span class="w"> </span>registry<span class="w"> </span>resource<span class="w"> </span>download-version<span class="w"> </span><span class="s2">"nvidia/holoscan_server_cloud_streaming:0.1"</span>
 unzip<span class="w"> </span>-o<span class="w"> </span>holoscan_server_cloud_streaming_v0.1/holoscan_server_cloud_streaming.zip
 
 <span class="c1"># Copy the appropriate architecture libraries to lib/ directory</span>

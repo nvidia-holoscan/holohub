@@ -20149,7 +20149,7 @@
 <span class="c1"># Initialize the STL conversion operator</span>
 <span class="n">stl_operator</span> <span class="o">=</span> <span class="n">STLConversionOperator</span><span class="p">(</span>
     <span class="n">fragment</span><span class="p">,</span>
-    <span class="n">output_file</span><span class="o">=</span><span class="s2">&quot;output/surface_mesh.stl&quot;</span><span class="p">,</span>  <span class="c1"># Path to save the STL file</span>
+    <span class="n">output_file</span><span class="o">=</span><span class="s2">"output/surface_mesh.stl"</span><span class="p">,</span>  <span class="c1"># Path to save the STL file</span>
     <span class="n">is_smooth</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># Enable mesh smoothing</span>
     <span class="n">keep_largest_connected_component</span><span class="o">=</span><span class="kc">True</span>  <span class="c1"># Keep only the largest connected component</span>
 <span class="p">)</span>
@@ -20158,8 +20158,8 @@
 <span class="n">stl_operator</span><span class="o">.</span><span class="n">setup</span><span class="p">()</span>
 
 <span class="c1"># Example: Convert an image to STL</span>
-<span class="c1"># Assuming &#39;image&#39; is an Image object with volumetric data</span>
-<span class="n">stl_bytes</span> <span class="o">=</span> <span class="n">stl_operator</span><span class="o">.</span><span class="n">_convert</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;output/surface_mesh.stl&quot;</span><span class="p">))</span>
+<span class="c1"># Assuming 'image' is an Image object with volumetric data</span>
+<span class="n">stl_bytes</span> <span class="o">=</span> <span class="n">stl_operator</span><span class="o">.</span><span class="n">_convert</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"output/surface_mesh.stl"</span><span class="p">))</span>
 </code></pre></div>
 <p>For a complete workflow example that includes loading DICOM data and converting it to STL, please refer to the tutorial on <a href="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/dicom_to_usd_with_monai_and_holoscan/tutorial.py">Processing DICOM to USD with MONAI Deploy and Holoscan</a>.</p>
 <h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">#</a></h2>

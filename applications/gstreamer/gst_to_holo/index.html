@@ -20489,7 +20489,7 @@
 </ul>
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">#</a></h2>
 <p>The recommended way to run the application is through the <code>holohub</code> launcher:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_to_holo<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;[OPTIONS]&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_to_holo<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"[OPTIONS]"</span>
 </code></pre></div>
 <p>Alternatively, if you know the binary location, you can run it directly:</p>
 <div class="highlight"><pre><span></span><code>gst-to-holo<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
@@ -20516,7 +20516,7 @@
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_to_holo
 </code></pre></div>
 <p><strong>Display test pattern with frame limit:</strong></p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_to_holo<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--count 300&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_to_holo<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--count 300"</span>
 </code></pre></div>
 <h4 id="file-playback-examples">File Playback Examples<a class="headerlink" href="#file-playback-examples" title="Permanent link">#</a></h4>
 <p><strong>Important Note</strong>: When running through <code>holohub run</code> (in a container), use absolute paths:</p>
@@ -20525,48 +20525,48 @@
 <li>On your host: <code>&lt;workspace_path&gt;/video.mp4</code> (wherever your holohub workspace is located)</li>
 </ul>
 <p><strong>Play MP4 file (CPU decode, CPU memory):</strong></p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_to_holo<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--pipeline &#39;filesrc location=/workspace/holohub/video.mp4 ! qtdemux ! h264parse ! avdec_h264 ! videoconvert name=sink&#39;&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_to_holo<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--pipeline 'filesrc location=/workspace/holohub/video.mp4 ! qtdemux ! h264parse ! avdec_h264 ! videoconvert name=sink'"</span>
 </code></pre></div>
 <p><strong>Play MP4 file (GPU decode, GPU memory for zero-copy):</strong></p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_to_holo<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--pipeline &#39;filesrc location=/workspace/holohub/video.mp4 ! qtdemux ! h264parse ! nvh264dec ! cudaconvert name=sink&#39; --caps &#39;video/x-raw(memory:CUDAMemory),format=RGBA&#39;&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_to_holo<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--pipeline 'filesrc location=/workspace/holohub/video.mp4 ! qtdemux ! h264parse ! nvh264dec ! cudaconvert name=sink' --caps 'video/x-raw(memory:CUDAMemory),format=RGBA'"</span>
 </code></pre></div>
 <p><strong>Play MKV file with automatic format detection:</strong></p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_to_holo<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--pipeline &#39;filesrc location=/workspace/holohub/video.mkv ! matroskademux ! h264parse ! avdec_h264 ! videoconvert name=sink&#39;&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_to_holo<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--pipeline 'filesrc location=/workspace/holohub/video.mkv ! matroskademux ! h264parse ! avdec_h264 ! videoconvert name=sink'"</span>
 </code></pre></div>
 <p><strong>Play video with uridecodebin (automatic decoding):</strong></p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_to_holo<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--pipeline &#39;uridecodebin uri=file:///workspace/holohub/video.mp4 ! videoconvert name=sink&#39;&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_to_holo<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--pipeline 'uridecodebin uri=file:///workspace/holohub/video.mp4 ! videoconvert name=sink'"</span>
 </code></pre></div>
 <h4 id="camera-examples">Camera Examples<a class="headerlink" href="#camera-examples" title="Permanent link">#</a></h4>
 <p><strong>Display from V4L2 camera:</strong></p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_to_holo<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--pipeline &#39;v4l2src device=/dev/video0 ! videoconvert name=sink&#39;&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_to_holo<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--pipeline 'v4l2src device=/dev/video0 ! videoconvert name=sink'"</span>
 </code></pre></div>
 <p><strong>Display from V4L2 camera with specific resolution:</strong></p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_to_holo<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--pipeline &#39;v4l2src device=/dev/video0 ! video/x-raw,width=1280,height=720 ! videoconvert name=sink&#39;&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_to_holo<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--pipeline 'v4l2src device=/dev/video0 ! video/x-raw,width=1280,height=720 ! videoconvert name=sink'"</span>
 </code></pre></div>
 <p><strong>Display from V4L2 camera with GPU acceleration:</strong></p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_to_holo<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--pipeline &#39;v4l2src device=/dev/video0 ! videoconvert ! cudaupload ! cudaconvert name=sink&#39; --caps &#39;video/x-raw(memory:CUDAMemory),format=RGBA&#39;&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_to_holo<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--pipeline 'v4l2src device=/dev/video0 ! videoconvert ! cudaupload ! cudaconvert name=sink' --caps 'video/x-raw(memory:CUDAMemory),format=RGBA'"</span>
 </code></pre></div>
 <h4 id="network-streaming-examples">Network Streaming Examples<a class="headerlink" href="#network-streaming-examples" title="Permanent link">#</a></h4>
 <p><strong>Receive RTP H.264 stream:</strong></p>
 <p><strong>Important:</strong> For UDP streaming, start the receiver FIRST, then the sender. UDP is connectionless - packets sent before the receiver is ready are lost.</p>
 <p>Terminal 1 - Start receiver (gst_to_holo):</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_to_holo<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--pipeline &#39;udpsrc port=5000 caps=\&quot;application/x-rtp,encoding-name=H264\&quot; ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert name=sink&#39;&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_to_holo<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--pipeline 'udpsrc port=5000 caps=\"application/x-rtp,encoding-name=H264\" ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert name=sink'"</span>
 </code></pre></div>
 <p>Terminal 2 - Then start sender:</p>
 <div class="highlight"><pre><span></span><code>gst-launch-1.0<span class="w"> </span>videotestsrc<span class="w"> </span>!<span class="w"> </span>videoconvert<span class="w"> </span>!<span class="w"> </span>x264enc<span class="w"> </span>!<span class="w"> </span>rtph264pay<span class="w"> </span>!<span class="w"> </span>udpsink<span class="w"> </span><span class="nv">host</span><span class="o">=</span><span class="m">127</span>.0.0.1<span class="w"> </span><span class="nv">port</span><span class="o">=</span><span class="m">5000</span>
 </code></pre></div>
 <p><strong>Connect to RTSP stream:</strong></p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_to_holo<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--pipeline &#39;rtspsrc location=rtsp://example.com/stream ! decodebin ! videoconvert name=sink&#39;&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_to_holo<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--pipeline 'rtspsrc location=rtsp://example.com/stream ! decodebin ! videoconvert name=sink'"</span>
 </code></pre></div>
 <p><strong>Receive RTSP stream with GPU decode:</strong></p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_to_holo<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--pipeline &#39;rtspsrc location=rtsp://example.com/stream ! rtph264depay ! h264parse ! nvh264dec ! cudaconvert name=sink&#39; --caps &#39;video/x-raw(memory:CUDAMemory),format=RGBA&#39;&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_to_holo<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--pipeline 'rtspsrc location=rtsp://example.com/stream ! rtph264depay ! h264parse ! nvh264dec ! cudaconvert name=sink' --caps 'video/x-raw(memory:CUDAMemory),format=RGBA'"</span>
 </code></pre></div>
 <h4 id="advanced-examples">Advanced Examples<a class="headerlink" href="#advanced-examples" title="Permanent link">#</a></h4>
 <p><strong>Apply video effects before display:</strong></p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_to_holo<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--pipeline &#39;filesrc location=/workspace/holohub/video.mp4 ! qtdemux ! h264parse ! avdec_h264 ! videoconvert ! videoflip method=horizontal-flip ! videobalance brightness=0.2 ! videoconvert name=sink&#39;&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_to_holo<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--pipeline 'filesrc location=/workspace/holohub/video.mp4 ! qtdemux ! h264parse ! avdec_h264 ! videoconvert ! videoflip method=horizontal-flip ! videobalance brightness=0.2 ! videoconvert name=sink'"</span>
 </code></pre></div>
 <p><strong>Display with scaling:</strong></p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_to_holo<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--pipeline &#39;filesrc location=/workspace/holohub/video.mp4 ! qtdemux ! h264parse ! avdec_h264 ! videoconvert ! videoscale ! video/x-raw,width=1280,height=720 ! videoconvert name=sink&#39;&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_to_holo<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--pipeline 'filesrc location=/workspace/holohub/video.mp4 ! qtdemux ! h264parse ! avdec_h264 ! videoconvert ! videoscale ! video/x-raw,width=1280,height=720 ! videoconvert name=sink'"</span>
 </code></pre></div>
 <h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">#</a></h2>
 <p>The application uses a simple pipeline to receive video from GStreamer and display it:</p>
@@ -20595,7 +20595,7 @@
 <h2 id="performance">Performance<a class="headerlink" href="#performance" title="Permanent link">#</a></h2>
 <p>The application supports both host and device (CUDA) memory paths:</p>
 <h3 id="cpu-memory-path-default">CPU Memory Path (Default)<a class="headerlink" href="#cpu-memory-path-default" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code>--caps<span class="w"> </span><span class="s2">&quot;video/x-raw,format=RGBA&quot;</span>
+<div class="highlight"><pre><span></span><code>--caps<span class="w"> </span><span class="s2">"video/x-raw,format=RGBA"</span>
 </code></pre></div>
 <ul>
 <li>Uses host memory for video buffers</li>
@@ -20604,7 +20604,7 @@
 <li>Compatible with all GStreamer elements</li>
 </ul>
 <h3 id="gpu-memory-path-zero-copy">GPU Memory Path (Zero-Copy)<a class="headerlink" href="#gpu-memory-path-zero-copy" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code>--caps<span class="w"> </span><span class="s2">&quot;video/x-raw(memory:CUDAMemory),format=RGBA&quot;</span>
+<div class="highlight"><pre><span></span><code>--caps<span class="w"> </span><span class="s2">"video/x-raw(memory:CUDAMemory),format=RGBA"</span>
 </code></pre></div>
 <ul>
 <li>Uses GPU memory for video buffers</li>
@@ -20654,7 +20654,7 @@
 <li>Always use <code>/workspace/holohub/</code> prefix in your pipeline commands</li>
 </ul>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code>--pipeline<span class="w"> </span><span class="s2">&quot;filesrc location=/workspace/holohub/video.mp4 ! ...&quot;</span>
+<div class="highlight"><pre><span></span><code>--pipeline<span class="w"> </span><span class="s2">"filesrc location=/workspace/holohub/video.mp4 ! ..."</span>
 </code></pre></div>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h2>
 <p><strong>Issue</strong>: "Could not find element named 'sink' in pipeline"</p>

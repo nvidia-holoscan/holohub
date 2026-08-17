@@ -20615,16 +20615,16 @@ or customize with your own:</p>
 <span class="w">    </span>--template<span class="w"> </span>modules/template<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--directory<span class="w"> </span><span class="nv">$HOME</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--interactive<span class="w"> </span><span class="nb">false</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--context<span class="w"> </span><span class="nv">project_name</span><span class="o">=</span><span class="s2">&quot;My Sensor Holoscan Module&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--context<span class="w"> </span><span class="nv">project_name</span><span class="o">=</span><span class="s2">"My Sensor Holoscan Module"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--context<span class="w"> </span><span class="nv">module_slug</span><span class="o">=</span>my_sensor<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--context<span class="w"> </span><span class="nv">operator_slug</span><span class="o">=</span>my_sensor_op<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--context<span class="w"> </span><span class="nv">language</span><span class="o">=</span>cpp<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--context<span class="w"> </span><span class="nv">full_name</span><span class="o">=</span><span class="s2">&quot;Jane Doe&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--context<span class="w"> </span><span class="nv">affiliation</span><span class="o">=</span><span class="s2">&quot;Example Corp&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--context<span class="w"> </span><span class="nv">full_name</span><span class="o">=</span><span class="s2">"Jane Doe"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--context<span class="w"> </span><span class="nv">affiliation</span><span class="o">=</span><span class="s2">"Example Corp"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--context<span class="w"> </span><span class="nv">contact_email</span><span class="o">=</span>jane@example.com
 </code></pre></div>
 <p>You will see the following output indicating success:</p>
-<div class="highlight"><pre><span></span><code>Holoscan Module &#39;my_sensor&#39; created successfully!
+<div class="highlight"><pre><span></span><code>Holoscan Module 'my_sensor' created successfully!
 
 Implement your operator (MySensorOp) in:
   operators/my_sensor_op/my_sensor_op.cpp
@@ -20710,20 +20710,20 @@ Possible next steps:
 TODO stubs. A minimal <code>compute()</code> that forwards an input tensor to an output port looks
 like:</p>
 <div class="highlight"><pre><span></span><code><span class="c1">// my_sensor_op.cpp</span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;my_sensor_op.hpp&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">"my_sensor_op.hpp"</span>
 
 <span class="k">namespace</span><span class="w"> </span><span class="nn">holoscan</span><span class="o">::</span><span class="nn">my_sensor</span><span class="w"> </span><span class="p">{</span>
 
 <span class="kt">void</span><span class="w"> </span><span class="nf">MySensorOp::setup</span><span class="p">(</span><span class="n">OperatorSpec</span><span class="o">&amp;</span><span class="w"> </span><span class="n">spec</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="n">spec</span><span class="p">.</span><span class="n">input</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">Tensor</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="s">&quot;in&quot;</span><span class="p">);</span>
-<span class="w">    </span><span class="n">spec</span><span class="p">.</span><span class="n">output</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">Tensor</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="s">&quot;out&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">spec</span><span class="p">.</span><span class="n">input</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">Tensor</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="s">"in"</span><span class="p">);</span>
+<span class="w">    </span><span class="n">spec</span><span class="p">.</span><span class="n">output</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">Tensor</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="s">"out"</span><span class="p">);</span>
 <span class="p">}</span>
 
 <span class="kt">void</span><span class="w"> </span><span class="nf">MySensorOp::compute</span><span class="p">(</span><span class="n">InputContext</span><span class="o">&amp;</span><span class="w"> </span><span class="n">op_input</span><span class="p">,</span><span class="w"> </span><span class="n">OutputContext</span><span class="o">&amp;</span><span class="w"> </span><span class="n">op_output</span><span class="p">,</span>
 <span class="w">                        </span><span class="n">ExecutionContext</span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">op_input</span><span class="p">.</span><span class="n">receive</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">Tensor</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="s">&quot;in&quot;</span><span class="p">).</span><span class="n">value</span><span class="p">();</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">op_input</span><span class="p">.</span><span class="n">receive</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">Tensor</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="s">"in"</span><span class="p">).</span><span class="n">value</span><span class="p">();</span>
 <span class="w">    </span><span class="c1">// TODO: apply your sensor-specific processing here.</span>
-<span class="w">    </span><span class="n">op_output</span><span class="p">.</span><span class="n">emit</span><span class="p">(</span><span class="n">in</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;out&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">op_output</span><span class="p">.</span><span class="n">emit</span><span class="p">(</span><span class="n">in</span><span class="p">,</span><span class="w"> </span><span class="s">"out"</span><span class="p">);</span>
 <span class="p">}</span>
 
 <span class="p">}</span><span class="w">  </span><span class="c1">// namespace holoscan::my_sensor</span>
@@ -20768,7 +20768,7 @@ developing your module before moving on.</p>
 <p>To use the module from a Python shell or notebook outside of the build directory,
 install a development hook:</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>install<span class="w"> </span>--dev
-python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import holoscan.my_sensor; print(holoscan.my_sensor.__file__)&quot;</span>
+python<span class="w"> </span>-c<span class="w"> </span><span class="s2">"import holoscan.my_sensor; print(holoscan.my_sensor.__file__)"</span>
 </code></pre></div>
 <p>The hook writes a <code>.pth</code> file plus a small shim into your site-packages that redirects
 <code>holoscan.my_sensor</code> imports to the live build tree. Re-running <code>./holohub build</code> after
@@ -20780,16 +20780,16 @@ you're done:</p>
 <p>If your module depends on operators from another Holoscan Module, add a <code>dependencies</code>
 array to your <code>metadata.json</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;module&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;holoscan-my-sensor&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;dependencies&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">  </span><span class="nt">"module"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"holoscan-my-sensor"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"dependencies"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">      </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;holoscan-other&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;source&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">          </span><span class="nt">&quot;git_url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://github.com/example/holoscan-other&quot;</span><span class="p">,</span>
-<span class="w">          </span><span class="nt">&quot;ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0123456789abcdef0123456789abcdef01234567&quot;</span>
+<span class="w">        </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"holoscan-other"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"source"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">"git_url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://github.com/example/holoscan-other"</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">"ref"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0123456789abcdef0123456789abcdef01234567"</span>
 <span class="w">        </span><span class="p">},</span>
-<span class="w">        </span><span class="nt">&quot;provides_operators&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;other_op&quot;</span><span class="p">]</span>
+<span class="w">        </span><span class="nt">"provides_operators"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"other_op"</span><span class="p">]</span>
 <span class="w">      </span><span class="p">}</span>
 <span class="w">    </span><span class="p">]</span>
 <span class="w">  </span><span class="p">}</span>
@@ -20912,8 +20912,8 @@ packaged to yield your Holoscan Module.</p>
 <li>Reference <code>dockerfile</code> and <code>documentation.readme</code> with paths relative to the project root, i.e.:</li>
 </ul>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;dockerfile&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;operators/my_sensor/Dockerfile&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;documentation&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;readme&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;operators/my_sensor/README.md&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="nt">"dockerfile"</span><span class="p">:</span><span class="w"> </span><span class="s2">"operators/my_sensor/Dockerfile"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"documentation"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"readme"</span><span class="p">:</span><span class="w"> </span><span class="s2">"operators/my_sensor/README.md"</span><span class="w"> </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
 <h3 id="43-register-the-descriptor-in-cmake">4.3. <strong>Register the descriptor in CMake</strong><a class="headerlink" href="#43-register-the-descriptor-in-cmake" title="Permanent link">#</a></h3>
@@ -20926,19 +20926,19 @@ and enable dependency handling for any applications or operators this module cov
 <p>Add a <code>pyproject.toml</code> description for building your module Python wheel. Modules housed in
 HoloHub need simply delegate to the HoloHub CMake build with the module option enabled.</p>
 <div class="highlight"><pre><span></span><code><span class="k">[build-system]</span>
-<span class="n">requires</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;scikit-build-core&gt;=0.10&quot;</span><span class="p">]</span>
-<span class="n">build-backend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;scikit_build_core.build&quot;</span>
+<span class="n">requires</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"scikit-build-core&gt;=0.10"</span><span class="p">]</span>
+<span class="n">build-backend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"scikit_build_core.build"</span>
 
 <span class="k">[project]</span>
-<span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;holoscan-my-sensor&quot;</span>
-<span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.1.0&quot;</span>
-<span class="n">requires-python</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;&gt;=3.10&quot;</span>
+<span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"holoscan-my-sensor"</span>
+<span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"0.1.0"</span>
+<span class="n">requires-python</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"&gt;=3.10"</span>
 
 <span class="k">[tool.scikit-build]</span>
-<span class="n">cmake</span><span class="p">.</span><span class="n">source-dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;../..&quot;</span>
+<span class="n">cmake</span><span class="p">.</span><span class="n">source-dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"../.."</span>
 <span class="n">cmake</span><span class="p">.</span><span class="n">args</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
-<span class="w">    </span><span class="s2">&quot;-DMODULE_holoscan_my_sensor=ON&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="s2">&quot;-DHOLOHUB_BUILD_PYTHON=ON&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">"-DMODULE_holoscan_my_sensor=ON"</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">"-DHOLOHUB_BUILD_PYTHON=ON"</span><span class="p">,</span>
 <span class="p">]</span>
 <span class="n">wheel</span><span class="p">.</span><span class="n">packages</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span>
 </code></pre></div>

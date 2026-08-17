@@ -20537,7 +20537,7 @@ Use <code>backtrace</code> to view stack frames at the point where the applicati
 <ol>
 <li>To add a breakpoint <code>in holoscan/operators/format_converter/format_converter</code>:</li>
 </ol>
-<div class="highlight"><pre><span></span><code><span class="o">(</span>gdb<span class="o">)</span><span class="w"> </span><span class="k">break</span><span class="w"> </span>/workspace/holoscan-sdk/src/operators/format_converter/format_converter.cpp:compute<span class="s2">&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="o">(</span>gdb<span class="o">)</span><span class="w"> </span><span class="k">break</span><span class="w"> </span>/workspace/holoscan-sdk/src/operators/format_converter/format_converter.cpp:compute<span class="s2">"</span>
 </code></pre></div>
 <ol>
 <li>To list all current breakpoints:</li>
@@ -20558,7 +20558,7 @@ Use <code>backtrace</code> to view stack frames at the point where the applicati
 <ol>
 <li>Launch the container with root permissions and start the process in the background:</li>
 </ol>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>--img<span class="w"> </span>holohub:debugging<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">&quot;-u root&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>--img<span class="w"> </span>holohub:debugging<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">"-u root"</span>
 
 <span class="c1"># Run inside the container</span>
 &gt;&gt;&gt;<span class="w"> </span>./holohub<span class="w"> </span>run<span class="w"> </span>endoscopy_tool_tracking<span class="w"> </span><span class="p">&amp;</span>
@@ -20581,7 +20581,7 @@ user+<span class="w">     </span><span class="m">292</span><span class="w">     
 set breakpoints and inspect application state as usual.</p>
 <h3 id="i-see-a-gdb-python-exception-in-the-gdb-log">I see a <code>gdb</code> Python Exception in the <code>gdb</code> log<a class="headerlink" href="#i-see-a-gdb-python-exception-in-the-gdb-log" title="Permanent link">#</a></h3>
 <p><code>gdb</code> relies on a Python module for operations such as unwinding. If the Python module is not properly referenced in the container, you may see <code>gdb</code> errors appear in the console log such as the following:</p>
-<div class="highlight"><pre><span></span><code><span class="s2">&quot;Python Exception &lt;class &#39;NameError&#39;&gt;: Installation error: gdb._execute_unwinders function is missing&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="s2">"Python Exception &lt;class 'NameError'&gt;: Installation error: gdb._execute_unwinders function is missing"</span>
 </code></pre></div>
 <p>To resolve the error, update your <code>PYTHONPATH</code> variable to include your GDB Python directory:</p>
 <div class="highlight"><pre><span></span><code><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="si">${</span><span class="nv">PYTHONPATH</span><span class="si">}</span>:/usr/share/gdb/python
@@ -20622,9 +20622,9 @@ pipeline setup in the app <code>compose</code> method:</p>
 <span class="p">(</span><span class="n">Pdb</span><span class="p">)</span> <span class="k">continue</span>
 <span class="o">...</span>
 <span class="o">&gt;</span> <span class="o">/</span><span class="n">workspace</span><span class="o">/</span><span class="n">holohub</span><span class="o">/</span><span class="n">applications</span><span class="o">/</span><span class="n">endoscopy_tool_tracking</span><span class="o">/</span><span class="n">python</span><span class="o">/</span><span class="n">endoscopy_tool_tracking</span><span class="o">.</span><span class="n">py</span><span class="p">(</span><span class="mi">77</span><span class="p">)</span><span class="n">compose</span><span class="p">()</span>
-<span class="o">-&gt;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;aja&quot;</span><span class="p">:</span>
+<span class="o">-&gt;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"aja"</span><span class="p">:</span>
 <span class="p">(</span><span class="n">Pdb</span><span class="p">)</span> <span class="n">p</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-<span class="s1">&#39;replayer&#39;</span>
+<span class="s1">'replayer'</span>
 <span class="p">(</span><span class="n">Pdb</span><span class="p">)</span>
 <span class="o">...</span>
 </code></pre></div>
@@ -20676,16 +20676,16 @@ details when building and debugging:</p>
 </code></pre></div>
 <p>Alternatively, run the following to relaunch the application in the debugging container without rebuilding:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Find the custom Holoscan SDK debugging build</span>
-<span class="nv">INSTALL_DIR</span><span class="o">=</span><span class="k">$(</span>realpath<span class="w"> </span><span class="k">$(</span>find<span class="w"> </span>./tutorials/cli_debugging/tmp<span class="w"> </span>-type<span class="w"> </span>d<span class="w"> </span>-name<span class="w"> </span><span class="s2">&quot;install-*&quot;</span><span class="k">))</span>
+<span class="nv">INSTALL_DIR</span><span class="o">=</span><span class="k">$(</span>realpath<span class="w"> </span><span class="k">$(</span>find<span class="w"> </span>./tutorials/cli_debugging/tmp<span class="w"> </span>-type<span class="w"> </span>d<span class="w"> </span>-name<span class="w"> </span><span class="s2">"install-*"</span><span class="k">))</span>
 
 <span class="c1"># Launch the debugging container</span>
-./holohub<span class="w"> </span>run<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">&quot;-v </span><span class="nv">$INSTALL_DIR</span><span class="s2">:/opt/nvidia/holoscan --security-opt seccomp=unconfined&quot;</span><span class="w"> </span>--img<span class="w"> </span>holohub:debugging
+./holohub<span class="w"> </span>run<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">"-v </span><span class="nv">$INSTALL_DIR</span><span class="s2">:/opt/nvidia/holoscan --security-opt seccomp=unconfined"</span><span class="w"> </span>--img<span class="w"> </span>holohub:debugging
 
 <span class="c1"># Inside the container</span>
 &gt;&gt;&gt;<span class="w"> </span>gdb<span class="w"> </span>-q<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>-ex<span class="w"> </span><span class="s2">&quot;break main&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>-ex<span class="w"> </span><span class="s2">&quot;run --data /workspace/holohub/data/endoscopy&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>-ex<span class="w"> </span><span class="s2">&quot;break /workspace/holoscan-sdk/src/core/application.cpp:add_flow&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-ex<span class="w"> </span><span class="s2">"break main"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-ex<span class="w"> </span><span class="s2">"run --data /workspace/holohub/data/endoscopy"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-ex<span class="w"> </span><span class="s2">"break /workspace/holoscan-sdk/src/core/application.cpp:add_flow"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>/workspace/holohub/build/endoscopy_tool_tracking/applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking
 </code></pre></div>
 <p>Refer to the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/debugging/cli_debugging/debug_legacy.sh"><code>debug_legacy.sh</code></a> script for more details.</p>
@@ -20699,7 +20699,7 @@ presents a detailed overview of how to get started with logging from your applic
 function to set the global level of detail to log in the application. You can add inline macros such as
 <code>HOLOSCAN_LOG_INFO</code> AND <code>HOLOSCAN_LOG_TRACE</code> in your application code to print out log messages at runtime
 according to the current logging level of detail.</p>
-<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">HOLOSCAN_LOG_LEVEL</span><span class="o">=</span><span class="s2">&quot;Debug&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">HOLOSCAN_LOG_LEVEL</span><span class="o">=</span><span class="s2">"Debug"</span>
 ./holohub<span class="w"> </span>run<span class="w"> </span>--local<span class="w"> </span>endoscopy_tool_tracking
 </code></pre></div>
 <h3 id="logging-from-a-python-application">Logging from a Python application<a class="headerlink" href="#logging-from-a-python-application" title="Permanent link">#</a></h3>

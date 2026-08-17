@@ -20212,10 +20212,10 @@
 </ul>
 <h3 id="c">C++<a class="headerlink" href="#c" title="Permanent link">#</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Start the gRPC Server</span>
-./holohub<span class="w"> </span>run<span class="w"> </span>grpc_h264_endoscopy_tool_tracking<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;cloud&quot;</span><span class="w"> </span><span class="o">[</span>--language<span class="w"> </span>cpp<span class="o">]</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>grpc_h264_endoscopy_tool_tracking<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"cloud"</span><span class="w"> </span><span class="o">[</span>--language<span class="w"> </span>cpp<span class="o">]</span>
 
 <span class="c1"># Start the gRPC Client</span>
-./holohub<span class="w"> </span>run<span class="w"> </span>grpc_h264_endoscopy_tool_tracking<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;edge&quot;</span><span class="w"> </span><span class="o">[</span>--language<span class="w"> </span>cpp<span class="o">]</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>grpc_h264_endoscopy_tool_tracking<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"edge"</span><span class="w"> </span><span class="o">[</span>--language<span class="w"> </span>cpp<span class="o">]</span>
 </code></pre></div>
 <p>Important: on aarch64, applications also need tegra folder mounted inside the container and
 the <code>LD_LIBRARY_PATH</code> environment variable should be updated to include

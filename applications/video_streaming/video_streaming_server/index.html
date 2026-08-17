@@ -20400,7 +20400,7 @@
 <span class="nb">cd</span><span class="w"> </span>operators/video_streaming/video_streaming_server
 
 <span class="c1"># Download using NGC CLI</span>
-ngc<span class="w"> </span>registry<span class="w"> </span>resource<span class="w"> </span>download-version<span class="w"> </span><span class="s2">&quot;nvidia/holoscan_server_cloud_streaming:0.2&quot;</span>
+ngc<span class="w"> </span>registry<span class="w"> </span>resource<span class="w"> </span>download-version<span class="w"> </span><span class="s2">"nvidia/holoscan_server_cloud_streaming:0.2"</span>
 unzip<span class="w"> </span>-o<span class="w"> </span>holoscan_server_cloud_streaming_v0.2/holoscan_server_cloud_streaming.zip<span class="w"> </span>-d<span class="w"> </span>holoscan_server_cloud_streaming
 
 <span class="c1"># Clean up</span>
@@ -20421,7 +20421,7 @@ rm<span class="w"> </span>-rf<span class="w"> </span>holoscan_server_cloud_strea
 
 <span class="c1"># With custom parameters via command-line arguments</span>
 ./holohub<span class="w"> </span>run<span class="w"> </span>video_streaming_server<span class="w"> </span>--language<span class="w"> </span>python<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--extra-args<span class="w"> </span><span class="s1">&#39;--port 48010 --width 854 --height 480 --fps 30&#39;</span>
+<span class="w">  </span>--extra-args<span class="w"> </span><span class="s1">'--port 48010 --width 854 --height 480 --fps 30'</span>
 </code></pre></div>
 <p><strong>Default Configuration:</strong></p>
 <ul>
@@ -20468,12 +20468,12 @@ rm<span class="w"> </span>-rf<span class="w"> </span>holoscan_server_cloud_strea
 <span class="w">  </span><span class="c1"># Server connection settings</span>
 <span class="w">  </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">48010</span>
 <span class="w">  </span><span class="nt">multi_instance</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
-<span class="w">  </span><span class="nt">server_name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;StreamingServerTest&quot;</span>
+<span class="w">  </span><span class="nt">server_name</span><span class="p">:</span><span class="w"> </span><span class="s">"StreamingServerTest"</span>
 
 <span class="w">  </span><span class="c1"># Operation mode - Bidirectional streaming</span>
 <span class="w">  </span><span class="nt">receive_frames</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">  </span><span class="nt">send_frames</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<span class="w">  </span><span class="nt">allocator</span><span class="p">:</span><span class="w"> </span><span class="kt">!ref</span><span class="w"> </span><span class="s">&quot;allocator&quot;</span>
+<span class="w">  </span><span class="nt">allocator</span><span class="p">:</span><span class="w"> </span><span class="kt">!ref</span><span class="w"> </span><span class="s">"allocator"</span>
 
 <span class="c1"># Upstream operator configuration (receives frames from clients)</span>
 <span class="nt">upstream_op</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span>
@@ -20483,10 +20483,10 @@ rm<span class="w"> </span>-rf<span class="w"> </span>holoscan_server_cloud_strea
 
 <span class="c1"># Memory allocator configuration</span>
 <span class="nt">allocator</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;holoscan::UnboundedAllocator&quot;</span>
+<span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">"holoscan::UnboundedAllocator"</span>
 
 <span class="c1"># Scheduler configuration</span>
-<span class="nt">scheduler</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;multi_thread&quot;</span>
+<span class="nt">scheduler</span><span class="p">:</span><span class="w"> </span><span class="s">"multi_thread"</span>
 
 <span class="nt">multi_thread_scheduler</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">worker_thread_number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
@@ -20510,9 +20510,9 @@ rm<span class="w"> </span>-rf<span class="w"> </span>holoscan_server_cloud_strea
 </ul>
 <p><strong>Python YAML Structure</strong> (optional, different from C++):</p>
 <div class="highlight"><pre><span></span><code><span class="nt">application</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Streaming</span><span class="nv"> </span><span class="s">Server</span><span class="nv"> </span><span class="s">Python</span><span class="nv"> </span><span class="s">Demo&quot;</span>
-<span class="w">  </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1.0&quot;</span>
-<span class="w">  </span><span class="nt">log_level</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;INFO&quot;</span>
+<span class="w">  </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="s">"Streaming</span><span class="nv"> </span><span class="s">Server</span><span class="nv"> </span><span class="s">Python</span><span class="nv"> </span><span class="s">Demo"</span>
+<span class="w">  </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">"1.0"</span>
+<span class="w">  </span><span class="nt">log_level</span><span class="p">:</span><span class="w"> </span><span class="s">"INFO"</span>
 
 <span class="c1"># Server configuration (if using YAML)</span>
 <span class="nt">server</span><span class="p">:</span>
@@ -20527,7 +20527,7 @@ rm<span class="w"> </span>-rf<span class="w"> </span>holoscan_server_cloud_strea
 <span class="w">  </span><span class="nt">fps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30</span>
 
 <span class="c1"># Scheduler configuration</span>
-<span class="nt">scheduler</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;multi_thread&quot;</span>
+<span class="nt">scheduler</span><span class="p">:</span><span class="w"> </span><span class="s">"multi_thread"</span>
 
 <span class="nt">multi_thread_scheduler</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">worker_thread_number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
@@ -20548,47 +20548,47 @@ rm<span class="w"> </span>-rf<span class="w"> </span>holoscan_server_cloud_strea
 </ol>
 <h2 id="c-implementation">C++ Implementation<a class="headerlink" href="#c-implementation" title="Permanent link">#</a></h2>
 <p>The C++ implementation (<code>cpp/streaming_server_demo.cpp</code>) demonstrates usage of the streaming server operators:</p>
-<div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;video_streaming_server_downstream_op.hpp&quot;</span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;video_streaming_server_resource.hpp&quot;</span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;video_streaming_server_upstream_op.hpp&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">"video_streaming_server_downstream_op.hpp"</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">"video_streaming_server_resource.hpp"</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">"video_streaming_server_upstream_op.hpp"</span>
 
 <span class="c1">// Create shared streaming server resource from config</span>
-<span class="c1">// Configuration loaded from YAML &#39;video_streaming_server&#39; section</span>
+<span class="c1">// Configuration loaded from YAML 'video_streaming_server' section</span>
 <span class="n">holoscan</span><span class="o">::</span><span class="n">ArgList</span><span class="w"> </span><span class="n">video_streaming_server_args</span><span class="p">;</span>
 <span class="k">try</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="n">video_streaming_server_args</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">from_config</span><span class="p">(</span><span class="s">&quot;video_streaming_server&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">video_streaming_server_args</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">from_config</span><span class="p">(</span><span class="s">"video_streaming_server"</span><span class="p">);</span>
 <span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">exception</span><span class="o">&amp;</span><span class="w"> </span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="n">HOLOSCAN_LOG_WARN</span><span class="p">(</span><span class="s">&quot;Missing video_streaming_server config section, using defaults&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">HOLOSCAN_LOG_WARN</span><span class="p">(</span><span class="s">"Missing video_streaming_server config section, using defaults"</span><span class="p">);</span>
 <span class="p">}</span>
 <span class="k">auto</span><span class="w"> </span><span class="n">video_streaming_server_resource</span><span class="w"> </span><span class="o">=</span>
-<span class="w">    </span><span class="n">make_resource</span><span class="o">&lt;</span><span class="n">ops</span><span class="o">::</span><span class="n">StreamingServerResource</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;video_streaming_server_resource&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="n">make_resource</span><span class="o">&lt;</span><span class="n">ops</span><span class="o">::</span><span class="n">StreamingServerResource</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"video_streaming_server_resource"</span><span class="p">,</span>
 <span class="w">                                                 </span><span class="n">video_streaming_server_args</span><span class="p">);</span>
 
 <span class="c1">// Upstream operator (receives from clients)</span>
-<span class="c1">// Configuration loaded from YAML &#39;upstream_op&#39; section</span>
+<span class="c1">// Configuration loaded from YAML 'upstream_op' section</span>
 <span class="n">holoscan</span><span class="o">::</span><span class="n">ArgList</span><span class="w"> </span><span class="n">upstream_args</span><span class="p">;</span>
 <span class="k">try</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="n">upstream_args</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">from_config</span><span class="p">(</span><span class="s">&quot;upstream_op&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">upstream_args</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">from_config</span><span class="p">(</span><span class="s">"upstream_op"</span><span class="p">);</span>
 <span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">exception</span><span class="o">&amp;</span><span class="w"> </span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="n">HOLOSCAN_LOG_WARN</span><span class="p">(</span><span class="s">&quot;Missing upstream_op config section, using defaults&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">HOLOSCAN_LOG_WARN</span><span class="p">(</span><span class="s">"Missing upstream_op config section, using defaults"</span><span class="p">);</span>
 <span class="p">}</span>
-<span class="k">auto</span><span class="w"> </span><span class="n">upstream_op</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">ops</span><span class="o">::</span><span class="n">StreamingServerUpstreamOp</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;upstream_op&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">upstream_args</span><span class="p">);</span>
-<span class="n">upstream_op</span><span class="o">-&gt;</span><span class="n">add_arg</span><span class="p">(</span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;video_streaming_server_resource&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">video_streaming_server_resource</span><span class="p">));</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">upstream_op</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">ops</span><span class="o">::</span><span class="n">StreamingServerUpstreamOp</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"upstream_op"</span><span class="p">,</span><span class="w"> </span><span class="n">upstream_args</span><span class="p">);</span>
+<span class="n">upstream_op</span><span class="o">-&gt;</span><span class="n">add_arg</span><span class="p">(</span><span class="n">Arg</span><span class="p">(</span><span class="s">"video_streaming_server_resource"</span><span class="p">,</span><span class="w"> </span><span class="n">video_streaming_server_resource</span><span class="p">));</span>
 
 <span class="c1">// Downstream operator (sends to clients)</span>
-<span class="c1">// Configuration loaded from YAML &#39;downstream_op&#39; section</span>
+<span class="c1">// Configuration loaded from YAML 'downstream_op' section</span>
 <span class="n">holoscan</span><span class="o">::</span><span class="n">ArgList</span><span class="w"> </span><span class="n">downstream_args</span><span class="p">;</span>
 <span class="k">try</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="n">downstream_args</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">from_config</span><span class="p">(</span><span class="s">&quot;downstream_op&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">downstream_args</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">from_config</span><span class="p">(</span><span class="s">"downstream_op"</span><span class="p">);</span>
 <span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">exception</span><span class="o">&amp;</span><span class="w"> </span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="n">HOLOSCAN_LOG_WARN</span><span class="p">(</span><span class="s">&quot;Missing downstream_op config section, using defaults&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">HOLOSCAN_LOG_WARN</span><span class="p">(</span><span class="s">"Missing downstream_op config section, using defaults"</span><span class="p">);</span>
 <span class="p">}</span>
 <span class="k">auto</span><span class="w"> </span><span class="n">downstream_op</span><span class="w"> </span><span class="o">=</span>
-<span class="w">    </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">ops</span><span class="o">::</span><span class="n">StreamingServerDownstreamOp</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;downstream_op&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">downstream_args</span><span class="p">);</span>
-<span class="n">downstream_op</span><span class="o">-&gt;</span><span class="n">add_arg</span><span class="p">(</span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;video_streaming_server_resource&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">video_streaming_server_resource</span><span class="p">));</span>
+<span class="w">    </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">ops</span><span class="o">::</span><span class="n">StreamingServerDownstreamOp</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"downstream_op"</span><span class="p">,</span><span class="w"> </span><span class="n">downstream_args</span><span class="p">);</span>
+<span class="n">downstream_op</span><span class="o">-&gt;</span><span class="n">add_arg</span><span class="p">(</span><span class="n">Arg</span><span class="p">(</span><span class="s">"video_streaming_server_resource"</span><span class="p">,</span><span class="w"> </span><span class="n">video_streaming_server_resource</span><span class="p">));</span>
 
 <span class="c1">// Connect: upstream -&gt; downstream (passthrough/echo mode)</span>
-<span class="n">add_flow</span><span class="p">(</span><span class="n">upstream_op</span><span class="p">,</span><span class="w"> </span><span class="n">downstream_op</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="err">&#39;</span><span class="n">output_frames</span><span class="err">&#39;</span><span class="p">,</span><span class="w"> </span><span class="err">&#39;</span><span class="n">input_frames</span><span class="err">&#39;</span><span class="p">));</span>
+<span class="n">add_flow</span><span class="p">(</span><span class="n">upstream_op</span><span class="p">,</span><span class="w"> </span><span class="n">downstream_op</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="err">'</span><span class="n">output_frames</span><span class="err">'</span><span class="p">,</span><span class="w"> </span><span class="err">'</span><span class="n">input_frames</span><span class="err">'</span><span class="p">));</span>
 </code></pre></div>
 <p><strong>Key Points:</strong></p>
 <ul>
@@ -20610,14 +20610,14 @@ rm<span class="w"> </span>-rf<span class="w"> </span>holoscan_server_cloud_strea
 
 <span class="k">class</span><span class="w"> </span><span class="nc">StreamingServerApp</span><span class="p">(</span><span class="n">Application</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">48010</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">854</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">480</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="mi">30</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the streaming server application.</span>
+<span class="w">        </span><span class="sd">"""Initialize the streaming server application.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            port: Server port (set via --port command-line argument)</span>
 <span class="sd">            width: Frame width (set via --width command-line argument)</span>
 <span class="sd">            height: Frame height (set via --height command-line argument)</span>
 <span class="sd">            fps: Frames per second (set via --fps command-line argument)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="n">port</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="n">width</span>
@@ -20625,16 +20625,16 @@ rm<span class="w"> </span>-rf<span class="w"> </span>holoscan_server_cloud_strea
         <span class="bp">self</span><span class="o">.</span><span class="n">fps</span> <span class="o">=</span> <span class="n">fps</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compose the application pipeline.</span>
+<span class="w">        </span><span class="sd">"""Compose the application pipeline.</span>
 
 <span class="sd">        Simple bidirectional streaming:</span>
 <span class="sd">        upstream_op (receives from clients) -&gt; downstream_op (sends back to clients)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="c1"># Create shared streaming server resource with parameters from constructor</span>
         <span class="n">video_streaming_resource</span> <span class="o">=</span> <span class="n">StreamingServerResource</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
-            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;video_streaming_server_resource&quot;</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">"video_streaming_server_resource"</span><span class="p">,</span>
             <span class="n">port</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">,</span>
             <span class="n">width</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
             <span class="n">height</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
@@ -20645,16 +20645,16 @@ rm<span class="w"> </span>-rf<span class="w"> </span>holoscan_server_cloud_strea
 
         <span class="c1"># Upstream operator (receives from clients)</span>
         <span class="n">upstream_op</span> <span class="o">=</span> <span class="n">StreamingServerUpstreamOp</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;upstream_op&quot;</span><span class="p">,</span> <span class="n">video_streaming_server_resource</span><span class="o">=</span><span class="n">video_streaming_resource</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"upstream_op"</span><span class="p">,</span> <span class="n">video_streaming_server_resource</span><span class="o">=</span><span class="n">video_streaming_resource</span>
         <span class="p">)</span>
 
         <span class="c1"># Downstream operator (sends to clients)</span>
         <span class="n">downstream_op</span> <span class="o">=</span> <span class="n">StreamingServerDownstreamOp</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;downstream_op&quot;</span><span class="p">,</span> <span class="n">video_streaming_server_resource</span><span class="o">=</span><span class="n">video_streaming_resource</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"downstream_op"</span><span class="p">,</span> <span class="n">video_streaming_server_resource</span><span class="o">=</span><span class="n">video_streaming_resource</span>
         <span class="p">)</span>
 
         <span class="c1"># Connect: upstream -&gt; downstream (passthrough/echo mode)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">upstream_op</span><span class="p">,</span> <span class="n">downstream_op</span><span class="p">,</span> <span class="p">{(</span><span class="s2">&quot;output_frames&quot;</span><span class="p">,</span> <span class="s2">&quot;input_frames&quot;</span><span class="p">)})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">upstream_op</span><span class="p">,</span> <span class="n">downstream_op</span><span class="p">,</span> <span class="p">{(</span><span class="s2">"output_frames"</span><span class="p">,</span> <span class="s2">"input_frames"</span><span class="p">)})</span>
 </code></pre></div>
 <p><strong>Key Points:</strong></p>
 <ul>
@@ -20692,12 +20692,12 @@ sudo<span class="w"> </span>lsof<span class="w"> </span>-ti:48010<span class="w"
 <div class="highlight"><pre><span></span><code>rm<span class="w"> </span>-rf<span class="w"> </span>build/
 ./holohub<span class="w"> </span>build<span class="w"> </span>video_streaming<span class="w"> </span>--language<span class="w"> </span>cpp
 <span class="c1"># or for Python</span>
-./holohub<span class="w"> </span>build<span class="w"> </span>video_streaming<span class="w"> </span>--configure-args<span class="o">=</span><span class="s1">&#39;-DHOLOHUB_BUILD_PYTHON=ON&#39;</span>
+./holohub<span class="w"> </span>build<span class="w"> </span>video_streaming<span class="w"> </span>--configure-args<span class="o">=</span><span class="s1">'-DHOLOHUB_BUILD_PYTHON=ON'</span>
 </code></pre></div>
 <h3 id="debug-mode">Debug Mode<a class="headerlink" href="#debug-mode" title="Permanent link">#</a></h3>
 <p>Enable debug logging by setting log level in configuration:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">application</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">log_level</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;DEBUG&quot;</span>
+<span class="w">  </span><span class="nt">log_level</span><span class="p">:</span><span class="w"> </span><span class="s">"DEBUG"</span>
 </code></pre></div>
 <h2 id="configuration-examples">Configuration Examples<a class="headerlink" href="#configuration-examples" title="Permanent link">#</a></h2>
 <p>See the included configuration files for complete examples:</p>
@@ -20712,12 +20712,12 @@ sudo<span class="w"> </span>lsof<span class="w"> </span>-ti:48010<span class="w"
 <p>Terminal 1 - Start Python Server:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># From holohub root directory</span>
 ./holohub<span class="w"> </span>run<span class="w"> </span>video_streaming<span class="w"> </span>server_python<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--configure-args<span class="o">=</span><span class="s1">&#39;-DHOLOHUB_BUILD_PYTHON=ON&#39;</span>
+<span class="w">  </span>--configure-args<span class="o">=</span><span class="s1">'-DHOLOHUB_BUILD_PYTHON=ON'</span>
 </code></pre></div>
 <p>Terminal 2 - Start Python Client with Video Replayer (854x480):</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># From holohub root directory</span>
 ./holohub<span class="w"> </span>run<span class="w"> </span>video_streaming<span class="w"> </span>client_python<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--configure-args<span class="o">=</span><span class="s1">&#39;-DHOLOHUB_BUILD_PYTHON=ON&#39;</span>
+<span class="w">  </span>--configure-args<span class="o">=</span><span class="s1">'-DHOLOHUB_BUILD_PYTHON=ON'</span>
 </code></pre></div>
 <h3 id="testing-with-c-client">Testing with C++ Client<a class="headerlink" href="#testing-with-c-client" title="Permanent link">#</a></h3>
 <p>Terminal 1 - Start Server (C++ or Python):</p>
@@ -20726,7 +20726,7 @@ sudo<span class="w"> </span>lsof<span class="w"> </span>-ti:48010<span class="w"
 
 <span class="c1"># OR Python Server</span>
 ./holohub<span class="w"> </span>run<span class="w"> </span>video_streaming<span class="w"> </span>server_python<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--configure-args<span class="o">=</span><span class="s1">&#39;-DHOLOHUB_BUILD_PYTHON=ON&#39;</span>
+<span class="w">  </span>--configure-args<span class="o">=</span><span class="s1">'-DHOLOHUB_BUILD_PYTHON=ON'</span>
 </code></pre></div>
 <p>Terminal 2 - Start C++ Client:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Video Replayer Mode</span>

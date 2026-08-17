@@ -20186,8 +20186,8 @@
 <span class="n">converter</span> <span class="o">=</span> <span class="n">OrsiFormatConverterOp</span><span class="p">(</span>
     <span class="n">fragment</span><span class="o">=</span><span class="n">fragment</span><span class="p">,</span>
     <span class="n">allocator</span><span class="o">=</span><span class="n">allocator</span><span class="p">,</span>
-    <span class="n">out_dtype</span><span class="o">=</span><span class="s2">&quot;float32&quot;</span><span class="p">,</span>
-    <span class="n">in_dtype</span><span class="o">=</span><span class="s2">&quot;rgb888&quot;</span><span class="p">,</span>
+    <span class="n">out_dtype</span><span class="o">=</span><span class="s2">"float32"</span><span class="p">,</span>
+    <span class="n">in_dtype</span><span class="o">=</span><span class="s2">"rgb888"</span><span class="p">,</span>
     <span class="n">scale_min</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
     <span class="n">scale_max</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
     <span class="n">resize_width</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span>
@@ -20216,7 +20216,7 @@
 <span class="n">preprocessor</span> <span class="o">=</span> <span class="n">OrsiSegmentationPreprocessorOp</span><span class="p">(</span>
     <span class="n">fragment</span><span class="o">=</span><span class="n">fragment</span><span class="p">,</span>
     <span class="n">allocator</span><span class="o">=</span><span class="n">allocator</span><span class="p">,</span>
-    <span class="n">data_format</span><span class="o">=</span><span class="s2">&quot;hwc&quot;</span><span class="p">,</span>
+    <span class="n">data_format</span><span class="o">=</span><span class="s2">"hwc"</span><span class="p">,</span>
     <span class="n">normalize_means</span><span class="o">=</span><span class="p">[</span><span class="mf">0.485</span><span class="p">,</span> <span class="mf">0.456</span><span class="p">,</span> <span class="mf">0.406</span><span class="p">],</span>
     <span class="n">normalize_stds</span><span class="o">=</span><span class="p">[</span><span class="mf">0.229</span><span class="p">,</span> <span class="mf">0.224</span><span class="p">,</span> <span class="mf">0.225</span><span class="p">]</span>
 <span class="p">)</span>
@@ -20243,8 +20243,8 @@
 <span class="n">postprocessor</span> <span class="o">=</span> <span class="n">OrsiSegmentationPostprocessorOp</span><span class="p">(</span>
     <span class="n">fragment</span><span class="o">=</span><span class="n">fragment</span><span class="p">,</span>
     <span class="n">allocator</span><span class="o">=</span><span class="n">allocator</span><span class="p">,</span>
-    <span class="n">network_output_type</span><span class="o">=</span><span class="s2">&quot;softmax&quot;</span><span class="p">,</span>
-    <span class="n">data_format</span><span class="o">=</span><span class="s2">&quot;hwc&quot;</span><span class="p">,</span>
+    <span class="n">network_output_type</span><span class="o">=</span><span class="s2">"softmax"</span><span class="p">,</span>
+    <span class="n">data_format</span><span class="o">=</span><span class="s2">"hwc"</span><span class="p">,</span>
     <span class="n">output_img_size</span><span class="o">=</span><span class="p">[</span><span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">]</span>
 <span class="p">)</span>
 </code></pre></div>
@@ -20270,10 +20270,10 @@
 
 <span class="n">visualizer</span> <span class="o">=</span> <span class="n">OrsiVisualizationOp</span><span class="p">(</span>
     <span class="n">fragment</span><span class="o">=</span><span class="n">fragment</span><span class="p">,</span>
-    <span class="n">stl_file_path</span><span class="o">=</span><span class="s2">&quot;/path/to/anatomy.stl&quot;</span><span class="p">,</span>
-    <span class="n">stl_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;liver&quot;</span><span class="p">,</span> <span class="s2">&quot;kidney&quot;</span><span class="p">],</span>
+    <span class="n">stl_file_path</span><span class="o">=</span><span class="s2">"/path/to/anatomy.stl"</span><span class="p">,</span>
+    <span class="n">stl_names</span><span class="o">=</span><span class="p">[</span><span class="s2">"liver"</span><span class="p">,</span> <span class="s2">"kidney"</span><span class="p">],</span>
     <span class="n">stl_colors</span><span class="o">=</span><span class="p">[[</span><span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span>
-    <span class="n">registration_params_path</span><span class="o">=</span><span class="s2">&quot;/path/to/registration.json&quot;</span>
+    <span class="n">registration_params_path</span><span class="o">=</span><span class="s2">"/path/to/registration.json"</span>
 <span class="p">)</span>
 </code></pre></div>
 <p>Please refer to the following Holkoscan reference applications for usage of this operator:</p>

@@ -20161,7 +20161,7 @@ python3<span class="w"> </span>applications/object_detection_torch/generate_resn
 <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">LD_LIBRARY_PATH</span><span class="o">=</span><span class="nv">$LD_LIBRARY_PATH</span>:/opt/libtorch/1.13.1/lib
 </code></pre></div>
 <p>On aarch64, if application is executed from within the holoscan sdk container and libtorch throws linking errors, update the <code>LD_LIBRARY_PATH</code> as below:</p>
-<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">LD_LIBRARY_PATH</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">LD_LIBRARY_PATH</span><span class="si">}</span><span class="s2">:/opt/hpcx/ompi/lib&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">LD_LIBRARY_PATH</span><span class="o">=</span><span class="s2">"</span><span class="si">${</span><span class="nv">LD_LIBRARY_PATH</span><span class="si">}</span><span class="s2">:/opt/hpcx/ompi/lib"</span>
 </code></pre></div>
 <h2 id="containerize-the-application">Containerize the application<a class="headerlink" href="#containerize-the-application" title="Permanent link">#</a></h2>
 <blockquote>

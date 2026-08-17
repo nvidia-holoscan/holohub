@@ -20206,11 +20206,11 @@ python3<span class="w"> </span>utilities/generate_trt_engine.py<span class="w"> 
 <span class="c1">#  use the following commands to run the application in distributed mode:</span>
 
 <span class="c1"># Start the application with the video_in fragment</span>
-./holohub<span class="w"> </span>run<span class="w"> </span>ucx_endoscopy_tool_tracking<span class="w"> </span>--language<span class="o">=</span>cpp<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--driver --worker --fragments video_in --address :9999&quot;</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>ucx_endoscopy_tool_tracking<span class="w"> </span>--language<span class="o">=</span>cpp<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--driver --worker --fragments video_in --address :9999"</span>
 <span class="c1"># Start the application with the inference fragment</span>
-./holohub<span class="w"> </span>run<span class="w"> </span>ucx_endoscopy_tool_tracking<span class="w"> </span>--language<span class="o">=</span>cpp<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--worker --fragments inference --address :9999&quot;</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>ucx_endoscopy_tool_tracking<span class="w"> </span>--language<span class="o">=</span>cpp<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--worker --fragments inference --address :9999"</span>
 <span class="c1"># Start the application with the visualization fragment</span>
-./holohub<span class="w"> </span>run<span class="w"> </span>ucx_endoscopy_tool_tracking<span class="w"> </span>--language<span class="o">=</span>cpp<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--worker --fragments viz --address :9999&quot;</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>ucx_endoscopy_tool_tracking<span class="w"> </span>--language<span class="o">=</span>cpp<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--worker --fragments viz --address :9999"</span>
 </code></pre></div>
 
 

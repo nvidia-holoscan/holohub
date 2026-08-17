@@ -20127,21 +20127,21 @@
 </code></pre></div>
 <p>The path of the volume configuration file, volume density file and volume mask file can be passed to the application.</p>
 <p>You can use the following command to get more information on command line parameters for this application:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>volume_rendering<span class="w"> </span>--language<span class="w"> </span><span class="o">[</span>cpp<span class="p">|</span>python<span class="o">]</span><span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--usages&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>volume_rendering<span class="w"> </span>--language<span class="w"> </span><span class="o">[</span>cpp<span class="p">|</span>python<span class="o">]</span><span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--usages"</span>
 </code></pre></div>
 <h3 id="command-line-arguments">Command Line Arguments<a class="headerlink" href="#command-line-arguments" title="Permanent link">#</a></h3>
 <div class="highlight"><pre><span></span><code>Holoscan ClaraViz volume renderer.
 Usage: ./applications/volume_rendering/volume_rendering [options]
 Options:
   -h,-u, --help, --usages               Display this information
-  -c &lt;FILENAME&gt;, --config &lt;FILENAME&gt;    Name of the renderer JSON configuration file to load (default &#39;../../../data/volume_rendering/config.json&#39;)
+  -c &lt;FILENAME&gt;, --config &lt;FILENAME&gt;    Name of the renderer JSON configuration file to load (default '../../../data/volume_rendering/config.json')
   -p &lt;FILENAME&gt;, --preset &lt;FILENAME&gt;    Name of the renderer JSON preset file to load. This will be merged into the settings loaded from the configuration file. Multiple presets can be specified.
-  -w &lt;FILENAME&gt;, --write_config &lt;FILENAME&gt; Name of the renderer JSON configuration file to write to (default &#39;&#39;)
-  -d &lt;FILENAME&gt;, --density &lt;FILENAME&gt;   Name of density volume file to load (default &#39;../../../data/volume_rendering/highResCT.mhd&#39;)
+  -w &lt;FILENAME&gt;, --write_config &lt;FILENAME&gt; Name of the renderer JSON configuration file to write to (default '')
+  -d &lt;FILENAME&gt;, --density &lt;FILENAME&gt;   Name of density volume file to load (default '../../../data/volume_rendering/highResCT.mhd')
   -i &lt;MIN&gt;, --density_min &lt;MIN&gt;         Set the minimum of the density element values. If not set this is calculated from the volume data. In practice CT volumes have a minimum value of -1024 which corresponds to the lower value of the Hounsfield scale range usually used.
   -a &lt;MAX&gt;, --density_max &lt;MAX&gt;         Set the maximum of the density element values. If not set this is calculated from the volume data. In practice CT volumes have a maximum value of 3071 which corresponds to the upper value of the Hounsfield scale range usually used.
-  -m &lt;FILENAME&gt;, --mask &lt;FILENAME&gt;      Name of mask volume file to load (default &#39;../../../data/volume_rendering/smoothmasks.seg.mhd&#39;)
-  -n &lt;COUNT&gt;, --count &lt;COUNT&gt;           Duration to run application (default &#39;-1&#39; for unlimited duration)
+  -m &lt;FILENAME&gt;, --mask &lt;FILENAME&gt;      Name of mask volume file to load (default '../../../data/volume_rendering/smoothmasks.seg.mhd')
+  -n &lt;COUNT&gt;, --count &lt;COUNT&gt;           Duration to run application (default '-1' for unlimited duration)
   ```
 
 ### Importing CT datasets
@@ -20160,10 +20160,10 @@ Additionally information on lighting, transfer functions and other settings is n
 
 There are two options to create a config file for a new dataset. First, use the example config as a reference to create a new config and modify parameters. Or let the renderer create a config file with settings deduced from the dataset.
 
-Assuming the volume file is is named `new_volume.nrrd`. Specify the new volume file (`-d new_volume.nrrd`), set the config file option to an empty string (`-c &quot;&quot;`) to force the renderer to deduce settings and specify the name of the config file to write (`-w new_config.json`):
+Assuming the volume file is is named `new_volume.nrrd`. Specify the new volume file (`-d new_volume.nrrd`), set the config file option to an empty string (`-c ""`) to force the renderer to deduce settings and specify the name of the config file to write (`-w new_config.json`):
 
 ```bash
-  ./applications/volume_rendering/cpp/volume_rendering -d new_volume.nrrd -c &quot;&quot; -w new_config.json
+  ./applications/volume_rendering/cpp/volume_rendering -d new_volume.nrrd -c "" -w new_config.json
 </code></pre></div>
 <p>This will create a file <code>new_config.json</code>. If there is a segmentation volume present add it with <code>-m new_seg_volume.nrrd</code>.</p>
 <p>By default the configuration is set up for rendering still images. For interactive rendering change the <code>timeSlot</code> setting in <code>RenderSettings</code> to the desired frame time in milliseconds, e.g. <code>33.0</code> for 30 fps.</p>

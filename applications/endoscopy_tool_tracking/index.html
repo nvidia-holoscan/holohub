@@ -20227,7 +20227,7 @@ Fig. 3 Tool tracking application workflow with input from AJA video source</p>
 <li>the <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/operators/operators-and-extensions#operators">Format Converter</a> in the recording pipeline is used for <code>record_type: INPUT</code> also</li>
 </ul>
 <h4 id="building-with-aja-support">Building with AJA support<a class="headerlink" href="#building-with-aja-support" title="Permanent link">#</a></h4>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>--local<span class="w"> </span>endoscopy_tool_tracking<span class="w"> </span>--build-with<span class="o">=</span><span class="s2">&quot;aja_source&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>--local<span class="w"> </span>endoscopy_tool_tracking<span class="w"> </span>--build-with<span class="o">=</span><span class="s2">"aja_source"</span>
 </code></pre></div>
 <h4 id="hardware-keying">Hardware keying<a class="headerlink" href="#hardware-keying" title="Permanent link">#</a></h4>
 <p>For AJA cards that support Hardware Keying, you can use the <code>endoscopy_tool_tracking_aja_overlay.yaml</code> config file to overlay the segmentation results on the input video on the AJA card FPGA. The overlay layer is sent from <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/operators/operators-and-extensions#operators">Holoviz</a> back to the <a href="../../operators/aja_source/">AJA Source</a> operator which handles the alpha blending and outputs it to a port of the the AJA card. The blended image is also sent back to the <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/operators/operators-and-extensions#operators">Holoviz</a> operator (instead of the input video only) for rendering the same image buffer.</p>
@@ -20273,14 +20273,14 @@ tracking results on top of the endoscopy video frames.</p>
 <h3 id="how-to-build-and-run-the-endoscopy-tool-tracking-application-with-vtk">How to build and run the Endoscopy Tool Tracking application with VTK<a class="headerlink" href="#how-to-build-and-run-the-endoscopy-tool-tracking-application-with-vtk" title="Permanent link">#</a></h3>
 <p>The following command builds and runs the Endoscopy Tool Tracking application with VTK:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># change the configuration to use VTK (vtk_renderer) as the default renderer</span>
-sed<span class="w"> </span>-i<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;s#^visualizer:.*#visualizer: &quot;vtk&quot;#&#39;</span><span class="w"> </span>applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml<span class="w"> </span>applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking.yaml
+sed<span class="w"> </span>-i<span class="w"> </span>-e<span class="w"> </span><span class="s1">'s#^visualizer:.*#visualizer: "vtk"#'</span><span class="w"> </span>applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml<span class="w"> </span>applications/endoscopy_tool_tracking/python/endoscopy_tool_tracking.yaml
 
 <span class="c1"># build and launch the application</span>
 <span class="c1"># C++</span>
-./holohub<span class="w"> </span>run<span class="w"> </span>endoscopy_tool_tracking<span class="w"> </span>--build-with<span class="o">=</span><span class="s2">&quot;vtk_renderer&quot;</span><span class="w"> </span>--docker-file<span class="o">=</span><span class="s2">&quot;operators/vtk_renderer/Dockerfile&quot;</span><span class="w"> </span>--img<span class="w"> </span>holohub:endoscopy_tool_tracking_vtk<span class="w"> </span>--language<span class="o">=</span><span class="s2">&quot;cpp&quot;</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>endoscopy_tool_tracking<span class="w"> </span>--build-with<span class="o">=</span><span class="s2">"vtk_renderer"</span><span class="w"> </span>--docker-file<span class="o">=</span><span class="s2">"operators/vtk_renderer/Dockerfile"</span><span class="w"> </span>--img<span class="w"> </span>holohub:endoscopy_tool_tracking_vtk<span class="w"> </span>--language<span class="o">=</span><span class="s2">"cpp"</span>
 
 <span class="c1"># Python (see below for additional steps)</span>
-./holohub<span class="w"> </span>run<span class="w"> </span>endoscopy_tool_tracking<span class="w"> </span>--build-with<span class="o">=</span><span class="s2">&quot;vtk_renderer&quot;</span><span class="w"> </span>--docker-file<span class="o">=</span><span class="s2">&quot;operators/vtk_renderer/Dockerfile&quot;</span><span class="w"> </span>--img<span class="w"> </span>holohub:endoscopy_tool_tracking_vtk<span class="w"> </span>--language<span class="o">=</span><span class="s2">&quot;python&quot;</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>endoscopy_tool_tracking<span class="w"> </span>--build-with<span class="o">=</span><span class="s2">"vtk_renderer"</span><span class="w"> </span>--docker-file<span class="o">=</span><span class="s2">"operators/vtk_renderer/Dockerfile"</span><span class="w"> </span>--img<span class="w"> </span>holohub:endoscopy_tool_tracking_vtk<span class="w"> </span>--language<span class="o">=</span><span class="s2">"python"</span>
 </code></pre></div>
 <p>Arguments:</p>
 <ul>

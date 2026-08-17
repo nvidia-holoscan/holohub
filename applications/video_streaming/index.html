@@ -20499,7 +20499,7 @@
 <span class="nb">cd</span><span class="w"> </span>operators/video_streaming/video_streaming_client
 
 <span class="c1"># Download using NGC CLI</span>
-ngc<span class="w"> </span>registry<span class="w"> </span>resource<span class="w"> </span>download-version<span class="w"> </span><span class="s2">&quot;nvidia/holoscan_client_cloud_streaming:0.2&quot;</span>
+ngc<span class="w"> </span>registry<span class="w"> </span>resource<span class="w"> </span>download-version<span class="w"> </span><span class="s2">"nvidia/holoscan_client_cloud_streaming:0.2"</span>
 unzip<span class="w"> </span>-o<span class="w"> </span>holoscan_client_cloud_streaming_v0.2/holoscan_client_cloud_streaming.zip<span class="w"> </span>-d<span class="w"> </span>holoscan_client_cloud_streaming
 
 <span class="c1"># Clean up</span>
@@ -20512,7 +20512,7 @@ rm<span class="w"> </span>-rf<span class="w"> </span>holoscan_client_cloud_strea
 <span class="nb">cd</span><span class="w"> </span>operators/video_streaming/video_streaming_server
 
 <span class="c1"># Download using NGC CLI</span>
-ngc<span class="w"> </span>registry<span class="w"> </span>resource<span class="w"> </span>download-version<span class="w"> </span><span class="s2">&quot;nvidia/holoscan_server_cloud_streaming:0.2&quot;</span>
+ngc<span class="w"> </span>registry<span class="w"> </span>resource<span class="w"> </span>download-version<span class="w"> </span><span class="s2">"nvidia/holoscan_server_cloud_streaming:0.2"</span>
 unzip<span class="w"> </span>-o<span class="w"> </span>holoscan_server_cloud_streaming_v0.2/holoscan_server_cloud_streaming.zip<span class="w"> </span>-d<span class="w"> </span>holoscan_server_cloud_streaming
 
 <span class="c1"># Clean up</span>
@@ -20806,11 +20806,11 @@ The server should display connection status and frame processing information. Lo
 <p>Or use direct HoloHub CLI commands:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Run C++ integration test using HoloHub CLI</span>
 ./holohub<span class="w"> </span><span class="nb">test</span><span class="w"> </span>video_streaming<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--ctest-options<span class="o">=</span><span class="s2">&quot;-R video_streaming_integration_test_cpp&quot;</span>
+<span class="w">  </span>--ctest-options<span class="o">=</span><span class="s2">"-R video_streaming_integration_test_cpp"</span>
 
 <span class="c1"># Run Python integration test using HoloHub CLI</span>
 ./holohub<span class="w"> </span><span class="nb">test</span><span class="w"> </span>video_streaming<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--ctest-options<span class="o">=</span><span class="s2">&quot;-R video_streaming_integration_test_python&quot;</span>
+<span class="w">  </span>--ctest-options<span class="o">=</span><span class="s2">"-R video_streaming_integration_test_python"</span>
 </code></pre></div>
 <p><strong>Test Scripts:</strong></p>
 <ul>

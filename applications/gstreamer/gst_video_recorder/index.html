@@ -20448,7 +20448,7 @@ For local builds, install the CuPy wheel matching your CUDA major version before
 </ul>
 <h4 id="running-the-application">Running the Application<a class="headerlink" href="#running-the-application" title="Permanent link">#</a></h4>
 <p>The recommended way to run the application is through the <code>holohub</code> launcher:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--language<span class="w"> </span>&lt;cpp<span class="p">|</span>python&gt;<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;[OPTIONS]&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--language<span class="w"> </span>&lt;cpp<span class="p">|</span>python&gt;<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"[OPTIONS]"</span>
 </code></pre></div>
 <p>Alternatively, if you know the binary location, you can run it directly:</p>
 <div class="highlight"><pre><span></span><code>gst-video-recorder<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
@@ -20595,58 +20595,58 @@ CuPy is required because the Python implementation uses device storage in the de
 <ul>
 <li>Record from the default V4L2 camera at 1920x1080 (30 seconds at 30 FPS):</li>
 </ul>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--source v4l2 --width 1920 --height 1080 --count 900 -o camera.mp4&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--source v4l2 --width 1920 --height 1080 --count 900 -o camera.mp4"</span>
 </code></pre></div>
 <ul>
 <li>Record from a specific V4L2 device with H.265:</li>
 </ul>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--source v4l2 --device /dev/video1 --width 1920 --height 1080 --encoder nvh265 --count 600 -o camera_h265.mp4&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--source v4l2 --device /dev/video1 --width 1920 --height 1080 --encoder nvh265 --count 600 -o camera_h265.mp4"</span>
 </code></pre></div>
 <ul>
 <li>Record at 720p resolution:</li>
 </ul>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--source v4l2 --width 1280 --height 720 --count 300 -o camera_720p.mp4&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--source v4l2 --width 1280 --height 720 --count 300 -o camera_720p.mp4"</span>
 </code></pre></div>
 <ul>
 <li>Record with a specific pixel format (YUYV):</li>
 </ul>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--source v4l2 --width 640 --height 480 --pixel-format YUYV --count 300 -o camera_yuyv.mp4&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--source v4l2 --width 640 --height 480 --pixel-format YUYV --count 300 -o camera_yuyv.mp4"</span>
 </code></pre></div>
 <ul>
 <li>High-quality recording with custom encoder settings:</li>
 </ul>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--source v4l2 --property bitrate=12000 --property preset=1 --count 900 -o high_quality.mp4&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--source v4l2 --property bitrate=12000 --property preset=1 --count 900 -o high_quality.mp4"</span>
 </code></pre></div>
 <h3 id="pattern-generator-examples">Pattern Generator Examples<a class="headerlink" href="#pattern-generator-examples" title="Permanent link">#</a></h3>
 <ul>
 <li>Basic recording of ten seconds of animated gradient (300 frames at 30 FPS):</li>
 </ul>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--source pattern --count 300 -o video.mp4&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--source pattern --count 300 -o video.mp4"</span>
 </code></pre></div>
 <ul>
 <li>Record high-quality H.265 video:</li>
 </ul>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--source pattern --count 300 --encoder nvh265 --property bitrate=10000 -o video.mp4&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--source pattern --count 300 --encoder nvh265 --property bitrate=10000 -o video.mp4"</span>
 </code></pre></div>
 <ul>
 <li>Record a 720p resolution video:</li>
 </ul>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--source pattern --count 300 --width 1280 --height 720 -o video_720p.mp4&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--source pattern --count 300 --width 1280 --height 720 -o video_720p.mp4"</span>
 </code></pre></div>
 <ul>
 <li>Record the checkerboard pattern:</li>
 </ul>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--source pattern --count 300 --pattern 1 -o checkerboard.mp4&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--source pattern --count 300 --pattern 1 -o checkerboard.mp4"</span>
 </code></pre></div>
 <ul>
 <li>Record color bars:</li>
 </ul>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--source pattern --count 300 --pattern 2 -o colorbars.mp4&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--source pattern --count 300 --pattern 2 -o colorbars.mp4"</span>
 </code></pre></div>
 <ul>
 <li>Record using host memory (CPU encoding):</li>
 </ul>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--source pattern --count 300 --storage 0 --encoder x264 -o video.mp4&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>gst_video_recorder<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--source pattern --count 300 --storage 0 --encoder x264 -o video.mp4"</span>
 </code></pre></div>
 <h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">#</a></h2>
 <p>The application supports two video sources and uses a common encoding backend:</p>

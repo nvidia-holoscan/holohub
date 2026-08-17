@@ -20720,29 +20720,29 @@
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">holoscan.operators</span><span class="w"> </span><span class="kn">import</span> <span class="n">SlangShaderOp</span>
 
 <span class="c1"># Using shader source string</span>
-<span class="n">shader_source</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="n">shader_source</span> <span class="o">=</span> <span class="s2">"""</span>
 <span class="s2">import holoscan</span>
 
-<span class="s2">[holoscan::input(&quot;input_data&quot;)]</span>
+<span class="s2">[holoscan::input("input_data")]</span>
 <span class="s2">StructuredBuffer&lt;float&gt; input_buffer;</span>
 
-<span class="s2">[holoscan::output(&quot;output_data&quot;)]</span>
+<span class="s2">[holoscan::output("output_data")]</span>
 <span class="s2">RWStructuredBuffer&lt;float&gt; output_buffer;</span>
 
-<span class="s2">[holoscan::parameter(&quot;scale_factor&quot;)]</span>
+<span class="s2">[holoscan::parameter("scale_factor")]</span>
 <span class="s2">float scale;</span>
 
 <span class="s2">[numthreads(256, 1, 1)]</span>
-<span class="s2">[holoscan::invocations::size_of(&quot;input_data&quot;)]</span>
+<span class="s2">[holoscan::invocations::size_of("input_data")]</span>
 <span class="s2">void main(uint3 tid : SV_DispatchThreadID) {</span>
 <span class="s2">    output_buffer[tid.x] = input_buffer[tid.x] * scale;</span>
 <span class="s2">}</span>
-<span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">"""</span>
 
 <span class="n">op</span> <span class="o">=</span> <span class="n">SlangShaderOp</span><span class="p">(</span>
     <span class="n">fragment</span><span class="o">=</span><span class="n">app</span><span class="p">,</span>
     <span class="n">shader_source</span><span class="o">=</span><span class="n">shader_source</span><span class="p">,</span>
-    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;my_shader&quot;</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">"my_shader"</span>
 <span class="p">)</span>
 </code></pre></div>
 <p>Note that the data sent to the input of <code>SlangShaderOp</code> must be a data buffer (currently <code>holoscan::Tensor</code> and <code>nvidia::gxf::VideoBuffer</code> types are supported). For Python, any array-like objects implementing the <code>__dlpack__</code>, <code>__array_interface__</code> or <code>__cuda_array_interface__</code> are also supported.</p>
@@ -20808,11 +20808,11 @@
 <li><code>"0"</code> - <code>"9"</code>: Static values</li>
 </ul>
 <h4 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">#</a></h4>
-<div class="highlight"><pre><span></span><code>[holoscan::input(&quot;input_data&quot;)]           // Binds to a resource named &quot;input_data&quot;
-[holoscan::output(&quot;model:output&quot;)]        // Binds to the &quot;output&quot; tensor in the &quot;model&quot; tensor map
-[holoscan::alloc::size_of(&quot;input_tensor.cx&quot;)]  // Allocates based on the x dimension and component count of &quot;input_tensor&quot;
-[holoscan::alloc::size_of(&quot;buffer:coords.xyz&quot;)]       // Allocates based on x, y, z dimensions of &quot;buffer:coords&quot;
-[holoscan::invocations::size_of(&quot;image.cxy&quot;)]  // Sets invocations based on x, y dimensions and component count
+<div class="highlight"><pre><span></span><code>[holoscan::input("input_data")]           // Binds to a resource named "input_data"
+[holoscan::output("model:output")]        // Binds to the "output" tensor in the "model" tensor map
+[holoscan::alloc::size_of("input_tensor.cx")]  // Allocates based on the x dimension and component count of "input_tensor"
+[holoscan::alloc::size_of("buffer:coords.xyz")]       // Allocates based on x, y, z dimensions of "buffer:coords"
+[holoscan::invocations::size_of("image.cxy")]  // Sets invocations based on x, y dimensions and component count
 </code></pre></div>
 <h3 id="supported-data-types">Supported Data Types<a class="headerlink" href="#supported-data-types" title="Permanent link">#</a></h3>
 <h4 id="scalar-parameters">Scalar Parameters<a class="headerlink" href="#scalar-parameters" title="Permanent link">#</a></h4>
@@ -20830,20 +20830,20 @@
 <div class="highlight"><pre><span></span><code>import holoscan
 
 // Simple image processing shader
-[holoscan::input(&quot;input_image&quot;)]
+[holoscan::input("input_image")]
 StructuredBuffer&lt;float4&gt; input_image;
 
-[holoscan::output(&quot;output_image&quot;)]
+[holoscan::output("output_image")]
 RWStructuredBuffer&lt;float4&gt; output_image;
 
-[holoscan::parameter(&quot;brightness&quot;)]
+[holoscan::parameter("brightness")]
 float brightness;
 
-[holoscan::size_of(&quot;input_image&quot;)]
+[holoscan::size_of("input_image")]
 int3 image_size;
 
 [numthreads(16, 16, 1)]
-[holoscan::invocations::size_of(&quot;input_image&quot;)]
+[holoscan::invocations::size_of("input_image")]
 void main(uint3 tid : SV_DispatchThreadID) {
     uint index = tid.y * image_size.x + tid.x;
     float4 pixel = input_image[index];
@@ -20856,16 +20856,16 @@ void main(uint3 tid : SV_DispatchThreadID) {
 <div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;slang_shader/slang_shader.hpp&gt;</span>
 
 <span class="c1">// Create the operator with shader source from a string</span>
-<span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">shader_source_string</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">R</span><span class="s">&quot;</span>
+<span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">shader_source_string</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">R</span><span class="s">"</span>
 <span class="n">include</span><span class="w"> </span><span class="n">holoscan</span><span class="p">;</span>
 <span class="p">...</span>
-<span class="s">&quot;;</span>
-<span class="k">auto</span><span class="w"> </span><span class="n">shader_op_str</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">holoscan</span><span class="o">::</span><span class="n">ops</span><span class="o">::</span><span class="n">SlangShaderOp</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;Slang&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;shader_source&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">shader_source_string</span><span class="p">));</span>
+<span class="s">";</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">shader_op_str</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">holoscan</span><span class="o">::</span><span class="n">ops</span><span class="o">::</span><span class="n">SlangShaderOp</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"Slang"</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"shader_source"</span><span class="p">,</span><span class="w"> </span><span class="n">shader_source_string</span><span class="p">));</span>
 
 <span class="c1">// Or create the operator with a Slang shader source file</span>
-<span class="k">auto</span><span class="w"> </span><span class="n">shader_op_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">holoscan</span><span class="o">::</span><span class="n">ops</span><span class="o">::</span><span class="n">SlangShaderOp</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;Slang&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;shader_source_file&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;my_shader.slang&quot;</span><span class="p">));</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">shader_op_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">holoscan</span><span class="o">::</span><span class="n">ops</span><span class="o">::</span><span class="n">SlangShaderOp</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"Slang"</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"shader_source_file"</span><span class="p">,</span><span class="w"> </span><span class="s">"my_shader.slang"</span><span class="p">));</span>
 </code></pre></div>
 <h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">#</a></h2>
 <p>The SlangShaderOp consists of several key components:</p>

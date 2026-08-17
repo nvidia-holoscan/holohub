@@ -20205,7 +20205,7 @@ definitions and background</li>
 <h2 id="summarizing-data">Summarizing Data<a class="headerlink" href="#summarizing-data" title="Permanent link">#</a></h2>
 <p>After running benchmarks, inside the dev environment, use <code>./holohub run</code> to process data statistics and create bar plot PNGs:</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>--img<span class="w"> </span>holohub:release_benchmarking<span class="w"> </span>--no-docker-build
-./holohub<span class="w"> </span>run<span class="w"> </span>release_benchmarking<span class="w"> </span>--no-local-build<span class="w"> </span>--run-args<span class="w"> </span><span class="s2">&quot;--process benchmarks/release_benchmarking&quot;</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>release_benchmarking<span class="w"> </span>--no-local-build<span class="w"> </span>--run-args<span class="w"> </span><span class="s2">"--process benchmarks/release_benchmarking"</span>
 </code></pre></div>
 <p>Alternatively, collect results across platforms. On each machine:</p>
 <ol>
@@ -20216,7 +20216,7 @@ definitions and background</li>
 <ol>
 <li>Add platform configuration information:</li>
 </ol>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>release_benchmarking<span class="w"> </span>--no-local-build<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--print&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>benchmarks/release_benchmarking/output/platform.txt
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>release_benchmarking<span class="w"> </span>--no-local-build<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--print"</span><span class="w"> </span>&gt;<span class="w"> </span>benchmarks/release_benchmarking/output/platform.txt
 </code></pre></div>
 <ol>
 <li>Transfer output contents from each platform to a single machine:</li>
@@ -20235,10 +20235,10 @@ tar<span class="w"> </span>xvf<span class="w"> </span>benchmarks-&lt;platform-na
 <ol>
 <li>Use multiple <code>--process</code> flags to generate a batch of bar plots for multiple platform results:</li>
 </ol>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>release_benchmarking<span class="w"> </span>--no-local-build<span class="w"> </span>--run-args<span class="w"> </span><span class="s2">&quot;\</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>release_benchmarking<span class="w"> </span>--no-local-build<span class="w"> </span>--run-args<span class="w"> </span><span class="s2">"\</span>
 <span class="s2">    --process benchmarks/release_benchmarking/2.4/x86_64 \</span>
 <span class="s2">    --process benchmarks/release_benchmarking/2.4/IGX_iGPU \</span>
-<span class="s2">    --process benchmarks/release_benchmarking/2.4/IGX_dGPU&quot;</span>
+<span class="s2">    --process benchmarks/release_benchmarking/2.4/IGX_dGPU"</span>
 </code></pre></div>
 <h2 id="presenting-data">Presenting Data<a class="headerlink" href="#presenting-data" title="Permanent link">#</a></h2>
 <p>You can use the template markdown file in the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/release_benchmarking/template"><code>template</code></a> folder to generate a markdown
@@ -20249,7 +20249,7 @@ the release version, platform configurations, and local paths to processed data.
 <code>./holohub run</code> to print JSON-formatted platform details to the console about the current system:</li>
 </ol>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>--img<span class="w"> </span>holohub:release_benchmarking<span class="w"> </span>--no-docker-build
-./holohub<span class="w"> </span>run<span class="w"> </span>release_benchmarking<span class="w"> </span>--no-local-build<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--print&quot;</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>release_benchmarking<span class="w"> </span>--no-local-build<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--print"</span>
 </code></pre></div>
 <ol>
 <li>Render the document with the Jinja CLI tool:</li>

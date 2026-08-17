@@ -20182,7 +20182,7 @@
 </code></pre></div>
 <h2 id="building-the-tutorial-container">Building the tutorial container<a class="headerlink" href="#building-the-tutorial-container" title="Permanent link">#</a></h2>
 <p>Run the command below from the top-level HoloHub directory to build the tutorial container on the host workstation:</p>
-<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">NGC_CONTAINER_IMAGE_PATH</span><span class="o">=</span><span class="s2">&quot;nvcr.io/nvidia/clara-holoscan/holoscan:v1.0.3-dgpu&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">NGC_CONTAINER_IMAGE_PATH</span><span class="o">=</span><span class="s2">"nvcr.io/nvidia/clara-holoscan/holoscan:v1.0.3-dgpu"</span>
 ./holohub<span class="w"> </span>build-container<span class="w"> </span>--docker-file<span class="w"> </span>tutorials/dicom_to_usd_with_monai_and_holoscan/Dockerfile<span class="w"> </span>--base-img<span class="w"> </span><span class="si">${</span><span class="nv">NGC_CONTAINER_IMAGE_PATH</span><span class="si">}</span><span class="w"> </span>--img<span class="w"> </span>holohub:dicom-to-usd
 </code></pre></div>
 <h2 id="running-the-application">Running the application<a class="headerlink" href="#running-the-application" title="Permanent link">#</a></h2>

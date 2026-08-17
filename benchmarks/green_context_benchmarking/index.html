@@ -20457,10 +20457,10 @@
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">#</a></h2>
 <h3 id="basic-usage">Basic Usage<a class="headerlink" href="#basic-usage" title="Permanent link">#</a></h3>
 <p><strong>Default (older GPUs and Orin systems):</strong></p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>green_context_benchmarking<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">&quot;--user root&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>green_context_benchmarking<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">"--user root"</span>
 </code></pre></div>
 <p><strong>Modern GPUs and Jetson Thor:</strong></p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>green_context_benchmarking<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">&quot;--user root&quot;</span><span class="w"> </span>--base-img<span class="o">=</span>nvcr.io/nvidia/clara-holoscan/holoscan:v3.6.1-cuda13-dgpu
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>green_context_benchmarking<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">"--user root"</span><span class="w"> </span>--base-img<span class="o">=</span>nvcr.io/nvidia/clara-holoscan/holoscan:v3.6.1-cuda13-dgpu
 </code></pre></div>
 <h3 id="gpu-compatibility">GPU Compatibility<a class="headerlink" href="#gpu-compatibility" title="Permanent link">#</a></h3>
 <p><strong>Use default command for:</strong></p>
@@ -20476,14 +20476,14 @@
 </ul>
 <p><strong>Note</strong>: CUDA 13.x does not support older GPU architectures (compute capability &lt; 7.0). If you encounter <code>nvcc fatal : Unsupported gpu architecture 'compute_XX'</code> errors, use the default command instead.</p>
 <h3 id="command-line-options">Command Line Options<a class="headerlink" href="#command-line-options" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>green_context_benchmarking<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">&quot;--user root&quot;</span><span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;[OPTIONS]&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>green_context_benchmarking<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">"--user root"</span><span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"[OPTIONS]"</span>
 
 Options:
 <span class="w">  </span>--samples<span class="w"> </span>N<span class="w">           </span>Number<span class="w"> </span>of<span class="w"> </span>timing<span class="w"> </span>samples<span class="w"> </span>to<span class="w"> </span>measure<span class="w"> </span><span class="o">(</span>default:<span class="w"> </span><span class="m">1000</span><span class="o">)</span>
 <span class="w">  </span>--load-intensity<span class="w"> </span>N<span class="w">    </span>GPU<span class="w"> </span>load<span class="w"> </span>intensity<span class="w"> </span>multiplier<span class="w"> </span><span class="o">(</span>default:<span class="w"> </span><span class="m">20</span><span class="o">)</span>
 <span class="w">  </span>--workload-size<span class="w"> </span>N<span class="w">     </span>GPU<span class="w"> </span>memory<span class="w"> </span>size<span class="w"> </span><span class="k">in</span><span class="w"> </span>MB<span class="w"> </span><span class="k">for</span><span class="w"> </span>DummyLoadOp<span class="w"> </span><span class="o">(</span>default:<span class="w"> </span><span class="m">8</span><span class="o">)</span>
 <span class="w">  </span>--threads-per-block<span class="w"> </span>N<span class="w"> </span>CUDA<span class="w"> </span>threads<span class="w"> </span>per<span class="w"> </span>block<span class="w"> </span><span class="k">for</span><span class="w"> </span>GPU<span class="w"> </span>kernels<span class="w"> </span><span class="o">(</span>default:<span class="w"> </span><span class="m">512</span><span class="o">)</span>
-<span class="w">  </span>--mode<span class="w"> </span>MODE<span class="w">          </span>Run<span class="w"> </span>mode:<span class="w"> </span><span class="s1">&#39;baseline&#39;</span>,<span class="w"> </span><span class="s1">&#39;green-context&#39;</span>,<span class="w"> </span>or<span class="w"> </span><span class="s1">&#39;all&#39;</span><span class="w"> </span><span class="o">(</span>default:<span class="w"> </span>all<span class="o">)</span>
+<span class="w">  </span>--mode<span class="w"> </span>MODE<span class="w">          </span>Run<span class="w"> </span>mode:<span class="w"> </span><span class="s1">'baseline'</span>,<span class="w"> </span><span class="s1">'green-context'</span>,<span class="w"> </span>or<span class="w"> </span><span class="s1">'all'</span><span class="w"> </span><span class="o">(</span>default:<span class="w"> </span>all<span class="o">)</span>
 <span class="w">                        </span>baseline:<span class="w"> </span>Run<span class="w"> </span>only<span class="w"> </span>without<span class="w"> </span>green<span class="w"> </span>context
 <span class="w">                        </span>green-context:<span class="w"> </span>Run<span class="w"> </span>only<span class="w"> </span>with<span class="w"> </span>green<span class="w"> </span>context
 <span class="w">                        </span>all:<span class="w"> </span>Run<span class="w"> </span>both<span class="w"> </span>and<span class="w"> </span>show<span class="w"> </span>comparison
@@ -20491,13 +20491,13 @@ Options:
 
 Examples:
 <span class="w">  </span><span class="c1"># Default (older GPUs and Orin)</span>
-<span class="w">  </span>./holohub<span class="w"> </span>run<span class="w"> </span>green_context_benchmarking<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">&quot;--user root&quot;</span><span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--help&quot;</span>
-<span class="w">  </span>./holohub<span class="w"> </span>run<span class="w"> </span>green_context_benchmarking<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">&quot;--user root&quot;</span><span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--samples 1000 --load-intensity 10 --mode all&quot;</span>
-<span class="w">  </span>./holohub<span class="w"> </span>run<span class="w"> </span>green_context_benchmarking<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">&quot;--user root&quot;</span><span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--workload-size 16 --threads-per-block 256 --mode baseline&quot;</span>
+<span class="w">  </span>./holohub<span class="w"> </span>run<span class="w"> </span>green_context_benchmarking<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">"--user root"</span><span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--help"</span>
+<span class="w">  </span>./holohub<span class="w"> </span>run<span class="w"> </span>green_context_benchmarking<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">"--user root"</span><span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--samples 1000 --load-intensity 10 --mode all"</span>
+<span class="w">  </span>./holohub<span class="w"> </span>run<span class="w"> </span>green_context_benchmarking<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">"--user root"</span><span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--workload-size 16 --threads-per-block 256 --mode baseline"</span>
 
 <span class="w">  </span><span class="c1"># Modern GPUs and Jetson Thor</span>
-<span class="w">  </span>./holohub<span class="w"> </span>run<span class="w"> </span>green_context_benchmarking<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">&quot;--user root&quot;</span><span class="w"> </span>--base-img<span class="o">=</span>nvcr.io/nvidia/clara-holoscan/holoscan:v3.6.1-cuda13-dgpu<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--samples 1000 --load-intensity 10&quot;</span>
-<span class="w">  </span>./holohub<span class="w"> </span>run<span class="w"> </span>green_context_benchmarking<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">&quot;--user root&quot;</span><span class="w"> </span>--base-img<span class="o">=</span>nvcr.io/nvidia/clara-holoscan/holoscan:v3.6.1-cuda13-dgpu<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--workload-size 16 --mode all&quot;</span>
+<span class="w">  </span>./holohub<span class="w"> </span>run<span class="w"> </span>green_context_benchmarking<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">"--user root"</span><span class="w"> </span>--base-img<span class="o">=</span>nvcr.io/nvidia/clara-holoscan/holoscan:v3.6.1-cuda13-dgpu<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--samples 1000 --load-intensity 10"</span>
+<span class="w">  </span>./holohub<span class="w"> </span>run<span class="w"> </span>green_context_benchmarking<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">"--user root"</span><span class="w"> </span>--base-img<span class="o">=</span>nvcr.io/nvidia/clara-holoscan/holoscan:v3.6.1-cuda13-dgpu<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--workload-size 16 --mode all"</span>
 </code></pre></div>
 <h3 id="parameters-explained">Parameters Explained<a class="headerlink" href="#parameters-explained" title="Permanent link">#</a></h3>
 <ul>
@@ -20855,8 +20855,8 @@ Int   (MB)  /Block    Impr    Avg(μs)     Avg(μs)
 /usr/bin/ld: cannot find /usr/local/cuda-12.8/targets/sbsa-linux/lib/libcupti.so: No such file or directory
 </code></pre></div>
 <p><strong>CMake configuration errors</strong>:</p>
-<div class="highlight"><pre><span></span><code>CMake Error: Imported target &quot;holoscan::core&quot; includes non-existent path
-&quot;/usr/local/cuda/targets/x86_64-linux/include/cccl&quot;
+<div class="highlight"><pre><span></span><code>CMake Error: Imported target "holoscan::core" includes non-existent path
+"/usr/local/cuda/targets/x86_64-linux/include/cccl"
 </code></pre></div>
 <p><strong>Solution</strong>: Clear holohub cache to resolve build contamination:</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>clear-cache

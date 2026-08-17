@@ -20311,7 +20311,7 @@ your hardware; specifically, it targets a single DIO device.</p>
 </code></pre></div>
 <h3 id="set-raw-network-capability">Set Raw Network Capability<a class="headerlink" href="#set-raw-network-capability" title="Permanent link">#</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Ensure capabilities are set</span>
-sudo<span class="w"> </span>setcap<span class="w"> </span><span class="s1">&#39;cap_net_raw=ep&#39;</span><span class="w"> </span>./build/holocat/applications/holocat/holocat
+sudo<span class="w"> </span>setcap<span class="w"> </span><span class="s1">'cap_net_raw=ep'</span><span class="w"> </span>./build/holocat/applications/holocat/holocat
 </code></pre></div>
 <h3 id="set-adapter-name">Set Adapter Name<a class="headerlink" href="#set-adapter-name" title="Permanent link">#</a></h3>
 <p>Modify <code>applications/holocat/configs/holocat_config.yaml</code>. Set <code>adapter_name</code> to the Ethernet adapter connected to your EtherCAT network.</p>
@@ -20392,10 +20392,10 @@ prerequisites are not met.</p>
 <p>Create or edit the config file (e.g. <code>configs/holocat_config.yaml</code>):</p>
 <div class="highlight"><pre><span></span><code><span class="nt">holocat</span><span class="p">:</span>
 <span class="w">  </span><span class="c1"># Network adapter for EtherCAT</span>
-<span class="w">  </span><span class="nt">adapter_name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;eth0&quot;</span><span class="w">  </span><span class="c1"># Change to your EtherCAT interface</span>
+<span class="w">  </span><span class="nt">adapter_name</span><span class="p">:</span><span class="w"> </span><span class="s">"eth0"</span><span class="w">  </span><span class="c1"># Change to your EtherCAT interface</span>
 
 <span class="w">  </span><span class="c1"># EtherCAT configuration file</span>
-<span class="w">  </span><span class="nt">eni_file</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/tmp/holocat_config.xml&quot;</span>
+<span class="w">  </span><span class="nt">eni_file</span><span class="p">:</span><span class="w"> </span><span class="s">"/tmp/holocat_config.xml"</span>
 
 <span class="w">  </span><span class="c1"># Cycle time in microseconds</span>
 <span class="w">  </span><span class="nt">cycle_time_us</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10000</span><span class="w">  </span><span class="c1"># 10ms cycle time</span>
@@ -20410,7 +20410,7 @@ prerequisites are not met.</p>
 <span class="c1"># Holoscan application configuration</span>
 <span class="nt">holoscan</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">logging</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">level</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;info&quot;</span>
+<span class="w">    </span><span class="nt">level</span><span class="p">:</span><span class="w"> </span><span class="s">"info"</span>
 </code></pre></div>
 <h3 id="eni-file-generation">ENI File Generation<a class="headerlink" href="#eni-file-generation" title="Permanent link">#</a></h3>
 <p>Use EtherCAT configuration tools to generate your ENI file.</p>
@@ -20420,7 +20420,7 @@ prerequisites are not met.</p>
 <li><strong>Permission Denied</strong></li>
 </ol>
 <div class="highlight"><pre><span></span><code><span class="c1"># Ensure capabilities are set</span>
-sudo<span class="w"> </span>setcap<span class="w"> </span><span class="s1">&#39;cap_net_raw=ep&#39;</span><span class="w"> </span>./build/holocat/applications/holocat/holocat
+sudo<span class="w"> </span>setcap<span class="w"> </span><span class="s1">'cap_net_raw=ep'</span><span class="w"> </span>./build/holocat/applications/holocat/holocat
 </code></pre></div>
 <ol>
 <li><strong>EC-Master SDK Not Found</strong></li>

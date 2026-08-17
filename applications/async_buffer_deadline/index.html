@@ -20128,13 +20128,13 @@ application:</p>
 </code></pre></div>
 <p>To build and run the application:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Basic run with default settings (100 messages, no async buffer)</span>
-./holohub<span class="w"> </span>run<span class="w"> </span>async_buffer_deadline<span class="w"> </span>--as-root<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s1">&#39;--ulimit rtprio=99 --cap-add=CAP_SYS_NICE&#39;</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>async_buffer_deadline<span class="w"> </span>--as-root<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s1">'--ulimit rtprio=99 --cap-add=CAP_SYS_NICE'</span>
 
 <span class="c1"># Run with async buffer enabled</span>
-./holohub<span class="w"> </span>run<span class="w"> </span>async_buffer_deadline<span class="w"> </span>--<span class="w"> </span>--async-buffer<span class="w"> </span>--as-root<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s1">&#39;--ulimit rtprio=99 --cap-add=CAP_SYS_NICE&#39;</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>async_buffer_deadline<span class="w"> </span>--<span class="w"> </span>--async-buffer<span class="w"> </span>--as-root<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s1">'--ulimit rtprio=99 --cap-add=CAP_SYS_NICE'</span>
 
 <span class="c1"># Run with custom message count and periods</span>
-./holohub<span class="w"> </span>run<span class="w"> </span>async_buffer_deadline<span class="w"> </span>--<span class="w"> </span>--messages<span class="w"> </span><span class="m">50</span><span class="w"> </span>--tx1-period<span class="w"> </span><span class="m">15</span><span class="w"> </span>--tx2-period<span class="w"> </span><span class="m">25</span><span class="w"> </span>--async-buffer<span class="w"> </span>--as-root<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s1">&#39;--ulimit rtprio=99 --cap-add=CAP_SYS_NICE&#39;</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>async_buffer_deadline<span class="w"> </span>--<span class="w"> </span>--messages<span class="w"> </span><span class="m">50</span><span class="w"> </span>--tx1-period<span class="w"> </span><span class="m">15</span><span class="w"> </span>--tx2-period<span class="w"> </span><span class="m">25</span><span class="w"> </span>--async-buffer<span class="w"> </span>--as-root<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s1">'--ulimit rtprio=99 --cap-add=CAP_SYS_NICE'</span>
 </code></pre></div>
 <p><code>--as-root --docker-opts='--ulimit rtprio=99 --cap-add=CAP_SYS_NICE'</code> is
 required to run <code>SCHED_DEADLINE</code> application in a container.</p>

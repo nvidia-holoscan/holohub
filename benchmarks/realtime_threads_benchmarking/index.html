@@ -20381,7 +20381,7 @@
 <h3 id="basic-usage">Basic Usage<a class="headerlink" href="#basic-usage" title="Permanent link">#</a></h3>
 <p>Run the benchmark with default settings (60 FPS, 30 seconds, SCHED_DEADLINE):</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>realtime_threads_benchmarking<span class="w"> </span>--as-root<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--docker-opts<span class="o">=</span><span class="s2">&quot;--privileged -v /tmp/benchmark_plots:/tmp/benchmark_plots&quot;</span>
+<span class="w">  </span>--docker-opts<span class="o">=</span><span class="s2">"--privileged -v /tmp/benchmark_plots:/tmp/benchmark_plots"</span>
 </code></pre></div>
 <p><strong>Important</strong>: The benchmark requires:</p>
 <ul>
@@ -20392,8 +20392,8 @@
 <h3 id="advanced-options">Advanced Options<a class="headerlink" href="#advanced-options" title="Permanent link">#</a></h3>
 <p>The benchmark supports several configuration options:</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>realtime_threads_benchmarking<span class="w"> </span>--as-root<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--docker-opts<span class="o">=</span><span class="s2">&quot;--privileged -v /tmp/benchmark_plots:/tmp/benchmark_plots&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--run-args<span class="o">=</span><span class="s2">&quot;--target-fps 30 --duration 20 --scheduling-policy SCHED_DEADLINE --bg-load-intensity 2000&quot;</span>
+<span class="w">  </span>--docker-opts<span class="o">=</span><span class="s2">"--privileged -v /tmp/benchmark_plots:/tmp/benchmark_plots"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--run-args<span class="o">=</span><span class="s2">"--target-fps 30 --duration 20 --scheduling-policy SCHED_DEADLINE --bg-load-intensity 2000"</span>
 </code></pre></div>
 <p>Available options:</p>
 <ul>
@@ -20417,8 +20417,8 @@
 </ul>
 <p>To specify a custom output location:</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>realtime_threads_benchmarking<span class="w"> </span>--as-root<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--docker-opts<span class="o">=</span><span class="s2">&quot;--privileged -v /path/to/host/output:/custom/output&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--run-args<span class="o">=</span><span class="s2">&quot;--output /custom/output/my_results.json&quot;</span>
+<span class="w">  </span>--docker-opts<span class="o">=</span><span class="s2">"--privileged -v /path/to/host/output:/custom/output"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--run-args<span class="o">=</span><span class="s2">"--output /custom/output/my_results.json"</span>
 </code></pre></div>
 <p><strong>Note</strong>: Plots are automatically saved to the same directory as the JSON output file. Use volume mounting to access them on the host system.</p>
 <h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">#</a></h2>
@@ -20548,7 +20548,7 @@ Generated plots:
 <li><strong>Ensure Docker privileged mode</strong>:</li>
 </ol>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>realtime_threads_benchmarking<span class="w"> </span>--as-root<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--docker-opts<span class="o">=</span><span class="s2">&quot;--privileged -v /tmp/benchmark_plots:/tmp/benchmark_plots&quot;</span>
+<span class="w">  </span>--docker-opts<span class="o">=</span><span class="s2">"--privileged -v /tmp/benchmark_plots:/tmp/benchmark_plots"</span>
 </code></pre></div>
 <ol>
 <li><strong>Remove kernel real-time runtime limits</strong> (run on host system, not in container):</li>

@@ -20144,13 +20144,13 @@ DAQIRI revision, pass a Docker build argument such as
 </code></pre></div>
 <h2 id="run-instructions">Run Instructions<a class="headerlink" href="#run-instructions" title="Permanent link">#</a></h2>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>daqiri_raw_ethernet_bench<span class="w"> </span>--language<span class="o">=</span>cpp<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--docker-opts<span class="o">=</span><span class="s2">&quot;-u root --privileged&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--run-args<span class="o">=</span><span class="s2">&quot;daqiri_raw_ethernet_bench_default_tx_rx.yaml&quot;</span>
+<span class="w">  </span>--docker-opts<span class="o">=</span><span class="s2">"-u root --privileged"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--run-args<span class="o">=</span><span class="s2">"daqiri_raw_ethernet_bench_default_tx_rx.yaml"</span>
 </code></pre></div>
 <p>To run manually inside the container:</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>daqiri_raw_ethernet_bench<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--language<span class="w"> </span>cpp<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--docker-opts<span class="o">=</span><span class="s2">&quot;-u root --privileged -w /workspace/holohub/&quot;</span>
+<span class="w">  </span>--docker-opts<span class="o">=</span><span class="s2">"-u root --privileged -w /workspace/holohub/"</span>
 
 ./holohub<span class="w"> </span>build<span class="w"> </span>daqiri_raw_ethernet_bench<span class="w"> </span>--language<span class="o">=</span>cpp
 ./build/daqiri_raw_ethernet_bench/applications/daqiri_raw_ethernet_bench/cpp/daqiri_raw_ethernet_bench<span class="w"> </span><span class="se">\</span>
@@ -20159,11 +20159,11 @@ DAQIRI revision, pass a Docker build argument such as
 <h2 id="test-instructions">Test Instructions<a class="headerlink" href="#test-instructions" title="Permanent link">#</a></h2>
 <p>Build with testing enabled:</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>daqiri_raw_ethernet_bench<span class="w"> </span>--language<span class="o">=</span>cpp<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--configure-args<span class="o">=</span><span class="s2">&quot;-D BUILD_TESTING:BOOL=ON&quot;</span>
+<span class="w">  </span>--configure-args<span class="o">=</span><span class="s2">"-D BUILD_TESTING:BOOL=ON"</span>
 </code></pre></div>
 <p>Then run the benchmark tests from the build directory:</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>daqiri_raw_ethernet_bench<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--docker-opts<span class="w"> </span><span class="s2">&quot;-u 0 --privileged -w /workspace/holohub/build/daqiri_raw_ethernet_bench/&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--docker-opts<span class="w"> </span><span class="s2">"-u 0 --privileged -w /workspace/holohub/build/daqiri_raw_ethernet_bench/"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--<span class="w"> </span>ctest<span class="w"> </span>--output-on-failure
 </code></pre></div>
 

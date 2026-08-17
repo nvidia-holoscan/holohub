@@ -20289,12 +20289,12 @@ bash<span class="w"> </span>riva_start.sh
 <p>When starting the service, Riva may output a few "retrying" messages. This is normal and not an indication that the service is frozen. You should see a message saying <code>Riva server is ready...</code> once successful.</p>
 <p><em>Note for users with multiple GPUs:</em></p>
 <p>If you want to specify which GPU Riva uses (defaults to device 0), open and edit <code>&lt;riva_quickstart_download_directory&gt;/config.sh</code>, then change line</p>
-<div class="highlight"><pre><span></span><code><span class="nv">gpus_to_use</span><span class="o">=</span><span class="s2">&quot;device=0&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="nv">gpus_to_use</span><span class="o">=</span><span class="s2">"device=0"</span>
 </code></pre></div>
 <p>to</p>
-<div class="highlight"><pre><span></span><code><span class="nv">gpus_to_use</span><span class="o">=</span><span class="s2">&quot;device=&lt;your-device-number&gt;&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="nv">gpus_to_use</span><span class="o">=</span><span class="s2">"device=&lt;your-device-number&gt;"</span>
 <span class="c1"># or, to guarantee a specific device</span>
-<span class="nv">gpus_to_use</span><span class="o">=</span><span class="s2">&quot;device=&lt;your-GPU-UUID&gt;&quot;</span>
+<span class="nv">gpus_to_use</span><span class="o">=</span><span class="s2">"device=&lt;your-GPU-UUID&gt;"</span>
 </code></pre></div>
 <p>You can determine your GPUs' UUIDs by running <code>nvidia-smi -L</code>.</p>
 <h2 id="configuration-parameters">Configuration Parameters<a class="headerlink" href="#configuration-parameters" title="Permanent link">#</a></h2>

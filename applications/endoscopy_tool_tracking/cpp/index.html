@@ -20159,25 +20159,25 @@ If you want to manually convert the video data, please refer to the instructions
 <ul>
 <li>
 <p>Using a pre-recorded video</p>
-<div class="highlight"><pre><span></span><code>sed<span class="w"> </span>-i<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;s#^source:.*#source: replayer#&#39;</span><span class="w"> </span>applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
+<div class="highlight"><pre><span></span><code>sed<span class="w"> </span>-i<span class="w"> </span>-e<span class="w"> </span><span class="s1">'s#^source:.*#source: replayer#'</span><span class="w"> </span>applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
 applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking<span class="w"> </span>--data<span class="w"> </span>&lt;data_dir&gt;/endoscopy
 </code></pre></div>
 </li>
 <li>
 <p>Using a vtk_renderer instead of holoviz</p>
-<div class="highlight"><pre><span></span><code>sed<span class="w"> </span>-i<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;s#^visualizer:.*#visualizer: &quot;vtk&quot;#&#39;</span><span class="w"> </span>applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
+<div class="highlight"><pre><span></span><code>sed<span class="w"> </span>-i<span class="w"> </span>-e<span class="w"> </span><span class="s1">'s#^visualizer:.*#visualizer: "vtk"#'</span><span class="w"> </span>applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
 applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking<span class="w"> </span>--data<span class="w"> </span>&lt;data_dir&gt;/endoscopy
 </code></pre></div>
 </li>
 <li>
 <p>Using a holoviz instead of vtk_renderer</p>
-<div class="highlight"><pre><span></span><code>sed<span class="w"> </span>-i<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;s#^visualizer:.*#visualizer: &quot;holoviz&quot;#&#39;</span><span class="w"> </span>applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
+<div class="highlight"><pre><span></span><code>sed<span class="w"> </span>-i<span class="w"> </span>-e<span class="w"> </span><span class="s1">'s#^visualizer:.*#visualizer: "holoviz"#'</span><span class="w"> </span>applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
 applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking<span class="w"> </span>--data<span class="w"> </span>&lt;data_dir&gt;/endoscopy
 </code></pre></div>
 </li>
 <li>
 <p>Using an AJA card</p>
-<div class="highlight"><pre><span></span><code>sed<span class="w"> </span>-i<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;s#^source:.*#source: aja#&#39;</span><span class="w"> </span>applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
+<div class="highlight"><pre><span></span><code>sed<span class="w"> </span>-i<span class="w"> </span>-e<span class="w"> </span><span class="s1">'s#^source:.*#source: aja#'</span><span class="w"> </span>applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
 applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking
 </code></pre></div>
 </li>
@@ -20203,8 +20203,8 @@ applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking
 <ul>
 <li>
 <p>Using a Yuan card</p>
-<div class="highlight"><pre><span></span><code>sed<span class="w"> </span>-i<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;/^#.*yuan_qcap/s/^#//&#39;</span><span class="w"> </span>applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
-sed<span class="w"> </span>-i<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;s#^source:.*#source: yuan#&#39;</span><span class="w"> </span>applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
+<div class="highlight"><pre><span></span><code>sed<span class="w"> </span>-i<span class="w"> </span>-e<span class="w"> </span><span class="s1">'/^#.*yuan_qcap/s/^#//'</span><span class="w"> </span>applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
+sed<span class="w"> </span>-i<span class="w"> </span>-e<span class="w"> </span><span class="s1">'s#^source:.*#source: yuan#'</span><span class="w"> </span>applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
 applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking
 </code></pre></div>
 </li>
@@ -20215,7 +20215,7 @@ applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking
 </li>
 <li>
 <p>Using the Slang shader operator for post-processing</p>
-<div class="highlight"><pre><span></span><code>sed<span class="w"> </span>-i<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;s#^postprocessor:.*#postprocessor: slang_shader#&#39;</span><span class="w"> </span>applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
+<div class="highlight"><pre><span></span><code>sed<span class="w"> </span>-i<span class="w"> </span>-e<span class="w"> </span><span class="s1">'s#^postprocessor:.*#postprocessor: slang_shader#'</span><span class="w"> </span>applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
 applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking
 </code></pre></div>
 </li>

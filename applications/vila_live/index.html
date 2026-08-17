@@ -20135,7 +20135,7 @@ Dummy<span class="w"> </span>video<span class="w"> </span>device<span class="w">
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>vila_live
 </code></pre></div>
 <p>or running with a replayer:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>vila_live<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--source replayer&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>vila_live<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--source replayer"</span>
 </code></pre></div>
 <p>Note: The first build will take <strong>~1.5 hours</strong> if you're on ARM64. This is largely due to building <a href="https://github.com/Dao-AILab/flash-attention">Flash Attention 2</a> since pre-built wheels are not distributed for ARM64 platforms.</p>
 <p>Once the main LMM-based app is running, you will see a link for the app at <code>http://127.0.0.1:8050</code>.
@@ -20159,7 +20159,7 @@ sudo<span class="w"> </span>ln<span class="w"> </span>-s<span class="w"> </span>
 <li>use a physical device or capture card, such as a v4l2 device as described in the <a href="#setup-instructions">Setup Instructions</a>. Make sure the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/vila_live/vila_live.yaml">vila_live.yaml</a> contains the v4l2_source group and specifies the device correctly (<code>pixel_format</code> may be tuned accordingly, e.g. <code>pixel_format: "auto"</code>).</li>
 <li>
 <p>convert a video file to a gxf-compatible format using the <a href="https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/scripts#convert_video_to_gxf_entitiespy">convert_video_to_gxf_entities.py</a> script. See the <a href="https://github.com/nvidia-holoscan/holohub/tree/main/applications/yolo_model_deployment#step-2-deployment">yolo_model_deployment</a> application for a detailed example. When using the replayer, configure the replayer_source in the yaml file and launch the application with:</p>
-<div class="highlight"><pre><span></span><code>./run_vila_live.sh<span class="w"> </span>--source<span class="w"> </span><span class="s2">&quot;replayer&quot;</span>
+<div class="highlight"><pre><span></span><code>./run_vila_live.sh<span class="w"> </span>--source<span class="w"> </span><span class="s2">"replayer"</span>
 </code></pre></div>
 </li>
 </ol>

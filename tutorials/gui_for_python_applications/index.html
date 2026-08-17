@@ -20154,7 +20154,7 @@ The main components are:</p>
 <p>The Florence-2 application can be run independently of the GUI code. E.g., the application can be run with <code>python application/florence-2-vision/florence2_app.py</code> inside the Florence-2 Docker container. This will run the application without the GUI controls.  The only code needed for GUI integration in the application code is the <code>set_parameters()</code> method in the <code>FlorenceApp</code> class. This method updates two fields in the Florence-2 operator:</p>
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">FlorenceApp</span><span class="p">(</span><span class="n">Application</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">,</span> <span class="n">prompt</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set parameters for the Florence2Operator.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Set parameters for the Florence2Operator."""</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">florence_op</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">florence_op</span><span class="o">.</span><span class="n">task</span> <span class="o">=</span> <span class="n">task</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">florence_op</span><span class="o">.</span><span class="n">prompt</span> <span class="o">=</span> <span class="n">prompt</span>
@@ -20176,8 +20176,8 @@ Details of these methods are explored in the following sections.</p>
 <p>The <code>setupUi()</code> method creates the GUI with a few simple widgets using PySide6 APIs.
 For those unfamiliar with PySide6, this <a href="https://www.pythonguis.com/pyside6-tutorial/">tutorial</a> provides an introduction.</p>
 <div class="highlight"><pre><span></span><code>    <span class="k">def</span><span class="w"> </span><span class="nf">setupUi</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Setup the UI components.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="s2">&quot;Florence-2&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="sd">"""Setup the UI components."""</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="s2">"Florence-2"</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="mi">150</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">centralWidget</span> <span class="o">=</span> <span class="n">QWidget</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">setCentralWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">centralWidget</span><span class="p">)</span>
@@ -20188,29 +20188,29 @@ For those unfamiliar with PySide6, this <a href="https://www.pythonguis.com/pysi
         <span class="bp">self</span><span class="o">.</span><span class="n">dropdown</span> <span class="o">=</span> <span class="n">QComboBox</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dropdown</span><span class="o">.</span><span class="n">addItems</span><span class="p">(</span>
             <span class="p">[</span>
-                <span class="s2">&quot;Object Detection&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;Caption&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;Detailed Caption&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;More Detailed Caption&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;Dense Region Caption&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;Region Proposal&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;Caption to Phrase Grounding&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;Referring Expression Segmentation&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;Open Vocabulary Detection&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;OCR&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;OCR with Region&quot;</span><span class="p">,</span>
+                <span class="s2">"Object Detection"</span><span class="p">,</span>
+                <span class="s2">"Caption"</span><span class="p">,</span>
+                <span class="s2">"Detailed Caption"</span><span class="p">,</span>
+                <span class="s2">"More Detailed Caption"</span><span class="p">,</span>
+                <span class="s2">"Dense Region Caption"</span><span class="p">,</span>
+                <span class="s2">"Region Proposal"</span><span class="p">,</span>
+                <span class="s2">"Caption to Phrase Grounding"</span><span class="p">,</span>
+                <span class="s2">"Referring Expression Segmentation"</span><span class="p">,</span>
+                <span class="s2">"Open Vocabulary Detection"</span><span class="p">,</span>
+                <span class="s2">"OCR"</span><span class="p">,</span>
+                <span class="s2">"OCR with Region"</span><span class="p">,</span>
             <span class="p">]</span>
         <span class="p">)</span>
-        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Select an option:&quot;</span><span class="p">))</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">QLabel</span><span class="p">(</span><span class="s2">"Select an option:"</span><span class="p">))</span>
         <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dropdown</span><span class="p">)</span>
 
         <span class="c1"># Create and add text input for prompt</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">text_input</span> <span class="o">=</span> <span class="n">QLineEdit</span><span class="p">()</span>
-        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Enter text:&quot;</span><span class="p">))</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">QLabel</span><span class="p">(</span><span class="s2">"Enter text:"</span><span class="p">))</span>
         <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">text_input</span><span class="p">)</span>
 
         <span class="c1"># Create and add submit button</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">submit_button</span> <span class="o">=</span> <span class="n">QPushButton</span><span class="p">(</span><span class="s2">&quot;Submit&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">submit_button</span> <span class="o">=</span> <span class="n">QPushButton</span><span class="p">(</span><span class="s2">"Submit"</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">submit_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">on_submit</span><span class="p">)</span>
         <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">submit_button</span><span class="p">)</span>
 
@@ -20227,7 +20227,7 @@ needed), and clicks "Submit" to change the task performed by the model.
 The <code>on_submit()</code> method is then invoked, calling the <code>set_parameters()</code> method
 in the <code>FlorenceApp</code> class to update the operator's parameters.</p>
 <div class="highlight"><pre><span></span><code>    <span class="k">def</span><span class="w"> </span><span class="nf">on_submit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handle the submit button click event.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Handle the submit button click event."""</span>
         <span class="n">selected_option</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropdown</span><span class="o">.</span><span class="n">currentText</span><span class="p">()</span>
         <span class="n">entered_text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">text_input</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
 
@@ -20240,7 +20240,7 @@ in the <code>FlorenceApp</code> class to update the operator's parameters.</p>
 <p>The <code>runHoloscanApp()</code> method starts the Florence-2 application by creating an instance of <code>FlorenceWorker</code>
 and running it in a thread.</p>
 <div class="highlight"><pre><span></span><code>    <span class="k">def</span><span class="w"> </span><span class="nf">runHoloscanApp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run the Holoscan application in a separate thread.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Run the Holoscan application in a separate thread."""</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">thread</span> <span class="o">=</span> <span class="n">QThread</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">worker</span> <span class="o">=</span> <span class="n">FlorenceWorker</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">worker</span><span class="o">.</span><span class="n">moveToThread</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thread</span><span class="p">)</span>
@@ -20258,8 +20258,8 @@ which creates and runs the Holoscan application.</p>
     <span class="n">progress</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>  <span class="c1"># Signal to indicate progress (if needed)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run the Holoscan application.&quot;&quot;&quot;</span>
-        <span class="n">config_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;config.yaml&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="sd">"""Run the Holoscan application."""</span>
+        <span class="n">config_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">"config.yaml"</span><span class="p">)</span>
         <span class="k">global</span> <span class="n">gApp</span>
         <span class="n">gApp</span> <span class="o">=</span> <span class="n">app</span> <span class="o">=</span> <span class="n">FlorenceApp</span><span class="p">()</span>
         <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">config_file</span><span class="p">)</span>

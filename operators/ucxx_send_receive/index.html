@@ -20286,25 +20286,25 @@
 <h2 id="example-configuration">Example Configuration<a class="headerlink" href="#example-configuration" title="Permanent link">#</a></h2>
 <div class="highlight"><pre><span></span><code><span class="c1">// Create endpoint resource (server mode)</span>
 <span class="k">auto</span><span class="w"> </span><span class="n">endpoint</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_resource</span><span class="o">&lt;</span><span class="n">UcxxEndpoint</span><span class="o">&gt;</span><span class="p">(</span>
-<span class="w">  </span><span class="s">&quot;ucxx_endpoint&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;hostname&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;0.0.0.0&quot;</span><span class="p">),</span>
-<span class="w">  </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;port&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">12345</span><span class="p">),</span>
-<span class="w">  </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;listen&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">)</span>
+<span class="w">  </span><span class="s">"ucxx_endpoint"</span><span class="p">,</span>
+<span class="w">  </span><span class="n">Arg</span><span class="p">(</span><span class="s">"hostname"</span><span class="p">,</span><span class="w"> </span><span class="s">"0.0.0.0"</span><span class="p">),</span>
+<span class="w">  </span><span class="n">Arg</span><span class="p">(</span><span class="s">"port"</span><span class="p">,</span><span class="w"> </span><span class="mi">12345</span><span class="p">),</span>
+<span class="w">  </span><span class="n">Arg</span><span class="p">(</span><span class="s">"listen"</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">)</span>
 <span class="p">);</span>
 
 <span class="c1">// Sender operator</span>
 <span class="k">auto</span><span class="w"> </span><span class="n">sender</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">UcxxSenderOp</span><span class="o">&gt;</span><span class="p">(</span>
-<span class="w">  </span><span class="s">&quot;sender&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;endpoint&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">endpoint</span><span class="p">),</span>
-<span class="w">  </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;tag&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">1UL</span><span class="p">)</span>
+<span class="w">  </span><span class="s">"sender"</span><span class="p">,</span>
+<span class="w">  </span><span class="n">Arg</span><span class="p">(</span><span class="s">"endpoint"</span><span class="p">,</span><span class="w"> </span><span class="n">endpoint</span><span class="p">),</span>
+<span class="w">  </span><span class="n">Arg</span><span class="p">(</span><span class="s">"tag"</span><span class="p">,</span><span class="w"> </span><span class="mi">1UL</span><span class="p">)</span>
 <span class="p">);</span>
 
 <span class="c1">// Receiver operator</span>
 <span class="k">auto</span><span class="w"> </span><span class="n">receiver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">UcxxReceiverOp</span><span class="o">&gt;</span><span class="p">(</span>
-<span class="w">  </span><span class="s">&quot;receiver&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;endpoint&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">endpoint</span><span class="p">),</span>
-<span class="w">  </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;tag&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">1UL</span><span class="p">),</span>
-<span class="w">  </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;buffer_size&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">1024</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="p">)</span><span class="w">  </span><span class="c1">// 1MB buffer</span>
+<span class="w">  </span><span class="s">"receiver"</span><span class="p">,</span>
+<span class="w">  </span><span class="n">Arg</span><span class="p">(</span><span class="s">"endpoint"</span><span class="p">,</span><span class="w"> </span><span class="n">endpoint</span><span class="p">),</span>
+<span class="w">  </span><span class="n">Arg</span><span class="p">(</span><span class="s">"tag"</span><span class="p">,</span><span class="w"> </span><span class="mi">1UL</span><span class="p">),</span>
+<span class="w">  </span><span class="n">Arg</span><span class="p">(</span><span class="s">"buffer_size"</span><span class="p">,</span><span class="w"> </span><span class="mi">1024</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="p">)</span><span class="w">  </span><span class="c1">// 1MB buffer</span>
 <span class="p">);</span>
 </code></pre></div>
 <h2 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">#</a></h2>

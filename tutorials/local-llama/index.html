@@ -20223,8 +20223,8 @@ wget<span class="w"> </span>https://huggingface.co/TheBloke/Llama-2-70B-chat-GGU
 <p>After executing, you should see the below output indicating the model being loaded to VRAM and the specs of the model:</p>
 <div class="highlight"><pre><span></span><code>ggml_init_cublas: found 1 CUDA devices:
   Device 0: NVIDIA RTX A6000, compute capability 8.6
-{&quot;timestamp&quot;:1695853185,&quot;level&quot;:&quot;INFO&quot;,&quot;function&quot;:&quot;main&quot;,&quot;line&quot;:1294,&quot;message&quot;:&quot;build info&quot;,&quot;build&quot;:1279,&quot;commit&quot;:&quot;e519621&quot;}
-{&quot;timestamp&quot;:1695853185,&quot;level&quot;:&quot;INFO&quot;,&quot;function&quot;:&quot;main&quot;,&quot;line&quot;:1296,&quot;message&quot;:&quot;system info&quot;,&quot;n_threads&quot;:6,&quot;total_threads&quot;:12,&quot;system_info&quot;:&quot;AVX = 0 | AVX2 = 0 | AVX512 = 0 | AVX512_VBMI = 0 | AVX512_VNNI = 0 | FMA = 0 | NEON = 1 | ARM_FMA = 1 | F16C = 0 | FP16_VA = 0 | WASM_SIMD = 0 | BLAS = 1 | SSE3 = 0 | SSSE3 = 0 | VSX = 0 | &quot;}
+{"timestamp":1695853185,"level":"INFO","function":"main","line":1294,"message":"build info","build":1279,"commit":"e519621"}
+{"timestamp":1695853185,"level":"INFO","function":"main","line":1296,"message":"system info","n_threads":6,"total_threads":12,"system_info":"AVX = 0 | AVX2 = 0 | AVX512 = 0 | AVX512_VBMI = 0 | AVX512_VNNI = 0 | FMA = 0 | NEON = 1 | ARM_FMA = 1 | F16C = 0 | FP16_VA = 0 | WASM_SIMD = 0 | BLAS = 1 | SSE3 = 0 | SSSE3 = 0 | VSX = 0 | "}
 llama_model_loader: loaded meta data with 19 key-value pairs and 723 tensors from /media/m2/models/llama-2-70b-chat.Q4_K_M.gguf (version GGUF V2 (latest))
 **Verbose llama_model_loader output removed for conciseness**
 llm_load_print_meta: format         = GGUF V2 (latest)
@@ -20250,10 +20250,10 @@ llm_load_print_meta: model ftype    = mostly Q4_K - Medium
 llm_load_print_meta: model params   = 68.98 B
 llm_load_print_meta: model size     = 38.58 GiB (4.80 BPW)
 llm_load_print_meta: general.name   = LLaMA v2
-llm_load_print_meta: BOS token = 1 &#39;&lt;s&gt;&#39;
-llm_load_print_meta: EOS token = 2 &#39;&lt;/s&gt;&#39;
-llm_load_print_meta: UNK token = 0 &#39;&lt;unk&gt;&#39;
-llm_load_print_meta: LF token  = 13 &#39;&lt;0x0A&gt;&#39;
+llm_load_print_meta: BOS token = 1 '&lt;s&gt;'
+llm_load_print_meta: EOS token = 2 '&lt;/s&gt;'
+llm_load_print_meta: UNK token = 0 '&lt;unk&gt;'
+llm_load_print_meta: LF token  = 13 '&lt;0x0A&gt;'
 llm_load_tensors: ggml ctx size =    0.23 MB
 llm_load_tensors: using CUDA for GPU acceleration
 llm_load_tensors: mem required  =  140.86 MB (+ 1280.00 MB per state)
@@ -20270,7 +20270,7 @@ llama_new_context_with_model: VRAM scratch buffer: 560.00 MB
 
 llama server listening at http://127.0.0.1:8080
 
-{&quot;timestamp&quot;:1695853195,&quot;level&quot;:&quot;INFO&quot;,&quot;function&quot;:&quot;main&quot;,&quot;line&quot;:1602,&quot;message&quot;:&quot;HTTP server listening&quot;,&quot;hostname&quot;:&quot;127.0.0.1&quot;,&quot;port&quot;:8080}
+{"timestamp":1695853195,"level":"INFO","function":"main","line":1602,"message":"HTTP server listening","hostname":"127.0.0.1","port":8080}
 </code></pre></div>
 <p>Now, you can interact with the simple web front end by browsing to <a href="http://127.0.0.1:8080">http://127.0.0.1:8080</a>. Use the provided chat interface to query the Llama-2 model and experiment with manipulating the provided hyperparameters to tune the responses to your liking.</p>
 <p><img alt="Llama.cpp API web interface" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/local-llama/llama_cpp_api.png?raw=true" /></p>
@@ -20301,51 +20301,51 @@ python<span class="w"> </span>api_like_OAI.py
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">gradio</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gr</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">openai</span>
 
-<span class="c1"># Indicate we&#39;d like to send the request</span>
-<span class="c1"># to our local model, not OpenAI&#39;s servers</span>
-<span class="n">openai</span><span class="o">.</span><span class="n">api_base</span> <span class="o">=</span> <span class="s2">&quot;http://127.0.0.1:8081&quot;</span>
-<span class="n">openai</span><span class="o">.</span><span class="n">api_key</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+<span class="c1"># Indicate we'd like to send the request</span>
+<span class="c1"># to our local model, not OpenAI's servers</span>
+<span class="n">openai</span><span class="o">.</span><span class="n">api_base</span> <span class="o">=</span> <span class="s2">"http://127.0.0.1:8081"</span>
+<span class="n">openai</span><span class="o">.</span><span class="n">api_key</span> <span class="o">=</span> <span class="s2">""</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">to_oai_chat</span><span class="p">(</span><span class="n">history</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Converts the gradio chat history format to</span>
+<span class="w">    </span><span class="sd">"""Converts the gradio chat history format to</span>
 <span class="sd">    the OpenAI chat history format:</span>
 
-<span class="sd">    Gradio format: [&#39;&lt;user message&gt;&#39;, &#39;&lt;bot message&gt;&#39;]</span>
-<span class="sd">    OpenAI format: [{&#39;role&#39;: &#39;user&#39;, &#39;content&#39;: &#39;&lt;user message&gt;&#39;},</span>
-<span class="sd">                    {&#39;role&#39;: &#39;assistant&#39;, &#39;content&#39;: &#39;&lt;bot_message&gt;&#39;}]</span>
+<span class="sd">    Gradio format: ['&lt;user message&gt;', '&lt;bot message&gt;']</span>
+<span class="sd">    OpenAI format: [{'role': 'user', 'content': '&lt;user message&gt;'},</span>
+<span class="sd">                    {'role': 'assistant', 'content': '&lt;bot_message&gt;'}]</span>
 
-<span class="sd">    Additionally, this adds the &#39;system&#39; message to the chat to tell the</span>
+<span class="sd">    Additionally, this adds the 'system' message to the chat to tell the</span>
 <span class="sd">    assistant how to act.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">chat</span> <span class="o">=</span> <span class="p">[</span>
         <span class="p">{</span>
-            <span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;system&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;You are a helpful AI Assistant who ends all of your responses with &lt;/BOT&gt;&quot;</span><span class="p">,</span>
+            <span class="s2">"role"</span><span class="p">:</span> <span class="s2">"system"</span><span class="p">,</span>
+            <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"You are a helpful AI Assistant who ends all of your responses with &lt;/BOT&gt;"</span><span class="p">,</span>
         <span class="p">}</span>
     <span class="p">]</span>
 
     <span class="k">for</span> <span class="n">msg_pair</span> <span class="ow">in</span> <span class="n">history</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">msg_pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
-            <span class="n">chat</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">msg_pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]})</span>
+            <span class="n">chat</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">"role"</span><span class="p">:</span> <span class="s2">"user"</span><span class="p">,</span> <span class="s2">"content"</span><span class="p">:</span> <span class="n">msg_pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]})</span>
         <span class="k">if</span> <span class="n">msg_pair</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
-            <span class="n">chat</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;assistant&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">msg_pair</span><span class="p">[</span><span class="mi">1</span><span class="p">]})</span>
+            <span class="n">chat</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">"role"</span><span class="p">:</span> <span class="s2">"assistant"</span><span class="p">,</span> <span class="s2">"content"</span><span class="p">:</span> <span class="n">msg_pair</span><span class="p">[</span><span class="mi">1</span><span class="p">]})</span>
     <span class="k">return</span> <span class="n">chat</span>
 
 
 <span class="k">with</span> <span class="n">gr</span><span class="o">.</span><span class="n">Blocks</span><span class="p">()</span> <span class="k">as</span> <span class="n">demo</span><span class="p">:</span>
     <span class="n">chatbot</span> <span class="o">=</span> <span class="n">gr</span><span class="o">.</span><span class="n">Chatbot</span><span class="p">(</span><span class="n">height</span><span class="o">=</span><span class="mi">650</span><span class="p">)</span>
     <span class="n">msg</span> <span class="o">=</span> <span class="n">gr</span><span class="o">.</span><span class="n">Textbox</span><span class="p">()</span>
-    <span class="n">clear</span> <span class="o">=</span> <span class="n">gr</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="s2">&quot;Clear&quot;</span><span class="p">)</span>
+    <span class="n">clear</span> <span class="o">=</span> <span class="n">gr</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="s2">"Clear"</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">user</span><span class="p">(</span><span class="n">user_message</span><span class="p">,</span> <span class="n">history</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Appends a submitted question to the history&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">history</span> <span class="o">+</span> <span class="p">[[</span><span class="n">user_message</span><span class="p">,</span> <span class="kc">None</span><span class="p">]]</span>
+<span class="w">        </span><span class="sd">"""Appends a submitted question to the history"""</span>
+        <span class="k">return</span> <span class="s2">""</span><span class="p">,</span> <span class="n">history</span> <span class="o">+</span> <span class="p">[[</span><span class="n">user_message</span><span class="p">,</span> <span class="kc">None</span><span class="p">]]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">bot</span><span class="p">(</span><span class="n">history</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sends the chat history to our Llama-2 model server</span>
+<span class="w">        </span><span class="sd">"""Sends the chat history to our Llama-2 model server</span>
 <span class="sd">        so that the model can respond appropriately</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># Gradio chat -&gt; OpenAI chat</span>
         <span class="n">oai_chat</span> <span class="o">=</span> <span class="n">to_oai_chat</span><span class="p">(</span><span class="n">history</span><span class="p">)</span>
 
@@ -20353,16 +20353,16 @@ python<span class="w"> </span>api_like_OAI.py
         <span class="n">response</span> <span class="o">=</span> <span class="n">openai</span><span class="o">.</span><span class="n">ChatCompletion</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
             <span class="n">messages</span><span class="o">=</span><span class="n">oai_chat</span><span class="p">,</span>
             <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="n">model</span><span class="o">=</span><span class="s2">&quot;llama_2&quot;</span><span class="p">,</span>
+            <span class="n">model</span><span class="o">=</span><span class="s2">"llama_2"</span><span class="p">,</span>
             <span class="n">temperature</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
             <span class="c1"># Used to stop runaway responses</span>
-            <span class="n">stop</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;&lt;/BOT&gt;&quot;</span><span class="p">],</span>
+            <span class="n">stop</span><span class="o">=</span><span class="p">[</span><span class="s2">"&lt;/BOT&gt;"</span><span class="p">],</span>
         <span class="p">)</span>
 
-        <span class="n">history</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">history</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="s2">""</span>
         <span class="k">for</span> <span class="n">response_chunk</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
             <span class="c1"># Filter through meta-data in the HTTP response to get response text</span>
-            <span class="n">next_token</span> <span class="o">=</span> <span class="n">response_chunk</span><span class="p">[</span><span class="s2">&quot;choices&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;delta&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;content&quot;</span><span class="p">)</span>
+            <span class="n">next_token</span> <span class="o">=</span> <span class="n">response_chunk</span><span class="p">[</span><span class="s2">"choices"</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">"delta"</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"content"</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">next_token</span><span class="p">:</span>
                 <span class="n">history</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">next_token</span>
                 <span class="c1"># Update the Gradio app with the streamed response</span>

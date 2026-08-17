@@ -20195,17 +20195,17 @@ Suggest follow-up steps.
 <p>⚠️ Note: If you are using ARM64 w/ iGPU or an x86 platform the quick-start scripts <em>should</em> work as intended. However, if you are using ARM64 w/ dGPU, you will need to make the following modifications to the Riva Quick-start scripts:</p>
 <p>In <code>riva_init.sh</code> make the following changes to ensure the ARM64 version of <a href="https://docs.ngc.nvidia.com/cli/index.html">NGC-CLI</a> is downloaded and your dGPU is used to run the container:</p>
 <div class="highlight"><pre><span></span><code># download required models
-<span class="gd">-if [[ $riva_target_gpu_family == &quot;tegra&quot; ]]; then</span>
+<span class="gd">-if [[ $riva_target_gpu_family == "tegra" ]]; then</span>
 <span class="gd">-    docker run -it -d --rm -v $riva_model_loc:/data \</span>
-<span class="gi">+if [[ $riva_target_gpu_family == &quot;non-tegra&quot; ]]; then</span>
-<span class="gi">+            docker run -it -d --rm --gpus &#39;&quot;&#39;$gpus_to_use&#39;&quot;&#39; -v $riva_model_loc:/data \</span>
-<span class="w"> </span>               -e &quot;NGC_CLI_API_KEY=$NGC_CLI_API_KEY&quot; \
+<span class="gi">+if [[ $riva_target_gpu_family == "non-tegra" ]]; then</span>
+<span class="gi">+            docker run -it -d --rm --gpus '"'$gpus_to_use'"' -v $riva_model_loc:/data \</span>
+<span class="w"> </span>               -e "NGC_CLI_API_KEY=$NGC_CLI_API_KEY" \
 </code></pre></div>
 <p>Then in <code>riva_start.sh</code> make the changes below to ensure your Riva server has access to your sound devices:</p>
 <div class="highlight"><pre><span></span><code>docker rm $riva_daemon_speech &amp;&gt; /dev/null
-<span class="gd">-if [[ $riva_target_gpu_family == &quot;tegra&quot; ]]; then</span>
-<span class="gi">+if [[ $riva_target_gpu_family == &quot;non-tegra&quot; ]]; then</span>
-<span class="w"> </span>   docker_run_args=&quot;-p 8000:8000 -p 8001:8001 -p 8002:8002 -p 8888:8888 --device /dev/bus/usb --device /dev/snd&quot;
+<span class="gd">-if [[ $riva_target_gpu_family == "tegra" ]]; then</span>
+<span class="gi">+if [[ $riva_target_gpu_family == "non-tegra" ]]; then</span>
+<span class="w"> </span>   docker_run_args="-p 8000:8000 -p 8001:8001 -p 8002:8002 -p 8888:8888 --device /dev/bus/usb --device /dev/snd"
 </code></pre></div>
 <h3 id="download-llm-model">Download LLM model<a class="headerlink" href="#download-llm-model" title="Permanent link">#</a></h3>
 <p>Download the <a href="https://huggingface.co/TheBloke/Mistral-7B-OpenOrca-GGUF">quantized Mistral 7B LLM</a> from HugginFace.co:</p>

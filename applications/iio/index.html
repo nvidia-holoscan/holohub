@@ -20454,7 +20454,7 @@
 <div class="highlight"><pre><span></span><code><span class="c1"># Captures 8192 samples from the receiver</span>
 <span class="n">iio_buf_read_op</span> <span class="o">=</span> <span class="n">IIOBufferRead</span><span class="p">(</span>
     <span class="n">samples_count</span><span class="o">=</span><span class="mi">8192</span><span class="p">,</span>
-    <span class="n">enabled_channel_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;voltage0&quot;</span><span class="p">,</span> <span class="s2">&quot;voltage1&quot;</span><span class="p">]</span>
+    <span class="n">enabled_channel_names</span><span class="o">=</span><span class="p">[</span><span class="s2">"voltage0"</span><span class="p">,</span> <span class="s2">"voltage1"</span><span class="p">]</span>
 <span class="p">)</span>
 </code></pre></div>
 <h3 id="3-device-configuration">3. Device Configuration<a class="headerlink" href="#3-device-configuration" title="Permanent link">#</a></h3>
@@ -20462,8 +20462,8 @@
 <div class="highlight"><pre><span></span><code><span class="nt">devices</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">ad9361-phy</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">attrs</span><span class="p">:</span>
-<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">ensm_mode</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;fdd&quot;</span>
-<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">calib_mode</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;manual&quot;</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">ensm_mode</span><span class="p">:</span><span class="w"> </span><span class="s">"fdd"</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">calib_mode</span><span class="p">:</span><span class="w"> </span><span class="s">"manual"</span>
 </code></pre></div>
 <h2 id="understanding-channel-data">Understanding Channel Data<a class="headerlink" href="#understanding-channel-data" title="Permanent link">#</a></h2>
 <p>The ADALM-Pluto provides multiple channels for data streaming:</p>

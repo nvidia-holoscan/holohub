@@ -20268,16 +20268,16 @@
 </ul>
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">#</a></h2>
 <h3 id="c-interface">C++ Interface<a class="headerlink" href="#c-interface" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;holoscan/operators/tensor_to_file/tensor_to_file.hpp&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">"holoscan/operators/tensor_to_file/tensor_to_file.hpp"</span>
 
 <span class="c1">// Create operator instance</span>
 <span class="k">auto</span><span class="w"> </span><span class="n">tensor_to_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">holoscan</span><span class="o">::</span><span class="n">ops</span><span class="o">::</span><span class="n">TensorToFileOp</span><span class="o">&gt;</span><span class="p">();</span>
 
 <span class="c1">// Configure parameters</span>
-<span class="n">tensor_to_file</span><span class="o">-&gt;</span><span class="n">add_arg</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;tensor_name&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;input_tensor&quot;</span><span class="p">);</span>
-<span class="n">tensor_to_file</span><span class="o">-&gt;</span><span class="n">add_arg</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;output_file&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;/path/to/output.h264&quot;</span><span class="p">);</span>
-<span class="n">tensor_to_file</span><span class="o">-&gt;</span><span class="n">add_arg</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;verbose&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">);</span>
-<span class="n">tensor_to_file</span><span class="o">-&gt;</span><span class="n">add_arg</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;buffer_size&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">1024</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="p">);</span><span class="w"> </span><span class="c1">// 1MB buffer</span>
+<span class="n">tensor_to_file</span><span class="o">-&gt;</span><span class="n">add_arg</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"tensor_name"</span><span class="p">,</span><span class="w"> </span><span class="s">"input_tensor"</span><span class="p">);</span>
+<span class="n">tensor_to_file</span><span class="o">-&gt;</span><span class="n">add_arg</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"output_file"</span><span class="p">,</span><span class="w"> </span><span class="s">"/path/to/output.h264"</span><span class="p">);</span>
+<span class="n">tensor_to_file</span><span class="o">-&gt;</span><span class="n">add_arg</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"verbose"</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">);</span>
+<span class="n">tensor_to_file</span><span class="o">-&gt;</span><span class="n">add_arg</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"buffer_size"</span><span class="p">,</span><span class="w"> </span><span class="mi">1024</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="p">);</span><span class="w"> </span><span class="c1">// 1MB buffer</span>
 </code></pre></div>
 <h3 id="python-interface">Python Interface<a class="headerlink" href="#python-interface" title="Permanent link">#</a></h3>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">holoscan</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">hs</span>
@@ -20285,11 +20285,11 @@
 
 <span class="c1"># Create operator</span>
 <span class="n">tensor_to_file</span> <span class="o">=</span> <span class="n">TensorToFileOp</span><span class="p">(</span>
-    <span class="n">tensor_name</span><span class="o">=</span><span class="s2">&quot;input_tensor&quot;</span><span class="p">,</span>
-    <span class="n">output_file</span><span class="o">=</span><span class="s2">&quot;/path/to/output.h264&quot;</span><span class="p">,</span>
+    <span class="n">tensor_name</span><span class="o">=</span><span class="s2">"input_tensor"</span><span class="p">,</span>
+    <span class="n">output_file</span><span class="o">=</span><span class="s2">"/path/to/output.h264"</span><span class="p">,</span>
     <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">buffer_size</span><span class="o">=</span><span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">,</span>  <span class="c1"># 1MB buffer</span>
-    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;tensor_writer&quot;</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">"tensor_writer"</span>
 <span class="p">)</span>
 </code></pre></div>
 <h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">#</a></h2>
@@ -20357,15 +20357,15 @@
 <h3 id="basic-usage">Basic Usage<a class="headerlink" href="#basic-usage" title="Permanent link">#</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Simple tensor to file writing</span>
 <span class="n">tensor_to_file</span> <span class="o">=</span> <span class="n">TensorToFileOp</span><span class="p">(</span>
-    <span class="n">tensor_name</span><span class="o">=</span><span class="s2">&quot;encoded_frame&quot;</span><span class="p">,</span>
-    <span class="n">output_file</span><span class="o">=</span><span class="s2">&quot;output.h264&quot;</span>
+    <span class="n">tensor_name</span><span class="o">=</span><span class="s2">"encoded_frame"</span><span class="p">,</span>
+    <span class="n">output_file</span><span class="o">=</span><span class="s2">"output.h264"</span>
 <span class="p">)</span>
 </code></pre></div>
 <h3 id="verbose-mode-with-custom-buffer">Verbose Mode with Custom Buffer<a class="headerlink" href="#verbose-mode-with-custom-buffer" title="Permanent link">#</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># With detailed logging and custom buffer size</span>
 <span class="n">tensor_to_file</span> <span class="o">=</span> <span class="n">TensorToFileOp</span><span class="p">(</span>
-    <span class="n">tensor_name</span><span class="o">=</span><span class="s2">&quot;encoded_frame&quot;</span><span class="p">,</span>
-    <span class="n">output_file</span><span class="o">=</span><span class="s2">&quot;output.h265&quot;</span><span class="p">,</span>
+    <span class="n">tensor_name</span><span class="o">=</span><span class="s2">"encoded_frame"</span><span class="p">,</span>
+    <span class="n">output_file</span><span class="o">=</span><span class="s2">"output.h265"</span><span class="p">,</span>
     <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">buffer_size</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span>  <span class="c1"># 2MB buffer</span>
 <span class="p">)</span>
@@ -20377,8 +20377,8 @@
 <span class="c1"># Add operators to pipeline</span>
 <span class="n">encoder</span> <span class="o">=</span> <span class="n">VideoEncoderOp</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
 <span class="n">tensor_to_file</span> <span class="o">=</span> <span class="n">TensorToFileOp</span><span class="p">(</span>
-    <span class="n">tensor_name</span><span class="o">=</span><span class="s2">&quot;encoded_frame&quot;</span><span class="p">,</span>
-    <span class="n">output_file</span><span class="o">=</span><span class="s2">&quot;processed_video.h264&quot;</span><span class="p">,</span>
+    <span class="n">tensor_name</span><span class="o">=</span><span class="s2">"encoded_frame"</span><span class="p">,</span>
+    <span class="n">output_file</span><span class="o">=</span><span class="s2">"processed_video.h264"</span><span class="p">,</span>
     <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span>
 <span class="p">)</span>
 

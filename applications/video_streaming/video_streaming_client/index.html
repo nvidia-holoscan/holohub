@@ -20449,7 +20449,7 @@
 <span class="nb">cd</span><span class="w"> </span>operators/video_streaming/video_streaming_client
 
 <span class="c1"># Download using NGC CLI</span>
-ngc<span class="w"> </span>registry<span class="w"> </span>resource<span class="w"> </span>download-version<span class="w"> </span><span class="s2">&quot;nvidia/holoscan_client_cloud_streaming:0.2&quot;</span>
+ngc<span class="w"> </span>registry<span class="w"> </span>resource<span class="w"> </span>download-version<span class="w"> </span><span class="s2">"nvidia/holoscan_client_cloud_streaming:0.2"</span>
 unzip<span class="w"> </span>-o<span class="w"> </span>holoscan_client_cloud_streaming_v0.2/holoscan_client_cloud_streaming.zip<span class="w"> </span>-d<span class="w"> </span>holoscan_client_cloud_streaming
 
 <span class="c1"># Clean up</span>
@@ -20527,12 +20527,12 @@ rm<span class="w"> </span>-rf<span class="w"> </span>holoscan_client_cloud_strea
 <span class="w">  </span><span class="nt">log_level</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">INFO</span>
 
 <span class="c1"># Source configuration</span>
-<span class="nt">source</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;replayer&quot;</span>
+<span class="nt">source</span><span class="p">:</span><span class="w"> </span><span class="s">"replayer"</span>
 
 <span class="c1"># Video replayer configuration</span>
 <span class="nt">replayer</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">directory</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/workspace/holohub/data/endoscopy&quot;</span>
-<span class="w">  </span><span class="nt">basename</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;surgical_video&quot;</span>
+<span class="w">  </span><span class="nt">directory</span><span class="p">:</span><span class="w"> </span><span class="s">"/workspace/holohub/data/endoscopy"</span>
+<span class="w">  </span><span class="nt">basename</span><span class="p">:</span><span class="w"> </span><span class="s">"surgical_video"</span>
 <span class="w">  </span><span class="nt">frame_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30</span>
 <span class="w">  </span><span class="nt">repeat</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">  </span><span class="nt">realtime</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
@@ -20540,8 +20540,8 @@ rm<span class="w"> </span>-rf<span class="w"> </span>holoscan_client_cloud_strea
 
 <span class="c1"># Format converter - replayer outputs RGB888 (3 channels)</span>
 <span class="nt">format_converter</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">in_dtype</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;rgb888&quot;</span>
-<span class="w">  </span><span class="nt">out_dtype</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;rgb888&quot;</span>
+<span class="w">  </span><span class="nt">in_dtype</span><span class="p">:</span><span class="w"> </span><span class="s">"rgb888"</span>
+<span class="w">  </span><span class="nt">out_dtype</span><span class="p">:</span><span class="w"> </span><span class="s">"rgb888"</span>
 <span class="w">  </span><span class="nt">out_tensor_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tensor</span>
 <span class="w">  </span><span class="nt">scale_min</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
 <span class="w">  </span><span class="nt">scale_max</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">255.0</span>
@@ -20552,7 +20552,7 @@ rm<span class="w"> </span>-rf<span class="w"> </span>holoscan_client_cloud_strea
 <span class="w">  </span><span class="nt">width</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">854</span>
 <span class="w">  </span><span class="nt">height</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">480</span>
 <span class="w">  </span><span class="nt">fps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30</span>
-<span class="w">  </span><span class="nt">server_ip</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;127.0.0.1&quot;</span>
+<span class="w">  </span><span class="nt">server_ip</span><span class="p">:</span><span class="w"> </span><span class="s">"127.0.0.1"</span>
 <span class="w">  </span><span class="nt">signaling_port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">48010</span>
 <span class="w">  </span><span class="nt">send_frames</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">  </span><span class="nt">receive_frames</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
@@ -20565,9 +20565,9 @@ rm<span class="w"> </span>-rf<span class="w"> </span>holoscan_client_cloud_strea
 <span class="w">  </span><span class="nt">width</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">854</span>
 <span class="w">  </span><span class="nt">height</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">480</span>
 <span class="w">  </span><span class="nt">tensors</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;bgra_tensor&quot;</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">"bgra_tensor"</span>
 <span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">color</span>
-<span class="w">      </span><span class="nt">image_format</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;b8g8r8a8_unorm&quot;</span>
+<span class="w">      </span><span class="nt">image_format</span><span class="p">:</span><span class="w"> </span><span class="s">"b8g8r8a8_unorm"</span>
 <span class="w">      </span><span class="nt">opacity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
 <span class="w">      </span><span class="nt">priority</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
 
@@ -20576,23 +20576,23 @@ rm<span class="w"> </span>-rf<span class="w"> </span>holoscan_client_cloud_strea
 <span class="w">  </span><span class="nt">block_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4194304</span>
 <span class="w">  </span><span class="nt">num_blocks</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">12</span>
 
-<span class="nt">scheduler</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;greedy&quot;</span>
+<span class="nt">scheduler</span><span class="p">:</span><span class="w"> </span><span class="s">"greedy"</span>
 </code></pre></div>
 <p><strong>V4L2 Camera Configuration</strong> (<code>cpp/video_streaming_client_demo.yaml</code>):</p>
-<div class="highlight"><pre><span></span><code><span class="nt">source</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;v4l2&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="nt">source</span><span class="p">:</span><span class="w"> </span><span class="s">"v4l2"</span>
 
 <span class="c1"># V4L2 camera configuration</span>
 <span class="nt">v4l2_source</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">device</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/dev/video0&quot;</span>
+<span class="w">  </span><span class="nt">device</span><span class="p">:</span><span class="w"> </span><span class="s">"/dev/video0"</span>
 <span class="w">  </span><span class="nt">width</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">640</span>
 <span class="w">  </span><span class="nt">height</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">480</span>
 <span class="w">  </span><span class="nt">frame_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30</span>
-<span class="w">  </span><span class="nt">pixel_format</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;YUYV&quot;</span>
+<span class="w">  </span><span class="nt">pixel_format</span><span class="p">:</span><span class="w"> </span><span class="s">"YUYV"</span>
 
 <span class="c1"># Format converter - V4L2 outputs RGBA8888 (4 channels)</span>
 <span class="nt">format_converter</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">in_dtype</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;rgba8888&quot;</span>
-<span class="w">  </span><span class="nt">out_dtype</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;rgb888&quot;</span>
+<span class="w">  </span><span class="nt">in_dtype</span><span class="p">:</span><span class="w"> </span><span class="s">"rgba8888"</span>
+<span class="w">  </span><span class="nt">out_dtype</span><span class="p">:</span><span class="w"> </span><span class="s">"rgb888"</span>
 <span class="w">  </span><span class="nt">out_tensor_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tensor</span>
 <span class="w">  </span><span class="nt">scale_min</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
 <span class="w">  </span><span class="nt">scale_max</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">255.0</span>
@@ -20603,7 +20603,7 @@ rm<span class="w"> </span>-rf<span class="w"> </span>holoscan_client_cloud_strea
 <span class="w">  </span><span class="nt">width</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">640</span>
 <span class="w">  </span><span class="nt">height</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">480</span>
 <span class="w">  </span><span class="nt">fps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30</span>
-<span class="w">  </span><span class="nt">server_ip</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;127.0.0.1&quot;</span>
+<span class="w">  </span><span class="nt">server_ip</span><span class="p">:</span><span class="w"> </span><span class="s">"127.0.0.1"</span>
 <span class="w">  </span><span class="nt">signaling_port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">48010</span>
 <span class="w">  </span><span class="nt">send_frames</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">  </span><span class="nt">receive_frames</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
@@ -20630,19 +20630,19 @@ python3<span class="w"> </span>video_streaming_client_demo.py<span class="w"> </
 </code></pre></div>
 <p><strong>Python YAML Structure</strong> (optional, auto-selected based on source):</p>
 <div class="highlight"><pre><span></span><code><span class="nt">application</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Streaming</span><span class="nv"> </span><span class="s">Client</span><span class="nv"> </span><span class="s">Python</span><span class="nv"> </span><span class="s">Demo&quot;</span>
-<span class="w">  </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1.0&quot;</span>
-<span class="w">  </span><span class="nt">log_level</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;INFO&quot;</span>
+<span class="w">  </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="s">"Streaming</span><span class="nv"> </span><span class="s">Client</span><span class="nv"> </span><span class="s">Python</span><span class="nv"> </span><span class="s">Demo"</span>
+<span class="w">  </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">"1.0"</span>
+<span class="w">  </span><span class="nt">log_level</span><span class="p">:</span><span class="w"> </span><span class="s">"INFO"</span>
 
 <span class="c1"># Source configuration</span>
-<span class="nt">source</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;replayer&quot;</span><span class="w">  </span><span class="c1"># or &quot;v4l2&quot;</span>
+<span class="nt">source</span><span class="p">:</span><span class="w"> </span><span class="s">"replayer"</span><span class="w">  </span><span class="c1"># or "v4l2"</span>
 
 <span class="c1"># Streaming client settings</span>
 <span class="nt">video_streaming_client</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">width</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">854</span>
 <span class="w">  </span><span class="nt">height</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">480</span>
 <span class="w">  </span><span class="nt">fps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30</span>
-<span class="w">  </span><span class="nt">server_ip</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;127.0.0.1&quot;</span>
+<span class="w">  </span><span class="nt">server_ip</span><span class="p">:</span><span class="w"> </span><span class="s">"127.0.0.1"</span>
 <span class="w">  </span><span class="nt">signaling_port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">48010</span>
 <span class="w">  </span><span class="nt">send_frames</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">  </span><span class="nt">receive_frames</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
@@ -20650,19 +20650,19 @@ python3<span class="w"> </span>video_streaming_client_demo.py<span class="w"> </
 
 <span class="c1"># Video replayer settings</span>
 <span class="nt">replayer</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">directory</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/workspace/holohub/data/endoscopy&quot;</span>
-<span class="w">  </span><span class="nt">basename</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;surgical_video&quot;</span>
+<span class="w">  </span><span class="nt">directory</span><span class="p">:</span><span class="w"> </span><span class="s">"/workspace/holohub/data/endoscopy"</span>
+<span class="w">  </span><span class="nt">basename</span><span class="p">:</span><span class="w"> </span><span class="s">"surgical_video"</span>
 <span class="w">  </span><span class="nt">frame_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30</span>
 <span class="w">  </span><span class="nt">repeat</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">  </span><span class="nt">realtime</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 
 <span class="c1"># V4L2 camera settings</span>
 <span class="nt">v4l2</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">device</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/dev/video0&quot;</span>
+<span class="w">  </span><span class="nt">device</span><span class="p">:</span><span class="w"> </span><span class="s">"/dev/video0"</span>
 <span class="w">  </span><span class="nt">width</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">640</span>
 <span class="w">  </span><span class="nt">height</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">480</span>
 <span class="w">  </span><span class="nt">frame_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30</span>
-<span class="w">  </span><span class="nt">pixel_format</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;YUYV&quot;</span>
+<span class="w">  </span><span class="nt">pixel_format</span><span class="p">:</span><span class="w"> </span><span class="s">"YUYV"</span>
 
 <span class="c1"># Visualization settings</span>
 <span class="nt">visualization</span><span class="p">:</span>
@@ -20708,102 +20708,102 @@ python3<span class="w"> </span>video_streaming_client_demo.py<span class="w"> </
 <h2 id="c-implementation">C++ Implementation<a class="headerlink" href="#c-implementation" title="Permanent link">#</a></h2>
 <p>The C++ implementation (<code>cpp/video_streaming_client_demo.cpp</code>) demonstrates usage of the streaming client operator:</p>
 <p><strong>Video Replayer Mode:</strong></p>
-<div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;video_streaming_client.hpp&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">"video_streaming_client.hpp"</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;holoscan/operators/format_converter/format_converter.hpp&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;holoscan/operators/holoviz/holoviz.hpp&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;holoscan/operators/video_stream_replayer/video_stream_replayer.hpp&gt;</span>
 
 <span class="c1">// Create video source (replayer)</span>
 <span class="k">auto</span><span class="w"> </span><span class="n">replayer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">ops</span><span class="o">::</span><span class="n">VideoStreamReplayerOp</span><span class="o">&gt;</span><span class="p">(</span>
-<span class="w">    </span><span class="s">&quot;replayer&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;directory&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">&quot;/workspace/holohub/data/endoscopy&quot;</span><span class="p">)),</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;basename&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">&quot;surgical_video&quot;</span><span class="p">)),</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;frame_rate&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">30.0f</span><span class="p">)</span>
+<span class="w">    </span><span class="s">"replayer"</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"directory"</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">"/workspace/holohub/data/endoscopy"</span><span class="p">)),</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"basename"</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">"surgical_video"</span><span class="p">)),</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"frame_rate"</span><span class="p">,</span><span class="w"> </span><span class="mf">30.0f</span><span class="p">)</span>
 <span class="p">);</span>
 
 <span class="c1">// Create format converter (RGB to BGR)</span>
 <span class="k">auto</span><span class="w"> </span><span class="n">format_converter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">ops</span><span class="o">::</span><span class="n">FormatConverterOp</span><span class="o">&gt;</span><span class="p">(</span>
-<span class="w">    </span><span class="s">&quot;format_converter&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;in_dtype&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">&quot;rgb888&quot;</span><span class="p">)),</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;out_dtype&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">&quot;rgb888&quot;</span><span class="p">)),</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;out_tensor_name&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">&quot;tensor&quot;</span><span class="p">)),</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;out_channel_order&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">{</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">})</span><span class="w">  </span><span class="c1">// RGB to BGR</span>
+<span class="w">    </span><span class="s">"format_converter"</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"in_dtype"</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">"rgb888"</span><span class="p">)),</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"out_dtype"</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">"rgb888"</span><span class="p">)),</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"out_tensor_name"</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">"tensor"</span><span class="p">)),</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"out_channel_order"</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">{</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">})</span><span class="w">  </span><span class="c1">// RGB to BGR</span>
 <span class="p">);</span>
 
 <span class="c1">// Create streaming client</span>
 <span class="k">auto</span><span class="w"> </span><span class="n">video_streaming_client</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">ops</span><span class="o">::</span><span class="n">VideoStreamingClientOp</span><span class="o">&gt;</span><span class="p">(</span>
-<span class="w">    </span><span class="s">&quot;video_streaming_client&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;server_ip&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">&quot;127.0.0.1&quot;</span><span class="p">)),</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;signaling_port&quot;</span><span class="p">,</span><span class="w"> </span><span class="kt">uint16_t</span><span class="p">{</span><span class="mi">48010</span><span class="p">}),</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;width&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">854U</span><span class="p">),</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;height&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">480U</span><span class="p">),</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;fps&quot;</span><span class="p">,</span><span class="w"> </span><span class="kt">uint16_t</span><span class="p">{</span><span class="mi">30</span><span class="p">}),</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;send_frames&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">),</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;receive_frames&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">),</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;min_non_zero_bytes&quot;</span><span class="p">,</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">uint32_t</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
+<span class="w">    </span><span class="s">"video_streaming_client"</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"server_ip"</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">"127.0.0.1"</span><span class="p">)),</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"signaling_port"</span><span class="p">,</span><span class="w"> </span><span class="kt">uint16_t</span><span class="p">{</span><span class="mi">48010</span><span class="p">}),</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"width"</span><span class="p">,</span><span class="w"> </span><span class="mi">854U</span><span class="p">),</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"height"</span><span class="p">,</span><span class="w"> </span><span class="mi">480U</span><span class="p">),</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"fps"</span><span class="p">,</span><span class="w"> </span><span class="kt">uint16_t</span><span class="p">{</span><span class="mi">30</span><span class="p">}),</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"send_frames"</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">),</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"receive_frames"</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">),</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"min_non_zero_bytes"</span><span class="p">,</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">uint32_t</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
 <span class="p">);</span>
 
 <span class="c1">// Create visualization</span>
 <span class="k">auto</span><span class="w"> </span><span class="n">holoviz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">ops</span><span class="o">::</span><span class="n">HolovizOp</span><span class="o">&gt;</span><span class="p">(</span>
-<span class="w">    </span><span class="s">&quot;holoviz&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;width&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">854U</span><span class="p">),</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;height&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">480U</span><span class="p">)</span>
+<span class="w">    </span><span class="s">"holoviz"</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"width"</span><span class="p">,</span><span class="w"> </span><span class="mi">854U</span><span class="p">),</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"height"</span><span class="p">,</span><span class="w"> </span><span class="mi">480U</span><span class="p">)</span>
 <span class="p">);</span>
 
 <span class="c1">// Connect the pipeline</span>
-<span class="n">add_flow</span><span class="p">(</span><span class="n">replayer</span><span class="p">,</span><span class="w"> </span><span class="n">format_converter</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="err">&#39;</span><span class="n">output</span><span class="err">&#39;</span><span class="p">,</span><span class="w"> </span><span class="err">&#39;</span><span class="n">source_video</span><span class="err">&#39;</span><span class="p">));</span>
+<span class="n">add_flow</span><span class="p">(</span><span class="n">replayer</span><span class="p">,</span><span class="w"> </span><span class="n">format_converter</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="err">'</span><span class="n">output</span><span class="err">'</span><span class="p">,</span><span class="w"> </span><span class="err">'</span><span class="n">source_video</span><span class="err">'</span><span class="p">));</span>
 <span class="n">add_flow</span><span class="p">(</span><span class="n">format_converter</span><span class="p">,</span><span class="w"> </span><span class="n">video_streaming_client</span><span class="p">);</span>
-<span class="n">add_flow</span><span class="p">(</span><span class="n">video_streaming_client</span><span class="p">,</span><span class="w"> </span><span class="n">holoviz</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="err">&#39;</span><span class="n">output_frames</span><span class="err">&#39;</span><span class="p">,</span><span class="w"> </span><span class="err">&#39;</span><span class="n">receivers</span><span class="err">&#39;</span><span class="p">));</span>
+<span class="n">add_flow</span><span class="p">(</span><span class="n">video_streaming_client</span><span class="p">,</span><span class="w"> </span><span class="n">holoviz</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="err">'</span><span class="n">output_frames</span><span class="err">'</span><span class="p">,</span><span class="w"> </span><span class="err">'</span><span class="n">receivers</span><span class="err">'</span><span class="p">));</span>
 </code></pre></div>
 <p><strong>V4L2 Camera Mode:</strong></p>
-<div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;video_streaming_client.hpp&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">"video_streaming_client.hpp"</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;holoscan/operators/format_converter/format_converter.hpp&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;holoscan/operators/holoviz/holoviz.hpp&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;holoscan/operators/v4l2_video_capture/v4l2_video_capture.hpp&gt;</span>
 
 <span class="c1">// Create video source (V4L2 camera)</span>
 <span class="k">auto</span><span class="w"> </span><span class="n">v4l2_source</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">ops</span><span class="o">::</span><span class="n">V4L2VideoCaptureOp</span><span class="o">&gt;</span><span class="p">(</span>
-<span class="w">    </span><span class="s">&quot;v4l2_camera&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;device&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">&quot;/dev/video0&quot;</span><span class="p">)),</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;width&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">640U</span><span class="p">),</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;height&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">480U</span><span class="p">),</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;num_buffers&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">4U</span><span class="p">),</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;pixel_format&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">&quot;YUYV&quot;</span><span class="p">))</span>
+<span class="w">    </span><span class="s">"v4l2_camera"</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"device"</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">"/dev/video0"</span><span class="p">)),</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"width"</span><span class="p">,</span><span class="w"> </span><span class="mi">640U</span><span class="p">),</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"height"</span><span class="p">,</span><span class="w"> </span><span class="mi">480U</span><span class="p">),</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"num_buffers"</span><span class="p">,</span><span class="w"> </span><span class="mi">4U</span><span class="p">),</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"pixel_format"</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">"YUYV"</span><span class="p">))</span>
 <span class="p">);</span>
 
 <span class="c1">// Create format converter (RGBA to RGB/BGR)</span>
 <span class="k">auto</span><span class="w"> </span><span class="n">format_converter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">ops</span><span class="o">::</span><span class="n">FormatConverterOp</span><span class="o">&gt;</span><span class="p">(</span>
-<span class="w">    </span><span class="s">&quot;format_converter&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;in_dtype&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">&quot;rgba8888&quot;</span><span class="p">)),</span><span class="w">  </span><span class="c1">// V4L2 outputs RGBA</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;out_dtype&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">&quot;rgb888&quot;</span><span class="p">)),</span><span class="w">   </span><span class="c1">// Convert to RGB</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;out_tensor_name&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">&quot;tensor&quot;</span><span class="p">)),</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;out_channel_order&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">{</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">})</span><span class="w">  </span><span class="c1">// RGB to BGR</span>
+<span class="w">    </span><span class="s">"format_converter"</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"in_dtype"</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">"rgba8888"</span><span class="p">)),</span><span class="w">  </span><span class="c1">// V4L2 outputs RGBA</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"out_dtype"</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">"rgb888"</span><span class="p">)),</span><span class="w">   </span><span class="c1">// Convert to RGB</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"out_tensor_name"</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">"tensor"</span><span class="p">)),</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"out_channel_order"</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">{</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">})</span><span class="w">  </span><span class="c1">// RGB to BGR</span>
 <span class="p">);</span>
 
 <span class="c1">// Create streaming client</span>
 <span class="k">auto</span><span class="w"> </span><span class="n">video_streaming_client</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">ops</span><span class="o">::</span><span class="n">VideoStreamingClientOp</span><span class="o">&gt;</span><span class="p">(</span>
-<span class="w">    </span><span class="s">&quot;video_streaming_client&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;server_ip&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">&quot;127.0.0.1&quot;</span><span class="p">)),</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;signaling_port&quot;</span><span class="p">,</span><span class="w"> </span><span class="kt">uint16_t</span><span class="p">{</span><span class="mi">48010</span><span class="p">}),</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;width&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">640U</span><span class="p">),</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;height&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">480U</span><span class="p">),</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;fps&quot;</span><span class="p">,</span><span class="w"> </span><span class="kt">uint16_t</span><span class="p">{</span><span class="mi">30</span><span class="p">}),</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;send_frames&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">),</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;receive_frames&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">),</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;min_non_zero_bytes&quot;</span><span class="p">,</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">uint32_t</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
+<span class="w">    </span><span class="s">"video_streaming_client"</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"server_ip"</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">"127.0.0.1"</span><span class="p">)),</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"signaling_port"</span><span class="p">,</span><span class="w"> </span><span class="kt">uint16_t</span><span class="p">{</span><span class="mi">48010</span><span class="p">}),</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"width"</span><span class="p">,</span><span class="w"> </span><span class="mi">640U</span><span class="p">),</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"height"</span><span class="p">,</span><span class="w"> </span><span class="mi">480U</span><span class="p">),</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"fps"</span><span class="p">,</span><span class="w"> </span><span class="kt">uint16_t</span><span class="p">{</span><span class="mi">30</span><span class="p">}),</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"send_frames"</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">),</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"receive_frames"</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">),</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"min_non_zero_bytes"</span><span class="p">,</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">uint32_t</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
 <span class="p">);</span>
 
 <span class="c1">// Create visualization</span>
 <span class="k">auto</span><span class="w"> </span><span class="n">holoviz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">ops</span><span class="o">::</span><span class="n">HolovizOp</span><span class="o">&gt;</span><span class="p">(</span>
-<span class="w">    </span><span class="s">&quot;holoviz&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;width&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">640U</span><span class="p">),</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">&quot;height&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">480U</span><span class="p">)</span>
+<span class="w">    </span><span class="s">"holoviz"</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"width"</span><span class="p">,</span><span class="w"> </span><span class="mi">640U</span><span class="p">),</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">(</span><span class="s">"height"</span><span class="p">,</span><span class="w"> </span><span class="mi">480U</span><span class="p">)</span>
 <span class="p">);</span>
 
 <span class="c1">// Connect the pipeline</span>
-<span class="n">add_flow</span><span class="p">(</span><span class="n">v4l2_source</span><span class="p">,</span><span class="w"> </span><span class="n">format_converter</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="err">&#39;</span><span class="n">signal</span><span class="err">&#39;</span><span class="p">,</span><span class="w"> </span><span class="err">&#39;</span><span class="n">source_video</span><span class="err">&#39;</span><span class="p">));</span>
+<span class="n">add_flow</span><span class="p">(</span><span class="n">v4l2_source</span><span class="p">,</span><span class="w"> </span><span class="n">format_converter</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="err">'</span><span class="n">signal</span><span class="err">'</span><span class="p">,</span><span class="w"> </span><span class="err">'</span><span class="n">source_video</span><span class="err">'</span><span class="p">));</span>
 <span class="n">add_flow</span><span class="p">(</span><span class="n">format_converter</span><span class="p">,</span><span class="w"> </span><span class="n">video_streaming_client</span><span class="p">);</span>
-<span class="n">add_flow</span><span class="p">(</span><span class="n">video_streaming_client</span><span class="p">,</span><span class="w"> </span><span class="n">holoviz</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="err">&#39;</span><span class="n">output_frames</span><span class="err">&#39;</span><span class="p">,</span><span class="w"> </span><span class="err">&#39;</span><span class="n">receivers</span><span class="err">&#39;</span><span class="p">));</span>
+<span class="n">add_flow</span><span class="p">(</span><span class="n">video_streaming_client</span><span class="p">,</span><span class="w"> </span><span class="n">holoviz</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="err">'</span><span class="n">output_frames</span><span class="err">'</span><span class="p">,</span><span class="w"> </span><span class="err">'</span><span class="n">receivers</span><span class="err">'</span><span class="p">));</span>
 </code></pre></div>
 <h2 id="python-implementation">Python Implementation<a class="headerlink" href="#python-implementation" title="Permanent link">#</a></h2>
 <p>The Python implementation (<code>python/video_streaming_client_demo.py</code>) demonstrates usage of the Python bindings:</p>
@@ -20819,24 +20819,24 @@ python3<span class="w"> </span>video_streaming_client_demo.py<span class="w"> </
 <span class="k">class</span><span class="w"> </span><span class="nc">StreamingClientApp</span><span class="p">(</span><span class="n">Application</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Create allocator</span>
-        <span class="n">allocator</span> <span class="o">=</span> <span class="n">UnboundedAllocator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;allocator&quot;</span><span class="p">)</span>
+        <span class="n">allocator</span> <span class="o">=</span> <span class="n">UnboundedAllocator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"allocator"</span><span class="p">)</span>
 
         <span class="c1"># Create video source (replayer)</span>
         <span class="n">replayer</span> <span class="o">=</span> <span class="n">VideoStreamReplayerOp</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
-            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;replayer&quot;</span><span class="p">,</span>
-            <span class="n">directory</span><span class="o">=</span><span class="s2">&quot;/workspace/holohub/data/endoscopy&quot;</span><span class="p">,</span>
-            <span class="n">basename</span><span class="o">=</span><span class="s2">&quot;surgical_video&quot;</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">"replayer"</span><span class="p">,</span>
+            <span class="n">directory</span><span class="o">=</span><span class="s2">"/workspace/holohub/data/endoscopy"</span><span class="p">,</span>
+            <span class="n">basename</span><span class="o">=</span><span class="s2">"surgical_video"</span><span class="p">,</span>
             <span class="n">frame_rate</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="c1"># Create format converter (RGB to BGR)</span>
         <span class="n">format_converter</span> <span class="o">=</span> <span class="n">FormatConverterOp</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
-            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;format_converter&quot;</span><span class="p">,</span>
-            <span class="n">in_dtype</span><span class="o">=</span><span class="s2">&quot;rgb888&quot;</span><span class="p">,</span>
-            <span class="n">out_dtype</span><span class="o">=</span><span class="s2">&quot;rgb888&quot;</span><span class="p">,</span>
-            <span class="n">out_tensor_name</span><span class="o">=</span><span class="s2">&quot;tensor&quot;</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">"format_converter"</span><span class="p">,</span>
+            <span class="n">in_dtype</span><span class="o">=</span><span class="s2">"rgb888"</span><span class="p">,</span>
+            <span class="n">out_dtype</span><span class="o">=</span><span class="s2">"rgb888"</span><span class="p">,</span>
+            <span class="n">out_tensor_name</span><span class="o">=</span><span class="s2">"tensor"</span><span class="p">,</span>
             <span class="n">scale_min</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
             <span class="n">scale_max</span><span class="o">=</span><span class="mf">255.0</span><span class="p">,</span>
             <span class="n">out_channel_order</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>  <span class="c1"># Convert RGB to BGR</span>
@@ -20846,8 +20846,8 @@ python3<span class="w"> </span>video_streaming_client_demo.py<span class="w"> </
         <span class="n">video_streaming_client</span> <span class="o">=</span> <span class="n">VideoStreamingClientOp</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">allocator</span><span class="p">,</span>  <span class="c1"># Allocator for output buffer</span>
-            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;video_streaming_client&quot;</span><span class="p">,</span>
-            <span class="n">server_ip</span><span class="o">=</span><span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">"video_streaming_client"</span><span class="p">,</span>
+            <span class="n">server_ip</span><span class="o">=</span><span class="s2">"127.0.0.1"</span><span class="p">,</span>
             <span class="n">signaling_port</span><span class="o">=</span><span class="mi">48010</span><span class="p">,</span>
             <span class="n">width</span><span class="o">=</span><span class="mi">854</span><span class="p">,</span>
             <span class="n">height</span><span class="o">=</span><span class="mi">480</span><span class="p">,</span>
@@ -20860,15 +20860,15 @@ python3<span class="w"> </span>video_streaming_client_demo.py<span class="w"> </
         <span class="c1"># Create visualization (optional)</span>
         <span class="n">holoviz</span> <span class="o">=</span> <span class="n">HolovizOp</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
-            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;holoviz&quot;</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">"holoviz"</span><span class="p">,</span>
             <span class="n">width</span><span class="o">=</span><span class="mi">854</span><span class="p">,</span>
             <span class="n">height</span><span class="o">=</span><span class="mi">480</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="c1"># Connect the pipeline</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">replayer</span><span class="p">,</span> <span class="n">format_converter</span><span class="p">,</span> <span class="p">{(</span><span class="s2">&quot;output&quot;</span><span class="p">,</span> <span class="s2">&quot;source_video&quot;</span><span class="p">)})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">replayer</span><span class="p">,</span> <span class="n">format_converter</span><span class="p">,</span> <span class="p">{(</span><span class="s2">"output"</span><span class="p">,</span> <span class="s2">"source_video"</span><span class="p">)})</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">format_converter</span><span class="p">,</span> <span class="n">video_streaming_client</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">video_streaming_client</span><span class="p">,</span> <span class="n">holoviz</span><span class="p">,</span> <span class="p">{(</span><span class="s2">&quot;output_frames&quot;</span><span class="p">,</span> <span class="s2">&quot;receivers&quot;</span><span class="p">)})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">video_streaming_client</span><span class="p">,</span> <span class="n">holoviz</span><span class="p">,</span> <span class="p">{(</span><span class="s2">"output_frames"</span><span class="p">,</span> <span class="s2">"receivers"</span><span class="p">)})</span>
 </code></pre></div>
 <p><strong>V4L2 Camera Mode:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">holohub.video_streaming_client</span><span class="w"> </span><span class="kn">import</span> <span class="n">VideoStreamingClientOp</span>
@@ -20882,27 +20882,27 @@ python3<span class="w"> </span>video_streaming_client_demo.py<span class="w"> </
 <span class="k">class</span><span class="w"> </span><span class="nc">StreamingClientApp</span><span class="p">(</span><span class="n">Application</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Create allocator</span>
-        <span class="n">allocator</span> <span class="o">=</span> <span class="n">UnboundedAllocator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;allocator&quot;</span><span class="p">)</span>
+        <span class="n">allocator</span> <span class="o">=</span> <span class="n">UnboundedAllocator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"allocator"</span><span class="p">)</span>
 
         <span class="c1"># Create video source (V4L2 camera)</span>
         <span class="n">v4l2_source</span> <span class="o">=</span> <span class="n">V4L2VideoCaptureOp</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
-            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;v4l2_camera&quot;</span><span class="p">,</span>
-            <span class="n">device</span><span class="o">=</span><span class="s2">&quot;/dev/video0&quot;</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">"v4l2_camera"</span><span class="p">,</span>
+            <span class="n">device</span><span class="o">=</span><span class="s2">"/dev/video0"</span><span class="p">,</span>
             <span class="n">width</span><span class="o">=</span><span class="mi">640</span><span class="p">,</span>
             <span class="n">height</span><span class="o">=</span><span class="mi">480</span><span class="p">,</span>
             <span class="n">frame_rate</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
-            <span class="n">pixel_format</span><span class="o">=</span><span class="s2">&quot;YUYV&quot;</span><span class="p">,</span>
+            <span class="n">pixel_format</span><span class="o">=</span><span class="s2">"YUYV"</span><span class="p">,</span>
             <span class="n">allocator</span><span class="o">=</span><span class="n">allocator</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="c1"># Create format converter (RGBA to RGB/BGR)</span>
         <span class="n">format_converter</span> <span class="o">=</span> <span class="n">FormatConverterOp</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
-            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;format_converter&quot;</span><span class="p">,</span>
-            <span class="n">in_dtype</span><span class="o">=</span><span class="s2">&quot;rgba8888&quot;</span><span class="p">,</span>  <span class="c1"># V4L2 outputs RGBA</span>
-            <span class="n">out_dtype</span><span class="o">=</span><span class="s2">&quot;rgb888&quot;</span><span class="p">,</span>   <span class="c1"># Convert to RGB</span>
-            <span class="n">out_tensor_name</span><span class="o">=</span><span class="s2">&quot;tensor&quot;</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">"format_converter"</span><span class="p">,</span>
+            <span class="n">in_dtype</span><span class="o">=</span><span class="s2">"rgba8888"</span><span class="p">,</span>  <span class="c1"># V4L2 outputs RGBA</span>
+            <span class="n">out_dtype</span><span class="o">=</span><span class="s2">"rgb888"</span><span class="p">,</span>   <span class="c1"># Convert to RGB</span>
+            <span class="n">out_tensor_name</span><span class="o">=</span><span class="s2">"tensor"</span><span class="p">,</span>
             <span class="n">scale_min</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
             <span class="n">scale_max</span><span class="o">=</span><span class="mf">255.0</span><span class="p">,</span>
             <span class="n">out_channel_order</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>  <span class="c1"># Convert RGB to BGR</span>
@@ -20913,8 +20913,8 @@ python3<span class="w"> </span>video_streaming_client_demo.py<span class="w"> </
         <span class="n">video_streaming_client</span> <span class="o">=</span> <span class="n">VideoStreamingClientOp</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">allocator</span><span class="p">,</span>  <span class="c1"># Allocator for output buffer</span>
-            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;video_streaming_client&quot;</span><span class="p">,</span>
-            <span class="n">server_ip</span><span class="o">=</span><span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">"video_streaming_client"</span><span class="p">,</span>
+            <span class="n">server_ip</span><span class="o">=</span><span class="s2">"127.0.0.1"</span><span class="p">,</span>
             <span class="n">signaling_port</span><span class="o">=</span><span class="mi">48010</span><span class="p">,</span>
             <span class="n">width</span><span class="o">=</span><span class="mi">640</span><span class="p">,</span>
             <span class="n">height</span><span class="o">=</span><span class="mi">480</span><span class="p">,</span>
@@ -20927,15 +20927,15 @@ python3<span class="w"> </span>video_streaming_client_demo.py<span class="w"> </
         <span class="c1"># Create visualization (optional)</span>
         <span class="n">holoviz</span> <span class="o">=</span> <span class="n">HolovizOp</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
-            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;holoviz&quot;</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">"holoviz"</span><span class="p">,</span>
             <span class="n">width</span><span class="o">=</span><span class="mi">640</span><span class="p">,</span>
             <span class="n">height</span><span class="o">=</span><span class="mi">480</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="c1"># Connect the pipeline</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">v4l2_source</span><span class="p">,</span> <span class="n">format_converter</span><span class="p">,</span> <span class="p">{(</span><span class="s2">&quot;signal&quot;</span><span class="p">,</span> <span class="s2">&quot;source_video&quot;</span><span class="p">)})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">v4l2_source</span><span class="p">,</span> <span class="n">format_converter</span><span class="p">,</span> <span class="p">{(</span><span class="s2">"signal"</span><span class="p">,</span> <span class="s2">"source_video"</span><span class="p">)})</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">format_converter</span><span class="p">,</span> <span class="n">video_streaming_client</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">video_streaming_client</span><span class="p">,</span> <span class="n">holoviz</span><span class="p">,</span> <span class="p">{(</span><span class="s2">&quot;output_frames&quot;</span><span class="p">,</span> <span class="s2">&quot;receivers&quot;</span><span class="p">)})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">video_streaming_client</span><span class="p">,</span> <span class="n">holoviz</span><span class="p">,</span> <span class="p">{(</span><span class="s2">"output_frames"</span><span class="p">,</span> <span class="s2">"receivers"</span><span class="p">)})</span>
 </code></pre></div>
 <p><strong>Key Points:</strong></p>
 <ul>
@@ -20984,7 +20984,7 @@ sudo<span class="w"> </span>chmod<span class="w"> </span><span class="m">666</sp
 <li><strong>Import Error (Python)</strong>: Ensure Holoscan SDK Python bindings are installed</li>
 </ol>
 <div class="highlight"><pre><span></span><code><span class="c1"># Build with Python bindings</span>
-./holohub<span class="w"> </span>build<span class="w"> </span>video_streaming<span class="w"> </span>--configure-args<span class="o">=</span><span class="s1">&#39;-DHOLOHUB_BUILD_PYTHON=ON&#39;</span>
+./holohub<span class="w"> </span>build<span class="w"> </span>video_streaming<span class="w"> </span>--configure-args<span class="o">=</span><span class="s1">'-DHOLOHUB_BUILD_PYTHON=ON'</span>
 </code></pre></div>
 <ol>
 <li><strong>Video Files Not Found</strong>: Check data directory path</li>
@@ -21008,7 +21008,7 @@ ls<span class="w"> </span>-l<span class="w"> </span>/workspace/holohub/data/endo
 <h3 id="debug-mode">Debug Mode<a class="headerlink" href="#debug-mode" title="Permanent link">#</a></h3>
 <p>Enable debug logging by setting log level in configuration:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">application</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">log_level</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;DEBUG&quot;</span>
+<span class="w">  </span><span class="nt">log_level</span><span class="p">:</span><span class="w"> </span><span class="s">"DEBUG"</span>
 </code></pre></div>
 <h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">#</a></h2>
 <p>See the included configuration files for complete examples:</p>
@@ -21025,22 +21025,22 @@ ls<span class="w"> </span>-l<span class="w"> </span>/workspace/holohub/data/endo
 <div class="highlight"><pre><span></span><code><span class="c1"># From holohub root directory</span>
 ./holohub<span class="w"> </span>run<span class="w"> </span>video_streaming<span class="w"> </span>server_python<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--docker-file<span class="w"> </span>applications/video_streaming/Dockerfile<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--docker-opts<span class="o">=</span><span class="s1">&#39;-e EnableHybridMode=1&#39;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--configure-args<span class="o">=</span><span class="s1">&#39;-DHOLOHUB_BUILD_PYTHON=ON&#39;</span>
+<span class="w">  </span>--docker-opts<span class="o">=</span><span class="s1">'-e EnableHybridMode=1'</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--configure-args<span class="o">=</span><span class="s1">'-DHOLOHUB_BUILD_PYTHON=ON'</span>
 </code></pre></div>
 <p>Terminal 2 - Start Python Client with Video Replayer (854x480):</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># From holohub root directory</span>
 ./holohub<span class="w"> </span>run<span class="w"> </span>video_streaming<span class="w"> </span>client_python<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--docker-file<span class="w"> </span>applications/video_streaming/Dockerfile<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--docker-opts<span class="o">=</span><span class="s1">&#39;-e EnableHybridMode=1&#39;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--configure-args<span class="o">=</span><span class="s1">&#39;-DHOLOHUB_BUILD_PYTHON=ON&#39;</span>
+<span class="w">  </span>--docker-opts<span class="o">=</span><span class="s1">'-e EnableHybridMode=1'</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--configure-args<span class="o">=</span><span class="s1">'-DHOLOHUB_BUILD_PYTHON=ON'</span>
 </code></pre></div>
 <p>Terminal 2 - Or Start Python Client with V4L2 Camera (640x480):</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># From holohub root directory</span>
 ./holohub<span class="w"> </span>run<span class="w"> </span>video_streaming<span class="w"> </span>client_python_v4l2<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--docker-file<span class="w"> </span>applications/video_streaming/Dockerfile<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--docker-opts<span class="o">=</span><span class="s1">&#39;-e EnableHybridMode=1&#39;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--configure-args<span class="o">=</span><span class="s1">&#39;-DHOLOHUB_BUILD_PYTHON=ON&#39;</span>
+<span class="w">  </span>--docker-opts<span class="o">=</span><span class="s1">'-e EnableHybridMode=1'</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--configure-args<span class="o">=</span><span class="s1">'-DHOLOHUB_BUILD_PYTHON=ON'</span>
 </code></pre></div>
 <h3 id="testing-with-c-server">Testing with C++ Server<a class="headerlink" href="#testing-with-c-server" title="Permanent link">#</a></h3>
 <p>Terminal 1 - Start Server (C++ or Python):</p>
@@ -21050,8 +21050,8 @@ ls<span class="w"> </span>-l<span class="w"> </span>/workspace/holohub/data/endo
 <span class="c1"># OR Python Server</span>
 ./holohub<span class="w"> </span>run<span class="w"> </span>video_streaming<span class="w"> </span>server_python<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--docker-file<span class="w"> </span>applications/video_streaming/Dockerfile<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--docker-opts<span class="o">=</span><span class="s1">&#39;-e EnableHybridMode=1&#39;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--configure-args<span class="o">=</span><span class="s1">&#39;-DHOLOHUB_BUILD_PYTHON=ON&#39;</span>
+<span class="w">  </span>--docker-opts<span class="o">=</span><span class="s1">'-e EnableHybridMode=1'</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--configure-args<span class="o">=</span><span class="s1">'-DHOLOHUB_BUILD_PYTHON=ON'</span>
 </code></pre></div>
 <p>Terminal 2 - Start C++ Client:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Video Replayer Mode</span>

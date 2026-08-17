@@ -20274,28 +20274,28 @@
 <span class="c1"># Create operator with default settings</span>
 <span class="n">qcap_op</span> <span class="o">=</span> <span class="n">QCAPSourceOp</span><span class="p">(</span>
     <span class="n">fragment</span><span class="o">=</span><span class="n">fragment</span><span class="p">,</span>
-    <span class="n">device</span><span class="o">=</span><span class="s2">&quot;SC0710 PCI&quot;</span><span class="p">,</span>
+    <span class="n">device</span><span class="o">=</span><span class="s2">"SC0710 PCI"</span><span class="p">,</span>
     <span class="n">channel</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
     <span class="n">width</span><span class="o">=</span><span class="mi">3840</span><span class="p">,</span>
     <span class="n">height</span><span class="o">=</span><span class="mi">2160</span><span class="p">,</span>
     <span class="n">framerate</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
     <span class="n">rdma</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">pixel_format</span><span class="o">=</span><span class="s2">&quot;bgr24&quot;</span><span class="p">,</span>
-    <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span>
+    <span class="n">pixel_format</span><span class="o">=</span><span class="s2">"bgr24"</span><span class="p">,</span>
+    <span class="n">input_type</span><span class="o">=</span><span class="s2">"auto"</span>
 <span class="p">)</span>
 </code></pre></div>
 <h3 id="c-usage">C++ Usage<a class="headerlink" href="#c-usage" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;qcap_source.hpp&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">"qcap_source.hpp"</span>
 
 <span class="k">auto</span><span class="w"> </span><span class="n">qcap_op</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_shared</span><span class="o">&lt;</span><span class="n">holoscan</span><span class="o">::</span><span class="n">ops</span><span class="o">::</span><span class="n">QCAPSourceOp</span><span class="o">&gt;</span><span class="p">(</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">{</span><span class="s">&quot;device&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;SC0710 PCI&quot;</span><span class="p">},</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">{</span><span class="s">&quot;channel&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">},</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">{</span><span class="s">&quot;width&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">3840</span><span class="p">},</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">{</span><span class="s">&quot;height&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">2160</span><span class="p">},</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">{</span><span class="s">&quot;framerate&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">60</span><span class="p">},</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">{</span><span class="s">&quot;rdma&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">},</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">{</span><span class="s">&quot;pixel_format&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;bgr24&quot;</span><span class="p">},</span>
-<span class="w">    </span><span class="n">Arg</span><span class="p">{</span><span class="s">&quot;input_type&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;auto&quot;</span><span class="p">}</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">{</span><span class="s">"device"</span><span class="p">,</span><span class="w"> </span><span class="s">"SC0710 PCI"</span><span class="p">},</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">{</span><span class="s">"channel"</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">},</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">{</span><span class="s">"width"</span><span class="p">,</span><span class="w"> </span><span class="mi">3840</span><span class="p">},</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">{</span><span class="s">"height"</span><span class="p">,</span><span class="w"> </span><span class="mi">2160</span><span class="p">},</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">{</span><span class="s">"framerate"</span><span class="p">,</span><span class="w"> </span><span class="mi">60</span><span class="p">},</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">{</span><span class="s">"rdma"</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">},</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">{</span><span class="s">"pixel_format"</span><span class="p">,</span><span class="w"> </span><span class="s">"bgr24"</span><span class="p">},</span>
+<span class="w">    </span><span class="n">Arg</span><span class="p">{</span><span class="s">"input_type"</span><span class="p">,</span><span class="w"> </span><span class="s">"auto"</span><span class="p">}</span>
 <span class="p">);</span>
 </code></pre></div>
 <p>Please refer to the following Holoscan reference applications for usage of this operator:</p>

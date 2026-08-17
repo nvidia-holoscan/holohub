@@ -20195,11 +20195,11 @@ If you want to manually convert the video data, please refer to the instructions
 
 <span class="c1"># Use the following commands to run the same application three processes:</span>
 <span class="c1"># Start the application with the video_in fragment</span>
-./holohub<span class="w"> </span>run<span class="w"> </span>ucx_endoscopy_tool_tracking<span class="w"> </span>--language<span class="o">=</span>python<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--driver --worker --fragments video_in --address :10000&quot;</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>ucx_endoscopy_tool_tracking<span class="w"> </span>--language<span class="o">=</span>python<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--driver --worker --fragments video_in --address :10000"</span>
 <span class="c1"># Start the application with the inference fragment</span>
-./holohub<span class="w"> </span>run<span class="w"> </span>ucx_endoscopy_tool_tracking<span class="w"> </span>--language<span class="o">=</span>python<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--worker --fragments inference --address :10000&quot;</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>ucx_endoscopy_tool_tracking<span class="w"> </span>--language<span class="o">=</span>python<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--worker --fragments inference --address :10000"</span>
 <span class="c1"># Start the application with the visualization fragment</span>
-./holohub<span class="w"> </span>run<span class="w"> </span>ucx_endoscopy_tool_tracking<span class="w"> </span>--language<span class="o">=</span>python<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--worker --fragments viz --address :10000&quot;</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>ucx_endoscopy_tool_tracking<span class="w"> </span>--language<span class="o">=</span>python<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--worker --fragments viz --address :10000"</span>
 </code></pre></div>
 
 

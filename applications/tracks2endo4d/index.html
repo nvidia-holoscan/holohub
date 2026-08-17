@@ -20424,7 +20424,7 @@ videos</li>
 </blockquote>
 <h3 id="subsequent-runs">Subsequent Runs<a class="headerlink" href="#subsequent-runs" title="Permanent link">#</a></h3>
 <p>Once the Docker image is built and TensorRT engines have been generated, subsequent runs reuse them. To skip the TensorRT conversion on subsequent runs:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>tracks2endo4d<span class="w"> </span>--configure-args<span class="o">=</span><span class="s2">&quot;-DCONVERT_ENGINE=OFF&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>tracks2endo4d<span class="w"> </span>--configure-args<span class="o">=</span><span class="s2">"-DCONVERT_ENGINE=OFF"</span>
 </code></pre></div>
 <h2 id="advanced-usage">Advanced Usage<a class="headerlink" href="#advanced-usage" title="Permanent link">#</a></h2>
 <h3 id="using-holohub-container">Using Holohub Container<a class="headerlink" href="#using-holohub-container" title="Permanent link">#</a></h3>
@@ -20436,7 +20436,7 @@ videos</li>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>tracks2endo4d
 </code></pre></div>
 <p>To force TensorRT engine re-conversion (e.g., after switching GPUs):</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>tracks2endo4d<span class="w"> </span>--configure-args<span class="o">=</span><span class="s2">&quot;-DCONVERT_ENGINE=ON&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>tracks2endo4d<span class="w"> </span>--configure-args<span class="o">=</span><span class="s2">"-DCONVERT_ENGINE=ON"</span>
 </code></pre></div>
 <h3 id="running-the-application">Running the Application<a class="headerlink" href="#running-the-application" title="Permanent link">#</a></h3>
 <h4 id="from-outside-the-container">From Outside the Container<a class="headerlink" href="#from-outside-the-container" title="Permanent link">#</a></h4>
@@ -20475,7 +20475,7 @@ python3<span class="w"> </span>tracks2endo4d_app.py<span class="w"> </span>--dat
 </tbody>
 </table>
 <p>Example usage:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>tracks2endo4d<span class="w"> </span>--configure-args<span class="o">=</span><span class="s2">&quot;-DCONVERT_ENGINE=OFF&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>tracks2endo4d<span class="w"> </span>--configure-args<span class="o">=</span><span class="s2">"-DCONVERT_ENGINE=OFF"</span>
 </code></pre></div>
 <h3 id="command-line-arguments">Command Line Arguments<a class="headerlink" href="#command-line-arguments" title="Permanent link">#</a></h3>
 <p>The application accepts the following command line arguments:</p>
@@ -20565,7 +20565,7 @@ python3<span class="w"> </span>tracks2endo4d_app.py<span class="w"> </span>--dat
 <p>Once converted, update the <code>replayer/basename</code> parameter in <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/tracks2endo4d/config.yaml">config.yaml</a> to point to your new video file (without extension).</p>
 <h2 id="using-aja-card-as-io">Using AJA Card as I/O<a class="headerlink" href="#using-aja-card-as-io" title="Permanent link">#</a></h2>
 <p>To use an AJA capture card for real-time input:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>tracks2endo4d<span class="w"> </span>--run-args<span class="w"> </span><span class="s2">&quot;--source aja&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>tracks2endo4d<span class="w"> </span>--run-args<span class="w"> </span><span class="s2">"--source aja"</span>
 </code></pre></div>
 <blockquote>
 <p><strong>Note:</strong> The AJA video buffer dtype is set to <code>rgba8888</code> by default. If your camera is not providing an alpha channel, you can change it to <code>rgb888</code> by modifying <code>in_dtype</code> in the <code>aja_format_converter</code> section of the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/tracks2endo4d/config.yaml">config.yaml</a> file.</p>

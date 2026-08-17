@@ -20261,7 +20261,7 @@ to drop packets in the appropriate memory region.</p>
 against the defined flows. So, for our data packets, we want to
 define a queue like this:</p>
 <div class="highlight"><pre><span></span><code><span class="w">            </span><span class="nt">flows</span><span class="p">:</span>
-<span class="w">              </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Data</span><span class="nv"> </span><span class="s">packets&quot;</span>
+<span class="w">              </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">"Data</span><span class="nv"> </span><span class="s">packets"</span>
 <span class="w">                </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
 <span class="w">                </span><span class="nt">action</span><span class="p">:</span>
 <span class="w">                  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">queue</span>
@@ -20276,14 +20276,14 @@ define a queue like this:</p>
 <p>This is saying "if a UDP packet with IPv4 length 4,148 comes in on port
 4991, send it to the queue with ID 1". Now, if we look at our queue with
 ID 1, we see:</p>
-<div class="highlight"><pre><span></span><code><span class="w">              </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Data&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="w">              </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">"Data"</span>
 <span class="w">                </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
 <span class="w">                </span><span class="nt">cpu_core</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span>
 <span class="w">                </span><span class="nt">batch_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">12500</span>
 <span class="w">                </span><span class="nt">memory_regions</span><span class="p">:</span>
-<span class="w">                  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;Headers_RX_CPU&quot;</span>
-<span class="w">                  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;VRT_Headers_RX_CPU&quot;</span>
-<span class="w">                  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;Data_RX_GPU&quot;</span>
+<span class="w">                  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">"Headers_RX_CPU"</span>
+<span class="w">                  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">"VRT_Headers_RX_CPU"</span>
+<span class="w">                  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">"Data_RX_GPU"</span>
 </code></pre></div>
 <p>When multiple <code>memory_regions</code> are specified like this, it means
 that each packet should be split based on the memory region size. In this
@@ -20341,7 +20341,7 @@ usb@1:14.2        usb0       network        Ethernet interface
 <ol>
 <li><strong>Launch</strong> the development container with the command:</li>
 </ol>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>psd_pipeline<span class="w"> </span>--no-docker-build<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">&quot;-u root --privileged&quot;</span><span class="w"> </span>--img<span class="w"> </span>holohub-psd-pipeline:ngc-v4.0.0-dgpu
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>psd_pipeline<span class="w"> </span>--no-docker-build<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">"-u root --privileged"</span><span class="w"> </span>--img<span class="w"> </span>holohub-psd-pipeline:ngc-v4.0.0-dgpu
 </code></pre></div>
 <p>Once you are in the dev container:</p>
 <ol>
@@ -20352,7 +20352,7 @@ usb@1:14.2        usb0       network        Ethernet interface
 </li>
 <li>
 <p><strong>Run</strong> the application using:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>psd_pipeline<span class="w"> </span>--local<span class="w"> </span>--no-local-build<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;config.yaml&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>psd_pipeline<span class="w"> </span>--local<span class="w"> </span>--no-local-build<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"config.yaml"</span>
 </code></pre></div>
 </li>
 </ol>

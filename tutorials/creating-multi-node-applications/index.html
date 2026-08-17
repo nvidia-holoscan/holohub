@@ -20241,8 +20241,8 @@
 <h3 id="changes-in-scenario-1-changing-the-way-command-line-arguments-are-parsed">Changes in scenario 1 - Changing the way command-line arguments are parsed<a class="headerlink" href="#changes-in-scenario-1-changing-the-way-command-line-arguments-are-parsed" title="Permanent link">#</a></h3>
 <p>As seen in the <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/create-a-distributed-application#adding-user-defined-command-line-arguments">documentation</a>, it is recommended to parse user-defined arguments from the <code>argv ((C++/Python))</code> method/property of the application. To parse in user-defined command line arguments (such as <code>--data</code>, <code>--source</code>, <code>--labelfile</code> in this app), let's make sure to avoid arguments that are unique to the multi-fragment applications, such as  <code>--driver</code>, <code>--worker</code>, <code>--address</code>, <code>--worker-address</code>, <code>--fragments</code> (see the <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/create-a-distributed-application#adding-user-defined-command-line-arguments">documentation</a> for more details on using those arguments).</p>
 <p>In the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/multiai_endoscopy">non-distributed application</a>, we would have</p>
-<div class="highlight"><pre><span></span><code><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">parser</span> <span class="o">=</span> <span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Multi-AI Detection Segmentation application.&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">"Multi-AI Detection Segmentation application."</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="o">...</span><span class="p">)</span> <span class="c1"># for the app config yaml file via --config</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="o">...</span><span class="p">)</span> <span class="c1"># for args needed in app init --source --data --labelfile</span>
     <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
@@ -20269,7 +20269,7 @@ Previously, we defined our non distributed applications with the `__init__()` an
 
 ```python
 class MultiAIDetectionSegmentation(Application):
-    def __init__(self, data, source=&quot;replayer&quot;, labelfile=&quot;&quot;):
+    def __init__(self, data, source="replayer", labelfile=""):
         ...
 
     def compose(self):
@@ -20295,11 +20295,11 @@ class MultiAIDetectionSegmentation(Application):
     <span class="k">def</span><span class="w"> </span><span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># define the one operator in fragment2 (Holoviz)</span>
         <span class="c1"># add operator</span>
-        <span class="c1"># no need to add_flow because there&#39;s only one operator in this fragment</span>
+        <span class="c1"># no need to add_flow because there's only one operator in this fragment</span>
         <span class="o">...</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">MultiAIDetectionSegmentation</span><span class="p">(</span><span class="n">Application</span><span class="p">):</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">&quot;replayer&quot;</span><span class="p">,</span> <span class="n">labelfile</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">"replayer"</span><span class="p">,</span> <span class="n">labelfile</span><span class="o">=</span><span class="s2">""</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="c1"># set self.name</span>
         <span class="c1"># get self.label_dict from labelfile,self.source, self.sample_data_path</span>
@@ -20307,28 +20307,28 @@ class MultiAIDetectionSegmentation(Application):
 
     <span class="k">def</span><span class="w"> </span><span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># define the two fragments in this app: fragment1, fragment2</span>
-        <span class="c1"># pass in the objects needed to each fragment&#39;s operators when defining each fragment</span>
+        <span class="c1"># pass in the objects needed to each fragment's operators when defining each fragment</span>
         <span class="c1"># operators in fragment1 need the objects: sample_data_path, source, label_dict</span>
-        <span class="n">fragment1</span> <span class="o">=</span> <span class="n">Fragment1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;fragment1&quot;</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">sample_data_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_data_path</span><span class="p">,</span> <span class="n">label_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label_dict</span><span class="p">)</span>
+        <span class="n">fragment1</span> <span class="o">=</span> <span class="n">Fragment1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"fragment1"</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">sample_data_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_data_path</span><span class="p">,</span> <span class="n">label_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label_dict</span><span class="p">)</span>
         <span class="c1"># operators in fragment2 need the object: label_dict</span>
-        <span class="n">fragment2</span> <span class="o">=</span> <span class="n">Fragment2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;fragment2&quot;</span><span class="p">,</span> <span class="n">label_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label_dict</span><span class="p">)</span>
+        <span class="n">fragment2</span> <span class="o">=</span> <span class="n">Fragment2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"fragment2"</span><span class="p">,</span> <span class="n">label_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label_dict</span><span class="p">)</span>
 
         <span class="c1"># Connect the two fragments</span>
         <span class="c1"># There are three connections between fragment1 and fragment2:</span>
         <span class="c1"># (1) from the data source to Holoviz</span>
-        <span class="n">source_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span> <span class="o">+</span> <span class="s2">&quot;.video_buffer_output&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;aja&quot;</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span> <span class="o">+</span> <span class="s2">&quot;.output&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">fragment1</span><span class="p">,</span> <span class="n">fragment2</span><span class="p">,</span> <span class="p">{(</span><span class="n">source_output</span><span class="p">,</span> <span class="s2">&quot;holoviz.receivers&quot;</span><span class="p">)})</span>
+        <span class="n">source_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span> <span class="o">+</span> <span class="s2">".video_buffer_output"</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"aja"</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span> <span class="o">+</span> <span class="s2">".output"</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">fragment1</span><span class="p">,</span> <span class="n">fragment2</span><span class="p">,</span> <span class="p">{(</span><span class="n">source_output</span><span class="p">,</span> <span class="s2">"holoviz.receivers"</span><span class="p">)})</span>
         <span class="c1"># (2) from the detection postprocessor to Holoviz</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">fragment1</span><span class="p">,</span> <span class="n">fragment2</span><span class="p">,</span> <span class="p">{(</span><span class="s2">&quot;detection_postprocessor.out&quot;</span> <span class="p">,</span> <span class="s2">&quot;holoviz.receivers&quot;</span><span class="p">)})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">fragment1</span><span class="p">,</span> <span class="n">fragment2</span><span class="p">,</span> <span class="p">{(</span><span class="s2">"detection_postprocessor.out"</span> <span class="p">,</span> <span class="s2">"holoviz.receivers"</span><span class="p">)})</span>
         <span class="c1"># (3) from the segmentation postprocessor to Holoviz</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">fragment1</span><span class="p">,</span> <span class="n">fragment2</span><span class="p">,</span> <span class="p">{(</span><span class="s2">&quot;segmentation_postprocessor.out_tensor&quot;</span> <span class="p">,</span> <span class="s2">&quot;holoviz.receivers&quot;</span><span class="p">)})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">fragment1</span><span class="p">,</span> <span class="n">fragment2</span><span class="p">,</span> <span class="p">{(</span><span class="s2">"segmentation_postprocessor.out_tensor"</span> <span class="p">,</span> <span class="s2">"holoviz.receivers"</span><span class="p">)})</span>
 </code></pre></div>
 <h3 id="changes-in-scenario-1-defining-objects-shared-among-fragments">Changes in scenario 1 - Defining objects shared among fragments<a class="headerlink" href="#changes-in-scenario-1-defining-objects-shared-among-fragments" title="Permanent link">#</a></h3>
 <p>When creating your fragments, first make a list of all the objects each fragment's operators will need. If there are objects that are needed across multiple fragments (such as <code>self.label_dict</code> in this case), before passing them into fragments in the application's <code>compose()</code> method, create such objects in the app's <code>__init()__</code> method ideally. In the non-distributed application, in the app's <code>compose()</code> method we define <code>label_dict</code> from <code>self.labelfile</code>, and continue using <code>label_dict</code> while composing the application. In the distributed application, we move the definition of <code>label_dict</code> from <code>self.labelfile</code> into the application's <code>__init()__</code> method, and refer to <code>self.label_dict</code> in the application's <code>compose()</code> method and each fragment's <code>__init__()</code>/<code>compose()</code> methods.</p>
 <p>Non distributed application:</p>
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">MultiAIDetectionSegmentation</span><span class="p">(</span><span class="n">Application</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># construct the labels dictionary if the commandline arg for labelfile isn&#39;t empty</span>
+        <span class="c1"># construct the labels dictionary if the commandline arg for labelfile isn't empty</span>
         <span class="n">label_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_label_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labelfile</span><span class="p">)</span>
 </code></pre></div>
 <p>Distributed application:</p>
@@ -20355,12 +20355,12 @@ class MultiAIDetectionSegmentation(Application):
         <span class="c1"># Use self.label_dict</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">MultiAIDetectionSegmentation</span><span class="p">(</span><span class="n">Application</span><span class="p">):</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">&quot;replayer&quot;</span><span class="p">,</span> <span class="n">labelfile</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">"replayer"</span><span class="p">,</span> <span class="n">labelfile</span><span class="o">=</span><span class="s2">""</span><span class="p">):</span>
         <span class="o">...</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">label_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_label_dict</span><span class="p">(</span><span class="n">labelfile</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">fragment1</span> <span class="o">=</span> <span class="n">Fragment1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;fragment1&quot;</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">sample_data_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_data_path</span><span class="p">,</span> <span class="n">label_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label_dict</span><span class="p">)</span>
-        <span class="n">fragment2</span> <span class="o">=</span> <span class="n">Fragment2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;fragment2&quot;</span><span class="p">,</span> <span class="n">label_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label_dict</span><span class="p">)</span>
+        <span class="n">fragment1</span> <span class="o">=</span> <span class="n">Fragment1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"fragment1"</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">sample_data_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_data_path</span><span class="p">,</span> <span class="n">label_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label_dict</span><span class="p">)</span>
+        <span class="n">fragment2</span> <span class="o">=</span> <span class="n">Fragment2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"fragment2"</span><span class="p">,</span> <span class="n">label_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label_dict</span><span class="p">)</span>
         <span class="o">...</span>
 </code></pre></div>
 <h3 id="changes-in-scenario-1-adding-operators-to-app-graph">Changes in scenario 1 - Adding Operators to App Graph<a class="headerlink" href="#changes-in-scenario-1-adding-operators-to-app-graph" title="Permanent link">#</a></h3>
@@ -20405,24 +20405,24 @@ class Fragment1(Fragment):
         self.add_operator(holoviz)
 <div class="highlight"><pre><span></span><code>### Changes in scenario 1 - Shared resources
 
-In a non distributed application, there may be some shared resources defined in the application&#39;s `compose()` method, such as a `UnboundedAllocator` for various operators. When splitting the application into multiple fragments, remember to create those resources once for each fragment.
+In a non distributed application, there may be some shared resources defined in the application's `compose()` method, such as a `UnboundedAllocator` for various operators. When splitting the application into multiple fragments, remember to create those resources once for each fragment.
 
 Non distributed application:
 
 ```python
 class MultiAIDetectionSegmentation(Application):
     def compose(self):
-        pool = UnboundedAllocator(self, name=&quot;pool&quot;)
+        pool = UnboundedAllocator(self, name="pool")
 </code></pre></div></p>
 <p>Distributed application:</p>
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Fragment1</span><span class="p">(</span><span class="n">Fragment</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">pool</span> <span class="o">=</span> <span class="n">UnboundedAllocator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;pool&quot;</span><span class="p">)</span>
+        <span class="n">pool</span> <span class="o">=</span> <span class="n">UnboundedAllocator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"pool"</span><span class="p">)</span>
         <span class="c1"># ... operator definitions in fragment1 with parameter pool=pool,</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">Fragment2</span><span class="p">(</span><span class="n">Fragment</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">pool</span> <span class="o">=</span> <span class="n">UnboundedAllocator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;pool&quot;</span><span class="p">)</span>
+        <span class="n">pool</span> <span class="o">=</span> <span class="n">UnboundedAllocator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"pool"</span><span class="p">)</span>
         <span class="c1"># ... operator definitions in fragment2 with parameter pool=pool,</span>
 </code></pre></div>
 <h3 id="changes-in-scenario-1-running-the-application">Changes in scenario 1 - Running the application<a class="headerlink" href="#changes-in-scenario-1-running-the-application" title="Permanent link">#</a></h3>
@@ -20458,13 +20458,13 @@ The distributed app graph we want to create:
 </code></pre></div>
 <h3 id="changes-in-scenario-2-changing-the-way-command-line-arguments-are-parsed">Changes in scenario 2 - Changing the way command-line arguments are parsed<a class="headerlink" href="#changes-in-scenario-2-changing-the-way-command-line-arguments-are-parsed" title="Permanent link">#</a></h3>
 <p>Similar to <a href="#changes-in-scenario-1---changing-the-way-command-line-arguments-are-parsed">Changing the way command-line arguments are parse in scenario 1</a>, instead of the following for the non distributed app:</p>
-<div class="highlight"><pre><span></span><code><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+<div class="highlight"><pre><span></span><code><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
     <span class="o">...</span>
     <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
     <span class="o">...</span>
 </code></pre></div>
 <p>For the distributed app we will have:</p>
-<div class="highlight"><pre><span></span><code><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+<div class="highlight"><pre><span></span><code><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
     <span class="o">...</span>
     <span class="n">apps_argv</span> <span class="o">=</span> <span class="n">Application</span><span class="p">()</span><span class="o">.</span><span class="n">argv</span>
     <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">apps_argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
@@ -20474,7 +20474,7 @@ The distributed app graph we want to create:
 <p>In the new distributed app, we will define the app graph in <code>endoscopy_tool_tracking</code> as the new app's fragment 1.
 The non distributed app <code>endoscopy_tool_tracking</code> had its <code>__init__()</code> and <code>compose()</code> methods structured like following:</p>
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">EndoscopyApp</span><span class="p">(</span><span class="n">Application</span><span class="p">):</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">record_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">&quot;replayer&quot;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">record_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">"replayer"</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="c1"># set self.name</span>
         <span class="o">...</span>
@@ -20521,46 +20521,46 @@ The non distributed app <code>endoscopy_tool_tracking</code> had its <code>__ini
         <span class="bp">self</span><span class="o">.</span><span class="n">model_path</span> <span class="o">=</span> <span class="n">model_path</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 
-        <span class="n">is_aja</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;aja&quot;</span>
+        <span class="n">is_aja</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"aja"</span>
 
-        <span class="n">pool</span> <span class="o">=</span> <span class="n">UnboundedAllocator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;fragment2_pool&quot;</span><span class="p">)</span>
-        <span class="n">in_dtype</span> <span class="o">=</span> <span class="s2">&quot;rgba8888&quot;</span> <span class="k">if</span> <span class="n">is_aja</span> <span class="k">else</span> <span class="s2">&quot;rgb888&quot;</span>
+        <span class="n">pool</span> <span class="o">=</span> <span class="n">UnboundedAllocator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"fragment2_pool"</span><span class="p">)</span>
+        <span class="n">in_dtype</span> <span class="o">=</span> <span class="s2">"rgba8888"</span> <span class="k">if</span> <span class="n">is_aja</span> <span class="k">else</span> <span class="s2">"rgb888"</span>
 
         <span class="n">out_of_body_preprocessor</span> <span class="o">=</span> <span class="n">FormatConverterOp</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
-            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;out_of_body_preprocessor&quot;</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">"out_of_body_preprocessor"</span><span class="p">,</span>
             <span class="n">pool</span><span class="o">=</span><span class="n">pool</span><span class="p">,</span>
             <span class="n">in_dtype</span><span class="o">=</span><span class="n">in_dtype</span><span class="p">,</span>
-            <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">(</span><span class="s2">&quot;out_of_body_preprocessor&quot;</span><span class="p">),</span>
+            <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">(</span><span class="s2">"out_of_body_preprocessor"</span><span class="p">),</span>
         <span class="p">)</span>
 
-        <span class="n">model_path_map</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;out_of_body&quot;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="p">,</span> <span class="s2">&quot;out_of_body_detection.onnx&quot;</span><span class="p">)}</span>
+        <span class="n">model_path_map</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"out_of_body"</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="p">,</span> <span class="s2">"out_of_body_detection.onnx"</span><span class="p">)}</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">model_path_map</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not find model file: </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">inference_kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">(</span><span class="s2">&quot;out_of_body_inference&quot;</span><span class="p">)</span>
-        <span class="n">inference_kwargs</span><span class="p">[</span><span class="s2">&quot;model_path_map&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_path_map</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Could not find model file: </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">inference_kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">(</span><span class="s2">"out_of_body_inference"</span><span class="p">)</span>
+        <span class="n">inference_kwargs</span><span class="p">[</span><span class="s2">"model_path_map"</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_path_map</span>
         <span class="n">out_of_body_inference</span> <span class="o">=</span> <span class="n">InferenceOp</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
-            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;out_of_body_inference&quot;</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">"out_of_body_inference"</span><span class="p">,</span>
             <span class="n">allocator</span><span class="o">=</span><span class="n">pool</span><span class="p">,</span>
             <span class="o">**</span><span class="n">inference_kwargs</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">out_of_body_postprocessor</span> <span class="o">=</span> <span class="n">InferenceProcessorOp</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
-            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;out_of_body_postprocessor&quot;</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">"out_of_body_postprocessor"</span><span class="p">,</span>
             <span class="n">allocator</span><span class="o">=</span><span class="n">pool</span><span class="p">,</span>
             <span class="n">disable_transmitter</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">(</span><span class="s2">&quot;out_of_body_postprocessor&quot;</span><span class="p">)</span>
+            <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">(</span><span class="s2">"out_of_body_postprocessor"</span><span class="p">)</span>
         <span class="p">)</span>
 
         <span class="c1"># add flow between operators</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">out_of_body_preprocessor</span><span class="p">,</span> <span class="n">out_of_body_inference</span><span class="p">,</span> <span class="p">{(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;receivers&quot;</span><span class="p">)})</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">out_of_body_inference</span><span class="p">,</span> <span class="n">out_of_body_postprocessor</span><span class="p">,</span> <span class="p">{(</span><span class="s2">&quot;transmitter&quot;</span><span class="p">,</span> <span class="s2">&quot;receivers&quot;</span><span class="p">)})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">out_of_body_preprocessor</span><span class="p">,</span> <span class="n">out_of_body_inference</span><span class="p">,</span> <span class="p">{(</span><span class="s2">""</span><span class="p">,</span> <span class="s2">"receivers"</span><span class="p">)})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">out_of_body_inference</span><span class="p">,</span> <span class="n">out_of_body_postprocessor</span><span class="p">,</span> <span class="p">{(</span><span class="s2">"transmitter"</span><span class="p">,</span> <span class="s2">"receivers"</span><span class="p">)})</span>
 </code></pre></div>
 <p>We can then define our distributed application with the following structure. Notice how the objects <code>self.record_type</code>, <code>self.source</code>, and <code>self.sample_data_path</code> are passed into each fragment.</p>
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">EndoscopyDistributedApp</span><span class="p">(</span><span class="n">Application</span><span class="p">):</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">record_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">&quot;replayer&quot;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">record_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">"replayer"</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="c1"># set self.name</span>
         <span class="o">...</span>
@@ -20568,20 +20568,20 @@ The non distributed app <code>endoscopy_tool_tracking</code> had its <code>__ini
         <span class="c1"># self.record_type, self.source, self.sample_data_path</span>
         <span class="o">...</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">is_aja</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;aja&quot;</span>
+        <span class="n">is_aja</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"aja"</span>
 
         <span class="n">fragment1</span> <span class="o">=</span> <span class="n">Fragment1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;fragment1&quot;</span><span class="p">,</span>
+                            <span class="n">name</span><span class="o">=</span><span class="s2">"fragment1"</span><span class="p">,</span>
                             <span class="n">source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">,</span>
-                            <span class="n">sample_data_path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_data_path</span><span class="p">,</span> <span class="s2">&quot;endoscopy&quot;</span><span class="p">),</span>
+                            <span class="n">sample_data_path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_data_path</span><span class="p">,</span> <span class="s2">"endoscopy"</span><span class="p">),</span>
                             <span class="n">record_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">record_type</span><span class="p">)</span>
         <span class="n">fragment2</span> <span class="o">=</span> <span class="n">Fragment2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;fragment2&quot;</span><span class="p">,</span>
+                            <span class="n">name</span><span class="o">=</span><span class="s2">"fragment2"</span><span class="p">,</span>
                             <span class="n">source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">,</span>
-                            <span class="n">model_path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_data_path</span><span class="p">,</span> <span class="s2">&quot;endoscopy_out_of_body_detection&quot;</span><span class="p">),</span>
+                            <span class="n">model_path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_data_path</span><span class="p">,</span> <span class="s2">"endoscopy_out_of_body_detection"</span><span class="p">),</span>
                             <span class="n">record_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">record_type</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">fragment1</span><span class="p">,</span> <span class="n">fragment2</span><span class="p">,</span> <span class="p">{(</span><span class="s2">&quot;aja.video_buffer_output&quot;</span> <span class="k">if</span> <span class="n">is_aja</span> <span class="k">else</span> <span class="s2">&quot;replayer.output&quot;</span><span class="p">,</span> <span class="s2">&quot;out_of_body_preprocessor&quot;</span><span class="p">)})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">fragment1</span><span class="p">,</span> <span class="n">fragment2</span><span class="p">,</span> <span class="p">{(</span><span class="s2">"aja.video_buffer_output"</span> <span class="k">if</span> <span class="n">is_aja</span> <span class="k">else</span> <span class="s2">"replayer.output"</span><span class="p">,</span> <span class="s2">"out_of_body_preprocessor"</span><span class="p">)})</span>
 </code></pre></div>
 <h3 id="changes-in-scenario-2-combining-objects-needed-by-each-fragments-in-distributed-app-init-time">Changes in scenario 2 - Combining objects needed by each fragments in distributed app init time<a class="headerlink" href="#changes-in-scenario-2-combining-objects-needed-by-each-fragments-in-distributed-app-init-time" title="Permanent link">#</a></h3>
 <p>Note how the <code>__init__()</code> method in the distributed app structured above is now the place to get parameters for the app graph composition for both fragment1 and fragment 2. In this case, Fragment1 needs the following objects at <code>__init__()</code> time:</p>
@@ -20667,7 +20667,7 @@ python3<span class="w"> </span>multi_ai.py<span class="w"> </span>--source<span 
 <span class="nb">cd</span><span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>applications/endoscopy_out_of_body_detection/endoscopy_out_of_body_detection<span class="w"> </span>--data<span class="w"> </span>../data/endoscopy_out_of_body_detection
 </code></pre></div>
 <p>Now we're ready to launch the distributed application in scenario 2.</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># don&#39;t forget to do this on both machines</span>
+<div class="highlight"><pre><span></span><code><span class="c1"># don't forget to do this on both machines</span>
 <span class="c1"># configure your PYTHONPATH environment variable</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span>/opt/nvidia/holoscan/lib/cmake/holoscan/../../../python/lib:/workspace/holohub/build/python/lib
 <span class="c1"># run in the build directory of Holohub in order to load extensions</span>

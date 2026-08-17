@@ -20215,11 +20215,11 @@
 
 <span class="c1"># Use the following commands to run the same application three processes:</span>
 <span class="c1"># Start the application with the video_in fragment</span>
-./holohub<span class="w"> </span>run<span class="w"> </span>ucx_h264_endoscopy_tool_tracking<span class="w"> </span>--language<span class="o">=</span>cpp<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--driver --worker --fragments video_in --address :10000 --worker-address :10001&quot;</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>ucx_h264_endoscopy_tool_tracking<span class="w"> </span>--language<span class="o">=</span>cpp<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--driver --worker --fragments video_in --address :10000 --worker-address :10001"</span>
 <span class="c1"># Start the application with the inference fragment</span>
-./holohub<span class="w"> </span>run<span class="w"> </span>ucx_h264_endoscopy_tool_tracking<span class="w"> </span>--language<span class="o">=</span>cpp<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--worker --fragments inference --address :10000 --worker-address :10002&quot;</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>ucx_h264_endoscopy_tool_tracking<span class="w"> </span>--language<span class="o">=</span>cpp<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--worker --fragments inference --address :10000 --worker-address :10002"</span>
 <span class="c1"># Start the application with the visualization fragment</span>
-./holohub<span class="w"> </span>run<span class="w"> </span>ucx_h264_endoscopy_tool_tracking<span class="w"> </span>--language<span class="o">=</span>cpp<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--worker --fragments viz --address :10000 --worker-address :10003&quot;</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>ucx_h264_endoscopy_tool_tracking<span class="w"> </span>--language<span class="o">=</span>cpp<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--worker --fragments viz --address :10000 --worker-address :10003"</span>
 </code></pre></div>
 <h3 id="python-build-and-run">Python (build and run)<a class="headerlink" href="#python-build-and-run" title="Permanent link">#</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Start the application with all three fragments</span>
@@ -20227,11 +20227,11 @@
 
 <span class="c1"># Use the following commands to run the same application three processes:</span>
 <span class="c1"># Start the application with the video_in fragment</span>
-./holohub<span class="w"> </span>run<span class="w"> </span>ucx_h264_endoscopy_tool_tracking<span class="w"> </span>--language<span class="o">=</span>python<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--driver --worker --fragments video_in --address :10000 --worker-address :10001&quot;</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>ucx_h264_endoscopy_tool_tracking<span class="w"> </span>--language<span class="o">=</span>python<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--driver --worker --fragments video_in --address :10000 --worker-address :10001"</span>
 <span class="c1"># Start the application with the inference fragment</span>
-./holohub<span class="w"> </span>run<span class="w"> </span>ucx_h264_endoscopy_tool_tracking<span class="w"> </span>--language<span class="o">=</span>python<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--worker --fragments inference --address :10000 --worker-address :10002&quot;</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>ucx_h264_endoscopy_tool_tracking<span class="w"> </span>--language<span class="o">=</span>python<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--worker --fragments inference --address :10000 --worker-address :10002"</span>
 <span class="c1"># Start the application with the visualization fragment</span>
-./holohub<span class="w"> </span>run<span class="w"> </span>ucx_h264_endoscopy_tool_tracking<span class="w"> </span>--language<span class="o">=</span>python<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--worker --fragments viz --address :10000 --worker-address :10003&quot;</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>ucx_h264_endoscopy_tool_tracking<span class="w"> </span>--language<span class="o">=</span>python<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--worker --fragments viz --address :10000 --worker-address :10003"</span>
 </code></pre></div>
 <p>Important: on aarch64, applications also need tegra folder mounted inside the container and
 the <code>LD_LIBRARY_PATH</code> environment variable should be updated to include

@@ -20162,7 +20162,7 @@ input file can be specified in the 'h264_video_decode.yaml' file.</li>
 <span class="c1"># Python version</span>
 <span class="c1"># Note: LD_PRELOAD required to address symbol issue</span>
 ./holohub<span class="w"> </span>run<span class="w"> </span>h264_video_decode<span class="w"> </span>--language<span class="w"> </span>python<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--docker-opts<span class="o">=</span><span class="s2">&quot;-e LD_PRELOAD=/opt/nvidia/holoscan/lib/libgxf_core.so&quot;</span>
+<span class="w">    </span>--docker-opts<span class="o">=</span><span class="s2">"-e LD_PRELOAD=/opt/nvidia/holoscan/lib/libgxf_core.so"</span>
 </code></pre></div>
 <p>Important: on aarch64, applications also need tegra folder mounted inside the container and
 the <code>LD_LIBRARY_PATH</code> environment variable should be updated to include

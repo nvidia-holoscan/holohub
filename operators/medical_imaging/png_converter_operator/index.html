@@ -20136,14 +20136,14 @@
 <span class="n">fragment</span> <span class="o">=</span> <span class="n">Fragment</span><span class="p">()</span>
 
 <span class="c1"># Create output directory</span>
-<span class="n">output_folder</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;output_png&quot;</span><span class="p">)</span>
+<span class="n">output_folder</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"output_png"</span><span class="p">)</span>
 <span class="n">output_folder</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># Create the PNG converter operator</span>
 <span class="n">png_op</span> <span class="o">=</span> <span class="n">PNGConverterOperator</span><span class="p">(</span>
     <span class="n">fragment</span><span class="p">,</span>
     <span class="n">output_folder</span><span class="o">=</span><span class="n">output_folder</span><span class="p">,</span>
-    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;png_converter&quot;</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">"png_converter"</span>
 <span class="p">)</span>
 
 <span class="c1"># Example: Convert a 3D medical image to PNG slices</span>

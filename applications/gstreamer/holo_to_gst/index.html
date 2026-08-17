@@ -20426,7 +20426,7 @@
 </ul>
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">#</a></h2>
 <p>The recommended way to run the application is through the <code>holohub</code> launcher with predefined modes:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span><span class="o">[</span>MODE<span class="o">]</span><span class="w"> </span><span class="o">[</span>--run-args<span class="o">=</span><span class="s2">&quot;[OPTIONS]&quot;</span><span class="o">]</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span><span class="o">[</span>MODE<span class="o">]</span><span class="w"> </span><span class="o">[</span>--run-args<span class="o">=</span><span class="s2">"[OPTIONS]"</span><span class="o">]</span>
 </code></pre></div>
 <p>Available modes:</p>
 <ul>
@@ -20434,7 +20434,7 @@
 <li><code>pattern</code> - Display animated gradient pattern</li>
 </ul>
 <p>You can override or extend mode settings with <code>--run-args</code>:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>v4l2<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--count 300 --pipeline &#39;...&#39;&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>v4l2<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--count 300 --pipeline '...'"</span>
 </code></pre></div>
 <p>Alternatively, if you know the binary location, you can run it directly:</p>
 <div class="highlight"><pre><span></span><code>holo-to-gst<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
@@ -20491,22 +20491,22 @@
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>v4l2
 </code></pre></div>
 <p><strong>Record from default V4L2 camera (30 seconds at 30 FPS, 1080p):</strong></p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>v4l2<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--count 900 --pipeline &#39;cudadownload name=src ! videoconvert ! x264enc ! mp4mux ! filesink location=/workspace/holohub/camera.mp4&#39;&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>v4l2<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--count 900 --pipeline 'cudadownload name=src ! videoconvert ! x264enc ! mp4mux ! filesink location=/workspace/holohub/camera.mp4'"</span>
 </code></pre></div>
 <p>The output file will be available at <code>holohub/camera.mp4</code> on your host.</p>
 <p><strong>Record at 720p resolution with GPU encoder:</strong></p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>v4l2<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--width 1280 --height 720 --count 600 --pipeline &#39;cudaconvert name=src ! nvh264enc ! h264parse ! mp4mux ! filesink location=/workspace/holohub/camera_720p.mp4&#39;&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>v4l2<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--width 1280 --height 720 --count 600 --pipeline 'cudaconvert name=src ! nvh264enc ! h264parse ! mp4mux ! filesink location=/workspace/holohub/camera_720p.mp4'"</span>
 </code></pre></div>
 <p><strong>Record in 4K (may require MJPG format for high resolution):</strong></p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>v4l2<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--width 3840 --height 2160 --pixel-format MJPG --count 300 --pipeline &#39;cudaconvert name=src ! nvh264enc ! h264parse ! mp4mux ! filesink location=/workspace/holohub/camera_4k.mp4&#39;&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>v4l2<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--width 3840 --height 2160 --pixel-format MJPG --count 300 --pipeline 'cudaconvert name=src ! nvh264enc ! h264parse ! mp4mux ! filesink location=/workspace/holohub/camera_4k.mp4'"</span>
 </code></pre></div>
 <p><strong>Stream camera over network (RTP):</strong></p>
 <p><strong>Important:</strong> For UDP streaming, start the receiver FIRST, then the sender. UDP is connectionless - packets sent before the receiver is ready are lost.</p>
 <p>Terminal 1 - Start receiver first:</p>
-<div class="highlight"><pre><span></span><code>gst-launch-1.0<span class="w"> </span>udpsrc<span class="w"> </span><span class="nv">port</span><span class="o">=</span><span class="m">5000</span><span class="w"> </span><span class="nv">caps</span><span class="o">=</span><span class="s2">&quot;application/x-rtp,encoding-name=H264&quot;</span><span class="w"> </span>!<span class="w"> </span>rtph264depay<span class="w"> </span>!<span class="w"> </span>h264parse<span class="w"> </span>!<span class="w"> </span>avdec_h264<span class="w"> </span>!<span class="w"> </span>videoconvert<span class="w"> </span>!<span class="w"> </span>autovideosink
+<div class="highlight"><pre><span></span><code>gst-launch-1.0<span class="w"> </span>udpsrc<span class="w"> </span><span class="nv">port</span><span class="o">=</span><span class="m">5000</span><span class="w"> </span><span class="nv">caps</span><span class="o">=</span><span class="s2">"application/x-rtp,encoding-name=H264"</span><span class="w"> </span>!<span class="w"> </span>rtph264depay<span class="w"> </span>!<span class="w"> </span>h264parse<span class="w"> </span>!<span class="w"> </span>avdec_h264<span class="w"> </span>!<span class="w"> </span>videoconvert<span class="w"> </span>!<span class="w"> </span>autovideosink
 </code></pre></div>
 <p>Terminal 2 - Then start streaming (no --count for continuous streaming):</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>v4l2<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--pipeline &#39;cudaconvert name=src ! nvh264enc ! h264parse ! rtph264pay ! udpsink host=127.0.0.1 port=5000&#39;&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>v4l2<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--pipeline 'cudaconvert name=src ! nvh264enc ! h264parse ! rtph264pay ! udpsink host=127.0.0.1 port=5000'"</span>
 </code></pre></div>
 <p><strong>Checking Camera Capabilities:</strong></p>
 <p>Before running, check your camera's supported formats and resolutions:</p>
@@ -20521,20 +20521,20 @@ v4l2-ctl<span class="w"> </span>--list-formats-ext<span class="w"> </span>-d<spa
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>pattern
 </code></pre></div>
 <p><strong>Display checkerboard pattern:</strong></p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>pattern<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--pattern 1&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>pattern<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--pattern 1"</span>
 </code></pre></div>
 <p><strong>Record pattern to file (10 seconds at 30 FPS):</strong></p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>pattern<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--count 300 --pipeline &#39;cudadownload name=src ! videoconvert ! x264enc ! mp4mux ! filesink location=/workspace/holohub/output.mp4&#39;&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>pattern<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--count 300 --pipeline 'cudadownload name=src ! videoconvert ! x264enc ! mp4mux ! filesink location=/workspace/holohub/output.mp4'"</span>
 </code></pre></div>
 <p><strong>Record 720p video:</strong></p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>pattern<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--width 1280 --height 720 --count 300 --pipeline &#39;cudadownload name=src ! videoconvert ! x264enc ! mp4mux ! filesink location=/workspace/holohub/output_720p.mp4&#39;&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>pattern<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--width 1280 --height 720 --count 300 --pipeline 'cudadownload name=src ! videoconvert ! x264enc ! mp4mux ! filesink location=/workspace/holohub/output_720p.mp4'"</span>
 </code></pre></div>
 <p><strong>Stream pattern over network:</strong></p>
 <p>Terminal 1 - Start receiver first:</p>
-<div class="highlight"><pre><span></span><code>gst-launch-1.0<span class="w"> </span>udpsrc<span class="w"> </span><span class="nv">port</span><span class="o">=</span><span class="m">5000</span><span class="w"> </span><span class="nv">caps</span><span class="o">=</span><span class="s2">&quot;application/x-rtp,encoding-name=H264&quot;</span><span class="w"> </span>!<span class="w"> </span>rtph264depay<span class="w"> </span>!<span class="w"> </span>h264parse<span class="w"> </span>!<span class="w"> </span>avdec_h264<span class="w"> </span>!<span class="w"> </span>videoconvert<span class="w"> </span>!<span class="w"> </span>autovideosink
+<div class="highlight"><pre><span></span><code>gst-launch-1.0<span class="w"> </span>udpsrc<span class="w"> </span><span class="nv">port</span><span class="o">=</span><span class="m">5000</span><span class="w"> </span><span class="nv">caps</span><span class="o">=</span><span class="s2">"application/x-rtp,encoding-name=H264"</span><span class="w"> </span>!<span class="w"> </span>rtph264depay<span class="w"> </span>!<span class="w"> </span>h264parse<span class="w"> </span>!<span class="w"> </span>avdec_h264<span class="w"> </span>!<span class="w"> </span>videoconvert<span class="w"> </span>!<span class="w"> </span>autovideosink
 </code></pre></div>
 <p>Terminal 2 - Then start streaming:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>pattern<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--pipeline &#39;cudadownload name=src ! videoconvert ! x264enc ! rtph264pay ! udpsink host=127.0.0.1 port=5000&#39;&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>holo_to_gst<span class="w"> </span>pattern<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--pipeline 'cudadownload name=src ! videoconvert ! x264enc ! rtph264pay ! udpsink host=127.0.0.1 port=5000'"</span>
 </code></pre></div>
 <h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">#</a></h2>
 <p>The application supports two video sources and uses GStreamer for output processing:</p>

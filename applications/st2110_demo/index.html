@@ -20334,15 +20334,15 @@
 <p>Edit <code>applications/st2110_demo/st2110_demo_config.yaml</code> to match your network setup:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">st2110_source</span><span class="p">:</span>
 <span class="w">  </span><span class="c1"># Network parameters - update these for your setup</span>
-<span class="w">  </span><span class="nt">multicast_address</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;239.255.66.60&quot;</span><span class="w">  </span><span class="c1"># Your ST 2110 multicast address</span>
+<span class="w">  </span><span class="nt">multicast_address</span><span class="p">:</span><span class="w"> </span><span class="s">"239.255.66.60"</span><span class="w">  </span><span class="c1"># Your ST 2110 multicast address</span>
 <span class="w">  </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">16388</span><span class="w">                          </span><span class="c1"># Your ST 2110 UDP port</span>
-<span class="w">  </span><span class="nt">interface_name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;eth0&quot;</span><span class="w">               </span><span class="c1"># Your network interface name</span>
+<span class="w">  </span><span class="nt">interface_name</span><span class="p">:</span><span class="w"> </span><span class="s">"eth0"</span><span class="w">               </span><span class="c1"># Your network interface name</span>
 
 <span class="w">  </span><span class="c1"># Video parameters - match your ST 2110 source</span>
 <span class="w">  </span><span class="nt">width</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1920</span>
 <span class="w">  </span><span class="nt">height</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1080</span>
 <span class="w">  </span><span class="nt">framerate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">50</span>
-<span class="w">  </span><span class="nt">stream_format</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;YCbCr-4:2:2-10bit&quot;</span>
+<span class="w">  </span><span class="nt">stream_format</span><span class="p">:</span><span class="w"> </span><span class="s">"YCbCr-4:2:2-10bit"</span>
 
 <span class="w">  </span><span class="c1"># Output format options</span>
 <span class="w">  </span><span class="nt">enable_rgba_output</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">   </span><span class="c1"># Enable RGBA conversion for display</span>
@@ -20393,8 +20393,8 @@ sudo<span class="w"> </span>sysctl<span class="w"> </span>-w<span class="w"> </s
 sudo<span class="w"> </span>sysctl<span class="w"> </span>-w<span class="w"> </span>net.core.rmem_default<span class="o">=</span><span class="m">268435456</span>
 
 <span class="c1"># Permanent (add to /etc/sysctl.conf)</span>
-<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;net.core.rmem_max=268435456&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>-a<span class="w"> </span>/etc/sysctl.conf
-<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;net.core.rmem_default=268435456&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>-a<span class="w"> </span>/etc/sysctl.conf
+<span class="nb">echo</span><span class="w"> </span><span class="s2">"net.core.rmem_max=268435456"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>-a<span class="w"> </span>/etc/sysctl.conf
+<span class="nb">echo</span><span class="w"> </span><span class="s2">"net.core.rmem_default=268435456"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>-a<span class="w"> </span>/etc/sysctl.conf
 </code></pre></div>
 <h3 id="multicast-routing">Multicast Routing<a class="headerlink" href="#multicast-routing" title="Permanent link">#</a></h3>
 <p>Ensure multicast traffic is routed to the correct interface:</p>
@@ -20416,12 +20416,12 @@ ip<span class="w"> </span>maddr<span class="w"> </span>show<span class="w"> </sp
 sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>gstreamer1.0-tools<span class="w"> </span>gstreamer1.0-plugins-base<span class="w"> </span><span class="se">\</span>
 <span class="w">                        </span>gstreamer1.0-plugins-good
 
-<span class="c1"># Configure multicast routing on the sender&#39;s interface</span>
+<span class="c1"># Configure multicast routing on the sender's interface</span>
 sudo<span class="w"> </span>ip<span class="w"> </span>route<span class="w"> </span>add<span class="w"> </span><span class="m">239</span>.0.0.0/8<span class="w"> </span>dev<span class="w"> </span>&lt;interface&gt;
 
 <span class="c1"># Start a 1080p25 UYVY test pattern (bouncing ball)</span>
 gst-launch-1.0<span class="w"> </span>videotestsrc<span class="w"> </span><span class="nv">pattern</span><span class="o">=</span>ball<span class="w"> </span>!<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span><span class="s2">&quot;video/x-raw,format=UYVY,width=1920,height=1080,framerate=25/1&quot;</span><span class="w"> </span>!<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="s2">"video/x-raw,format=UYVY,width=1920,height=1080,framerate=25/1"</span><span class="w"> </span>!<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>rtpvrawpay<span class="w"> </span>!<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>udpsink<span class="w"> </span><span class="nv">host</span><span class="o">=</span><span class="m">239</span>.255.66.60<span class="w"> </span><span class="nv">port</span><span class="o">=</span><span class="m">16388</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>multicast-iface<span class="o">=</span>&lt;interface&gt;<span class="w"> </span>auto-multicast<span class="o">=</span><span class="nb">true</span>
@@ -20437,13 +20437,13 @@ sudo<span class="w"> </span>ip<span class="w"> </span>route<span class="w"> </sp
 </code></pre></div>
 <p>Update <code>st2110_demo_config.yaml</code> to match the GStreamer sender:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">st2110_source</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">multicast_address</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;239.255.66.60&quot;</span>
+<span class="w">  </span><span class="nt">multicast_address</span><span class="p">:</span><span class="w"> </span><span class="s">"239.255.66.60"</span>
 <span class="w">  </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">16388</span>
-<span class="w">  </span><span class="nt">interface_name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;&lt;interface&gt;&quot;</span>
+<span class="w">  </span><span class="nt">interface_name</span><span class="p">:</span><span class="w"> </span><span class="s">"&lt;interface&gt;"</span>
 <span class="w">  </span><span class="nt">width</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1920</span>
 <span class="w">  </span><span class="nt">height</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1080</span>
 <span class="w">  </span><span class="nt">framerate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">25</span>
-<span class="w">  </span><span class="nt">stream_format</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;YCbCr-4:2:2-8bit&quot;</span><span class="w">   </span><span class="c1"># UYVY is 8-bit YCbCr-4:2:2</span>
+<span class="w">  </span><span class="nt">stream_format</span><span class="p">:</span><span class="w"> </span><span class="s">"YCbCr-4:2:2-8bit"</span><span class="w">   </span><span class="c1"># UYVY is 8-bit YCbCr-4:2:2</span>
 <span class="w">  </span><span class="nt">enable_rgba_output</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">  </span><span class="nt">enable_nv12_output</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
 </code></pre></div>

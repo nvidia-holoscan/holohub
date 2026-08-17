@@ -20144,18 +20144,18 @@
 <span class="n">fragment</span> <span class="o">=</span> <span class="n">Fragment</span><span class="p">()</span>
 <span class="n">seg_writer_op</span> <span class="o">=</span> <span class="n">DICOMSegmentationWriterOperator</span><span class="p">(</span>
     <span class="n">fragment</span><span class="p">,</span>
-    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;seg_writer&quot;</span><span class="p">,</span>  <span class="c1"># Optional operator name</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">"seg_writer"</span><span class="p">,</span>  <span class="c1"># Optional operator name</span>
     <span class="n">segment_descriptions</span><span class="o">=</span><span class="p">[</span>
         <span class="n">SegmentDescription</span><span class="p">(</span>
-            <span class="n">segment_label</span><span class="o">=</span><span class="s2">&quot;Liver&quot;</span><span class="p">,</span>
+            <span class="n">segment_label</span><span class="o">=</span><span class="s2">"Liver"</span><span class="p">,</span>
             <span class="n">segmented_property_category</span><span class="o">=</span><span class="n">codes</span><span class="o">.</span><span class="n">DCM</span><span class="o">.</span><span class="n">Organ</span><span class="p">,</span>
             <span class="n">segmented_property_type</span><span class="o">=</span><span class="n">codes</span><span class="o">.</span><span class="n">DCM</span><span class="o">.</span><span class="n">Liver</span><span class="p">,</span>
-            <span class="n">algorithm_name</span><span class="o">=</span><span class="s2">&quot;ExampleAlgorithm&quot;</span><span class="p">,</span>
-            <span class="n">algorithm_version</span><span class="o">=</span><span class="s2">&quot;1.0.0&quot;</span>
+            <span class="n">algorithm_name</span><span class="o">=</span><span class="s2">"ExampleAlgorithm"</span><span class="p">,</span>
+            <span class="n">algorithm_version</span><span class="o">=</span><span class="s2">"1.0.0"</span>
         <span class="p">)</span>
     <span class="p">],</span>
-    <span class="n">output_folder</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;output&quot;</span><span class="p">),</span>  <span class="c1"># Path to save the generated DICOM file(s)</span>
-    <span class="n">custom_tags</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;PatientName&quot;</span><span class="p">:</span> <span class="s2">&quot;DOE^JOHN&quot;</span><span class="p">},</span>  <span class="c1"># Optional: custom DICOM tags as a dict</span>
+    <span class="n">output_folder</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">"output"</span><span class="p">),</span>  <span class="c1"># Path to save the generated DICOM file(s)</span>
+    <span class="n">custom_tags</span><span class="o">=</span><span class="p">{</span><span class="s2">"PatientName"</span><span class="p">:</span> <span class="s2">"DOE^JOHN"</span><span class="p">},</span>  <span class="c1"># Optional: custom DICOM tags as a dict</span>
     <span class="n">omit_empty_frames</span><span class="o">=</span><span class="kc">True</span>  <span class="c1"># Whether to omit frames with no segmentation</span>
 <span class="p">)</span>
 </code></pre></div>

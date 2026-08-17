@@ -20604,8 +20604,8 @@
 <span class="c"># Pros: Independent of repository structure, automatic updates, no manual copying</span>
 <span class="c"># Cons: Requires internet connection, depends on GitHub availability</span>
 <span class="c"># Uncomment the following lines to use this approach (and comment out the internal include above):</span>
-<span class="c"># set(FETCH_HOLOHUB_OPERATOR_URL &quot;https://raw.githubusercontent.com/nvidia-holoscan/holohub/refs/heads/main/cmake/FetchHolohubOperator.cmake&quot;)</span>
-<span class="c"># set(FETCH_HOLOHUB_OPERATOR_LOCAL_PATH &quot;${CMAKE_CURRENT_BINARY_DIR}/FetchHolohubOperator.cmake&quot;)</span>
+<span class="c"># set(FETCH_HOLOHUB_OPERATOR_URL "https://raw.githubusercontent.com/nvidia-holoscan/holohub/refs/heads/main/cmake/FetchHolohubOperator.cmake")</span>
+<span class="c"># set(FETCH_HOLOHUB_OPERATOR_LOCAL_PATH "${CMAKE_CURRENT_BINARY_DIR}/FetchHolohubOperator.cmake")</span>
 <span class="c"># if(NOT EXISTS ${FETCH_HOLOHUB_OPERATOR_LOCAL_PATH})</span>
 <span class="c">#      file(DOWNLOAD</span>
 <span class="c">#          ${FETCH_HOLOHUB_OPERATOR_URL}</span>
@@ -20614,7 +20614,7 @@
 <span class="c">#          TLS_VERIFY ON</span>
 <span class="c">#      )</span>
 <span class="c">#      if(NOT EXISTS ${FETCH_HOLOHUB_OPERATOR_LOCAL_PATH})</span>
-<span class="c">#          message(FATAL_ERROR &quot;Failed to download FetchHolohubOperator.cmake from ${FETCH_HOLOHUB_OPERATOR_URL}&quot;)</span>
+<span class="c">#          message(FATAL_ERROR "Failed to download FetchHolohubOperator.cmake from ${FETCH_HOLOHUB_OPERATOR_URL}")</span>
 <span class="c">#      endif()</span>
 <span class="c"># endif()</span>
 <span class="c"># include(${FETCH_HOLOHUB_OPERATOR_LOCAL_PATH})</span>
@@ -20668,8 +20668,8 @@
 <li>❌ Not suitable for external applications</li>
 </ul>
 <h3 id="approach-1-download-from-github">Approach 1: Download from GitHub<a class="headerlink" href="#approach-1-download-from-github" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="w"> </span><span class="nb">set</span><span class="p">(</span><span class="s">FETCH_HOLOHUB_OPERATOR_URL</span><span class="w"> </span><span class="s2">&quot;https://raw.githubusercontent.com/nvidia-holoscan/holohub/refs/heads/main/cmake/FetchHolohubOperator.cmake&quot;</span><span class="p">)</span>
-<span class="w"> </span><span class="nb">set</span><span class="p">(</span><span class="s">FETCH_HOLOHUB_OPERATOR_LOCAL_PATH</span><span class="w"> </span><span class="s2">&quot;${CMAKE_CURRENT_BINARY_DIR}/FetchHolohubOperator.cmake&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="w"> </span><span class="nb">set</span><span class="p">(</span><span class="s">FETCH_HOLOHUB_OPERATOR_URL</span><span class="w"> </span><span class="s2">"https://raw.githubusercontent.com/nvidia-holoscan/holohub/refs/heads/main/cmake/FetchHolohubOperator.cmake"</span><span class="p">)</span>
+<span class="w"> </span><span class="nb">set</span><span class="p">(</span><span class="s">FETCH_HOLOHUB_OPERATOR_LOCAL_PATH</span><span class="w"> </span><span class="s2">"${CMAKE_CURRENT_BINARY_DIR}/FetchHolohubOperator.cmake"</span><span class="p">)</span>
 <span class="w"> </span><span class="nb">if</span><span class="p">(</span><span class="s">NOT</span><span class="w"> </span><span class="s">EXISTS</span><span class="w"> </span><span class="o">${</span><span class="nv">FETCH_HOLOHUB_OPERATOR_LOCAL_PATH</span><span class="o">}</span><span class="p">)</span>
 <span class="w">      </span><span class="nb">file</span><span class="p">(</span><span class="s">DOWNLOAD</span>
 <span class="w">          </span><span class="o">${</span><span class="nv">FETCH_HOLOHUB_OPERATOR_URL</span><span class="o">}</span>
@@ -20678,7 +20678,7 @@
 <span class="w">          </span><span class="s">TLS_VERIFY</span><span class="w"> </span><span class="s">ON</span>
 <span class="w">      </span><span class="p">)</span>
 <span class="w">      </span><span class="nb">if</span><span class="p">(</span><span class="s">NOT</span><span class="w"> </span><span class="s">EXISTS</span><span class="w"> </span><span class="o">${</span><span class="nv">FETCH_HOLOHUB_OPERATOR_LOCAL_PATH</span><span class="o">}</span><span class="p">)</span>
-<span class="w">          </span><span class="nb">message</span><span class="p">(</span><span class="s">FATAL_ERROR</span><span class="w"> </span><span class="s2">&quot;Failed to download FetchHolohubOperator.cmake from ${FETCH_HOLOHUB_OPERATOR_URL}&quot;</span><span class="p">)</span>
+<span class="w">          </span><span class="nb">message</span><span class="p">(</span><span class="s">FATAL_ERROR</span><span class="w"> </span><span class="s2">"Failed to download FetchHolohubOperator.cmake from ${FETCH_HOLOHUB_OPERATOR_URL}"</span><span class="p">)</span>
 <span class="w">      </span><span class="nb">endif</span><span class="p">()</span>
 <span class="w"> </span><span class="nb">endif</span><span class="p">()</span>
 <span class="w"> </span><span class="nb">include</span><span class="p">(</span><span class="o">${</span><span class="nv">FETCH_HOLOHUB_OPERATOR_LOCAL_PATH</span><span class="o">}</span><span class="p">)</span>
@@ -20741,10 +20741,10 @@
 <span class="nb">fetch_holohub_operator</span><span class="p">(</span><span class="s">dds_operator_base</span><span class="w"> </span><span class="s">PATH</span><span class="w"> </span><span class="s">dds/base</span><span class="p">)</span>
 
 <span class="c"># Fetch from a custom repository</span>
-<span class="nb">fetch_holohub_operator</span><span class="p">(</span><span class="s">custom_operator</span><span class="w"> </span><span class="s">REPO_URL</span><span class="w"> </span><span class="s2">&quot;https://github.com/custom/holohub.git&quot;</span><span class="p">)</span>
+<span class="nb">fetch_holohub_operator</span><span class="p">(</span><span class="s">custom_operator</span><span class="w"> </span><span class="s">REPO_URL</span><span class="w"> </span><span class="s2">"https://github.com/custom/holohub.git"</span><span class="p">)</span>
 
 <span class="c"># Fetch from a specific branch</span>
-<span class="nb">fetch_holohub_operator</span><span class="p">(</span><span class="s">custom_operator</span><span class="w"> </span><span class="s">BRANCH</span><span class="w"> </span><span class="s2">&quot;dev&quot;</span><span class="p">)</span>
+<span class="nb">fetch_holohub_operator</span><span class="p">(</span><span class="s">custom_operator</span><span class="w"> </span><span class="s">BRANCH</span><span class="w"> </span><span class="s2">"dev"</span><span class="p">)</span>
 
 <span class="c"># Fetch with full git history</span>
 <span class="nb">fetch_holohub_operator</span><span class="p">(</span><span class="s">custom_operator</span><span class="w"> </span><span class="s">DEPTH</span><span class="w"> </span><span class="s">0</span><span class="p">)</span>
@@ -20758,8 +20758,8 @@
 <span class="c"># Combine multiple parameters</span>
 <span class="nb">fetch_holohub_operator</span><span class="p">(</span><span class="s">custom_operator</span>
 <span class="w">    </span><span class="s">PATH</span><span class="w"> </span><span class="s">operators/custom</span>
-<span class="w">    </span><span class="s">REPO_URL</span><span class="w"> </span><span class="s2">&quot;https://github.com/my-org/custom-holohub.git&quot;</span>
-<span class="w">    </span><span class="s">BRANCH</span><span class="w"> </span><span class="s2">&quot;dev&quot;</span>
+<span class="w">    </span><span class="s">REPO_URL</span><span class="w"> </span><span class="s2">"https://github.com/my-org/custom-holohub.git"</span>
+<span class="w">    </span><span class="s">BRANCH</span><span class="w"> </span><span class="s2">"dev"</span>
 <span class="w">    </span><span class="s">DEPTH</span><span class="w"> </span><span class="s">0</span>
 <span class="w">    </span><span class="s">DISABLE_PYTHON</span>
 <span class="w">    </span><span class="s">PATCH_COMMAND</span><span class="w"> </span><span class="s">git</span><span class="w"> </span><span class="s">apply</span><span class="w"> </span><span class="o">${</span><span class="nv">CMAKE_CURRENT_SOURCE_DIR</span><span class="o">}</span><span class="s">/fix1.patch</span>
@@ -20791,8 +20791,8 @@
 </ul>
 <h3 id="5-create-your-application-code">5. Create Your Application Code<a class="headerlink" href="#5-create-your-application-code" title="Permanent link">#</a></h3>
 <p>Create a <code>main.cpp</code> file that uses the fetched operator:</p>
-<div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;holoscan/holoscan.hpp&quot;</span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;aja_source.hpp&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">"holoscan/holoscan.hpp"</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">"aja_source.hpp"</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">App</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">holoscan</span><span class="o">::</span><span class="n">Application</span><span class="w"> </span><span class="p">{</span>
 <span class="w"> </span><span class="k">public</span><span class="o">:</span>
@@ -20800,7 +20800,7 @@
 <span class="w">    </span><span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">holoscan</span><span class="p">;</span>
 
 <span class="w">    </span><span class="c1">// Create an instance of the AJA source operator</span>
-<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">aja_source</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">ops</span><span class="o">::</span><span class="n">AJASourceOp</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;aja&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">aja_source</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">ops</span><span class="o">::</span><span class="n">AJASourceOp</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"aja"</span><span class="p">);</span>
 
 <span class="w">    </span><span class="c1">// Add the operator to your application</span>
 <span class="w">    </span><span class="n">add_operator</span><span class="p">(</span><span class="n">aja_source</span><span class="p">);</span>
@@ -20850,7 +20850,7 @@ python3<span class="w"> </span>../main.py
 <span class="k">class</span><span class="w"> </span><span class="nc">App</span><span class="p">(</span><span class="n">Application</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Create an instance of the AJA source operator</span>
-        <span class="n">aja_source</span> <span class="o">=</span> <span class="n">AJASourceOp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;aja&quot;</span><span class="p">)</span>
+        <span class="n">aja_source</span> <span class="o">=</span> <span class="n">AJASourceOp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"aja"</span><span class="p">)</span>
 
         <span class="c1"># Add the operator to your application</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">add_operator</span><span class="p">(</span><span class="n">aja_source</span><span class="p">)</span>
@@ -20859,7 +20859,7 @@ python3<span class="w"> </span>../main.py
     <span class="n">app</span> <span class="o">=</span> <span class="n">App</span><span class="p">()</span>
     <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
     <span class="n">main</span><span class="p">()</span>
 </code></pre></div>
 <h4 id="python-bindings-location">Python Bindings Location<a class="headerlink" href="#python-bindings-location" title="Permanent link">#</a></h4>
@@ -20912,7 +20912,7 @@ python3<span class="w"> </span>../main.py
 </code></pre></div>
 <h3 id="using-different-branches">Using Different Branches<a class="headerlink" href="#using-different-branches" title="Permanent link">#</a></h3>
 <p>To use operators from a specific branch:</p>
-<div class="highlight"><pre><span></span><code><span class="nb">fetch_holohub_operator</span><span class="p">(</span><span class="s">experimental_operator</span><span class="w"> </span><span class="s">BRANCH</span><span class="w"> </span><span class="s2">&quot;experimental&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="nb">fetch_holohub_operator</span><span class="p">(</span><span class="s">experimental_operator</span><span class="w"> </span><span class="s">BRANCH</span><span class="w"> </span><span class="s2">"experimental"</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="applying-patches-to-operators">Applying Patches to Operators<a class="headerlink" href="#applying-patches-to-operators" title="Permanent link">#</a></h3>
 <p>You can apply custom patches to operators using the <code>PATCH_COMMAND</code> parameter:</p>

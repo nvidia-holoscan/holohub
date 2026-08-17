@@ -20198,7 +20198,7 @@
 <div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;csi_to_bayer_gpu_resident/csi_to_bayer_gpu_resident.hpp&gt;</span>
 
 <span class="c1">// In your application setup:</span>
-<span class="k">auto</span><span class="w"> </span><span class="n">csi_to_bayer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">hololink</span><span class="o">::</span><span class="n">operators</span><span class="o">::</span><span class="n">CsiToBayerGpuResidentOp</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;csi_to_bayer&quot;</span><span class="p">);</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">csi_to_bayer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">hololink</span><span class="o">::</span><span class="n">operators</span><span class="o">::</span><span class="n">CsiToBayerGpuResidentOp</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"csi_to_bayer"</span><span class="p">);</span>
 
 <span class="c1">// Configure the operator before initialization</span>
 <span class="n">csi_to_bayer</span><span class="o">-&gt;</span><span class="n">configure</span><span class="p">(</span>
@@ -20211,8 +20211,8 @@
 <span class="p">);</span>
 
 <span class="c1">// Add to your pipeline</span>
-<span class="n">add_flow</span><span class="p">(</span><span class="n">receiver</span><span class="p">,</span><span class="w"> </span><span class="n">csi_to_bayer</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="err">&#39;</span><span class="n">out</span><span class="err">&#39;</span><span class="p">,</span><span class="w"> </span><span class="err">&#39;</span><span class="n">in</span><span class="err">&#39;</span><span class="p">));</span>
-<span class="n">add_flow</span><span class="p">(</span><span class="n">csi_to_bayer</span><span class="p">,</span><span class="w"> </span><span class="n">next_operator</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="err">&#39;</span><span class="n">out</span><span class="err">&#39;</span><span class="p">,</span><span class="w"> </span><span class="err">&#39;</span><span class="n">in</span><span class="err">&#39;</span><span class="p">));</span>
+<span class="n">add_flow</span><span class="p">(</span><span class="n">receiver</span><span class="p">,</span><span class="w"> </span><span class="n">csi_to_bayer</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="err">'</span><span class="n">out</span><span class="err">'</span><span class="p">,</span><span class="w"> </span><span class="err">'</span><span class="n">in</span><span class="err">'</span><span class="p">));</span>
+<span class="n">add_flow</span><span class="p">(</span><span class="n">csi_to_bayer</span><span class="p">,</span><span class="w"> </span><span class="n">next_operator</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="err">'</span><span class="n">out</span><span class="err">'</span><span class="p">,</span><span class="w"> </span><span class="err">'</span><span class="n">in</span><span class="err">'</span><span class="p">));</span>
 </code></pre></div>
 <h2 id="supported-pixel-formats">Supported Pixel Formats<a class="headerlink" href="#supported-pixel-formats" title="Permanent link">#</a></h2>
 <ul>

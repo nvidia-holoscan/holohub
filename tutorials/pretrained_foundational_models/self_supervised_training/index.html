@@ -20223,11 +20223,11 @@ As part of the walk-through we will guide through the steps needed to pre-proces
 <h2 id="environment">Environment<a class="headerlink" href="#environment" title="Permanent link">#</a></h2>
 <p>All environment/dependencies are captured in the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/pretrained_foundational_models/self_supervised_training/Docker/Dockerfile">Dockerfile</a>. The exact software within the base container are <a href="https://docs.nvidia.com/deeplearning/frameworks/support-matrix/index.html">described here</a>.</p>
 <h3 id="create-docker-imagecontainer">Create Docker Image/Container<a class="headerlink" href="#create-docker-imagecontainer" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="nv">DATA_DIR</span><span class="o">=</span><span class="s2">&quot;/mnt/sdb/data&quot;</span><span class="w">  </span><span class="c1"># location of Cholec80 dataset</span>
+<div class="highlight"><pre><span></span><code><span class="nv">DATA_DIR</span><span class="o">=</span><span class="s2">"/mnt/sdb/data"</span><span class="w">  </span><span class="c1"># location of Cholec80 dataset</span>
 docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>surg_video_ssl_2202:latest<span class="w"> </span>Docker/
 
 <span class="c1"># sample Docker command (may need to update based on local setup)</span>
-docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </span>--gpus<span class="o">=</span><span class="s2">&quot;device=1&quot;</span><span class="w"> </span><span class="se">\</span>
+docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </span>--gpus<span class="o">=</span><span class="s2">"device=1"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--name<span class="o">=</span>SURGSSL_EXPS<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>-v<span class="w"> </span><span class="nv">$DATA_DIR</span>:/workspace/data<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>-v<span class="w"> </span><span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span>:/workspace/codes<span class="w"> </span>-w<span class="o">=</span>/workspace/codes/<span class="w"> </span><span class="se">\</span>
@@ -20246,7 +20246,7 @@ python3<span class="w"> </span>train_simclr_multigpu.py<span class="w"> </span>-
 </code></pre></div>
 <p>DOWNSTREAM TASK - Segmentation
 This script shows an example of taking the checkpoint above and integrating it into <a href="https://project-monai.github.io">MONAI</a>.</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Fine-Tuning on &quot;GPU 1&quot; with 10% of the dataset, while freezing the encoder</span>
+<div class="highlight"><pre><span></span><code><span class="c1"># Fine-Tuning on "GPU 1" with 10% of the dataset, while freezing the encoder</span>
 python3<span class="w"> </span>downstream_task_tool_segmentation.py<span class="w"> </span>--gpu<span class="w"> </span><span class="m">1</span><span class="w"> </span>--perc<span class="w"> </span><span class="m">10</span><span class="w"> </span>--exp<span class="w"> </span>simclr<span class="w"> </span>--freeze
 </code></pre></div>
 <h2 id="modelcheckpoints-information">Model/Checkpoints information<a class="headerlink" href="#modelcheckpoints-information" title="Permanent link">#</a></h2>

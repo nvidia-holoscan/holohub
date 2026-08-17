@@ -20746,7 +20746,7 @@
 ./holohub<span class="w"> </span>run<span class="w"> </span>surgical_scene_recon<span class="w"> </span>verify_train
 </code></pre></div>
 <p>To pass extra arguments to the app (e.g. more iterations), use <code>--run-args</code>:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>surgical_scene_recon<span class="w"> </span>full<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--training-iterations 7000 --coarse-iterations 1000&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>surgical_scene_recon<span class="w"> </span>full<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--training-iterations 7000 --coarse-iterations 1000"</span>
 </code></pre></div>
 <h2 id="data">Data<a class="headerlink" href="#data" title="Permanent link">#</a></h2>
 <h3 id="automatic-download-default">Automatic Download (Default)<a class="headerlink" href="#automatic-download-default" title="Permanent link">#</a></h3>
@@ -20996,7 +20996,7 @@ wget<span class="w"> </span>-O<span class="w"> </span>data/surgical_scene_recon/
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span><span class="nb">test</span><span class="w"> </span>surgical_scene_recon<span class="w"> </span>--verbose
 </code></pre></div>
 <p>Run a <strong>single test</strong> by name:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span><span class="nb">test</span><span class="w"> </span>surgical_scene_recon<span class="w"> </span>--ctest-options<span class="o">=</span><span class="s2">&quot;-R surgical_scene_recon_test_all_imports -VV&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span><span class="nb">test</span><span class="w"> </span>surgical_scene_recon<span class="w"> </span>--ctest-options<span class="o">=</span><span class="s2">"-R surgical_scene_recon_test_all_imports -VV"</span>
 </code></pre></div>
 <h2 id="command-line-arguments">Command Line Arguments<a class="headerlink" href="#command-line-arguments" title="Permanent link">#</a></h2>
 <table>
@@ -21097,7 +21097,7 @@ wget<span class="w"> </span>-O<span class="w"> </span>data/surgical_scene_recon/
 </table>
 <h2 id="incremental-runs">Incremental Runs<a class="headerlink" href="#incremental-runs" title="Permanent link">#</a></h2>
 <p>Use <code>--skip-*</code> flags to re-run only specific phases. For example, to re-train with more iterations while reusing Phase 1–3 output:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>surgical_scene_recon<span class="w"> </span>full<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;--skip-phase1 --skip-phase2 --skip-phase3 --training-iterations 7000 --coarse-iterations 1000&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>surgical_scene_recon<span class="w"> </span>full<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"--skip-phase1 --skip-phase2 --skip-phase3 --training-iterations 7000 --coarse-iterations 1000"</span>
 </code></pre></div>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h2>
 <h3 id="problem-filenotfounderror-no-png-files-found">Problem: "FileNotFoundError: No PNG files found"<a class="headerlink" href="#problem-filenotfounderror-no-png-files-found" title="Permanent link">#</a></h3>
@@ -21163,7 +21163,7 @@ wget<span class="w"> </span>-O<span class="w"> </span>data/surgical_scene_recon/
 </ul>
 <div class="highlight"><pre><span></span><code><span class="nc">@article</span><span class="p">{</span><span class="nl">kerbl20233d</span><span class="p">,</span>
 <span class="w">  </span><span class="na">title</span><span class="p">=</span><span class="s">{3d gaussian splatting for real-time radiance field rendering}</span><span class="p">,</span>
-<span class="w">  </span><span class="na">author</span><span class="p">=</span><span class="s">{Kerbl, Bernhard and Kopanas, Georgios and Leimk{\&quot;u}hler, Thomas and Drettakis, George}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">author</span><span class="p">=</span><span class="s">{Kerbl, Bernhard and Kopanas, Georgios and Leimk{\"u}hler, Thomas and Drettakis, George}</span><span class="p">,</span>
 <span class="w">  </span><span class="na">journal</span><span class="p">=</span><span class="s">{ACM Transactions on Graphics}</span><span class="p">,</span>
 <span class="w">  </span><span class="na">year</span><span class="p">=</span><span class="s">{2023}</span>
 <span class="p">}</span>

@@ -20129,7 +20129,7 @@ keys:</p>
 do that, you could use a <code>CountCondition</code> to limit the number of
 times this operator runs:</p>
 <div class="highlight"><pre><span></span><code><span class="k">auto</span><span class="w"> </span><span class="n">dataWriterOp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">ops</span><span class="o">::</span><span class="n">DataWriter</span><span class="o">&gt;</span><span class="p">(</span>
-<span class="w">    </span><span class="s">&quot;dataWriterOp&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s">"dataWriterOp"</span><span class="p">,</span>
 <span class="w">    </span><span class="n">make_condition</span><span class="o">&lt;</span><span class="n">CountCondition</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">1</span><span class="p">));</span>
 </code></pre></div>
 

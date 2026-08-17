@@ -20157,11 +20157,11 @@
 <span class="n">fragment</span> <span class="o">=</span> <span class="n">Fragment</span><span class="p">()</span>
 
 <span class="c1"># Initialize the NIfTI loader with a path to your NIfTI file</span>
-<span class="n">nii_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;path/to/your/image.nii&quot;</span><span class="p">)</span>  <span class="c1"># or .nii.gz</span>
+<span class="n">nii_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"path/to/your/image.nii"</span><span class="p">)</span>  <span class="c1"># or .nii.gz</span>
 <span class="n">nii_loader</span> <span class="o">=</span> <span class="n">NiftiDataLoader</span><span class="p">(</span><span class="n">fragment</span><span class="p">,</span> <span class="n">input_path</span><span class="o">=</span><span class="n">nii_path</span><span class="p">)</span>
 
 <span class="c1"># The operator can be used in a pipeline</span>
-<span class="c1"># The output port &#39;image&#39; will contain the loaded image as a numpy array</span>
+<span class="c1"># The output port 'image' will contain the loaded image as a numpy array</span>
 <span class="c1"># You can connect it to other operators that expect image data</span>
 </code></pre></div>
 <h2 id="inputoutput-ports">Input/Output Ports<a class="headerlink" href="#inputoutput-ports" title="Permanent link">#</a></h2>

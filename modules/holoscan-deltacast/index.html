@@ -20418,7 +20418,7 @@ See <code>./holohub list</code> for more details.</p>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">MyApp</span><span class="p">(</span><span class="n">Application</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">source</span> <span class="o">=</span> <span class="n">VideoMasterSourceOp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;source&quot;</span><span class="p">)</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">VideoMasterSourceOp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"source"</span><span class="p">)</span>
         <span class="c1"># connect with add_flow(source, downstream_op, ...)</span>
 
 
@@ -20431,7 +20431,7 @@ See <code>./holohub list</code> for more details.</p>
 <span class="k">class</span><span class="w"> </span><span class="nc">MyApp</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">holoscan</span><span class="o">::</span><span class="n">Application</span><span class="w"> </span><span class="p">{</span>
 <span class="w"> </span><span class="k">public</span><span class="o">:</span>
 <span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="n">compose</span><span class="p">()</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">source</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">holoscan</span><span class="o">::</span><span class="n">ops</span><span class="o">::</span><span class="n">VideoMasterSourceOp</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;source&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">source</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_operator</span><span class="o">&lt;</span><span class="n">holoscan</span><span class="o">::</span><span class="n">ops</span><span class="o">::</span><span class="n">VideoMasterSourceOp</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"source"</span><span class="p">);</span>
 <span class="w">    </span><span class="c1">// connect with add_flow(source, downstream_op, ...);</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">};</span>

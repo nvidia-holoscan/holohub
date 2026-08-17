@@ -20188,7 +20188,7 @@ The application listens for request messages to start retrieving resources from 
 <p>This is the simplest and fastest way to start the application in a Holohub dev container and get it ready to listen to request messages.</p>
 <p><strong><em>Note</em></strong>:
 Please use your own FHIR server endpoint, as well as the OAuth2.0 authorization endpoint and client credentials as needed.</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>fhir<span class="w"> </span>--run-args<span class="w"> </span><span class="s2">&quot;--fhir_url &lt;f_url&gt; --auth_url &lt;a_url&gt; --uid &lt;id&gt; --secret &lt;token&gt;&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>fhir<span class="w"> </span>--run-args<span class="w"> </span><span class="s2">"--fhir_url &lt;f_url&gt; --auth_url &lt;a_url&gt; --uid &lt;id&gt; --secret &lt;token&gt;"</span>
 </code></pre></div>
 <h3 id="run-the-application-in-holohub-dev-container">Run the Application in Holohub Dev Container<a class="headerlink" href="#run-the-application-in-holohub-dev-container" title="Permanent link">#</a></h3>
 <p><strong>Launch the container:</strong></p>
@@ -20201,7 +20201,7 @@ Please use your own FHIR server endpoint, as well as the OAuth2.0 authorization 
 /workspace/holohub
 
 ~$<span class="w"> </span>./holohub<span class="w"> </span>clear-cache
-~$<span class="w"> </span>./holohub<span class="w"> </span>run<span class="w"> </span>fhir<span class="w"> </span>--run-args<span class="w"> </span><span class="s2">&quot;--fhir_url &lt;f_url&gt; --auth_url &lt;a_url&gt; --uid &lt;id&gt; --secret &lt;token&gt;&quot;</span>
+~$<span class="w"> </span>./holohub<span class="w"> </span>run<span class="w"> </span>fhir<span class="w"> </span>--run-args<span class="w"> </span><span class="s2">"--fhir_url &lt;f_url&gt; --auth_url &lt;a_url&gt; --uid &lt;id&gt; --secret &lt;token&gt;"</span>
 </code></pre></div>
 <p>Once done, <code>exit</code> the container.</p>
 <h3 id="run-the-application-in-the-host-dev-environment-bare-metal">Run the Application in the Host Dev Environment (Bare Metal)<a class="headerlink" href="#run-the-application-in-the-host-dev-environment-bare-metal" title="Permanent link">#</a></h3>
@@ -20226,7 +20226,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </s
 <p>Once the FHIR application has been started with one of the above methods, a test application can be used to request and receive FHIR resources, namely <code>applications/ehr_query_llm/fhir/test_fhir_client.py</code>.</p>
 <p>The test application contains hard-coded patient name, patient FHIR resource ID, etc., corresponding to a specific test dataset, though it can be easily modified for another dataset.</p>
 <p>It is strongly recommended to run this test application in a Python virtual environment, which can be the same as that used for running the FHIR application. The following describes running it in its own environment:</p>
-<div class="highlight"><pre><span></span><code><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Assuming venv already created with \`python3 -m venv .testenv\`&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="nb">echo</span><span class="w"> </span><span class="s2">"Assuming venv already created with \`python3 -m venv .testenv\`"</span>
 <span class="nb">source</span><span class="w"> </span>.testenv/bin/activate
 pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>applications/ehr_query_llm/fhir/requirements.txt
 <span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="si">${</span><span class="nv">PWD</span><span class="si">}</span>

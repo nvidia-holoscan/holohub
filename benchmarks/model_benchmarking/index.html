@@ -20056,7 +20056,7 @@ ffmpeg version 4.2.7-0ubuntu0.1 Copyright (c) 2000-2022 the FFmpeg developers
   ...
 [mov,mp4,m4a,3gp,3g2,mj2 @ 0x560a570b0740] st: 0 edit list: 1 Missing key frame while searching for timestamp: 0
 ...
-Input #0, mov,mp4,m4a,3gp,3g2,mj2, from &#39;./data/ultrasound_segmentation/ultrasound_256x256.avi&#39;:
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from './data/ultrasound_segmentation/ultrasound_256x256.avi':
 ...
 </code></pre></div>
 <p>Now, the benchmarking application can be built and run:</p>
@@ -20066,10 +20066,10 @@ Input #0, mov,mp4,m4a,3gp,3g2,mj2, from &#39;./data/ultrasound_segmentation/ultr
 <p>To use a different model, you can specify the data path in the
 <code>./holohub run model_benchmarking --language=&lt;cpp/python&gt; --local --no-local-build</code> command with the <code>-d</code> option, and the model name,
 residing in the data path directory, with the <code>-m</code> option.</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>model_benchmarking<span class="w"> </span>--language<span class="o">=</span>&lt;cpp/python&gt;<span class="w"> </span>--local<span class="w"> </span>--no-local-build<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;-d &lt;data_path&gt; -m &lt;model_name&gt;&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>model_benchmarking<span class="w"> </span>--language<span class="o">=</span>&lt;cpp/python&gt;<span class="w"> </span>--local<span class="w"> </span>--no-local-build<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"-d &lt;data_path&gt; -m &lt;model_name&gt;"</span>
 </code></pre></div>
 <p>To check the full list of options, run:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>model_benchmarking<span class="w"> </span>--language<span class="o">=</span>&lt;cpp/python&gt;<span class="w"> </span>--local<span class="w"> </span>--no-local-build<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">&quot;-h&quot;</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>model_benchmarking<span class="w"> </span>--language<span class="o">=</span>&lt;cpp/python&gt;<span class="w"> </span>--local<span class="w"> </span>--no-local-build<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"-h"</span>
 </code></pre></div>
 <h2 id="capabilities">Capabilities<a class="headerlink" href="#capabilities" title="Permanent link">#</a></h2>
 <p>This benchmarking application can be used to measure performance of parallel inferences for the same

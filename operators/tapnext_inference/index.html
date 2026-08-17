@@ -20258,21 +20258,21 @@ device memory) and a video frame:</p>
 <p>The constructor accepts the same parameters as keyword arguments:</p>
 <div class="highlight"><pre><span></span><code><span class="n">tapnext</span> <span class="o">=</span> <span class="n">TapNextInferenceOp</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
-    <span class="n">model_file_path_init</span><span class="o">=</span><span class="s2">&quot;/path/to/init.onnx&quot;</span><span class="p">,</span>
-    <span class="n">model_file_path_fwd</span><span class="o">=</span><span class="s2">&quot;/path/to/fwd.onnx&quot;</span><span class="p">,</span>
-    <span class="n">engine_cache_dir</span><span class="o">=</span><span class="s2">&quot;/tmp/engines&quot;</span><span class="p">,</span>
-    <span class="n">input_tensor_names_init</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;video&quot;</span><span class="p">,</span> <span class="s2">&quot;query_points&quot;</span><span class="p">],</span>
-    <span class="n">input_binding_names_init</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;video&quot;</span><span class="p">,</span> <span class="s2">&quot;query_points&quot;</span><span class="p">],</span>
-    <span class="n">output_tensor_names_init</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;tracks&quot;</span><span class="p">,</span> <span class="s2">&quot;visible&quot;</span><span class="p">,</span> <span class="s2">&quot;state&quot;</span><span class="p">],</span>
-    <span class="n">output_binding_names_init</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;tracks&quot;</span><span class="p">,</span> <span class="s2">&quot;visible&quot;</span><span class="p">,</span> <span class="s2">&quot;state&quot;</span><span class="p">],</span>
-    <span class="n">input_tensor_names_fwd</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;video&quot;</span><span class="p">,</span> <span class="s2">&quot;query_points&quot;</span><span class="p">,</span> <span class="s2">&quot;state&quot;</span><span class="p">],</span>
-    <span class="n">input_binding_names_fwd</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;video&quot;</span><span class="p">,</span> <span class="s2">&quot;query_points&quot;</span><span class="p">,</span> <span class="s2">&quot;state&quot;</span><span class="p">],</span>
-    <span class="n">output_tensor_names_fwd</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;tracks&quot;</span><span class="p">,</span> <span class="s2">&quot;visible&quot;</span><span class="p">,</span> <span class="s2">&quot;state&quot;</span><span class="p">],</span>
-    <span class="n">output_binding_names_fwd</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;tracks&quot;</span><span class="p">,</span> <span class="s2">&quot;visible&quot;</span><span class="p">,</span> <span class="s2">&quot;state&quot;</span><span class="p">],</span>
-    <span class="n">state_tensor_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;state&quot;</span><span class="p">],</span>
+    <span class="n">model_file_path_init</span><span class="o">=</span><span class="s2">"/path/to/init.onnx"</span><span class="p">,</span>
+    <span class="n">model_file_path_fwd</span><span class="o">=</span><span class="s2">"/path/to/fwd.onnx"</span><span class="p">,</span>
+    <span class="n">engine_cache_dir</span><span class="o">=</span><span class="s2">"/tmp/engines"</span><span class="p">,</span>
+    <span class="n">input_tensor_names_init</span><span class="o">=</span><span class="p">[</span><span class="s2">"video"</span><span class="p">,</span> <span class="s2">"query_points"</span><span class="p">],</span>
+    <span class="n">input_binding_names_init</span><span class="o">=</span><span class="p">[</span><span class="s2">"video"</span><span class="p">,</span> <span class="s2">"query_points"</span><span class="p">],</span>
+    <span class="n">output_tensor_names_init</span><span class="o">=</span><span class="p">[</span><span class="s2">"tracks"</span><span class="p">,</span> <span class="s2">"visible"</span><span class="p">,</span> <span class="s2">"state"</span><span class="p">],</span>
+    <span class="n">output_binding_names_init</span><span class="o">=</span><span class="p">[</span><span class="s2">"tracks"</span><span class="p">,</span> <span class="s2">"visible"</span><span class="p">,</span> <span class="s2">"state"</span><span class="p">],</span>
+    <span class="n">input_tensor_names_fwd</span><span class="o">=</span><span class="p">[</span><span class="s2">"video"</span><span class="p">,</span> <span class="s2">"query_points"</span><span class="p">,</span> <span class="s2">"state"</span><span class="p">],</span>
+    <span class="n">input_binding_names_fwd</span><span class="o">=</span><span class="p">[</span><span class="s2">"video"</span><span class="p">,</span> <span class="s2">"query_points"</span><span class="p">,</span> <span class="s2">"state"</span><span class="p">],</span>
+    <span class="n">output_tensor_names_fwd</span><span class="o">=</span><span class="p">[</span><span class="s2">"tracks"</span><span class="p">,</span> <span class="s2">"visible"</span><span class="p">,</span> <span class="s2">"state"</span><span class="p">],</span>
+    <span class="n">output_binding_names_fwd</span><span class="o">=</span><span class="p">[</span><span class="s2">"tracks"</span><span class="p">,</span> <span class="s2">"visible"</span><span class="p">,</span> <span class="s2">"state"</span><span class="p">],</span>
+    <span class="n">state_tensor_names</span><span class="o">=</span><span class="p">[</span><span class="s2">"state"</span><span class="p">],</span>
     <span class="n">pool</span><span class="o">=</span><span class="n">allocator</span><span class="p">,</span>
     <span class="n">cuda_stream_pool</span><span class="o">=</span><span class="n">cuda_stream_pool</span><span class="p">,</span>
-    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;tapnext_inference&quot;</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">"tapnext_inference"</span><span class="p">,</span>
 <span class="p">)</span>
 </code></pre></div>
 <h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>

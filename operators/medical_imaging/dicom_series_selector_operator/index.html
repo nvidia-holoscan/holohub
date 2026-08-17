@@ -20132,13 +20132,13 @@
 <span class="n">fragment</span> <span class="o">=</span> <span class="n">Fragment</span><span class="p">()</span>
 <span class="n">selector_op</span> <span class="o">=</span> <span class="n">DICOMSeriesSelectorOperator</span><span class="p">(</span>
     <span class="n">fragment</span><span class="p">,</span>
-    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;series_selector&quot;</span><span class="p">,</span>  <span class="c1"># Optional operator name</span>
-    <span class="n">rules</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">"series_selector"</span><span class="p">,</span>  <span class="c1"># Optional operator name</span>
+    <span class="n">rules</span><span class="o">=</span><span class="s2">"""</span>
 <span class="s2">    {</span>
-<span class="s2">        &quot;Modality&quot;: &quot;CT&quot;,</span>
-<span class="s2">        &quot;SeriesDescription&quot;: &quot;Axial&quot;</span>
+<span class="s2">        "Modality": "CT",</span>
+<span class="s2">        "SeriesDescription": "Axial"</span>
 <span class="s2">    }</span>
-<span class="s2">    &quot;&quot;&quot;</span><span class="p">,</span>  <span class="c1"># JSON string defining selection rules</span>
+<span class="s2">    """</span><span class="p">,</span>  <span class="c1"># JSON string defining selection rules</span>
     <span class="n">all_matched</span><span class="o">=</span><span class="kc">False</span>  <span class="c1"># Whether all rules must match (AND) or any rule can match (OR)</span>
 <span class="p">)</span>
 </code></pre></div>

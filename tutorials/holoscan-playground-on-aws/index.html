@@ -20361,7 +20361,7 @@ Note: If <code>g5.xlarge</code> is not available in any region/subnet accessible
 <div class="highlight"><pre><span></span><code><span class="nv">XSOCK</span><span class="o">=</span>/tmp/.X11-unix
 <span class="nv">XAUTH</span><span class="o">=</span>/tmp/.docker.xauth
 <span class="c1"># the error “file does not exist” is expected at the next command</span>
-xauth<span class="w"> </span>nlist<span class="w"> </span><span class="nv">$DISPLAY</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sed<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;s/^..../ffff/&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>xauth<span class="w"> </span>-f<span class="w"> </span><span class="nv">$XAUTH</span><span class="w"> </span>nmerge<span class="w"> </span>-
+xauth<span class="w"> </span>nlist<span class="w"> </span><span class="nv">$DISPLAY</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sed<span class="w"> </span>-e<span class="w"> </span><span class="s1">'s/^..../ffff/'</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>xauth<span class="w"> </span>-f<span class="w"> </span><span class="nv">$XAUTH</span><span class="w"> </span>nmerge<span class="w"> </span>-
 sudo<span class="w"> </span>chmod<span class="w"> </span><span class="m">777</span><span class="w"> </span><span class="nv">$XAUTH</span>
 docker<span class="w"> </span>run<span class="w"> </span>-ti<span class="w"> </span>-e<span class="w"> </span><span class="nv">DISPLAY</span><span class="o">=</span><span class="nv">$DISPLAY</span><span class="w"> </span>-v<span class="w"> </span><span class="nv">$XSOCK</span>:<span class="nv">$XSOCK</span><span class="w"> </span>-v<span class="w"> </span><span class="nv">$XAUTH</span>:<span class="nv">$XAUTH</span><span class="w"> </span>-e<span class="w"> </span><span class="nv">XAUTHORITY</span><span class="o">=</span><span class="nv">$XAUTH</span><span class="w"> </span>--net<span class="w"> </span>host<span class="w"> </span>ubuntu:latest
 </code></pre></div>
@@ -20382,9 +20382,9 @@ sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> <
 
 xhost<span class="w"> </span>+local:docker
 
-<span class="nv">nvidia_icd_json</span><span class="o">=</span><span class="k">$(</span>find<span class="w"> </span>/usr/share<span class="w"> </span>/etc<span class="w"> </span>-path<span class="w"> </span><span class="s1">&#39;*/vulkan/icd.d/nvidia_icd.json&#39;</span><span class="w"> </span>-type<span class="w"> </span>f,l<span class="w"> </span>-print<span class="w"> </span>-quit<span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>.<span class="k">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="o">(</span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;nvidia_icd.json not found&quot;</span><span class="w"> </span>&gt;<span class="p">&amp;</span><span class="m">2</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">false</span><span class="o">)</span>
+<span class="nv">nvidia_icd_json</span><span class="o">=</span><span class="k">$(</span>find<span class="w"> </span>/usr/share<span class="w"> </span>/etc<span class="w"> </span>-path<span class="w"> </span><span class="s1">'*/vulkan/icd.d/nvidia_icd.json'</span><span class="w"> </span>-type<span class="w"> </span>f,l<span class="w"> </span>-print<span class="w"> </span>-quit<span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>.<span class="k">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="o">(</span><span class="nb">echo</span><span class="w"> </span><span class="s2">"nvidia_icd.json not found"</span><span class="w"> </span>&gt;<span class="p">&amp;</span><span class="m">2</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">false</span><span class="o">)</span>
 
-<span class="nb">export</span><span class="w"> </span><span class="nv">NGC_CONTAINER_IMAGE_PATH</span><span class="o">=</span><span class="s2">&quot;nvcr.io/nvidia/clara-holoscan/holoscan:v0.6.0-dgpu&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">NGC_CONTAINER_IMAGE_PATH</span><span class="o">=</span><span class="s2">"nvcr.io/nvidia/clara-holoscan/holoscan:v0.6.0-dgpu"</span>
 
 docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </span>--rm<span class="w"> </span>--net<span class="w"> </span>host<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--gpus<span class="w"> </span>all<span class="w"> </span><span class="se">\</span>
@@ -20430,7 +20430,7 @@ docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </s
 <p>This example applies a Gaussian filtering to each frame of an endoscopy video stream and displays the filtered (blurred) video stream. You should see a window like below</p>
 <p><a href="https://github.com/jin-nvidia/holohub/assets/60405124/b043637b-5fd9-4ee1-abc5-0dae069e785f">https://github.com/jin-nvidia/holohub/assets/60405124/b043637b-5fd9-4ee1-abc5-0dae069e785f</a></p>
 <p>The native Python operator is defined at <a href="https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/examples/tensor_interop/python/tensor_interop.py#L37">tensor_interop.py#L37</a>. We can see in the initialization <code>__init__()</code> of the operator, <code>self.count</code> was initialize to 1. In the <code>setup()</code> method, the input message, output message and the parameter <code>sigma</code> is defined. The <code>compute()</code> method is what gets called every time. In the <code>compute()</code> method, first we receive the upstream tensor by</p>
-<div class="highlight"><pre><span></span><code><span class="n">in_message</span> <span class="o">=</span> <span class="n">op_input</span><span class="o">.</span><span class="n">receive</span><span class="p">(</span><span class="s2">&quot;input_tensor&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">in_message</span> <span class="o">=</span> <span class="n">op_input</span><span class="o">.</span><span class="n">receive</span><span class="p">(</span><span class="s2">"input_tensor"</span><span class="p">)</span>
 </code></pre></div>
 <p>Please note that <code>input_tensor</code> is the name defined in <code>setup()</code>.</p>
 <p><code>cp_array</code> is the CuPy array that holds the output value after the Gaussian filter, and we can see that the way the CuPy array gets transmitted downstream is</p>
@@ -20439,12 +20439,12 @@ docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </s
 <span class="c1"># add each CuPy array to the out_message dictionary</span>
 <span class="n">out_message</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">cp_array</span>
 <span class="err">…</span>
-<span class="n">op_output</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">out_message</span><span class="p">,</span> <span class="s2">&quot;output_tensor&quot;</span><span class="p">)</span>
+<span class="n">op_output</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">out_message</span><span class="p">,</span> <span class="s2">"output_tensor"</span><span class="p">)</span>
 </code></pre></div>
 <p>Please note that <code>output_tensor</code> is the name defined in <code>setup()</code>.</p>
 <p>Since there is only one input and one output port, when connecting the native Python operator <code>ImageProcessingOp</code> to its upstream and downstream operators, we do not need to specify the in/out name for <code>ImageProcessingOp</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">image_processing</span><span class="p">)</span>
-<span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">image_processing</span><span class="p">,</span> <span class="n">visualizer</span><span class="p">,</span> <span class="p">{(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;receivers&quot;</span><span class="p">)})</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">image_processing</span><span class="p">,</span> <span class="n">visualizer</span><span class="p">,</span> <span class="p">{(</span><span class="s2">""</span><span class="p">,</span> <span class="s2">"receivers"</span><span class="p">)})</span>
 </code></pre></div>
 <p>Otherwise, with each <code>add_flow()</code>, the input and output port names need to be specified when multiple ports are present.</p>
 <p>For more information on tensor interop in Python API, please see the Holoscan documentation <a href="https://docs.nvidia.com/holoscan/sdk-user-guide/using-the-sdk/create-an-operator#interoperability-between-wrapped-and-native-python-operators">Interoperability between wrapped and native Python operators</a>.</p>
@@ -20459,17 +20459,17 @@ docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </s
 <p>Let’s also dive into how we can add to <code>out_message</code> and pass to Holoviz various tensors at the same time, including the frame itself, <code>box_coords</code>,  <code>triangle_coords</code>, <code>cross_coords</code>, <code>oval_coords</code>, the time varying <code>point_coords</code>, and <code>label_coords</code>.</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># define the output message dictionary where box_coords is a numpy array and “boxes” is the tensor name</span>
 <span class="n">out_message</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;boxes&quot;</span><span class="p">:</span> <span class="n">box_coords</span><span class="p">,</span>
-            <span class="s2">&quot;triangles&quot;</span><span class="p">:</span> <span class="n">triangle_coords</span><span class="p">,</span>
-            <span class="s2">&quot;crosses&quot;</span><span class="p">:</span> <span class="n">cross_coords</span><span class="p">,</span>
-            <span class="s2">&quot;ovals&quot;</span><span class="p">:</span> <span class="n">oval_coords</span><span class="p">,</span>
-            <span class="s2">&quot;points&quot;</span><span class="p">:</span> <span class="n">point_coords</span><span class="p">,</span>
-            <span class="s2">&quot;label_coords&quot;</span><span class="p">:</span> <span class="n">label_coords</span><span class="p">,</span>
-            <span class="s2">&quot;dynamic_text&quot;</span><span class="p">:</span> <span class="n">dynamic_text</span><span class="p">,</span>
+            <span class="s2">"boxes"</span><span class="p">:</span> <span class="n">box_coords</span><span class="p">,</span>
+            <span class="s2">"triangles"</span><span class="p">:</span> <span class="n">triangle_coords</span><span class="p">,</span>
+            <span class="s2">"crosses"</span><span class="p">:</span> <span class="n">cross_coords</span><span class="p">,</span>
+            <span class="s2">"ovals"</span><span class="p">:</span> <span class="n">oval_coords</span><span class="p">,</span>
+            <span class="s2">"points"</span><span class="p">:</span> <span class="n">point_coords</span><span class="p">,</span>
+            <span class="s2">"label_coords"</span><span class="p">:</span> <span class="n">label_coords</span><span class="p">,</span>
+            <span class="s2">"dynamic_text"</span><span class="p">:</span> <span class="n">dynamic_text</span><span class="p">,</span>
 <span class="p">}</span>
 
 <span class="c1"># emit the output message</span>
-<span class="n">op_output</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">out_message</span><span class="p">,</span> <span class="s2">&quot;outputs&quot;</span><span class="p">)</span>
+<span class="n">op_output</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">out_message</span><span class="p">,</span> <span class="s2">"outputs"</span><span class="p">)</span>
 </code></pre></div>
 <p>We can also see that each tensor name is referenced by the <code>tensors</code> parameter in the instantiation of a Holoviz operator <a href="https://github.com/nvidia-holoscan/holoscan-sdk/blob/main/examples/holoviz/python/holoviz_geometry.py#L249">at line 249</a>.</p>
 <p>This is a great example and reference not only for passing different shapes to Holoviz, but also creating and passing multiple tensors within one message from a native Holoscan Python operator to the downstream operators.</p>
@@ -20524,10 +20524,10 @@ Build the application in <a href="https://github.com/nvidia-holoscan/holohub/tre
 <p><img alt="Stop instance" src="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/holoscan-playground-on-aws/images/stop%2520instance.png?raw=true" /></p>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h2>
 <p>If you receive a display forwarding error such as</p>
-<div class="highlight"><pre><span></span><code>unable to open display &quot;localhost:10.0&quot;
+<div class="highlight"><pre><span></span><code>unable to open display "localhost:10.0"
 </code></pre></div>
 <div class="highlight"><pre><span></span><code>Glfw Error 65544: X11: Failed to open display localhost:10.0
-terminate called after throwing an instance of &#39;std::runtime_error&#39;
+terminate called after throwing an instance of 'std::runtime_error'
   what():  Failed to initialize glfw
 </code></pre></div>
 <p>Please see below to find the suggestion for your OS.</p>

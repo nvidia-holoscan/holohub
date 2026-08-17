@@ -20506,18 +20506,18 @@ subprojects, modules, and operators available in your HoloHub clone.</p>
 <h3 id="42-declare-the-dependency">4.2 Declare the dependency<a class="headerlink" href="#42-declare-the-dependency" title="Permanent link">#</a></h3>
 <p>Edit your subproject's <code>metadata.json</code>. For an application:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;$schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;urn:holohub:application:v2&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;application&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;my_app&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;dependencies&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;modules&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">  </span><span class="nt">"$schema"</span><span class="p">:</span><span class="w"> </span><span class="s2">"urn:holohub:application:v2"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"application"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"my_app"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"dependencies"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"modules"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">        </span><span class="p">{</span>
-<span class="w">          </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;holoscan-my-sensor&quot;</span><span class="p">,</span>
-<span class="w">          </span><span class="nt">&quot;source&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;git_url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://github.com/example/holoscan-my-sensor.git&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0123456789abcdef0123456789abcdef01234567&quot;</span>
+<span class="w">          </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"holoscan-my-sensor"</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">"source"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">"git_url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://github.com/example/holoscan-my-sensor.git"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ref"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0123456789abcdef0123456789abcdef01234567"</span>
 <span class="w">          </span><span class="p">},</span>
-<span class="w">          </span><span class="nt">&quot;provides_operators&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;my_sensor_op&quot;</span><span class="p">]</span>
+<span class="w">          </span><span class="nt">"provides_operators"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"my_sensor_op"</span><span class="p">]</span>
 <span class="w">        </span><span class="p">}</span>
 <span class="w">      </span><span class="p">]</span>
 <span class="w">    </span><span class="p">}</span>
@@ -20578,11 +20578,11 @@ uses the working tree instead of <code>source.ref</code>.</p>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">MyApp</span><span class="p">(</span><span class="n">Application</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">sensor</span> <span class="o">=</span> <span class="n">MySensorOp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;sensor&quot;</span><span class="p">)</span>
-        <span class="n">viz</span> <span class="o">=</span> <span class="n">HolovizOp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;viz&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">sensor</span><span class="p">,</span> <span class="n">viz</span><span class="p">,</span> <span class="p">{(</span><span class="s2">&quot;out&quot;</span><span class="p">,</span> <span class="s2">&quot;receivers&quot;</span><span class="p">)})</span>
+        <span class="n">sensor</span> <span class="o">=</span> <span class="n">MySensorOp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"sensor"</span><span class="p">)</span>
+        <span class="n">viz</span> <span class="o">=</span> <span class="n">HolovizOp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"viz"</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span><span class="n">sensor</span><span class="p">,</span> <span class="n">viz</span><span class="p">,</span> <span class="p">{(</span><span class="s2">"out"</span><span class="p">,</span> <span class="s2">"receivers"</span><span class="p">)})</span>
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
     <span class="n">MyApp</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 </code></pre></div>
 <p>C++ application: include the public header the Module installs (path is documented in
@@ -20591,7 +20591,7 @@ its README) and link via the Module's exported targets in your HoloHub-app
 <div class="highlight"><pre><span></span><code><span class="nb">target_link_libraries</span><span class="p">(</span><span class="s">my_app</span><span class="w"> </span><span class="s">PRIVATE</span><span class="w"> </span><span class="s">holoscan::my_sensor_op</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="46-discover-whats-available">4.6 Discover what's available<a class="headerlink" href="#46-discover-whats-available" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>list<span class="w">   </span><span class="c1"># MODULES: section lists each Module&#39;s name, language, operators</span>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>list<span class="w">   </span><span class="c1"># MODULES: section lists each Module's name, language, operators</span>
 </code></pre></div>
 <h3 id="47-module-to-module-transitive-dependencies">4.7 Module-to-module (transitive) dependencies<a class="headerlink" href="#47-module-to-module-transitive-dependencies" title="Permanent link">#</a></h3>
 <p>If you are building a Holoscan Module that itself depends on another Module, use the
@@ -20641,12 +20641,12 @@ pip<span class="w"> </span>install<span class="w"> </span>holoscan-my-sensor<spa
 <span class="k">class</span><span class="w"> </span><span class="nc">MyApp</span><span class="p">(</span><span class="n">Application</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">add_flow</span><span class="p">(</span>
-            <span class="n">MySensorOp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;sensor&quot;</span><span class="p">),</span>
-            <span class="n">HolovizOp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;viz&quot;</span><span class="p">),</span>
-            <span class="p">{(</span><span class="s2">&quot;out&quot;</span><span class="p">,</span> <span class="s2">&quot;receivers&quot;</span><span class="p">)},</span>
+            <span class="n">MySensorOp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"sensor"</span><span class="p">),</span>
+            <span class="n">HolovizOp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"viz"</span><span class="p">),</span>
+            <span class="p">{(</span><span class="s2">"out"</span><span class="p">,</span> <span class="s2">"receivers"</span><span class="p">)},</span>
         <span class="p">)</span>
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
     <span class="n">MyApp</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 </code></pre></div>
 <p>The wheel installs the operator into a Python package named after the Module — for
@@ -20777,7 +20777,7 @@ register the FetchContent declaration, record the operator-to-provider mapping
 needs. You should not call <code>FetchContent_MakeAvailable</code> yourself: the HoloHub root
 <code>CMakeLists.txt</code> has a post-step that walks the <code>*_PROVIDER</code> variables and calls
 <code>FetchContent_MakeAvailable</code> once per provider whose operators are enabled.</p>
-<div class="highlight"><pre><span></span><code><span class="c"># Somewhere in your HoloHub subproject&#39;s CMakeLists.txt</span>
+<div class="highlight"><pre><span></span><code><span class="c"># Somewhere in your HoloHub subproject's CMakeLists.txt</span>
 <span class="nb">holohub_declare_external_module</span><span class="p">(</span><span class="s">holoscan_my_sensor</span>
 <span class="w">    </span><span class="s">GIT_REPOSITORY</span><span class="w"> </span><span class="s">https://github.com/example/holoscan-my-sensor.git</span>
 <span class="w">    </span><span class="s">GIT_TAG</span><span class="w">        </span><span class="s">0123456789abcdef0123456789abcdef01234567</span>
@@ -20822,11 +20822,11 @@ operator contributions.</em></p>
 in <code>metadata.json</code>. The resolver looks the Module up under <code>modules/&lt;name&gt;/metadata.json</code>
 and uses the in-tree sources directly.</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;application&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;my_app&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;dependencies&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;modules&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">        </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;holoscan-gstreamer&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;provides_operators&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;gstreamer&quot;</span><span class="p">]</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="nt">"application"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"my_app"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"dependencies"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"modules"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span><span class="w"> </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"holoscan-gstreamer"</span><span class="p">,</span><span class="w"> </span><span class="nt">"provides_operators"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"gstreamer"</span><span class="p">]</span><span class="w"> </span><span class="p">}</span>
 <span class="w">      </span><span class="p">]</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">}</span>
