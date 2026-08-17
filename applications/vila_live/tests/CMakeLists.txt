@@ -31,6 +31,8 @@ set_tests_properties(vila_live_vlm_test
 # Set test properties for TinyChat test
 set_tests_properties(vila_live_tinychat_test
   PROPERTIES
-  ENVIRONMENT "VILA_LIVE_TEST_CONFIG=${CMAKE_CURRENT_BINARY_DIR}/../vila_live_testing.yaml"
-  PASS_REGULAR_EXPRESSION "Llama"
+  ENVIRONMENT "HOLOHUB_DATA_DIR=${HOLOHUB_DATA_DIR};VILA_LIVE_TEST_CONFIG=${CMAKE_CURRENT_BINARY_DIR}/../vila_live_testing.yaml"
+  PASS_REGULAR_EXPRESSION "VILA runtime generation succeeded"
   FAIL_REGULAR_EXPRESSION "Traceback")
+
+set_tests_properties(vila_live_tinychat_test PROPERTIES TIMEOUT 600)
