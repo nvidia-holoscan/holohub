@@ -28,6 +28,14 @@ FetchContent_Declare(pybind11
 # pybind11 2.13.6 uses deprecated CMake compatibility and CMP0148 OLD behavior.
 # Function scope protects the caller's normal variable when CMP0126 is OLD.
 function(_holohub_fetch_pybind11)
+  if(CMAKE_VERSION VERSION_GREATER_EQUAL 4.4)
+    cmake_diagnostic(PUSH)
+    cmake_diagnostic(SET CMD_DEPRECATED IGNORE)
+    FetchContent_MakeAvailable(pybind11)
+    cmake_diagnostic(POP)
+    return()
+  endif()
+
   set(_cache_was_defined FALSE)
   if(DEFINED CACHE{CMAKE_WARN_DEPRECATED})
     get_property(_saved_value CACHE CMAKE_WARN_DEPRECATED PROPERTY VALUE)
