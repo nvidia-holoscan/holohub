@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,9 @@ import os
 import threading
 import time
 from collections import deque
+from pathlib import Path
 
+import grpc
 import nvtx
 
 
@@ -31,9 +33,7 @@ class TranscriptHandler(threading.Thread):
         self.transcript = ""
         print("Transcript will be saved in", self.output_file)
         if os.path.exists(self.output_file):  # if file exists, clear it.
-            f = open(self.output_file, "w")
-            f.write("")
-            f.close()
+            Path(self.output_file).write_text("", encoding="utf-8")
 
     def run(self):
         while not self._kill:
@@ -63,10 +63,22 @@ class TranscriptHandler(threading.Thread):
                             else:
                                 transcript = result.alternatives[0].transcript
                                 partial_transcript += transcript
-                except Exception as e:
+                except (
+                    ArithmeticError,
+                    AssertionError,
+                    AttributeError,
+                    EOFError,
+                    grpc.RpcError,
+                    ImportError,
+                    LookupError,
+                    OSError,
+                    RuntimeError,
+                    TypeError,
+                    ValueError,
+                ) as e:
                     print("Exception:", e)
         if buff_cleared:
             print("\n")
             with open(self.output_file, "a") as f:
-                f.write("Transcript: %s\n" % (self.transcript))
+                f.write(f"Transcript: {self.transcript}\n")
                 self.transcript = ""

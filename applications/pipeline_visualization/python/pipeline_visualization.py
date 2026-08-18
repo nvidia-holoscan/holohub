@@ -73,7 +73,7 @@ class SourceOp(Operator):
             self.frequency = 10.0
 
         # Emit the tensor to the output port
-        op_output.emit(dict(wave=as_tensor(wave)), "out")
+        op_output.emit({"wave": as_tensor(wave)}, "out")
 
 
 class ModulateOp(Operator):
@@ -106,7 +106,7 @@ class ModulateOp(Operator):
         modulated_signal = input_tensor + modulation
 
         # Emit the modulated signal to the output port
-        op_output.emit(dict(modulated_signal=as_tensor(modulated_signal)), "out")
+        op_output.emit({"modulated_signal": as_tensor(modulated_signal)}, "out")
 
 
 class SinkOp(Operator):

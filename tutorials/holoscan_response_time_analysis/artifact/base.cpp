@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2025 UNIVERSITY OF BRITISH COLUMBIA.
+ * SPDX-FileCopyrightText: Copyright (c) 2025-2026, UNIVERSITY OF BRITISH COLUMBIA.
  * All rights reserved. SPDX-License-Identifier: Apache-2.0
  *
  * This is a modified version of several files from the Holoscan SDK
@@ -373,7 +373,7 @@ class PingRxOp : public Operator {
 class MyPingApp : public holoscan::Application {
  public:
   void compose() override {
-    using namespace holoscan;  // This is filled in by MakeVars.py when the
+    using namespace holoscan;  // This is filled in by make_vars.py when the
                                // scripts are run
   }
 };

@@ -17,7 +17,6 @@
 import logging
 import re
 from dataclasses import dataclass
-from typing import List
 
 from process_utils import run_command
 
@@ -40,7 +39,7 @@ class NetworkInterface:
         return f"NetworkInterface(name={self.interface_name}, bus_id={self.bus_id}, mac={self.mac_address}, status={status}, ip={self.ip_address})"
 
 
-def get_nvidia_nics() -> List[NetworkInterface]:
+def get_nvidia_nics() -> list[NetworkInterface]:
     """
     Get a list of NVIDIA NICs on the system using ibdev2netdev.
 
@@ -87,7 +86,7 @@ def get_nvidia_nics() -> List[NetworkInterface]:
 
         # Get IP address
         result = run_command(
-            f"ip -4 addr show {interface_name} | grep -oP '(?<=inet\s)\d+(\.\d+){{3}}'"
+            rf"ip -4 addr show {interface_name} | grep -oP '(?<=inet\s)\d+(\.\d+){{3}}'"
         )
         if result.returncode != 0:
             ip_address = None
@@ -108,7 +107,7 @@ def get_nvidia_nics() -> List[NetworkInterface]:
     return interfaces
 
 
-def print_nvidia_nics(nics: List[NetworkInterface]):
+def print_nvidia_nics(nics: list[NetworkInterface]):
     """
     Print a list of NVIDIA NIC interfaces.
     """

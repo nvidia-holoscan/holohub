@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +19,7 @@ from holoscan.core import Resource
 
 
 class AsyncIoQueue(Resource):
-    def __init__(self, fragment, queue: asyncio.Queue = None, *args, **kwargs):
+    def __init__(self, fragment, queue: asyncio.Queue | None = None, *args, **kwargs):
         super().__init__(fragment, *args, **kwargs)
         self.queue = queue if queue is not None else asyncio.Queue()
 

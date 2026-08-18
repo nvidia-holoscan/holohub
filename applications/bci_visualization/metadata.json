@@ -1,6 +1,7 @@
 {
 	"application": {
 		"name": "Kernel Flow BCI Real-Time Visualization",
+		"description": "Build real-time brain-computer interface (BCI) pipelines with NVIDIA Holoscan using Kernel Flow fNIRS data, GPU reconstruction, and 3D visualization.",
 		"authors": [
 			{
 				"name": "Holoscan Team",
@@ -43,7 +44,7 @@
 			"x86_64",
 			"aarch64"
 		],
-		"tags": ["Visualization", "BCI", "Hemodynamics", "Volume Rendering", "Neuroscience", "Optical Sensing"],
+		"tags": ["Visualization", "BCI", "Brain-Computer Interface", "fNIRS", "Hemodynamics", "Volume Rendering", "Neuroscience", "Optical Sensing"],
 		"ranking": 2,
 		"requirements": {
 			"python-packages": [

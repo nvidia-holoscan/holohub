@@ -42,7 +42,7 @@ class TestTinyChat(unittest.TestCase):
             stdout=None,  # Use None to inherit the parent's stdout
             stderr=None,  # Use None to inherit the parent's stderr
             env=os.environ,
-            preexec_fn=os.setsid,
+            start_new_session=True,
         )
         print(f"Controller process started with PID: {cls.controller_process.pid}")
         time.sleep(10)
@@ -50,10 +50,10 @@ class TestTinyChat(unittest.TestCase):
             response = requests.get("http://localhost:10000")
             if response.status_code != 404:
                 cls.tearDownClass()
-                raise Exception("Controller failed to start properly")
+                raise RuntimeError("Controller failed to start properly")
         except requests.exceptions.ConnectionError:
             cls.tearDownClass()
-            raise Exception("Could not connect to controller")
+            raise RuntimeError("Could not connect to controller")
 
         # Start the model worker
         print("Starting model worker process...")
@@ -72,7 +72,7 @@ class TestTinyChat(unittest.TestCase):
             cmd.split(),
             stdout=None,  # Use None to inherit the parent's stdout
             stderr=None,  # Use None to inherit the parent's stderr
-            preexec_fn=os.setsid,
+            start_new_session=True,
         )
         print(f"Worker process started with PID: {cls.worker_process.pid}")
         # Give the worker a moment to start and register with the controller
@@ -92,14 +92,36 @@ class TestTinyChat(unittest.TestCase):
             try:
                 os.kill(cls.worker_process.pid, signal.SIGKILL)
                 print("Worker process killed")
-            except Exception as e:
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ) as e:
                 print(f"Error killing worker process: {e}")
 
         if hasattr(cls, "controller_process"):
             try:
                 os.kill(cls.controller_process.pid, signal.SIGKILL)
                 print("Controller process killed")
-            except Exception as e:
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ) as e:
                 print(f"Error killing controller process: {e}")
 
 

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +35,7 @@ class Agent(ABC):
     def __init__(self, settings_path, response_handler, agent_key=None):
         self.load_settings(settings_path)
         self.response_handler = response_handler
-        self._logger = logging.getLogger("{}.{}".format(__name__, type(self).__name__))
+        self._logger = logging.getLogger(f"{__name__}.{type(self).__name__}")
         self.tokenizer = tiktoken.get_encoding("cl100k_base")
         self._wait_for_server()
 
@@ -272,7 +272,6 @@ class Agent(ABC):
         """
         Process a request. To be implemented per agent.
         """
-        pass
 
     def append_json_to_file(self, json_object, file_path):
         """
@@ -281,7 +280,7 @@ class Agent(ABC):
         try:
             # Read the existing content of the file
             with open(file_path, "r") as file:
-                content = file.read().rstrip("\n\n,] ") + ","
+                content = file.read().rstrip().removesuffix("]").rstrip().removesuffix(",") + ","
 
             # If the file is not empty and already contains a JSON array
             if content:

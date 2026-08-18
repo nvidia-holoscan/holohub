@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import importlib.util
+import logging
 import os
 import sys
 from argparse import ArgumentParser
@@ -86,9 +87,8 @@ class EndoscopyApp(Application):
 
         # Optional parameters affecting the graph created by compose.
         self.record_type = record_type
-        if record_type is not None:
-            if record_type not in ("input", "visualizer"):
-                raise ValueError("record_type must be either ('input' or 'visualizer')")
+        if record_type is not None and record_type not in ("input", "visualizer"):
+            raise ValueError("record_type must be either ('input' or 'visualizer')")
         self.source = source
         self.postprocessor = postprocessor
         if data == "none":
@@ -168,17 +168,28 @@ class EndoscopyApp(Application):
                 from holoscan.resources import RMMAllocator
 
                 source.add_arg(allocator=RMMAllocator(self, name="video_replayer_allocator"))
-            except Exception:
-                pass
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ):
+                logging.getLogger(__name__).debug("Expected operation failure", exc_info=True)
             # 4 bytes/channel, 3 channels
             source_block_size = width * height * 3 * 4
             source_num_blocks = 2
 
-        source_pool_kwargs = dict(
-            storage_type=MemoryStorageType.DEVICE,
-            block_size=source_block_size,
-            num_blocks=source_num_blocks,
-        )
+        source_pool_kwargs = {
+            "storage_type": MemoryStorageType.DEVICE,
+            "block_size": source_block_size,
+            "num_blocks": source_num_blocks,
+        }
         if record_type is not None:
             if ((record_type == "input") and (self.source != "replayer")) or (
                 record_type == "visualizer"

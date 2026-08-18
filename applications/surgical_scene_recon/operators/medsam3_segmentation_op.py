@@ -79,7 +79,7 @@ class MedSAM3SegmentationOp(Operator):
                 frame_tensor = msg[key]
                 break
         if frame_tensor is None:
-            for key in msg.keys():
+            for key in msg:
                 if "video" in key or "frame" in key or "rgb" in key:
                     frame_tensor = msg[key]
                     break

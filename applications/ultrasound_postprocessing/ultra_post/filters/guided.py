@@ -28,9 +28,7 @@ def _box_filter(img: cp.ndarray, radius: int) -> cp.ndarray:
     return uniform_filter(img, size=(k, k), mode="reflect")
 
 
-def _guided_filter_channel(
-    p: cp.ndarray, I: cp.ndarray, radius: int, eps: float  # noqa: E741
-) -> cp.ndarray:
+def _guided_filter_channel(p: cp.ndarray, I: cp.ndarray, radius: int, eps: float) -> cp.ndarray:
     mean_I, mean_p = _box_filter(I, radius), _box_filter(p, radius)
     mean_Ip, mean_II = _box_filter(I * p, radius), _box_filter(I * I, radius)
 

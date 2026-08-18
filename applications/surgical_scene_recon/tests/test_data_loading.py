@@ -58,13 +58,35 @@ def main():
 
         try:
             from scene.endo_loader import EndoNeRF_Dataset
-        except Exception as e:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as e:
             print(f"SKIP: could not import loader ({e})")
             return 0
 
         try:
             ds = EndoNeRF_Dataset(str(tmpdir), downsample=1.0, test_every=8, mode="binocular")
-        except Exception as e:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as e:
             print(f"FAIL: loader raised {e}")
             return 1
 
