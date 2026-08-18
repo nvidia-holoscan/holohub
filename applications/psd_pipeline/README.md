@@ -181,20 +181,19 @@ In this example, if you wanted to use the `ens3f1np1` interface, you'd pass
 
 ## Build & Run
 
-1. **Build** the development container in two steps:
+1. **Build** the development container:
 
    ```bash
-   # Build the networking dev container for DAQIRI
-   ./holohub build-container daqiri --docker-file ./pkg/holoscan-networking/Dockerfile
-
-   # Add the psd-pipeline deps
-   ./holohub build-container psd_pipeline --base-img holohub:ngc-v4.0.0-dgpu --img holohub-psd-pipeline:ngc-v4.0.0-dgpu
+   ./holohub build-container psd_pipeline
    ```
+
+   The networking Dockerfile (`pkg/holoscan-networking/Dockerfile`) is selected
+   automatically from this application's `metadata.json`.
 
 2. **Launch** the development container with the command:
 
    ```bash
-   ./holohub run-container psd_pipeline --no-docker-build --docker-opts="-u root --privileged" --img holohub-psd-pipeline:ngc-v4.0.0-dgpu
+   ./holohub run-container psd_pipeline --no-docker-build --docker-opts="-u root --privileged"
    ```
 
 Once you are in the dev container:
