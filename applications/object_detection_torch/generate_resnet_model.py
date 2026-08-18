@@ -33,6 +33,16 @@ def ignore_known_torch_cuda_capability_warnings():
         module=r"torch\.cuda",
         message=r"\n.*Found GPU0 DRIVE-P2021.*capability.*10\.0\.",
     )
+    warnings.filterwarnings(
+        "ignore",
+        category=UserWarning,
+        module=r"torch\.cuda",
+        message=(
+            r"(?:\n[ \t]*)?Found GPU0 Orin which is of "
+            r"(?:cuda capability 8\.7|compute capability \(CC\) 8\.7)"
+            r"\.(?:\n|$)"
+        ),
+    )
 
 
 # Suppress PyTorch's UserWarning: Failed to load image Python extension: 'libnvjpeg.so.12: cannot open shared object file: No such file or directory'
@@ -67,6 +77,11 @@ det_model = detection.fasterrcnn_resnet50_fpn(
 # https://forums.developer.nvidia.com/t/dgx-dashboard-playbook-pytorch-in-sample-code-not-supporting-cuda-12-1/350762
 # Also suppress the same non-fatal compatibility warning for DRIVE-P2021.
 # \\n    Found GPU0 DRIVE-P2021 which is of compute capability (CC) 10.0.
+# Remove the Orin filter after adopting and validating PyTorch 2.14+ built for CUDA 13.2+.
+# Context: https://github.com/nvidia-holoscan/holohub/pull/1687#issuecomment-5323551040
+# Also suppress the same non-fatal compatibility warning for Orin.
+# \n    Found GPU0 Orin which is of cuda capability 8.7.
+# Found GPU0 Orin which is of compute capability (CC) 8.7.
 with warnings.catch_warnings():
     ignore_known_torch_cuda_capability_warnings()
     det_model = det_model.to(DEVICE)
