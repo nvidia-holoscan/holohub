@@ -48,6 +48,11 @@ include(CTest)
 option(HOLOHUB_DOWNLOAD_DATASETS "Download datasets" ON)
 option(HOLOHUB_BUILD_CPP "Build support for C++" ON)
 option(HOLOHUB_BUILD_PYTHON "Build support for Python" ON)
+option(
+  HOLOHUB_SUPPRESS_DEPENDENCY_DEPRECATION_WARNINGS
+  "Suppress deprecation warnings emitted by pinned dependencies"
+  ON
+)
 
 # Enable flow benchmarking
 option(FLOW_BENCHMARKING "Enable Flow Benchmarking" OFF)
