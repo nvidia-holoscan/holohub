@@ -13,7 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import base64
+import json
 import os
+import shutil
 import signal
 import subprocess
 import time
@@ -44,16 +47,9 @@ class TestTinyChat(unittest.TestCase):
             env=os.environ,
             start_new_session=True,
         )
+        cls.addClassCleanup(cls._stop_processes)
         print(f"Controller process started with PID: {cls.controller_process.pid}")
-        time.sleep(10)
-        try:
-            response = requests.get("http://localhost:10000")
-            if response.status_code != 404:
-                cls.tearDownClass()
-                raise RuntimeError("Controller failed to start properly")
-        except requests.exceptions.ConnectionError:
-            cls.tearDownClass()
-            raise RuntimeError("Could not connect to controller")
+        cls._wait_for_controller()
 
         # Start the model worker
         print("Starting model worker process...")
@@ -75,54 +71,134 @@ class TestTinyChat(unittest.TestCase):
             start_new_session=True,
         )
         print(f"Worker process started with PID: {cls.worker_process.pid}")
-        # Give the worker a moment to start and register with the controller
-        time.sleep(10)
-
-    def test_tinychat(self):
-        """Test the TinyChat functionality"""
-        print(
-            f"Testing processes started...{self.controller_process.pid} {self.worker_process.pid}"
-        )
+        cls.model_name = cls._wait_for_worker_registration()
 
     @classmethod
-    def tearDownClass(cls):
-        """Stop the TinyChat controller and model worker after running the tests"""
-        # Kill processes directly
-        if hasattr(cls, "worker_process"):
-            try:
-                os.kill(cls.worker_process.pid, signal.SIGKILL)
-                print("Worker process killed")
-            except (
-                ArithmeticError,
-                AssertionError,
-                AttributeError,
-                EOFError,
-                ImportError,
-                LookupError,
-                OSError,
-                RuntimeError,
-                TypeError,
-                ValueError,
-            ) as e:
-                print(f"Error killing worker process: {e}")
+    def _wait_for_controller(cls):
+        """Wait until the controller is ready to accept worker registration."""
+        deadline = time.monotonic() + 30
+        last_error = None
+        while time.monotonic() < deadline:
+            return_code = cls.controller_process.poll()
+            if return_code is not None:
+                raise RuntimeError(f"controller exited with status {return_code}")
 
-        if hasattr(cls, "controller_process"):
             try:
-                os.kill(cls.controller_process.pid, signal.SIGKILL)
-                print("Controller process killed")
-            except (
-                ArithmeticError,
-                AssertionError,
-                AttributeError,
-                EOFError,
-                ImportError,
-                LookupError,
-                OSError,
-                RuntimeError,
-                TypeError,
-                ValueError,
-            ) as e:
-                print(f"Error killing controller process: {e}")
+                response = requests.post("http://localhost:10000/list_models", timeout=5)
+                response.raise_for_status()
+                return
+            except requests.RequestException as error:
+                last_error = error
+            time.sleep(1)
+
+        raise RuntimeError(f"Controller did not start within 30 seconds: {last_error}")
+
+    @classmethod
+    def _wait_for_worker_registration(cls):
+        """Wait until the model is loaded and registered with the controller."""
+        deadline = time.monotonic() + 300
+        last_error = None
+        while time.monotonic() < deadline:
+            for name, process in (
+                ("controller", cls.controller_process),
+                ("worker", cls.worker_process),
+            ):
+                return_code = process.poll()
+                if return_code is not None:
+                    raise RuntimeError(f"{name} exited with status {return_code}")
+
+            try:
+                response = requests.post("http://localhost:10000/list_models", timeout=5)
+                response.raise_for_status()
+                models = response.json().get("models", [])
+                if models:
+                    print(f"Worker registered model: {models[0]}")
+                    return models[0]
+            except (requests.RequestException, ValueError) as error:
+                last_error = error
+            time.sleep(5)
+
+        raise RuntimeError(f"Worker did not register within 300 seconds: {last_error}")
+
+    @staticmethod
+    def _load_test_frame():
+        """Extract one JPEG frame from the test video and return it as base64."""
+        video_path = os.path.join(os.environ["HOLOHUB_DATA_DIR"], "vila_live", "meeting.mp4")
+        ffmpeg = shutil.which("ffmpeg")
+        if ffmpeg is None:
+            raise RuntimeError("ffmpeg is required to extract the VILA test frame")
+
+        frame = subprocess.check_output(
+            [
+                ffmpeg,
+                "-loglevel",
+                "error",
+                "-i",
+                video_path,
+                "-frames:v",
+                "1",
+                "-f",
+                "image2pipe",
+                "-vcodec",
+                "mjpeg",
+                "pipe:1",
+            ]
+        )
+        return base64.b64encode(frame).decode("ascii")
+
+    def test_tinychat(self):
+        """Generate a response from the loaded VILA model for a real video frame."""
+        prompt = (
+            "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n"
+            "You are a helpful visual AI assistant.\n<|eot_id|>\n"
+            "<|start_header_id|>user<|end_header_id|>\n"
+            "Observe the following image: <image>\nDescribe it briefly.<|eot_id|>\n"
+            "<|start_header_id|>assistant<|end_header_id|>\n"
+        )
+        request_data = {
+            "prompt": prompt,
+            "temperature": 0.3,
+            "max_tokens": 8,
+            "images": [self._load_test_frame()],
+            "stop": ["</s>"],
+            "n_keep": -1,
+            "stream": True,
+        }
+        response = requests.post(
+            "http://localhost:40000/worker_generate_stream",
+            data=json.dumps(request_data),
+            stream=True,
+            timeout=(5, 180),
+        )
+        response.raise_for_status()
+
+        generated_text = ""
+        for chunk in response.iter_lines(decode_unicode=False, delimiter=b"\0"):
+            if not chunk:
+                continue
+            result = json.loads(chunk.decode())
+            self.assertEqual(result["error_code"], 0, result.get("text", ""))
+            generated_text = result["text"][len(prompt) :].strip()
+
+        self.assertTrue(generated_text, "VILA returned no generated text")
+        print(f"VILA runtime generation succeeded: {generated_text}")
+
+    @classmethod
+    def _stop_processes(cls):
+        """Stop the TinyChat controller and model worker after running the tests"""
+        for name in ("worker_process", "controller_process"):
+            process = getattr(cls, name, None)
+            if process is None or process.poll() is not None:
+                continue
+            try:
+                os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+                process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                os.killpg(os.getpgid(process.pid), signal.SIGKILL)
+                process.wait(timeout=10)
+            except ProcessLookupError:
+                # The process exited after poll() and no longer needs cleanup.
+                pass
 
 
 if __name__ == "__main__":
