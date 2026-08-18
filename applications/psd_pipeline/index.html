@@ -20330,18 +20330,16 @@ usb@1:14.2        usb0       network        Ethernet interface
 <code>0000:51:00.1</code>.</p>
 <h2 id="build-run">Build &amp; Run<a class="headerlink" href="#build-run" title="Permanent link">#</a></h2>
 <ol>
-<li><strong>Build</strong> the development container in two steps:</li>
+<li><strong>Build</strong> the development container:</li>
 </ol>
-<div class="highlight"><pre><span></span><code><span class="c1"># Build the networking dev container for DAQIRI</span>
-./holohub<span class="w"> </span>build-container<span class="w"> </span>daqiri<span class="w"> </span>--docker-file<span class="w"> </span>./pkg/holoscan-networking/Dockerfile
-
-<span class="c1"># Add the psd-pipeline deps</span>
-./holohub<span class="w"> </span>build-container<span class="w"> </span>psd_pipeline<span class="w"> </span>--base-img<span class="w"> </span>holohub:ngc-v4.0.0-dgpu<span class="w"> </span>--img<span class="w"> </span>holohub-psd-pipeline:ngc-v4.0.0-dgpu
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build-container<span class="w"> </span>psd_pipeline
 </code></pre></div>
+<p>The networking Dockerfile (<code>pkg/holoscan-networking/Dockerfile</code>) is selected
+   automatically from this application's <code>metadata.json</code>.</p>
 <ol>
 <li><strong>Launch</strong> the development container with the command:</li>
 </ol>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>psd_pipeline<span class="w"> </span>--no-docker-build<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">"-u root --privileged"</span><span class="w"> </span>--img<span class="w"> </span>holohub-psd-pipeline:ngc-v4.0.0-dgpu
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run-container<span class="w"> </span>psd_pipeline<span class="w"> </span>--no-docker-build<span class="w"> </span>--docker-opts<span class="o">=</span><span class="s2">"-u root --privileged"</span>
 </code></pre></div>
 <p>Once you are in the dev container:</p>
 <ol>
