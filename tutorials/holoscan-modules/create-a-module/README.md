@@ -222,7 +222,7 @@ holoscan-my-module/
 │                              #   namespace, binary_packages, platforms, SDK pin)
 ├── pyproject.toml             # scikit-build-core; selectively builds the module
 ├── CMakeLists.txt             # Holoscan discovery, build options, and subprojects
-├── Dockerfile                 # Pinned to nvcr.io/.../holoscan:<ver>-cuda13-dgpu
+├── Dockerfile                 # Default SDK image; the wrapper may select a platform-specific image
 ├── README.md                  # Module-facing readme (edit me)
 ├── .clang-format              # C++ modules only
 ├── .gitignore
@@ -238,20 +238,26 @@ holoscan-my-module/
 │       └── python/            # pybind11 bindings (C++ modules only)
 ├── applications/
 │   └── my_module_pipeline/
-│       ├── metadata.json
 │       ├── CMakeLists.txt
-│       └── my_module_pipeline.{cpp|py}
+│       ├── cpp/                # C++ modules only
+│       │   ├── CMakeLists.txt
+│       │   ├── metadata.json
+│       │   └── my_module_pipeline.cpp
+│       └── python/
+│           ├── CMakeLists.txt
+│           ├── metadata.json
+│           └── my_module_pipeline.py
 ├── pkg/                       # Debian package metadata and CPack configuration
 │   └── holoscan-my-module/
 │       ├── CMakeLists.txt
 │       └── metadata.json
 ├── python/holoscan/my_module/
 │   └── __init__.py            # Re-exports MyModuleOp from the per-operator submodule
+├── pytest.ini
 ├── tests/
 │   ├── cpp/                   # GTest stubs (C++ modules only)
 │   └── python/
 │       ├── conftest.py        # Extends holoscan.__path__ to the build tree
-│       ├── pytest.ini
 │       └── test_my_module_op.py
 └── .github/workflows/ci.yml   # Lint, CMake configure, GPU build/test jobs
 ```
@@ -273,10 +279,18 @@ Key things to note:
 - The `holohub` wrapper script in the project root delegates to a pinned
   `holoscan-cli` installation. It uses the generated module root as the CLI project
   root and does not create a nested HoloHub checkout.
+- The generated Dockerfile defaults `BASE_IMAGE` to the SDK's CUDA 13 dGPU image. The
+  wrapper may override that argument with an image selected for the current platform
+  and CUDA environment. Run `./holohub run-container --dryrun` to inspect the resolved
+  image before building.
 
 ### 3.4 Implement the Operator
 
 Now that our scaffolding is in place, it's time to implement our custom Holoscan SDK operator.
+The generated operator and demo application are buildable TODO stubs: the initial demo has no
+connected data-flow graph, so a successful build or process exit is not yet runtime validation.
+Implement the operator ports and `compute()` logic, then connect it to a source and sink in the
+demo application before relying on the demo for functional coverage.
 
 **C++-based module**: Open `operators/my_module_op/my_module_op.hpp` and `my_module_op.cpp`. The template ships
 TODO stubs. A minimal `compute()` that forwards an input tensor to an output port looks
@@ -329,8 +343,8 @@ cd ~/holoscan-my-module
 # Build and run the demo application inside the generated development container
 ./holohub run-container -- "./holohub build my_module_pipeline && ./holohub run my_module_pipeline --language <cpp/python>"
 
-# Run CTest (C++) and PyTest (Python)
-./holohub test
+# Run CTest (C++) and PyTest (Python). The generated image does not include Xvfb.
+./holohub test --no-xvfb
 
 # Launch the development environment for interactive builds and debugging
 ./holohub run-container
@@ -342,6 +356,9 @@ Notes:
   when it is nested under a parent build, so tests run automatically here but a
   downstream consumer that pulls your module via FetchContent does not pay the test
   cost by default.
+- Use `--no-xvfb` with the generated development image unless you have added Xvfb to
+  its Dockerfile. Without it, the CLI attempts to start `xvfb-run` before CTest and
+  PyTest can execute.
 - The Python test suite uses `SKIP_RETURN_CODE 5` in CTest: when `holoscan` is not
   importable in the current environment, pytest collects zero items and exits 5, which
   CTest treats as **Skipped** rather than failed. This makes the same test invocation
@@ -428,7 +445,7 @@ Run the following command to generate Debian and Python packages:
 ./holohub package holoscan-my-module --pkg-generator DEB,WHEEL
 ...
 CPack: Create package
-CPack: - package: /workspace/holohub/holoscan-my-module_0.1.0_arm64.deb generated.
+CPack: - package: /workspace/my_module/holoscan-my-module_0.1.0_arm64.deb generated.
 ...
 *** Created holoscan_my_module-0.1.0-cp312-cp312-linux_aarch64.whl
 Successfully built holoscan_my_module-0.1.0-cp312-cp312-linux_aarch64.whl
@@ -442,8 +459,8 @@ Important notes:
   `build/dist/`.
 - `DEB` runs CMake + CPack through `pkg/CMakeLists.txt` and
   `pkg/holoscan-my-module/CMakeLists.txt`, where `holohub_configure_deb()` defines
-  package metadata. Update that package CMake file if your module needs additional
-  system-package dependencies.
+  package metadata. CPack writes the `.deb` to the generated project root. Update
+  that package CMake file if your module needs additional system-package dependencies.
 - The wheel does **not** declare Holoscan SDK as a runtime dependency. Consumers
   install Holoscan SDK matching their CUDA variant separately. State the required
   Holoscan version in your README and in `metadata.json:module.holoscan_sdk`.
@@ -488,8 +505,8 @@ to share your work and seek adoption.
      create fully private projects as well. No public sharing necessary.
 2. **Publish binaries.**
    - Wheel: `python -m twine upload build/dist/*.whl` to PyPI (or a private index).
-   - Debian: upload the `.deb` from `build/holoscan-my-module/package/` to your APT
-     repository.
+   - Debian: upload `holoscan-my-module_0.1.0_<arch>.deb` from the generated project
+     root to your APT repository.
    - Recommended: The `binary_packages.{debian,pypi}` block in `metadata.json` should match the
      published names exactly. Update `binary_packages.install_commands` to the actual
      end-user install incantation (e.g., `pip install holoscan-my-module` or
@@ -605,9 +622,9 @@ Fast lookup for repeat use:
 | --- | --- | --- |
 | Scaffold | `./holohub create <name> --template modules/template --directory <dir>` | `<dir>/holoscan-<name>/` |
 | Build | `./holohub build <app> --local` | `build/` |
-| Test | `./holohub test` | `ctest` + `pytest` output |
+| Test | `./holohub test --no-xvfb` | `ctest` + `pytest` output |
 | Dev import | `./holohub install --dev` | `.pth` shim in site-packages |
-| Package | `./holohub package <name> --pkg-generator DEB,WHEEL` | `build/dist/*.whl`, `build/<name>/package/*.deb` |
+| Package | `./holohub package <name> --pkg-generator DEB,WHEEL` | `build/dist/*.whl`, `<project-root>/*.deb` |
 | List modules | `./holohub list` | `MODULES:` section |
 | Uninstall dev hook | `./holohub install --dev --uninstall` | (removes the shim) |
 
