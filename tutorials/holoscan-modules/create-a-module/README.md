@@ -21,8 +21,8 @@ dependency. It is the standard mechanism for sharing reusable Holoscan processin
 beyond a single application or repository. Consumers get a working, namespaced import in one command:
 
 ```bash
-pip install holoscan-my-sensor          # install
-from holoscan.my_sensor import MySensorOp  # use
+pip install holoscan-my-module          # install
+from holoscan.my_module import MyModuleOp  # use
 ```
 
 without cloning your source or understanding your build system.
@@ -44,7 +44,7 @@ There are two flavors of modules:
   sources live in `operators/<name>/`. See `modules/holoscan-gstreamer/` for the
   canonical reference, and Section 4 below for the steps.
 
-In this tutorial we will set up a fictional `holoscan-my-sensor` external module.
+In this tutorial we will set up a fictional `holoscan-my-module` external module.
 
 ### Who creates a Holoscan Module?
 
@@ -115,14 +115,25 @@ In this step we'll use the Holoscan template to create a self-contained git repo
 you like, such as on GitHub. Any HoloHub-based application or Holoscan SDK project can then declare
 and leverage the project as a dependency.
 
-### 3.1 Install dependencies
+### 3.1 Install creation dependencies
 
-Navigate to your HoloHub clone, then run the following CLI command to install the minimum template generation dependencies in your
-local Python environment:
+Install the optional create dependencies before scaffolding a Module:
+
+```bash
+python -m pip install 'holoscan-cli[create]'
+```
+
+This installs Cookiecutter and the metadata-validation dependencies used during
+generation. The HoloHub checkout flow below can instead install the same dependencies
+with its setup command:
 
 ```bash
 ./holohub setup --scripts template
 ```
+
+The standalone `holoscan create` workflow also requires a Module template supplied by
+the CLI distribution. Until that self-contained template delivery is available, use
+the HoloHub checkout flow in this tutorial.
 
 ### 3.2 Scaffold with `./holohub create`
 
@@ -130,7 +141,7 @@ From your HoloHub clone, pass the unprefixed module name; the template creates
 the `holoscan-<name>` repository directory:
 
 ```bash
-./holohub create my-sensor \
+./holohub create my-module \
     --template modules/template \
     --directory ~/repos
 ```
@@ -140,10 +151,10 @@ or customize with your own:
 
 | Prompt | Value | Used for |
 | --- | --- | --- |
-| `project_name` | `My Sensor Holoscan Module` | Display name |
-| `module_slug` | `my_sensor` | Python import + C++ namespace |
-| `module_repo_name` | `holoscan-my-sensor` | Repo directory + package names |
-| `operator_slug` | `my_sensor_op` | Initial operator |
+| `project_name` | `My Holoscan Sensor Module` | Display name |
+| `module_slug` | `my_module` | Python import + C++ namespace |
+| `module_repo_name` | `holoscan-my-module` | Repo directory + package names |
+| `operator_slug` | `my_module_op` | Initial operator |
 | `language` | `cpp` or `python` | Implementation language |
 | `version` | `0.1.0` | Initial semver |
 | `holoscan_version` | `4.5.0` | Minimum SDK version |
@@ -151,21 +162,21 @@ or customize with your own:
 
 The CLI will further derive some names using these rules:
 
-- `module_slug=my_sensor` → C++ namespace `holoscan::my_sensor`, Python package
-  `holoscan.my_sensor`, CMake options `OP_my_sensor_op`, `MY_SENSOR_BUILD_TESTING`.
-- `operator_slug=my_sensor_op` → C++ class `MySensorOp` (CamelCase from snake_case).
-- `module_repo_name=holoscan-my-sensor` → directory + PyPI/Debian package names.
+- `module_slug=my_module` → C++ namespace `holoscan::my_module`, Python package
+  `holoscan.my_module`, CMake options `OP_my_module_op`, `MY_MODULE_BUILD_TESTING`.
+- `operator_slug=my_module_op` → C++ class `MyModuleOp` (CamelCase from snake_case).
+- `module_repo_name=holoscan-my-module` → directory + PyPI/Debian package names.
 
 *Advanced Users and AI Agents:* For non-interactive use, pass values directly:
 
 ```bash
-./holohub create my-sensor \
+./holohub create my-module \
     --template modules/template \
     --directory $HOME \
     --interactive false \
-    --context project_name="My Sensor Holoscan Module" \
-    --context module_slug=my_sensor \
-    --context operator_slug=my_sensor_op \
+    --context project_name="My Holoscan Sensor Module" \
+    --context module_slug=my_module \
+    --context operator_slug=my_module_op \
     --context language=cpp \
     --context full_name="Jane Doe" \
     --context affiliation="Example Corp" \
@@ -175,70 +186,73 @@ The CLI will further derive some names using these rules:
 You will see the following output indicating success:
 
 ```text
-Holoscan Module 'my_sensor' created successfully!
+Holoscan Module 'my_module' created successfully!
 
-Implement your operator (MySensorOp) in:
-  operators/my_sensor_op/my_sensor_op.cpp
+Implement your operator (MyModuleOp) in:
+  operators/my_module_op/my_module_op.cpp
 
 Build and run:
   ./holohub run-container
   # Inside the container:
-  ./holohub build my_sensor_pipeline
-  ./holohub run   my_sensor_pipeline --language python
+  ./holohub build my_module_pipeline
+  ./holohub run   my_module_pipeline --language python
 
 Git repository initialised. Push to a remote when ready:
   git remote add origin <your-repo-url>
   git push -u origin main
 
 Register your module at https://nvidia-holoscan.github.io/ when ready.
-Successfully created new project: my-sensor
-Directory: /home/myuser/holoscan-my-sensor
+Successfully created new project: my-module
+Directory: /home/myuser/holoscan-my-module
 
 Possible next steps:
-- Implement your operator in /home/myuser/holoscan-my-sensor/operators/
-- Update metadata.json: /home/myuser/holoscan-my-sensor/metadata.json
+- Implement your operator in /home/myuser/holoscan-my-module/operators/
+- Update metadata.json: /home/myuser/holoscan-my-module/metadata.json
 - Update project README
 - Build and test with HoloHub CLI
 ```
 
 ### 3.3 Tour the Generated Tree
 
-Let's take a look at the folder we created in the previous section at `/home/myuser/holoscan-my-sensor`.
+Let's take a look at the folder we created in the previous section at `/home/myuser/holoscan-my-module`.
 
 ```text
-holoscan-my-sensor/
+holoscan-my-module/
 ├── metadata.json              # Schema urn:holohub:module:v2 (identity, operators,
 │                              #   namespace, binary_packages, platforms, SDK pin)
 ├── pyproject.toml             # scikit-build-core; selectively builds the module
-├── CMakeLists.txt             # find_package(holoscan), BUILD_ALL toggle, python staging
+├── CMakeLists.txt             # Holoscan discovery, build options, and subprojects
 ├── Dockerfile                 # Pinned to nvcr.io/.../holoscan:<ver>-cuda13-dgpu
 ├── README.md                  # Module-facing readme (edit me)
 ├── .clang-format              # C++ modules only
 ├── .gitignore
-├── holohub                    # Wrapper script; first run bootstraps the HoloHub CLI
-│                              #   via sparse-checkout into ./.holohub/
+├── holohub                    # Wrapper script; delegates to its pinned holoscan-cli
 ├── cmake/                     # HoloHubConfigHelpers, pybind11 integration, deb config
 │                              #   (copied in by the cookiecutter post-gen hook)
 ├── operators/
-│   └── my_sensor_op/
+│   └── my_module_op/
 │       ├── metadata.json      # Schema urn:holohub:operator:v1
 │       ├── CMakeLists.txt
-│       ├── my_sensor_op.hpp   # C++ stubs (or my_sensor_op.py for pure-Python modules)
-│       ├── my_sensor_op.cpp
+│       ├── my_module_op.hpp   # C++ stubs (or my_module_op.py for pure-Python modules)
+│       ├── my_module_op.cpp
 │       └── python/            # pybind11 bindings (C++ modules only)
 ├── applications/
-│   └── my_sensor_pipeline/
+│   └── my_module_pipeline/
 │       ├── metadata.json
 │       ├── CMakeLists.txt
-│       └── my_sensor_pipeline.{cpp|py}
-├── python/holoscan/my_sensor/
-│   └── __init__.py            # Re-exports MySensorOp from the per-operator submodule
+│       └── my_module_pipeline.{cpp|py}
+├── pkg/                       # Debian package metadata and CPack configuration
+│   └── holoscan-my-module/
+│       ├── CMakeLists.txt
+│       └── metadata.json
+├── python/holoscan/my_module/
+│   └── __init__.py            # Re-exports MyModuleOp from the per-operator submodule
 ├── tests/
 │   ├── cpp/                   # GTest stubs (C++ modules only)
 │   └── python/
 │       ├── conftest.py        # Extends holoscan.__path__ to the build tree
 │       ├── pytest.ini
-│       └── test_my_sensor_op.py
+│       └── test_my_module_op.py
 └── .github/workflows/ci.yml   # Lint, CMake configure, GPU build/test jobs
 ```
 
@@ -250,70 +264,70 @@ Key things to note:
   `holoscan_sdk.minimum_required_version`. Update `source_repository` and `authors`
   before publishing.
 - `pyproject.toml` uses scikit-build-core. Its `cmake.args` are pre-set to
-  `-DMY_SENSOR_BUILD_TESTING=OFF -DBUILD_ALL=OFF -DOP_my_sensor_op=ON` so the wheel
+  `-DMY_MODULE_BUILD_TESTING=OFF -DBUILD_ALL=OFF -DOP_my_module_op=ON` so the wheel
   builds only what the module ships.
 - `CMakeLists.txt` calls `find_package(holoscan REQUIRED)`. The
   `BUILD_ALL` option defaults to `ON` when the project is the top-level build and `OFF`
-  when nested inside a parent build. `MY_SENSOR_BUILD_TESTING` is a module-scoped
+  when nested inside a parent build. `MY_MODULE_BUILD_TESTING` is a module-scoped
   toggle, independent of CMake's global `BUILD_TESTING`.
-- The `holohub` wrapper script in the project root delegates to the HoloHub CLI. On
-  first invocation it sparse-checks-out the CLI tools into `./.holohub/`, pinned by
-  `CLI_PINNED_COMMIT`.
+- The `holohub` wrapper script in the project root delegates to a pinned
+  `holoscan-cli` installation. It uses the generated module root as the CLI project
+  root and does not create a nested HoloHub checkout.
 
 ### 3.4 Implement the Operator
 
 Now that our scaffolding is in place, it's time to implement our custom Holoscan SDK operator.
 
-**C++-based module**: Open `operators/my_sensor_op/my_sensor_op.hpp` and `my_sensor_op.cpp`. The template ships
+**C++-based module**: Open `operators/my_module_op/my_module_op.hpp` and `my_module_op.cpp`. The template ships
 TODO stubs. A minimal `compute()` that forwards an input tensor to an output port looks
 like:
 
 ```cpp
-// my_sensor_op.cpp
-#include "my_sensor_op.hpp"
+// my_module_op.cpp
+#include "my_module_op.hpp"
 
-namespace holoscan::my_sensor {
+namespace holoscan::my_module {
 
-void MySensorOp::setup(OperatorSpec& spec) {
+void MyModuleOp::setup(OperatorSpec& spec) {
     spec.input<std::shared_ptr<Tensor>>("in");
     spec.output<std::shared_ptr<Tensor>>("out");
 }
 
-void MySensorOp::compute(InputContext& op_input, OutputContext& op_output,
+void MyModuleOp::compute(InputContext& op_input, OutputContext& op_output,
                         ExecutionContext&) {
     auto in = op_input.receive<std::shared_ptr<Tensor>>("in").value();
     // TODO: apply your sensor-specific processing here.
     op_output.emit(in, "out");
 }
 
-}  // namespace holoscan::my_sensor
+}  // namespace holoscan::my_module
 ```
 
-**pure-Python module**: add your implementation in `operators/my_sensor_op/my_sensor_op.py`.
+**pure-Python module**: add your implementation in `operators/my_module_op/my_module_op.py`.
 
 **C++/Python modules**: every constructor parameter or method you want exposed in Python
 must also be added to the pybind11 trampoline class in
-`operators/my_sensor_op/python/_my_sensor_op_bindings.cpp`. The trampoline manually
+`operators/my_module_op/python/_my_module_op_bindings.cpp`. The trampoline manually
 constructs the `OperatorSpec` (it is not auto-generated from C++ headers). Mirror new
 C++ parameters by adding `py::arg("<name>")` entries to the `.def(py::init<...>(), ...)`
 call and forwarding the value into the C++ constructor.
 
-Update each `metadata.json` (`operators/my_sensor_op/metadata.json`) with details
+Update each `metadata.json` (`operators/my_module_op/metadata.json`) with details
 about your operator.
 
 The generated `Dockerfile` extends the official Holoscan SDK image with standard build packages
 for Holoscan-based projects. For container-based builds, add any custom packages for building and
 developing your module before moving on.
 
-### 3.5 Build, Test, and Iterate in the Container
+### 3.5 Build, Test, and Iterate in a Container
 
 Use the `./holohub` wrapper to drive it:
 
 ```bash
-cd ~/holoscan-my-sensor
+cd ~/holoscan-my-module
 
-# Single command to build and launch the container, then build and run the demo application
-./holohub run my_sensor_pipeline --language <cpp/python>
+# Build and run the demo application inside the generated development container
+./holohub run-container -- "./holohub build my_module_pipeline && ./holohub run my_module_pipeline --language <cpp/python>"
 
 # Run CTest (C++) and PyTest (Python)
 ./holohub test
@@ -324,7 +338,7 @@ cd ~/holoscan-my-sensor
 
 Notes:
 
-- `MY_SENSOR_BUILD_TESTING` defaults `ON` when you build the module standalone and `OFF`
+- `MY_MODULE_BUILD_TESTING` defaults `ON` when you build the module standalone and `OFF`
   when it is nested under a parent build, so tests run automatically here but a
   downstream consumer that pulls your module via FetchContent does not pay the test
   cost by default.
@@ -333,18 +347,43 @@ Notes:
   CTest treats as **Skipped** rather than failed. This makes the same test invocation
   valid on both GPU and CPU-only hosts.
 
-### 3.6 Use the Live Build Tree from Any Shell
+### 3.6 Build and Test Natively
+
+Use the container workflow when you need the pinned SDK, CUDA, and system-package
+environment from the generated `Dockerfile`. A native build is appropriate only when
+the host has a compatible Holoscan SDK and toolchain; host CUDA, compiler, Python, and
+SDK versions must be compatible with the module's declared minimum SDK version.
+
+From the generated module root, use the `./holohub` wrapper in local mode. This
+uses the same project configuration as the container workflow but runs the build and
+tests directly on the host:
+
+```bash
+./holohub build my_module_pipeline --local
+./holohub test --local
+```
+
+Add `--dryrun` to either command to preview its host commands without executing
+them. The expected result is a configured `build/` tree, built module and demo
+artifacts, and the enabled CTest suite. Do not mix host-native build artifacts with
+container build artifacts in the same `build/` directory.
+
+If the local build cannot find Holoscan, verify the installation first and then set
+either `CMAKE_PREFIX_PATH=/opt/nvidia/holoscan` or
+`holoscan_DIR=/opt/nvidia/holoscan/lib/cmake/holoscan` before rerunning the command.
+
+### 3.7 Use the Live Build Tree from Any Shell
 
 To use the module from a Python shell or notebook outside of the build directory,
 install a development hook:
 
 ```bash
 ./holohub install --dev
-python -c "import holoscan.my_sensor; print(holoscan.my_sensor.__file__)"
+python -c "import holoscan.my_module; print(holoscan.my_module.__file__)"
 ```
 
 The hook writes a `.pth` file plus a small shim into your site-packages that redirects
-`holoscan.my_sensor` imports to the live build tree. Re-running `./holohub build` after
+`holoscan.my_module` imports to the live build tree. Re-running `./holohub build` after
 a source edit takes effect immediately — no wheel re-install needed. Remove it when
 you're done:
 
@@ -352,7 +391,7 @@ you're done:
 ./holohub install --dev --uninstall
 ```
 
-### 3.7 Declare Dependencies on Other Modules (Optional)
+### 3.8 Declare Dependencies on Other Modules (Optional)
 
 If your module depends on operators from another Holoscan Module, add a `dependencies`
 array to your `metadata.json`:
@@ -360,7 +399,7 @@ array to your `metadata.json`:
 ```json
 {
   "module": {
-    "name": "holoscan-my-sensor",
+    "name": "holoscan-my-module",
     "dependencies": [
       {
         "name": "holoscan-other",
@@ -378,7 +417,7 @@ array to your `metadata.json`:
 Note: `ref` should be a 40-character commit SHA. The resolver accepts tags and branches but
   emits a warning — they are mutable and break reproducibility.
 
-### 3.8 Package: Debian and Wheel
+### 3.9 Package: Debian and Wheel
 
 Now that we've implemented and tested our module, it's time to package and share it outside
 of this repository.
@@ -386,13 +425,13 @@ of this repository.
 Run the following command to generate Debian and Python packages:
 
 ```bash
-./holohub package holoscan-my-sensor --pkg-generator DEB,WHEEL
+./holohub package holoscan-my-module --pkg-generator DEB,WHEEL
 ...
 CPack: Create package
-CPack: - package: /workspace/holohub/holoscan-my-sensor_0.1.0_arm64.deb generated.
+CPack: - package: /workspace/holohub/holoscan-my-module_0.1.0_arm64.deb generated.
 ...
-*** Created holoscan_my_sensor-0.1.0-cp312-cp312-linux_aarch64.whl
-Successfully built holoscan_my_sensor-0.1.0-cp312-cp312-linux_aarch64.whl
+*** Created holoscan_my_module-0.1.0-cp312-cp312-linux_aarch64.whl
+Successfully built holoscan_my_module-0.1.0-cp312-cp312-linux_aarch64.whl
 
 Wheel output directory: build/dist
 ```
@@ -401,9 +440,10 @@ Important notes:
 
 - `WHEEL` invokes `python -m build --wheel` against `pyproject.toml`. Output goes to
   `build/dist/`.
-- `DEB` runs CMake + CPack via the `holohub_configure_deb()` helper baked into the
-  template's `CMakeLists.txt`. Update the `Recommends:` / `Depends:` lines in
-  `CMakeLists.txt` if your module needs additional system packages.
+- `DEB` runs CMake + CPack through `pkg/CMakeLists.txt` and
+  `pkg/holoscan-my-module/CMakeLists.txt`, where `holohub_configure_deb()` defines
+  package metadata. Update that package CMake file if your module needs additional
+  system-package dependencies.
 - The wheel does **not** declare Holoscan SDK as a runtime dependency. Consumers
   install Holoscan SDK matching their CUDA variant separately. State the required
   Holoscan version in your README and in `metadata.json:module.holoscan_sdk`.
@@ -414,7 +454,7 @@ The Debian and wheel packages are now available for distribution. The Holoscan M
 template infrastructure does not cover the actual distribution of artifacts. We suggest
 [PyPI](https://pypi.org/) for Python wheel publishing.
 
-### 3.9 CI/CD: What Ships Out of the Box
+### 3.10 CI/CD: What Ships Out of the Box
 
 The Holoscan Module template scaffolding suggests a few basic GitHub CI hooks for basic coverage.
 For best practice, consider extending with more complete build and run coverage of your
@@ -448,12 +488,12 @@ to share your work and seek adoption.
      create fully private projects as well. No public sharing necessary.
 2. **Publish binaries.**
    - Wheel: `python -m twine upload build/dist/*.whl` to PyPI (or a private index).
-   - Debian: upload the `.deb` from `build/holoscan-my-sensor/package/` to your APT
+   - Debian: upload the `.deb` from `build/holoscan-my-module/package/` to your APT
      repository.
    - Recommended: The `binary_packages.{debian,pypi}` block in `metadata.json` should match the
      published names exactly. Update `binary_packages.install_commands` to the actual
-     end-user install incantation (e.g., `pip install holoscan-my-sensor` or
-     `apt install holoscan-my-sensor`).
+     end-user install incantation (e.g., `pip install holoscan-my-module` or
+     `apt install holoscan-my-module`).
 3. **Register on the Holoscan ecosystem site.** NVIDIA curates the Holoscan landing page with a
    limited set of high-quality community projects. To request review of your project, open a pull
    request in HoloHub to add a pointer entry to your project in the HoloHub `modules/` directory
@@ -477,7 +517,7 @@ You'll add files to this directory to describe how HoloHub operators should be g
 packaged to yield your Holoscan Module.
 
 ```bash
-mkdir -p modules/holoscan-my-sensor
+mkdir -p modules/holoscan-my-module
 ```
 
 ### 4.2 **Add `metadata.json`** using schema `urn:holohub:module:v2`
@@ -494,8 +534,8 @@ The key differences from the external-module case:
 
   ```json
   {
-    "dockerfile": "operators/my_sensor/Dockerfile",
-    "documentation": { "readme": "operators/my_sensor/README.md" }
+    "dockerfile": "operators/my_module/Dockerfile",
+    "documentation": { "readme": "operators/my_module/README.md" }
   }
   ```
 
@@ -506,7 +546,7 @@ This will tell the HoloHub CMake build system about the module, define the `-DMO
 and enable dependency handling for any applications or operators this module covers.
 
 ```cmake
-add_holohub_module(holoscan-my-sensor OPERATORS my_sensor)
+add_holohub_module(holoscan-my-module OPERATORS my_module)
 ```
 
 ### 4.4 (Optional) Enable wheel packaging
@@ -520,14 +560,14 @@ requires = ["scikit-build-core>=0.10"]
 build-backend = "scikit_build_core.build"
 
 [project]
-name = "holoscan-my-sensor"
+name = "holoscan-my-module"
 version = "0.1.0"
 requires-python = ">=3.10"
 
 [tool.scikit-build]
 cmake.source-dir = "../.."
 cmake.args = [
-    "-DMODULE_holoscan_my_sensor=ON",
+    "-DMODULE_holoscan_my_module=ON",
     "-DHOLOHUB_BUILD_PYTHON=ON",
 ]
 wheel.packages = []
@@ -535,7 +575,7 @@ wheel.packages = []
 
 ### 4.5 (Optional) Enable Debian packaging
 
-Add a `holohub_configure_deb(...)` call in `modules/my_sensor/CMakeLists.txt` to enable Debian
+Add a `holohub_configure_deb(...)` call in `modules/my_module/CMakeLists.txt` to enable Debian
 packaging. See the function description in [cmake/HoloHubConfigHelpers.cmake](/cmake/HoloHubConfigHelpers.cmake)
 for parameters, including package dependency handling.
 
@@ -547,8 +587,8 @@ the Debian metadata before passing it to this call.
 Use the HoloHub CLI to run build and packaging operations:
 
 ```bash
-./holohub build holoscan-my-sensor
-./holohub package holoscan-my-sensor --pkg-generator DEB,WHEEL
+./holohub build holoscan-my-module
+./holohub package holoscan-my-module --pkg-generator DEB,WHEEL
 ```
 
 These commands use Docker, CMake, CPack, and scikit-build-core under the hood to carry out
@@ -590,9 +630,13 @@ at your module build location and also patch the Holoscan SDK import search path
 
 ### **CMake cannot find `holoscan::core`.**
 
-Either run inside `./holohub run-container`,
-  or `pip install holoscan==<version>` in your local environment so the SDK CMake config
-  is discoverable.
+Use the container workflow, or point native CMake at the installed SDK:
+
+```bash
+cmake -S . -B build -DCMAKE_PREFIX_PATH=/opt/nvidia/holoscan
+# Equivalent explicit configuration:
+cmake -S . -B build -Dholoscan_DIR=/opt/nvidia/holoscan/lib/cmake/holoscan
+```
 
 ### **`pytest` exits with status 5.**
 
@@ -605,8 +649,8 @@ CTest treats this as *Skipped* via `SKIP_RETURN_CODE 5`.
 
 ## 7. Next Steps
 
-- Read the companion tutorial (forthcoming) on **consuming a Holoscan Module** from a
-  HoloHub project or an external Holoscan SDK application.
+- Read the companion [Use a Holoscan Module](../use-a-module/) tutorial for HoloHub
+  projects and external Holoscan SDK applications.
 - Review `modules/holoscan-gstreamer/` as a HoloHub-hosted module reference, including how
   it declares system-package requirements and points its `pyproject.toml` at the
   HoloHub root for selective builds.

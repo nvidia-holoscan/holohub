@@ -112,3 +112,15 @@ operator_slug    = module_slug + "_op"
 The template computes `module_slug`, `module_repo_name`, and `operator_slug`
 automatically from `project_name`. You can accept the defaults or override any of them
 at the prompts.
+
+### Supported namespace and package layout
+
+`module_slug` is the single supported customization point for generated code layout.
+It determines the C++ namespace `holoscan::<module_slug>`, the Python import
+`holoscan.<module_slug>`, and the corresponding generated Python-package directory.
+For example, `module_slug=my_sensor` produces `holoscan::my_sensor`,
+`holoscan.my_sensor`, and `python/holoscan/my_sensor/`.
+
+Independent C++ namespaces, Python package names, and package directories are not
+supported customization points. Keeping these names aligned preserves the generated
+bindings, CMake targets, installation layout, and consumer imports.
