@@ -20190,7 +20190,7 @@
 <h3 id="run-using-docker">Run using Docker<a class="headerlink" href="#run-using-docker" title="Permanent link">#</a></h3>
 <p>To run the sample application with Docker, you must first build and run a Docker image that includes the sample application and its dependencies:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Build and run the Docker images from the root directory of Holohub</span>
-./holohub<span class="w"> </span>run-container<span class="w"> </span>nvidia_nim
+./holohub<span class="w"> </span>run-container<span class="w"> </span>nvidia_nim_chat
 </code></pre></div>
 <p>Continue to the <a href="#start-the-application">Start the Application</a> section once inside the Docker container.</p>
 <h3 id="run-the-application-without-docker">Run the Application without Docker<a class="headerlink" href="#run-the-application-without-docker" title="Permanent link">#</a></h3>
@@ -20200,7 +20200,7 @@ python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </
 <span class="nb">source</span><span class="w"> </span>.venv/bin/activate
 
 <span class="c1"># install the required packages</span>
-pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>applications/nvidia_nim/chat/requirements.txt
+pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>applications/nvidia_nim/nvidia_nim_chat/requirements.txt
 </code></pre></div>
 <h3 id="start-the-application">Start the Application<a class="headerlink" href="#start-the-application" title="Permanent link">#</a></h3>
 <p>To use the NIMs on <a href="https://build.nvidia.com/">build.nvidia.com/</a>, configure your API key in the <code>nvidia_nim.yaml</code> configuration file and run the sample app as follows:</p>
