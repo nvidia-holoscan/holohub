@@ -117,19 +117,27 @@ and leverage the project as a dependency.
 
 ### 3.1 Install creation dependencies
 
-Install the optional create dependencies before scaffolding a Module:
+From your HoloHub clone, install the template dependencies through the wrapper:
+
+```bash
+./holohub setup --scripts template
+```
+
+Before it runs the setup script, `./holohub` selects an active or managed virtual
+environment. The script then installs Cookiecutter and the metadata-validation
+dependencies through that same interpreter, so the subsequent `./holohub create`
+command can use them.
+
+For a standalone CLI workflow, you can instead install the optional create
+dependencies yourself:
 
 ```bash
 python -m pip install 'holoscan-cli[create]'
 ```
 
-This installs Cookiecutter and the metadata-validation dependencies used during
-generation. The HoloHub checkout flow below can instead install the same dependencies
-with its setup command:
-
-```bash
-./holohub setup --scripts template
-```
+Ensure that `python` is the interpreter selected by `./holohub` (for example, by
+activating its virtual environment first); otherwise the dependencies may be installed
+in a different Python environment.
 
 The standalone `holoscan create` workflow also requires a Module template supplied by
 the CLI distribution. Until that self-contained template delivery is available, use
@@ -153,7 +161,7 @@ or customize with your own:
 | --- | --- | --- |
 | `project_name` | `My Holoscan Sensor Module` | Display name |
 | `module_slug` | `my_module` | Python import + C++ namespace |
-| `module_repo_name` | `holoscan-my-module` | Repo directory + package names |
+| `module_repo_name` | Derived: `holoscan-my-module` | Repo directory + package names |
 | `operator_slug` | `my_module_op` | Initial operator |
 | `language` | `cpp` or `python` | Implementation language |
 | `version` | `0.1.0` | Initial semver |
@@ -165,7 +173,8 @@ The CLI will further derive some names using these rules:
 - `module_slug=my_module` → C++ namespace `holoscan::my_module`, Python package
   `holoscan.my_module`, CMake options `OP_my_module_op`, `MY_MODULE_BUILD_TESTING`.
 - `operator_slug=my_module_op` → C++ class `MyModuleOp` (CamelCase from snake_case).
-- `module_repo_name=holoscan-my-module` → directory + PyPI/Debian package names.
+- `module_repo_name=holoscan-my-module` → derived from `module_slug`; retain this
+  value so the directory and PyPI/Debian package names stay aligned.
 
 *Advanced Users and AI Agents:* For non-interactive use, pass values directly:
 
@@ -373,17 +382,20 @@ SDK versions must be compatible with the module's declared minimum SDK version.
 
 From the generated module root, use the `./holohub` wrapper in local mode. This
 uses the same project configuration as the container workflow but runs the build and
-tests directly on the host:
+tests directly on the host. Use a separate build parent so native artifacts never mix
+with the container workflow's `build/` tree:
 
 ```bash
+export HOLOSCAN_CLI_BUILD_PARENT_DIR="$PWD/build-native"
+./holohub build my_module_pipeline --local --dryrun --verbose
+./holohub test --local --dryrun --verbose
 ./holohub build my_module_pipeline --local
 ./holohub test --local
 ```
 
-Add `--dryrun` to either command to preview its host commands without executing
-them. The expected result is a configured `build/` tree, built module and demo
-artifacts, and the enabled CTest suite. Do not mix host-native build artifacts with
-container build artifacts in the same `build/` directory.
+The dry runs preview the host commands without executing them. The expected result is
+a configured `build-native/` tree, built module and demo artifacts, and the enabled
+CTest suite.
 
 If the local build cannot find Holoscan, verify the installation first and then set
 either `CMAKE_PREFIX_PATH=/opt/nvidia/holoscan` or
@@ -492,7 +504,7 @@ You can update these TODOs in `ci.yml`:
 2. For runtime validation, we suggest setting up a self-hosted GitHub runner with GPU and any other
    hardware requirements, then updating the GPU workflow to target that machine.
 
-### 3.10 Publish and Register
+### 3.11 Publish and Register
 
 Your module is ready to share with the Holoscan ecosystem! Here are the paths that we recommend
 to share your work and seek adoption.
@@ -545,14 +557,19 @@ The key differences from the external-module case:
 
 - Omit `source_repository`. The resolver uses the absence of a `source` block in a
   consumer's dependency entry to detect HoloHub-hosted modules and look them up here.
-- Set `operators` to the folder names in the [operators directory](/operators/) you want this module to
-  collect.
+- Set `module.subprojects.operators` to the existing folder names in the
+  [operators directory](/operators/) that you want this module to collect. In the
+  following example, `my_module_op` is an existing `operators/my_module_op/`
+  directory, not the external-template generated project.
 - Reference `dockerfile` and `documentation.readme` with paths relative to the project root, i.e.:
 
   ```json
   {
-    "dockerfile": "operators/my_module/Dockerfile",
-    "documentation": { "readme": "operators/my_module/README.md" }
+    "module": {
+      "subprojects": { "operators": ["my_module_op"] },
+      "dockerfile": "operators/my_module_op/Dockerfile",
+      "documentation": { "readme": "operators/my_module_op/README.md" }
+    }
   }
   ```
 
@@ -563,7 +580,7 @@ This will tell the HoloHub CMake build system about the module, define the `-DMO
 and enable dependency handling for any applications or operators this module covers.
 
 ```cmake
-add_holohub_module(holoscan-my-module OPERATORS my_module)
+add_holohub_module(holoscan-my-module OPERATORS my_module_op)
 ```
 
 ### 4.4 (Optional) Enable wheel packaging
@@ -592,7 +609,7 @@ wheel.packages = []
 
 ### 4.5 (Optional) Enable Debian packaging
 
-Add a `holohub_configure_deb(...)` call in `modules/my_module/CMakeLists.txt` to enable Debian
+Add a `holohub_configure_deb(...)` call in `modules/holoscan-my-module/CMakeLists.txt` to enable Debian
 packaging. See the function description in [cmake/HoloHubConfigHelpers.cmake](/cmake/HoloHubConfigHelpers.cmake)
 for parameters, including package dependency handling.
 
@@ -621,8 +638,10 @@ Fast lookup for repeat use:
 | Step | Command | Key file or output |
 | --- | --- | --- |
 | Scaffold | `./holohub create <name> --template modules/template --directory <dir>` | `<dir>/holoscan-<name>/` |
-| Build | `./holohub build <app> --local` | `build/` |
-| Test | `./holohub test --no-xvfb` | `ctest` + `pytest` output |
+| Container build | `./holohub build <app>` | `build/<app>/` |
+| Container test | `./holohub test --no-xvfb` | `ctest` + `pytest` output |
+| Native build | `HOLOSCAN_CLI_BUILD_PARENT_DIR=$PWD/build-native ./holohub build <app> --local` | `build-native/<app>/` |
+| Native test | `HOLOSCAN_CLI_BUILD_PARENT_DIR=$PWD/build-native ./holohub test --local` | `ctest` + `pytest` output |
 | Dev import | `./holohub install --dev` | `.pth` shim in site-packages |
 | Package | `./holohub package <name> --pkg-generator DEB,WHEEL` | `build/dist/*.whl`, `<project-root>/*.deb` |
 | List modules | `./holohub list` | `MODULES:` section |
