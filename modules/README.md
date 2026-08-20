@@ -81,7 +81,7 @@ this before running the command to avoid confusion during the prompts.
 | --- | --- | --- |
 | `project_name` | Free text, title case | Display name, README title |
 | `module_slug` | `snake_case` (underscores) | Python import path, C++ namespace, file/dir names inside the module, CMake variable prefixes |
-| `module_repo_name` | `holoscan-<slug>` (hyphens) | Repository directory name, PyPI package name, Debian package name |
+| `module_repo_name` | Derived: `holoscan-<slug>` (hyphens) | Repository directory name, PyPI package name, Debian package name |
 | `operator_slug` | `snake_case` + `_op` | Operator source file name; class name is TitleCase (`MySensorOp`) |
 
 ### Example: "My Sensor"
@@ -110,5 +110,19 @@ operator_slug    = module_slug + "_op"
 ```
 
 The template computes `module_slug`, `module_repo_name`, and `operator_slug`
-automatically from `project_name`. You can accept the defaults or override any of them
-at the prompts.
+automatically from `project_name`. `module_slug` and `operator_slug` can be
+customized at the prompts; keep `module_repo_name` at its derived value so the
+repository directory, package metadata, and generated build configuration remain
+aligned.
+
+### Supported namespace and package layout
+
+`module_slug` is the single supported customization point for generated code layout.
+It determines the C++ namespace `holoscan::<module_slug>`, the Python import
+`holoscan.<module_slug>`, and the corresponding generated Python-package directory.
+For example, `module_slug=my_sensor` produces `holoscan::my_sensor`,
+`holoscan.my_sensor`, and `python/holoscan/my_sensor/`.
+
+Independent C++ namespaces, Python package names, and package directories are not
+supported customization points. Keeping these names aligned preserves the generated
+bindings, CMake targets, installation layout, and consumer imports.
