@@ -169,6 +169,9 @@ add_holohub_application(psd_pipeline DEPENDS
 add_holohub_application(ultrasound_segmentation DEPENDS
                         OPERATORS OPTIONAL aja_source)
 
+add_holohub_application(usrp_spectrum_viewer DEPENDS
+                        OPERATORS fft)
+
 add_holohub_application(velodyne_lidar_app DEPENDS
                         OPERATORS velodyne_lidar)
 
