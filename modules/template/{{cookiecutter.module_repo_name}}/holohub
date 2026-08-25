@@ -68,7 +68,7 @@ export CMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE:-Release}"
 export HOLOSCAN_CLI_INSTALL_ARGS="${HOLOSCAN_CLI_INSTALL_ARGS:---pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0}"
 # Single bump point for the CLI version everywhere (host, images, runtime);
 # keep in sync with the HoloHub repo wrapper.
-HOLOSCAN_CLI_DEFAULT_PIN="4.5.0"
+HOLOSCAN_CLI_DEFAULT_PIN="4.6.0rc1"
 export HOLOSCAN_CLI_PINNED_VERSION="${HOLOSCAN_CLI_PINNED_VERSION-${HOLOSCAN_CLI_DEFAULT_PIN}}"
 CLI_VENV_EXPLICIT="${HOLOSCAN_CLI_VENV:+1}"
 if [[ -z "${HOLOSCAN_CLI_VENV:-}" && -n "${XDG_DATA_HOME:-}${HOME:-}" ]]; then
