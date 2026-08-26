@@ -1,0 +1,25 @@
+{
+	"operator": {
+		"name": "TensorRtMultiDeviceInferenceOp",
+		"description": "Runs a single TensorRT engine sharded across >=2 GPUs (TensorRT Multi-Device, NCCL DistCollective), so one operator drives N GPUs. For models too large for one GPU or that benefit from tensor parallelism.",
+		"authors": [
+			{
+				"name": "Peter Kisfaludi",
+				"affiliation": "NVIDIA"
+			}
+		],
+		"version": "1.0",
+		"changelog": {
+			"1.0": "Initial release: multi-GPU TensorRT Multi-Device inference operator (TRT-28040)."
+		},
+		"language": ["C++"],
+		"holoscan_sdk": {
+			"minimum_required_version": "2.0.0",
+			"tested_versions": ["2.0.0"]
+		},
+		"platforms": ["x86_64"],
+		"tags": ["Inference", "TensorRT", "Multi-GPU", "NCCL", "Tensor Parallel"],
+		"ranking": 3,
+		"requirements": {}
+	}
+}
