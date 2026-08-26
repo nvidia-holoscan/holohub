@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 ---
-num_runs: -1  # Number of iterations the application will run, -1 is infinite
+num_runs: -1  # Number of iterations LogOp logs before it stops, -1 is infinite
 
 scheduler:
   worker_thread_number: 4

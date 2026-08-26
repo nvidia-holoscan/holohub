@@ -104,8 +104,8 @@ matching `dest_ports` entry on `dest_addr`, `channels` and `dest_ports` must hav
 >   rate: 500000000.0        # samples/s: FFT sample rate
 >
 > spectrum_viz:
->   ref_center_mhz: 1000.0   # must equal usrp_rx.freq / 1e6
->   ref_bandwidth_mhz: 500.0 # must equal the FFT sample rate / 1e6
+>   ref_center_hz: 1000000000.0   # must equal usrp_rx.freq
+>   ref_bandwidth_hz: 500000000.0 # must equal the FFT sample rate
 > ```
 >
 > If these values do not match the received RF stream, the spectrum still renders, but its frequency labels and peak-frequency readout are incorrect.

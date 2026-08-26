@@ -9,6 +9,8 @@
 #include "spectrum_magnitude/spectrum_magnitude.hpp"
 #include <fft.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
+#include <daqiri/daqiri.h>
+#include <filesystem>
 #include <memory>
 
 class UsrpSpectrumViewerApp : public holoscan::Application {
@@ -95,8 +97,10 @@ int main(int argc, char** argv) {
     }
 
     // Get the full path to the configuration file
-    auto config_path = std::filesystem::canonical("/proc/self/exe").parent_path();
-    config_path += "/" + std::string(argv[1]);
+    std::filesystem::path config_path(argv[1]);
+    if (!config_path.is_absolute()) {
+        config_path = std::filesystem::canonical("/proc/self/exe").parent_path() / config_path;
+    }
 
     // Check if the configuration file exists
     if (!std::filesystem::exists(config_path)) {

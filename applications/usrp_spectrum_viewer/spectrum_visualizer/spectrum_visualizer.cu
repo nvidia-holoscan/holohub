@@ -126,9 +126,14 @@ void SpectrumVisualizerOp::compute(InputContext& op_input,
 
   const float db_min = db_min_.get();
   const float db_max = db_max_.get();
+  const float range = db_max - db_min;
+  if (range == 0.0F) {
+    HOLOSCAN_LOG_ERROR("spectrum_viz.db_max must be different from db_min");
+    return;
+  }
   // With db_min = -120 and db_max = 0, the normalized value maps db_min -> 0
   // (bottom of the plot band) and db_max -> 1 (top of the plot band).
-  const float inv_range = 1.0F / (db_max - db_min);
+  const float inv_range = 1.0F / range;
 
   // Normalize dB to [0, 1], flip (Holoviz y grows downward), and map into the
   // shared vertical plot band so the trace lines up with the overlay dB grid.

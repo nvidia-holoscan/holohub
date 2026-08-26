@@ -4,9 +4,16 @@
 
 #pragma once
 
+#include <array>
+#include <cstdint>
+#include <optional>
+#include <queue>
+#include <vector>
+
+#include <daqiri/daqiri.h>
+
 #include "holoscan/holoscan.hpp"
 #include "matx.h"
-#include <daqiri/daqiri.h>
 
 using complex = cuda::std::complex<float>;
 
@@ -46,6 +53,7 @@ class UhdChdrRxOp : public Operator {
   struct RxMsg {
     std::array<daqiri::BurstParams *, MAX_DAQIRI_BATCHES> msg;
     int num_batches;
+    int buf_idx;
     cudaStream_t stream;
     cudaEvent_t evt;
   };

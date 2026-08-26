@@ -182,8 +182,12 @@ ops::HolovizOp::LayerCallbackFunction make_spectrum_overlay_callback(
       for (int ch = 0; ch < shown_channels; ++ch) {
         const float peak_freq_mhz = view_state->peak_freq_mhz[ch].load(std::memory_order_relaxed);
         const float peak_db_val = view_state->peak_db[ch].load(std::memory_order_relaxed);
+        if (ui_state->bandwidth_mhz <= 0.0F) {
+          continue;
+        }
         const float u = (peak_freq_mhz - ui_state->center_freq_mhz) / ui_state->bandwidth_mhz
                         + ops::PLOT_CENTER_U;
+
         if (u < 0.0F || u > 1.0F) {
           continue;
         }

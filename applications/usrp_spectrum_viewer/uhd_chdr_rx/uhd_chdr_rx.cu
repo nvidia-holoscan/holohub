@@ -2,6 +2,10 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 #include "uhd_chdr_rx.hpp"
+
+#include <cstdint>
+#include <iomanip>
+#include <sstream>
 #include <stdexcept>
 
 using namespace daqiri;
@@ -220,7 +224,8 @@ bool UhdChdrRxOp::free_bufs_and_emit_arrays(
   auto meta = metadata();
   meta->set("channel_number", channel->channel_num);
 
-  auto data = slice<2>(channel->rf_data, {static_cast<index_t>(channel->cur_idx), 0, 0},
+  auto data = slice<2>(channel->rf_data,
+              {static_cast<index_t>(completed_msg.value().buf_idx), 0, 0},
               {matxDropDim, matxEnd, matxEnd});
   op_output.emit(out_t {data, completed_msg.value().stream}, "out");
   return true;
@@ -377,6 +382,42 @@ void UhdChdrRxOp::stop() {
         channel->channel_num,
         channel->ttl_bytes_recv,
         channel->ttl_pkts_recv);
+
+     // Free any outstanding DAQIRI bursts (queued and in-progress).
+     while (!channel->out_q.empty()) {
+       auto msg = channel->out_q.front();
+       for (int m = 0; m < msg.num_batches; ++m) {
+         free_all_packets_and_burst_rx(msg.msg[m]);
+       }
+       channel->out_q.pop();
+     }
+     for (int m = 0; m < channel->cur_msg.num_batches; ++m) {
+       free_all_packets_and_burst_rx(channel->cur_msg.msg[m]);
+     }
+     channel->cur_msg.num_batches = 0;
+     // Release CUDA resources and pinned host allocations.
+     const int batches = (num_buffered_batches_.get() < num_concurrent)
+                             ? static_cast<int>(num_buffered_batches_.get())
+                             : num_concurrent;
+     for (int n = 0; n < batches; ++n) {
+       if (channel->streams[n] != nullptr) {
+         cudaStreamSynchronize(channel->streams[n]);
+       }
+       if (channel->h_dev_ptrs[n] != nullptr) {
+         cudaFreeHost(channel->h_dev_ptrs[n]);
+         channel->h_dev_ptrs[n] = nullptr;
+       }
+       if (channel->events[n] != nullptr) {
+         cudaEventDestroy(channel->events[n]);
+         channel->events[n] = nullptr;
+       }
+       if (channel->streams[n] != nullptr) {
+         cudaStreamDestroy(channel->streams[n]);
+         channel->streams[n] = nullptr;
+       }
+     }
   }
+
+  channel_list.clear();
 }
 }  // namespace holoscan::ops

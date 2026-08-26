@@ -45,8 +45,8 @@ target_link_libraries(usrp_spectrum_viewer PRIVATE
 holohub_link_daqiri(usrp_spectrum_viewer)
 
 # Copy config file
-add_custom_target(config_yaml
+add_custom_target(usrp_spectrum_viewer_config_yaml
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/config.yaml ${CMAKE_CURRENT_BINARY_DIR}/config.yaml
     DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/config.yaml"
 )
-add_dependencies(usrp_spectrum_viewer config_yaml)
+add_dependencies(usrp_spectrum_viewer usrp_spectrum_viewer_config_yaml)

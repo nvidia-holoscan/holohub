@@ -33,11 +33,26 @@ void SpectrumMagnitudeOp::setup(OperatorSpec& spec) {
 
 void SpectrumMagnitudeOp::initialize() {
     holoscan::Operator::initialize();
-    make_tensor(outputs_,  {num_channels_.get(), burst_size_.get()}, MATX_DEVICE_MEMORY);
+
+     const int burst_size = burst_size_.get();
+     const int num_bursts = num_bursts_.get();
+     const auto num_channels = num_channels_.get();
+     const auto num_averages = num_averages_.get();
+     if (burst_size <= 0 || num_bursts <= 0 || num_channels == 0 || num_averages == 0) {
+         throw std::runtime_error(
+             "spectrum_magnitude.burst_size, num_bursts, num_channels, and num_averages must all "
+             "be > 0");
+     }
+     if (num_averages != static_cast<uint32_t>(num_bursts)) {
+         throw std::runtime_error(
+             "spectrum_magnitude.num_averages must equal num_bursts; the batch is averaged over "
+             "all num_bursts rows");
+     }
+    make_tensor(outputs_,  {num_channels, burst_size}, MATX_DEVICE_MEMORY);
     make_tensor(abs2_buf_,
-                {num_channels_.get(), num_bursts_.get(), burst_size_.get()},
+                {num_channels, num_bursts, burst_size},
                 MATX_DEVICE_MEMORY);
-    scale_factor_ = 1.0f / static_cast<float>(burst_size_.get() * burst_size_.get());
+    scale_factor_ = 1.0f / static_cast<float>(burst_size * burst_size);
 }
 
 void SpectrumMagnitudeOp::compute(InputContext& op_input,
