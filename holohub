@@ -26,6 +26,7 @@
 #   HOLOSCAN_CLI_PINNED_VERSION  Exact package version; empty enables floating mode.
 #   HOLOSCAN_CLI_PYTHON_BIN      Caller-owned interpreter.
 #   HOLOSCAN_CLI_VENV            Wrapper-managed venv location.
+#   HOLOSCAN_CLI_CREATE_TEMPLATE Default template used by `./holohub create`.
 #   HOLOSCAN_CLI_CTEST_SCRIPT    CTest script used by `./holohub test`.
 #   HOLOSCAN_CLI_IN_CONTAINER_CMD  In-container CLI entry (default: this wrapper).
 
@@ -54,6 +55,7 @@ export HOLOSCAN_CLI_VENV="${HOLOSCAN_CLI_VENV:-}"
 
 # The standalone CLI has no SDK-image default; HoloHub owns this project default.
 export HOLOSCAN_CLI_BASE_SDK_VERSION="${HOLOSCAN_CLI_BASE_SDK_VERSION:-4.5.0}"
+export HOLOSCAN_CLI_CREATE_TEMPLATE="${HOLOSCAN_CLI_CREATE_TEMPLATE:-applications/template}"
 export HOLOSCAN_CLI_CTEST_SCRIPT="${HOLOSCAN_CLI_CTEST_SCRIPT:-utilities/testing/holohub.container.ctest}"
 
 _holoscan_cli_version() {

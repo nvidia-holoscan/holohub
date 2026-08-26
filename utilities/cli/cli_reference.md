@@ -962,6 +962,7 @@ for selection order, safety boundaries, and managed-venv maintenance.
 | `HOLOSCAN_CLI_ROOT`              | HoloHub repo root                                                                    |
 | `HOLOSCAN_CLI_BUILD_PARENT_DIR`  | `<HOLOSCAN_CLI_ROOT>/build`                                                          |
 | `HOLOSCAN_CLI_DATA_DIR`          | `<HOLOSCAN_CLI_ROOT>/data`                                                           |
+| `HOLOSCAN_CLI_CREATE_TEMPLATE`   | `applications/template`, the default template used by `./holohub create`             |
 | `HOLOSCAN_CLI_SETUP_SCRIPTS_DIR` | `<HOLOSCAN_CLI_ROOT>/utilities/setup`                                                |
 | `HOLOSCAN_CLI_PATH_PREFIX`       | `holohub_` (prefix for path placeholders in metadata)                                |
 | `HOLOSCAN_CLI_DEFAULT_HSDK_DIR`  | `/opt/nvidia/holoscan`                                                               |
