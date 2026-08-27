@@ -93,6 +93,12 @@ void UsrpRxOp::start() {
     return;
   }
 
+  if (!keep_hdr_.get()) {
+    throw std::runtime_error(
+        "usrp_rx.keep_hdr must be true for this pipeline: raw_payload streaming "
+        "removes the CHDR header and misaligns the IQ samples UhdChdrRxOp reads");
+  }
+
   const auto& channels = channels_.get();
   const auto& dest_ports = dest_ports_.get();
   if (channels.empty()) {

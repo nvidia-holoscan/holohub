@@ -58,6 +58,11 @@ void SpectrumVisualizerOp::initialize() {
 
   holoscan::Operator::initialize();
 
+  if (ref_bandwidth_hz_.get() <= 0.0) {
+    throw std::runtime_error(fmt::format(
+        "spectrum_viz.ref_bandwidth_hz must be > 0, got {}", ref_bandwidth_hz_.get()));
+  }
+
   const index_t num_bins = static_cast<index_t>(num_bins_.get());
   const index_t num_channels = static_cast<index_t>(num_channels_.get());
 
@@ -113,10 +118,20 @@ void SpectrumVisualizerOp::compute(InputContext& op_input,
   auto in_db = std::get<0>(input);
   auto in_stream = std::get<1>(input);
 
+  if (static_cast<index_t>(in_db.Size(0)) != static_cast<index_t>(num_bins_.get())) {
+    HOLOSCAN_LOG_ERROR(
+        "spectrum_viz.num_bins ({}) must match the upstream spectrum length ({})",
+        num_bins_.get(), in_db.Size(0));
+    return;
+  }
+
   auto meta = metadata();
   auto channel_num = meta->get<uint16_t>("channel_number", 0);
   if (channel_num >= num_channels_.get()) {
-    channel_num = 0;
+    HOLOSCAN_LOG_ERROR(
+        "spectrum_viz.num_channels ({}) is too small for upstream channel {}; dropping message",
+        num_channels_.get(), channel_num);
+    return;
   }
 
   // All GPU work runs on one managed stream; make it wait for the upstream

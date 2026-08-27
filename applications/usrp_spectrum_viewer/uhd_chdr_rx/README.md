@@ -11,8 +11,7 @@ The UHD CHDR Receiver takes in DAQIRI packet bursts and does a few things:
 
 1. Accumulates a configurable number of packets
 2. Parses CHDR protocol headers and extracts the contained RF data
-3. Converts from network byte-order to little-endian
-4. Casts incoming data from 16-bit complex integer to 32-bit complex float
+3. Casts incoming data from 16-bit complex integer to 32-bit complex float
    (scaling to -1.0 thru +1.0)
 
 ## Requirements

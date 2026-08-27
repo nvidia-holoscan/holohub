@@ -40,6 +40,11 @@ void LogOp::compute(InputContext& op_input,
   // Access metadata
   auto meta = metadata();
   auto channel_num = meta->get<uint16_t>("channel_number", 0);
+  if (channel_num >= static_cast<uint16_t>(total_samples_.size())) {
+    HOLOSCAN_LOG_ERROR(
+        "Invalid channel_number {} (expected < {})", channel_num, total_samples_.size());
+    return;
+  }
 
   // Get timing information
   auto now = std::chrono::steady_clock::now();
@@ -49,7 +54,6 @@ void LogOp::compute(InputContext& op_input,
   // The incoming tensor is FFT output, but the throughput estimate is expressed
   // in terms of the original interleaved sc16 IQ stream for easier SDR tuning.
   auto num_samples = tensor.Size(0) * tensor.Size(1);
-  auto num_bits = num_samples * sizeof(int16_t) * 2 * 8;
 
   // Update statistics
   total_samples_[channel_num] += num_samples;
@@ -58,12 +62,12 @@ void LogOp::compute(InputContext& op_input,
   // Log statistics
   auto seconds = std::chrono::duration<double>(elapsed_[channel_num]).count();
   if (total_samples_[channel_num] > 0 && seconds >= log_interval_) {
-    auto duration = std::chrono::duration<double>(interval).count();
+    auto total_bits = total_samples_[channel_num] * sizeof(int16_t) * 2 * 8;
     HOLOSCAN_LOG_INFO("Processed {} samples from channel {} at {:.2f} MSps ({:.2f} Gbps)",
         total_samples_[channel_num],
         channel_num,
-        num_samples / duration / 1e6,
-        num_bits / duration / 1e9);
+        total_samples_[channel_num] / seconds / 1e6,
+        total_bits / seconds / 1e9);
     total_samples_[channel_num] = 0;
     elapsed_[channel_num] = std::chrono::steady_clock::duration::zero();
   }

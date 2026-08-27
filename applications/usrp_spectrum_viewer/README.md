@@ -216,37 +216,37 @@ daqiri:
     cfg:
         memory_regions:
             - name: "Headers_RX_CPU"
-                kind: "huge"
-                affinity: 0
-                access: [local]
-                num_bufs: 12500
-                buf_size: 42       # Ethernet + IPv4 + UDP headers
+              kind: "huge"
+              affinity: 0
+              access: [local]
+              num_bufs: 12500
+              buf_size: 42       # Ethernet + IPv4 + UDP headers
             - name: "CH1_CHDR_Headers_RX_CPU"
-                kind: "huge"
-                affinity: 0
-                access: [local]
-                num_bufs: 12500
-                buf_size: 64       # CHDR header
+              kind: "huge"
+              affinity: 0
+              access: [local]
+              num_bufs: 12500
+              buf_size: 64       # CHDR header
             - name: "CH1_Data_RX_GPU"
-                kind: "device"
-                affinity: 0
-                access: [local]
-                num_bufs: 12500
-                buf_size: 4096     # 1024 complex SC16 samples
+              kind: "device"
+              affinity: 0
+              access: [local]
+              num_bufs: 12500
+              buf_size: 4096     # 1024 complex SC16 samples
 
         interfaces:
             - name: sdr_data
-                address: 0000:41:00.0
-                rx:
-                    queues:
-                        - name: "Channel 1 data"
-                            id: 0
-                            cpu_core: 10
-                            batch_size: 2500
-                            memory_regions:
-                                - "Headers_RX_CPU"          # segment 0
-                                - "CH1_CHDR_Headers_RX_CPU" # segment 1
-                                - "CH1_Data_RX_GPU"         # segment 2
+              address: 0000:41:00.0
+              rx:
+                queues:
+                    - name: "Channel 1 data"
+                      id: 0
+                      cpu_core: 10
+                      batch_size: 2500
+                      memory_regions:
+                        - "Headers_RX_CPU"          # segment 0
+                        - "CH1_CHDR_Headers_RX_CPU" # segment 1
+                        - "CH1_Data_RX_GPU"         # segment 2
 ```
 
 The second queue follows the same layout with `CH2_CHDR_Headers_RX_CPU` and `CH2_Data_RX_GPU`. Thus, each incoming packet is divided into:
@@ -322,7 +322,7 @@ The FPGA images used during testing were:
   | X410 | `CG_400` |
   | X440 | `CG_1600` |
 
-- **Fixed bandwidth:** the reference configuration assumes a 500 MHz sample rate (`spectrum_viz.ref_bandwidth_mhz: 500`). Using a different rate requires matching changes in `usrp_rx` and `spectrum_viz`.
+- **Fixed bandwidth:** the reference configuration assumes a 500 MHz sample rate (`spectrum_viz.ref_bandwidth_hz: 500000000`). Using a different rate requires matching changes in `usrp_rx` and `spectrum_viz`.
 
 - **No FFT windowing:** the FFT runs on the raw samples with no window function, so spectral leakage (side lobes) is present. Applying a window such as Hann or Blackman is not currently implemented.
 

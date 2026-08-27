@@ -48,6 +48,7 @@ class UhdChdrRxOp : public Operator {
   Parameter<bool> log_packets_;
   int port_id_;
   uint32_t num_packets_per_batch;
+  uint16_t emit_start_ = 0;
 
   // Holds burst buffers that cannot be freed yet
   struct RxMsg {

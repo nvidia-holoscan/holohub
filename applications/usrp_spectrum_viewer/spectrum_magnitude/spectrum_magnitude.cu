@@ -52,7 +52,7 @@ void SpectrumMagnitudeOp::initialize() {
     make_tensor(abs2_buf_,
                 {num_channels, num_bursts, burst_size},
                 MATX_DEVICE_MEMORY);
-    scale_factor_ = 1.0f / static_cast<float>(burst_size * burst_size);
+    scale_factor_ = 1.0f / (static_cast<float>(burst_size) * static_cast<float>(burst_size));
 }
 
 void SpectrumMagnitudeOp::compute(InputContext& op_input,
@@ -61,6 +61,11 @@ void SpectrumMagnitudeOp::compute(InputContext& op_input,
     auto input = op_input.receive<in_t>("in").value();
     auto meta = metadata();
     auto channel_num = meta->get<uint16_t>("channel_number", 0);
+    if (channel_num >= num_channels_.get()) {
+        HOLOSCAN_LOG_ERROR(
+            "Invalid channel_number {} (expected < {})", channel_num, num_channels_.get());
+        return;
+    }
     auto out = slice<1>(outputs_, {static_cast<index_t>(channel_num), 0},
             {matxDropDim, matxEnd});
 

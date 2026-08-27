@@ -59,9 +59,8 @@ __global__ void place_packet_data_kernel(complex* out,
                 + (num_complex_samples_per_packet * blockDim.x * blockIdx.x)
                 + (num_complex_samples_per_packet * threadIdx.x);
 
-  // Copy data while performing an endian flip and casting to complex float
+  // Copy the interleaved IQ samples and cast to complex float
   for (size_t i = 0; i < num_complex_samples_per_packet; ++i) {
-    // Casting includes conversion from network order on little-endian systems
     out[offset + i] = complex(static_cast<float>(samples[i * 2]) * scalar,
                       static_cast<float>(samples[(i * 2) + 1]) * scalar);
   }
@@ -153,6 +152,15 @@ void UhdChdrRxOp::initialize() {
         fmt::format("Invalid RX port '{}' specified in the config", interface_name_.get()));
   }
 
+  // Error checks for num_channels and DAQIRI RX queue matching
+  if (const auto num_rx_queues = get_num_rx_queues(port_id_);
+      static_cast<uint16_t>(num_rx_queues) != num_channels_.get()) {
+    throw std::runtime_error(fmt::format(
+        "uhd_chdr_rx.num_channels ({}) must match the {} DAQIRI RX queue(s) configured "
+        "for interface '{}'",
+        num_channels_.get(), num_rx_queues, interface_name_.get()));
+  }
+
   num_packets_per_batch = num_outputs_per_batch_.get() * num_packets_per_output_.get();
 
   for (uint16_t channel_num = 0; channel_num < num_channels_.get(); channel_num++) {
@@ -164,6 +172,12 @@ void UhdChdrRxOp::initialize() {
                  num_packets_per_output_.get() * num_complex_samples_per_packet_.get()});
 
     // Allocate memory and create CUDA streams for each concurrent batch
+    if (num_buffered_batches_.get() == 0 || num_buffered_batches_.get() > num_concurrent) {
+      throw std::runtime_error(
+          fmt::format("num_buffered_batches must be in [1, {}], got {}",
+                      num_concurrent, num_buffered_batches_.get()));
+    }
+
     for (int n = 0; n < num_buffered_batches_.get(); n++) {
       if (auto err = cudaMallocHost((void**)&new_channel->h_dev_ptrs[n],
                                     sizeof(void*) * num_packets_per_batch);
@@ -237,10 +251,13 @@ void UhdChdrRxOp::compute(
         ExecutionContext& context) {
   const auto num_rx_queues = get_num_rx_queues(port_id_);
   // Try to emit any waiting data on any channel that's ready (but
-  // only one "emit()" call per "compute()" call).
-  for (uint16_t q = 0; q < num_rx_queues; q++) {
+  // only one "emit()" call per "compute()" call). Start the scan from a
+  // rotating channel so a continuously-ready channel cannot starve the others.
+  for (uint16_t i = 0; i < num_rx_queues; i++) {
+    const uint16_t q = (emit_start_ + i) % num_rx_queues;
     auto channel = channel_list.at(q);
     if (free_bufs_and_emit_arrays(op_output, channel)) {
+      emit_start_ = (q + 1) % num_rx_queues;
       break;
     }
     if (channel->out_q.size() >= num_concurrent) {
@@ -267,7 +284,17 @@ void UhdChdrRxOp::process_channel_data(
   auto channel = channel_list.at(channel_num);
 
   uint64_t ttl_bytes_in_cur_batch = 0;
-  for (int p = 0; p < get_num_packets(burst); p++) {
+  const int burst_packets = get_num_packets(burst);
+  if (channel->aggr_pkts_recv + static_cast<uint64_t>(burst_packets) > num_packets_per_batch) {
+     free_all_packets_and_burst_rx(burst);
+     throw std::runtime_error(fmt::format(
+         "DAQIRI burst ({} packets) would overflow the current batch ({} / {} packets filled); "
+         "check daqiri.rx.queues[*].batch_size vs uhd_chdr_rx batching settings",
+         burst_packets,
+         channel->aggr_pkts_recv,
+         num_packets_per_batch));
+  }
+  for (int p = 0; p < burst_packets; p++) {
       channel->h_dev_ptrs[channel->cur_idx][channel->aggr_pkts_recv + p]
           = get_segment_packet_ptr(burst, 2, p);
       ttl_bytes_in_cur_batch += get_segment_packet_length(burst, 0, p)
@@ -321,7 +348,13 @@ void UhdChdrRxOp::process_channel_data(
   // End packet logging
 
   channel->ttl_bytes_recv += ttl_bytes_in_cur_batch;
-  channel->aggr_pkts_recv += get_num_packets(burst);
+  channel->aggr_pkts_recv += static_cast<uint64_t>(get_num_packets(burst));
+  if (channel->cur_msg.num_batches >= MAX_DAQIRI_BATCHES) {
+          free_all_packets_and_burst_rx(burst);
+          throw std::runtime_error(
+                          "Exceeded MAX_DAQIRI_BATCHES while aggregating a batch;"
+                          "check daqiri batch_size vs uhd_chdr_rx batching settings");
+  }
   channel->cur_msg.msg[channel->cur_msg.num_batches++] = burst;
 
   // Once we've aggregated enough packets, do some work
@@ -353,6 +386,7 @@ void UhdChdrRxOp::process_channel_data(
     cudaEventRecord(channel->events[channel->cur_idx], channel->streams[channel->cur_idx]);
     channel->cur_msg.stream = channel->streams[channel->cur_idx];
     channel->cur_msg.evt = channel->events[channel->cur_idx];
+    channel->cur_msg.buf_idx = channel->cur_idx;
     channel->out_q.push(channel->cur_msg);
     channel->cur_msg.num_batches = 0;
 
@@ -383,6 +417,15 @@ void UhdChdrRxOp::stop() {
         channel->ttl_bytes_recv,
         channel->ttl_pkts_recv);
 
+     const int batches = (num_buffered_batches_.get() < num_concurrent)
+                            ? static_cast<int>(num_buffered_batches_.get())
+                            : num_concurrent;
+     for (int n = 0; n < batches; ++n) {
+       if (channel->streams[n] != nullptr) {
+         cudaStreamSynchronize(channel->streams[n]);
+       }
+     }
+
      // Free any outstanding DAQIRI bursts (queued and in-progress).
      while (!channel->out_q.empty()) {
        auto msg = channel->out_q.front();
@@ -396,13 +439,7 @@ void UhdChdrRxOp::stop() {
      }
      channel->cur_msg.num_batches = 0;
      // Release CUDA resources and pinned host allocations.
-     const int batches = (num_buffered_batches_.get() < num_concurrent)
-                             ? static_cast<int>(num_buffered_batches_.get())
-                             : num_concurrent;
      for (int n = 0; n < batches; ++n) {
-       if (channel->streams[n] != nullptr) {
-         cudaStreamSynchronize(channel->streams[n]);
-       }
        if (channel->h_dev_ptrs[n] != nullptr) {
          cudaFreeHost(channel->h_dev_ptrs[n]);
          channel->h_dev_ptrs[n] = nullptr;

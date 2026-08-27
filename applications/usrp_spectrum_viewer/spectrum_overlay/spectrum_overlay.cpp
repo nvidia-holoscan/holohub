@@ -60,6 +60,10 @@ ops::HolovizOp::LayerCallbackFunction make_spectrum_overlay_callback(
     ImGui::Begin("Spectrum Controls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::InputFloat("Center Freq (MHz)", &ui_state->center_freq_mhz, 1.0F, 10.0F, "%.1f");
     ImGui::InputFloat("Bandwidth (MHz)", &ui_state->bandwidth_mhz, 1.0F, 10.0F, "%.1f");
+    // A non-positive span makes the frequency mapping undefined; keep it above
+    // a small positive floor so labels and peak markers stay finite.
+    constexpr float min_bandwidth_mhz = 0.001F;
+    ui_state->bandwidth_mhz = std::max(ui_state->bandwidth_mhz, min_bandwidth_mhz);
     if (ImGui::Button("Reset")) {
       ui_state->center_freq_mhz = ui_state->reset_center_freq_mhz;
       ui_state->bandwidth_mhz = ui_state->reset_bandwidth_mhz;
