@@ -4,11 +4,30 @@ on:
   push:
     branches: [main]
   pull_request:
+
+permissions:
+  contents: read
+
 jobs:
-  check-urls:
+  test-changed-file-handling:
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Lychee for changed-file tests
+      uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8  # v2
+      with:
+        args: --version
+        checkbox: false
+        failIfEmpty: false
+        jobSummary: false
+
+    - name: Test changed-file handling
+      run: bash .github/workflows/scripts/test_check_urls_changed_files.sh
+
+  check-urls:
+    needs: test-changed-file-handling
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
       with:
@@ -17,55 +36,77 @@ jobs:
     - name: Get changed files in the PR
       if: github.event_name == 'pull_request'
       id: changed-files
-      run: |
-        # Get changed files using git diff
-        if git diff --name-only --diff-filter=d origin/${{ github.base_ref }}..HEAD | grep -E '\.(md|html|rst)$' > changed_files.txt; then
-          if [ -s changed_files.txt ]; then
-            echo "any_changed=true" >> $GITHUB_OUTPUT
-            echo "changed_files_list=$(cat changed_files.txt | sed 's|^|'"'"'${{ github.workspace }}/|; s|$|'"'"'|' | tr '\n' ' ')" >> $GITHUB_OUTPUT
-          else
-            echo "any_changed=false" >> $GITHUB_OUTPUT
-          fi
-        else
-          echo "any_changed=false" >> $GITHUB_OUTPUT
-        fi
+      env:
+        BASE_REF: ${{ github.base_ref }}
+        WORKSPACE: ${{ github.workspace }}
+      run: bash .github/workflows/scripts/get_changed_doc_files.sh
 
-    - name: Echo changed files in the PR
-      if: github.event_name == 'pull_request' && steps.changed-files.outputs.any_changed == 'true'
+    - name: Report changed documentation files
+      if: github.event_name == 'pull_request'
+      env:
+        ANY_CHANGED: ${{ steps.changed-files.outputs.any_changed }}
+        CHANGED_FILE_COUNT: ${{ steps.changed-files.outputs.changed_file_count }}
       run: |
-        echo "Files being checked: ${{ steps.changed-files.outputs.changed_files_list }}"
+        if [[ ! "${ANY_CHANGED}" =~ ^(true|false)$ ]] || [[ ! "${CHANGED_FILE_COUNT}" =~ ^[0-9]+$ ]]; then
+          echo "::error::Changed-file collection did not produce valid outputs."
+          exit 1
+        fi
+        echo "Checking ${CHANGED_FILE_COUNT} changed documentation file(s)"
+        while IFS= read -r file; do
+          printf '  %q\n' "${file}"
+        done < "${RUNNER_TEMP}/changed_doc_files.expected.txt"
+
+    - name: Install Lychee for the changed-file check
+      if: github.event_name == 'pull_request' && steps.changed-files.outputs.any_changed == 'true'
+      uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8  # v2
+      with:
+        args: --version
+        checkbox: false
+        failIfEmpty: false
+        jobSummary: false
 
     - name: URL checker (PR - changed files only)
       if: github.event_name == 'pull_request' && steps.changed-files.outputs.any_changed == 'true'
-      id: lychee-pr
-      uses: lycheeverse/lychee-action@v2
-      with:
-        workingDirectory: .github/workflows
-        args: >-
-          --accept=200,403,429
-          --verbose
-          --no-progress
-          --root-dir=${{ github.workspace }}
-          --exclude='${{ github.workspace }}/doc/website/overrides/'
-          --remap='(file://.*)/holoscan-sdk/(.*) https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/$2'
-          ${{ steps.changed-files.outputs.changed_files_list }}
-        fail: true
-        failIfEmpty: false
-        jobSummary: true
+      working-directory: .github/workflows
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      run: |
+        set -euo pipefail
+        manifest="${RUNNER_TEMP}/changed_doc_files.txt"
+        expected="${RUNNER_TEMP}/changed_doc_files.expected.txt"
+        expanded_inputs="${RUNNER_TEMP}/expanded_changed_doc_files.txt"
+        diagnostics="${RUNNER_TEMP}/expanded_changed_doc_files.stderr"
+        lychee_args=(--files-from "${manifest}")
+
+        if ! lychee --dump-inputs "${lychee_args[@]}" > "${expanded_inputs}" 2> "${diagnostics}"; then
+          echo "::error::Lychee could not expand the changed-file manifest."
+          sed 's/^/  /' "${diagnostics}" >&2
+          exit 1
+        fi
+        if ! LC_ALL=C diff -u --label expected --label expanded \
+          <(LC_ALL=C sort -- "${expected}") <(LC_ALL=C sort -- "${expanded_inputs}"); then
+          echo "::error::Lychee expanded $(wc -l < "${expanded_inputs}") inputs; expected $(wc -l < "${expected}")."
+          exit 1
+        fi
+
+        report="${RUNNER_TEMP}/lychee-pr.md"
+        status=0
+        lychee --format markdown --mode task --output "${report}" "${lychee_args[@]}" || status=$?
+        if [[ ! -f "${report}" ]]; then
+          echo "::error::Lychee did not produce a report."
+          exit 1
+        fi
+        cat -- "${report}"
+        cat -- "${report}" > "${GITHUB_STEP_SUMMARY}"
+        exit "${status}"
 
     - name: URL checker (all files)
       if: github.event_name == 'push'
       id: lychee-main
-      uses: lycheeverse/lychee-action@v2
+      uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8  # v2
       with:
         workingDirectory: .github/workflows
         args: >-
-          --accept=200,403,429
-          --verbose
-          --no-progress
-          --root-dir=${{ github.workspace }}
-          --exclude='${{ github.workspace }}/doc/website/overrides/'
-          --remap='(file://.*)/holoscan-sdk/(.*) https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/$2'
           '${{ github.workspace }}/**/*.md'
           '${{ github.workspace }}/**/*.html'
           '${{ github.workspace }}/**/*.rst'
