@@ -17,7 +17,6 @@ verbose = "info"
 no_progress = true
 accept = ["200", "403", "429"]
 hidden = true
-glob_ignore_case = true
 root_dir = "../.."
 exclude = ['^file://.*/doc/website/overrides/']
 remap = ["(file://.*)/holoscan-sdk/(.*) https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/$2"]

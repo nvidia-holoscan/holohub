@@ -244,7 +244,7 @@ test_reports_no_changed_documents() {
   fi
 }
 
-test_config_expands_hidden_glob_paths() {
+test_config_preserves_manifest_case_and_expands_hidden_paths() {
   local case_dir="${test_tmp}/lychee-config"
   local actual="${case_dir}/actual"
   local config_dir
@@ -254,12 +254,13 @@ test_config_expands_hidden_glob_paths() {
   local manifest="${case_dir}/manifest"
 
   if [[ -z "${lychee_bin}" ]] || [[ ! -r "${lychee_config}" ]]; then
-    fail "Lychee config expands hidden and case-insensitive glob paths"
+    fail "Lychee config preserves manifest case and expands hidden paths"
     return
   fi
   config_dir="$(cd "$(dirname "${lychee_config}")" && pwd)"
   mkdir -p "${case_dir}/.github" "${case_dir}/docs"
   : > "${case_dir}/.github/guide.md"
+  : > "${case_dir}/docs/.HIDDEN[1].md"
   : > "${case_dir}/docs/.hidden[1].md"
   : > "${case_dir}/docs/normal.md"
   : > "${case_dir}/docs/UPPER.MD"
@@ -271,6 +272,7 @@ test_config_expands_hidden_glob_paths() {
     "${case_dir}/docs/normal.md" > "${expected}"
   printf '%s\n' \
     "${case_dir}/.github/guide.md" \
+    "${case_dir}/docs/.HIDDEN[1].md" \
     "${case_dir}/docs/.hidden[1].md" \
     "${case_dir}/docs/normal.md" \
     "${case_dir}/docs/UPPER.MD" > "${glob_expected}"
@@ -279,11 +281,11 @@ test_config_expands_hidden_glob_paths() {
       --files-from "${manifest}") > "${actual}" 2> "${case_dir}/diagnostics" ||
     ! cmp -s <(LC_ALL=C sort "${expected}") <(LC_ALL=C sort "${actual}") ||
     ! (cd "${config_dir}" && "${lychee_bin}" --dump-inputs \
-      "${case_dir}/**/*.md") > "${glob_actual}" 2>> "${case_dir}/diagnostics" ||
+      "${case_dir}/**/*.[mM][dD]") > "${glob_actual}" 2>> "${case_dir}/diagnostics" ||
     ! cmp -s <(LC_ALL=C sort "${glob_expected}") <(LC_ALL=C sort "${glob_actual}"); then
-    fail "Lychee config expands hidden and case-insensitive glob paths"
+    fail "Lychee config preserves manifest case and expands hidden paths"
   else
-    pass "Lychee config expands hidden and case-insensitive glob paths"
+    pass "Lychee config preserves manifest case and expands hidden paths"
   fi
 }
 
@@ -317,7 +319,7 @@ test_fails_when_git_diff_fails
 test_rejects_line_breaks_before_emitting_paths
 test_handles_large_changed_file_sets_outside_action_inputs
 test_reports_no_changed_documents
-test_config_expands_hidden_glob_paths
+test_config_preserves_manifest_case_and_expands_hidden_paths
 test_config_excludes_only_local_override_files
 
 exit "${failures}"
