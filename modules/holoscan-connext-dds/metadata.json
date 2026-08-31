@@ -1,0 +1,34 @@
+{
+  "$schema": "holoscan/module/v2",
+  "module": {
+    "name": "holoscan-connext-dds",
+    "version": "1.0.0",
+    "description": "Generic RTI Connext DDS publisher and subscriber operators for Holoscan",
+    "authors": [{
+      "name": "RTI Real Time Innovations",
+      "affiliation": "RTI Real Time Innovations"
+    }],
+    "license": "Apache-2.0",
+    "language": ["Python"],
+    "namespace": {"python": "holoscan.connext_dds"},
+    "operator_names": ["ConnextDDSPublisherOp", "ConnextDDSSubscriberOp"],
+    "subprojects": {
+      "operators": ["connext_dds"],
+      "applications": ["connext_dds_example"]
+    },
+    "holoscan_sdk": {
+      "minimum_required_version": "4.5.0",
+      "tested_versions": ["4.5.0"]
+    },
+    "platforms": ["x86_64", "aarch64"],
+    "tags": ["DDS", "RTI Connext", "Networking and Distributed Computing"],
+    "requirements": {
+      "system_packages": ["ca-certificates", "curl", "openjdk-21-jre", "xvfb"],
+      "python_packages": ["rti.connext==7.7.0", "pytest"]
+    },
+    "binary_packages": {},
+    "dockerfile": "modules/holoscan-connext-dds/Dockerfile",
+    "documentation": {"readme": "README.md"},
+    "testing": {"python": "pytest"}
+  }
+}

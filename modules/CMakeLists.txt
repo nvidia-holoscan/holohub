@@ -14,3 +14,7 @@
 # limitations under the License.
 
 add_holohub_module(holoscan-gstreamer OPERATORS gstreamer)
+add_holohub_module(holoscan-connext-dds
+  OPERATORS connext_dds
+  APPLICATIONS connext_dds_example
+)
