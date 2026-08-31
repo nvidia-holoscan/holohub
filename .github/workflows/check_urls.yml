@@ -47,6 +47,7 @@ jobs:
           --no-progress
           --root-dir=${{ github.workspace }}
           --exclude='${{ github.workspace }}/doc/website/overrides/'
+          --exclude-path='(^|/)BENCHMARK\.md$'
           --remap='(file://.*)/holoscan-sdk/(.*) https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/$2'
           ${{ steps.changed-files.outputs.changed_files_list }}
         fail: true
@@ -65,6 +66,7 @@ jobs:
           --no-progress
           --root-dir=${{ github.workspace }}
           --exclude='${{ github.workspace }}/doc/website/overrides/'
+          --exclude-path='(^|/)BENCHMARK\.md$'
           --remap='(file://.*)/holoscan-sdk/(.*) https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/$2'
           '${{ github.workspace }}/**/*.md'
           '${{ github.workspace }}/**/*.html'
