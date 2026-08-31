@@ -64,7 +64,7 @@ class UhdChdrRxOp : public Operator {
     int cur_idx = 0;
     matx::tensor_t<complex, 3> rf_data;
     std::array<void **, num_concurrent> h_dev_ptrs;
-    std::array<cudaStream_t, num_concurrent> streams;
+    cudaStream_t stream = nullptr;
     std::array<cudaEvent_t, num_concurrent> events;
     RxMsg cur_msg{};
     std::queue<RxMsg> out_q;

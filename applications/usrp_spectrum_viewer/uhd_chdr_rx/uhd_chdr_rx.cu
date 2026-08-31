@@ -171,11 +171,19 @@ void UhdChdrRxOp::initialize() {
                  num_outputs_per_batch_.get(),
                  num_packets_per_output_.get() * num_complex_samples_per_packet_.get()});
 
-    // Allocate memory and create CUDA streams for each concurrent batch
+    // Allocates per-slot buffers/events and one ordered stream per channel.
+    // A single stream serializes the whole downstream chain.
     if (num_buffered_batches_.get() == 0 || num_buffered_batches_.get() > num_concurrent) {
       throw std::runtime_error(
           fmt::format("num_buffered_batches must be in [1, {}], got {}",
                       num_concurrent, num_buffered_batches_.get()));
+    }
+
+    if (auto err = cudaStreamCreateWithFlags(&new_channel->stream, cudaStreamNonBlocking);
+        err != cudaSuccess) {
+      throw std::runtime_error(
+          fmt::format("cudaStreamCreateWithFlags failed on channel {}: {}",
+                      channel_num, cudaGetErrorString(err)));
     }
 
     for (int n = 0; n < num_buffered_batches_.get(); n++) {
@@ -184,12 +192,6 @@ void UhdChdrRxOp::initialize() {
           err != cudaSuccess) {
         throw std::runtime_error(
             fmt::format("cudaMallocHost failed on channel {} batch {}: {}",
-                        channel_num, n, cudaGetErrorString(err)));
-      }
-      if (auto err = cudaStreamCreateWithFlags(&new_channel->streams[n], cudaStreamNonBlocking);
-          err != cudaSuccess) {
-        throw std::runtime_error(
-            fmt::format("cudaStreamCreateWithFlags failed on channel {} batch {}: {}",
                         channel_num, n, cudaGetErrorString(err)));
       }
       if (auto err = cudaEventCreate(&new_channel->events[n]); err != cudaSuccess) {
@@ -204,8 +206,8 @@ void UhdChdrRxOp::initialize() {
                         num_outputs_per_batch_.get(),
                         num_packets_per_output_.get(),
                         num_complex_samples_per_packet_.get(),
-                        new_channel->streams[n]);
-      cudaStreamSynchronize(new_channel->streams[n]);
+                        new_channel->stream);
+      cudaStreamSynchronize(new_channel->stream);
     }
 
     channel_list.push_back(new_channel);
@@ -262,7 +264,7 @@ void UhdChdrRxOp::compute(
     }
     if (channel->out_q.size() >= num_concurrent) {
       HOLOSCAN_LOG_ERROR("Fell behind in processing on GPU!");
-      cudaStreamSynchronize(channel->streams[channel->cur_idx]);
+      cudaStreamSynchronize(channel->stream);
     }
   }
 
@@ -282,6 +284,21 @@ void UhdChdrRxOp::process_channel_data(
         BurstParams *burst,
         uint16_t channel_num) {
   auto channel = channel_list.at(channel_num);
+
+  // Starting a fresh batch: bound in-flight batches to the physical slot count so
+  // a queued message's slot/event is never overwritten before it is emitted.
+  if (channel->aggr_pkts_recv == 0) {
+    while (channel->out_q.size() >= num_buffered_batches_.get()) {
+      auto old = channel->out_q.front();
+      cudaEventSynchronize(old.evt);
+      for (int m = 0; m < old.num_batches; ++m) {
+        free_all_packets_and_burst_rx(old.msg[m]);
+      }
+      channel->out_q.pop();
+      HOLOSCAN_LOG_ERROR("Dropped oldest batch on channel {}: all buffers in flight",
+                         channel->channel_num);
+    }
+  }
 
   uint64_t ttl_bytes_in_cur_batch = 0;
   const int burst_packets = get_num_packets(burst);
@@ -369,7 +386,7 @@ void UhdChdrRxOp::process_channel_data(
                       num_outputs_per_batch_.get(),
                       num_packets_per_output_.get(),
                       num_complex_samples_per_packet_.get(),
-                      channel->streams[channel->cur_idx]);
+                      channel->stream);
 
     // Log data for debugging
     if (log_data_) {
@@ -383,8 +400,8 @@ void UhdChdrRxOp::process_channel_data(
     }
     // End data logging
 
-    cudaEventRecord(channel->events[channel->cur_idx], channel->streams[channel->cur_idx]);
-    channel->cur_msg.stream = channel->streams[channel->cur_idx];
+    cudaEventRecord(channel->events[channel->cur_idx], channel->stream);
+    channel->cur_msg.stream = channel->stream;
     channel->cur_msg.evt = channel->events[channel->cur_idx];
     channel->cur_msg.buf_idx = channel->cur_idx;
     channel->out_q.push(channel->cur_msg);
@@ -420,10 +437,8 @@ void UhdChdrRxOp::stop() {
      const int batches = (num_buffered_batches_.get() < num_concurrent)
                             ? static_cast<int>(num_buffered_batches_.get())
                             : num_concurrent;
-     for (int n = 0; n < batches; ++n) {
-       if (channel->streams[n] != nullptr) {
-         cudaStreamSynchronize(channel->streams[n]);
-       }
+     if (channel->stream != nullptr) {
+         cudaStreamSynchronize(channel->stream);
      }
 
      // Free any outstanding DAQIRI bursts (queued and in-progress).
@@ -448,9 +463,9 @@ void UhdChdrRxOp::stop() {
          cudaEventDestroy(channel->events[n]);
          channel->events[n] = nullptr;
        }
-       if (channel->streams[n] != nullptr) {
-         cudaStreamDestroy(channel->streams[n]);
-         channel->streams[n] = nullptr;
+       if (channel->stream != nullptr) {
+         cudaStreamDestroy(channel->stream);
+         channel->stream = nullptr;
        }
      }
   }
