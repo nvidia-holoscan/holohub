@@ -12,8 +12,8 @@ pytest.importorskip("holoscan")
 
 sys.path.insert(0, str(Path(__file__).parents[2]))
 
-from connext_dds.publisher import ConnextDDSPublisherOp  # noqa: E402
-from connext_dds.subscriber import ConnextDDSSubscriberOp  # noqa: E402
+from connext_dds.publisher import ConnextDDSPublisherOp
+from connext_dds.subscriber import ConnextDDSSubscriberOp
 
 
 class Sample:
@@ -32,6 +32,7 @@ def test_publisher_accepts_arbitrary_topic_type(fragment, op_output, execution_c
         patch("rti.connextdds.DataWriter") as writer_class,
     ):
         op.start()
+        writer_class.assert_called_once_with(op._participant.implicit_publisher, op._dds_topic)
         op.compute(op_input, op_output, execution_context)
         writer_class.return_value.write.assert_called_once_with(sample)
 
@@ -44,6 +45,18 @@ def test_publisher_rejects_wrong_topic_type(fragment, op_output, execution_conte
 
     with pytest.raises(TypeError, match="Expected a Sample sample"):
         op.compute(op_input, op_output, execution_context)
+
+
+def test_subscriber_uses_default_qos(fragment):
+    op = ConnextDDSSubscriberOp(fragment, domain_id=7, topic="Sample", topic_type=Sample)
+
+    with (
+        patch("rti.connextdds.DomainParticipant"),
+        patch("rti.connextdds.Topic"),
+        patch("rti.connextdds.DataReader") as reader_class,
+    ):
+        op.start()
+        reader_class.assert_called_once_with(op._participant.implicit_subscriber, op._dds_topic)
 
 
 def test_subscriber_emits_received_sample(fragment, op_output, execution_context):

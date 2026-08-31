@@ -4,12 +4,11 @@
 import logging
 from datetime import timedelta
 
-import rti.idl as idl
 from holoscan.conditions import CountCondition, PeriodicCondition
 from holoscan.core import Application, Operator, OperatorSpec
+from rti import idl
 
 from holohub.connext_dds import ConnextDDSPublisherOp, ConnextDDSSubscriberOp
-
 
 DOMAIN_ID = 42
 TOPIC_NAME = "HoloscanConnextTelemetry"
@@ -117,8 +116,8 @@ class ConnextDDSExampleApp(Application):
 
         self.add_flow(source, publisher, {("output", "input")})
         self.add_flow(subscriber, self.sink, {("output", "input")})
-        self.add_flow(command_source, command_publisher, { ("output", "input") })
-        self.add_flow(command_subscriber, self.command_sink, { ("output", "input") })
+        self.add_flow(command_source, command_publisher, {("output", "input")})
+        self.add_flow(command_subscriber, self.command_sink, {("output", "input")})
 
 
 if __name__ == "__main__":

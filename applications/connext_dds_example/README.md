@@ -4,9 +4,57 @@ This application validates the generic `connext_dds` operators with a DDS type
 owned by the application rather than by the operators. It declares two
 different types (`Telemetry` and `Command`) with `rti.idl`, publishes 20 samples
 on separate topics, receives all 20 with the same generic operator classes, and
-fails if either subscriber receives fewer than 20 samples. Both operators use
-matching `RELIABLE`/`TRANSIENT_LOCAL`/`KEEP_ALL` QoS, including samples written
-before endpoint discovery completes.
+fails if either subscriber receives fewer than 20 samples. The example's XML
+profile configures matching `RELIABLE`/`TRANSIENT_LOCAL`/`KEEP_ALL` QoS to retain
+samples written before endpoint discovery completes while the writers exist.
+
+## QoS scope
+
+This is a short, finite demonstration that publishes 20 samples per topic.
+The application configures `RELIABLE`, `KEEP_ALL`, and `TRANSIENT_LOCAL` in
+[USER_QOS_PROFILES.xml](USER_QOS_PROFILES.xml) and leaves resource limits at
+their defaults. These settings are intended to demonstrate receiving every
+sample, not to prescribe a memory
+budget for a long-running application.
+
+With the default unlimited sample limits and automatic durability writer
+depth, the publisher can retain an ever-growing history for late-joining
+readers, including samples already acknowledged by existing readers.
+`TRANSIENT_LOCAL` retains that history only while the writer exists; it is
+not persistent storage. Before adapting this example to a continuous stream,
+choose resource limits, durability writer depth, and blocking timeouts for
+the workload, and handle backpressure and timeout errors explicitly.
+
+### XML configuration
+
+The operators do not hardcode QoS policies or profile names. They create DDS
+entities using Connext's default QoS. Connext automatically loads
+`USER_QOS_PROFILES.xml` from the process's current working directory and uses
+the profile marked `is_default_qos="true"`. The example selects
+`ConnextDDSExample::ReliableKeepAll` this way for both topic types.
+
+CMake copies the XML into the application's build directory, which is the
+working directory selected by `./holohub run connext_dds_example`. It also
+installs the XML alongside the example script. No extra Docker mount or
+Python configuration is needed for the supplied profile.
+
+To experiment with different policies, edit the application's XML and rerun
+the HoloHub command below, which rebuilds the application. No operator changes
+are needed. For your own application, supply a `USER_QOS_PROFILES.xml` in its
+container working directory **before starting the process**, with a default
+profile and compatible reader/writer QoS. The automatic filename is
+`USER_QOS_PROFILES.xml`, not `QoS.xml`. If no XML or other default QoS
+configuration is supplied, Connext uses its built-in defaults; the operators
+no longer impose reliable delivery or retention for late joiners. Changing
+the example's policies can therefore cause its 20-sample check to fail.
+
+See RTI's [default XML profile behavior](https://community.rti.com/static/documentation/connext-dds/current/doc/manuals/connext_dds_professional/code_generator/users_manual/code_generator/users_manual/GeneratingCode.htm)
+for details on automatic loading and `is_default_qos`.
+
+See RTI's [durability documentation](https://community.rti.com/static/documentation/connext-dds/current/doc/manuals/connext_dds_professional/users_manual/users_manual/DURABILITY_QosPolicy.htm)
+for the relationship between history, writer depth, and resource limits.
+
+## Build and run
 
 Build it through the HoloHub container workflow:
 

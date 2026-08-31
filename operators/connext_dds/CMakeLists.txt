@@ -16,13 +16,7 @@ if(HOLOHUB_BUILD_PYTHON)
     OUTPUT_VARIABLE connext_dds_python_sources
   )
 
-  if(DEFINED SKBUILD)
-    # Standalone module wheel: install under the module namespace.
-    set(connext_dds_python_output_dir "${CMAKE_BINARY_DIR}/holoscan/connext_dds")
-  else()
-    # HoloHub monorepo builds retain the standard holohub namespace.
-    set(connext_dds_python_output_dir "${HOLOHUB_PYTHON_MODULE_OUT_DIR}/connext_dds")
-  endif()
+  set(connext_dds_python_output_dir "${HOLOHUB_PYTHON_MODULE_OUT_DIR}/connext_dds")
   file(MAKE_DIRECTORY "${connext_dds_python_output_dir}")
 
   list(TRANSFORM connext_dds_python_files
@@ -37,14 +31,6 @@ if(HOLOHUB_BUILD_PYTHON)
     DEPENDS ${connext_dds_python_sources}
     BYPRODUCTS ${connext_dds_python_outputs}
   )
-
-  if(DEFINED SKBUILD)
-    install(
-      DIRECTORY "${CMAKE_BINARY_DIR}/holoscan"
-      DESTINATION "."
-      PATTERN "__pycache__" EXCLUDE
-    )
-  endif()
 
   if(BUILD_TESTING)
     include(add_python_tests)

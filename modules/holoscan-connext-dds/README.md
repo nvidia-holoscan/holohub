@@ -4,49 +4,34 @@ This in-tree module provides the generic `ConnextDDSPublisherOp` and
 `ConnextDDSSubscriberOp` operators. Applications supply their own Python type
 from an IDL-generated class or an `rti.idl` declaration.
 
-The in-tree HoloHub build exposes the operators as `holohub.connext_dds`.
-Standalone wheels use the module namespace `holoscan.connext_dds`.
+The module is built from source inside the HoloHub container workflow, which
+exposes the operators as `holohub.connext_dds`. This in-tree integration does
+not provide standalone Python or Debian packages.
 
 ## Versions
 
 - Module release: `1.0.0` (the module's own semantic version, set in
-  `metadata.json` and `pyproject.toml`).
+  `metadata.json`).
 - RTI Connext DDS: `7.7.0`.
 - Python API: `rti.connext==7.7.0`.
 - Holoscan SDK: `4.5.0` minimum/tested version.
 
-The Connext version is pinned consistently in `Dockerfile`, `pyproject.toml`,
-and the operator metadata. The Docker build argument `RTI_CONNEXT_VERSION`
+The Connext version is pinned in `Dockerfile` and the module and operator
+metadata. The Docker build argument `RTI_CONNEXT_VERSION`
 defaults to `7.7.0`; overriding it is only supported when the APT package,
 Python package, `NDDSHOME`, and mounted license path are updated together.
 
-For Debian distribution, the package revision should preserve both dependency
-versions in its identifier, for example
-`holoscan-connext-dds_1.0.0+connext7.7.0-1hsdk4.5.0_arm64.deb`.
+## Container dependencies
 
-## Binary package dependencies
+The module Dockerfile extends the Holoscan SDK image and installs both the
+`rti-connext-dds-7.7.0` package from RTI's APT repository and the matching
+`rti.connext==7.7.0` Python API. The APT package alone does not install the
+Python API used by these operators. All dependencies stay inside the container.
 
-The Python wheel declares and installs the matching Connext Python API:
+The RTI activation license is proprietary, is not included in the image, and
+must be mounted separately at runtime.
 
-```text
-rti.connext==7.7.0
-```
-
-The Debian package cannot depend directly on a Python `pip` distribution. Its
-system-package dependencies should instead include the Holoscan runtime and
-the RTI Connext DDS 7.7.0 Debian runtime, for example:
-
-```text
-holoscan-cuda-13 (= 4.5.0), rti-connext-dds-7.7.0
-```
-
-The `rti.connext==7.7.0` wheel must be installed in the Python environment
-provided to the application (the module Dockerfile does this for the HoloHub
-container). The Debian package must not run `pip` during installation.
-
-Debian package metadata uses vendor `RTI Real Time Innovations` and contact
-`juanca@rti.com`. The RTI activation license is proprietary, is not included
-in either package, and must be mounted or supplied separately at runtime.
+Maintainer: RTI Real Time Innovations. Contact: `juanca@rti.com`.
 
 ## Run the example in a container
 

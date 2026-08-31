@@ -1,5 +1,5 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
-# SPDX-FileCopyrightText: Copyright (c) 2026 Real-Time Innovations, Inc. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, Real-Time Innovations, Inc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
 import rti.connextdds as dds
@@ -26,14 +26,8 @@ class ConnextDDSSubscriberOp(Operator):
         self._participant = dds.DomainParticipant(domain_id=self.domain_id)
         self._dds_topic = dds.Topic(self._participant, self.topic, self.topic_type)
 
-        reader_qos = dds.DataReaderQos()
-        reader_qos.reliability.kind = dds.ReliabilityKind.RELIABLE
-        reader_qos.history.kind = dds.HistoryKind.KEEP_ALL
-        reader_qos.durability.kind = dds.DurabilityKind.TRANSIENT_LOCAL
-
-        self._reader = dds.DataReader(
-            self._participant.implicit_subscriber, self._dds_topic, reader_qos
-        )
+        # Use Connext's default QoS, including the default XML profile if configured.
+        self._reader = dds.DataReader(self._participant.implicit_subscriber, self._dds_topic)
         self._selector = self._reader.select().max_samples(1)
 
     def compute(self, op_input, op_output, context):
