@@ -21,11 +21,12 @@
       "tested_versions": ["4.5.0"]
     },
     "ranking": 2,
-    "requirements": {
-      "operators": [
+    "requirements": {},
+    "dependencies": {
+      "modules": [
         {
-          "name": "connext_dds",
-          "version": "1.0"
+          "name": "holoscan-connext-dds",
+          "provides_operators": ["connext_dds"]
         }
       ]
     },
