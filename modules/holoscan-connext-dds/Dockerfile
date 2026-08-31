@@ -35,7 +35,8 @@ RUN rm -f /etc/apt/sources.list.d/kitware.list \
 RUN python3 -m pip install --no-cache-dir \
     "rti.connext==${RTI_CONNEXT_VERSION}" \
     "holoscan-cli==${BASE_SDK_VERSION}" \
-    pytest
+    pytest \
+    build
 
 ENV NDDSHOME=/opt/rti.com/rti_connext_dds-${RTI_CONNEXT_VERSION}
 ENV RTI_CONNEXT_DDS_DIR=${NDDSHOME}

@@ -4,6 +4,9 @@ This in-tree module provides the generic `ConnextDDSPublisherOp` and
 `ConnextDDSSubscriberOp` operators. Applications supply their own Python type
 from an IDL-generated class or an `rti.idl` declaration.
 
+The in-tree HoloHub build exposes the operators as `holohub.connext_dds`.
+Standalone wheels use the module namespace `holoscan.connext_dds`.
+
 ## Versions
 
 - Module release: `1.0.0` (the module's own semantic version, set in

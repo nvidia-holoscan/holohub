@@ -22,5 +22,6 @@ cmake.args = [
     "-DBUILD_ALL=OFF",
     "-DMODULE_holoscan_connext_dds=ON",
     "-DHOLOHUB_BUILD_PYTHON=ON",
+    "-DBUILD_TESTING=OFF",
 ]
 wheel.packages = []
