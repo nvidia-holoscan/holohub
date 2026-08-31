@@ -1,0 +1,32 @@
+{
+  "operator": {
+    "name": "Connext DDS Publisher and Subscriber Operators",
+    "description": "Generic Python Holoscan operators for publishing and subscribing to RTI Connext DDS topics.",
+    "authors": [
+      {
+        "name": "Real-Time Innovations, Inc.",
+        "affiliation": "Real-Time Innovations, Inc."
+      }
+    ],
+    "version": "1.0.0",
+    "changelog": {
+      "1.0": "Initial release."
+    },
+    "language": ["Python"],
+    "holoscan_sdk": {
+      "minimum_required_version": "4.5.0",
+      "tested_versions": ["4.5.0"]
+    },
+    "dockerfile": "modules/holoscan-connext-dds/Dockerfile",
+    "platforms": ["x86_64", "aarch64"],
+    "tags": ["DDS", "RTI Connext", "Networking and Distributed Computing"],
+    "ranking": 2,
+    "requirements": {
+      "python-packages": {
+        "rti.connext": {
+          "version": "==7.7.0"
+        }
+      }
+    }
+  }
+}
