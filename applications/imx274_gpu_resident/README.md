@@ -172,7 +172,7 @@ From the **HoloHub repository root**:
 The Holoscan `v4.0.0-cuda12-dgpu` container image is built on top of a Holoscan container that **already includes HSB** (e.g. installed at `/opt/nvidia/hololink`).
 
 **Note:** Pass a base image that bundles HSB 2.5.x. Overriding the base image
-with a Holoscan SDK 4.4.0 image (`--base-img nvcr.io/.../holoscan:v4.4.0.0-cuda12-dgpu`)
+with a Holoscan SDK 4.4.0 image (`--base-img nvcr.io/.../holoscan:v4.4.0-cuda12-dgpu`)
 is not supported; see [HSB version compatibility](#hsb-version-compatibility).
 
 **Note:** You can pull the base image before building, e.g.
