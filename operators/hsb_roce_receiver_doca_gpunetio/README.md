@@ -25,7 +25,8 @@ The `DocaRoceReceiverOp` is a GPU-resident Holoscan operator that:
 
 - Holoscan SDK 4.0.0 or later
 - [NVIDIA DOCA SDK 3.2.1+](https://docs.nvidia.com/doca/sdk/doca-developer-guide/index.html) with GPUNetIO support
-- Holoscan Sensor Bridge (HSB) 2.5.0 or later
+- Holoscan Sensor Bridge (HSB) 2.5.x (2.6.0 and later are not supported yet, see
+  the known HSB compatibility issue)
 - CUDA-capable GPU with GPUDirect RDMA support (Ampere or later, e.g. RTX A6000)
 - aarch64 platform (e.g. IGX Orin)
 - RoCE-capable NIC (e.g., ConnectX)
