@@ -59,6 +59,7 @@ For step-by-step instructions for building and running the application, refer to
 
 - NVIDIA IGX Orin w/ Ampere or later discrete GPUs (e.g. RTX A6000, RTX Ada
   6000, etc.)
+- IGX Thor is not supported
 - Holoscan SDK 4.0.0 or later, built against Holoscan Sensor Bridge (HSB) 2.5.x
 - Holoscan Sensor Bridge (HSB) 2.5.x (2.6.0 and later are not supported yet, see
   [HSB version compatibility](#hsb-version-compatibility))
