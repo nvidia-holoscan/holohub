@@ -9,7 +9,7 @@ NVIDIA <br>
 ### License/Terms of Use: <br>
 Apache-2.0 <br>
 ## Use Case: <br>
-Developers and engineers using the HoloHub CLI to scaffold, test, package, and prove reusable Holoscan Modules through the full producer-consumer lifecycle. <br>
+Developers and engineers building reusable Holoscan Modules who need to scaffold, test, package, and prove producer-consumer lifecycle through the HoloHub CLI. <br>
 
 ### Deployment Geography for Use: <br>
 Global <br>
@@ -33,7 +33,7 @@ Mitigation: Review and scan skill before deployment. <br>
 
 
 ## Skill Output: <br>
-**Output Type(s):** [Shell commands, Code, Configuration instructions, Analysis] <br>
+**Output Type(s):** [Analysis, Shell commands, Configuration instructions] <br>
 **Output Format:** [Markdown with inline bash code blocks] <br>
 **Output Parameters:** [1D] <br>
 **Other Properties Related to Output:** [None] <br>
@@ -45,38 +45,38 @@ Mitigation: Review and scan skill before deployment. <br>
 
 
 ## Evaluation Tasks: <br>
-3 evaluation tasks (2 positive, 1 negative) in isolated k8s-sandbox pods. <br>
+4 evaluation tasks (3 positive, 1 negative), each in an isolated sandbox pod. <br>
 
 ## Evaluation Metrics Used: <br>
 Reported benchmark dimensions: <br>
-- Security: Whether the skill avoids unsafe operations, secret leakage, and unauthorized access. <br>
-- Correctness: Whether the answer is correct against the reference answer. <br>
-- Discoverability: Whether the right skill was loaded when needed. <br>
-- Effectiveness: Whether the skill helped complete the user's goal and expected workflow. <br>
-- Efficiency: Whether the skill avoided wasted tool or skill usage. <br>
+- Security: Checks for unsafe operations, secret leakage, and unauthorized access. <br>
+- Correctness: Checks whether the answer is correct against the reference answer. <br>
+- Discoverability: Checks whether the right skill was loaded when needed. <br>
+- Effectiveness: Checks whether the skill helped complete the user's goal and expected workflow. <br>
+- Efficiency: Checks routing quality, workspace-aware skill reads, and productive tool use. <br>
 
 Underlying evaluation signals used in this run: <br>
-- `security`: Unsafe operations, secret leakage, and unauthorized access. <br>
-- `accuracy`: Final-answer correctness against the reference answer. <br>
-- `skill_execution`: Whether the expected skill was found and executed. <br>
-- `goal_accuracy`: Whether the user's goal was achieved. <br>
-- `behavior_check`: Whether the expected workflow behavior was followed. <br>
-- `skill_efficiency`: Routing quality, workspace-aware skill reads, and productive tool use. <br>
+- `security`: Verifies absence of unsafe operations, secret leakage, and unauthorized access. <br>
+- `accuracy`: Verifies final-answer correctness against the reference answer. <br>
+- `skill_execution`: Verifies whether the expected skill was found and executed. <br>
+- `goal_accuracy`: Verifies whether the user's goal was achieved. <br>
+- `behavior_check`: Verifies whether the expected workflow behavior was followed. <br>
+- `skill_efficiency`: Verifies routing quality, workspace-aware skill reads, and productive tool use. <br>
 
 
 
 ## Evaluation Results: <br>
 | Measure | Claude Code (Baseline → Skill Uplift) | Codex (Baseline → Skill Uplift) |
 |---|---:|---:|
-| Overall | 53% → 88% (+35 points) | 51% → 49% (-2 points) |
+| Overall | 53% → 93% (+39 points) | 53% → 53% (+1 points) |
 | Security | 100% → 100% (±0 points) | 100% → 100% (±0 points) |
-| Correctness | 20% → 80% (+60 points) | 40% → 40% (±0 points) |
-| Discoverability | 67% → 100% (+33 points) | 50% → 50% (±0 points) |
-| Effectiveness | 14% → 62% (+48 points) | 31% → 20% (-11 points) |
-| Efficiency | 63% → 96% (+33 points) | 33% → 33% (±0 points) |
+| Correctness | 35% → 90% (+55 points) | 50% → 55% (+5 points) |
+| Discoverability | 60% → 100% (+40 points) | 48% → 45% (-3 points) |
+| Effectiveness | 26% → 76% (+50 points) | 31% → 18% (-13 points) |
+| Efficiency | 46% → 98% (+52 points) | 34% → 48% (+15 points) |
 
 ## Skill Version(s): <br>
-bd405993 (source: git SHA, committed 2026-08-05) <br>
+b57b525a (source: git SHA, committed 2026-09-02) <br>
 
 ## Ethical Considerations: <br>
 NVIDIA believes Trustworthy AI is a shared responsibility and we have established policies and practices to enable development for a wide array of AI applications. When downloaded or used in accordance with our terms of service, developers should work with their internal team to ensure this skill meets requirements for the relevant industry and use case and addresses unforeseen product misuse. <br>
