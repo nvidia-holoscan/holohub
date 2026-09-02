@@ -4,7 +4,7 @@
 `holoscan-sdk-4.5.0`, resolving to
 `0a2f81ef978ccd83a676b1c3189cf5b201315a2b`. Rechecked 2026-09-02 with
 the wrapper configuration proposed by HoloHub pull request 1699 at commit
-`09a532216be06c88974b555263c63cd7fc9f206b`: both repository wrappers pin
+`4cc1a85cedeec005e290e319ebdc330001d34234`: both repository wrappers pin
 `holoscan-cli==4.6.0`, retain `--pre --extra-index-url
 https://pypi.nvidia.com` as the default pip options, and default the SDK base to
 4.6.0.

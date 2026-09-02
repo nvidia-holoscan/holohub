@@ -9,7 +9,7 @@ NVIDIA <br>
 ### License/Terms of Use: <br>
 Apache-2.0 <br>
 ## Use Case: <br>
-Developers and engineers use this skill to diagnose and fix failing, hanging, or regressing ./holohub CLI commands with reproducible proof. <br>
+Developers and engineers debugging concrete HoloHub CLI command failures, hangs, regressions, or incorrect output through reproducible diagnosis and minimal fixes with regression proof. <br>
 
 ### Deployment Geography for Use: <br>
 Global <br>
@@ -28,7 +28,7 @@ Mitigation: Review and scan skill before deployment. <br>
 - [HoloHub CLI contract](references/holohub-cli-contract.md) <br>
 - [Debug workflow](references/debug-workflow.md) <br>
 - [Version-sensitive diagnostic priors](references/known-issues.md) <br>
-- [HoloHub repository](https://github.com/nvidia-holoscan/holohub) <br>
+- [NVIDIA HoloHub (GitHub)](https://github.com/nvidia-holoscan/holohub) <br>
 
 
 ## Skill Output: <br>
@@ -44,15 +44,15 @@ Mitigation: Review and scan skill before deployment. <br>
 
 
 ## Evaluation Tasks: <br>
-Evaluated against 4 tasks (2 positive, 2 negative); each attempt ran in an isolated sandbox pod. <br>
+4 evaluation tasks (2 positive, 2 negative), each in an isolated sandbox pod. Evaluator version 1.3.2. <br>
 
 ## Evaluation Metrics Used: <br>
 Reported benchmark dimensions: <br>
-- Security: Checks whether the skill is safe to use. <br>
-- Correctness: Checks whether the answer is correct. <br>
-- Discoverability: Checks whether the right skill was loaded when needed. <br>
-- Effectiveness: Checks whether the skill helped complete the user's goal and expected workflow. <br>
-- Efficiency: Checks whether the skill avoided wasted tool or skill usage. <br>
+- Security: Whether the skill avoids unsafe operations, secret leakage, and unauthorized access. <br>
+- Correctness: Whether the skill produces correct answers against the reference answer. <br>
+- Discoverability: Whether the expected skill was found and executed when needed. <br>
+- Effectiveness: Whether the skill helps the agent complete the user's goal and follow the expected workflow. <br>
+- Efficiency: Whether the skill avoids wasted tool or skill usage through quality routing and productive tool use. <br>
 
 Underlying evaluation signals used in this run: <br>
 - `security`: Checks for unsafe operations, secret leakage, and unauthorized access. <br>
@@ -67,15 +67,15 @@ Underlying evaluation signals used in this run: <br>
 ## Evaluation Results: <br>
 | Measure | Claude Code (Baseline → Skill Uplift) | Codex (Baseline → Skill Uplift) |
 |---|---:|---:|
-| Overall | 61% → 89% (+28 points) | 66% → 73% (+7 points) |
-| Security | 100% → 100% (±0 points) | 100% → 75% (-25 points) |
-| Correctness | 35% → 85% (+50 points) | 50% → 85% (+35 points) |
-| Discoverability | 61% → 98% (+38 points) | 61% → 67% (+6 points) |
-| Effectiveness | 49% → 67% (+18 points) | 58% → 65% (+7 points) |
-| Efficiency | 61% → 96% (+35 points) | 59% → 70% (+11 points) |
+| Overall | 64% → 89% (+25 points) | 60% → 69% (+9 points) |
+| Security | 100% → 100% (±0 points) | 75% → 100% (+25 points) |
+| Correctness | 45% → 85% (+40 points) | 60% → 60% (±0 points) |
+| Discoverability | 61% → 100% (+39 points) | 56% → 70% (+14 points) |
+| Effectiveness | 55% → 60% (+6 points) | 48% → 40% (-9 points) |
+| Efficiency | 58% → 99% (+41 points) | 58% → 75% (+17 points) |
 
 ## Skill Version(s): <br>
-adf8a7ae (source: git SHA, committed 2026-09-02) <br>
+09a1eb2d (source: git SHA, committed 2026-09-02) <br>
 
 ## Ethical Considerations: <br>
 NVIDIA believes Trustworthy AI is a shared responsibility and we have established policies and practices to enable development for a wide array of AI applications. When downloaded or used in accordance with our terms of service, developers should work with their internal team to ensure this skill meets requirements for the relevant industry and use case and addresses unforeseen product misuse. <br>
