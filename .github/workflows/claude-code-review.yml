@@ -12,11 +12,11 @@ on:
 
 jobs:
   claude-review:
-    # Skip PRs from forks and Dependabot: their runs get no OIDC token or
+    # Skip PRs from forks and bots: their runs get no OIDC token or
     # secrets, so the action cannot authenticate and the job would fail.
     if: |
       github.event.pull_request.head.repo.full_name == github.repository &&
-      github.actor != 'dependabot[bot]'
+      github.event.pull_request.user.type != 'Bot'
 
     runs-on: ubuntu-latest
     permissions:
@@ -40,9 +40,8 @@ jobs:
           plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
           plugins: 'code-review@claude-code-plugins'
           prompt: '/code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
-          # The action rejects non-human actors by default. Allow-list the bots
-          # whose PRs we still want reviewed. Never use '*' here: on a public
-          # repo it lets any external App trigger this workflow.
+          # Allow pre-commit.ci to retrigger reviews on human-authored PRs.
+          # Never use '*' here: any external App could trigger the workflow.
           allowed_bots: 'pre-commit-ci[bot]'
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
