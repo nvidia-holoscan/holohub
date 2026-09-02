@@ -19869,6 +19869,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#hsb-version-compatibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HSB Version Compatibility
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#nvidia-driver-version" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -20239,19 +20250,24 @@ deterministic latency.</p>
 <h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">#</a></h2>
 <p>Before getting started, make sure to review the <a href="#requirements">Requirements</a> section to verify that your hardware and software meet all necessary prerequisites.
 You can simply run application with the following command from the repository root:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>imx274_gpu_resident
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>imx274_gpu_resident<span class="w"> </span>--base-img<span class="w"> </span>nvcr.io/nvidia/clara-holoscan/holoscan:v4.3.0-cuda12-dgpu
 <span class="c1"># or</span>
-./holohub<span class="w"> </span>run<span class="w"> </span>imx274_gpu_resident<span class="w"> </span>doca
+./holohub<span class="w"> </span>run<span class="w"> </span>imx274_gpu_resident<span class="w"> </span>doca<span class="w"> </span>--base-img<span class="w"> </span>nvcr.io/nvidia/clara-holoscan/holoscan:v4.3.0-cuda12-dgpu
 </code></pre></div>
 <p>This will build and launch the development container, build the operators and build and run the application.
+The <code>--base-img</code> option is required: the default HoloHub base image is a Holoscan SDK 4.4.0 or later
+container that bundles HSB 2.6.0, which this application does not support yet (see
+<a href="#hsb-version-compatibility">HSB version compatibility</a>).
 For more details on using the Holohub CLI, see the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/utilities/cli/cli_reference.md">Holohub CLI Reference Guide</a>.</p>
 <p>For step-by-step instructions for building and running the application, refer to the <a href="#detailed-build-and-run-instructions">Detailed Build and Run Instructions</a>.</p>
 <h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h2>
 <ul>
 <li>NVIDIA IGX Orin w/ Ampere or later discrete GPUs (e.g. RTX A6000, RTX Ada
   6000, etc.)</li>
-<li>Holoscan SDK 4.0.0 or later</li>
-<li>Holoscan Sensor Bridge (HSB) 2.5.0 or later</li>
+<li>IGX Thor is not supported</li>
+<li>Holoscan SDK 4.0.0 or later, built against Holoscan Sensor Bridge (HSB) 2.5.x</li>
+<li>Holoscan Sensor Bridge (HSB) 2.5.x (2.6.0 and later are not supported yet, see
+  <a href="#hsb-version-compatibility">HSB version compatibility</a>)</li>
 <li><a href="https://www.latticesemi.com/en/Products/DevelopmentBoardsAndKits/lattice-nvidia-edge-ai">Lattice CPNX100-ETH-SENSOR-BRIDGE board</a></li>
 <li>IMX274 Camera</li>
 <li>ConntectX SmartNIC Transceivers and adapters</li>
@@ -20260,6 +20276,17 @@ For more details on using the Holohub CLI, see the <a href="https://github.com/n
 <li>(Optional) <a href="https://docs.nvidia.com/doca/sdk/doca-developer-guide/index.html">NVIDIA DOCA SDK 3.2.1+</a> with GPUNetIO support</li>
 </ul>
 <p>Hardware details available in <a href="https://docs.nvidia.com/holoscan/sensor-bridge/latest/index.html">Holoscan Sensor Bridge</a>.</p>
+<h3 id="hsb-version-compatibility">HSB Version Compatibility<a class="headerlink" href="#hsb-version-compatibility" title="Permanent link">#</a></h3>
+<p>This application and its GPU-resident HSB operators are written against the HSB
+2.5.x API and must be built in a container whose base image bundles HSB 2.5.x.
+Holoscan SDK 4.0.0 through 4.3.0 discrete GPU container images bundle HSB 2.5.0;
+<code>nvcr.io/nvidia/clara-holoscan/holoscan:v4.3.0-cuda12-dgpu</code> is the latest compatible
+base image.</p>
+<p>Holoscan SDK 4.4.0 and later container images bundle <strong>HSB 2.6.0</strong>, which is not API
+compatible with this application. Building on top of a Holoscan SDK 4.4.0 or later base
+image fails at configure or compile time (see <a href="#known-issues">Known Issues</a> and
+the known HSB compatibility issue). Pass <code>--base-img</code> with a Holoscan SDK
+base image that bundles HSB 2.5.x until this application is updated for HSB 2.6.</p>
 <h3 id="nvidia-driver-version">NVIDIA Driver Version<a class="headerlink" href="#nvidia-driver-version" title="Permanent link">#</a></h3>
 <p>This application is currently only supported with NVIDIA driver version
 590.48.01 or higher. As IGX OS currently does not support this driver version
@@ -20318,13 +20345,16 @@ operators and applications.</p>
 <p>Ensure you are in the HoloHub repository root for all commands below.</p>
 <h4 id="build-the-container">Build the Container<a class="headerlink" href="#build-the-container" title="Permanent link">#</a></h4>
 <p>From the <strong>HoloHub repository root</strong>:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build-container<span class="w"> </span>imx274_gpu_resident
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build-container<span class="w"> </span>imx274_gpu_resident<span class="w"> </span>--base-img<span class="w"> </span>nvcr.io/nvidia/clara-holoscan/holoscan:v4.3.0-cuda12-dgpu
 <span class="c1"># or</span>
-./holohub<span class="w"> </span>build-container<span class="w"> </span>imx274_gpu_resident<span class="w"> </span>doca
+./holohub<span class="w"> </span>build-container<span class="w"> </span>imx274_gpu_resident<span class="w"> </span>doca<span class="w"> </span>--base-img<span class="w"> </span>nvcr.io/nvidia/clara-holoscan/holoscan:v4.3.0-cuda12-dgpu
 </code></pre></div>
-<p>The Holoscan <code>v4.0.0-cuda12-dgpu</code> container image is built on top of a Holoscan container that <strong>already includes HSB</strong> (e.g. installed at <code>/opt/nvidia/hololink</code>).</p>
+<p>The Holoscan <code>v4.3.0-cuda12-dgpu</code> container image <strong>already includes HSB 2.5.0</strong> (installed at <code>/opt/nvidia/hololink</code>).</p>
+<p><strong>Note:</strong> Always pass a base image that bundles HSB 2.5.x. The default HoloHub base image and
+Holoscan SDK 4.4.0 or later images (e.g. <code>nvcr.io/nvidia/clara-holoscan/holoscan:v4.4.0-cuda12-dgpu</code>)
+bundle HSB 2.6.0 and are not supported; see <a href="#hsb-version-compatibility">HSB version compatibility</a>.</p>
 <p><strong>Note:</strong> You can pull the base image before building, e.g.
-<code>docker pull nvcr.io/nvidia/clara-holoscan/holoscan:v4.0.0-cuda12-dgpu</code></p>
+<code>docker pull nvcr.io/nvidia/clara-holoscan/holoscan:v4.3.0-cuda12-dgpu</code></p>
 <h5 id="verify-the-image">Verify the Image<a class="headerlink" href="#verify-the-image" title="Permanent link">#</a></h5>
 <div class="highlight"><pre><span></span><code>docker<span class="w"> </span>images
 <span class="c1"># Look for an image associated with imx274_gpu_resident</span>
@@ -20336,9 +20366,9 @@ operators and applications.</p>
 <p>This uses the application's configured Docker options for HSB (privileged mode, device mounts, hugepages, etc.).</p>
 <h4 id="build-the-application">Build the Application<a class="headerlink" href="#build-the-application" title="Permanent link">#</a></h4>
 <p>After launching the container with the command above, you can build the application:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>imx274_gpu_resident
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>imx274_gpu_resident<span class="w"> </span>--base-img<span class="w"> </span>nvcr.io/nvidia/clara-holoscan/holoscan:v4.3.0-cuda12-dgpu
 <span class="c1"># or, if building with DOCA GPUNetIO support:</span>
-./holohub<span class="w"> </span>build<span class="w"> </span>imx274_gpu_resident<span class="w"> </span>doca
+./holohub<span class="w"> </span>build<span class="w"> </span>imx274_gpu_resident<span class="w"> </span>doca<span class="w"> </span>--base-img<span class="w"> </span>nvcr.io/nvidia/clara-holoscan/holoscan:v4.3.0-cuda12-dgpu
 </code></pre></div>
 <h5 id="list-buildable-components">List Buildable Components<a class="headerlink" href="#list-buildable-components" title="Permanent link">#</a></h5>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>list
@@ -20431,6 +20461,12 @@ execution time measurements of the GPU-resident component will be printed:</p>
   then Ctrl+C signal may not reach the application, and the application may not
   shutdown gracefully with all the measurements being printed.</li>
 <li>Pressing Ctrl+C for the DOCA GPUNetIO version does not show any measurement outputs at the end.</li>
+<li>Building against HSB 2.6.0 (bundled in Holoscan SDK 4.4.0 and later
+  container images, including the default HoloHub base image) fails. The build stops either in CMake configuration with
+  <code>The imported target "hololink::emulation_host" references the file
+  "/opt/nvidia/hololink/lib/libemulation_host.a" but this file does not exist</code>,
+  or later with HSB API compatibility errors. Build with a base image that
+  bundles HSB 2.5.x instead.</li>
 </ul>
 
 

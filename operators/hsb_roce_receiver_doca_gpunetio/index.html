@@ -20151,7 +20151,8 @@ as a drop-in replacement when the <code>--docagpunetio</code> flag is passed to 
 <ul>
 <li>Holoscan SDK 4.0.0 or later</li>
 <li><a href="https://docs.nvidia.com/doca/sdk/doca-developer-guide/index.html">NVIDIA DOCA SDK 3.2.1+</a> with GPUNetIO support</li>
-<li>Holoscan Sensor Bridge (HSB) 2.5.0 or later</li>
+<li>Holoscan Sensor Bridge (HSB) 2.5.x (2.6.0 and later are not supported yet, see
+  the <a href="../../applications/imx274_gpu_resident/#hsb-version-compatibility">known HSB compatibility issue</a>)</li>
 <li>CUDA-capable GPU with GPUDirect RDMA support (Ampere or later, e.g. RTX A6000)</li>
 <li>aarch64 platform (e.g. IGX Orin)</li>
 <li>RoCE-capable NIC (e.g., ConnectX)</li>
@@ -20231,10 +20232,10 @@ as a drop-in replacement when the <code>--docagpunetio</code> flag is passed to 
 <h2 id="build">Build<a class="headerlink" href="#build" title="Permanent link">#</a></h2>
 <p>This operator is built as part of the HoloHub build system when the <code>doca</code> mode
 is selected:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>imx274_gpu_resident<span class="w"> </span>doca
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>imx274_gpu_resident<span class="w"> </span>doca<span class="w"> </span>--base-img<span class="w"> </span>nvcr.io/nvidia/clara-holoscan/holoscan:v4.3.0-cuda12-dgpu
 </code></pre></div>
 <p>Or enable the operator explicitly:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>imx274_gpu_resident<span class="w"> </span>--build-with<span class="w"> </span>hsb_roce_receiver_doca_gpunetio
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>imx274_gpu_resident<span class="w"> </span>--build-with<span class="w"> </span>hsb_roce_receiver_doca_gpunetio<span class="w"> </span>--base-img<span class="w"> </span>nvcr.io/nvidia/clara-holoscan/holoscan:v4.3.0-cuda12-dgpu
 </code></pre></div>
 <h2 id="dependencies">Dependencies<a class="headerlink" href="#dependencies" title="Permanent link">#</a></h2>
 <ul>
