@@ -1,17 +1,13 @@
 # `./holohub` contract
 
-**Evidence releases:** verified 2026-07-31 at the official HoloHub tag
+**Evidence release:** verified 2026-07-31 at the official HoloHub tag
 `holoscan-sdk-4.5.0`, resolving to
-`0a2f81ef978ccd83a676b1c3189cf5b201315a2b`. Rechecked 2026-08-31 with
-the wrapper pin introduced by HoloHub commit
-`b3451af7c7192f9c176b4a5948b236d33a0e0a47`: the container uses
-`holoscan-cli==4.6.0rc1` with the 4.5.0 SDK base.
+`0a2f81ef978ccd83a676b1c3189cf5b201315a2b`.
 
-Requires `holoscan-cli>=4.5.0`. The GA baseline below was verified with the
-published 4.5.0 wheel and tag commit
-`33a8a112bdb44aef47b34e8f9a47484fb54e9e31`; the 4.6.0rc1 behavior was
-rechecked with the published wheel built from release commit
-`4dff23c96c3b5832e3b6ae6644720220353ca66e`.
+Requires `holoscan-cli>=4.5.0`, matching HoloHub's current wrapper and base
+SDK pins. The final-release behavior below was verified with the published
+4.5.0 wheel and tag commit
+`33a8a112bdb44aef47b34e8f9a47484fb54e9e31`.
 
 This byte-identical contract is the version-evidence source shared by the
 HoloHub lifecycle skills. Do not duplicate exact verification tags or SHAs in
@@ -62,13 +58,12 @@ Resolve disagreements in this order:
 
 Use `./holohub` as the public HoloHub command surface. Current `package` creates
 Holoscan Module DEB/WHEEL artifacts, not application packages. HoloHub no
-longer accepts new `workflows/` contributions, and the verified holoscan-cli
-4.5.0 and 4.6.0rc1 releases do not expose the `workflow` project type.
+longer accepts new `workflows/` contributions, and holoscan-cli 4.5.0 removes
+the `workflow` project type.
 
 Use `--json` with `version`, `list`, `modes`, `env-info`, `env-check`, and
-`status`. Each verified 4.5.0 and 4.6.0rc1 payload begins with
-`"schema_version": 1`; tolerate additive fields. Parse stdout separately from
-diagnostics on stderr.
+`status`. Each 4.5.0 payload begins with `"schema_version": 1`; tolerate
+additive fields. Parse stdout separately from diagnostics on stderr.
 `env-check --json` still exits nonzero when a check fails, so preserve and
 parse its JSON before triage. Treat that result as task-blocking only when a
 failed capability is required by the selected project's documented needs or
@@ -90,10 +85,10 @@ verify    focused test + observable result/artifact + final status
   support only `--dryrun`; read-only diagnostics need neither.
 - Keep project, mode, language, image, inputs, privileges, and task arguments
   identical between preview and action.
-- In the verified 4.5.0 and 4.6.0rc1 releases, build, package, and
-  sccache-enabled container dry runs do not create CLI-owned state. Wrapper
-  environment bootstrap, prompts, and other previewed commands can still have
-  side effects; dry run is not an offline guarantee.
+- In 4.5.0, build, package, and sccache-enabled container dry runs do not
+  create CLI-owned state. Wrapper environment bootstrap, prompts, and other
+  previewed commands can still have side effects; dry run is not an offline
+  guarantee.
 - The first wrapper invocation can select, create, or repair its command
   environment before parsing the verb. Use `version --json` and
   `env-info --json` instead of guessing which environment is active.

@@ -9,7 +9,7 @@ NVIDIA <br>
 ### License/Terms of Use: <br>
 Apache-2.0 <br>
 ## Use Case: <br>
-Developers and engineers use this skill to debug concrete HoloHub CLI command failures through reproducible diagnosis, root-cause isolation, minimal fix, and verification. <br>
+Developers and engineers use this skill to diagnose and fix failing, hanging, or regressing ./holohub CLI commands with reproducible proof. <br>
 
 ### Deployment Geography for Use: <br>
 Global <br>
@@ -25,10 +25,10 @@ Risk: Review before execution as proposals could introduce incorrect or misleadi
 Mitigation: Review and scan skill before deployment. <br>
 
 ## Reference(s): <br>
-- [debug-workflow.md](references/debug-workflow.md) <br>
-- [holohub-cli-contract.md](references/holohub-cli-contract.md) <br>
-- [known-issues.md](references/known-issues.md) <br>
-- [NVIDIA HoloHub (GitHub)](https://github.com/nvidia-holoscan/holohub) <br>
+- [HoloHub CLI contract](references/holohub-cli-contract.md) <br>
+- [Debug workflow](references/debug-workflow.md) <br>
+- [Version-sensitive diagnostic priors](references/known-issues.md) <br>
+- [HoloHub repository](https://github.com/nvidia-holoscan/holohub) <br>
 
 
 ## Skill Output: <br>
@@ -44,18 +44,18 @@ Mitigation: Review and scan skill before deployment. <br>
 
 
 ## Evaluation Tasks: <br>
-4 evaluation tasks (2 positive, 2 negative), each in an isolated sandbox pod. <br>
+Evaluated against 4 tasks (2 positive, 2 negative); each attempt ran in an isolated sandbox pod. <br>
 
 ## Evaluation Metrics Used: <br>
 Reported benchmark dimensions: <br>
-- Security: Whether the skill avoids unsafe operations, secret leakage, and unauthorized access. <br>
-- Correctness: Whether the final answer is correct against the reference answer. <br>
-- Discoverability: Whether the right skill was found and executed when needed. <br>
-- Effectiveness: Whether the skill helped complete the user's goal and expected workflow. <br>
-- Efficiency: Whether the skill avoided wasted tool or skill usage. <br>
+- Security: Checks whether the skill is safe to use. <br>
+- Correctness: Checks whether the answer is correct. <br>
+- Discoverability: Checks whether the right skill was loaded when needed. <br>
+- Effectiveness: Checks whether the skill helped complete the user's goal and expected workflow. <br>
+- Efficiency: Checks whether the skill avoided wasted tool or skill usage. <br>
 
 Underlying evaluation signals used in this run: <br>
-- `security`: Unsafe operations, secret leakage, and unauthorized access. <br>
+- `security`: Checks for unsafe operations, secret leakage, and unauthorized access. <br>
 - `accuracy`: Final-answer correctness against the reference answer. <br>
 - `skill_execution`: Whether the expected skill was found and executed. <br>
 - `goal_accuracy`: Whether the user's goal was achieved. <br>
@@ -67,15 +67,15 @@ Underlying evaluation signals used in this run: <br>
 ## Evaluation Results: <br>
 | Measure | Claude Code (Baseline → Skill Uplift) | Codex (Baseline → Skill Uplift) |
 |---|---:|---:|
-| Overall | 67% → 89% (+22 points) | 57% → 79% (+23 points) |
-| Security | 100% → 100% (±0 points) | 75% → 100% (+25 points) |
-| Correctness | 60% → 75% (+15 points) | 40% → 90% (+50 points) |
-| Discoverability | 62% → 100% (+38 points) | 61% → 72% (+11 points) |
-| Effectiveness | 51% → 68% (+17 points) | 47% → 59% (+13 points) |
-| Efficiency | 62% → 100% (+38 points) | 61% → 75% (+14 points) |
+| Overall | 61% → 89% (+28 points) | 66% → 73% (+7 points) |
+| Security | 100% → 100% (±0 points) | 100% → 75% (-25 points) |
+| Correctness | 35% → 85% (+50 points) | 50% → 85% (+35 points) |
+| Discoverability | 61% → 98% (+38 points) | 61% → 67% (+6 points) |
+| Effectiveness | 49% → 67% (+18 points) | 58% → 65% (+7 points) |
+| Efficiency | 61% → 96% (+35 points) | 59% → 70% (+11 points) |
 
 ## Skill Version(s): <br>
-9f47a6b6 (source: git SHA, committed 2026-08-31) <br>
+adf8a7ae (source: git SHA, committed 2026-09-02) <br>
 
 ## Ethical Considerations: <br>
 NVIDIA believes Trustworthy AI is a shared responsibility and we have established policies and practices to enable development for a wide array of AI applications. When downloaded or used in accordance with our terms of service, developers should work with their internal team to ensure this skill meets requirements for the relevant industry and use case and addresses unforeseen product misuse. <br>

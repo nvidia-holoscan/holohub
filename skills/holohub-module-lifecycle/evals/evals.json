@@ -40,21 +40,5 @@
       "Preserves the exact failing command, full revision, dirty state, and meaningful inputs",
       "Avoids speculative cache deletion, broad dependency upgrades, or publishing"
     ]
-  },
-  {
-    "id": "holohub-module-lifecycle-005",
-    "question": "My Python Holoscan Module builds and tests pass. `./holohub version --json` reports `holoscan-cli` 4.6.0rc1 while the selected container is based on Holoscan SDK 4.5.0. Package it as a Debian package and wheel through `./holohub`, confirm both work for clean consumers, and do not publish.",
-    "expected_skill": "holohub-module-lifecycle",
-    "expected_script": null,
-    "ground_truth": "The agent recognizes the 4.6.0rc1 CLI wrapper and 4.5.0 SDK base as the supported HoloHub version split rather than changing either pin. It validates module metadata, previews and runs module DEB and WHEEL packaging container-first, inspects artifact identity and contents, installs each format in a disposable artifact-only consumer, and proves import or link plus a finite smoke result. It does not invent application packaging or a workflow project type and does not publish.",
-    "expected_behavior": [
-      "Activates holohub-module-lifecycle and distinguishes the 4.6.0rc1 CLI wrapper from the 4.5.0 SDK base without forcing a version change",
-      "Confirms module metadata, namespace, version, dependencies, testing, and binary package declarations",
-      "Uses the current module-only package path and does not invent application packaging or a workflow project type",
-      "Previews explicit ./holohub package commands with --dryrun --verbose before the matching actions and records actual artifact paths",
-      "Inspects wheel metadata and Debian control and payload rather than trusting exit zero",
-      "Proves each format from a clean consumer that cannot import from the checkout, build tree, user site, or local override",
-      "Does not commit, push, upload, publish, or remove unrelated files without authorization"
-    ]
   }
 ]

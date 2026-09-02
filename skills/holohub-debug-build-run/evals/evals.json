@@ -42,17 +42,17 @@
   },
   {
     "id": "holohub-debug-build-run-002",
-    "question": "`./holohub build my_cpp_app --mode release` fails after I changed an operator dependency. Startup reports `holoscan-cli` 4.6.0rc1 while the build image uses Holoscan SDK 4.5.0. Find the first causal error and make the smallest fix while preserving my unrelated edits; do not clear caches.",
+    "question": "`./holohub test my_cpp_app --language cpp` fails inside its container with `xvfb-run: command not found`. Host startup reports `holoscan-cli` 4.6.0 and the image is based on Holoscan SDK 4.6.0. Find the first causal error and make the smallest fix while preserving my unrelated edits; do not clear caches.",
     "expected_skill": "holohub-debug-build-run",
     "expected_script": null,
-    "ground_truth": "The agent freezes the exact command, revision, dirty baseline, and relevant image and dependency identities. It reads local help and structured version/environment output, recognizes that the 4.6.0rc1 CLI wrapper with a 4.5.0 SDK base is supported evidence rather than a root cause by itself, and does not change versions without causal proof. It previews the identical build shape and records any wrapper-environment bootstrap separately because dry run is not an offline guarantee, then reproduces once unchanged. It isolates metadata, CMake, dependency, image, and compiler boundaries; fixes only the owning cause; refreshes the exact preview; and proves the identical build plus a focused regression test without disturbing unrelated work or caches.",
+    "ground_truth": "The agent freezes the exact command, revision, dirty baseline, and host and image command identities. It reads local help and structured host and image environment output, then previews the identical test command with --dryrun --verbose. It knows the published 4.6.0 test path detects xvfb-run and falls back to direct ctest while passing the active project root, so an unconditional xvfb-run failure indicates stale or overridden image-side CLI/test-driver behavior rather than a reason to edit application code or install Xvfb blindly. It reproduces once unchanged, proves which wrapper, CLI version, and CTest script produced the command, fixes only that owning boundary, refreshes the exact preview, and proves the identical test plus the nearest focused regression without disturbing unrelated work or caches.",
     "expected_behavior": [
-      "Activates holohub-debug-build-run and records the exact command, full revision, dirty baseline, and relevant image and dependency identities",
-      "Treats the 4.6.0rc1 CLI and 4.5.0 SDK separation as supported unless the first causal evidence proves otherwise, without broad version changes",
-      "Uses --dryrun --verbose on the identical build shape and records wrapper bootstrap side effects rather than claiming that preview is offline proof",
-      "Reproduces once unchanged and uses the first actionable CMake or compiler failure instead of final shutdown noise",
-      "Checks metadata, registration, operator targets, include and link paths, language, mode, and build type as separate boundaries",
-      "Makes the smallest owning-layer fix, refreshes the identical preview, and proves the build with a focused regression check",
+      "Activates holohub-debug-build-run and records the exact command, full revision, dirty baseline, and host and image command identities",
+      "Uses --dryrun --verbose on the identical test shape and records wrapper bootstrap side effects rather than claiming that preview is offline proof",
+      "Recognizes that holoscan-cli 4.6.0 conditionally uses xvfb-run, falls back to ctest when it is absent, and passes the active project root to CTest",
+      "Reproduces once unchanged and distinguishes a stale or overridden image-side CLI/test driver from an application test failure",
+      "Does not edit application code, install Xvfb, use --no-xvfb, or change versions without evidence that the owning boundary requires it",
+      "Makes the smallest owning-layer fix, refreshes the identical preview, and proves the test with a focused regression check",
       "Preserves unrelated edits and does not reset, clear caches, switch to host execution, or commit without authorization"
     ]
   }
