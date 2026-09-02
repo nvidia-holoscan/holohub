@@ -45,12 +45,15 @@ Before getting started, make sure to review the [Requirements](#requirements) se
 You can simply run application with the following command from the repository root:
 
 ```bash
-./holohub run imx274_gpu_resident
+./holohub run imx274_gpu_resident --base-img nvcr.io/nvidia/clara-holoscan/holoscan:v4.3.0-cuda12-dgpu
 # or
-./holohub run imx274_gpu_resident doca
+./holohub run imx274_gpu_resident doca --base-img nvcr.io/nvidia/clara-holoscan/holoscan:v4.3.0-cuda12-dgpu
 ```
 
 This will build and launch the development container, build the operators and build and run the application.
+The `--base-img` option is required: the default HoloHub base image is a Holoscan SDK 4.4.0 or later
+container that bundles HSB 2.6.0, which this application does not support yet (see
+[HSB version compatibility](#hsb-version-compatibility)).
 For more details on using the Holohub CLI, see the [Holohub CLI Reference Guide](../../utilities/cli/cli_reference.md).
 
 For step-by-step instructions for building and running the application, refer to the [Detailed Build and Run Instructions](#detailed-build-and-run-instructions).
@@ -75,13 +78,15 @@ Hardware details available in [Holoscan Sensor Bridge](https://docs.nvidia.com/h
 ### HSB Version Compatibility
 
 This application and its GPU-resident HSB operators are written against the HSB
-2.5.x API and must be built in a container whose base image bundles HSB 2.5.x,
-such as `nvcr.io/nvidia/clara-holoscan/holoscan:v4.0.0-cuda12-dgpu`.
+2.5.x API and must be built in a container whose base image bundles HSB 2.5.x.
+Holoscan SDK 4.0.0 through 4.3.0 discrete GPU container images bundle HSB 2.5.0;
+`nvcr.io/nvidia/clara-holoscan/holoscan:v4.3.0-cuda12-dgpu` is the latest compatible
+base image.
 
-Holoscan SDK 4.4.0 container images bundle **HSB 2.6.0**, which is not API
-compatible with this application. Building on top of a Holoscan SDK 4.4.0 base
+Holoscan SDK 4.4.0 and later container images bundle **HSB 2.6.0**, which is not API
+compatible with this application. Building on top of a Holoscan SDK 4.4.0 or later base
 image fails at configure or compile time (see [Known Issues](#known-issues) and
-the known HSB compatibility issue). Use a Holoscan SDK
+the known HSB compatibility issue). Pass `--base-img` with a Holoscan SDK
 base image that bundles HSB 2.5.x until this application is updated for HSB 2.6.
 
 ### NVIDIA Driver Version
@@ -165,19 +170,19 @@ Ensure you are in the HoloHub repository root for all commands below.
 From the **HoloHub repository root**:
 
 ```bash
-./holohub build-container imx274_gpu_resident
+./holohub build-container imx274_gpu_resident --base-img nvcr.io/nvidia/clara-holoscan/holoscan:v4.3.0-cuda12-dgpu
 # or
-./holohub build-container imx274_gpu_resident doca
+./holohub build-container imx274_gpu_resident doca --base-img nvcr.io/nvidia/clara-holoscan/holoscan:v4.3.0-cuda12-dgpu
 ```
 
-The Holoscan `v4.0.0-cuda12-dgpu` container image is built on top of a Holoscan container that **already includes HSB** (e.g. installed at `/opt/nvidia/hololink`).
+The Holoscan `v4.3.0-cuda12-dgpu` container image **already includes HSB 2.5.0** (installed at `/opt/nvidia/hololink`).
 
-**Note:** Pass a base image that bundles HSB 2.5.x. Overriding the base image
-with a Holoscan SDK 4.4.0 image (`--base-img nvcr.io/nvidia/clara-holoscan/holoscan:v4.4.0-cuda12-dgpu`)
-is not supported; see [HSB version compatibility](#hsb-version-compatibility).
+**Note:** Always pass a base image that bundles HSB 2.5.x. The default HoloHub base image and
+Holoscan SDK 4.4.0 or later images (e.g. `nvcr.io/nvidia/clara-holoscan/holoscan:v4.4.0-cuda12-dgpu`)
+bundle HSB 2.6.0 and are not supported; see [HSB version compatibility](#hsb-version-compatibility).
 
 **Note:** You can pull the base image before building, e.g.
-`docker pull nvcr.io/nvidia/clara-holoscan/holoscan:v4.0.0-cuda12-dgpu`
+`docker pull nvcr.io/nvidia/clara-holoscan/holoscan:v4.3.0-cuda12-dgpu`
 
 ##### Verify the Image
 
@@ -326,8 +331,8 @@ The graphs below illustrate the latency comparison between the CPU-driven (vanil
   then Ctrl+C signal may not reach the application, and the application may not
   shutdown gracefully with all the measurements being printed.
 - Pressing Ctrl+C for the DOCA GPUNetIO version does not show any measurement outputs at the end.
-- Building against HSB 2.6.0 (bundled in Holoscan SDK 4.4.0
-  container images) fails. The build stops either in CMake configuration with
+- Building against HSB 2.6.0 (bundled in Holoscan SDK 4.4.0 and later
+  container images, including the default HoloHub base image) fails. The build stops either in CMake configuration with
   `The imported target "hololink::emulation_host" references the file
   "/opt/nvidia/hololink/lib/libemulation_host.a" but this file does not exist`,
   or later with HSB API compatibility errors. Build with a base image that
