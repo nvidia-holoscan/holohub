@@ -1,15 +1,15 @@
 [
   {
     "id": "holohub-debug-build-run-004",
-    "question": "Create a new Python HoloHub application from this sensor-processing brief, including a scaffold, finite smoke mode, visual recording, tests, and a flow benchmark.",
+    "question": "I want to create a new Python HoloHub application from a sensor-processing brief with a scaffold, finite smoke mode, visual recording, tests, and a flow benchmark. No command is failing. Identify the correct HoloHub skill and outline only the first non-mutating planning step; do not scaffold, build, or run anything yet.",
     "expected_skill": null,
     "expected_script": null,
-    "ground_truth": "The debug skill stays silent because no concrete command is failing. The agent should use holohub-app-lifecycle for the scaffold-to-evidence happy path.",
+    "ground_truth": "The debug skill stays silent because no concrete command is failing. The agent routes to holohub-app-lifecycle and limits the response to requirements and evidence planning without executing the application workflow.",
     "expected_behavior": [
       "Does not activate holohub-debug-build-run or begin failure reproduction",
       "Routes the task to holohub-app-lifecycle",
-      "Keeps application requirements and evidence boundaries in the user's brief",
-      "Does not perform destructive diagnosis or cache cleanup"
+      "Captures the requested scaffold, finite smoke, visual recording, tests, and flow benchmark as requirements and evidence boundaries",
+      "Stops at a non-mutating planning step and does not scaffold, build, run, diagnose, or clear caches"
     ]
   },
   {
@@ -38,6 +38,22 @@
       "Tests the wrapper environment versus project-container import boundary before proposing broad changes",
       "Requires a fresh post-fix preview before the identical passing command and a focused regression test as proof",
       "Does not execute commands, edit files, clear caches, or change privileges"
+    ]
+  },
+  {
+    "id": "holohub-debug-build-run-002",
+    "question": "`./holohub build my_cpp_app --mode release` fails after I changed an operator dependency. Startup reports `holoscan-cli` 4.6.0rc1 while the build image uses Holoscan SDK 4.5.0. Find the first causal error and make the smallest fix while preserving my unrelated edits; do not clear caches.",
+    "expected_skill": "holohub-debug-build-run",
+    "expected_script": null,
+    "ground_truth": "The agent freezes the exact command, revision, dirty baseline, and relevant image and dependency identities. It reads local help and structured version/environment output, recognizes that the 4.6.0rc1 CLI wrapper with a 4.5.0 SDK base is supported evidence rather than a root cause by itself, and does not change versions without causal proof. It previews the identical build shape and records any wrapper-environment bootstrap separately because dry run is not an offline guarantee, then reproduces once unchanged. It isolates metadata, CMake, dependency, image, and compiler boundaries; fixes only the owning cause; refreshes the exact preview; and proves the identical build plus a focused regression test without disturbing unrelated work or caches.",
+    "expected_behavior": [
+      "Activates holohub-debug-build-run and records the exact command, full revision, dirty baseline, and relevant image and dependency identities",
+      "Treats the 4.6.0rc1 CLI and 4.5.0 SDK separation as supported unless the first causal evidence proves otherwise, without broad version changes",
+      "Uses --dryrun --verbose on the identical build shape and records wrapper bootstrap side effects rather than claiming that preview is offline proof",
+      "Reproduces once unchanged and uses the first actionable CMake or compiler failure instead of final shutdown noise",
+      "Checks metadata, registration, operator targets, include and link paths, language, mode, and build type as separate boundaries",
+      "Makes the smallest owning-layer fix, refreshes the identical preview, and proves the build with a focused regression check",
+      "Preserves unrelated edits and does not reset, clear caches, switch to host execution, or commit without authorization"
     ]
   }
 ]

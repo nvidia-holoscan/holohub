@@ -2,8 +2,9 @@
 
 **Evidence releases:** verified 2026-07-31 at the official HoloHub tag
 `holoscan-sdk-4.5.0`, resolving to
-`0a2f81ef978ccd83a676b1c3189cf5b201315a2b`. Rechecked 2026-08-31 against
-HoloHub's 4.6.0rc1 wrapper configuration: the container uses
+`0a2f81ef978ccd83a676b1c3189cf5b201315a2b`. Rechecked 2026-08-31 with
+the wrapper pin introduced by HoloHub commit
+`b3451af7c7192f9c176b4a5948b236d33a0e0a47`: the container uses
 `holoscan-cli==4.6.0rc1` with the 4.5.0 SDK base.
 
 Requires `holoscan-cli>=4.5.0`. The GA baseline below was verified with the
