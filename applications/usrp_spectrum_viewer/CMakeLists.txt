@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 National Instruments Corporation
 #
 # SPDX-License-Identifier: Apache-2.0
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.24)
 project(usrp_spectrum_viewer CXX CUDA)
 
 # Dependencies

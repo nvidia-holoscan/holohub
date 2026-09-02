@@ -64,3 +64,4 @@ sequenceDiagram
 - `rate`, `freq`, `gain`: RF tuning parameters.
 - `channels`, `dest_ports`: channel-to-port mapping for outgoing UDP streams. Both lists must contain unique values and have the same length.
 - `dest_addr`, `adapter`, `dest_mac_addr`, `keep_hdr`, `spp`, `mtu`: streaming format and egress configuration. `keep_hdr` must be true, and `spp` must match `uhd_chdr_rx.num_complex_samples_per_packet`.
+- `start_delay_seconds`: positive values schedule multi-channel streams together in the future; zero starts each stream immediately.

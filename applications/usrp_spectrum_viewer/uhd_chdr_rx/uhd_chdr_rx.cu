@@ -9,6 +9,9 @@
 #include <stdexcept>
 #include <utility>
 
+#include <uhd/rfnoc/chdr_types.hpp>
+#include <uhd/utils/byteswap.hpp>
+
 using namespace daqiri;
 using namespace matx;
 
@@ -62,6 +65,17 @@ void release_bursts(std::vector<BurstParams*>& bursts) {
     }
   }
   bursts.clear();
+}
+
+uint16_t decode_chdr_sequence(const void* header) {
+  uint64_t wire_header = 0;
+  std::memcpy(&wire_header, header, sizeof(wire_header));
+
+  // MPMD/X4xx transports CHDR in little-endian order. Let UHD decode the
+  // current RFNoC header layout instead of duplicating its field offsets.
+  const uhd::rfnoc::chdr::chdr_header chdr_header{
+      uhd::wtohx<uint64_t>(wire_header)};
+  return chdr_header.get_seq_num();
 }
 
 }  // namespace
@@ -297,9 +311,7 @@ void UhdChdrRxOp::process_channel_data(BurstParams* burst, uint16_t channel_num)
           required_payload_bytes));
     }
 
-    uint64_t header_word = 0;
-    std::memcpy(&header_word, header, sizeof(header_word));
-    const uint16_t sequence = static_cast<uint16_t>((header_word >> 32) & 0xFFFFU);
+    const uint16_t sequence = decode_chdr_sequence(header);
     if (expected_sequence.has_value() && sequence != expected_sequence.value()
         && !sequence_gap) {
       sequence_gap = true;

@@ -4,6 +4,7 @@
 
 #include "usrp_rx.hpp"
 
+#include <cmath>
 #include <exception>
 #include <sstream>
 #include <stdexcept>
@@ -112,8 +113,9 @@ void UsrpRxOp::start() {
   if (dest_addr_.get().empty()) {
     throw std::runtime_error("usrp_rx.dest_addr must be set when enabled=true");
   }
-  if (start_delay_seconds_.get() < 0.0) {
-    throw std::runtime_error("usrp_rx.start_delay_seconds must be >= 0");
+  const double start_delay_seconds = start_delay_seconds_.get();
+  if (!std::isfinite(start_delay_seconds) || start_delay_seconds < 0.0) {
+    throw std::runtime_error("usrp_rx.start_delay_seconds must be finite and >= 0");
   }
 
   std::unordered_set<int64_t> unique_channels;
@@ -173,10 +175,10 @@ void UsrpRxOp::start() {
   uhd::time_spec_t start_time;
   // Multi-channel starts are scheduled slightly in the future so all channels
   // begin together rather than sequentially.
-  const bool use_future_start = channels.size() > 1;
+  const bool use_future_start = channels.size() > 1 && start_delay_seconds > 0.0;
   if (use_future_start) {
     start_time = uhd::time_spec_t(
-        usrp_->get_time_now().get_real_secs() + start_delay_seconds_.get());
+        usrp_->get_time_now().get_real_secs() + start_delay_seconds);
   }
 
   try {
