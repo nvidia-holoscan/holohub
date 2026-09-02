@@ -17,6 +17,8 @@ namespace holoscan::apps {
 
 namespace {
 
+constexpr float MIN_BANDWIDTH_MHZ = 0.001F;
+
 struct SpectrumOverlayUiState {
   explicit SpectrumOverlayUiState(SpectrumOverlayConfig config)
       : reset_center_freq_mhz(config.initial_center_freq_mhz),
@@ -42,6 +44,10 @@ struct SpectrumOverlayUiState {
 ops::HolovizOp::LayerCallbackFunction make_spectrum_overlay_callback(
     SpectrumOverlayConfig config,
     std::shared_ptr<holoscan::ops::SpectrumViewState> view_state) {
+  if (!std::isfinite(config.initial_bandwidth_mhz)
+      || config.initial_bandwidth_mhz < MIN_BANDWIDTH_MHZ) {
+    config.initial_bandwidth_mhz = MIN_BANDWIDTH_MHZ;
+  }
   // Seed the shared state before the first frame so SpectrumVisualizerOp starts
   // with the same center/span the UI will present to the user.
   if (view_state) {
@@ -62,11 +68,16 @@ ops::HolovizOp::LayerCallbackFunction make_spectrum_overlay_callback(
     ImGui::InputFloat("Bandwidth (MHz)", &ui_state->bandwidth_mhz, 1.0F, 10.0F, "%.1f");
     // A non-positive span makes the frequency mapping undefined; keep it above
     // a small positive floor so labels and peak markers stay finite.
-    constexpr float min_bandwidth_mhz = 0.001F;
-    ui_state->bandwidth_mhz = std::max(ui_state->bandwidth_mhz, min_bandwidth_mhz);
     if (ImGui::Button("Reset")) {
       ui_state->center_freq_mhz = ui_state->reset_center_freq_mhz;
       ui_state->bandwidth_mhz = ui_state->reset_bandwidth_mhz;
+    }
+    if (!std::isfinite(ui_state->center_freq_mhz)) {
+      ui_state->center_freq_mhz = ui_state->reset_center_freq_mhz;
+    }
+    if (!std::isfinite(ui_state->bandwidth_mhz)
+        || ui_state->bandwidth_mhz < MIN_BANDWIDTH_MHZ) {
+      ui_state->bandwidth_mhz = MIN_BANDWIDTH_MHZ;
     }
     ImGui::Text("Span: %.1f - %.1f MHz",
                 ui_state->center_freq_mhz - ui_state->bandwidth_mhz / 2.0F,
@@ -97,8 +108,9 @@ ops::HolovizOp::LayerCallbackFunction make_spectrum_overlay_callback(
       const int shown_channels =
           std::min(ui_state->num_channels, static_cast<int>(ops::MAX_CHANNELS));
       for (int ch = 0; ch < shown_channels; ++ch) {
-        const float peak_freq_mhz = view_state->peak_freq_mhz[ch].load(std::memory_order_relaxed);
-        const float peak_db_val = view_state->peak_db[ch].load(std::memory_order_relaxed);
+        float peak_freq_mhz = 0.0F;
+        float peak_db_val = 0.0F;
+        view_state->load_peak(ch, peak_freq_mhz, peak_db_val);
         const auto& color = ops::CHANNEL_PALETTE[ch % peak_palette_size];
         ImGui::TextColored(ImVec4(color[0], color[1], color[2], color[3]),
                            "CH%d Peak: %.3f MHz  @  %.1f dB", ch, peak_freq_mhz, peak_db_val);
@@ -184,9 +196,10 @@ ops::HolovizOp::LayerCallbackFunction make_spectrum_overlay_callback(
       const int shown_channels =
           std::min(ui_state->num_channels, static_cast<int>(ops::MAX_CHANNELS));
       for (int ch = 0; ch < shown_channels; ++ch) {
-        const float peak_freq_mhz = view_state->peak_freq_mhz[ch].load(std::memory_order_relaxed);
-        const float peak_db_val = view_state->peak_db[ch].load(std::memory_order_relaxed);
-        if (ui_state->bandwidth_mhz <= 0.0F) {
+        float peak_freq_mhz = 0.0F;
+        float peak_db_val = 0.0F;
+        view_state->load_peak(ch, peak_freq_mhz, peak_db_val);
+        if (!std::isfinite(peak_freq_mhz) || !std::isfinite(peak_db_val)) {
           continue;
         }
         const float u = (peak_freq_mhz - ui_state->center_freq_mhz) / ui_state->bandwidth_mhz

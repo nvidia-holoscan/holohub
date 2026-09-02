@@ -3,6 +3,9 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "fft.hpp"
 
+#include <stdexcept>
+#include <utility>
+
 using in_t = std::tuple<tensor_t<complex, 2>, cudaStream_t>;
 using out_t = std::tuple<tensor_t<complex, 2>, cudaStream_t>;
 
@@ -23,10 +26,6 @@ void FFT::setup(OperatorSpec& spec) {
         "num_channels",
         "Number of channels",
         "Number of channels to allocate memory for");
-    spec.param(spectrum_type,
-        "spectrum_type",
-        "Spectrum type",
-        "VITA 49.2 spectrum type to pass along in metadata");
     spec.param(spectrum_type,
         "spectrum_type",
         "Spectrum type",
@@ -79,19 +78,39 @@ void FFT::setup(OperatorSpec& spec) {
 
 void FFT::initialize() {
     holoscan::Operator::initialize();
-    make_tensor(outputs,
-                {num_channels.get(), num_bursts.get(), burst_size.get()},
-                MATX_DEVICE_MEMORY);
+    if (burst_size.get() <= 0 || num_bursts.get() <= 0 || num_channels.get() == 0) {
+        throw std::runtime_error("fft.burst_size, num_bursts, and num_channels must all be > 0");
+    }
 }
 
 void FFT::compute(InputContext& op_input, OutputContext& op_output, ExecutionContext& context) {
     auto input = op_input.receive<in_t>("in").value();
+    auto input_tensor = std::get<0>(input);
+    auto stream = std::get<1>(input);
     auto meta = metadata();
     auto channel_num = meta->get<uint16_t>("channel_number", 0);
-    auto out = slice<2>(outputs, {static_cast<index_t>(channel_num), 0, 0},
-            {matxDropDim, matxEnd, matxEnd});
+    if (channel_num >= num_channels.get()) {
+        throw std::runtime_error(fmt::format(
+            "Invalid channel_number {} for fft.num_channels {}", channel_num, num_channels.get()));
+    }
+    if (input_tensor.Size(0) != num_bursts.get()
+        || input_tensor.Size(1) != burst_size.get()) {
+        throw std::runtime_error(fmt::format(
+            "FFT input shape ({}, {}) must match configured shape ({}, {})",
+            input_tensor.Size(0),
+            input_tensor.Size(1),
+            num_bursts.get(),
+            burst_size.get()));
+    }
 
-    (out = fftshift1D(fft(std::get<0>(input)))).run(std::get<1>(input));
+    // Every emitted message owns its output storage. Reusing one tensor per
+    // channel can overwrite data while another branch still consumes it.
+    auto out = make_tensor<complex>(
+        {static_cast<index_t>(num_bursts.get()), static_cast<index_t>(burst_size.get())},
+        MATX_ASYNC_DEVICE_MEMORY,
+        stream);
+
+    (out = fftshift1D(fft(input_tensor))).run(stream);
 
     if (spectrum_type.has_value())
         meta->set("spectrum_type", spectrum_type.get());
@@ -120,8 +139,8 @@ void FFT::compute(InputContext& op_input, OutputContext& op_output, ExecutionCon
 
     op_output.emit(
         out_t {
-            out,
-            std::get<1>(input)
+            std::move(out),
+            stream
         },
         "out");
 }

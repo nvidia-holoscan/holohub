@@ -168,8 +168,8 @@ fft:
   window_type: 0
   transform_points: 20480
   window_points: 20480
-  resolution: 1250
-  span: 128000000
+  resolution: 24414
+  span: 500000000
   weighting_factor: 0
   f1_index: -10240
   f2_index: 10239

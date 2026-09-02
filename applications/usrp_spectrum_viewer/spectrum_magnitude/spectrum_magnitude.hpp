@@ -22,8 +22,6 @@ class SpectrumMagnitudeOp : public Operator {
   void compute(InputContext& input, OutputContext& output, ExecutionContext& context) override;
 
  private:
-  matx::tensor_t<float, 2> outputs_;
-  matx::tensor_t<float, 3> abs2_buf_;
   Parameter<int> burst_size_;
   Parameter<int> num_bursts_;
   Parameter<uint16_t> num_channels_;

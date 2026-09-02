@@ -37,7 +37,7 @@ uhd_chdr_rx:
 - `num_complex_samples_per_packet`: Number of complex samples contained in every CHDR data packet
 - `num_packets_per_output`: Number of packets grouped into one emitted output row.
 - `num_outputs_per_batch`: Number of output rows emitted together in one batch.
-- `num_buffered_batches`: Number of batch buffers used for concurrent accumulation and processing (ping-pong style)
+- `num_buffered_batches`: Maximum number of converted batches waiting per channel. When the queue reaches this limit, receive polling for that channel pauses until a completed batch is emitted.
 - `num_channels`: Number of channels to support
 - `log_packets`: Log the first packet of a burst to console
 - `log_data`: Log the complex floating point data for the first packet of a burst to console

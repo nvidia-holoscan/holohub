@@ -26,11 +26,11 @@ All parameters are required (no defaults); the values below are from the applica
 | `burst_size` | int | `20480` | Samples per burst. Must be `> 0` and match the FFT output `burst_size`. |
 | `num_bursts` | int | `125` | Number of bursts per batch. Must be `> 0` and match the FFT output `num_bursts`. |
 | `num_averages` | uint32 | `125` | Number of bursts averaged into each output bin. Must be `> 0` and **equal `num_bursts`** (the batch is averaged over all `num_bursts` rows); also emitted in the output metadata. |
-| `num_channels` | uint16 | `2` | Number of RF channels to allocate buffers for. Must be `> 0`. |
+| `num_channels` | uint16 | `2` | Number of valid RF channel identifiers. Must be `> 0`. |
 
 ## Key Files
 
-- `spectrum_magnitude.hpp`: operator declaration and buffer members.
+- `spectrum_magnitude.hpp`: operator declaration and configuration state.
 - `spectrum_magnitude.cu`: magnitude-squared, averaging, and dB conversion logic.
 
 ## Inputs And Outputs

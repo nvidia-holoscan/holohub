@@ -7,6 +7,8 @@
 #include <array>
 #include <atomic>
 #include <cstdint>
+#include <memory>
+#include <utility>
 #include <vector>
 
 #include "holoscan/holoscan.hpp"
@@ -44,8 +46,10 @@ class SpectrumVisualizerOp : public Operator {
   // Allocator used to back the gxf tensors emitted to Holoviz.
   std::shared_ptr<UnboundedAllocator> allocator_;
 
-  // Bridges the upstream tuple stream to this operator's managed output stream.
-  cudaEvent_t sync_event_{nullptr};
+  // Bridges the upstream tuple stream to this operator's managed output stream,
+  // then keeps the input alive until all managed-stream reads have completed.
+  cudaEvent_t input_ready_event_{nullptr};
+  cudaEvent_t input_consumed_event_{nullptr};
 
   // Per-channel line geometry (num_channels, num_bins, 2): column 0 = x ramp,
   // column 1 = normalized y (dB).
@@ -75,12 +79,9 @@ class SpectrumVisualizerOp : public Operator {
   // the UI overlay. Peak detection is non-blocking: each channel's dB bins are
   // copied D2H asynchronously and scanned a frame later once the copy's event
   // has completed, so compute() never stalls the render pipeline.
-  std::vector<std::vector<float>> ch_host_db_;
+  std::vector<float*> ch_host_db_;
   std::vector<cudaEvent_t> peak_events_;
   std::vector<uint8_t> peak_copy_pending_;
-  std::vector<float> host_db_;
-  std::vector<float> ch_peak_db_;
-  std::vector<float> ch_peak_freq_;
 };
 
 }  // namespace holoscan::ops

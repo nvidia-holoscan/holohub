@@ -6,6 +6,7 @@
 
 #include <array>
 #include <atomic>
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
 
@@ -20,7 +21,7 @@ inline constexpr std::array<std::array<float, 4>, 4> CHANNEL_PALETTE{{
     {{1.0F, 0.3F, 0.8F, 0.9F}}}};  // magenta
 
 // Maximum number of channels the shared state and palette can distinctly track.
-inline constexpr size_t MAX_CHANNELS = CHANNEL_PALETTE.size();
+inline constexpr std::size_t MAX_CHANNELS = CHANNEL_PALETTE.size();
 
 // Plot area as a fraction of the window, shared by the visualizer geometry and
 // the axis overlay so the spectrum line, grid, and tick labels stay aligned
@@ -46,18 +47,16 @@ struct SpectrumViewState {
   // the high 32 bits) so the visualizer always reads the pair without a torn read.
   std::atomic<uint64_t> view_params{pack_view(1000.0F, 500.0F)};
 
-  // Per-channel detected peak: absolute frequency (MHz) and the power (dB) at
-  // that bin. The visualizer writes one slot per channel; the UI overlay reads
-  // them to annotate each channel independently.
-  std::array<std::atomic<float>, MAX_CHANNELS> peak_freq_mhz{};
-  std::array<std::atomic<float>, MAX_CHANNELS> peak_db{};
+  // Per-channel detected peak packed as frequency (MHz) and power (dB) in one
+  // atomic word so the overlay cannot observe values from different frames.
+  std::array<std::atomic<uint64_t>, MAX_CHANNELS> peak_values{};
   // Set by the UI overlay when the user toggles "Show Peak". When false, the
   // visualizer skips the per-frame D2H copy + CPU argmax used for peak finding.
   std::atomic<bool> show_peak{false};
 
   SpectrumViewState() {
-    for (auto& db : peak_db) {
-      db.store(-200.0F, std::memory_order_relaxed);
+    for (auto& peak : peak_values) {
+      peak.store(pack_pair(0.0F, -200.0F), std::memory_order_relaxed);
     }
   }
 
@@ -68,22 +67,38 @@ struct SpectrumViewState {
 
   // Atomically read the current center frequency and bandwidth (MHz) as a pair.
   void load_view(float& center_freq_mhz, float& bandwidth_mhz) const {
-    unpack_view(view_params.load(std::memory_order_relaxed), center_freq_mhz, bandwidth_mhz);
+    unpack_pair(view_params.load(std::memory_order_relaxed), center_freq_mhz, bandwidth_mhz);
+  }
+
+  void store_peak(std::size_t channel, float frequency_mhz, float power_db) {
+    peak_values.at(channel).store(
+        pack_pair(frequency_mhz, power_db), std::memory_order_relaxed);
+  }
+
+  void load_peak(std::size_t channel, float& frequency_mhz, float& power_db) const {
+    unpack_pair(peak_values.at(channel).load(std::memory_order_relaxed),
+                frequency_mhz,
+                power_db);
   }
 
   static uint64_t pack_view(float center_freq_mhz, float bandwidth_mhz) {
-    uint32_t center_bits = 0;
-    uint32_t bandwidth_bits = 0;
-    std::memcpy(&center_bits, &center_freq_mhz, sizeof(center_bits));
-    std::memcpy(&bandwidth_bits, &bandwidth_mhz, sizeof(bandwidth_bits));
-    return (static_cast<uint64_t>(center_bits) << 32) | static_cast<uint64_t>(bandwidth_bits);
+    return pack_pair(center_freq_mhz, bandwidth_mhz);
   }
 
-  static void unpack_view(uint64_t packed, float& center_freq_mhz, float& bandwidth_mhz) {
-    const uint32_t center_bits = static_cast<uint32_t>(packed >> 32);
-    const uint32_t bandwidth_bits = static_cast<uint32_t>(packed & 0xFFFFFFFFULL);
-    std::memcpy(&center_freq_mhz, &center_bits, sizeof(center_freq_mhz));
-    std::memcpy(&bandwidth_mhz, &bandwidth_bits, sizeof(bandwidth_mhz));
+ private:
+  static uint64_t pack_pair(float first, float second) {
+    uint32_t first_bits = 0;
+    uint32_t second_bits = 0;
+    std::memcpy(&first_bits, &first, sizeof(first_bits));
+    std::memcpy(&second_bits, &second, sizeof(second_bits));
+    return (static_cast<uint64_t>(first_bits) << 32) | static_cast<uint64_t>(second_bits);
+  }
+
+  static void unpack_pair(uint64_t packed, float& first, float& second) {
+    const uint32_t first_bits = static_cast<uint32_t>(packed >> 32);
+    const uint32_t second_bits = static_cast<uint32_t>(packed & 0xFFFFFFFFULL);
+    std::memcpy(&first, &first_bits, sizeof(first));
+    std::memcpy(&second, &second_bits, sizeof(second));
   }
 };
 

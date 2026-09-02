@@ -3,111 +3,72 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "uhd_chdr_rx.hpp"
 
-#include <cstdint>
+#include <cstring>
 #include <iomanip>
 #include <sstream>
 #include <stdexcept>
+#include <utility>
 
 using namespace daqiri;
 using namespace matx;
 
 using out_t = std::tuple<tensor_t<complex, 2>, cudaStream_t>;
 
-using namespace std::complex_literals;
-
-// CUDA kernel to process an individual CHDR packet
+// Convert one row of CHDR packets into contiguous complex samples.
 __global__ void place_packet_data_kernel(complex* out,
                                          const void* const* const __restrict__ in,
-                                         const int cur_idx,
-                                         const int num_complex_samples_per_packet
-  ) {
-  // Warmup
-  if (out == nullptr)
-    return;
+                                         const int num_complex_samples_per_packet) {
+  const int16_t* samples = reinterpret_cast<const int16_t*>(
+      in[(blockIdx.x * blockDim.x) + threadIdx.x]);
 
-  // The in pointer is an array holding one pointer per CHDR packet in a batch,
-  // i.e. in[num_outputs_per_batch * num_packets_per_output] (125 * 20 = 2500).
-  // blockIdx.x is the packet row and threadIdx.x the packet index
-  // This assumes interleaved 16-bit short IQ samples
-  const int16_t *samples = reinterpret_cast<const int16_t*>(
-          in[(blockIdx.x * blockDim.x) + threadIdx.x]);
+  // X4xx CHDR streaming configures the FPGA/link for host-native sc16 layout,
+  // so each sample arrives as [real, imaginary] without a software byte swap.
+  constexpr float scalar = 1.0F / 32768.0F;
+  const size_t offset =
+      (static_cast<size_t>(num_complex_samples_per_packet) * blockDim.x * blockIdx.x)
+      + (static_cast<size_t>(num_complex_samples_per_packet) * threadIdx.x);
 
-  // Scale the int16 values to -1.0 thru +1.0 by dividing by 2^15 - 1 (0x7FFF)
-  constexpr float scalar = 1.0 / 0x7FFF;
-
-  // out is a flat complex* into the channel's 3D backing tensor:
-  //   [num_buffered_batches][num_outputs_per_batch]
-  //   [num_packets_per_output * num_complex_samples_per_packet]
-  // The two sections below are the buffered batches; each holds
-  // num_outputs_per_batch rows of num_packets_per_output packets
-  // (samples within a packet are the flattened innermost dimension):
-  // 1                        2
-  // ---------------------------------------------
-  // [P1][P2][P3]...[P20]     [P1][P2][P3]...[P20]
-  // [P21][P22]...[P40]       [P21][P22]...[P40]
-  // ...                      ...
-  // [P2481]...[P2500]        [P2481]...[P2500]
-  // We want to get to the index of one of these packets.
-  // gridDim.x is num_outputs_per_batch
-  // blockDim.x is num_packets_per_output
-  // blockIdx.x is the packet row
-  // threadIdx.x is the packet index
-  // First, get to the right section of the output tensor (1 or 2),
-  // then, index into the row,
-  // then, index into the packet
-  size_t offset = (num_complex_samples_per_packet * blockDim.x * gridDim.x * cur_idx)
-                + (num_complex_samples_per_packet * blockDim.x * blockIdx.x)
-                + (num_complex_samples_per_packet * threadIdx.x);
-
-  // Copy the interleaved IQ samples and cast to complex float
-  for (size_t i = 0; i < num_complex_samples_per_packet; ++i) {
+  for (size_t i = 0; i < static_cast<size_t>(num_complex_samples_per_packet); ++i) {
     out[offset + i] = complex(static_cast<float>(samples[i * 2]) * scalar,
-                      static_cast<float>(samples[(i * 2) + 1]) * scalar);
+                              static_cast<float>(samples[(i * 2) + 1]) * scalar);
   }
 }
 
 void place_packet_data(complex* out,
                        const void* const* const in,
-                       const uint16_t cur_idx,
                        const int num_outputs_per_batch,
                        const int num_packets_per_output,
                        const int num_complex_samples_per_packet,
                        cudaStream_t stream) {
-  // CUDA execution config <<<Dg, Db, Ns, S>>> where:
-  // Dg: dimensionality of the grid of blocks
-  // Db: dimensionality of the block of threads
-  // Ns: number of bytes in shared memory that is dynamically
-  //     allocated _per block_ for this call in addition to
-  //     the statically allocated memory
-  //  S: associated CUDA stream
-  // At this point, we're processing num_outputs_per_batch * num_packets_per_output packets
-  // (e.g. 125 * 20 = 2,500).
-  // So, let's launch a grid for every num_packets_per_output and a thread for every packet.
-  // This would make blockIdx.x the packet row and threadIdx.x the packet.
-  place_packet_data_kernel<<<
-      num_outputs_per_batch,
-      num_packets_per_output,
-      0, stream>>>(
-          out,
-          in,
-          cur_idx,
-          num_complex_samples_per_packet);
+  place_packet_data_kernel<<<num_outputs_per_batch, num_packets_per_output, 0, stream>>>(
+      out, in, num_complex_samples_per_packet);
 }
 
 namespace holoscan::ops {
 
+namespace {
+
+void check_cuda(cudaError_t result, const char* operation) {
+  if (result != cudaSuccess) {
+    throw std::runtime_error(
+        fmt::format("{} failed: {}", operation, cudaGetErrorString(result)));
+  }
+}
+
+void release_bursts(std::vector<BurstParams*>& bursts) {
+  for (auto* burst : bursts) {
+    if (burst != nullptr) {
+      free_all_packets_and_burst_rx(burst);
+    }
+  }
+  bursts.clear();
+}
+
+}  // namespace
+
 void UhdChdrRxOp::setup(OperatorSpec& spec) {
   spec.output<out_t>("out");
 
-  // Data tensor configuration
-  // Each packet contains 1024 samples
-  // We group 20 packets into one output row, so each row contains 20 x 1024 samples.
-  // We emit 125 such rows in one batch, so the batch shape is 125 x (20 x 1024).
-  // We keep 2 batches buffered so one can be filled while another is being processed.
-  // rf_data stores this as:
-  //   [num_buffered_batches][num_outputs_per_batch][num_packets_per_output * samples_per_packet]
-  // The packet dimension is flattened because downstream operators consume one contiguous
-  // row of samples per output.
   spec.param<uint16_t>(num_complex_samples_per_packet_,
       "num_complex_samples_per_packet",
       "Number of complex samples per packet",
@@ -123,7 +84,7 @@ void UhdChdrRxOp::setup(OperatorSpec& spec) {
   spec.param<uint16_t>(num_buffered_batches_,
       "num_buffered_batches",
       "Buffered batches",
-      "Number of batch buffers used for concurrent accumulation and processing", 2);
+      "Maximum number of converted batches waiting per channel", 2);
   spec.param<uint16_t>(num_channels_,
       "num_channels",
       "Number of channels",
@@ -146,285 +107,329 @@ void UhdChdrRxOp::setup(OperatorSpec& spec) {
 void UhdChdrRxOp::initialize() {
   holoscan::Operator::initialize();
 
+  if (num_complex_samples_per_packet_.get() == 0
+      || num_packets_per_output_.get() == 0
+      || num_outputs_per_batch_.get() == 0
+      || num_buffered_batches_.get() == 0
+      || num_channels_.get() == 0) {
+    throw std::runtime_error(
+        "uhd_chdr_rx sample, packet, output, buffer, and channel counts must all be > 0");
+  }
+
+  int device = 0;
+  check_cuda(cudaGetDevice(&device), "cudaGetDevice");
+  cudaDeviceProp device_properties{};
+  check_cuda(cudaGetDeviceProperties(&device_properties, device), "cudaGetDeviceProperties");
+  if (num_packets_per_output_.get() > device_properties.maxThreadsPerBlock) {
+    throw std::runtime_error(fmt::format(
+        "uhd_chdr_rx.num_packets_per_output ({}) exceeds the CUDA device limit ({})",
+        num_packets_per_output_.get(), device_properties.maxThreadsPerBlock));
+  }
+  if (num_outputs_per_batch_.get() > device_properties.maxGridSize[0]) {
+    throw std::runtime_error(fmt::format(
+        "uhd_chdr_rx.num_outputs_per_batch ({}) exceeds the CUDA grid limit ({})",
+        num_outputs_per_batch_.get(), device_properties.maxGridSize[0]));
+  }
+
   port_id_ = get_port_id(interface_name_.get());
   if (port_id_ == -1) {
     throw std::runtime_error(
         fmt::format("Invalid RX port '{}' specified in the config", interface_name_.get()));
   }
 
-  // Error checks for num_channels and DAQIRI RX queue matching
-  if (const auto num_rx_queues = get_num_rx_queues(port_id_);
-      static_cast<uint16_t>(num_rx_queues) != num_channels_.get()) {
+  const auto num_rx_queues = get_num_rx_queues(port_id_);
+  if (static_cast<uint64_t>(num_rx_queues) != num_channels_.get()) {
     throw std::runtime_error(fmt::format(
         "uhd_chdr_rx.num_channels ({}) must match the {} DAQIRI RX queue(s) configured "
         "for interface '{}'",
         num_channels_.get(), num_rx_queues, interface_name_.get()));
   }
 
-  num_packets_per_batch = num_outputs_per_batch_.get() * num_packets_per_output_.get();
+  num_packets_per_batch_ =
+      static_cast<uint64_t>(num_outputs_per_batch_.get()) * num_packets_per_output_.get();
 
-  for (uint16_t channel_num = 0; channel_num < num_channels_.get(); channel_num++) {
-    auto new_channel = std::make_shared<struct Channel>();
-    new_channel->channel_num = channel_num;
-    make_tensor(new_channel->rf_data,
-                {num_buffered_batches_.get(),
-                 num_outputs_per_batch_.get(),
-                 num_packets_per_output_.get() * num_complex_samples_per_packet_.get()});
+  channel_list.reserve(num_channels_.get());
+  try {
+    for (uint16_t channel_num = 0; channel_num < num_channels_.get(); ++channel_num) {
+      auto channel = std::make_shared<struct Channel>();
+      channel->channel_num = channel_num;
+      channel->h_dev_ptrs.assign(num_buffered_batches_.get(), nullptr);
+      channel->events.assign(num_buffered_batches_.get(), nullptr);
+      channel_list.push_back(channel);
 
-    // Allocates per-slot buffers/events and one ordered stream per channel.
-    // A single stream serializes the whole downstream chain.
-    if (num_buffered_batches_.get() == 0 || num_buffered_batches_.get() > num_concurrent) {
-      throw std::runtime_error(
-          fmt::format("num_buffered_batches must be in [1, {}], got {}",
-                      num_concurrent, num_buffered_batches_.get()));
-    }
+      check_cuda(cudaStreamCreateWithFlags(&channel->stream, cudaStreamNonBlocking),
+                 "cudaStreamCreateWithFlags");
 
-    if (auto err = cudaStreamCreateWithFlags(&new_channel->stream, cudaStreamNonBlocking);
-        err != cudaSuccess) {
-      throw std::runtime_error(
-          fmt::format("cudaStreamCreateWithFlags failed on channel {}: {}",
-                      channel_num, cudaGetErrorString(err)));
-    }
-
-    for (int n = 0; n < num_buffered_batches_.get(); n++) {
-      if (auto err = cudaMallocHost((void**)&new_channel->h_dev_ptrs[n],
-                                    sizeof(void*) * num_packets_per_batch);
-          err != cudaSuccess) {
-        throw std::runtime_error(
-            fmt::format("cudaMallocHost failed on channel {} batch {}: {}",
-                        channel_num, n, cudaGetErrorString(err)));
+      for (size_t slot = 0; slot < num_buffered_batches_.get(); ++slot) {
+        check_cuda(cudaMallocHost(reinterpret_cast<void**>(&channel->h_dev_ptrs[slot]),
+                                  sizeof(void*) * num_packets_per_batch_),
+                   "cudaMallocHost");
+        check_cuda(cudaEventCreateWithFlags(&channel->events[slot], cudaEventDisableTiming),
+                   "cudaEventCreateWithFlags");
       }
-      if (auto err = cudaEventCreate(&new_channel->events[n]); err != cudaSuccess) {
-        throw std::runtime_error(
-            fmt::format("cudaEventCreate failed on channel {} batch {}: {}",
-                        channel_num, n, cudaGetErrorString(err)));
-      }
-      // Warmup
-      place_packet_data(nullptr,
-                        nullptr,
-                        0,
-                        num_outputs_per_batch_.get(),
-                        num_packets_per_output_.get(),
-                        num_complex_samples_per_packet_.get(),
-                        new_channel->stream);
-      cudaStreamSynchronize(new_channel->stream);
     }
-
-    channel_list.push_back(new_channel);
+  } catch (...) {
+    stop();
+    throw;
   }
 }
 
 std::optional<UhdChdrRxOp::RxMsg> UhdChdrRxOp::free_buf(
-        std::shared_ptr<struct Channel> channel) {
-  if (!channel->out_q.empty()) {
-    auto first = channel->out_q.front();
-    if (cudaEventQuery(first.evt) == cudaSuccess) {
-      for (auto m = 0; m < first.num_batches; m++) {
-        free_all_packets_and_burst_rx(first.msg[m]);
-      }
-      channel->out_q.pop();
-      return std::optional<UhdChdrRxOp::RxMsg>{first};
-    }
+    std::shared_ptr<struct Channel> channel) {
+  if (channel->out_q.empty()) {
+    return std::nullopt;
   }
-  return std::nullopt;
+
+  const auto query_result = cudaEventQuery(channel->out_q.front().evt);
+  if (query_result == cudaErrorNotReady) {
+    return std::nullopt;
+  }
+  check_cuda(query_result, "cudaEventQuery");
+
+  auto completed = std::move(channel->out_q.front());
+  channel->out_q.pop();
+  release_bursts(completed.bursts);
+  return std::optional<RxMsg>{std::in_place, std::move(completed)};
 }
 
 bool UhdChdrRxOp::free_bufs_and_emit_arrays(
-        OutputContext& op_output,
-        std::shared_ptr<struct Channel> channel) {
-  std::optional<UhdChdrRxOp::RxMsg> completed_msg = free_buf(channel);
-  if (!completed_msg.has_value()) {
+    OutputContext& op_output,
+    std::shared_ptr<struct Channel> channel) {
+  const uint16_t channel_num = channel->channel_num;
+  auto completed = free_buf(std::move(channel));
+  if (!completed.has_value()) {
     return false;
   }
 
   auto meta = metadata();
-  meta->set("channel_number", channel->channel_num);
-
-  auto data = slice<2>(channel->rf_data,
-              {static_cast<index_t>(completed_msg.value().buf_idx), 0, 0},
-              {matxDropDim, matxEnd, matxEnd});
-  op_output.emit(out_t {data, completed_msg.value().stream}, "out");
+  meta->set("channel_number", channel_num);
+  op_output.emit(out_t{std::move(completed->data), completed->stream}, "out");
   return true;
 }
 
-void UhdChdrRxOp::compute(
-        InputContext& op_input,
-        OutputContext& op_output,
-        ExecutionContext& context) {
-  const auto num_rx_queues = get_num_rx_queues(port_id_);
-  // Try to emit any waiting data on any channel that's ready (but
-  // only one "emit()" call per "compute()" call). Start the scan from a
-  // rotating channel so a continuously-ready channel cannot starve the others.
-  for (uint16_t i = 0; i < num_rx_queues; i++) {
+void UhdChdrRxOp::compute(InputContext&, OutputContext& op_output, ExecutionContext&) {
+  const auto num_rx_queues = static_cast<uint16_t>(get_num_rx_queues(port_id_));
+
+  // Emit at most one message per compute call, rotating the starting channel so
+  // a continuously ready channel cannot starve the others.
+  for (uint16_t i = 0; i < num_rx_queues; ++i) {
     const uint16_t q = (emit_start_ + i) % num_rx_queues;
-    auto channel = channel_list.at(q);
-    if (free_bufs_and_emit_arrays(op_output, channel)) {
+    if (free_bufs_and_emit_arrays(op_output, channel_list.at(q))) {
       emit_start_ = (q + 1) % num_rx_queues;
       break;
     }
-    if (channel->out_q.size() >= num_concurrent) {
-      HOLOSCAN_LOG_ERROR("Fell behind in processing on GPU!");
-      cudaStreamSynchronize(channel->stream);
-    }
   }
 
+  for (uint16_t q = 0; q < num_rx_queues; ++q) {
+    auto channel = channel_list.at(q);
+    // Backpressure DAQIRI before starting another aggregate. Continuing a
+    // partially filled aggregate is safe because it already owns a queue slot.
+    if (channel->aggr_pkts_recv == 0
+        && channel->out_q.size() >= num_buffered_batches_.get()) {
+      continue;
+    }
 
-  BurstParams *burst;
-  for (uint16_t q = 0; q < num_rx_queues; q++) {
-    // If there's new data, start processing it
-    auto status = get_rx_burst(&burst, port_id_, q);
-    if (status == Status::SUCCESS) {
-      process_channel_data(op_output, burst, q);
+    BurstParams* burst = nullptr;
+    if (get_rx_burst(&burst, port_id_, q) == Status::SUCCESS) {
+      process_channel_data(burst, q);
     }
   }
 }
 
-void UhdChdrRxOp::process_channel_data(
-        OutputContext& op_output,
-        BurstParams *burst,
-        uint16_t channel_num) {
+void UhdChdrRxOp::discard_current_batch(const std::shared_ptr<struct Channel>& channel) {
+  release_bursts(channel->current_bursts);
+  channel->aggr_pkts_recv = 0;
+}
+
+void UhdChdrRxOp::process_channel_data(BurstParams* burst, uint16_t channel_num) {
   auto channel = channel_list.at(channel_num);
+  if (burst == nullptr) {
+    throw std::runtime_error("DAQIRI returned a null RX burst");
+  }
 
-  // Starting a fresh batch: bound in-flight batches to the physical slot count so
-  // a queued message's slot/event is never overwritten before it is emitted.
-  if (channel->aggr_pkts_recv == 0) {
-    while (channel->out_q.size() >= num_buffered_batches_.get()) {
-      auto old = channel->out_q.front();
-      cudaEventSynchronize(old.evt);
-      for (int m = 0; m < old.num_batches; ++m) {
-        free_all_packets_and_burst_rx(old.msg[m]);
-      }
-      channel->out_q.pop();
-      HOLOSCAN_LOG_ERROR("Dropped oldest batch on channel {}: all buffers in flight",
-                         channel->channel_num);
+  const int64_t burst_packets = get_num_packets(burst);
+  if (burst_packets <= 0) {
+    free_all_packets_and_burst_rx(burst);
+    throw std::runtime_error(
+        fmt::format("DAQIRI returned an RX burst with {} packets", burst_packets));
+  }
+  if (channel->aggr_pkts_recv + static_cast<uint64_t>(burst_packets)
+      > num_packets_per_batch_) {
+    const auto already_aggregated = channel->aggr_pkts_recv;
+    discard_current_batch(channel);
+    free_all_packets_and_burst_rx(burst);
+    throw std::runtime_error(fmt::format(
+        "DAQIRI burst ({} packets) would overflow the current batch "
+        "({} / {} packets filled); check daqiri.rx.queues[*].batch_size vs "
+        "uhd_chdr_rx batching settings",
+        burst_packets, already_aggregated, num_packets_per_batch_));
+  }
+
+  const uint32_t required_payload_bytes =
+      static_cast<uint32_t>(num_complex_samples_per_packet_.get()) * sizeof(uint32_t);
+  uint64_t bytes_in_burst = 0;
+  auto expected_sequence = channel->next_sequence;
+  bool sequence_gap = false;
+  uint16_t expected_at_gap = 0;
+  uint16_t received_at_gap = 0;
+
+  for (int64_t packet = 0; packet < burst_packets; ++packet) {
+    const uint32_t network_header_length = get_segment_packet_length(burst, 0, packet);
+    const uint32_t header_length = get_segment_packet_length(burst, 1, packet);
+    const uint32_t payload_length = get_segment_packet_length(burst, 2, packet);
+    auto* network_header = get_segment_packet_ptr(burst, 0, packet);
+    auto* header = get_segment_packet_ptr(burst, 1, packet);
+    auto* payload = get_segment_packet_ptr(burst, 2, packet);
+    if ((network_header_length != 0 && network_header == nullptr)
+        || header_length < sizeof(uint64_t) || header == nullptr
+        || payload_length < required_payload_bytes || payload == nullptr) {
+      discard_current_batch(channel);
+      free_all_packets_and_burst_rx(burst);
+      throw std::runtime_error(fmt::format(
+          "Invalid CHDR packet on channel {} at burst index {}: network header={} bytes, "
+          "CHDR header={} bytes, payload={} bytes (expected CHDR header >= {} and payload >= {})",
+          channel_num,
+          packet,
+          network_header_length,
+          header_length,
+          payload_length,
+          sizeof(uint64_t),
+          required_payload_bytes));
     }
+
+    uint64_t header_word = 0;
+    std::memcpy(&header_word, header, sizeof(header_word));
+    const uint16_t sequence = static_cast<uint16_t>((header_word >> 32) & 0xFFFFU);
+    if (expected_sequence.has_value() && sequence != expected_sequence.value()
+        && !sequence_gap) {
+      sequence_gap = true;
+      expected_at_gap = expected_sequence.value();
+      received_at_gap = sequence;
+    }
+    expected_sequence = static_cast<uint16_t>(sequence + 1U);
+
+    const auto destination_index =
+        channel->aggr_pkts_recv + static_cast<uint64_t>(packet);
+    channel->h_dev_ptrs[channel->cur_idx][destination_index] = payload;
+    bytes_in_burst += static_cast<uint64_t>(network_header_length)
+        + header_length + payload_length;
+  }
+  channel->next_sequence = expected_sequence;
+
+  if (sequence_gap) {
+    const auto already_aggregated = channel->aggr_pkts_recv;
+    discard_current_batch(channel);
+    free_all_packets_and_burst_rx(burst);
+    HOLOSCAN_LOG_WARN(
+        "CHDR sequence gap on channel {}: expected {}, received {}; dropped {} "
+        "aggregated packet(s) and the incoming {}-packet burst",
+        channel_num,
+        expected_at_gap,
+        received_at_gap,
+        already_aggregated,
+        burst_packets);
+    return;
   }
 
-  uint64_t ttl_bytes_in_cur_batch = 0;
-  const int burst_packets = get_num_packets(burst);
-  if (channel->aggr_pkts_recv + static_cast<uint64_t>(burst_packets) > num_packets_per_batch) {
-     free_all_packets_and_burst_rx(burst);
-     throw std::runtime_error(fmt::format(
-         "DAQIRI burst ({} packets) would overflow the current batch ({} / {} packets filled); "
-         "check daqiri.rx.queues[*].batch_size vs uhd_chdr_rx batching settings",
-         burst_packets,
-         channel->aggr_pkts_recv,
-         num_packets_per_batch));
-  }
-  for (int p = 0; p < burst_packets; p++) {
-      channel->h_dev_ptrs[channel->cur_idx][channel->aggr_pkts_recv + p]
-          = get_segment_packet_ptr(burst, 2, p);
-      ttl_bytes_in_cur_batch += get_segment_packet_length(burst, 0, p)
-          + get_segment_packet_length(burst, 1, p)
-          + get_segment_packet_length(burst, 2, p);
-  }
-
-  // Log packet details for debugging
-  if (log_packets_) {
-    HOLOSCAN_LOG_INFO("Processing burst on channel {} (stream {}) with {} packets",
-                    channel->channel_num, channel->cur_idx, get_num_packets(burst));
-    int p = 0;
-    uint16_t length0 = get_segment_packet_length(burst, 0, p);
-    uint16_t length1 = get_segment_packet_length(burst, 1, p);
-    uint16_t length2 = get_segment_packet_length(burst, 2, p);
+  if (log_packets_.get()) {
+    HOLOSCAN_LOG_INFO("Processing burst on channel {} (slot {}) with {} packets",
+                      channel->channel_num,
+                      channel->cur_idx,
+                      burst_packets);
+    constexpr int packet = 0;
+    const uint32_t length0 = get_segment_packet_length(burst, 0, packet);
+    const uint32_t length1 = get_segment_packet_length(burst, 1, packet);
+    const uint32_t length2 = get_segment_packet_length(burst, 2, packet);
+    auto* ptr0 = get_segment_packet_ptr(burst, 0, packet);
+    auto* ptr1 = get_segment_packet_ptr(burst, 1, packet);
+    auto* ptr2 = get_segment_packet_ptr(burst, 2, packet);
     HOLOSCAN_LOG_INFO("Segment 0 length: {}, Segment 1 length: {}, Segment 2 length: {}",
                       length0, length1, length2);
-    auto ptr0 = get_segment_packet_ptr(burst, 0, p);
-    auto ptr1 = get_segment_packet_ptr(burst, 1, p);
-    auto ptr2 = get_segment_packet_ptr(burst, 2, p);
     HOLOSCAN_LOG_INFO("Segment 0 ptr: {}, Segment 1 ptr: {}, Segment 2 ptr: {}",
-                      (void*)ptr0, (void*)ptr1, (void*)ptr2);
-    // print bytes for each segment
+                      ptr0, ptr1, ptr2);
+
     std::ostringstream oss;
     oss << "Segment '0' bytes: ";
-    for (int i = 0; i < length0; ++i) {
+    for (uint32_t i = 0; i < length0; ++i) {
       oss << std::hex << std::setw(2) << std::setfill('0')
-          << static_cast<int>(((uint8_t*)ptr0)[i]) << ' ';
+          << static_cast<int>(static_cast<uint8_t*>(ptr0)[i]) << ' ';
     }
     HOLOSCAN_LOG_INFO("{}", oss.str());
     oss.str("");
+    oss.clear();
     oss << "Segment '1' bytes: ";
-    for (int i = 0; i < length1; ++i) {
+    for (uint32_t i = 0; i < length1; ++i) {
       oss << std::hex << std::setw(2) << std::setfill('0')
-          << static_cast<int>(((uint8_t*)ptr1)[i]) << ' ';
+          << static_cast<int>(static_cast<uint8_t*>(ptr1)[i]) << ' ';
     }
     HOLOSCAN_LOG_INFO("{}", oss.str());
-    // copy from device to host memory
-    uint8_t* host_buf = nullptr;
-    cudaMallocHost((void**)&host_buf, length2);
-    cudaMemcpy(host_buf, ptr2, length2, cudaMemcpyDeviceToHost);
+
+    std::vector<uint8_t> host_buf(length2);
+    check_cuda(cudaMemcpy(host_buf.data(), ptr2, length2, cudaMemcpyDeviceToHost),
+               "cudaMemcpy");
     oss.str("");
+    oss.clear();
     oss << "Segment '2' bytes: ";
-    for (int i = 0; i < length2; ++i) {
+    for (const auto value : host_buf) {
       oss << std::hex << std::setw(2) << std::setfill('0')
-          << static_cast<int>(host_buf[i]) << ' ';
+          << static_cast<int>(value) << ' ';
     }
     HOLOSCAN_LOG_INFO("{}", oss.str());
-    cudaFreeHost(host_buf);
   }
-  // End packet logging
 
-  channel->ttl_bytes_recv += ttl_bytes_in_cur_batch;
-  channel->aggr_pkts_recv += static_cast<uint64_t>(get_num_packets(burst));
-  if (channel->cur_msg.num_batches >= MAX_DAQIRI_BATCHES) {
-          free_all_packets_and_burst_rx(burst);
-          throw std::runtime_error(
-                          "Exceeded MAX_DAQIRI_BATCHES while aggregating a batch;"
-                          "check daqiri batch_size vs uhd_chdr_rx batching settings");
+  channel->ttl_bytes_recv += bytes_in_burst;
+  channel->aggr_pkts_recv += static_cast<uint64_t>(burst_packets);
+  channel->current_bursts.push_back(burst);
+
+  if (channel->aggr_pkts_recv != num_packets_per_batch_) {
+    return;
   }
-  channel->cur_msg.msg[channel->cur_msg.num_batches++] = burst;
 
-  // Once we've aggregated enough packets, do some work
-  if (channel->aggr_pkts_recv >= num_packets_per_batch) {
-    HOLOSCAN_LOG_DEBUG("Aggregated {} packets on channel {} index {} - sending downstream",
-                      channel->aggr_pkts_recv, channel->channel_num, channel->cur_idx);
+  HOLOSCAN_LOG_DEBUG("Aggregated {} packets on channel {} slot {} - sending downstream",
+                     channel->aggr_pkts_recv,
+                     channel->channel_num,
+                     channel->cur_idx);
 
-    // Copy packet I/Q contents to appropriate location in 'rf_data'
-    place_packet_data(channel->rf_data.Data(),
-                      channel->h_dev_ptrs[channel->cur_idx],
+  auto data = make_tensor<complex>(
+      {static_cast<index_t>(num_outputs_per_batch_.get()),
+       static_cast<index_t>(num_packets_per_output_.get())
+           * num_complex_samples_per_packet_.get()},
+      MATX_ASYNC_DEVICE_MEMORY,
+      channel->stream);
+  place_packet_data(data.Data(),
+                    channel->h_dev_ptrs[channel->cur_idx],
+                    num_outputs_per_batch_.get(),
+                    num_packets_per_output_.get(),
+                    num_complex_samples_per_packet_.get(),
+                    channel->stream);
+  check_cuda(cudaGetLastError(), "place_packet_data kernel launch");
+
+  if (log_data_.get()) {
+    HOLOSCAN_LOG_INFO("Inspecting RF channel {} data from slot {} with shape: ({}, {})",
+                      channel->channel_num,
                       channel->cur_idx,
-                      num_outputs_per_batch_.get(),
-                      num_packets_per_output_.get(),
-                      num_complex_samples_per_packet_.get(),
-                      channel->stream);
-
-    // Log data for debugging
-    if (log_data_) {
-      HOLOSCAN_LOG_INFO("Inspecting RF channel {} data from thread {} with shape: ({}, {}, {})",
-        channel->channel_num, channel->cur_idx,
-        channel->rf_data.Size(0), channel->rf_data.Size(1), channel->rf_data.Size(2));
-      set_print_format_type(MATX_PRINT_FORMAT_PYTHON);
-      print(slice<1>(channel->rf_data,
-                     {static_cast<index_t>(channel->cur_idx), 0, 0},
-                     {matxDropDim, matxDropDim, 1024}));
-    }
-    // End data logging
-
-    cudaEventRecord(channel->events[channel->cur_idx], channel->stream);
-    channel->cur_msg.stream = channel->stream;
-    channel->cur_msg.evt = channel->events[channel->cur_idx];
-    channel->cur_msg.buf_idx = channel->cur_idx;
-    channel->out_q.push(channel->cur_msg);
-    channel->cur_msg.num_batches = 0;
-
-    channel->ttl_pkts_recv += channel->aggr_pkts_recv;
-
-    auto ret = cudaGetLastError();
-    if (ret != cudaSuccess) {
-      throw std::runtime_error(
-          fmt::format("CUDA error with {} packets in batch: {}",
-                      num_outputs_per_batch_.get(), cudaGetErrorString(ret)));
-    }
-
-    channel->aggr_pkts_recv = 0;
-    channel->cur_idx = (channel->cur_idx + 1) % num_buffered_batches_.get();
+                      data.Size(0),
+                      data.Size(1));
+    set_print_format_type(MATX_PRINT_FORMAT_PYTHON);
+    print(slice<1>(data, {0, 0}, {matxDropDim, 1024}));
   }
+
+  const auto completed_event = channel->events[channel->cur_idx];
+  check_cuda(cudaEventRecord(completed_event, channel->stream), "cudaEventRecord");
+  channel->out_q.emplace(std::move(channel->current_bursts),
+                         std::move(data),
+                         channel->stream,
+                         completed_event);
+  channel->current_bursts.clear();
+
+  channel->ttl_pkts_recv += channel->aggr_pkts_recv;
+  channel->aggr_pkts_recv = 0;
+  channel->cur_idx = (channel->cur_idx + 1) % num_buffered_batches_.get();
 }
 
 void UhdChdrRxOp::stop() {
   HOLOSCAN_LOG_INFO("UhdChdrRxOp exit report:");
-  for (uint16_t channel_num = 0; channel_num < num_channels_.get(); channel_num++) {
-    auto channel = channel_list.at(channel_num);
+  for (auto& channel : channel_list) {
     HOLOSCAN_LOG_INFO(
         "\n"
         "------- CH {} --------\n"
@@ -434,42 +439,63 @@ void UhdChdrRxOp::stop() {
         channel->ttl_bytes_recv,
         channel->ttl_pkts_recv);
 
-     const int batches = (num_buffered_batches_.get() < num_concurrent)
-                            ? static_cast<int>(num_buffered_batches_.get())
-                            : num_concurrent;
-     if (channel->stream != nullptr) {
-         cudaStreamSynchronize(channel->stream);
-     }
+    if (channel->stream != nullptr) {
+      const auto result = cudaStreamSynchronize(channel->stream);
+      if (result != cudaSuccess) {
+        HOLOSCAN_LOG_ERROR("cudaStreamSynchronize failed on channel {}: {}",
+                           channel->channel_num,
+                           cudaGetErrorString(result));
+      }
+    }
 
-     // Free any outstanding DAQIRI bursts (queued and in-progress).
-     while (!channel->out_q.empty()) {
-       auto msg = channel->out_q.front();
-       for (int m = 0; m < msg.num_batches; ++m) {
-         free_all_packets_and_burst_rx(msg.msg[m]);
-       }
-       channel->out_q.pop();
-     }
-     for (int m = 0; m < channel->cur_msg.num_batches; ++m) {
-       free_all_packets_and_burst_rx(channel->cur_msg.msg[m]);
-     }
-     channel->cur_msg.num_batches = 0;
-     // Release CUDA resources and pinned host allocations.
-     for (int n = 0; n < batches; ++n) {
-       if (channel->h_dev_ptrs[n] != nullptr) {
-         cudaFreeHost(channel->h_dev_ptrs[n]);
-         channel->h_dev_ptrs[n] = nullptr;
-       }
-       if (channel->events[n] != nullptr) {
-         cudaEventDestroy(channel->events[n]);
-         channel->events[n] = nullptr;
-       }
-       if (channel->stream != nullptr) {
-         cudaStreamDestroy(channel->stream);
-         channel->stream = nullptr;
-       }
-     }
+    while (!channel->out_q.empty()) {
+      release_bursts(channel->out_q.front().bursts);
+      channel->out_q.pop();
+    }
+    discard_current_batch(channel);
+
+    for (auto*& pointers : channel->h_dev_ptrs) {
+      if (pointers != nullptr) {
+        const auto result = cudaFreeHost(pointers);
+        if (result != cudaSuccess) {
+          HOLOSCAN_LOG_ERROR("cudaFreeHost failed on channel {}: {}",
+                             channel->channel_num,
+                             cudaGetErrorString(result));
+        }
+        pointers = nullptr;
+      }
+    }
+    for (auto& event : channel->events) {
+      if (event != nullptr) {
+        const auto result = cudaEventDestroy(event);
+        if (result != cudaSuccess) {
+          HOLOSCAN_LOG_ERROR("cudaEventDestroy failed on channel {}: {}",
+                             channel->channel_num,
+                             cudaGetErrorString(result));
+        }
+        event = nullptr;
+      }
+    }
+
+    // Destroying queued tensor owners can enqueue cudaFreeAsync calls.
+    if (channel->stream != nullptr) {
+      auto result = cudaStreamSynchronize(channel->stream);
+      if (result != cudaSuccess) {
+        HOLOSCAN_LOG_ERROR("cudaStreamSynchronize failed on channel {}: {}",
+                           channel->channel_num,
+                           cudaGetErrorString(result));
+      }
+      result = cudaStreamDestroy(channel->stream);
+      if (result != cudaSuccess) {
+        HOLOSCAN_LOG_ERROR("cudaStreamDestroy failed on channel {}: {}",
+                           channel->channel_num,
+                           cudaGetErrorString(result));
+      }
+      channel->stream = nullptr;
+    }
   }
 
   channel_list.clear();
 }
+
 }  // namespace holoscan::ops

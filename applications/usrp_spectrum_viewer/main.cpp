@@ -7,16 +7,127 @@
 #include "spectrum_overlay/spectrum_overlay.hpp"
 #include "spectrum_visualizer/spectrum_visualizer.hpp"
 #include "spectrum_magnitude/spectrum_magnitude.hpp"
+
+#include <cstdint>
+#include <exception>
 #include <fft.hpp>
 #include <holoscan/operators/holoviz/holoviz.hpp>
 #include <daqiri/daqiri.h>
 #include <filesystem>
 #include <memory>
+#include <stdexcept>
+#include <vector>
+
+namespace {
+
+class DaqiriSession {
+ public:
+    DaqiriSession() = default;
+    DaqiriSession(const DaqiriSession&) = delete;
+    DaqiriSession& operator=(const DaqiriSession&) = delete;
+
+    ~DaqiriSession() noexcept {
+        try {
+            daqiri::print_stats();
+        } catch (const std::exception& error) {
+            HOLOSCAN_LOG_ERROR("Failed to print DAQIRI statistics: {}", error.what());
+        } catch (...) {
+            HOLOSCAN_LOG_ERROR("Failed to print DAQIRI statistics");
+        }
+
+        try {
+            daqiri::shutdown();
+        } catch (const std::exception& error) {
+            HOLOSCAN_LOG_ERROR("Failed to shut down DAQIRI: {}", error.what());
+        } catch (...) {
+            HOLOSCAN_LOG_ERROR("Failed to shut down DAQIRI");
+        }
+    }
+};
+
+}  // namespace
 
 class UsrpSpectrumViewerApp : public holoscan::Application {
  public:
     void compose() override {
         using namespace holoscan;
+
+        const int64_t rx_channels = from_config("uhd_chdr_rx.num_channels").as<int64_t>();
+        const int64_t fft_channels = from_config("fft.num_channels").as<int64_t>();
+        const int64_t magnitude_channels =
+            from_config("spectrum_magnitude.num_channels").as<int64_t>();
+        const int64_t viz_channels = from_config("spectrum_viz.num_channels").as<int64_t>();
+        const int64_t log_channels = from_config("log.num_channels").as<int64_t>();
+        if (rx_channels <= 0 || rx_channels != fft_channels
+            || rx_channels != magnitude_channels || rx_channels != viz_channels
+            || rx_channels != log_channels) {
+            throw std::runtime_error(fmt::format(
+                "Pipeline num_channels must be positive and equal: rx={}, fft={}, magnitude={}, "
+                "viz={}, log={}",
+                rx_channels,
+                fft_channels,
+                magnitude_channels,
+                viz_channels,
+                log_channels));
+        }
+
+        const bool usrp_enabled = from_config("usrp_rx.enabled").as<bool>();
+        if (usrp_enabled) {
+            const auto usrp_channels =
+                from_config("usrp_rx.channels").as<std::vector<int64_t>>();
+            if (static_cast<int64_t>(usrp_channels.size()) != rx_channels) {
+                throw std::runtime_error(fmt::format(
+                    "usrp_rx.channels has {} entries but the pipeline is configured for {} "
+                    "channels",
+                    usrp_channels.size(),
+                    rx_channels));
+            }
+        }
+
+        const int64_t samples_per_packet =
+            from_config("uhd_chdr_rx.num_complex_samples_per_packet").as<int64_t>();
+        const int64_t packets_per_output =
+            from_config("uhd_chdr_rx.num_packets_per_output").as<int64_t>();
+        const int64_t outputs_per_batch =
+            from_config("uhd_chdr_rx.num_outputs_per_batch").as<int64_t>();
+        const int64_t fft_burst_size = from_config("fft.burst_size").as<int64_t>();
+        const int64_t fft_bursts = from_config("fft.num_bursts").as<int64_t>();
+        const int64_t transform_points = from_config("fft.transform_points").as<int64_t>();
+        const int64_t window_points = from_config("fft.window_points").as<int64_t>();
+        const int64_t magnitude_burst_size =
+            from_config("spectrum_magnitude.burst_size").as<int64_t>();
+        const int64_t magnitude_bursts =
+            from_config("spectrum_magnitude.num_bursts").as<int64_t>();
+        const int64_t magnitude_averages =
+            from_config("spectrum_magnitude.num_averages").as<int64_t>();
+        const int64_t viz_bins = from_config("spectrum_viz.num_bins").as<int64_t>();
+        if (samples_per_packet <= 0 || packets_per_output <= 0 || outputs_per_batch <= 0) {
+            throw std::runtime_error("UHD CHDR RX batching dimensions must all be > 0");
+        }
+        if (usrp_enabled
+            && from_config("usrp_rx.spp").as<int64_t>() != samples_per_packet) {
+            throw std::runtime_error(fmt::format(
+                "usrp_rx.spp must equal uhd_chdr_rx.num_complex_samples_per_packet ({})",
+                samples_per_packet));
+        }
+        const int64_t samples_per_output = samples_per_packet * packets_per_output;
+        if (samples_per_output != fft_burst_size
+            || samples_per_output != transform_points
+            || samples_per_output != window_points
+            || samples_per_output != magnitude_burst_size
+            || samples_per_output != viz_bins) {
+            throw std::runtime_error(fmt::format(
+                "Samples per output ({}) must equal fft.burst_size/transform_points/"
+                "window_points, spectrum_magnitude.burst_size, and spectrum_viz.num_bins",
+                samples_per_output));
+        }
+        if (outputs_per_batch != fft_bursts || outputs_per_batch != magnitude_bursts
+            || outputs_per_batch != magnitude_averages) {
+            throw std::runtime_error(fmt::format(
+                "uhd_chdr_rx.num_outputs_per_batch ({}) must equal fft.num_bursts, "
+                "spectrum_magnitude.num_bursts, and spectrum_magnitude.num_averages",
+                outputs_per_batch));
+        }
 
         // Shared state couples the Holoviz overlay controls with the spectrum
         // visualizer's pan/zoom and peak reporting logic.
@@ -84,12 +195,6 @@ class UsrpSpectrumViewerApp : public holoscan::Application {
 };
 
 int main(int argc, char** argv) {
-    // Create the application
-    auto app = holoscan::make_application<UsrpSpectrumViewerApp>();
-
-    // Enable metadata for all operators
-    app->enable_metadata(true);
-
     // Check for required configuration file argument
     if (argc < 2) {
         HOLOSCAN_LOG_ERROR("Usage: {} [config.yaml]", argv[0]);
@@ -114,6 +219,12 @@ int main(int argc, char** argv) {
         return -1;
     }
     HOLOSCAN_LOG_INFO("Configured DAQIRI");
+    DaqiriSession daqiri_session;
+
+    // Create the application after the DAQIRI session guard so application
+    // resources are released before DAQIRI on every return or exception path.
+    auto app = holoscan::make_application<UsrpSpectrumViewerApp>();
+    app->enable_metadata(true);
 
     // Apply configuration from file
     app->config(config_path);
@@ -125,7 +236,5 @@ int main(int argc, char** argv) {
     // Run the application
     app->run();
 
-    daqiri::print_stats();
-    daqiri::shutdown();
     return 0;
 }

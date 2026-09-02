@@ -4,8 +4,10 @@
 
 #include "usrp_rx.hpp"
 
+#include <exception>
 #include <sstream>
 #include <stdexcept>
+#include <unordered_set>
 
 namespace holoscan::ops {
 
@@ -110,6 +112,26 @@ void UsrpRxOp::start() {
   if (dest_addr_.get().empty()) {
     throw std::runtime_error("usrp_rx.dest_addr must be set when enabled=true");
   }
+  if (start_delay_seconds_.get() < 0.0) {
+    throw std::runtime_error("usrp_rx.start_delay_seconds must be >= 0");
+  }
+
+  std::unordered_set<int64_t> unique_channels;
+  std::unordered_set<int64_t> unique_ports;
+  for (size_t index = 0; index < channels.size(); ++index) {
+    if (!unique_channels.insert(channels[index]).second) {
+      throw std::runtime_error(fmt::format(
+          "usrp_rx.channels contains duplicate channel {}", channels[index]));
+    }
+    if (dest_ports[index] <= 0 || dest_ports[index] > 65535) {
+      throw std::runtime_error(fmt::format(
+          "usrp_rx.dest_ports contains invalid UDP port {}", dest_ports[index]));
+    }
+    if (!unique_ports.insert(dest_ports[index]).second) {
+      throw std::runtime_error(fmt::format(
+          "usrp_rx.dest_ports contains duplicate UDP port {}", dest_ports[index]));
+    }
+  }
 
   // Discover and open the requested USRP before applying per-channel RF settings.
   usrp_ = uhd::usrp::multi_usrp::make(args_.get());
@@ -157,13 +179,34 @@ void UsrpRxOp::start() {
         usrp_->get_time_now().get_real_secs() + start_delay_seconds_.get());
   }
 
-  for (auto& rx_streamer : rx_streamers_) {
-    uhd::stream_cmd_t stream_cmd(uhd::stream_cmd_t::STREAM_MODE_START_CONTINUOUS);
-    stream_cmd.stream_now = !use_future_start;
-    if (use_future_start) {
-      stream_cmd.time_spec = start_time;
+  try {
+    for (auto& rx_streamer : rx_streamers_) {
+      uhd::stream_cmd_t stream_cmd(uhd::stream_cmd_t::STREAM_MODE_START_CONTINUOUS);
+      stream_cmd.stream_now = !use_future_start;
+      if (use_future_start) {
+        stream_cmd.time_spec = start_time;
+      }
+      rx_streamer->issue_stream_cmd(stream_cmd);
     }
-    rx_streamer->issue_stream_cmd(stream_cmd);
+  } catch (...) {
+    const auto start_error = std::current_exception();
+    // A command may have reached the radio before a later start failed. Stop
+    // every created streamer so no partially started session is left running.
+    for (auto& rx_streamer : rx_streamers_) {
+      if (rx_streamer) {
+        try {
+          uhd::stream_cmd_t stop_cmd(uhd::stream_cmd_t::STREAM_MODE_STOP_CONTINUOUS);
+          rx_streamer->issue_stream_cmd(stop_cmd);
+        } catch (const std::exception& error) {
+          HOLOSCAN_LOG_ERROR("Failed to stop USRP streamer after start error: {}", error.what());
+        } catch (...) {
+          HOLOSCAN_LOG_ERROR("Failed to stop USRP streamer after start error");
+        }
+      }
+    }
+    rx_streamers_.clear();
+    usrp_.reset();
+    std::rethrow_exception(start_error);
   }
 
   started_ = true;
@@ -187,8 +230,14 @@ void UsrpRxOp::stop() {
     // Tell every streamer to stop before releasing the UHD device handle.
     for (auto& rx_streamer : rx_streamers_) {
       if (rx_streamer) {
-        uhd::stream_cmd_t stream_cmd(uhd::stream_cmd_t::STREAM_MODE_STOP_CONTINUOUS);
-        rx_streamer->issue_stream_cmd(stream_cmd);
+        try {
+          uhd::stream_cmd_t stream_cmd(uhd::stream_cmd_t::STREAM_MODE_STOP_CONTINUOUS);
+          rx_streamer->issue_stream_cmd(stream_cmd);
+        } catch (const std::exception& error) {
+          HOLOSCAN_LOG_ERROR("Failed to stop USRP streamer: {}", error.what());
+        } catch (...) {
+          HOLOSCAN_LOG_ERROR("Failed to stop USRP streamer");
+        }
       }
     }
     HOLOSCAN_LOG_INFO("UsrpRxOp stopped USRP streaming");

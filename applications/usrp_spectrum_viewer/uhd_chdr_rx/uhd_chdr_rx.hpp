@@ -4,10 +4,11 @@
 
 #pragma once
 
-#include <array>
+#include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <queue>
+#include <utility>
 #include <vector>
 
 #include <daqiri/daqiri.h>
@@ -35,9 +36,6 @@ class UhdChdrRxOp : public Operator {
   void stop() override;
 
  private:
-  static constexpr int num_concurrent  = 4;   // Number of concurrent batches processing
-  static constexpr int MAX_DAQIRI_BATCHES = 20;  // DAQIRI bursts for one app batch
-
   Parameter<uint16_t> num_complex_samples_per_packet_;
   Parameter<uint16_t> num_packets_per_output_;
   Parameter<uint16_t> num_outputs_per_batch_;
@@ -46,28 +44,43 @@ class UhdChdrRxOp : public Operator {
   Parameter<std::string> interface_name_;
   Parameter<bool> log_data_;
   Parameter<bool> log_packets_;
-  int port_id_;
-  uint32_t num_packets_per_batch;
+  int port_id_ = -1;
+  uint64_t num_packets_per_batch_ = 0;
   uint16_t emit_start_ = 0;
 
-  // Holds burst buffers that cannot be freed yet
+  // Owns both the converted tensor and the DAQIRI bursts backing an in-flight
+  // conversion. The bursts are released once evt reports completion; the
+  // tensor remains alive in the emitted message until all consumers finish.
   struct RxMsg {
-    std::array<daqiri::BurstParams *, MAX_DAQIRI_BATCHES> msg;
-    int num_batches;
-    int buf_idx;
+    RxMsg(std::vector<daqiri::BurstParams*>&& message_bursts,
+          matx::tensor_t<complex, 2>&& message_data,
+          cudaStream_t message_stream,
+          cudaEvent_t message_event)
+        : bursts(std::move(message_bursts)),
+          data(std::move(message_data)),
+          stream(message_stream),
+          evt(message_event) {}
+
+    RxMsg(const RxMsg&) = delete;
+    RxMsg& operator=(const RxMsg&) = delete;
+    RxMsg(RxMsg&&) = default;
+    RxMsg& operator=(RxMsg&&) = delete;
+
+    std::vector<daqiri::BurstParams*> bursts;
+    matx::tensor_t<complex, 2> data;
     cudaStream_t stream;
     cudaEvent_t evt;
   };
 
   struct Channel {
     uint16_t channel_num;
-    int cur_idx = 0;
-    matx::tensor_t<complex, 3> rf_data;
-    std::array<void **, num_concurrent> h_dev_ptrs;
+    size_t cur_idx = 0;
+    std::vector<void**> h_dev_ptrs;
     cudaStream_t stream = nullptr;
-    std::array<cudaEvent_t, num_concurrent> events;
-    RxMsg cur_msg{};
+    std::vector<cudaEvent_t> events;
+    std::vector<daqiri::BurstParams*> current_bursts;
     std::queue<RxMsg> out_q;
+    std::optional<uint16_t> next_sequence;
     uint64_t ttl_bytes_recv = 0;
     uint64_t ttl_pkts_recv = 0;
     uint64_t aggr_pkts_recv = 0;
@@ -77,10 +90,8 @@ class UhdChdrRxOp : public Operator {
 
   std::optional<RxMsg> free_buf(std::shared_ptr<struct Channel> channel);
   bool free_bufs_and_emit_arrays(OutputContext& op_output, std::shared_ptr<struct Channel> channel);
-  void process_channel_data(
-          OutputContext& op_output,
-          daqiri::BurstParams *burst,
-          uint16_t channel_num);
+  void process_channel_data(daqiri::BurstParams* burst, uint16_t channel_num);
+  void discard_current_batch(const std::shared_ptr<struct Channel>& channel);
 };  // UhdChdrRxOp
 
 }  // namespace holoscan::ops

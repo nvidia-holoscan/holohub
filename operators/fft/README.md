@@ -58,8 +58,7 @@ are simply passed along in the metadata.
 
 - `burst_size`: Number of samples to process in each burst
 - `num_bursts`: Number of bursts to process at once
-- `num_channels`: Number of channels for which to allocate memory
-- `spectrum_type`: VITA 49.2 spectrum type to pass along in metadata
+- `num_channels`: Number of valid channel identifiers
 - `spectrum_type`: VITA 49.2 spectrum type to pass along in metadata
 - `averaging_type`: VITA 49.2 averaging type to pass along in metadata
 - `window_time`: VITA 49.2 window time to pass along in metadata
