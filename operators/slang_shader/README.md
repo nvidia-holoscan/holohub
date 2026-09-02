@@ -25,7 +25,8 @@ The SlangShaderOp compiles Slang shader source code into CUDA kernels and execut
 
 ### Unsupported Platforms
 
-- **IGX Thor iGPU platform**: Not supported. The Slang compiler bundled with this operator emits PTX
+- **IGX Thor iGPU platform**: Not supported. This is a limitation of the current operator
+  implementation, not of Slang itself: the Slang compiler version bundled with this operator emits PTX
   that the CUDA driver on the IGX Thor iGPU platform cannot load, so `SlangShaderOp` fails at setup
   with `the provided PTX was compiled with an unsupported toolchain. (222)`. See
   [Troubleshooting](#troubleshooting). This limitation also applies to every operator and
