@@ -20,6 +20,12 @@ The GammaCorrectionOp extends the SlangShaderOp to provide specialized gamma cor
 - CUDA-compatible GPU
 - Supported platforms: x86_64, aarch64
 
+> **Note:** The IGX Thor iGPU platform is not supported. `GammaCorrectionOp` is built on
+> `SlangShaderOp`, whose bundled Slang compiler emits PTX that the CUDA driver on the IGX Thor iGPU
+> platform cannot load; the operator fails at setup with
+> `the provided PTX was compiled with an unsupported toolchain. (222)`. See the
+> [SlangShaderOp documentation](../slang_shader/README.md#unsupported-platforms).
+
 ## Installation
 
 The GammaCorrectionOp is included as part of the HoloHub operators. It will be automatically built when you build the HoloHub project.
