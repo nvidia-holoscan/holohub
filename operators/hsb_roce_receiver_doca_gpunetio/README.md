@@ -70,13 +70,13 @@ This operator is built as part of the HoloHub build system when the `doca` mode
 is selected:
 
 ```bash
-./holohub build imx274_gpu_resident doca
+./holohub build imx274_gpu_resident doca --base-img nvcr.io/nvidia/clara-holoscan/holoscan:v4.3.0-cuda12-dgpu
 ```
 
 Or enable the operator explicitly:
 
 ```bash
-./holohub build imx274_gpu_resident --build-with hsb_roce_receiver_doca_gpunetio
+./holohub build imx274_gpu_resident --build-with hsb_roce_receiver_doca_gpunetio --base-img nvcr.io/nvidia/clara-holoscan/holoscan:v4.3.0-cuda12-dgpu
 ```
 
 ## Dependencies

@@ -206,9 +206,9 @@ This uses the application's configured Docker options for HSB (privileged mode, 
 After launching the container with the command above, you can build the application:
 
 ```bash
-./holohub build imx274_gpu_resident
+./holohub build imx274_gpu_resident --base-img nvcr.io/nvidia/clara-holoscan/holoscan:v4.3.0-cuda12-dgpu
 # or, if building with DOCA GPUNetIO support:
-./holohub build imx274_gpu_resident doca
+./holohub build imx274_gpu_resident doca --base-img nvcr.io/nvidia/clara-holoscan/holoscan:v4.3.0-cuda12-dgpu
 ```
 
 ##### List Buildable Components
