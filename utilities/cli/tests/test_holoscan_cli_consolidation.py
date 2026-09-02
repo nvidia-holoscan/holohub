@@ -36,7 +36,7 @@ def _holoscan_cli_env() -> dict[str, str]:
     # configured. The ./holohub wrapper sets this; the direct `python -m
     # holoscan_cli` invocations below must supply it too. Mirror the HoloHub
     # default SDK version so the dryrun resolves a base image.
-    env.setdefault("HOLOSCAN_CLI_BASE_SDK_VERSION", "4.5.0")
+    env.setdefault("HOLOSCAN_CLI_BASE_SDK_VERSION", "4.6.0")
     return env
 
 
@@ -298,18 +298,73 @@ def test_wrapper_does_not_forward_cli_version_out_of_band():
 
 
 def test_wrapper_pins_stay_in_sync():
-    """The repo wrapper and module-template wrapper track one CLI pin."""
+    """The repo and module-template wrappers track one CLI pin and package source."""
     pin_pattern = re.compile(r'^HOLOSCAN_CLI_DEFAULT_PIN="([^"]+)"$', re.MULTILINE)
     template_wrapper = (
         REPO_ROOT / "modules" / "template" / "{{cookiecutter.module_repo_name}}" / "holohub"
     )
 
-    repo_pin = pin_pattern.search((REPO_ROOT / "holohub").read_text(encoding="utf-8"))
-    template_pin = pin_pattern.search(template_wrapper.read_text(encoding="utf-8"))
+    repo_text = (REPO_ROOT / "holohub").read_text(encoding="utf-8")
+    template_text = template_wrapper.read_text(encoding="utf-8")
+    repo_pin = pin_pattern.search(repo_text)
+    template_pin = pin_pattern.search(template_text)
 
     assert repo_pin, "repo wrapper must declare HOLOSCAN_CLI_DEFAULT_PIN"
     assert template_pin, "template wrapper must declare HOLOSCAN_CLI_DEFAULT_PIN"
     assert repo_pin.group(1) == template_pin.group(1)
+
+    install_prefix = 'export HOLOSCAN_CLI_INSTALL_ARGS="${HOLOSCAN_CLI_INSTALL_ARGS:-'
+    repo_install = next(line for line in repo_text.splitlines() if line.startswith(install_prefix))
+    template_install = next(
+        line for line in template_text.splitlines() if line.startswith(install_prefix)
+    )
+    assert repo_install == template_install
+    assert "--pre" not in repo_install
+    assert "--index-url" not in repo_install
+    assert "--extra-index-url" not in repo_install
+    assert "holoscan-cli" not in repo_install
+
+
+def test_wrapper_upgrades_from_prerelease_with_one_exact_requirement(tmp_path):
+    """An existing RC can be upgraded to GA without a conflicting requirement."""
+    fake_python = tmp_path / "python"
+    version_state = tmp_path / "version"
+    invocation_log = tmp_path / "invocations.log"
+    version_state.write_text("4.6.0rc2\n", encoding="utf-8")
+    fake_python.write_text(
+        "#!/usr/bin/env bash\n"
+        'printf \'%s\\n\' "$*" >> "${FAKE_CLI_INVOCATION_LOG}"\n'
+        'if [[ "$1" == "-c" ]]; then cat "${FAKE_CLI_VERSION_STATE}"; exit 0; fi\n'
+        'if [[ "$1 $2 $3 $4" == "-m holoscan_cli build --help" ]]; then exit 0; fi\n'
+        'if [[ "$1 $2 $3" == "-m pip --version" ]]; then exit 0; fi\n'
+        'if [[ "$1 $2 $3" == "-m pip install" ]]; then\n'
+        "  printf '4.6.0\\n' > \"${FAKE_CLI_VERSION_STATE}\"\n"
+        "  exit 0\n"
+        "fi\n"
+        'if [[ "$1 $2" == "-m holoscan_cli" ]]; then exit 0; fi\n'
+        "exit 1\n",
+        encoding="utf-8",
+    )
+    fake_python.chmod(0o755)
+
+    env = os.environ.copy()
+    env.pop("HOLOSCAN_CLI_SOURCE", None)
+    env.pop("VIRTUAL_ENV", None)
+    env["HOLOSCAN_CLI_INSTALL_ARGS"] = ""
+    env["HOLOSCAN_CLI_PYTHON_BIN"] = str(fake_python)
+    env["FAKE_CLI_VERSION_STATE"] = str(version_state)
+    env["FAKE_CLI_INVOCATION_LOG"] = str(invocation_log)
+
+    result = _run_holohub_wrapper("version", env=env)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    install_invocation = next(
+        line
+        for line in invocation_log.read_text(encoding="utf-8").splitlines()
+        if line.startswith("-m pip install ")
+    )
+    assert install_invocation.count("holoscan-cli==4.6.0") == 1
+    assert "holoscan-cli>4.2.0" not in install_invocation
 
 
 def test_wrapper_announces_host_only_cli_overrides():

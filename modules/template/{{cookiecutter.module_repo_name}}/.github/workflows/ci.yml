@@ -23,8 +23,7 @@ jobs:
         run: ruff check .
       - name: Validate metadata.json against the Holoscan CLI schema
         run: |
-          # Bootstrap through the wrapper so validation uses its exact CLI pin,
-          # including prerelease versions.
+          # Bootstrap through the wrapper so validation uses its exact CLI pin.
           export HOLOSCAN_CLI_VENV="${RUNNER_TEMP}/holoscan-cli-venv"
           ./holohub version
           "${HOLOSCAN_CLI_VENV}/bin/python" .github/workflows/scripts/validate_metadata.py
