@@ -41,6 +41,8 @@ jobs:
       uses: lycheeverse/lychee-action@v2
       with:
         workingDirectory: .github/workflows
+        # BENCHMARK.md is generated and signed by CI; modifying it invalidates
+        # the signature and blocks the skill from being published.
         args: >-
           --accept=200,403,429
           --verbose
@@ -60,6 +62,8 @@ jobs:
       uses: lycheeverse/lychee-action@v2
       with:
         workingDirectory: .github/workflows
+        # BENCHMARK.md is generated and signed by CI; modifying it invalidates
+        # the signature and blocks the skill from being published.
         args: >-
           --accept=200,403,429
           --verbose
