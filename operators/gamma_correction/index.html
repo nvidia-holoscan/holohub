@@ -20205,6 +20205,13 @@
 <li>CUDA-compatible GPU</li>
 <li>Supported platforms: x86_64, aarch64</li>
 </ul>
+<blockquote>
+<p><strong>Note:</strong> The IGX Thor iGPU platform is not supported. <code>GammaCorrectionOp</code> is built on
+<code>SlangShaderOp</code>, whose bundled Slang compiler emits PTX that the CUDA driver on the IGX Thor iGPU
+platform cannot load; the operator fails at setup with
+<code>the provided PTX was compiled with an unsupported toolchain. (222)</code>. See the
+<a href="../slang_shader/#unsupported-platforms">SlangShaderOp documentation</a>.</p>
+</blockquote>
 <h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">#</a></h2>
 <p>The GammaCorrectionOp is included as part of the HoloHub operators. It will be automatically built when you build the HoloHub project.</p>
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">#</a></h2>

@@ -20140,6 +20140,12 @@ applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking
 </li>
 <li>
 <p>Using the Slang shader operator for post-processing</p>
+<blockquote>
+<p><strong>Note:</strong> This mode is not supported on the IGX Thor iGPU platform. The limitation is in HoloHub's
+<code>SlangShaderOp</code> (the Slang compiler version it bundles emits PTX the platform's CUDA driver rejects),
+not in Slang itself. See
+<a href="../../../operators/slang_shader/#unsupported-platforms">SlangShaderOp unsupported platforms</a>.</p>
+</blockquote>
 <div class="highlight"><pre><span></span><code>sed<span class="w"> </span>-i<span class="w"> </span>-e<span class="w"> </span><span class="s1">'s#^postprocessor:.*#postprocessor: slang_shader#'</span><span class="w"> </span>applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
 applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking
 </code></pre></div>

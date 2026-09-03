@@ -20122,6 +20122,12 @@ python3<span class="w">  </span>&lt;HOLOHUB_SOURCE_DIR&gt;/applications/endoscop
 </li>
 <li>
 <p>Using the Slang shader operator for post-processing</p>
+<blockquote>
+<p><strong>Note:</strong> This mode is not supported on the IGX Thor iGPU platform. The limitation is in HoloHub's
+<code>SlangShaderOp</code> (the Slang compiler version it bundles emits PTX the platform's CUDA driver rejects),
+not in Slang itself. See
+<a href="../../../operators/slang_shader/#unsupported-platforms">SlangShaderOp unsupported platforms</a>.</p>
+</blockquote>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>endoscopy_tool_tracking<span class="w"> </span>--language<span class="w"> </span>python<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"-p=slang_shader"</span>
 </code></pre></div>
 </li>
