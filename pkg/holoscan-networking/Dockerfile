@@ -17,7 +17,7 @@
 
 # Define arguments for holoscan installation
 ARG HOLOSCAN_DEB_SRC="remote" # or "local"
-ARG HOLOSCAN_DEB_REMOTE_VERSION=4.5.0 # only used if HOLOSCAN_DEB_SRC is "remote"
+ARG HOLOSCAN_DEB_REMOTE_VERSION=4.6.0 # only used if HOLOSCAN_DEB_SRC is "remote"
 ARG HOLOSCAN_DEB_LOCAL_PATH="./holoscan.deb" # only used if HOLOSCAN_DEB_SRC is "local"
 
 # CUDA toolkit version, single source of truth. CUDA_VER sets the base image;
@@ -161,7 +161,7 @@ RUN CUDA_VERSION=$(nvcc --version | sed -n 's/^.*release \([0-9]\+\.[0-9]\+\).*$
 # - holoscan-cu<major>: Python SDK bindings for Python HoloHub examples. Pin the
 #   wheel to the Holoscan version actually installed above (deb) so the deb and
 #   wheel stay aligned on both the remote and local paths, regardless of
-#   HOLOSCAN_DEB_REMOTE_VERSION. The deb version (e.g. 4.5.0.0-1) is trimmed to
+#   HOLOSCAN_DEB_REMOTE_VERSION. The deb version (e.g. 4.6.0.0-1) is trimmed to
 #   its upstream X.Y.Z to match the wheel's version scheme.
 # - pytest: test harness
 # - pyyaml: to parse yaml configs in tests
