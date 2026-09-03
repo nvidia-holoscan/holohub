@@ -50,6 +50,11 @@ flowchart LR
 - x86_64
 - aarch64
 
+> **Note:** The IGX Thor iGPU platform is not supported. The Slang compiler bundled with `SlangShaderOp`
+> emits PTX that the CUDA driver on the IGX Thor iGPU platform cannot load, and the application fails at startup with
+> `the provided PTX was compiled with an unsupported toolchain. (222)`. See the
+> [SlangShaderOp documentation](../../../operators/slang_shader/README.md#unsupported-platforms).
+
 ## Installation
 
 1. Clone the HoloHub repository
