@@ -1,0 +1,205 @@
+# SPDX-FileCopyrightText: 2026 National Instruments Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+---
+num_runs: -1  # Number of iterations LogOp logs before it stops, -1 is infinite
+
+scheduler:
+  worker_thread_number: 4
+  stop_on_deadlock: true
+  stop_on_deadlock_timeout: 500
+  enable_worker_postcheck_fastpath: true
+  enable_queue_stealing: true
+
+usrp_rx:
+  # Need to be set to true to enable data transfer from USRP.
+  # Make sure that the "<device_addr>", "<dest_addr>", "<dest_mac_addr>" below are set correctly to your target setup.
+  enabled: false
+  # Set your real device args before enabling, e.g.:
+  # args: "addr=10.88.136.10,master_clock_rate=500e6"
+  args: "addr=<1.2.3.4>,master_clock_rate=500e6"
+  rate: 500e6  # Hz (500 MHz); recommended to match spectrum_viz.ref_bandwidth_hz
+  freq: 1000e6 # Hz (1000 MHz); recommended to match spectrum_viz.ref_center_hz
+  gain: 0.0
+  channels: [0, 1]
+  # Set the DPDK host IP before enabling.
+  dest_addr: <5.6.7.8> # Destination IP address
+  dest_ports: [1234, 1235]
+  adapter: "sfp0"
+  dest_mac_addr: <00:00:00:00:00:00> # Destination MAC address
+  keep_hdr: true
+  spp: 1024
+  mtu: 8064
+  start_delay_seconds: 0.05
+
+daqiri:
+  cfg:
+    version: 1
+    stream_type: "raw"
+    master_core: 9  # Master CPU core
+    debug: false
+    log_level: "info"
+
+    memory_regions:
+      # Memory pool for frame headers
+      - name: "Headers_RX_CPU"
+        kind: "huge"
+        affinity: 0
+        access:
+          - local
+        num_bufs: 12500
+        # Size of the Ethernet header + IPv4 header + UDP header
+        buf_size: 42
+      # Memory pool for channel 1 CHDR packet headers
+      - name: "CH1_CHDR_Headers_RX_CPU"
+        kind: "huge"
+        affinity: 0
+        access:
+          - local
+        num_bufs: 12500
+        # Size of the CHDR header (depends on CHDR_W size)
+        buf_size: 64
+      # Memory pool for channel 1 CHDR signal data packets
+      - name: "CH1_Data_RX_GPU"
+        kind: "device"
+        affinity: 0
+        access:
+          - local
+        num_bufs: 12500
+        # Size of the CHDR signal data packet (depends on number of samples transmitted)
+        buf_size: 4096
+      # Memory pool for channel 2 CHDR packet headers
+      - name: "CH2_CHDR_Headers_RX_CPU"
+        kind: "huge"
+        affinity: 0
+        access:
+          - local
+        num_bufs: 12500
+        # Size of the CHDR header (depends on CHDR_W size)
+        buf_size: 64
+      # Memory pool for channel 2 CHDR signal data packets
+      - name: "CH2_Data_RX_GPU"
+        kind: "device"
+        affinity: 0
+        access:
+          - local
+        num_bufs: 12500
+        # Size of the CHDR signal data packet (depends on number of samples transmitted)
+        buf_size: 4096
+
+    interfaces:
+      - name: sdr_data
+        # Set to the PCIe address of your ingest NIC.
+        #  - See list with: sudo lshw -c network -businfo
+        address: <0000:00:00.0>   # The BUS address of the interface
+        rx:
+          flow_isolation: true
+          # One queue + one flow per channel. This does NOT auto-scale from
+          # usrp_rx.channels: to add channels you must add a matching queue and
+          # flow here (and their CHx memory_regions above) for each new channel.
+          queues:
+            - name: "Channel 1 data"
+              id: 0
+              cpu_core: 10
+              # How many data packets do you want before
+              # invoking the CHDR converter operator?
+              # 20 data packets is 20480 samples and
+              # we want 125 of them, so 2,500
+              batch_size: 2500
+              memory_regions:
+                - "Headers_RX_CPU"
+                - "CH1_CHDR_Headers_RX_CPU"
+                - "CH1_Data_RX_GPU"
+            - name: "Channel 2 data"
+              id: 1
+              cpu_core: 11
+              # How many data packets do you want before
+              # invoking the CHDR converter operator?
+              # 20 data packets is 20480 samples and
+              # we want 125 of them, so 2,500
+              batch_size: 2500
+              memory_regions:
+                - "Headers_RX_CPU"
+                - "CH2_CHDR_Headers_RX_CPU"
+                - "CH2_Data_RX_GPU"
+
+          flows:
+            - name: "Channel 1 data packets"
+              id: 0
+              action:
+                type: queue
+                id: 0
+              match:
+                # Match with the port your SDR is sending to and the
+                # length of the signal data packets
+                udp_src: 49153
+                udp_dst: 1234
+                # ipv4_len: 4112
+            - name: "Channel 2 data packets"
+              id: 1
+              action:
+                type: queue
+                id: 1
+              match:
+                # Match with the port your SDR is sending to and the
+                # length of the signal data packets
+                udp_src: 49153
+                udp_dst: 1235
+                # ipv4_len: 4112
+
+
+uhd_chdr_rx:
+  interface_name: sdr_data
+  num_complex_samples_per_packet: 1024
+  num_packets_per_output: 20
+  num_outputs_per_batch: 125
+  num_buffered_batches: 2
+  num_channels: 2
+  log_packets: false
+  log_data: false
+
+fft:
+  burst_size: 20480
+  num_bursts: 125
+  num_channels: 2
+  spectrum_type: 1
+  averaging_type: 1
+  window_time: 0
+  window_type: 0
+  transform_points: 20480
+  window_points: 20480
+  resolution: 24414
+  span: 500000000
+  weighting_factor: 0
+  f1_index: -10240
+  f2_index: 10239
+  window_time_delta: 0
+
+spectrum_magnitude:
+  burst_size: 20480
+  num_bursts: 125
+  num_averages: 125
+  num_channels: 2
+
+spectrum_viz:
+  num_bins: 20480
+  num_channels: 2
+  db_min: -120.0
+  db_max: 0.0
+  # Radio's true tuning (the actual digitized band). These define the absolute
+  # frequency mapping of the captured spectrum; the UI center/bandwidth controls
+  # pan/zoom the view relative to these so a real signal stays locked to its
+  # absolute frequency on screen.
+  # Given in Hz (same notation as usrp_rx); recommended to match usrp_rx.
+  ref_center_hz: 1000e6   # recommended to equal usrp_rx.freq
+  ref_bandwidth_hz: 500e6 # recommended to equal usrp_rx.rate
+
+holoviz:
+  width: 1280
+  height: 720
+  window_title: "USRP Frequency Spectrum"
+
+log:
+  num_channels: 2
+  log_interval: 1
+  log_data: false

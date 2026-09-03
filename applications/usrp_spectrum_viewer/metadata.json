@@ -1,0 +1,54 @@
+{
+    "application": {
+        "name": "USRP Spectrum Viewer",
+        "authors": [
+            {
+                "name": "Andrew Lynch <andrew.lynch@emerson.com>",
+                "affiliation": "National Instruments Corporation."
+            },
+            {
+                "name": "Johannes Lange <johannes.lange@emerson.com>",
+                "affiliation": "National Instruments Corporation."
+            },
+            {
+                "name": "Abhiram Anil <abhiram.anil@emerson.com>",
+                "affiliation": "National Instruments Corporation."
+            }
+        ],
+        "language": "C++",
+        "version": "1.0.0",
+        "changelog": {
+            "1.0": "Initial Release"
+        },
+        "holoscan_sdk": {
+            "minimum_required_version": "4.4.0",
+            "tested_versions": [
+                "4.4.0",
+                "4.5.0"
+            ]
+        },
+        "platforms": ["x86_64", "aarch64"],
+        "tags": ["Signal Processing", "USRP", "SDR", "DPDK", "HOLOVIZ"],
+	 "dockerfile": "applications/usrp_spectrum_viewer/Dockerfile",
+        "ranking": 3,
+        "requirements": {
+            "operators": [
+                "fft"
+            ],
+            "libraries": [{
+              "name": "DAQIRI",
+              "version": "0.1.0",
+              "url": "https://github.com/NVIDIA/daqiri"
+            },
+            {
+              "name": "UHD",
+              "version": "4.10.0.0",
+              "url": "https://github.com/EttusResearch/uhd"
+            }]
+        },
+        "run": {
+            "command": "<holohub_app_bin>/usrp_spectrum_viewer config.yaml",
+            "workdir": "holohub_bin"
+        }
+    }
+}
