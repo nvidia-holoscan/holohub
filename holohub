@@ -22,7 +22,7 @@
 #
 # Optional overrides:
 #   HOLOSCAN_CLI_SOURCE          Local CLI checkout for paired development.
-#   HOLOSCAN_CLI_INSTALL_ARGS    Pip install arguments (default is floating).
+#   HOLOSCAN_CLI_INSTALL_ARGS    Pip options (and optional custom requirements).
 #   HOLOSCAN_CLI_PINNED_VERSION  Exact package version; empty enables floating mode.
 #   HOLOSCAN_CLI_PYTHON_BIN      Caller-owned interpreter.
 #   HOLOSCAN_CLI_VENV            Wrapper-managed venv location.
@@ -36,10 +36,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd -P)"
 export HOLOSCAN_CLI_CMD_NAME="${BASH_SOURCE[0]}"
 export HOLOSCAN_CLI_ROOT="${SCRIPT_DIR}"
 
-export HOLOSCAN_CLI_INSTALL_ARGS="${HOLOSCAN_CLI_INSTALL_ARGS:---pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0}"
+export HOLOSCAN_CLI_INSTALL_ARGS="${HOLOSCAN_CLI_INSTALL_ARGS:---pre --extra-index-url https://pypi.nvidia.com}"
 # Single bump point for the CLI version everywhere (host, images, runtime);
 # keep in sync with the module-template wrapper.
-HOLOSCAN_CLI_DEFAULT_PIN="4.5.0"
+HOLOSCAN_CLI_DEFAULT_PIN="4.6.0"
 export HOLOSCAN_CLI_PINNED_VERSION="${HOLOSCAN_CLI_PINNED_VERSION-${HOLOSCAN_CLI_DEFAULT_PIN}}"
 # Version overrides never cross the Docker boundary; say so instead of
 # diverging silently.
@@ -54,7 +54,7 @@ fi
 export HOLOSCAN_CLI_VENV="${HOLOSCAN_CLI_VENV:-}"
 
 # The standalone CLI has no SDK-image default; HoloHub owns this project default.
-export HOLOSCAN_CLI_BASE_SDK_VERSION="${HOLOSCAN_CLI_BASE_SDK_VERSION:-4.5.0}"
+export HOLOSCAN_CLI_BASE_SDK_VERSION="${HOLOSCAN_CLI_BASE_SDK_VERSION:-4.6.0}"
 export HOLOSCAN_CLI_CREATE_TEMPLATE="${HOLOSCAN_CLI_CREATE_TEMPLATE:-applications/template}"
 export HOLOSCAN_CLI_CTEST_SCRIPT="${HOLOSCAN_CLI_CTEST_SCRIPT:-utilities/testing/holohub.container.ctest}"
 
@@ -157,8 +157,12 @@ if [[ -n "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
 fi
 
 read -r -a CLI_INSTALL_ARGS <<< "${HOLOSCAN_CLI_INSTALL_ARGS}"
-if [[ -n "${HOLOSCAN_CLI_PINNED_VERSION}" && -z "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
-    CLI_INSTALL_ARGS+=("holoscan-cli==${HOLOSCAN_CLI_PINNED_VERSION}")
+if [[ -z "${HOLOSCAN_CLI_SOURCE:-}" ]]; then
+    if [[ -n "${HOLOSCAN_CLI_PINNED_VERSION}" ]]; then
+        CLI_INSTALL_ARGS+=("holoscan-cli==${HOLOSCAN_CLI_PINNED_VERSION}")
+    else
+        CLI_INSTALL_ARGS+=("holoscan-cli>4.2.0")
+    fi
 fi
 
 CLI_ENV="caller"
