@@ -943,7 +943,7 @@ for selection order, safety boundaries, and managed-venv maintenance.
 | `VIRTUAL_ENV` | Uses the active environment's `bin/python` when no explicit interpreter is set. |
 | `HOLOSCAN_CLI_VENV` | Wrapper-managed environment; defaults to `${XDG_DATA_HOME:-$HOME/.local/share}/holoscan-cli/venv`. |
 | `HOLOSCAN_CLI_SOURCE` | Local holoscan-cli checkout used in preference to a package requirement. |
-| `HOLOSCAN_CLI_INSTALL_ARGS` | Whitespace-separated pip options and requirements. HoloHub defaults to the NVIDIA pre-release index; the wrapper also applies its exact committed pin. Shell quotes are not parsed. |
+| `HOLOSCAN_CLI_INSTALL_ARGS` | Whitespace-separated pip options and optional custom requirements. HoloHub defaults to `--pre --extra-index-url https://pypi.nvidia.com` and separately adds one exact requirement for its committed pin (or `holoscan-cli>4.2.0` in floating mode). Shell quotes are not parsed. |
 | `HOLOSCAN_CLI_PINNED_VERSION` | One exact package version to install and verify. An explicitly empty value means floating. Ignored with `HOLOSCAN_CLI_SOURCE`. |
 | `PIP_BREAK_SYSTEM_PACKAGES` | PEP 668 pip control only; defaults to `1` after root system scope is selected and never selects that scope. |
 
