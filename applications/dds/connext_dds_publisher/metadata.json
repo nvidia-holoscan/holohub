@@ -1,7 +1,7 @@
 {
   "application": {
-    "name": "Connext DDS Example",
-    "description": "End-to-end example using generic RTI Connext DDS Holoscan publisher and subscriber operators with an application-defined IDL type.",
+    "name": "Connext DDS Publisher",
+    "description": "Publish two application-defined IDL types through generic RTI Connext DDS Holoscan operators.",
     "authors": [
       {
         "name": "Real-Time Innovations, Inc.",
@@ -26,12 +26,12 @@
       "modules": [
         {
           "name": "holoscan-connext-dds",
-          "provides_operators": ["connext_dds"]
+          "provides_operators": ["dds_pubsub"]
         }
       ]
     },
     "run": {
-      "command": "python3 <holohub_app_source>/connext_dds_example.py",
+      "command": "python3 <holohub_app_bin>/connext_dds_publisher.py",
       "workdir": "holohub_app_bin"
     }
   }

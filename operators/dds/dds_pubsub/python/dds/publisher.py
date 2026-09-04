@@ -2,6 +2,8 @@
 # SPDX-FileCopyrightText: Copyright (c) 2025-2026, Real-Time Innovations, Inc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
+"""Generic RTI Connext DDS publisher operator."""
+
 import rti.connextdds as dds
 from holoscan.core import Operator, OperatorSpec
 

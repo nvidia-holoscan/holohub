@@ -1,0 +1,38 @@
+{
+  "application": {
+    "name": "Connext DDS Subscriber",
+    "description": "Receive and validate two application-defined IDL types through generic RTI Connext DDS Holoscan operators.",
+    "authors": [
+      {
+        "name": "Real-Time Innovations, Inc.",
+        "affiliation": "Real-Time Innovations, Inc."
+      }
+    ],
+    "language": "Python",
+    "dockerfile": "modules/holoscan-connext-dds/Dockerfile",
+    "version": "1.0.0",
+    "changelog": {
+      "1.0": "Initial release."
+    },
+    "platforms": ["x86_64", "aarch64"],
+    "tags": ["DDS", "RTI Connext", "Networking and Distributed Computing"],
+    "holoscan_sdk": {
+      "minimum_required_version": "4.5.0",
+      "tested_versions": ["4.5.0"]
+    },
+    "ranking": 2,
+    "requirements": {},
+    "dependencies": {
+      "modules": [
+        {
+          "name": "holoscan-connext-dds",
+          "provides_operators": ["dds_pubsub"]
+        }
+      ]
+    },
+    "run": {
+      "command": "python3 <holohub_app_bin>/connext_dds_subscriber.py",
+      "workdir": "holohub_app_bin"
+    }
+  }
+}

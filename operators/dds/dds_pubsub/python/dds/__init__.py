@@ -2,6 +2,8 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 Real-Time Innovations, Inc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
+"""RTI Connext DDS publish and subscribe operators for HoloHub."""
+
 from .publisher import ConnextDDSPublisherOp
 from .subscriber import ConnextDDSSubscriberOp
 

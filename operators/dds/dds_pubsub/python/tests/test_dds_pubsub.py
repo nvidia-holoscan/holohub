@@ -10,10 +10,10 @@ import pytest
 pytest.importorskip("rti.connextdds")
 pytest.importorskip("holoscan")
 
-sys.path.insert(0, str(Path(__file__).parents[2]))
+sys.path.insert(0, str(Path(__file__).parents[1]))
 
-from connext_dds.publisher import ConnextDDSPublisherOp
-from connext_dds.subscriber import ConnextDDSSubscriberOp
+from dds.publisher import ConnextDDSPublisherOp
+from dds.subscriber import ConnextDDSSubscriberOp
 
 
 class Sample:

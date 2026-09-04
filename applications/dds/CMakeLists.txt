@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,9 @@
 cmake_minimum_required(VERSION 3.20)
 project(distributed_applications LANGUAGES NONE)
 
+add_holohub_application(connext_dds_publisher DEPENDS OPERATORS dds_pubsub)
+add_holohub_application(connext_dds_roundtrip DEPENDS OPERATORS dds_pubsub)
+add_holohub_application(connext_dds_subscriber DEPENDS OPERATORS dds_pubsub)
 
 add_holohub_application(dds_video DEPENDS
                         OPERATORS dds_shapes_subscriber

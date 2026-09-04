@@ -10,11 +10,15 @@
     }],
     "license": "Apache-2.0",
     "language": ["Python"],
-    "namespace": {"python": "holoscan.connext_dds"},
+    "namespace": {"python": "holohub.dds"},
     "operator_names": ["ConnextDDSPublisherOp", "ConnextDDSSubscriberOp"],
     "subprojects": {
-      "operators": ["connext_dds"],
-      "applications": ["connext_dds_example"]
+      "operators": ["dds_pubsub"],
+      "applications": [
+        "connext_dds_publisher",
+        "connext_dds_roundtrip",
+        "connext_dds_subscriber"
+      ]
     },
     "holoscan_sdk": {
       "minimum_required_version": "4.5.0",

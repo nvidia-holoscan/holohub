@@ -1,6 +1,6 @@
 {
   "operator": {
-    "name": "Connext DDS Publisher and Subscriber Operators",
+    "name": "DDS Publish and Subscribe Operators",
     "description": "Generic Python Holoscan operators for publishing and subscribing to RTI Connext DDS topics.",
     "authors": [
       {
