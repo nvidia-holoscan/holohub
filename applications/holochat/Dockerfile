@@ -57,11 +57,14 @@ RUN git clone https://github.com/ggml-org/llama.cpp.git \
 
 # Build Llama.cpp (with CUDA support)
 WORKDIR /workspace/llama.cpp
+ARG CMAKE_BUILD_PARALLEL_LEVEL=4
 RUN cmake -B build \
         -DGGML_CUDA:BOOL=ON \
         -DGGML_CUDA_FORCE_CUBLAS:BOOL=ON \
         -DLLAMA_CURL:BOOL=OFF \
-    && cmake --build build --config Release
+    && cmake --build build --config Release \
+        --target llama-server \
+        --parallel "${CMAKE_BUILD_PARALLEL_LEVEL}"
 
 # Set working directory back to holohub
 WORKDIR /workspace/holohub
