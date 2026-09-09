@@ -558,7 +558,7 @@
                 <div style="position: sticky; top: 80px; max-height: calc(100vh - 80px); overflow-y: auto; overflow-x: hidden; padding-bottom: 1rem; will-change: transform;">
                     <h4 style="font-size: 0.9rem; margin-bottom: 1rem; font-weight: 700; padding: 1rem 1rem 0 1rem;">Applications</h4>
                     <nav class="sidebar-nav" data-page-type="applications" style="display: flex; flex-direction: column; gap: 0;">
-                        <a href="#all" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('all'); return true;">All (113)</a>
+                        <a href="#all" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('all'); return true;">All (114)</a>
                         <a href="#camera" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Camera'); return true;">Camera (13)</a>
                         <a href="#computer-vision-and-perception" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Computer Vision and Perception'); return true;">Computer Vision (33)</a>
                         <a href="#distributed" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Distributed'); return true;">Distributed (11)</a>
@@ -573,7 +573,7 @@
                         <a href="#rendering" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Rendering'); return true;">Rendering (8)</a>
                         <a href="#robotics" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Robotics'); return true;">Robotics (7)</a>
                         <a href="#scheduler" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Scheduler'); return true;">Scheduler (1)</a>
-                        <a href="#signal-processing" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Signal Processing'); return true;">Signal Processing (12)</a>
+                        <a href="#signal-processing" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Signal Processing'); return true;">Signal Processing (13)</a>
                         <a href="#streaming" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Streaming'); return true;">Streaming (13)</a>
                         <a href="#video" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Video'); return true;">Video (57)</a>
                         <a href="#visualization" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: var(--md-default-fg-color); font-size: 0.7rem; transition: all 0.2s;" onclick="filterByTag('Visualization'); return true;">Visualization (48)</a>
@@ -594,6 +594,17 @@
                     </div>
                     
             
+ <div class="col-xl-4 col-lg-6 col-sm-12 mb-1 feature-box" data-recent="true">
+                <div class="shadow padding-feature-box-item text-center d-block match-height app-card" style="cursor: pointer; position: relative;" onclick="window.location.href='/holohub/applications/usrp_spectrum_viewer/';">
+                    <span class="new-badge" style="position: absolute; top: 10px; right: 10px; background-color: #76b900; color: white; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 0.65rem; font-weight: 600;">New</span>
+                    <img src="https://raw.githubusercontent.com/nvidia-holoscan/holohub/main/applications/usrp_spectrum_viewer/docs/Spectrum_Output.png" alt="USRP Spectrum Viewer" width="120" height="120">
+                    <h3 class="mb-1 mt-0" style="font-size: 0.8rem;"><a href="/holohub/applications/usrp_spectrum_viewer/" onclick="event.stopPropagation();">USRP Spectrum Viewer</a></h3>
+                    <span style="display: inline-block; background-color: var(--md-code-bg-color); color: var(--md-code-fg-color); padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 0.65rem; font-weight: 600; margin-bottom: 0.5rem;">C++</span>
+                    <p class="feature-card-desc">The USRP Spectrum Viewer application receives RF samples from a USRP radio, ingests CHDR packets through DAQIRI, conv...</p>
+                    <div class="md-tags md-nav__link md-typeset" style="line-height: 1.5; display: block;" onclick="event.stopPropagation();"><a href="/holohub/tags/#tag:signal-processing" class="md-tag" style="display: none;">signal processing</a> <a href="/holohub/tags/#tag:usrp" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">usrp</a> <a href="/holohub/tags/#tag:sdr" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">sdr</a> <a href="/holohub/tags/#tag:dpdk" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">dpdk</a> <a href="/holohub/tags/#tag:holoviz" class="md-tag" style="display: inline-block; margin: 0.1rem; font-size: 0.55rem; padding: 0.05rem 0.25rem; cursor: pointer; transition: background-color 0.2s; text-decoration: none; line-height: normal; height: auto; width: auto;" onmouseover="this.style.backgroundColor='#5a9100';" onmouseout="this.style.backgroundColor='';" onclick="event.stopPropagation();">holoviz</a></div>
+                    <!-- <p class="nv-teaser-text-link">Learn More <i class="fa-solid fa-angle-right"></i></p> -->
+                </div>
+            </div>
  <div class="col-xl-4 col-lg-6 col-sm-12 mb-1 feature-box" data-recent="true">
                 <div class="shadow padding-feature-box-item text-center d-block match-height app-card" style="cursor: pointer; position: relative;" onclick="window.location.href='/holohub/applications/procedural_narrator/';">
                     <span class="new-badge" style="position: absolute; top: 10px; right: 10px; background-color: #76b900; color: white; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 0.65rem; font-weight: 600;">New</span>
@@ -2121,6 +2132,8 @@
       
         
           
+        
+      
         
       
         
@@ -11998,14 +12011,14 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="velodyne_lidar_app/" class="md-nav__link ">
+            <a href="usrp_spectrum_viewer/" class="md-nav__link ">
               
   
   
   <span class="md-ellipsis">
     
   
-    Velodyne VLP-16 Lidar Viewer
+    USRP Spectrum Viewer
   
 
     
@@ -12022,7 +12035,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Velodyne VLP-16 Lidar Viewer
+    USRP Spectrum Viewer
   
 
           </label>
@@ -12066,14 +12079,14 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="vila_live/" class="md-nav__link ">
+            <a href="velodyne_lidar_app/" class="md-nav__link ">
               
   
   
   <span class="md-ellipsis">
     
   
-    VILA Live
+    Velodyne VLP-16 Lidar Viewer
   
 
     
@@ -12090,7 +12103,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    VILA Live
+    Velodyne VLP-16 Lidar Viewer
   
 
           </label>
@@ -12134,6 +12147,74 @@
         
           
           <div class="md-nav__link md-nav__container">
+            <a href="vila_live/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    VILA Live
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_77_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_77">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    VILA Live
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_78" >
+        
+          
+          <div class="md-nav__link md-nav__container">
             <a href="psd_pipeline/" class="md-nav__link ">
               
   
@@ -12153,8 +12234,8 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_77_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2_77">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_78_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_78">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -12202,7 +12283,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_78" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_79" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -12224,14 +12305,14 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_2_78" id="__nav_2_78_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_2_79" id="__nav_2_79_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_78_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2_78">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_79_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_79">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -12267,7 +12348,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_78_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_79_2" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -12290,8 +12371,8 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_78_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2_78_2">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_79_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_79_2">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -12335,7 +12416,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_78_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_79_3" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -12358,8 +12439,8 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_78_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2_78_3">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_79_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_79_3">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -12377,74 +12458,6 @@
     </li>
   
 
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    
-    
-      
-        
-          
-        
-      
-    
-    
-    
-      
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_79" >
-        
-          
-          <div class="md-nav__link md-nav__container">
-            <a href="volume_rendering/" class="md-nav__link ">
-              
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Volume rendering using ClaraViz
-  
-
-    
-  </span>
-  
-  
-
-            </a>
-            
-          </div>
-        
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_79_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2_79">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Volume rendering using ClaraViz
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
               
             
           </ul>
@@ -12483,14 +12496,14 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="vpi_stereo/" class="md-nav__link ">
+            <a href="volume_rendering/" class="md-nav__link ">
               
   
   
   <span class="md-ellipsis">
     
   
-    VPI Stereo Vision
+    Volume rendering using ClaraViz
   
 
     
@@ -12507,7 +12520,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    VPI Stereo Vision
+    Volume rendering using ClaraViz
   
 
           </label>
@@ -12551,14 +12564,14 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="webrtc_holoviz_server/" class="md-nav__link ">
+            <a href="vpi_stereo/" class="md-nav__link ">
               
   
   
   <span class="md-ellipsis">
     
   
-    WebRTC Holoviz Server
+    VPI Stereo Vision
   
 
     
@@ -12575,7 +12588,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    WebRTC Holoviz Server
+    VPI Stereo Vision
   
 
           </label>
@@ -12619,14 +12632,14 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="webrtc_video_client/" class="md-nav__link ">
+            <a href="webrtc_holoviz_server/" class="md-nav__link ">
               
   
   
   <span class="md-ellipsis">
     
   
-    WebRTC Video Client
+    WebRTC Holoviz Server
   
 
     
@@ -12643,7 +12656,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    WebRTC Video Client
+    WebRTC Holoviz Server
   
 
           </label>
@@ -12687,14 +12700,14 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="webrtc_video_server/" class="md-nav__link ">
+            <a href="webrtc_video_client/" class="md-nav__link ">
               
   
   
   <span class="md-ellipsis">
     
   
-    WebRTC Video Server
+    WebRTC Video Client
   
 
     
@@ -12711,7 +12724,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    WebRTC Video Server
+    WebRTC Video Client
   
 
           </label>
@@ -12755,14 +12768,14 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="xr_gsplat/" class="md-nav__link ">
+            <a href="webrtc_video_server/" class="md-nav__link ">
               
   
   
   <span class="md-ellipsis">
     
   
-    XR + Gaussian Splatting
+    WebRTC Video Server
   
 
     
@@ -12779,7 +12792,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    XR + Gaussian Splatting
+    WebRTC Video Server
   
 
           </label>
@@ -12823,14 +12836,14 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="xr_holoviz/" class="md-nav__link ">
+            <a href="xr_gsplat/" class="md-nav__link ">
               
   
   
   <span class="md-ellipsis">
     
   
-    XR + Holoviz
+    XR + Gaussian Splatting
   
 
     
@@ -12847,7 +12860,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    XR + Holoviz
+    XR + Gaussian Splatting
   
 
           </label>
@@ -12891,6 +12904,74 @@
         
           
           <div class="md-nav__link md-nav__container">
+            <a href="xr_holoviz/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    XR + Holoviz
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_86_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_86">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    XR + Holoviz
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_87" >
+        
+          
+          <div class="md-nav__link md-nav__container">
             <a href="yolo_model_deployment/" class="md-nav__link ">
               
   
@@ -12910,8 +12991,8 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_86_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2_86">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_87_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_87">
             <span class="md-nav__icon md-icon"></span>
             
   

@@ -5,14 +5,14 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
-<meta content="WebRTC Video Server — a Holoscan component in HoloHub, the Holoscan Ecosystem." name="description"/>
+<meta content="USRP Spectrum Viewer — a Holoscan component in HoloHub, the Holoscan Ecosystem." name="description"/>
 <meta content="NVIDIA" name="author"/>
-<link href="https://nvidia-holoscan.github.io/holohub/applications/webrtc_video_server/" rel="canonical"/>
-<link href="../webrtc_video_client/" rel="prev"/>
-<link href="../xr_gsplat/" rel="next"/>
+<link href="https://nvidia-holoscan.github.io/holohub/applications/usrp_spectrum_viewer/" rel="canonical"/>
+<link href="../ultrasound_postprocessing/" rel="prev"/>
+<link href="../velodyne_lidar_app/" rel="next"/>
 <link href="../../assets/images/favicon.png" rel="icon"/>
 <meta content="mkdocs-1.6.1, mkdocs-material-9.7.7" name="generator"/>
-<title>WebRTC Video Server (latest) - HoloHub – Explore The Holoscan Ecosystem</title>
+<title>USRP Spectrum Viewer (latest) - HoloHub – Explore The Holoscan Ecosystem</title>
 <link href="../../assets/stylesheets/main.ec1eaa64.min.css" rel="stylesheet"/>
 <link href="../../assets/stylesheets/palette.ab4e12ef.min.css" rel="stylesheet"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -26,16 +26,16 @@
 <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
 <script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-S5CCWVS2B6"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-S5CCWVS2B6",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-S5CCWVS2B6",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
 <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
-<meta content="WebRTC Video Server — a Holoscan component in HoloHub, the Holoscan Ecosystem." property="og:description"/>
-<meta content="WebRTC Video Server — a Holoscan component in HoloHub, the Holoscan Ecosystem." name="twitter:description"/>
+<meta content="USRP Spectrum Viewer — a Holoscan component in HoloHub, the Holoscan Ecosystem." property="og:description"/>
+<meta content="USRP Spectrum Viewer — a Holoscan component in HoloHub, the Holoscan Ecosystem." name="twitter:description"/>
 <meta content="website" property="og:type"/>
-<meta content="WebRTC Video Server (latest) - HoloHub – Explore The Holoscan Ecosystem" property="og:title"/>
+<meta content="USRP Spectrum Viewer (latest) - HoloHub – Explore The Holoscan Ecosystem" property="og:title"/>
 <meta content="HoloHub – Explore The Holoscan Ecosystem" property="og:site_name"/>
-<meta content="https://nvidia-holoscan.github.io/holohub/applications/webrtc_video_server/" property="og:url"/>
+<meta content="https://nvidia-holoscan.github.io/holohub/applications/usrp_spectrum_viewer/" property="og:url"/>
 <meta content="https://nvidia-holoscan.github.io/holohub/assets/images/jetson-for-dev-ai-labs-icon-2974266-r3_ai-lab-text-generation-28.png" property="og:image"/>
 <meta content="en_US" property="og:locale"/>
 <meta content="summary_large_image" name="twitter:card"/>
-<meta content="WebRTC Video Server (latest) - HoloHub – Explore The Holoscan Ecosystem" name="twitter:title"/>
+<meta content="USRP Spectrum Viewer (latest) - HoloHub – Explore The Holoscan Ecosystem" name="twitter:title"/>
 <meta content="https://nvidia-holoscan.github.io/holohub/assets/images/jetson-for-dev-ai-labs-icon-2974266-r3_ai-lab-text-generation-28.png" name="twitter:image"/>
 <script type="application/ld+json">
   {
@@ -52,7 +52,7 @@
           "Holoscan Applications"
         ],
         "url": "https://nvidia-holoscan.github.io/holohub/",
-        "description": "WebRTC Video Server \u2014 a Holoscan component in HoloHub, the Holoscan Ecosystem.",
+        "description": "USRP Spectrum Viewer \u2014 a Holoscan component in HoloHub, the Holoscan Ecosystem.",
         "publisher": { "@id": "https://nvidia-holoscan.github.io/holohub/#organization" },
         "potentialAction": {
           "@type": "SearchAction",
@@ -75,7 +75,7 @@
         "@id": "https://nvidia-holoscan.github.io/holohub/#holohub",
         "name": "HoloHub",
         "alternateName": "The Holoscan Ecosystem",
-        "description": "WebRTC Video Server \u2014 a Holoscan component in HoloHub, the Holoscan Ecosystem.",
+        "description": "USRP Spectrum Viewer \u2014 a Holoscan component in HoloHub, the Holoscan Ecosystem.",
         "url": "https://nvidia-holoscan.github.io/holohub/",
         "codeRepository": "https://github.com/nvidia-holoscan/holohub",
         "programmingLanguage": ["Python", "C++"],
@@ -97,7 +97,7 @@
 <input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
 <label class="md-overlay" for="__drawer"></label>
 <div data-md-component="skip">
-<a class="md-skip" href="#webrtc-video-server">
+<a class="md-skip" href="#usrp-spectrum-viewer">
           Skip to content
         </a>
 </div>
@@ -132,7 +132,7 @@
 <div class="md-header__topic" data-md-component="header-topic">
 <span class="md-ellipsis">
             
-              WebRTC Video Server (latest)
+              USRP Spectrum Viewer (latest)
             
           </span>
 </div>
@@ -4388,10 +4388,10 @@
 </ul>
 </nav>
 </li>
-<li class="md-nav__item md-nav__item--nested">
-<input class="md-nav__toggle md-toggle" id="__nav_2_75" type="checkbox"/>
+<li class="md-nav__item md-nav__item--active md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_2_75" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link" href="../usrp_spectrum_viewer/">
+<a class="md-nav__link md-nav__link--active" href="./">
 <span class="md-ellipsis">
     
   
@@ -4402,7 +4402,7 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="false" aria-labelledby="__nav_2_75_label" class="md-nav" data-md-level="2">
+<nav aria-expanded="true" aria-labelledby="__nav_2_75_label" class="md-nav" data-md-level="2">
 <label class="md-nav__title" for="__nav_2_75">
 <span class="md-nav__icon md-icon"></span>
             
@@ -4688,10 +4688,10 @@
 </ul>
 </nav>
 </li>
-<li class="md-nav__item md-nav__item--active md-nav__item--nested">
-<input checked="" class="md-nav__toggle md-toggle" id="__nav_2_84" type="checkbox"/>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_2_84" type="checkbox"/>
 <div class="md-nav__link md-nav__container">
-<a class="md-nav__link md-nav__link--active" href="./">
+<a class="md-nav__link" href="../webrtc_video_server/">
 <span class="md-ellipsis">
     
   
@@ -4702,7 +4702,7 @@
   </span>
 </a>
 </div>
-<nav aria-expanded="true" aria-labelledby="__nav_2_84_label" class="md-nav" data-md-level="2">
+<nav aria-expanded="false" aria-labelledby="__nav_2_84_label" class="md-nav" data-md-level="2">
 <label class="md-nav__title" for="__nav_2_84">
 <span class="md-nav__icon md-icon"></span>
             
@@ -7992,29 +7992,29 @@
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#prerequisites">
+<a class="md-nav__link" href="#overview">
 <span class="md-ellipsis">
       
-        Prerequisites
+        Overview
+      
+    </span>
+</a>
+<nav aria-label="Overview" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#usrp-references">
+<span class="md-ellipsis">
+      
+        USRP References
       
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#run-instructions">
+<a class="md-nav__link" href="#acronyms">
 <span class="md-ellipsis">
       
-        Run Instructions
-      
-    </span>
-</a>
-<nav aria-label="Run Instructions" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#command-line-arguments">
-<span class="md-ellipsis">
-      
-        Command Line Arguments
+        Acronyms
       
     </span>
 </a>
@@ -8023,26 +8023,160 @@
 </nav>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#running-with-turn-server">
+<a class="md-nav__link" href="#requirements">
 <span class="md-ellipsis">
       
-        Running With TURN server
+        Requirements
       
     </span>
 </a>
-<nav aria-label="Running With TURN server" class="md-nav">
+<nav aria-label="Requirements" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#note">
+<a class="md-nav__link" href="#first-time-machine-setup">
 <span class="md-ellipsis">
       
-        Note
+        First-Time Machine Setup
       
     </span>
 </a>
 </li>
 </ul>
 </nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#configuration">
+<span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+</a>
+<nav aria-label="Configuration" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#usrp-receive-configuration">
+<span class="md-ellipsis">
+      
+        USRP Receive Configuration
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#uhd-streaming-path">
+<span class="md-ellipsis">
+      
+        UHD Streaming Path
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#shared-visualization-state">
+<span class="md-ellipsis">
+      
+        Shared Visualization State
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#visualization-high-level-flow">
+<span class="md-ellipsis">
+      
+        Visualization High-Level Flow
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#memory-layout">
+<span class="md-ellipsis">
+      
+        Memory Layout
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#output">
+<span class="md-ellipsis">
+      
+        Output
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#build-run">
+<span class="md-ellipsis">
+      
+        Build &amp; Run
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#troubleshooting">
+<span class="md-ellipsis">
+      
+        Troubleshooting
+      
+    </span>
+</a>
+<nav aria-label="Troubleshooting" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#run-on-a-local-display-not-a-remote-desktop">
+<span class="md-ellipsis">
+      
+        Run on a local display, not a remote desktop
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#known-issues">
+<span class="md-ellipsis">
+      
+        Known Issues
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#limitations">
+<span class="md-ellipsis">
+      
+        Limitations
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#folder-summary">
+<span class="md-ellipsis">
+      
+        Folder Summary
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#notes">
+<span class="md-ellipsis">
+      
+        Notes
+      
+    </span>
+</a>
 </li>
 </ul>
 </nav>
@@ -8069,7 +8203,7 @@
 <li class="md-path__item">
 <a class="md-path__link" href="./">
 <span class="md-ellipsis">
-    WebRTC Video Server
+    USRP Spectrum Viewer
   </span>
 </a>
 </li>
@@ -8077,80 +8211,369 @@
 </nav>
 <article class="md-content__inner md-typeset">
 <nav class="md-tags">
-<a class="md-tag" href="../../tags/#tag:communications">Communications</a>
-<a class="md-tag" href="../../tags/#tag:networking-and-distributed-computing">Networking and Distributed Computing</a>
-<a class="md-tag" href="../../tags/#tag:video">Video</a>
-<a class="md-tag" href="../../tags/#tag:webrtc">WebRTC</a>
+<a class="md-tag" href="../../tags/#tag:dpdk">DPDK</a>
+<a class="md-tag" href="../../tags/#tag:holoviz">HOLOVIZ</a>
+<a class="md-tag" href="../../tags/#tag:sdr">SDR</a>
+<a class="md-tag" href="../../tags/#tag:signal-processing">Signal Processing</a>
+<a class="md-tag" href="../../tags/#tag:usrp">USRP</a>
 </nav>
-<h1 id="webrtc-video-server"><a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/webrtc_video_server">WebRTC Video Server</a><a class="headerlink" href="#webrtc-video-server" title="Permanent link">#</a></h1>
-<p><button class="run-locally-button" data-app-language="Python" data-app-name="WebRTC Video Server" data-app-short-name="webrtc_video_server" data-component-type="application" data-modes="[]" data-needs-language-flag="false">
+<h1 id="usrp-spectrum-viewer"><a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/usrp_spectrum_viewer">USRP Spectrum Viewer</a><a class="headerlink" href="#usrp-spectrum-viewer" title="Permanent link">#</a></h1>
+<p><button class="run-locally-button" data-app-language="C++" data-app-name="USRP Spectrum Viewer" data-app-short-name="usrp_spectrum_viewer" data-component-type="application" data-modes="[]" data-needs-language-flag="false">
     ▶ Run Locally
 </button>
-<span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"></path></svg></span> <strong>Authors:</strong> Holoscan Team (NVIDIA)<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"></path></svg></span> <strong>Supported platforms:</strong> x86_64, aarch64<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"></path><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"></path></svg></span> <strong>Language:</strong> Python<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"></path><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"></path></svg></span> <strong>Last modified:</strong> March 9, 2026<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"></path><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"></path></svg></span> <strong>Latest version:</strong> 1.0.0<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"></path><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"></path><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"></path></svg></span> <strong>Minimum Holoscan SDK version:</strong> 0.6.0<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"></path></svg></span> <strong>Tested Holoscan SDK versions:</strong> 0.6.0<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"></path></svg></span> <strong>Contribution metric:</strong> Level 1 - Highly Reliable<br/><br/></p>
-<p><img alt="WebRTC Video Server" src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/webrtc_video_server/screenshot.png?raw=true"/></p>
-<p>This app reads video frames from a file and sends it to a browser using WebRTC.</p>
-<p>The app starts a web server, the pipeline starts when a browser is connected to the web server and the <code>Start</code> button is pressed. The pipeline stops when the <code>Stop</code> button is pressed.</p>
+<span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"></path></svg></span> <strong>Authors:</strong> Andrew Lynch <a href="mailto:andrew.lynch@emerson.com">andrew.lynch@emerson.com</a> (National Instruments Corporation.), Johannes Lange <a href="mailto:johannes.lange@emerson.com">johannes.lange@emerson.com</a> (National Instruments Corporation.), Abhiram Anil <a href="mailto:abhiram.anil@emerson.com">abhiram.anil@emerson.com</a> (National Instruments Corporation.)<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"></path></svg></span> <strong>Supported platforms:</strong> x86_64, aarch64<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"></path><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"></path></svg></span> <strong>Language:</strong> C++<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"></path><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"></path></svg></span> <strong>Last modified:</strong> September 9, 2026<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"></path><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"></path></svg></span> <strong>Latest version:</strong> 1.0.0<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"></path><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"></path><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"></path></svg></span> <strong>Minimum Holoscan SDK version:</strong> 4.4.0<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"></path></svg></span> <strong>Tested Holoscan SDK versions:</strong> 4.4.0, 4.5.0, 4.6.0<br/><span class="twemoji"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"></path></svg></span> <strong>Contribution metric:</strong> Level 3 - Developmental<br/><br/></p>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h2>
+<p>The USRP Spectrum Viewer application receives RF samples from a USRP radio, ingests CHDR packets through DAQIRI, converts them into GPU tensors, performs FFT-based spectral analysis, computes power in dB, and renders the resulting spectrum with Holoviz.</p>
+<p>The processing pipeline is shown below. <code>UsrpRxOp</code> is a <strong>control-only</strong> operator. It commands the radio to start streaming but emits no tensors. The RF samples reach <code>UhdChdrRxOp</code> out-of-band over the NIC (via DPDK/DAQIRI), <strong>not</strong> through a Holoscan port, so there is no Holoscan data-flow edge between <code>UsrpRxOp</code> and <code>UhdChdrRxOp</code>.</p>
 <pre class="mermaid"><code>flowchart LR
-    subgraph Server
-        A[(VideoFile)] --&gt; VideoStreamReplayerOp
-        VideoStreamReplayerOp --&gt; FormatConverterOp
-        FormatConverterOp --&gt; WebRTCServerOp
-        WebServer
-    end
-    subgraph Client
-        WebServer &lt;--&gt; Browser
-        WebRTCServerOp &lt;--&gt; Browser
-    end</code></pre>
+    start([start_op]) -. triggers .-&gt; USRP[UsrpRxOp - control only]
+    USRP -. commands radio .-&gt; NIC[(USRP / NIC / DPDK)]
+    NIC == RF samples ==&gt; CHDR[UhdChdrRxOp]
+    CHDR --&gt; FFT[FFT]
+    FFT --&gt; MAG[SpectrumMagnitudeOp]
+    FFT --&gt; LOG[LogOp]
+    MAG --&gt; VIZ[SpectrumVisualizerOp]
+    VIZ --&gt;|outputs to receivers| HV[HolovizOp]
+    VIZ --&gt;|output_specs to input_specs| HV
+
+    classDef green fill:#c7f9cc,stroke:#000,color:#000;
+    classDef white fill:#ffffff,stroke:#000,color:#000;
+    class start,USRP,CHDR,FFT,MAG,LOG,VIZ,HV green;
+    class NIC white;</code></pre>
+<h3 id="usrp-references">USRP References<a class="headerlink" href="#usrp-references" title="Permanent link">#</a></h3>
+<p>The application uses the UHD API to configure and control the USRP, then receives the resulting CHDR/UDP stream through DAQIRI. Consult the following before adapting the radio and network settings:</p>
+<ul>
+<li><a href="https://files.ettus.com/manual/">USRP Hardware Driver and UHD Manual</a></li>
+<li><a href="https://files.ettus.com/manual/page_configuration.html">UHD Configuration and Device Arguments</a></li>
+<li><a href="https://www.ettus.com/all-products/">USRP Hardware Documentation</a></li>
+</ul>
+<h3 id="acronyms">Acronyms<a class="headerlink" href="#acronyms" title="Permanent link">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Acronym</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CHDR</td>
+<td>Condensed Hierarchical Datagram (USRP communication protocol)</td>
+</tr>
+<tr>
+<td>DPDK</td>
+<td>Data Plane Development Kit</td>
+</tr>
+<tr>
+<td>FFT</td>
+<td>Fast Fourier Transform</td>
+</tr>
+<tr>
+<td>NIC</td>
+<td>Network Interface Card</td>
+</tr>
+<tr>
+<td>UHD</td>
+<td>USRP Hardware Driver</td>
+</tr>
+<tr>
+<td>USRP</td>
+<td>Universal Software Radio Peripheral</td>
+</tr>
+</tbody>
+</table>
+<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h2>
+<p>The following equipment is required to run the application:</p>
+<ul>
+<li>A USRP device capable of streaming CHDR/UDP data to the host NIC, e.g., a USRP X410 or X440</li>
+<li>An x86_64 PC with decent performance running Ubuntu Linux 24.04</li>
+<li>NVIDIA/Mellanox ConnectX-6 Dx or better</li>
+<li>NVIDIA RTX A4000 or better</li>
+<li>Alternatively, a NVIDIA DGX Spark can be used as well</li>
+<li>A QSFP+ cable capable of 100GbE transmission</li>
+</ul>
 <blockquote>
-<p><strong><em>NOTE:</em></strong> When using VPN there might be a delay of several seconds between pressing the <code>Start</code> button and the first video frames are display. The reason for this is that the STUN server <code>stun.l.google.com:19302</code> used by default might not be available when VPN is active and the missing support for Trickle ICE in the used aiortc library. Trickle ICE is an optimization to speed up connection establishment. Normally, possible connections paths are tested one after another. If connections time out this is blocking the whole process. Trickle ICE checks each possible connection path in parallel so the connection timing out won't block the process.</p>
+<p>[!IMPORTANT]
+The settings in <code>config.yaml</code> must be tailored to your system, including USRP device arguments, NIC PCIe address, host IP address, destination ports, and MAC addressing.</p>
 </blockquote>
-<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">#</a></h2>
-<p>The app is using <a href="https://docs.aiohttp.org/en/stable/">AIOHTTP</a> for the web server and <a href="https://github.com/aiortc/aiortc">AIORTC</a> for WebRTC. Install both using pip.</p>
-<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>aiohttp<span class="w"> </span>aiortc
+<h3 id="first-time-machine-setup">First-Time Machine Setup<a class="headerlink" href="#first-time-machine-setup" title="Permanent link">#</a></h3>
+<p>Before configuring or running this application, prepare the host:</p>
+<ul>
+<li>
+<p><strong>High-performance networking:</strong> this application receives the USRP CHDR/UDP stream through DAQIRI and DPDK, placing the RF payload directly into GPU-accessible memory. Complete the <a href="../../tutorials/high_performance_networking/">High Performance Networking tutorial</a> (hugepages, NIC/DPDK binding) first. This is required, not optional.</p>
+</li>
+<li>
+<p><strong>Socket buffer limits:</strong> increase the kernel socket buffers used by the UHD control path. If UHD warns about send/receive buffer sizes or you see dropped packets, run:</p>
+</li>
+</ul>
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>sysctl<span class="w"> </span>-w<span class="w"> </span>net.core.rmem_max<span class="o">=</span><span class="m">2500000</span>
+sudo<span class="w"> </span>sysctl<span class="w"> </span>-w<span class="w"> </span>net.core.wmem_max<span class="o">=</span><span class="m">2500000</span>
 </code></pre></div>
-<h2 id="run-instructions">Run Instructions<a class="headerlink" href="#run-instructions" title="Permanent link">#</a></h2>
-<p>Run the command:</p>
-<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>webrtc_video_server<span class="w"> </span>--local<span class="w"> </span>--no-local-build
-</code></pre></div>
-<p>On the same machine open a browser and connect to <code>127.0.0.1:8080</code>. You can also connect from a different machine by connecting to the IP address the app is running on.</p>
-<p>Press the <code>Start</code> button. Video frames are displayed. To stop, press the <code>Stop</code> button. Pressing <code>Start</code> again will continue the video.</p>
-<h3 id="command-line-arguments">Command Line Arguments<a class="headerlink" href="#command-line-arguments" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code>usage: webrtc_server.py [-h] [--cert-file CERT_FILE] [--key-file KEY_FILE] [--host HOST] [--port PORT] [--verbose] [--ice-server ICE_SERVER]
+<p>These apply to the current boot only; add them to <code>/etc/sysctl.conf</code> to persist.</p>
+<ul>
+<li><strong>USRP FPGA image:</strong> load an FPGA image that supports your streaming rate with <code>uhd_image_loader</code>. See the <a href="https://files.ettus.com/manual/page_usrp_x4xx.html">USRP X4xx manual</a> for the loading procedure, and <a href="#limitations">Limitations</a> for the images used during testing.</li>
+</ul>
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">#</a></h2>
+<p>Each major stage of the pipeline has its own configuration section in <code>config.yaml</code>.
+The operator-specific options and their meaning are documented in each folder-level README:</p>
+<ol>
+<li><a href="https://github.com/NVIDIA/daqiri"><code>daqiri</code></a></li>
+<li><a href="usrp_rx/README.md"><code>usrp_rx</code></a></li>
+<li><a href="uhd_chdr_rx/README.md"><code>uhd_chdr_rx</code></a></li>
+<li><a href="../../operators/fft/"><code>fft</code></a></li>
+<li><a href="spectrum_magnitude/README.md"><code>spectrum_magnitude</code></a></li>
+<li><a href="spectrum_visualizer/README.md"><code>spectrum_visualizer</code></a></li>
+<li><a href="https://github.com/nvidia-holoscan/holoscan-sdk/blob/e64af8f270896599ec4c7e53a25acef12dbb3934/examples/holoviz/README.md?plain=1#L4"><code>holoviz</code></a></li>
+<li><a href="log/README.md"><code>log</code></a></li>
+</ol>
+<h3 id="usrp-receive-configuration">USRP Receive Configuration<a class="headerlink" href="#usrp-receive-configuration" title="Permanent link">#</a></h3>
+<p>The <code>usrp_rx</code> section configures the control-plane connection to the radio. When <code>enabled</code> is <code>true</code>, <code>UsrpRxOp</code> opens the device identified by <code>args</code>, configures the sample rate, RF center frequency, and gain for every selected channel, and starts one UHD receive streamer per channel. Each streamer sends its UDP/CHDR packets to the
+matching <code>dest_ports</code> entry on <code>dest_addr</code>, <code>channels</code> and <code>dest_ports</code> must have the same number of entries. Their positions form the mapping between a radio channel and a DAQIRI receive queue; for example, channel 0 uses port 1234 and channel 1 uses port 1235 below.</p>
+<p>The <code>CH0</code>/<code>CH1</code> labels in the Holoviz legend, the peak readout, and the <code>LogOp</code> throughput lines
+identify the <strong>DAQIRI receive queue</strong>, not the radio channel index. That is the only channel
+identifier which is always defined, because <code>usrp_rx</code> is optional and the application can also
+attach to an externally started streamer.</p>
+<p>Which radio channel appears as <code>CHn</code> therefore follows from your configuration:
+<code>usrp_rx.channels[i]</code> streams to <code>usrp_rx.dest_ports[i]</code>, that port is matched by a
+<code>daqiri.cfg.interfaces[].rx.flows[]</code> entry, and the flow's <code>action.id</code> selects the queue. With the
+shipped configuration this chain is the identity mapping. If you stream a non-identity channel list
+— for example <code>channels: [1]</code> or <code>channels: [2, 0]</code> — the traces are still correct, but <code>CHn</code> will
+not match the physical radio channel number.</p>
+<blockquote>
+<p>[!IMPORTANT]
+<code>enabled</code> defaults to <code>false</code> so the application never tries to open a radio with the placeholder addresses shipped in <code>config.yaml</code>. Replace the placeholder <code>args</code>, <code>dest_addr</code>, and <code>dest_mac_addr</code> values with your hardware's settings, then set <code>enabled: true</code> to start in-app USRP control.</p>
+<p>Before starting the application, make the <code>spectrum_viz</code> reference settings describe the RF stream configured in <code>usrp_rx</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">usrp_rx</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">freq</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000000000.0</span><span class="w">       </span><span class="c1"># Hz: actual USRP center frequency</span>
+<span class="w">  </span><span class="nt">rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">500000000.0</span><span class="w">        </span><span class="c1"># samples/s: FFT sample rate</span>
 
-optional arguments:
-  -h, --help            show this help message and exit
-  --cert-file CERT_FILE
-                        SSL certificate file (for HTTPS)
-  --key-file KEY_FILE   SSL key file (for HTTPS)
-  --host HOST           Host for HTTP server (default: 0.0.0.0)
-  --port PORT           Port for HTTP server (default: 8080)
-  --verbose, -v
-  --ice-server ICE_SERVER
-                        ICE server config in the form of `turn:&lt;ip&gt;:&lt;port&gt;[&lt;username&gt;:&lt;password&gt;]` or `stun:&lt;ip&gt;:&lt;port&gt;`. This option can be specified multiple times to add multiple ICE servers.
+<span class="nt">spectrum_viz</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">ref_center_hz</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000000000.0</span><span class="w">   </span><span class="c1"># must equal usrp_rx.freq</span>
+<span class="w">  </span><span class="nt">ref_bandwidth_hz</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">500000000.0</span><span class="w"> </span><span class="c1"># must equal the FFT sample rate</span>
 </code></pre></div>
-<h2 id="running-with-turn-server">Running With TURN server<a class="headerlink" href="#running-with-turn-server" title="Permanent link">#</a></h2>
-<p>A TURN server may be needed if you're running in a containerized environment without host networking (e.g. Kubernetes or Docker). Here are some basic steps to run this example with a TURN server.</p>
-<p>Run the TURN server in the same machine that you're running the app on.</p>
-<h3 id="note">Note<a class="headerlink" href="#note" title="Permanent link">#</a></h3>
-<p>It is strongly recommended to run the TURN server with docker network=host for best performance.</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># This is the external IP address of the machine running the TURN server</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">TURN_SERVER_EXTERNAL_IP</span><span class="o">=</span><span class="s2">"&lt;ip&gt;"</span>
+<p>If these values do not match the received RF stream, the spectrum still renders, but its frequency labels and peak-frequency readout are incorrect.</p>
+</blockquote>
+<h3 id="uhd-streaming-path">UHD Streaming Path<a class="headerlink" href="#uhd-streaming-path" title="Permanent link">#</a></h3>
+<p>The USRP uses separate network paths for control and high-rate CHDR data. The host runs UHD control through its management interface, while DAQIRI/DPDK receives the packet stream through the high-speed interface configured as <code>sdr_data</code>.</p>
+<pre class="mermaid"><code>flowchart LR
+    subgraph USRP["USRP"]
+        direction TB
+        ETH0["eth0:&lt;br/&gt;&amp;lt;device_addr&amp;gt;"]
+        SFP0["sfp0"]
+        ETH0 ~~~ SFP0
+    end
 
-<span class="c1"># Command below use admin:admin as the username and password as an example</span>
-docker<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span>--rm<span class="w"> </span>--network<span class="o">=</span>host<span class="w"> </span>instrumentisto/coturn<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>-n<span class="w"> </span>--log-file<span class="o">=</span>stdout<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--external-ip<span class="o">=</span><span class="nv">$TURN_SERVER_EXTERNAL_IP</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--listening-ip<span class="o">=</span><span class="nv">$TURN_SERVER_EXTERNAL_IP</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--lt-cred-mech<span class="w"> </span>--fingerprint<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--user<span class="o">=</span>admin:admin<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--no-multicast-peers<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--verbose<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--realm<span class="o">=</span>default.realm.org
+    subgraph HOST["Host"]
+        direction TB
+        subgraph UHD["UHD Host"]
+            EN01["en01"]
+        end
+        subgraph REMOTE["Remote Destination"]
+            direction TB
+            ENP["enp1s0f1np1:&lt;br/&gt;&amp;lt;dest_addr&amp;gt;&lt;br/&gt;&amp;lt;dest_mac_addr&amp;gt;"]
+        end
+        UHD ~~~ REMOTE
+    end
+
+    USRP ~~~ HOST
+    EN01 --&gt;|"1/10 GbE management and UHD control"| ETH0
+    SFP0 --&gt;|"100 GbE CHDR / UDP RF data (all channels)"| ENP
+
+    classDef white fill:#ffffff,stroke:#000,color:#000;
+    class EN01,ENP,ETH0,SFP0 white;
+    style USRP fill:#c7f9cc,stroke:#000,color:#000;
+    style HOST fill:#c7f9cc,stroke:#000,color:#000;
+    style UHD fill:#c7f9cc,stroke:#000,color:#000;
+    style REMOTE fill:#c7f9cc,stroke:#000,color:#000;
+</code></pre>
+<p>The addresses shown above illustrate the physical topology from the supplied setup diagram. Configure the matching USRP address and data destination in <code>usrp_rx</code>; replace the example addresses with those assigned to the USRP and host in your environment.</p>
+<div class="highlight"><pre><span></span><code><span class="nt">usrp_rx</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="c1"># UHD device address and optional device settings.</span>
+<span class="w">    </span><span class="nt">args</span><span class="p">:</span><span class="w"> </span><span class="s">"addr=&lt;device_addr&gt;,master_clock_rate=500000000"</span>
+<span class="w">    </span><span class="nt">rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">500000000.0</span>
+<span class="w">    </span><span class="nt">freq</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000000000.0</span>
+<span class="w">    </span><span class="nt">gain</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
+<span class="w">    </span><span class="nt">channels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1</span><span class="p p-Indicator">]</span>
+
+<span class="w">    </span><span class="c1"># Destination for the USRP's CHDR/UDP streams.</span>
+<span class="w">    </span><span class="nt">dest_addr</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;dest_addr&gt;</span>
+<span class="w">    </span><span class="nt">dest_ports</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">1234</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1235</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">adapter</span><span class="p">:</span><span class="w"> </span><span class="s">"sfp0"</span>
+<span class="w">    </span><span class="nt">dest_mac_addr</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;dest_mac&gt;</span>
+<span class="w">    </span><span class="nt">keep_hdr</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">spp</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1024</span>
+<span class="w">    </span><span class="nt">mtu</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8064</span>
+<span class="w">    </span><span class="nt">start_delay_seconds</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.05</span>
 </code></pre></div>
-<p>Then you can pass in the TURN server config into the app</p>
-<div class="highlight"><pre><span></span><code>python<span class="w"> </span>webrtc_server.py<span class="w"> </span>--ice-server<span class="w"> </span><span class="s2">"turn:&lt;ip&gt;:3478[admin:admin]"</span>
+<h3 id="shared-visualization-state">Shared Visualization State<a class="headerlink" href="#shared-visualization-state" title="Permanent link">#</a></h3>
+<p>This application uses a shared <code>SpectrumViewState</code> object to communicate between:</p>
+<ol>
+<li>the Holoviz overlay callback, which owns the interactive center-frequency and bandwidth controls</li>
+<li><code>SpectrumVisualizerOp</code>, which remaps spectrum bins into screen-space coordinates and reports peak frequency / power information</li>
+</ol>
+<h3 id="visualization-high-level-flow">Visualization High-Level Flow<a class="headerlink" href="#visualization-high-level-flow" title="Permanent link">#</a></h3>
+<p>At a high level, the visualization subsystem has two separate paths that meet inside <code>HolovizOp</code>:</p>
+<ol>
+<li>the geometry path, where <code>SpectrumVisualizerOp</code> converts the dB spectrum into line-strip coordinates and draw specifications</li>
+<li>the shared-state path, where the overlay callback and the visualizer exchange pan, zoom, peak-toggle, and peak-result values through <code>SpectrumViewState</code></li>
+</ol>
+<pre class="mermaid"><code>flowchart LR
+    MAG["SpectrumMagnitudeOp"] --&gt;|"Magnitude dB"| VIS["SpectrumVisualizerOp"]
+    STATE["SpectrumViewState"] --&gt;|"reads: center_mhz,&lt;br/&gt;bandwidth_mhz, show_peak"| VIS
+    VIS --&gt;|"writes:&lt;br/&gt;peak_freq_mhz, peak_db"| STATE
+    VIS --&gt;|"Geometry tensors + LINE_STRIP InputSpecs"| HV
+
+    subgraph HE["Holoviz Ecosystem"]
+        HV["HolovizOp"] --&gt;|"executes every&lt;br/&gt;render cycle"| OV["SpectrumOverlay&lt;br/&gt;(Holoviz layer_callback)"]
+        OV --&gt;|"Final Frame&lt;br/&gt;(Geometry + Overlay)"| DW["Display Window"]
+    end
+
+    OV --&gt;|"writes: center_mhz,&lt;br/&gt;bandwidth_mhz, show_peak"| STATE
+    STATE --&gt;|"reads: peak_freq_mhz, peak_db"| OV
+
+    classDef white fill:#ffffff,stroke:#000,color:#000;
+    class MAG,VIS,STATE,HV,OV,DW white;
+    style HE fill:#c7f9cc,stroke:#000,color:#000;</code></pre>
+<h3 id="memory-layout">Memory Layout<a class="headerlink" href="#memory-layout" title="Permanent link">#</a></h3>
+<p>The CHDR ingest path uses DAQIRI-managed memory regions. DAQIRI splits every received packet into three segments and places each segment according to the matching queue's <code>memory_regions</code> list. This avoids copying the RF sample payload through host memory before GPU processing.</p>
+<p>For channel 1, the configured queue associates the packet segments with the following regions:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">daqiri</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">cfg</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">memory_regions</span><span class="p">:</span>
+<span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">"Headers_RX_CPU"</span>
+<span class="w">              </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="s">"huge"</span>
+<span class="w">              </span><span class="nt">affinity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">              </span><span class="nt">access</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">local</span><span class="p p-Indicator">]</span>
+<span class="w">              </span><span class="nt">num_bufs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">12500</span>
+<span class="w">              </span><span class="nt">buf_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">42</span><span class="w">       </span><span class="c1"># Ethernet + IPv4 + UDP headers</span>
+<span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">"CH1_CHDR_Headers_RX_CPU"</span>
+<span class="w">              </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="s">"huge"</span>
+<span class="w">              </span><span class="nt">affinity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">              </span><span class="nt">access</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">local</span><span class="p p-Indicator">]</span>
+<span class="w">              </span><span class="nt">num_bufs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">12500</span>
+<span class="w">              </span><span class="nt">buf_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">64</span><span class="w">       </span><span class="c1"># CHDR header</span>
+<span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">"CH1_Data_RX_GPU"</span>
+<span class="w">              </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="s">"device"</span>
+<span class="w">              </span><span class="nt">affinity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">              </span><span class="nt">access</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">local</span><span class="p p-Indicator">]</span>
+<span class="w">              </span><span class="nt">num_bufs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">12500</span>
+<span class="w">              </span><span class="nt">buf_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4096</span><span class="w">     </span><span class="c1"># 1024 complex SC16 samples</span>
+
+<span class="w">        </span><span class="nt">interfaces</span><span class="p">:</span>
+<span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sdr_data</span>
+<span class="w">              </span><span class="nt">address</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0000:41:00.0</span>
+<span class="w">              </span><span class="nt">rx</span><span class="p">:</span>
+<span class="w">                </span><span class="nt">queues</span><span class="p">:</span>
+<span class="w">                    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">"Channel</span><span class="nv"> </span><span class="s">1</span><span class="nv"> </span><span class="s">data"</span>
+<span class="w">                      </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">                      </span><span class="nt">cpu_core</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<span class="w">                      </span><span class="nt">batch_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2500</span>
+<span class="w">                      </span><span class="nt">memory_regions</span><span class="p">:</span>
+<span class="w">                        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">"Headers_RX_CPU"</span><span class="w">          </span><span class="c1"># segment 0</span>
+<span class="w">                        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">"CH1_CHDR_Headers_RX_CPU"</span><span class="w"> </span><span class="c1"># segment 1</span>
+<span class="w">                        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">"CH1_Data_RX_GPU"</span><span class="w">         </span><span class="c1"># segment 2</span>
 </code></pre></div>
-<p>This will enable you to access the webRTC browser application from different machines.</p>
+<p>The second queue follows the same layout with <code>CH2_CHDR_Headers_RX_CPU</code> and <code>CH2_Data_RX_GPU</code>. Thus, each incoming packet is divided into:</p>
+<ol>
+<li>Ethernet, IP, and UDP headers in a CPU huge-page region.</li>
+<li>The CHDR header in a CPU huge-page region.</li>
+<li>The RF sample payload in a GPU device-memory region.</li>
+</ol>
+<p>The <code>batch_size</code> must agree with <code>uhd_chdr_rx</code> batching. The current configuration uses 20 packets per output and 125 outputs per batch, so $20 \times 125 = 2500$ packets are collected per DAQIRI queue batch. <code>UhdChdrRxOp</code> gathers the segment-2 GPU pointers and converts the SC16 payload to complex float samples in a GPU tensor with shape:</p>
+<p><code>[num_outputs_per_batch][num_packets_per_output * num_complex_samples_per_packet]</code></p>
+<p>With the default settings, this is a <code>125 x 20480</code> complex-sample tensor per channel:
+$20 \times 1024 = 20480$ samples per output and $125$ outputs per batch.</p>
+<h3 id="output">Output<a class="headerlink" href="#output" title="Permanent link">#</a></h3>
+<p>At runtime, Holoviz displays a live spectrum view with:</p>
+<ul>
+<li>one rendered line strip per configured RF channel,</li>
+<li>dB-scaled vertical axis labels,</li>
+<li>frequency labels along the horizontal axis,</li>
+<li>an ImGui control panel for center frequency and bandwidth, including a channel-color legend,</li>
+<li>an optional peak frequency / power readout.</li>
+</ul>
+<p><img alt="USRP Spectrum Viewer output" src="https://github.com/nvidia-holoscan/holohub/blob/main/applications/usrp_spectrum_viewer/docs/Spectrum_Output.png?raw=true"/></p>
+<blockquote>
+<p>[!NOTE]
+The screenshot above shows a single visible spectrum trace. With the 2-channel configuration, Holoviz renders one color-coded line strip per configured channel,
+and the control panel legend maps each color to its channel; the traces can overlap when both channels observe the same band.</p>
+</blockquote>
+<h2 id="build-run">Build &amp; Run<a class="headerlink" href="#build-run" title="Permanent link">#</a></h2>
+<p>From the Holohub workspace root:</p>
+<ol>
+<li>Build the networking dev container:</li>
+</ol>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build-container<span class="w"> </span>--docker-file<span class="w"> </span>pkg/holoscan-networking/Dockerfile<span class="w"> </span>--img<span class="w"> </span>holohub-networking:4.6.0<span class="w"> </span>--dryrun<span class="w"> </span>--verbose
+./holohub<span class="w"> </span>build-container<span class="w"> </span>--docker-file<span class="w"> </span>pkg/holoscan-networking/Dockerfile<span class="w"> </span>--img<span class="w"> </span>holohub-networking:4.6.0<span class="w"> </span>--verbose
+</code></pre></div>
+<ol>
+<li>Build the application:</li>
+</ol>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>usrp_spectrum_viewer<span class="w"> </span>--docker-opts<span class="w"> </span><span class="s2">"-u root --privileged -v /mnt/huge:/mnt/huge"</span><span class="w"> </span>--dryrun<span class="w"> </span>--verbose
+./holohub<span class="w"> </span>build<span class="w"> </span>usrp_spectrum_viewer<span class="w"> </span>--docker-opts<span class="w"> </span><span class="s2">"-u root --privileged -v /mnt/huge:/mnt/huge"</span><span class="w"> </span>--verbose
+</code></pre></div>
+<ol>
+<li>Run the application:</li>
+</ol>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>run<span class="w"> </span>usrp_spectrum_viewer<span class="w"> </span>--docker-opts<span class="w"> </span><span class="s2">"-u root --privileged -v /mnt/huge:/mnt/huge --cpuset-cpus=0-11"</span><span class="w"> </span>--dryrun<span class="w"> </span>--verbose
+./holohub<span class="w"> </span>run<span class="w"> </span>usrp_spectrum_viewer<span class="w"> </span>--docker-opts<span class="w"> </span><span class="s2">"-u root --privileged -v /mnt/huge:/mnt/huge --cpuset-cpus=0-11"</span><span class="w"> </span>--verbose
+</code></pre></div>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h2>
+<h3 id="run-on-a-local-display-not-a-remote-desktop">Run on a local display, not a remote desktop<a class="headerlink" href="#run-on-a-local-display-not-a-remote-desktop" title="Permanent link">#</a></h3>
+<p>Holoviz renders the live spectrum with Vulkan on the GPU over a remote desktop (VNC/RDP/X-forwarding), every rendered frame is copied off the GPU and streamed over the network, so the display becomes slow and choppy. For a smooth view, run the application on a monitor attached to the host. A remote session is fine for
+editing config and launching the app, but not for watching the live spectrum.</p>
+<h2 id="known-issues">Known Issues<a class="headerlink" href="#known-issues" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>No runtime retuning of the USRP.</strong> The Holoviz <code>Center Freq</code> and <code>Bandwidth</code> controls are display-only (pan/zoom). They do not retune the radio once streaming has started. To change the actual RF tuning, edit <code>usrp_rx.freq</code> / <code>usrp_rx.rate</code> in <code>config.yaml</code> and restart the application.</li>
+<li><strong>Only 2 channels are tested.</strong> The color palette and legend support up to 4 channels, but the application has only been validated with 2. Running 4 channels also needs matching <code>config.yaml</code> entries (extra DAQIRI queues, <code>memory_regions</code>, and <code>dest_ports</code>) and has not been verified.</li>
+</ul>
+<h2 id="limitations">Limitations<a class="headerlink" href="#limitations" title="Permanent link">#</a></h2>
+<ul>
+<li><strong>Hardware tested:</strong> USRP X410 and X440 with UHD 4.10 over a Mellanox ConnectX-6 Dx NIC. Other radios, NICs, or UHD versions may work but are unverified.
+The FPGA images used during testing were:</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>USRP</th>
+<th>FPGA image</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>X410</td>
+<td><code>CG_400</code></td>
+</tr>
+<tr>
+<td>X440</td>
+<td><code>CG_1600</code></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>
+<p><strong>Fixed bandwidth:</strong> the reference configuration assumes a 500 MHz sample rate (<code>spectrum_viz.ref_bandwidth_hz: 500000000</code>). Using a different rate requires matching changes in <code>usrp_rx</code> and <code>spectrum_viz</code>.</p>
+</li>
+<li>
+<p><strong>No FFT windowing:</strong> the FFT runs on the raw samples with no window function, so spectral leakage (side lobes) is present. Applying a window such as Hann or Blackman is not currently implemented.</p>
+</li>
+</ul>
+<h2 id="folder-summary">Folder Summary<a class="headerlink" href="#folder-summary" title="Permanent link">#</a></h2>
+<ul>
+<li><code>usrp_rx/</code>: Configures the USRP and starts or stops UHD streaming.</li>
+<li><code>uhd_chdr_rx/</code>: Receives DAQIRI bursts and converts CHDR payloads into batched complex tensors.</li>
+<li><code>spectrum_magnitude/</code>: Converts complex FFT output into averaged per-bin power in dB.</li>
+<li><code>spectrum_visualizer/</code>: Converts dB power bins into Holoviz line geometry and reports peak values.</li>
+<li><code>spectrum_overlay/</code>: Provides the Holoviz callback for ImGui controls, axis labels, and annotations.</li>
+<li><code>log/</code>: Optional throughput and tensor inspection utilities.</li>
+</ul>
+<h2 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">#</a></h2>
+<ul>
+<li><code>UsrpRxOp</code> is a control operator. It starts the radio stream but does not emit tensors itself.</li>
+<li><code>UhdChdrRxOp</code> is the packet-to-tensor bridge and is the main ingest point for RF sample data.</li>
+<li><code>SpectrumVisualizerOp</code> emits both geometry tensors and matching Holoviz draw specifications.</li>
+</ul>
 </article>
 </div>
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
@@ -8162,7 +8585,7 @@ docker<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </sp
 </main>
 <footer class="md-footer">
 <nav aria-label="Footer" class="md-footer__inner md-grid">
-<a aria-label="Previous: WebRTC Video Client (latest)" class="md-footer__link md-footer__link--prev" href="../webrtc_video_client/">
+<a aria-label="Previous: Ultrasound Post-Processing Filter Design (latest)" class="md-footer__link md-footer__link--prev" href="../ultrasound_postprocessing/">
 <div class="md-footer__button md-icon">
 <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
 </div>
@@ -8171,17 +8594,17 @@ docker<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </sp
                 Previous
               </span>
 <div class="md-ellipsis">
-                WebRTC Video Client (latest)
+                Ultrasound Post-Processing Filter Design (latest)
               </div>
 </div>
 </a>
-<a aria-label="Next: XR + Gaussian Splatting (latest)" class="md-footer__link md-footer__link--next" href="../xr_gsplat/">
+<a aria-label="Next: Velodyne VLP-16 Lidar Viewer (latest)" class="md-footer__link md-footer__link--next" href="../velodyne_lidar_app/">
 <div class="md-footer__title">
 <span class="md-footer__direction">
                 Next
               </span>
 <div class="md-ellipsis">
-                XR + Gaussian Splatting (latest)
+                Velodyne VLP-16 Lidar Viewer (latest)
               </div>
 </div>
 <div class="md-footer__button md-icon">
