@@ -1,0 +1,39 @@
+{
+  "application": {
+    "name": "Cross Compilation Example",
+    "description": "Minimal Holoscan C++ application and Cross-SBSA compilation example",
+    "authors": [
+      {
+        "name": "Zachary Crandall",
+        "affiliation": "NVIDIA"
+      }
+    ],
+    "language": "C++",
+    "version": "1.0",
+    "changelog": {
+      "1.0": "Initial release"
+    },
+    "holoscan_sdk": {
+      "minimum_required_version": "4.6.0",
+      "tested_versions": [
+        "4.6.0"
+      ]
+    },
+    "platforms": [
+      "x86_64",
+      "aarch64"
+    ],
+    "tags": [
+      "Hello World",
+      "Cross Compilation"
+    ],
+    "ranking": 1,
+    "requirements": {
+      "gxf_extensions": []
+    },
+    "run": {
+      "command": "<holohub_app_bin>/cross_compilation_example",
+      "workdir": "holohub_app_bin"
+    }
+  }
+}

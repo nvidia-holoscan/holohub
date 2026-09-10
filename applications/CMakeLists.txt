@@ -90,6 +90,8 @@ add_holohub_application(high_speed_endoscopy DEPENDS
 
 add_holohub_application(holocat)
 
+add_holohub_application(cross_compilation_example)
+
 add_holohub_application(isaac_sim_holoscan_bridge)
 
 add_subdirectory(holoscan_ros2)
