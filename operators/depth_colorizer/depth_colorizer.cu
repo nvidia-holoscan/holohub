@@ -201,23 +201,25 @@ DepthColorizerOp::~DepthColorizerOp() {
 }
 
 void DepthColorizerOp::setup(holoscan::OperatorSpec& spec) {
-  const holoscan::TensorPortLayout input_layout{
+  const holoscan::TensorRepresentation input_layout{
       .memory_kind = holoscan::MemoryKind::kCudaDevice,
       .dtype = kFloat32Dtype,
   };
-  const holoscan::TensorPortLayout output_layout{
+  const holoscan::TensorRepresentation output_layout{
       .memory_kind = holoscan::MemoryKind::kCudaDevice,
       .dtype = kUInt8Dtype,
       .rank = 3U,
   };
-  spec.input(input, "input").queue_depth(1U).expects_tensor(input_layout);
+  spec.input(input, "input")
+      .queue_depth(1U)
+      .expects_tensor(holoscan::TensorInputSpec{.representation = input_layout});
   spec.output(output, "output")
       .max_emits_per_compute(1U)
-      .produces_tensor(output_layout)
-      .tensor_allocation(holoscan::TensorAllocationBounds{
-          .max_rank = 3U,
-          .max_byte_span =
-              checked_image_bytes(output_width_, output_height_, 4U, 1U, "colorized image"),
+      .produces_tensor(holoscan::TensorOutputSpec{
+          .representation = output_layout,
+          .bounds = holoscan::tensor_bounds(
+              checked_image_bytes(output_width_, output_height_, 4U, 1U, "colorized image")),
+          .storage = holoscan::TensorOutputStorage::kRuntimePool,
       });
 }
 

@@ -53,10 +53,12 @@ X11DisplayOp::~X11DisplayOp() { cleanup(); }
 void X11DisplayOp::setup(holoscan::OperatorSpec& spec) {
   spec.input(input, "input")
       .queue_depth(2U)
-      .expects_tensor(holoscan::TensorPortLayout{
-          .memory_kind = holoscan::MemoryKind::kCudaDevice,
-          .dtype = kUInt8Dtype,
-          .rank = 3U,
+      .expects_tensor(holoscan::TensorInputSpec{
+          .representation = {
+              .memory_kind = holoscan::MemoryKind::kCudaDevice,
+              .dtype = kUInt8Dtype,
+              .rank = 3U,
+          },
       });
 }
 

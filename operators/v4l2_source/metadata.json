@@ -6,7 +6,7 @@
     "description": "Capture packed YUYV frames from a V4L2 device into CUDA tensors",
     "language": ["C++"],
     "version": "0.1.0",
-    "changelog": {"0.1.0": "Initial Holoscan SDK 5.x EA1 implementation"},
+    "changelog": {"0.1.0": "Initial Holoscan SDK 5.x EA2 implementation"},
     "holoscan_sdk": {
       "minimum_required_version": "5.0.0",
       "tested_versions": ["5.0.0"]

@@ -1,8 +1,9 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 Holoscan Team / NVIDIA. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-# Shared headers used by the V4L2 depth operators. This is an implementation
-# support target, not a discoverable operator project.
+# Operators in this directory are sample-only implementations, not Holoscan
+# product operators. The shared headers used by the V4L2 depth operators form
+# an implementation support target, not a discoverable operator project.
 add_subdirectory(v4l2_depth_common)
 
 add_holohub_operator(bgra_to_planar_tensor)

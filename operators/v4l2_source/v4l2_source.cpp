@@ -140,18 +140,20 @@ V4L2SourceOp::~V4L2SourceOp() { cleanup(); }
 void V4L2SourceOp::setup(holoscan::OperatorSpec& spec) {
   spec.output(frame, "frame")
       .max_emits_per_compute(1U)
-      .produces_tensor(holoscan::TensorPortLayout{
-          .memory_kind = holoscan::MemoryKind::kCudaDevice,
-          .dtype = kUInt8Dtype,
-          .rank = 3U,
-      })
-      .tensor_allocation(
-          holoscan::TensorAllocationBounds{.max_rank = 3U, .max_byte_span = frame_bytes_});
+      .produces_tensor(holoscan::TensorOutputSpec{
+          .representation = {
+              .memory_kind = holoscan::MemoryKind::kCudaDevice,
+              .dtype = kUInt8Dtype,
+              .rank = 3U,
+          },
+          .bounds = holoscan::tensor_bounds(frame_bytes_),
+          .storage = holoscan::TensorOutputStorage::kRuntimePool,
+      });
 }
 
 holoscan::Contract V4L2SourceOp::contract() const {
   holoscan::Contract result;
-  // The EA1 runtime has no pollable-fd temporal trigger. Poll the nonblocking
+  // The EA2 runtime has no pollable-fd temporal trigger. Poll the nonblocking
   // descriptor at the negotiated cadence; EAGAIN is an ordinary clock tick
   // with no publication.
   result.trigger(holoscan::OnClock{.period = poll_period_});

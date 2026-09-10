@@ -34,8 +34,11 @@ holoscan-5.0-early-access-samples/
 └── holohub
 ```
 
-Keep the top level collection-oriented. Future applications and operators should be sibling
-projects with independent metadata and CMake entry points.
+Keep the top level collection-oriented. Future applications and supporting sample operators should
+be sibling projects with independent metadata and CMake entry points. Operators in this repository
+are examples for these samples, not product or production-supported operators. The long-term V4L2
+capture path is the upcoming Holoscan Camera V4L2 operator; do not evolve this repository's
+`v4l2_source` into a competing general-purpose implementation.
 
 ## SDK API baseline
 

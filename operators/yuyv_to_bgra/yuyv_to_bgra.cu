@@ -96,23 +96,25 @@ YuyvToBgraOp::YuyvToBgraOp(std::int32_t width, std::int32_t height)
 }
 
 void YuyvToBgraOp::setup(holoscan::OperatorSpec& spec) {
-  const holoscan::TensorPortLayout input_layout{
+  const holoscan::TensorRepresentation input_layout{
       .memory_kind = holoscan::MemoryKind::kCudaDevice,
       .dtype = kUInt8Dtype,
       .rank = 3U,
   };
-  const holoscan::TensorPortLayout output_layout{
+  const holoscan::TensorRepresentation output_layout{
       .memory_kind = holoscan::MemoryKind::kCudaDevice,
       .dtype = kUInt8Dtype,
       .rank = 3U,
   };
-  spec.input(input, "input").queue_depth(1U).expects_tensor(input_layout);
+  spec.input(input, "input")
+      .queue_depth(1U)
+      .expects_tensor(holoscan::TensorInputSpec{.representation = input_layout});
   spec.output(output, "output")
       .max_emits_per_compute(1U)
-      .produces_tensor(output_layout)
-      .tensor_allocation(holoscan::TensorAllocationBounds{
-          .max_rank = 3U,
-          .max_byte_span = checked_image_bytes(width_, height_, 4U),
+      .produces_tensor(holoscan::TensorOutputSpec{
+          .representation = output_layout,
+          .bounds = holoscan::tensor_bounds(checked_image_bytes(width_, height_, 4U)),
+          .storage = holoscan::TensorOutputStorage::kRuntimePool,
       });
 }
 

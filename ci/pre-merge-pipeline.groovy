@@ -26,6 +26,7 @@ Utils.validate_comment_trigger_helpers()
 def mergeRequestBuild = Utils.is_merge_request_build()
 def nightlyBuild = Utils.is_nightly_build()
 def manualBuild = Utils.is_manual_build()
+def nightlyCdashBuild = Utils.is_nightly_cdash_build()
 def pushRequested = Utils.push_requested()
 def submitToCdash = nightlyBuild || manualBuild || pushRequested
 def cdashSubmissionReason = nightlyBuild
@@ -93,14 +94,32 @@ def buildAndTestSettings = [
         timeout_amount: 6,
         timeout_unit: 'HOURS',
     ],
+    [
+        name: 'x86_64-main-5x-cuda13',
+        container_name: 'x86-tester-dind',
+        kubernetes_arch: 'amd64',
+        host_architecture: 'x86_64',
+        sdk_architecture: 'x86_64',
+        sdk_branch: 'main-5x',
+        advisory_mr: true,
+        report_gitlab_status: false,
+        cpus: 13,
+        memory: '60Gi',
+        ephemeral_storage: '200Gi',
+        gpus: 1,
+        timeout_amount: 6,
+        timeout_unit: 'HOURS',
+    ],
 ]
 
 def flows = [:]
+def gitlabStatusNames = []
 
 flows[lintSettings.name] = Utils.setup_flow(lintSettings) {
     Stage.code_checkout()
     Stage.check_lint()
 }
+gitlabStatusNames << lintSettings.name
 
 buildAndTestSettings.each { flowSettings ->
     def settings = flowSettings
@@ -109,7 +128,10 @@ buildAndTestSettings.each { flowSettings ->
             Stage.code_checkout()
             Stage.wait_for_docker_daemon()
             Stage.verify_runner(settings.host_architecture)
-            def sdkRevision = Stage.checkout_pinned_sdk()
+            def sdkBranch = settings.sdk_branch ?: null
+            def sdkRevision = sdkBranch
+                ? Stage.checkout_sdk_branch(sdkBranch)
+                : Stage.checkout_pinned_sdk()
 
             withEnv([
                 "ARCH=${settings.sdk_architecture}",
@@ -120,20 +142,24 @@ buildAndTestSettings.each { flowSettings ->
                 def sdkInstall = Stage.resolve_sdk_install(
                     sdkRevision,
                     settings.host_architecture,
+                    sdkBranch ?: 'pinned',
                 )
                 withEnv(["HOLOSCAN_SDK_INSTALL_DIR=${sdkInstall}"]) {
-                    Stage.build_sample(settings.name, submitToCdash, nightlyBuild)
-                    Stage.test_sample(settings.name, submitToCdash, nightlyBuild)
+                    Stage.build_sample(settings.name, submitToCdash, nightlyCdashBuild)
+                    Stage.test_sample(settings.name, submitToCdash, nightlyCdashBuild)
                 }
             }
         } finally {
             Stage.collect_artifacts(settings.name)
         }
     }
+    if (settings.report_gitlab_status != false) {
+        gitlabStatusNames << settings.name
+    }
 }
 
 if (mergeRequestBuild) {
-    def statusNames = flows.keySet().toList() + ['pre-merge']
+    def statusNames = gitlabStatusNames + ['pre-merge']
     gitlabBuilds(builds: statusNames) {
         updateGitlabCommitStatus(name: 'pre-merge', state: 'running')
         try {

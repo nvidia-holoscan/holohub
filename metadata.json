@@ -3,7 +3,7 @@
   "module": {
     "name": "holoscan-5.0-ea-samples",
     "version": "0.2.0",
-    "description": "Accelerated vision samples for the Holoscan SDK 5.0 early-access API",
+    "description": "Accelerated vision samples and sample-only operators for the Holoscan SDK 5.0 early-access API",
     "authors": [
       {
         "name": "Holoscan Team",

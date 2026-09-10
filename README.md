@@ -1,6 +1,13 @@
-# Holoscan 5.0 EA Samples
+# Holoscan 5.0 Early Access Samples
 
-Applications and reusable operators written against the native Holoscan SDK 5.x API.
+Applications and supporting sample operators written against the native Holoscan SDK 5.x API.
+
+> [!IMPORTANT]
+> The operators in this repository are sample-only implementations intended to demonstrate the
+> early-access APIs. They are not Holoscan product operators and should not be treated as
+> long-term, production-supported implementations. In particular, `v4l2_source` demonstrates the
+> current camera workflow; the planned long-term implementation is the upcoming Holoscan Camera
+> V4L2 operator.
 
 | Application | Purpose |
 | --- | --- |
@@ -61,7 +68,7 @@ TensorRT version and GPU.
 
 ### Runtime requirements
 
-- A Holoscan SDK 5.0.0 installation and matching development image
+- A Holoscan SDK 5.0.0 Early Access 2 installation and matching development image
 - Docker with the NVIDIA Container Runtime
 - An NVIDIA CUDA GPU supported by that SDK and TensorRT
 - A single-plane streaming V4L2 camera that provides exact-resolution, progressive, limited-range

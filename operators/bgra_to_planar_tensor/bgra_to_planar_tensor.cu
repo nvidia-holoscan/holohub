@@ -118,24 +118,26 @@ BgraToPlanarTensorOp::BgraToPlanarTensorOp(std::int32_t source_width,
 }
 
 void BgraToPlanarTensorOp::setup(holoscan::OperatorSpec& spec) {
-  const holoscan::TensorPortLayout input_layout{
+  const holoscan::TensorRepresentation input_layout{
       .memory_kind = holoscan::MemoryKind::kCudaDevice,
       .dtype = kUInt8Dtype,
       .rank = 3U,
   };
-  const holoscan::TensorPortLayout output_layout{
+  const holoscan::TensorRepresentation output_layout{
       .memory_kind = holoscan::MemoryKind::kCudaDevice,
       .dtype = kFloat32Dtype,
       .rank = 4U,
   };
-  spec.input(input, "input").queue_depth(1U).expects_tensor(input_layout);
+  spec.input(input, "input")
+      .queue_depth(1U)
+      .expects_tensor(holoscan::TensorInputSpec{.representation = input_layout});
   spec.output(output, "output")
       .max_emits_per_compute(1U)
-      .produces_tensor(output_layout)
-      .tensor_allocation(holoscan::TensorAllocationBounds{
-          .max_rank = 4U,
-          .max_byte_span = checked_element_bytes(
-              network_width_, network_height_, 3U, sizeof(float), "model input"),
+      .produces_tensor(holoscan::TensorOutputSpec{
+          .representation = output_layout,
+          .bounds = holoscan::tensor_bounds(checked_element_bytes(
+              network_width_, network_height_, 3U, sizeof(float), "model input")),
+          .storage = holoscan::TensorOutputStorage::kRuntimePool,
       });
 }
 

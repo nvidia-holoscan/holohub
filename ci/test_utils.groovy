@@ -112,6 +112,33 @@ assert !load_utils([:]).is_nightly_build()
 assert load_utils([:], true).is_nightly_build()
 assert !load_utils([:]).is_manual_build()
 assert load_utils([:], false, true).is_manual_build()
+assert !load_utils([:]).is_nightly_cdash_build()
+assert load_utils([:], true).is_nightly_cdash_build()
+assert load_utils([:], false, true).is_nightly_cdash_build()
+def flowExcludedNode = '2u1g-b650-1788.ipp3a2.colossus'
+def schedulingUtils = load_utils([BLACKLISTED_NODES: 'bad-a, bad-b'])
+assert schedulingUtils.get_excluded_nodes([:]) == ['bad-a', 'bad-b', flowExcludedNode]
+assert schedulingUtils.get_excluded_nodes([exclude_nodes: 'bad-b, bad-c']) ==
+    ['bad-a', 'bad-b', flowExcludedNode, 'bad-c']
+assert schedulingUtils.get_excluded_nodes([exclude_nodes: ['bad-c', 'bad-d']]) ==
+    ['bad-a', 'bad-b', flowExcludedNode, 'bad-c', 'bad-d']
+assert load_utils([:]).get_excluded_nodes([:]) == [flowExcludedNode]
+def schedulingYaml = schedulingUtils.get_pod_yaml([
+    kubernetes_arch: 'amd64',
+    container_name: 'tester',
+    cpus: 13,
+    memory: '60Gi',
+    ephemeral_storage: '200Gi',
+    gpus: 1,
+    exclude_nodes: ['bad-c'],
+])
+assert schedulingYaml.contains('key: kubernetes.io/hostname')
+assert schedulingYaml.contains('key: kubernetes.io/hostname\n                operator: NotIn')
+assert schedulingYaml.contains('- "bad-a"')
+assert schedulingYaml.contains('- "2u1g-b650-1788.ipp3a2.colossus"')
+assert schedulingYaml.contains('key: nvidia.com/gpu_type')
+assert schedulingYaml.contains('key: nvidia.com/gpu_type\n                operator: NotIn')
+assert schedulingYaml.contains('key: nvidia.com/driver_version')
 load_utils([:]).validate_comment_trigger_helpers()
 
 println 'ci/utils.groovy tests passed'

@@ -25,7 +25,7 @@ struct v4l2_buffer;
 namespace holoscan::examples::v4l2_depth {
 
 /**
- * @brief EA1 clock-polled V4L2 source producing CUDA-device YUYV tensors.
+ * @brief EA2 clock-polled V4L2 source producing CUDA-device YUYV tensors.
  *
  * The operator negotiates one exact, single-plane YUYV capture mode and uses
  * V4L2 MMAP buffers. Each dequeued frame is copied row-by-row to a plan-owned

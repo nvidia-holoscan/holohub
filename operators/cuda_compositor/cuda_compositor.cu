@@ -107,19 +107,23 @@ CudaCompositorOp::~CudaCompositorOp() {
 }
 
 void CudaCompositorOp::setup(holoscan::OperatorSpec& spec) {
-  const holoscan::TensorPortLayout bgra_layout{
+  const holoscan::TensorRepresentation bgra_layout{
       .memory_kind = holoscan::MemoryKind::kCudaDevice,
       .dtype = kUInt8Dtype,
       .rank = 3U,
   };
-  spec.input(base, "base").queue_depth(1U).expects_tensor(bgra_layout);
-  spec.input(overlay, "overlay").queue_depth(1U).expects_tensor(bgra_layout);
+  spec.input(base, "base")
+      .queue_depth(1U)
+      .expects_tensor(holoscan::TensorInputSpec{.representation = bgra_layout});
+  spec.input(overlay, "overlay")
+      .queue_depth(1U)
+      .expects_tensor(holoscan::TensorInputSpec{.representation = bgra_layout});
   spec.output(output, "output")
       .max_emits_per_compute(1U)
-      .produces_tensor(bgra_layout)
-      .tensor_allocation(holoscan::TensorAllocationBounds{
-          .max_rank = 3U,
-          .max_byte_span = checked_bgra_bytes(width_, height_),
+      .produces_tensor(holoscan::TensorOutputSpec{
+          .representation = bgra_layout,
+          .bounds = holoscan::tensor_bounds(checked_bgra_bytes(width_, height_)),
+          .storage = holoscan::TensorOutputStorage::kRuntimePool,
       });
 }
 

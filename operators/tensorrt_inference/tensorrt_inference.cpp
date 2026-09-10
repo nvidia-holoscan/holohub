@@ -472,20 +472,24 @@ TensorRtInferenceOp::~TensorRtInferenceOp() {
 void TensorRtInferenceOp::setup(holoscan::OperatorSpec& spec) {
   spec.input(input, "input")
       .queue_depth(2U)
-      .expects_tensor(holoscan::TensorPortLayout{
-          .memory_kind = holoscan::MemoryKind::kCudaDevice,
-          .dtype = kFloat32Dtype,
+      .expects_tensor(holoscan::TensorInputSpec{
+          .representation = {
+              .memory_kind = holoscan::MemoryKind::kCudaDevice,
+              .dtype = kFloat32Dtype,
+          },
       });
   spec.output(output, "output")
-      .produces_tensor(holoscan::TensorPortLayout{
-          .memory_kind = holoscan::MemoryKind::kCudaDevice,
-          .dtype = kFloat32Dtype,
-      })
-      .tensor_allocation(
-          holoscan::TensorAllocationBounds{
+      .produces_tensor(holoscan::TensorOutputSpec{
+          .representation = {
+              .memory_kind = holoscan::MemoryKind::kCudaDevice,
+              .dtype = kFloat32Dtype,
+          },
+          .bounds = holoscan::TensorBounds{
               .max_rank = kMaximumOutputRank,
               .max_byte_span = max_output_bytes_,
-          });
+          },
+          .storage = holoscan::TensorOutputStorage::kRuntimePool,
+      });
 }
 
 holoscan::Contract TensorRtInferenceOp::contract() const {

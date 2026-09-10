@@ -2,7 +2,8 @@
 
 The `pre-merge-pipeline` Jenkins job validates a synthetic merge of every GitLab merge request
 against its current target. It runs repository linting and builds and tests the sample against a
-pinned private Holoscan SDK revision on native x86_64 and SBSA Blossom workers.
+pinned private Holoscan SDK revision on native x86_64 and SBSA Blossom workers, plus the latest
+`main-5x` SDK branch on native x86_64.
 
 The production job must load [`pre-merge-pipeline.groovy`](pre-merge-pipeline.groovy) from the
 protected `main` branch. Do not configure Pipeline from SCM to load the Groovy file from the merge
@@ -121,7 +122,7 @@ Launching the job with Jenkins **Build Now** does not provide GitLab merge-reque
 values. The pipeline detects that context, checks out the latest `main` revision from the job's
 trusted SCM configuration, and runs the same lint, x86_64, and SBSA flows.
 
-Manual runs submit results using CDash's `Experimental` dashboard model, but do not call the GitLab
+Manual runs submit results using CDash's `Nightly` dashboard model, but do not call the GitLab
 commit-status steps because there is no merge-request commit to update. If a webhook supplies a
 merge-request IID but omits another required GitLab value, the pipeline fails before scheduling
 Blossom workers and reports the missing fields.
@@ -152,8 +153,10 @@ verification. Restrict automatic execution to internal GitLab merge requests bec
 checks out the private SDK source.
 
 After an end-to-end validation, protect `main` in GitLab and require the aggregate external commit
-status `pre-merge`. The pipeline also publishes `lint`, `x86_64-cuda13`, and `sbsa-cuda13` statuses
-for diagnosis.
+status `pre-merge`. The pipeline also publishes `lint`, `x86_64-cuda13`, `sbsa-cuda13`, and
+the configured flow statuses for diagnosis. The moving `main-5x` flow is advisory for merge
+requests: it is shown as a failed Jenkins stage on failure, but does not publish a GitLab status or
+affect the aggregate `pre-merge` result.
 
 Draft merge requests are skipped unless a comment beginning with `rebuild`, in any capitalization,
 triggers them explicitly.
@@ -179,22 +182,27 @@ git diff --exit-code
 Each GPU architecture flow:
 
 1. verifies its native architecture and R580-or-newer driver;
-2. checks out the SDK SHA from [`holoscan-sdk.version`](holoscan-sdk.version);
+2. checks out either the SDK SHA from [`holoscan-sdk.version`](holoscan-sdk.version) or the latest
+   `main-5x` branch tip;
 3. builds the CUDA 13 SDK without Python or benchmark targets;
 4. resolves and validates the generated SDK installation;
 5. builds `v4l2_depth` through Holoscan CLI; and
 6. tests `v4l2_depth` through the project CTest driver.
 
-The x86_64 and SBSA flows run in parallel and do not use fail-fast, so Jenkins reports both results.
-JUnit output, CTest failure logs, the exact SDK revision, runner details, and available sccache
-statistics are retained as build results.
+The pinned x86_64 and SBSA flows, and the moving `x86_64-main-5x-cuda13` flow, run in parallel and
+do not use fail-fast, so Jenkins reports every result. JUnit output, CTest failure logs, the exact
+SDK revision and source, runner details, and available sccache statistics are retained as build
+results. The `main-5x` flow resolves the branch again for every MR, nightly, and manual build; it
+is drift coverage and does not replace the pinned validation baseline. For merge requests, failures
+in this flow are retained as Jenkins stage failures without being propagated to `pre-merge` or
+reported as GitLab statuses.
 
-CTest submits each nightly cron run using the `Nightly` dashboard model. A manual Jenkins
-**Build Now** run and an MR comment containing `[push]` submit using the `Experimental` model.
-Configure, build, and test results are submitted before any corresponding failure is returned to
-Jenkins, so failed outcomes remain visible in CDash. Other merge-request, source-push, and reopen
-runs omit the CDash URL entirely; their build and test output stays in the Jenkins log and archived
-Jenkins results.
+CTest submits each nightly cron run and manual Jenkins **Build Now** run using the `Nightly`
+dashboard model. An MR comment containing `[push]` uses the `Experimental` model. Configure,
+build, and test results are submitted before any corresponding failure is returned to Jenkins, so
+failed outcomes remain visible in CDash. Other merge-request, source-push, and reopen runs omit
+the CDash URL entirely; their build and test output stays in the Jenkins log and archived Jenkins
+results.
 
 If the `v4l2_depth` application container fails to build during a CDash-enabled run, the test
 container does not exist and normal CTest cannot start. The pipeline submits a synthetic failed test

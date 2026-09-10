@@ -21,17 +21,21 @@ FrameSkipperOp::FrameSkipperOp(std::uint32_t keep_one_in_n)
 }
 
 void FrameSkipperOp::setup(holoscan::OperatorSpec& spec) {
-  constexpr holoscan::TensorPortLayout kDeviceByteImage{
+  constexpr holoscan::TensorRepresentation kDeviceByteImage{
       .memory_kind = holoscan::MemoryKind::kCudaDevice,
       .dtype = kUInt8Dtype,
       .rank = 3U,
   };
   // Retaining queued frames would only make the inference branch older. The
   // graph's latest-value connection provides the intended bounded decimation.
-  spec.input(input, "input").queue_depth(1U).expects_tensor(kDeviceByteImage);
+  spec.input(input, "input")
+      .queue_depth(1U)
+      .expects_tensor(holoscan::TensorInputSpec{.representation = kDeviceByteImage});
   // This is a pass-through publication declaration, not a direct tensor
   // allocation authority. The retained input sample owns the backing storage.
-  spec.output(output, "output").max_emits_per_compute(1U).produces_tensor(kDeviceByteImage);
+  spec.output(output, "output")
+      .max_emits_per_compute(1U)
+      .produces_tensor(holoscan::TensorOutputSpec{.representation = kDeviceByteImage});
 }
 
 holoscan::Contract FrameSkipperOp::contract() const {

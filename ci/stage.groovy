@@ -142,6 +142,52 @@ def checkout_pinned_sdk() {
     return sdkRevision
 }
 
+def checkout_sdk_branch(String sdkBranch) {
+    if (!(sdkBranch ==~ '[A-Za-z0-9][A-Za-z0-9._/-]*')) {
+        error("Invalid Holoscan SDK branch: ${sdkBranch}")
+    }
+
+    def sdkRevision
+    stage("Checkout Holoscan SDK ${sdkBranch}") {
+        dir('holoscan-sdk') {
+            deleteDir()
+            checkout([
+                $class: 'GitSCM',
+                branches: [[name: "*/${sdkBranch}"]],
+                extensions: [
+                    [
+                        $class: 'CloneOption',
+                        depth: 0,
+                        honorRefspec: false,
+                        noTags: true,
+                        shallow: false,
+                        timeout: 30,
+                    ],
+                ],
+                userRemoteConfigs: [[
+                    credentialsId: Utils.get_sdk_credential(),
+                    url: Utils.get_sdk_repository(),
+                ]],
+            ])
+            withEnv(["SDK_CHECKOUT_DIR=${pwd()}"]) {
+                sdkRevision = sh(
+                    returnStdout: true,
+                    script: '''
+                        set -eu
+                        git config --global --add safe.directory "$SDK_CHECKOUT_DIR"
+                        git -c safe.directory="$SDK_CHECKOUT_DIR" rev-parse HEAD
+                    ''',
+                ).trim()
+                if (!(sdkRevision ==~ /[0-9a-f]{40}/)) {
+                    error("Could not resolve Holoscan SDK ${sdkBranch} revision")
+                }
+                echo("Holoscan SDK ${sdkBranch} revision: ${sdkRevision}")
+            }
+        }
+    }
+    return sdkRevision
+}
+
 def build_sdk() {
     stage('Build Holoscan SDK') {
         dir('holoscan-sdk/public') {
@@ -155,7 +201,11 @@ def build_sdk() {
     }
 }
 
-def resolve_sdk_install(String sdkRevision, String hostArchitecture) {
+def resolve_sdk_install(
+    String sdkRevision,
+    String hostArchitecture,
+    String sdkSource = 'pinned'
+) {
     def sdkInstall
     stage('Resolve SDK installation') {
         def installName = sh(
@@ -172,6 +222,7 @@ def resolve_sdk_install(String sdkRevision, String hostArchitecture) {
             file: 'ci-sdk-details.txt',
             text: (
                 "revision=${sdkRevision}\n" +
+                "source=${sdkSource}\n" +
                 "architecture=${hostArchitecture}\n" +
                 "install=${sdkInstall}\n"
             ),

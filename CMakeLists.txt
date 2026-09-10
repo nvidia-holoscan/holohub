@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.30.4)
 
 project(holoscan_5_0_ea_samples
     VERSION 0.2.0
-    DESCRIPTION "Reference samples for the Holoscan SDK 5.0 early-access API"
+    DESCRIPTION "Reference samples for the Holoscan SDK 5.0 Early Access 2 API"
     LANGUAGES CXX
 )
 

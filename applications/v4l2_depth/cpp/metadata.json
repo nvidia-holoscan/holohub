@@ -10,8 +10,9 @@
     ],
     "description": "Live V4L2 video with a latched Depth Anything V2 overlay using the native Holoscan SDK 5.x typed-tensor API",
     "language": "C++",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "changelog": {
+      "0.2.0": "Update native tensor-port contracts for Holoscan SDK 5.0 EA2",
       "0.1.0": "Initial SDK 5.x native-tensor port"
     },
     "dockerfile": "applications/v4l2_depth/Dockerfile",
