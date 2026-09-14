@@ -111,6 +111,8 @@ class StreamDataProvider : public FFmpegDemuxer::DataProvider {
  * tensor directly to the CUVID parser, bypassing the FFmpeg demuxer.
  * Packetized input tensors must use host-accessible `kHost` or `kSystem` storage;
  * device-backed encoded payloads are not accepted by the CUVID parser path.
+ * Packetized bitstreams must decode to 8-bit 4:2:0 NV12; other decoded surface
+ * formats are rejected instead of being copied into an incompatible NV12 buffer.
  *
  * `packetized_input_mode` describes the framing of that packetized input:
  *

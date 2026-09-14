@@ -55,7 +55,8 @@ void NvVideoDecoderOp::setup(OperatorSpec& spec) {
              "Codec",
              "Optional codec for packetized Annex-B input. Set H264 or HEVC to bypass "
              "the FFmpeg demuxer and feed each input tensor directly to NVDEC. "
-             "Packetized input tensors must use host-accessible kHost or kSystem storage.",
+             "Packetized input tensors must use host-accessible kHost or kSystem storage. "
+             "Only bitstreams decoded to 8-bit 4:2:0 NV12 are supported.",
              std::string(""));
   spec.param(packetized_input_mode_,
              "packetized_input_mode",
@@ -246,6 +247,14 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
           "No frames decoded - this is normal for initialization/header packets");
     }
     return;
+  }
+
+  if (is_packetized_stream &&
+      (decoder_->GetOutputFormat() != cudaVideoSurfaceFormat_NV12 ||
+       decoder_->GetBitDepth() != 8 ||
+       decoder_->GetOutputChromaFormat() != cudaVideoChromaFormat_420)) {
+    throw std::runtime_error(
+        "Unsupported packetized decoder output format; only 8-bit 4:2:0 NV12 is supported");
   }
 
   if (nFrameReturned > 1 && verbose_.get()) {
