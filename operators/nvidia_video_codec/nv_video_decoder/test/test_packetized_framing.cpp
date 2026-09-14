@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -16,6 +17,8 @@
 #include <utility>
 #include <vector>
 
+#include <cuda_runtime_api.h>
+#include <gxf/multimedia/video.hpp>
 #include <gxf/std/tensor.hpp>
 #include <holoscan/holoscan.hpp>
 
@@ -24,6 +27,9 @@
 namespace holoscan::ops::nv_video_decoder_test {
 
 constexpr std::array<std::size_t, 3> kAccessUnitSizes = {635, 383, 507};
+constexpr std::array<uint8_t, 3> kExpectedLumaValues = {16, 96, 200};
+constexpr uint32_t kFrameWidth = 256;
+constexpr uint32_t kFrameHeight = 256;
 
 // data/three_access_units.h265 is a frozen Annex-B HEVC fixture generated from three
 // lossless 256x256 YUV420p frames with Y={16,96,200}, U=V=128 using libx265 with:
@@ -116,18 +122,71 @@ class AccessUnitSourceOp : public Operator {
   std::size_t next_offset_ = 0;
 };
 
-class FrameCountSinkOp : public Operator {
+class FrameValidationSinkOp : public Operator {
  public:
-  HOLOSCAN_OPERATOR_FORWARD_ARGS(FrameCountSinkOp)
-  FrameCountSinkOp() = default;
+  HOLOSCAN_OPERATOR_FORWARD_ARGS(FrameValidationSinkOp)
+  FrameValidationSinkOp() = default;
 
   void setup(OperatorSpec& spec) override { spec.input<gxf::Entity>("input"); }
 
   void compute(InputContext& op_input, [[maybe_unused]] OutputContext& op_output,
                [[maybe_unused]] ExecutionContext& context) override {
-    if (!op_input.receive<gxf::Entity>("input")) {
+    auto maybe_entity = op_input.receive<gxf::Entity>("input");
+    if (!maybe_entity) {
       throw std::runtime_error("Failed to receive decoded frame");
     }
+
+    auto maybe_video_buffer = static_cast<nvidia::gxf::Entity&>(maybe_entity.value())
+                                  .get<nvidia::gxf::VideoBuffer>();
+    if (!maybe_video_buffer) {
+      throw std::runtime_error("Decoded entity does not contain a video buffer");
+    }
+
+    auto video_buffer = maybe_video_buffer.value();
+    if (video_buffer->storage_type() != nvidia::gxf::MemoryStorageType::kDevice) {
+      throw std::runtime_error("Decoded video buffer is not in device memory");
+    }
+    const auto& info = video_buffer->video_frame_info();
+    if (info.width != kFrameWidth || info.height != kFrameHeight) {
+      throw std::runtime_error("Unexpected decoded frame dimensions: " +
+                               std::to_string(info.width) + "x" +
+                               std::to_string(info.height));
+    }
+    if (info.color_format != nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_NV12 ||
+        info.color_planes.empty()) {
+      throw std::runtime_error("Decoded frame is not NV12");
+    }
+    if (frame_count_ >= kExpectedLumaValues.size()) {
+      throw std::runtime_error("Received more decoded frames than the fixture contains");
+    }
+
+    const auto& luma_plane = info.color_planes[0];
+    std::vector<uint8_t> luma(kFrameWidth * kFrameHeight);
+    const auto copy_result =
+        cudaMemcpy2D(luma.data(),
+                     kFrameWidth,
+                     video_buffer->pointer() + luma_plane.offset,
+                     luma_plane.stride,
+                     kFrameWidth,
+                     kFrameHeight,
+                     cudaMemcpyDeviceToHost);
+    if (copy_result != cudaSuccess) {
+      throw std::runtime_error("Failed to copy decoded luma plane to host: " +
+                               std::string(cudaGetErrorString(copy_result)));
+    }
+
+    const uint8_t expected_luma = kExpectedLumaValues[frame_count_];
+    const auto mismatch =
+        std::find_if(luma.begin(), luma.end(), [expected_luma](uint8_t value) {
+          return value != expected_luma;
+        });
+    if (mismatch != luma.end()) {
+      throw std::runtime_error("Unexpected luma value in decoded frame " +
+                               std::to_string(frame_count_) + ": expected " +
+                               std::to_string(expected_luma) + ", got " +
+                               std::to_string(*mismatch));
+    }
+
     ++frame_count_;
   }
 
@@ -160,13 +219,13 @@ class PacketizedFramingApp : public Application {
         // This fixture has no B-frames; keep low latency explicit so these tests
         // isolate packetized framing and retain their no-EOS/no-flush contract.
         Arg("packetized_low_latency", true));
-    sink_ = make_operator<FrameCountSinkOp>("sink");
+    sink_ = make_operator<FrameValidationSinkOp>("sink");
 
     add_flow(source, decoder, {{"output", "input"}});
     add_flow(decoder, sink_, {{"output", "input"}});
   }
 
-  std::shared_ptr<FrameCountSinkOp> sink_;
+  std::shared_ptr<FrameValidationSinkOp> sink_;
 
  private:
   std::string fixture_path_;
