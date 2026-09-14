@@ -136,6 +136,9 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
     }
     if (is_packetized_stream) {
       decoder_.reset();
+      // Balance the context pushed when this decoder was initialized before
+      // init_decoder_for_packetized_stream() pushes it again.
+      CudaCheck(cuCtxPopCurrent(nullptr));
     }
   }
 
