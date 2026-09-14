@@ -18,6 +18,7 @@
 
 #include "dds_video_subscriber.hpp"
 
+#include <algorithm>
 #include <chrono>
 #include <thread>
 
@@ -61,6 +62,17 @@ void DDSVideoSubscriberOp::initialize() {
 void DDSVideoSubscriberOp::compute(InputContext& op_input,
                                    OutputContext& op_output,
                                    ExecutionContext& context) {
+  dds::sub::LoanedSamples<VideoFrame> frames = reader_->take();
+  const auto frame = std::find_if(frames.begin(), frames.end(), [](const auto& sample) {
+    return sample.info().valid();
+  });
+  if (frame == frames.end()) {
+    // Return control to the scheduler regularly so the application can stop
+    // cleanly while no DDS samples are available.
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    return;
+  }
+
   auto allocator = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(
       context.context(), allocator_->gxf_cid());
 
@@ -74,27 +86,23 @@ void DDSVideoSubscriberOp::compute(InputContext& op_input,
     throw std::runtime_error("Failed to allocate video buffer");
   }
 
-  bool output_written = false;
-  while (!output_written) {
-    dds::sub::LoanedSamples<VideoFrame> frames = reader_->take();
-    for (const auto& frame : frames) {
-      if (frame.info().valid()) {
-        // Copy the frame to the output buffer
-        video_buffer.value()->resize<nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_RGBA>(
-            frame.data().width, frame.data().height,
-            nvidia::gxf::SurfaceLayout::GXF_SURFACE_LAYOUT_PITCH_LINEAR,
-            nvidia::gxf::MemoryStorageType::kHost, allocator.value());
-        memcpy(video_buffer.value()->pointer(), frame.data().data.data(),
-               frame.data().data.size());
-        output_written = true;
-      }
-    }
-    if (!output_written) { std::this_thread::sleep_for(std::chrono::milliseconds(10)); }
-  }
+  // Copy the frame to the output buffer.
+  video_buffer.value()->resize<nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_RGBA>(
+      frame->data().width, frame->data().height,
+      nvidia::gxf::SurfaceLayout::GXF_SURFACE_LAYOUT_PITCH_LINEAR,
+      nvidia::gxf::MemoryStorageType::kHost, allocator.value());
+  memcpy(video_buffer.value()->pointer(), frame->data().data.data(), frame->data().data.size());
 
   // Output the buffer
   auto result = gxf::Entity(std::move(output.value()));
   op_output.emit(result, "output");
+}
+
+void DDSVideoSubscriberOp::stop() {
+  if (reader_) {
+    reader_->close();
+    reader_.reset();
+  }
 }
 
 }  // namespace holoscan::ops

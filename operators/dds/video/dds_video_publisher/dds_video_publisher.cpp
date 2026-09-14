@@ -89,4 +89,11 @@ void DDSVideoPublisherOp::compute(InputContext& op_input,
   }
 }
 
+void DDSVideoPublisherOp::stop() {
+  if (writer_ != dds::core::null) {
+    writer_.close();
+    writer_ = dds::core::null;
+  }
+}
+
 }  // namespace holoscan::ops

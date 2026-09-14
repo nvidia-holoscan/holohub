@@ -40,6 +40,7 @@ class DDSVideoSubscriberOp : public DDSOperatorBase {
   void initialize() override;
   void compute(InputContext& op_input, OutputContext& op_output,
                ExecutionContext& context) override;
+  void stop() override;
 
  private:
   Parameter<std::shared_ptr<Allocator>> allocator_;

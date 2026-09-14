@@ -1,5 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2026, Real-Time Innovations, Inc. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,8 +20,9 @@
 
 namespace holoscan::ops {
 
-std::map<std::string, dds::core::QosProvider> DDSOperatorBase::qos_providers_;
-std::vector<DDSOperatorBase::DomainParticipantEntry> DDSOperatorBase::participants_;
+std::map<DDSOperatorBase::ParticipantKey, std::weak_ptr<DDSOperatorBase::ParticipantContext>>
+    DDSOperatorBase::participant_contexts_;
+std::mutex DDSOperatorBase::participant_contexts_mutex_;
 
 void DDSOperatorBase::setup(OperatorSpec& spec) {
   spec.param(qos_provider_param_, "qos_provider", "QoS Provider",
@@ -34,29 +36,21 @@ void DDSOperatorBase::setup(OperatorSpec& spec) {
 void DDSOperatorBase::initialize() {
   Operator::initialize();
 
-  // Find (or create) the QoSProvider.
-  auto qos_provider_it = qos_providers_.find(qos_provider_param_.get());
-  if (qos_provider_it == qos_providers_.end()) {
-    qos_provider_it = qos_providers_.insert(qos_providers_.end(),
-        std::pair{qos_provider_param_.get(), dds::core::QosProvider(qos_provider_param_.get())});
+  const ParticipantKey participant_key{
+      qos_provider_param_.get(), participant_qos_param_.get(), domain_id_param_.get()};
+  std::lock_guard<std::mutex> lock(participant_contexts_mutex_);
+  auto& cached_context = participant_contexts_[participant_key];
+  participant_context_ = cached_context.lock();
+  if (!participant_context_) {
+    auto qos_provider = dds::core::QosProvider(qos_provider_param_.get());
+    auto participant = dds::domain::DomainParticipant(
+        domain_id_param_.get(), qos_provider.participant_qos(participant_qos_param_.get()));
+    participant_context_ = std::make_shared<ParticipantContext>(
+        ParticipantContext{std::move(qos_provider), std::move(participant)});
+    cached_context = participant_context_;
   }
-  qos_provider_ = qos_provider_it->second;
-
-  // Find (or create) the DomainParticipant.
-  for (const auto& entry : participants_) {
-    if (entry.qos_provider_ == qos_provider_ &&
-        entry.participant_qos_ == participant_qos_param_.get() &&
-        entry.domain_id_ == domain_id_param_.get()) {
-      participant_ = entry.participant_;
-      break;
-    }
-  }
-  if (participant_ == dds::core::null) {
-    participant_ = dds::domain::DomainParticipant(
-        domain_id_param_.get(), qos_provider_.participant_qos(participant_qos_param_.get()));
-    participants_.push_back(DomainParticipantEntry(
-        qos_provider_, participant_qos_param_.get(), domain_id_param_.get(), participant_));
-  }
+  qos_provider_ = participant_context_->qos_provider_;
+  participant_ = participant_context_->participant_;
 }
 
 }  // namespace holoscan::ops

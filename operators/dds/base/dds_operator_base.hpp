@@ -1,5 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2026, Real-Time Innovations, Inc. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,8 +18,13 @@
 
 #pragma once
 
-#include <holoscan/holoscan.hpp>
 #include <dds/core/ddscore.hpp>
+#include <holoscan/holoscan.hpp>
+
+#include <map>
+#include <memory>
+#include <mutex>
+#include <tuple>
 
 namespace holoscan::ops {
 
@@ -43,25 +49,17 @@ class DDSOperatorBase : public Operator {
   Parameter<std::string> participant_qos_param_;
   Parameter<uint32_t> domain_id_param_;
 
-  struct DomainParticipantEntry {
-    explicit DomainParticipantEntry(dds::core::QosProvider qos_provider,
-                                    std::string participant_qos,
-                                    uint32_t domain_id,
-                                    dds::domain::DomainParticipant participant)
-        : qos_provider_(qos_provider),
-          participant_qos_(participant_qos),
-          domain_id_(domain_id),
-          participant_(participant)
-    {}
-
+  struct ParticipantContext {
     dds::core::QosProvider qos_provider_;
-    std::string participant_qos_;
-    uint32_t domain_id_;
     dds::domain::DomainParticipant participant_;
   };
 
-  static std::map<std::string, dds::core::QosProvider> qos_providers_;
-  static std::vector<DomainParticipantEntry> participants_;
+  using ParticipantKey = std::tuple<std::string, std::string, uint32_t>;
+
+  std::shared_ptr<ParticipantContext> participant_context_;
+
+  static std::map<ParticipantKey, std::weak_ptr<ParticipantContext>> participant_contexts_;
+  static std::mutex participant_contexts_mutex_;
 };
 
 }  // namespace holoscan::ops

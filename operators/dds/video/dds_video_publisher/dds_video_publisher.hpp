@@ -1,5 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2026, Real-Time Innovations, Inc. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,6 +38,7 @@ class DDSVideoPublisherOp : public DDSOperatorBase {
   void initialize() override;
   void compute(InputContext& op_input, OutputContext& op_output,
                ExecutionContext& context) override;
+  void stop() override;
 
  private:
   Parameter<std::string> writer_qos_;
