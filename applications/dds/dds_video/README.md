@@ -1,5 +1,9 @@
 # DDS Video: Real-time Video Streaming with RTI Connext
 
+Before running this application, read the
+[RTI Connext DDS Module overview](../../../modules/holoscan-connext-dds/README.md)
+for the supported versions, container requirements, and license setup.
+
 The DDS Video application publishes or subscribes to video frames through an
 RTI Connext DDS databus. DDS is always part of the data path: the publisher
 writes the [`VideoFrame`](../../../operators/dds/video/VideoFrame.idl) topic and
@@ -46,7 +50,7 @@ Open two terminals. Start the subscriber first:
 ```sh
 ./holohub run --no-local-build dds_video \
   --run-args='--subscriber --no-display' \
-  --docker-opts="-v $PWD/rti_license.dat:/opt/rti.com/rti_connext_dds-7.7.0/rti_license.dat:ro"
+  --docker-opts="-v ${PWD}/rti_license.dat:/opt/rti.com/rti_connext_dds-7.7.0/rti_license.dat:ro"
 ```
 
 Then start the synthetic publisher:
@@ -54,7 +58,7 @@ Then start the synthetic publisher:
 ```sh
 ./holohub run --no-local-build dds_video \
   --run-args='--publisher --synthetic' \
-  --docker-opts="-v $PWD/rti_license.dat:/opt/rti.com/rti_connext_dds-7.7.0/rti_license.dat:ro"
+  --docker-opts="-v ${PWD}/rti_license.dat:/opt/rti.com/rti_connext_dds-7.7.0/rti_license.dat:ro"
 ```
 
 The subscriber confirms the DDS path with messages similar to:
@@ -72,7 +76,7 @@ temporary output directory and use `--screenshot`:
 mkdir -p /tmp/holohub-dds-capture
 ./holohub run --no-local-build dds_video \
   --run-args='--subscriber --no-display --screenshot=/capture/dds_rx.ppm' \
-  --docker-opts="-v $PWD/rti_license.dat:/opt/rti.com/rti_connext_dds-7.7.0/rti_license.dat:ro -v /tmp/holohub-dds-capture:/capture"
+  --docker-opts="-v ${PWD}/rti_license.dat:/opt/rti.com/rti_connext_dds-7.7.0/rti_license.dat:ro -v /tmp/holohub-dds-capture:/capture"
 ```
 
 After starting the publisher, the received image is available at
@@ -91,7 +95,7 @@ To publish from `/dev/video0`, omit `--synthetic`:
 ```sh
 ./holohub run --no-local-build dds_video \
   --run-args='--publisher' \
-  --docker-opts="-v $PWD/rti_license.dat:/opt/rti.com/rti_connext_dds-7.7.0/rti_license.dat:ro"
+  --docker-opts="-v ${PWD}/rti_license.dat:/opt/rti.com/rti_connext_dds-7.7.0/rti_license.dat:ro"
 ```
 
 The application checks that `/dev/video0` is a usable capture device and selects
@@ -104,12 +108,15 @@ the DDS video stream with Holoviz:
 ```sh
 ./holohub run --no-local-build dds_video \
   --run-args='--subscriber' \
-  --docker-opts="-v $PWD/rti_license.dat:/opt/rti.com/rti_connext_dds-7.7.0/rti_license.dat:ro"
+  --docker-opts="-v ${PWD}/rti_license.dat:/opt/rti.com/rti_connext_dds-7.7.0/rti_license.dat:ro"
 ```
 
 Use `--domain=ID` and `--id=ID` on both processes to select another DDS domain
 or video stream. The publisher and subscriber can run on the same system or on
 different mutually discoverable systems.
+
+The commands in this README use Bash syntax. In `tcsh`, replace `${PWD}` with
+`${cwd}`.
 
 ## Network and QoS configuration
 

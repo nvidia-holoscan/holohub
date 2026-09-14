@@ -16,11 +16,15 @@
 cmake_minimum_required(VERSION 3.20)
 project(distributed_applications LANGUAGES NONE)
 
-add_holohub_application(connext_dds_publisher DEPENDS OPERATORS dds_pubsub)
-add_holohub_application(connext_dds_roundtrip DEPENDS OPERATORS dds_pubsub)
-add_holohub_application(connext_dds_subscriber DEPENDS OPERATORS dds_pubsub)
+if(HOLOHUB_BUILD_PYTHON)
+  add_holohub_application(connext_dds_publisher DEPENDS OPERATORS dds_pubsub)
+  add_holohub_application(connext_dds_roundtrip DEPENDS OPERATORS dds_pubsub)
+  add_holohub_application(connext_dds_subscriber DEPENDS OPERATORS dds_pubsub)
+endif()
 
-add_holohub_application(dds_video DEPENDS
-                        OPERATORS dds_shapes_subscriber
-                                  dds_video_publisher
-                                  dds_video_subscriber)
+if(HOLOHUB_BUILD_CPP)
+  add_holohub_application(dds_video DEPENDS
+                          OPERATORS dds_shapes_subscriber
+                                    dds_video_publisher
+                                    dds_video_subscriber)
+endif()

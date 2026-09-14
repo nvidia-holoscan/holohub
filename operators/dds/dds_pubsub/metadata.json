@@ -14,8 +14,8 @@
     },
     "language": ["Python"],
     "holoscan_sdk": {
-      "minimum_required_version": "4.5.0",
-      "tested_versions": ["4.5.0"]
+      "minimum_required_version": "4.6.0",
+      "tested_versions": ["4.6.0"]
     },
     "dockerfile": "modules/holoscan-connext-dds/Dockerfile",
     "platforms": ["x86_64", "aarch64"],

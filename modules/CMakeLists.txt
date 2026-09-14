@@ -15,9 +15,14 @@
 
 add_holohub_module(holoscan-gstreamer OPERATORS gstreamer)
 add_holohub_module(holoscan-connext-dds
-  OPERATORS dds_pubsub
+  OPERATORS
+    dds_pubsub
+    dds_shapes_subscriber
+    dds_video_publisher
+    dds_video_subscriber
   APPLICATIONS
     connext_dds_publisher
     connext_dds_roundtrip
     connext_dds_subscriber
+    dds_video
 )

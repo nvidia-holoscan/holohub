@@ -13,11 +13,11 @@
 			"1.0": "Initial Release"
 		},
 		"language": ["C++"],
-		"dockerfile": "operators/dds/Dockerfile",
+		"dockerfile": "modules/holoscan-connext-dds/Dockerfile",
 		"holoscan_sdk": {
-			"minimum_required_version": "2.0.0",
+			"minimum_required_version": "4.6.0",
 			"tested_versions": [
-				"2.0.0"
+				"4.6.0"
 			]
 		},
 		"platforms": ["x86_64", "aarch64"],

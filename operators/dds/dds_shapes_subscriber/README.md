@@ -1,15 +1,14 @@
 # DDS Shape Subscriber Operator
 
-The DDS Shape Subscriber Operator subscribes to and reads from the `Square`, `Circle`, and
-`Triangle` shape topics as used by the [RTI Shapes Demo](https://www.rti.com/free-trial/shapes-demo).
-It will then translate the received shape data to an internal `Shape` datatype for output
-to downstream operators.
+Before using this operator, read the
+[RTI Connext DDS Module overview](../../../modules/holoscan-connext-dds/README.md)
+for the supported versions, container requirements, and license setup.
 
-This operator requires an installation of [RTI Connext](https://content.rti.com/l/983311/2025-07-08/q5x1n8) to provide access to the DDS domain, as specified by the [OMG Data-Distribution Service](https://www.omg.org/omg-dds-portal/).
-
-You can obtain a license/activation key for RTI Connext directly from RTI by downloading it [from the RTI Connext download page](https://content.rti.com/l/983311/2025-07-25/q6729c). For additional information on RTI Connext and how it integrates with NVIDIA products, please refer to the [RTI-NVIDIA integration page](https://www.rti.com/products/third-party-integrations/nvidia).
-
-If you have questions, please email [evaluations@rti.com](mailto:evaluations@rti.com).
+The DDS Shape Subscriber Operator subscribes to the `Square`, `Circle`, and
+`Triangle` topics used by the
+[RTI Shapes Demo](https://www.rti.com/free-trial/shapes-demo). It converts valid
+`ShapeTypeExtended` samples into a representation suitable for downstream
+Holoscan visualization operators.
 
 ## `holoscan::ops::DDSShapesSubscriberOp`
 
@@ -19,10 +18,30 @@ This operator also inherits the parameters from [DDSOperatorBase](../base/README
 
 ### Parameters
 
-- **`reader_qos`**: The name of the QoS profile to use for the DDS DataReader
-  - type: `std::string`
+- **`reader_qos`** (`std::string`, default: empty): DataReader QoS profile name
+  resolved by the inherited QoS provider. The same profile is used for all
+  three readers.
+- The operator also inherits `qos_provider`, `participant_qos`, and `domain_id`
+  from [`DDSOperatorBase`](../base/README.md).
 
 ### Outputs
 
-- **`output`**: Output shapes, translated from those read from DDS
-  - type: `holoscan::ops::DDSShapesSubscriberOp::Shape`
+- **`output`** (`std::vector<holoscan::ops::DDSShapesSubscriberOp::Shape>`): all
+  valid Square, Circle, and Triangle samples taken during the compute call.
+
+## Conversion behavior
+
+Each output shape contains its shape type, RGBA color, normalized position,
+width, and height. Coordinates are normalized against the RTI Shapes Demo
+publisher area of 235 by 265 pixels. The recognized color names are `PURPLE`,
+`BLUE`, `RED`, `GREEN`, `YELLOW`, `CYAN`, `MAGENTA`, and `ORANGE`; unknown
+names map to black.
+
+## Limitations
+
+- Topic names and the `ShapeTypeExtended` DDS type are fixed for compatibility
+  with RTI Shapes Demo.
+- The coordinate normalization assumes the 235-by-265 publisher area.
+- Fill styles and rotation are not represented.
+- The operator takes all currently available valid samples on each compute
+  call and emits one vector, including an empty vector when none are available.

@@ -13,9 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_holohub_operator(dds_pubsub)
-add_holohub_operator(dds_shapes_subscriber)
-add_subdirectory(video)
+if(HOLOHUB_BUILD_PYTHON)
+  add_holohub_operator(dds_pubsub)
+endif()
+
+if(HOLOHUB_BUILD_CPP)
+  add_holohub_operator(dds_shapes_subscriber)
+endif()
+
+# The video operators provide C++ implementations and optional Python bindings.
+if(HOLOHUB_BUILD_CPP OR HOLOHUB_BUILD_PYTHON)
+  add_subdirectory(video)
+endif()
 
 # Needs to be last
 if(BUILD_dds_operator_base)

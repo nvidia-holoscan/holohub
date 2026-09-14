@@ -13,11 +13,11 @@
 		"changelog": {
 			"1.0": "Initial Release"
 		},
-		"dockerfile": "operators/dds/Dockerfile",
+		"dockerfile": "modules/holoscan-connext-dds/Dockerfile",
 		"holoscan_sdk": {
-			"minimum_required_version": "2.0.0",
+			"minimum_required_version": "4.6.0",
 			"tested_versions": [
-				"2.0.0"
+				"4.6.0"
 			]
 		},
 		"platforms": [
@@ -34,6 +34,18 @@
 					"license": "Closed",
 					"version": "7.7.0",
 					"url": "https://www.rti.com/products"
+				}
+			]
+		},
+		"dependencies": {
+			"modules": [
+				{
+					"name": "holoscan-connext-dds",
+					"provides_operators": [
+						"dds_shapes_subscriber",
+						"dds_video_publisher",
+						"dds_video_subscriber"
+					]
 				}
 			]
 		},

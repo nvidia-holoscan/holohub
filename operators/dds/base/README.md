@@ -1,18 +1,20 @@
 # DDS Base Operator
 
-The DDS Base Operator provides a base class which can be inherited by any
-operator class which requires access to a DDS domain.
+Before using this operator, read the
+[RTI Connext DDS Module overview](../../../modules/holoscan-connext-dds/README.md)
+for the supported versions, container requirements, and license setup.
 
-This operator requires an installation of [RTI Connext](https://content.rti.com/l/983311/2025-07-08/q5x1n8) to provide access to the DDS domain, as specified by the [OMG Data-Distribution Service](https://www.omg.org/omg-dds-portal/).
-
-You can obtain a license/activation key for RTI Connext directly from RTI by downloading it [from the RTI Connext download page](https://content.rti.com/l/983311/2025-07-25/q6729c). For additional information on RTI Connext and how it integrates with NVIDIA products, please refer to the [RTI-NVIDIA integration page](https://www.rti.com/products/third-party-integrations/nvidia).
-
-If you have questions, please email [evaluations@rti.com](mailto:evaluations@rti.com).
+The DDS Base Operator provides the common RTI Connext participant and QoS
+setup used by the C++ DDS operators. HoloHub builds it as an internal
+dependency; it is not a standalone graph operator.
 
 ## `holoscan::ops::DDSOperatorBase`
 
-Base class which provides the parameters and members required to access a
-DDS domain.
+This class initializes a `dds::core::QosProvider` and a
+`dds::domain::DomainParticipant`, then exposes them to derived operators.
+Operators configured with the same QoS provider URI, participant QoS profile,
+and domain ID share a participant while they are alive. A different value in
+any of those fields creates a separate participant.
 
 For more documentation about how these parameters (and other similar
 inheriting-class parameters) are used, see the
@@ -20,9 +22,18 @@ inheriting-class parameters) are used, see the
 
 ### Parameters
 
-- **`qos_provider`**: URI for the DDS QoS Provider
-  - type: `std::string`
-- **`participant_qos`**: Name of the QoS profile to use for the DDS DomainParticipant
-  - type: `std::string`
-- **`domain_id`**: The ID of the DDS domain to use
-  - type: `uint32_t`
+- **`qos_provider`** (`std::string`, default: `qos_profiles.xml`): URI passed to
+  the Connext `QosProvider`.
+- **`participant_qos`** (`std::string`, default: empty): participant QoS profile
+  name. An empty name asks the provider for its default participant QoS.
+- **`domain_id`** (`uint32_t`, default: `0`): DDS domain used by the participant.
+
+## Usage by derived operators
+
+Derived operators must call `DDSOperatorBase::setup()` and
+`DDSOperatorBase::initialize()` before using the protected `qos_provider_` and
+`participant_` members. The video and Shapes operators in this module provide
+working examples.
+
+Entity-specific profiles such as `reader_qos` and `writer_qos` belong to the
+derived operator. The base class only owns participant-level configuration.
