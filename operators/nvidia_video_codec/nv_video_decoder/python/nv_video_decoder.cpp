@@ -61,7 +61,8 @@ class PyNvVideoDecoderOp : public NvVideoDecoderOp {
   // afterwards so existing positional Python calls remain source compatible.
   PyNvVideoDecoderOp(Fragment* fragment, const py::args& args, int cuda_device_ordinal,
                      std::shared_ptr<::holoscan::Allocator> allocator, bool verbose,
-                     const std::string& codec, const std::string& name = "nv_video_decoder",
+                     const std::string& name = "nv_video_decoder",
+                     const std::string& codec = "",
                      const std::string& packetized_input_mode = "stream",
                      bool packetized_low_latency = false)
       : NvVideoDecoderOp(ArgList{Arg{"cuda_device_ordinal", cuda_device_ordinal},
@@ -110,8 +111,8 @@ PYBIND11_MODULE(_nv_video_decoder, m) {
            "cuda_device_ordinal"_a,
            "allocator"_a,
            "verbose"_a = false,
-           "codec"_a = ""s,
            "name"_a = "nv_video_decoder"s,
+           "codec"_a = ""s,
            "packetized_input_mode"_a = "stream"s,
            "packetized_low_latency"_a = false,
            doc::NvVideoDecoderOp::doc_NvVideoDecoderOp_python)

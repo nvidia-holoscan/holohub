@@ -45,12 +45,12 @@ allocator : holoscan.core.Allocator
     Allocator for output buffers.
 verbose : bool, optional
     Print detailed decoder information. Default is False.
+name : str, optional
+    The name of the operator.
 codec : str, optional
     Codec for direct packetized input. Set to ``"H264"`` or ``"HEVC"`` to
     bypass the FFmpeg demuxer and feed each input tensor directly to NVDEC.
     Leave empty for the existing demuxed/file streaming behavior.
-name : str, optional
-    The name of the operator.
 packetized_input_mode : str, optional
     Framing of direct packetized input. ``"stream"`` (default) treats input
     tensors as arbitrary byte-stream chunks and lets CUVID determine picture
