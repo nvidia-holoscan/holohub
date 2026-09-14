@@ -68,6 +68,11 @@ class AccessUnitSourceOp : public Operator {
                "fixture_path",
                "FixturePath",
                "Path to the three-access-unit HEVC fixture.");
+    spec.param(combine_access_units_,
+               "combine_access_units",
+               "CombineAccessUnits",
+               "Emit all access units in one tensor.",
+               false);
     spec.output<nvidia::gxf::Entity>("output");
   }
 
@@ -85,7 +90,9 @@ class AccessUnitSourceOp : public Operator {
 
   void compute([[maybe_unused]] InputContext& op_input, OutputContext& op_output,
                ExecutionContext& context) override {
-    const std::size_t access_unit_size = kAccessUnitSizes.at(next_access_unit_++);
+    const std::size_t access_unit_size = combine_access_units_.get()
+                                             ? bitstream_.size()
+                                             : kAccessUnitSizes.at(next_access_unit_++);
     auto entity = gxf::Entity::New(&context);
     auto tensor =
         static_cast<nvidia::gxf::Entity&>(entity).add<nvidia::gxf::Tensor>().value();
@@ -103,6 +110,7 @@ class AccessUnitSourceOp : public Operator {
  private:
   Parameter<std::shared_ptr<Allocator>> allocator_;
   Parameter<std::string> fixture_path_;
+  Parameter<bool> combine_access_units_;
   std::vector<uint8_t> bitstream_;
   std::size_t next_access_unit_ = 0;
   std::size_t next_offset_ = 0;
@@ -131,14 +139,18 @@ class FrameCountSinkOp : public Operator {
 
 class PacketizedFramingApp : public Application {
  public:
-  PacketizedFramingApp(std::string fixture_path, std::string input_mode)
-      : fixture_path_(std::move(fixture_path)), input_mode_(std::move(input_mode)) {}
+  PacketizedFramingApp(std::string fixture_path, std::string input_mode, bool combine_access_units)
+      : fixture_path_(std::move(fixture_path)),
+        input_mode_(std::move(input_mode)),
+        combine_access_units_(combine_access_units) {}
 
   void compose() override {
     auto source = make_operator<AccessUnitSourceOp>(
         "source",
         Arg("fixture_path", fixture_path_),
-        make_condition<CountCondition>("source_count", kAccessUnitSizes.size()));
+        Arg("combine_access_units", combine_access_units_),
+        make_condition<CountCondition>(
+            "source_count", combine_access_units_ ? 1 : kAccessUnitSizes.size()));
     auto decoder = make_operator<NvVideoDecoderOp>(
         "decoder",
         Arg("cuda_device_ordinal", 0),
@@ -156,6 +168,7 @@ class PacketizedFramingApp : public Application {
  private:
   std::string fixture_path_;
   std::string input_mode_;
+  bool combine_access_units_;
 };
 
 }  // namespace holoscan::ops::nv_video_decoder_test
@@ -163,9 +176,10 @@ class PacketizedFramingApp : public Application {
 int main(int argc, char** argv) {
   using holoscan::ops::nv_video_decoder_test::PacketizedFramingApp;
 
-  if (argc != 4) {
+  if (argc != 5) {
     std::cerr << "Usage: nv_video_decoder_packetized_framing_test "
-                 "<fixture.h265> <stream|access_unit> <expected_frames>\n";
+                 "<fixture.h265> <stream|access_unit> <expected_frames> "
+                 "<separate|combined>\n";
     return 2;
   }
 
@@ -175,9 +189,16 @@ int main(int argc, char** argv) {
     return 2;
   }
 
+  const std::string tensor_mode = argv[4];
+  if (tensor_mode != "separate" && tensor_mode != "combined") {
+    std::cerr << "Unsupported tensor mode: " << tensor_mode << '\n';
+    return 2;
+  }
+
   try {
     const std::size_t expected_frames = std::stoul(argv[3]);
-    auto app = holoscan::make_application<PacketizedFramingApp>(argv[1], input_mode);
+    auto app = holoscan::make_application<PacketizedFramingApp>(
+        argv[1], input_mode, tensor_mode == "combined");
     app->run();
 
     const std::size_t actual_frames = app->sink_->frame_count();
