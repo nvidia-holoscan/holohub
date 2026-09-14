@@ -325,8 +325,10 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
 
     // After copying Y plane
     size_t pad = video_buffer_info.color_planes[0].stride - width;
-    if (pad > 0 && verbose_.get()) {
-      HOLOSCAN_LOG_INFO("Padding Y plane with {} bytes", pad);
+    if (pad > 0) {
+      if (verbose_.get()) {
+        HOLOSCAN_LOG_INFO("Padding Y plane with {} bytes", pad);
+      }
       for (int y = 0; y < height; ++y) {
         uint8_t* row_start = video_buffer->pointer() + video_buffer_info.color_planes[0].offset +
                              y * video_buffer_info.color_planes[0].stride;
@@ -336,8 +338,10 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
 
     // After copying UV plane
     pad = video_buffer_info.color_planes[1].stride - width;
-    if (pad > 0 && verbose_.get()) {
-      HOLOSCAN_LOG_INFO("Padding UV plane with {} bytes", pad);
+    if (pad > 0) {
+      if (verbose_.get()) {
+        HOLOSCAN_LOG_INFO("Padding UV plane with {} bytes", pad);
+      }
       for (int y = 0; y < height / 2; ++y) {
         uint8_t* row_start = video_buffer->pointer() + video_buffer_info.color_planes[1].offset +
                              y * video_buffer_info.color_planes[1].stride;
