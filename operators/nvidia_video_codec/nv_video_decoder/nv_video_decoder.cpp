@@ -54,7 +54,8 @@ void NvVideoDecoderOp::setup(OperatorSpec& spec) {
              "codec",
              "Codec",
              "Optional codec for packetized Annex-B input. Set H264 or HEVC to bypass "
-             "the FFmpeg demuxer and feed each input tensor directly to NVDEC.",
+             "the FFmpeg demuxer and feed each input tensor directly to NVDEC. "
+             "Packetized input tensors must use host-accessible kHost or kSystem storage.",
              std::string(""));
   spec.param(packetized_input_mode_,
              "packetized_input_mode",
@@ -127,6 +128,20 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
   bool is_from_reader = (meta->get<std::string>("source", "") == "nv_video_reader");
   bool is_packetized_stream = !codec_.get().empty();
   bool direct_packet_decode = is_from_reader || is_packetized_stream;
+
+  if (is_packetized_stream) {
+    auto gxf_tensor = static_cast<nvidia::gxf::Entity&>(maybe_entity.value())
+                          .get<nvidia::gxf::Tensor>("");
+    if (!gxf_tensor) {
+      throw std::runtime_error("Failed to get GXF tensor from packetized input message");
+    }
+    const auto storage_type = gxf_tensor.value()->storage_type();
+    if (storage_type != nvidia::gxf::MemoryStorageType::kHost &&
+        storage_type != nvidia::gxf::MemoryStorageType::kSystem) {
+      throw std::runtime_error(
+          "Packetized input tensors must use host-accessible kHost or kSystem storage");
+    }
+  }
 
   // Handle stream reset signal for looping videos or a discontinuity in a
   // packetized stream. Packetized input recreates NVDEC so a codec/stream

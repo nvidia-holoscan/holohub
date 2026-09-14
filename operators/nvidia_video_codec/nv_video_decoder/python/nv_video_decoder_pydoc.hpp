@@ -30,7 +30,8 @@ When ``codec`` is set to ``"H264"`` or ``"HEVC"``, input tensors are fed
 straight to the CUVID parser. ``packetized_input_mode`` describes whether those
 inputs are arbitrary byte-stream chunks or complete encoded access units.
 ``packetized_low_latency`` independently controls CUVID's display/reordering
-policy.
+policy. Packetized input tensors must use host-accessible host or system
+storage; device-backed encoded payloads are not supported.
 )doc")
 
 // PyNvVideoDecoderOp Constructor
@@ -50,7 +51,9 @@ name : str, optional
 codec : str, optional
     Codec for direct packetized input. Set to ``"H264"`` or ``"HEVC"`` to
     bypass the FFmpeg demuxer and feed each input tensor directly to NVDEC.
-    Leave empty for the existing demuxed/file streaming behavior.
+    Packetized input tensors must use host-accessible host or system storage;
+    device-backed encoded payloads are not supported. Leave empty for the
+    existing demuxed/file streaming behavior.
 packetized_input_mode : str, optional
     Framing of direct packetized input. ``"stream"`` (default) treats input
     tensors as arbitrary byte-stream chunks and lets CUVID determine picture

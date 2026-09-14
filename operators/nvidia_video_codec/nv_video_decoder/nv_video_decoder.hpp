@@ -109,6 +109,8 @@ class StreamDataProvider : public FFmpegDemuxer::DataProvider {
  * By default the operator uses the existing demuxed/file streaming path. Setting
  * `codec` to `"H264"` or `"HEVC"` enables packetized input and feeds each input
  * tensor directly to the CUVID parser, bypassing the FFmpeg demuxer.
+ * Packetized input tensors must use host-accessible `kHost` or `kSystem` storage;
+ * device-backed encoded payloads are not accepted by the CUVID parser path.
  *
  * `packetized_input_mode` describes the framing of that packetized input:
  *
