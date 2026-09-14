@@ -1,5 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2024-2026, Real-Time Innovations, Inc. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +17,8 @@
  */
 
 #pragma once
+
+#include <memory>
 
 #include <dds/sub/ddssub.hpp>
 
@@ -43,9 +46,7 @@ class DDSVideoSubscriberOp : public DDSOperatorBase {
   Parameter<std::string> reader_qos_;
   Parameter<uint32_t> stream_id_;
 
-  dds::sub::DataReader<VideoFrame> reader_ = dds::core::null;
-  dds::core::cond::StatusCondition status_condition_ = dds::core::null;
-  dds::core::cond::WaitSet waitset_;
+  std::unique_ptr<dds::sub::DataReader<VideoFrame>> reader_;
 };
 
 }  // namespace holoscan::ops

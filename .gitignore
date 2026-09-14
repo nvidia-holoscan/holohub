@@ -56,7 +56,9 @@ CLAUDE.md
 .config/
 .local/
 .ros/
+.rti/
 .nv/
+rti_workspace/
 tmp/
 
 # History and user files

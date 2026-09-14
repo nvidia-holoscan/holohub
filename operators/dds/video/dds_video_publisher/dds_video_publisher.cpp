@@ -1,5 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2024-2026, Real-Time Innovations, Inc. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,9 +38,10 @@ void DDSVideoPublisherOp::initialize() {
   dds::pub::Publisher publisher(participant_);
 
   // Create the VideoFrame topic
-  auto topic = dds::topic::find<dds::topic::Topic<VideoFrame>>(participant_, VIDEO_FRAME_TOPIC);
+  const std::string topic_name(VIDEO_FRAME_TOPIC);
+  auto topic = dds::topic::find<dds::topic::Topic<VideoFrame>>(participant_, topic_name);
   if (topic == dds::core::null) {
-    topic = dds::topic::Topic<VideoFrame>(participant_, VIDEO_FRAME_TOPIC);
+    topic = dds::topic::Topic<VideoFrame>(participant_, topic_name);
   }
 
   // Create the writer for the VideoFrame
@@ -65,6 +67,11 @@ void DDSVideoPublisherOp::compute(InputContext& op_input,
     throw std::runtime_error("Invalid buffer format; Only RGBA is supported");
   }
 
+  if (frame_num_ == 0) {
+    HOLOSCAN_LOG_INFO("Publishing DDS video frames: {}x{}, {} bytes per frame",
+                      info.width, info.height, buffer.value()->size());
+  }
+
   // Create the VideoFrame sample from the input buffer
   std::vector<uint8_t> data(buffer.value()->size());
   if (buffer.value()->storage_type() == nvidia::gxf::MemoryStorageType::kHost) {
@@ -76,6 +83,10 @@ void DDSVideoPublisherOp::compute(InputContext& op_input,
 
   // Write the VideoFrame to the writer
   writer_.write(frame);
+
+  if (frame_num_ % 60 == 0) {
+    HOLOSCAN_LOG_INFO("Published {} DDS video frames", frame_num_);
+  }
 }
 
 }  // namespace holoscan::ops

@@ -1,141 +1,139 @@
 # DDS Video: Real-time Video Streaming with RTI Connext
 
-The DDS Video application demonstrates how video frames can be written to or
-read from a DDS databus in order to provide flexible integration between
-Holoscan applications and other applications (using Holoscan or not) via DDS.
+The DDS Video application publishes or subscribes to video frames through an
+RTI Connext DDS databus. DDS is always part of the data path: the publisher
+writes the [`VideoFrame`](../../../operators/dds/video/VideoFrame.idl) topic and
+the subscriber reads that topic.
 
-The application can be run as either a publisher or as a subscriber. In either case,
-it will use the [VideoFrame](../../../operators/dds/video/VideoFrame.idl) data topic
-registered by the `DDSVideoPublisherOp` or `DDSVideoSubscriberOp` operators in order
-to write or read the video frame data to/from the DDS databus, respectively.
+The publisher can use either a V4L2 camera or an animated 640x480 RGBA test
+pattern with RTI white, blue, and orange bands. The synthetic source makes it
+possible to validate the complete DDS path on systems without a camera.
 
-When run as a publisher, the source for the input video frames will come from an
-attached V4L2-compatible camera via the `V4L2VideoCaptureOp` operator.
-
-When run as a subscriber, the application will use Holoviz to render the received
-video frames to the display. In addition to the video stream, the subscriber
-application will also subscribe to the `Square`, `Circle`, and `Triangle` topics
-as used by the [RTI Shapes Demo](https://www.rti.com/free-trial/shapes-demo).
-Any shapes received by this subscriber will also be overlaid on top of the
-Holoviz output.
+The subscriber normally renders video with Holoviz and overlays shapes received
+from the RTI Shapes Demo. With `--no-display`, it instead validates received
+frames and periodically reports their count and dimensions. This mode is useful
+on headless systems and in CI.
 
 ![DDS Video Application Workflow](docs/workflow_dds_video_app.png)
 
 ## Prerequisites
 
-- This application requires an installation of [RTI Connext Express](https://content.rti.com/l/983311/2025-07-08/q5x1n8) to provide access to the DDS domain.
-To obtain a license/activation key, please [request an RTI Connext Express license or activation key](https://content.rti.com/l/983311/2025-07-25/q6729c). Please see the [usage rules](https://www.rti.com/products/connext-express) for Connext Express.
-- V4L2 capable device
+- Docker and the HoloHub prerequisites.
+- A valid RTI Connext license. You can request or download the license used by
+  this repository with:
 
-> [!NOTE]
-> Instructions below are based on the `.run' installer from RTI Connext. Refer to the
-> [Linux installation](https://community.rti.com/static/documentation/developers/get-started/full-install.html)
-> for details.
+  ```sh
+  curl -fL 'https://content.rti.com/l/983311/2025-07-25/q6729c' -o rti_license.dat
+  ```
 
-## Quick Start
+- A V4L2-compatible camera only when using the camera publisher. No camera is
+  required for the synthetic example.
 
-```bash
-# Start the publisher
-./holohub run dds_video --docker-opts="-v $HOME/rti_connext_dds-7.3.0:/opt/rti.com/rti_connext_dds-7.3.0/" --run-args="-p"
+RTI Connext DDS 7.7.0 and its native C++ code generator are installed in the
+application container by the Dockerfile declared in HoloHub metadata. Nothing
+from Connext needs to be installed on the host.
 
-# Start the subscriber
-./holohub run dds_video --docker-opts="-v $HOME/rti_connext_dds-7.3.0:/opt/rti.com/rti_connext_dds-7.3.0/" --run-args="-s"
-```
+## Headless end-to-end example
 
-## Building the Application
-
-To build on an IGX devkit (using the `armv8` architecture), follow the
-[instructions to build Connext DDS applications for embedded Arm targets](https://community.rti.com/kb/how-do-i-create-connext-dds-application-rti-code-generator-and-build-it-my-embedded-target-arm)
-up to, and including, step 5 (Installing Java and setting JREHOME).
-
-To build the application, the `RTI_CONNEXT_DDS_DIR` CMake variable must point to
-the installation path for RTI Connext. This can be done automatically by setting
-the `NDDSHOME` environment variable to the RTI Connext installation directory
-(such as when using the RTI `setenv` scripts), or manually at build time, e.g.:
+Build through HoloHub from the repository root:
 
 ```sh
-./holohub build --local dds_video --configure-args="-DRTI_CONNEXT_DDS_DIR=~/rti/rti_connext_dds-7.3.0"
+./holohub build dds_video --language cpp
 ```
 
-### Building with a Container
-
-Due to the license requirements of RTI Connext it is not currently supported to
-install RTI Connext into a development container. Instead, Connext should be
-installed onto the host as above and then the development container can be
-launched with the RTI Connext folder mounted at runtime. To do so, ensure that
-the `NDDSHOME` and `CONNEXTDDS_ARCH` environment variables are set (which can be
-done using the RTI `setenv` script) and use the following:
+Open two terminals. Start the subscriber first:
 
 ```sh
-# 1. Build and launch the container
-./holohub run-container dds_video --docker-opts="-v $HOME/rti_connext_dds-7.3.0:/opt/rti.com/rti_connext_dds-7.3.0/"
-# 3. Build the application
-./holohub build dds_video
-# Continue to the next section to run the application with the publisher.
-# Open a new terminal to repeat step #2 and launch a new container for the subscriber.
+./holohub run --no-local-build dds_video \
+  --run-args='--subscriber --no-display' \
+  --docker-opts="-v $PWD/rti_license.dat:/opt/rti.com/rti_connext_dds-7.7.0/rti_license.dat:ro"
 ```
 
-## Running the Application
-
-Both a publisher and subscriber process must be launched to see the result of
-writing to and reading the video stream from DDS, respectively.
-
-To run the publisher process, use the `-p` option:
+Then start the synthetic publisher:
 
 ```sh
-./holohub run --no-local-build dds_video --run-args="-p"
+./holohub run --no-local-build dds_video \
+  --run-args='--publisher --synthetic' \
+  --docker-opts="-v $PWD/rti_license.dat:/opt/rti.com/rti_connext_dds-7.7.0/rti_license.dat:ro"
 ```
 
-To run the subscriber process, use the `-s` option:
+The subscriber confirms the DDS path with messages similar to:
+
+```text
+Received 1 DDS video frames (640x480)
+Received 30 DDS video frames (640x480)
+Received 60 DDS video frames (640x480)
+```
+
+To save the first frame reconstructed by the subscriber from DDS, mount a
+temporary output directory and use `--screenshot`:
 
 ```sh
-./holohub run --no-local-build dds_video --run-args="-s"
+mkdir -p /tmp/holohub-dds-capture
+./holohub run --no-local-build dds_video \
+  --run-args='--subscriber --no-display --screenshot=/capture/dds_rx.ppm' \
+  --docker-opts="-v $PWD/rti_license.dat:/opt/rti.com/rti_connext_dds-7.7.0/rti_license.dat:ro -v /tmp/holohub-dds-capture:/capture"
 ```
 
-If running the application generates an error about `RTI Connext DDS No Source
-for License information`, ensure that the RTI Connext license has either been
-installed system-wide or the `NDDSHOME` environment variable has been set to
-point to your user's RTI Connext installation path.
+After starting the publisher, the received image is available at
+`/tmp/holohub-dds-capture/dds_rx.ppm`. The screenshot is written by the RX
+pipeline after DDS deserialization, not by the synthetic source.
 
-Note that these processes can be run on the same or different systems, so long as they
-are both discoverable by the other via RTI Connext. If the processes are run on
-different systems then they will communicate using UDPv4, for which optimizations have
-been defined in the default `qos_profiles.xml` file. These optimizations include
-increasing the buffer size used by RTI Connext for network sockets, and so the systems
-running the application must also be configured to increase their maximum send and
-receive socket buffer sizes. This can be done by running the `set_socket_buffer_sizes.sh`
-script within this directory:
+Both processes use DDS. `--no-display` replaces only visualization; it does not
+bypass the DDS publisher or subscriber operators. When neither `DISPLAY` nor
+`WAYLAND_DISPLAY` is available, subscriber mode also selects this headless path
+automatically.
+
+## Camera and display modes
+
+To publish from `/dev/video0`, omit `--synthetic`:
 
 ```sh
-./set_socket_buffer_sizes.sh
+./holohub run --no-local-build dds_video \
+  --run-args='--publisher' \
+  --docker-opts="-v $PWD/rti_license.dat:/opt/rti.com/rti_connext_dds-7.7.0/rti_license.dat:ro"
 ```
 
-For more details, see the [RTI Connext Guide to Improve DDS Network Performance on Linux Systems](https://community.rti.com/howto/improve-rti-connext-dds-network-performance-linux-systems)
+The application checks that `/dev/video0` is a usable capture device and selects
+the first supported mode among 640x480, 1280x720, and 1920x1080. It exits with a
+clear error instead of starting the graph when no compatible camera is present.
 
-The QoS profiles used by the application can also be modified by editing the
-`qos_profiles.xml` file in the application directory. For more information about modifying
-the QoS profiles, see the [RTI Connext Basic QoS](https://community.rti.com/static/documentation/connext-dds/7.3.0/doc/manuals/connext_dds_professional/getting_started_guide/cpp11/intro_qos.html)
-tutorial or the [RTI Connext QoS Reference Guide](https://community.rti.com/static/documentation/connext-dds/7.3.0/doc/manuals/connext_dds_professional/qos_reference/index.htm).
+On a system with a forwarded graphical display, omit `--no-display` to render
+the DDS video stream with Holoviz:
 
-### Publishing Shapes from the RTI Shapes Demo
+```sh
+./holohub run --no-local-build dds_video \
+  --run-args='--subscriber' \
+  --docker-opts="-v $PWD/rti_license.dat:/opt/rti.com/rti_connext_dds-7.7.0/rti_license.dat:ro"
+```
 
-The [RTI Shapes Demo](https://www.rti.com/free-trial/shapes-demo) can be used to
-publish shapes which are then read and overlaid onto the video stream by this
-application. However, the domain participant QoS used by this application is not
-compatible with the default DDS QoS settings, so the RTI Shapes Demo must be
-configured to use the QoS settings provided by this application.  To do this,
-follow these steps:
+Use `--domain=ID` and `--id=ID` on both processes to select another DDS domain
+or video stream. The publisher and subscriber can run on the same system or on
+different mutually discoverable systems.
 
-1. Launch the RTI Shapes Demo
-2. Select `Controls`, then `Configuration` from the menu bar
-3. Click `Stop` to disable the default domain participant
-4. Click `Manage QoS`
-5. Click `Add` then navigate to and select the `qos_profiles.xml` file in this
-   application's directory.
-6. Click `OK` to close the `Manage QoS` window.
-7. In the `Choose the profile` drop-down, select `HoloscanDDSTransport::SHMEM+LAN`
-8. Click `Start` to join the domain.
+## Network and QoS configuration
 
-Once the Shapes Demo is running and has joined the domain of a running
-`dds_video` subscriber, shapes published by the application should be
-rendered on top of the subscriber's video stream.
+Communication between separate systems uses UDPv4. The supplied
+`qos_profiles.xml` increases Connext socket buffers for video traffic. The host
+kernel limits may therefore also need adjustment; see
+`set_socket_buffer_sizes.sh` and the [RTI guide to improving DDS network
+performance on Linux](https://community.rti.com/howto/improve-rti-connext-dds-network-performance-linux-systems).
+
+The application QoS can be changed in `qos_profiles.xml`. Refer to the
+[RTI Connext 7.7.0 documentation](https://community.rti.com/static/documentation/connext-dds/7.7.0/doc/manuals/connext_dds_professional/index.html)
+for the QoS policy reference.
+
+## Publishing shapes from RTI Shapes Demo
+
+The [RTI Shapes Demo](https://www.rti.com/free-trial/shapes-demo) can publish
+shapes that the graphical subscriber overlays on the video. Configure Shapes
+Demo to use this application's QoS:
+
+1. Open **Controls > Configuration** and stop the default participant.
+2. Select **Manage QoS**, add this application's `qos_profiles.xml`, and close
+   the dialog.
+3. Select `HoloscanDDSTransport::SHMEM+LAN` as the participant profile.
+4. Start the participant and publish `Square`, `Circle`, or `Triangle` samples.
+
+Shapes are intentionally not created in `--no-display` mode because that mode
+only verifies the DDS video stream.

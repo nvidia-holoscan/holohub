@@ -1,5 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2026, Real-Time Innovations, Inc. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -65,11 +66,11 @@ void DDSShapesSubscriberOp::add_shapes_to_output(std::vector<Shape>& shapes,
   for (const auto& shape : read_shapes) {
     if (shape.info().valid()) {
       shapes.push_back(Shape(shape_type,
-                             shape.data().color(),
-                             shape.data().x() / publisher_width_,
-                             shape.data().y() / publisher_height_,
-                             shape.data().shapesize() / publisher_width_,
-                             shape.data().shapesize() / publisher_height_));
+                             shape.data().color,
+                             shape.data().x / publisher_width_,
+                             shape.data().y / publisher_height_,
+                             shape.data().shapesize / publisher_width_,
+                             shape.data().shapesize / publisher_height_));
     }
   }
 }

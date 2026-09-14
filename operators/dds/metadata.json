@@ -13,6 +13,7 @@
 			"1.0": "Initial Release"
 		},
 		"language": ["C++"],
+		"dockerfile": "operators/dds/Dockerfile",
 		"holoscan_sdk": {
 			"minimum_required_version": "2.0.0",
 			"tested_versions": [
@@ -22,6 +23,14 @@
 		"platforms": ["x86_64", "aarch64"],
 		"tags": ["Networking and Distributed Computing", "DDS", "RTI Connext"],
 		"ranking": 2,
-		"requirements": {}
+		"requirements": {
+			"packages": [{
+				"name": "RTI Connext DDS",
+				"author": "Real-Time Innovations",
+				"license": "Closed",
+				"version": "7.7.0",
+				"url": "https://www.rti.com/products"
+			}]
+		}
 	}
 }

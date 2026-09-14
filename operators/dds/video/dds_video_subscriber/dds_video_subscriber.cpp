@@ -1,5 +1,6 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2024-2026, Real-Time Innovations, Inc. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +17,9 @@
  */
 
 #include "dds_video_subscriber.hpp"
+
+#include <chrono>
+#include <thread>
 
 #include "dds/topic/find.hpp"
 
@@ -38,9 +42,10 @@ void DDSVideoSubscriberOp::initialize() {
   dds::sub::Subscriber subscriber(participant_);
 
   // Create the VideoFrame topic
-  auto topic = dds::topic::find<dds::topic::Topic<VideoFrame>>(participant_, VIDEO_FRAME_TOPIC);
+  const std::string topic_name(VIDEO_FRAME_TOPIC);
+  auto topic = dds::topic::find<dds::topic::Topic<VideoFrame>>(participant_, topic_name);
   if (topic == dds::core::null) {
-    topic = dds::topic::Topic<VideoFrame>(participant_, VIDEO_FRAME_TOPIC);
+    topic = dds::topic::Topic<VideoFrame>(participant_, topic_name);
   }
 
   // Create the filtered topic for the requested stream id.
@@ -49,17 +54,8 @@ void DDSVideoSubscriberOp::initialize() {
       dds::topic::Filter("stream_id = %0", {std::to_string(stream_id_.get())}));
 
   // Create the reader for the VideoFrame
-  reader_ = dds::sub::DataReader<VideoFrame>(subscriber, filtered_topic,
-                                             qos_provider_.datareader_qos(reader_qos_.get()));
-
-  // Obtain the reader's status condition
-  status_condition_ = dds::core::cond::StatusCondition(reader_);
-
-  // Enable the 'data available' status
-  status_condition_.enabled_statuses(dds::core::status::StatusMask::data_available());
-
-  // Attach the status condition to the waitset
-  waitset_ += status_condition_;
+  reader_ = std::make_unique<dds::sub::DataReader<VideoFrame>>(
+      subscriber, filtered_topic, qos_provider_.datareader_qos(reader_qos_.get()));
 }
 
 void DDSVideoSubscriberOp::compute(InputContext& op_input,
@@ -80,27 +76,20 @@ void DDSVideoSubscriberOp::compute(InputContext& op_input,
 
   bool output_written = false;
   while (!output_written) {
-    // Wait for a new frame
-    dds::core::cond::WaitSet::ConditionSeq active_conditions =
-        waitset_.wait(dds::core::Duration::from_secs(1));
-    for (const auto& cond : active_conditions) {
-      if (cond == status_condition_) {
-        // Take the available frame
-        dds::sub::LoanedSamples<VideoFrame> frames = reader_.take();
-        for (const auto& frame : frames) {
-          if (frame.info().valid()) {
-            // Copy the frame to the output buffer
-            video_buffer.value()->resize<nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_RGBA>(
-                frame.data().width(), frame.data().height(),
-                nvidia::gxf::SurfaceLayout::GXF_SURFACE_LAYOUT_PITCH_LINEAR,
-                nvidia::gxf::MemoryStorageType::kHost, allocator.value());
-            memcpy(video_buffer.value()->pointer(), frame.data().data().data(),
-                   frame.data().data().size());
-            output_written = true;
-          }
-        }
+    dds::sub::LoanedSamples<VideoFrame> frames = reader_->take();
+    for (const auto& frame : frames) {
+      if (frame.info().valid()) {
+        // Copy the frame to the output buffer
+        video_buffer.value()->resize<nvidia::gxf::VideoFormat::GXF_VIDEO_FORMAT_RGBA>(
+            frame.data().width, frame.data().height,
+            nvidia::gxf::SurfaceLayout::GXF_SURFACE_LAYOUT_PITCH_LINEAR,
+            nvidia::gxf::MemoryStorageType::kHost, allocator.value());
+        memcpy(video_buffer.value()->pointer(), frame.data().data.data(),
+               frame.data().data.size());
+        output_written = true;
       }
     }
+    if (!output_written) { std::this_thread::sleep_for(std::chrono::milliseconds(10)); }
   }
 
   // Output the buffer

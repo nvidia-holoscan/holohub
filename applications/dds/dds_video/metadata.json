@@ -13,7 +13,7 @@
 		"changelog": {
 			"1.0": "Initial Release"
 		},
-		"dockerfile": "applications/dds/dds_video/Dockerfile",
+		"dockerfile": "operators/dds/Dockerfile",
 		"holoscan_sdk": {
 			"minimum_required_version": "2.0.0",
 			"tested_versions": [
@@ -32,7 +32,7 @@
 					"name": "RTI Connext",
 					"author": "Real-Time Innovations",
 					"license": "Closed",
-					"version": "7.3.0",
+					"version": "7.7.0",
 					"url": "https://www.rti.com/products"
 				}
 			]

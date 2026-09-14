@@ -9,33 +9,20 @@ a wide array of external applications and platforms.
 
 ## Requirements
 
-[RTI Connext](https://content.rti.com/l/983311/2024-04-30/pz1wms) must be
-installed on the system and a valid RTI Connext license must be installed to run
-any application using one of these operators. To build on an IGX devkit (using
-the `armv8` architecture), follow the
-[instructions to build Connext DDS applications for embedded Arm targets](https://community.rti.com/kb/how-do-i-create-connext-dds-application-rti-code-generator-and-build-it-my-embedded-target-arm)
-up to step 5 (Installing Java and setting JREHOME).
-
-To build the operators, the `RTI_CONNEXT_DDS_DIR` CMake variable must point to
-the installation path for RTI Connext. This can be done automatically by setting
-the `NDDSHOME` environment variable to the RTI Connext installation directory
-(such as when using the RTI `setenv` scripts), or manually at build time, e.g.:
+The HoloHub Dockerfile installs RTI Connext DDS **7.7.0** and the native C++
+code generator. A valid RTI license is still required at runtime. Download one
+from the RTI link used by this repository and place it at
+`/opt/rti.com/rti_connext_dds-7.7.0/rti_license.dat` in the container (a
+read-only bind mount is recommended):
 
 ```sh
-./holohub build dds_video --configure-args="-DRTI_CONNEXT_DDS_DIR=~/rti/rti_connext_dds-7.3.0"
+curl -fL 'https://content.rti.com/l/983311/2025-07-25/q6729c' -o rti_license.dat
 ```
 
-## Using a Development Container
-
-Due to the license requirements of RTI Connext it is not currently supported to
-install RTI Connext into a development container. Instead, if a development
-container is to be used, Connext should be installed onto the host as above and
-then the container can be launched with the RTI Connext folder mounted at
-runtime. To do so, ensure that the `NDDSHOME` and `CONNEXTDDS_ARCH` environment
-variables are set (which can be done using the RTI `setenv` script) and use the
-following:
+Build and run entirely through HoloHub; no host Connext installation is needed:
 
 ```sh
-./holohub run-container dds_video \
-  --docker-opts "-v $NDDSHOME:/opt/dds -e NDDSHOME=/opt/dds -e CONNEXTDDS_ARCH=$CONNEXTDDS_ARCH"
+./holohub build dds_video --language cpp
+./holohub run dds_video --docker-opts \
+  "-v $PWD/rti_license.dat:/opt/rti.com/rti_connext_dds-7.7.0/rti_license.dat:ro"
 ```
