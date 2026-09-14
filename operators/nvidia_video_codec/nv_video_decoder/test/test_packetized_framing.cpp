@@ -79,6 +79,11 @@ class AccessUnitSourceOp : public Operator {
                "CombineAccessUnits",
                "Emit all access units in one tensor.",
                false);
+    spec.param(signal_end_of_stream_,
+               "signal_end_of_stream",
+               "SignalEndOfStream",
+               "Mark the final tensor as the end of the packetized stream.",
+               false);
     spec.output<nvidia::gxf::Entity>("output");
   }
 
@@ -109,6 +114,9 @@ class AccessUnitSourceOp : public Operator {
                              gxf_allocator.value());
     std::memcpy(tensor->pointer(), bitstream_.data() + next_offset_, access_unit_size);
     next_offset_ += access_unit_size;
+    if (signal_end_of_stream_.get()) {
+      metadata()->set("end_of_stream", next_offset_ == bitstream_.size());
+    }
 
     op_output.emit(entity, "output");
   }
@@ -117,6 +125,7 @@ class AccessUnitSourceOp : public Operator {
   Parameter<std::shared_ptr<Allocator>> allocator_;
   Parameter<std::string> fixture_path_;
   Parameter<bool> combine_access_units_;
+  Parameter<bool> signal_end_of_stream_;
   std::vector<uint8_t> bitstream_;
   std::size_t next_access_unit_ = 0;
   std::size_t next_offset_ = 0;
@@ -198,16 +207,19 @@ class FrameValidationSinkOp : public Operator {
 
 class PacketizedFramingApp : public Application {
  public:
-  PacketizedFramingApp(std::string fixture_path, std::string input_mode, bool combine_access_units)
+  PacketizedFramingApp(std::string fixture_path, std::string input_mode, bool combine_access_units,
+                       bool signal_end_of_stream)
       : fixture_path_(std::move(fixture_path)),
         input_mode_(std::move(input_mode)),
-        combine_access_units_(combine_access_units) {}
+        combine_access_units_(combine_access_units),
+        signal_end_of_stream_(signal_end_of_stream) {}
 
   void compose() override {
     auto source = make_operator<AccessUnitSourceOp>(
         "source",
         Arg("fixture_path", fixture_path_),
         Arg("combine_access_units", combine_access_units_),
+        Arg("signal_end_of_stream", signal_end_of_stream_),
         make_condition<CountCondition>(
             "source_count", combine_access_units_ ? 1 : kAccessUnitSizes.size()));
     auto decoder = make_operator<NvVideoDecoderOp>(
@@ -216,10 +228,14 @@ class PacketizedFramingApp : public Application {
         Arg("allocator", make_resource<UnboundedAllocator>("decoder_allocator")),
         Arg("codec", std::string("HEVC")),
         Arg("packetized_input_mode", input_mode_),
-        // This fixture has no B-frames; keep low latency explicit so these tests
-        // isolate packetized framing and retain their no-EOS/no-flush contract.
-        Arg("packetized_low_latency", true));
+        // Preserve the no-EOS framing tests in low-latency mode. The EOS regression
+        // instead exercises the default display/reordering policy and its final drain.
+        Arg("packetized_low_latency", !signal_end_of_stream_));
+    decoder->spec()->outputs()["output"]->connector(
+        IOSpec::ConnectorType::kDoubleBuffer, Arg("capacity", static_cast<uint64_t>(4)));
     sink_ = make_operator<FrameValidationSinkOp>("sink");
+    sink_->spec()->inputs()["input"]->connector(
+        IOSpec::ConnectorType::kDoubleBuffer, Arg("capacity", static_cast<uint64_t>(4)));
 
     add_flow(source, decoder, {{"output", "input"}});
     add_flow(decoder, sink_, {{"output", "input"}});
@@ -231,6 +247,7 @@ class PacketizedFramingApp : public Application {
   std::string fixture_path_;
   std::string input_mode_;
   bool combine_access_units_;
+  bool signal_end_of_stream_;
 };
 
 }  // namespace holoscan::ops::nv_video_decoder_test
@@ -238,10 +255,10 @@ class PacketizedFramingApp : public Application {
 int main(int argc, char** argv) {
   using holoscan::ops::nv_video_decoder_test::PacketizedFramingApp;
 
-  if (argc != 5) {
+  if (argc != 6) {
     std::cerr << "Usage: nv_video_decoder_packetized_framing_test "
                  "<fixture.h265> <stream|access_unit> <expected_frames> "
-                 "<separate|combined>\n";
+                 "<separate|combined> <no_eos|eos>\n";
     return 2;
   }
 
@@ -257,10 +274,16 @@ int main(int argc, char** argv) {
     return 2;
   }
 
+  const std::string eos_mode = argv[5];
+  if (eos_mode != "no_eos" && eos_mode != "eos") {
+    std::cerr << "Unsupported EOS mode: " << eos_mode << '\n';
+    return 2;
+  }
+
   try {
     const std::size_t expected_frames = std::stoul(argv[3]);
     auto app = holoscan::make_application<PacketizedFramingApp>(
-        argv[1], input_mode, tensor_mode == "combined");
+        argv[1], input_mode, tensor_mode == "combined", eos_mode == "eos");
     app->run();
 
     const std::size_t actual_frames = app->sink_->frame_count();

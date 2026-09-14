@@ -32,7 +32,9 @@ inputs are arbitrary byte-stream chunks or complete encoded access units.
 ``packetized_low_latency`` independently controls CUVID's display/reordering
 policy. Packetized input tensors must use host-accessible host or system
 storage; device-backed encoded payloads are not supported. Packetized
-bitstreams must decode to 8-bit 4:2:0 NV12.
+bitstreams must decode to 8-bit 4:2:0 NV12. For finite packetized streams, set
+the ``end_of_stream`` metadata field to ``True`` on the final input tensor to
+drain frames delayed by parser lookahead or display reordering.
 )doc")
 
 // PyNvVideoDecoderOp Constructor
@@ -55,7 +57,9 @@ codec : str, optional
     Packetized input tensors must use host-accessible host or system storage;
     device-backed encoded payloads are not supported. Leave empty for the
     existing demuxed/file streaming behavior. Only bitstreams decoded to 8-bit
-    4:2:0 NV12 are supported by the packetized path.
+    4:2:0 NV12 are supported by the packetized path. For finite streams, set
+    ``end_of_stream=True`` in the metadata of the final input tensor to drain
+    delayed frames.
 packetized_input_mode : str, optional
     Framing of direct packetized input. ``"stream"`` (default) treats input
     tensors as arbitrary byte-stream chunks and lets CUVID determine picture

@@ -19,25 +19,32 @@ set(NV_VIDEO_DECODER_TEST_FIXTURE
 
 add_test(NAME nv_video_decoder_access_unit_framing_test
          COMMAND nv_video_decoder_packetized_framing_test
-                 ${NV_VIDEO_DECODER_TEST_FIXTURE} access_unit 3 separate)
+                 ${NV_VIDEO_DECODER_TEST_FIXTURE} access_unit 3 separate no_eos)
 
 # Characterize the current CUVID parser lookahead for arbitrary stream chunks:
 # without EOP, the final picture remains pending because the test sends no EOS,
 # flush, or fourth access unit.
 add_test(NAME nv_video_decoder_stream_lookahead_test
          COMMAND nv_video_decoder_packetized_framing_test
-                 ${NV_VIDEO_DECODER_TEST_FIXTURE} stream 2 separate)
+                 ${NV_VIDEO_DECODER_TEST_FIXTURE} stream 2 separate no_eos)
 
 # A single arbitrary stream chunk may contain several complete pictures. Verify
 # that every frame returned by that one decoder submission is emitted.
 add_test(NAME nv_video_decoder_stream_multi_picture_chunk_test
          COMMAND nv_video_decoder_packetized_framing_test
-                 ${NV_VIDEO_DECODER_TEST_FIXTURE} stream 2 combined)
+                 ${NV_VIDEO_DECODER_TEST_FIXTURE} stream 2 combined no_eos)
+
+# The final tensor carries an explicit EOS marker. With normal display reordering,
+# the EOS submission must release and emit the final delayed frame.
+add_test(NAME nv_video_decoder_stream_eos_drain_test
+         COMMAND nv_video_decoder_packetized_framing_test
+                 ${NV_VIDEO_DECODER_TEST_FIXTURE} stream 3 combined eos)
 
 set_tests_properties(
   nv_video_decoder_access_unit_framing_test
   nv_video_decoder_stream_lookahead_test
   nv_video_decoder_stream_multi_picture_chunk_test
+  nv_video_decoder_stream_eos_drain_test
   PROPERTIES
     LABELS "gpu"
     TIMEOUT 30

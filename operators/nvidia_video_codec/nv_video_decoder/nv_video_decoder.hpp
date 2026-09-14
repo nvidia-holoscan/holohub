@@ -127,6 +127,11 @@ class StreamDataProvider : public FFmpegDemuxer::DataProvider {
  * complete access unit per tensor. Using it with fragmented input can cause incorrect
  * parser boundaries or decode failures.
  *
+ * For a finite packetized stream, set the `end_of_stream` metadata field to `true`
+ * on the final input tensor. The operator decodes that tensor, submits a distinct
+ * end-of-stream packet to CUVID, and emits frames delayed by parser lookahead or
+ * display reordering before returning from `compute()`.
+ *
  * `packetized_low_latency` independently controls the decoder display policy. Its
  * default value, `false`, preserves normal CUVID display reordering and supports
  * streams containing B-frames. Setting it to `true` reduces display delay and is

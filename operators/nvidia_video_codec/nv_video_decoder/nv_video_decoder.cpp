@@ -56,7 +56,8 @@ void NvVideoDecoderOp::setup(OperatorSpec& spec) {
              "Optional codec for packetized Annex-B input. Set H264 or HEVC to bypass "
              "the FFmpeg demuxer and feed each input tensor directly to NVDEC. "
              "Packetized input tensors must use host-accessible kHost or kSystem storage. "
-             "Only bitstreams decoded to 8-bit 4:2:0 NV12 are supported.",
+             "Only bitstreams decoded to 8-bit 4:2:0 NV12 are supported. Set the "
+             "end_of_stream metadata field on the final tensor to drain delayed frames.",
              std::string(""));
   spec.param(packetized_input_mode_,
              "packetized_input_mode",
@@ -129,6 +130,8 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
   bool is_from_reader = (meta->get<std::string>("source", "") == "nv_video_reader");
   bool is_packetized_stream = !codec_.get().empty();
   bool direct_packet_decode = is_from_reader || is_packetized_stream;
+  const bool packetized_end_of_stream =
+      is_packetized_stream && meta->get<bool>("end_of_stream", false);
 
   if (is_packetized_stream) {
     auto gxf_tensor = static_cast<nvidia::gxf::Entity&>(maybe_entity.value())
@@ -240,8 +243,59 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
     }
   }
 
-  // Common frame processing for both paths
-  if (nFrameReturned == 0) {
+  struct LockedFrames {
+    explicit LockedFrames(NvDecoder* decoder) : decoder(decoder) {}
+    ~LockedFrames() {
+      for (auto& frame : frames) {
+        if (frame != nullptr) {
+          decoder->UnlockFrame(&frame);
+        }
+      }
+    }
+
+    NvDecoder* decoder;
+    std::vector<uint8_t*> frames;
+  } locked_frames(decoder_.get());
+
+  auto collect_decoded_frames = [&](int frame_count) {
+    if (frame_count > 0 && is_packetized_stream &&
+        (decoder_->GetOutputFormat() != cudaVideoSurfaceFormat_NV12 ||
+         decoder_->GetBitDepth() != 8 ||
+         decoder_->GetOutputChromaFormat() != cudaVideoChromaFormat_420)) {
+      throw std::runtime_error(
+          "Unsupported packetized decoder output format; only 8-bit 4:2:0 NV12 is supported");
+    }
+
+    if (frame_count > 1 && verbose_.get()) {
+      HOLOSCAN_LOG_INFO("Decoder returned {} frames. Processing all frames.", frame_count);
+    }
+
+    for (int frame_index = 0; frame_index < frame_count; ++frame_index) {
+      uint8_t* frame = decoder_->GetLockedFrame();
+      if (frame == nullptr) {
+        throw std::runtime_error("Failed to get a decoded frame reported by NvDecoder");
+      }
+      locked_frames.frames.push_back(frame);
+    }
+  };
+
+  collect_decoded_frames(nFrameReturned);
+
+  if (packetized_end_of_stream) {
+    if (verbose_.get()) {
+      HOLOSCAN_LOG_INFO("Packetized end of stream received - draining decoder");
+    }
+    int flushed_frame_count = 0;
+    try {
+      flushed_frame_count = decoder_->Decode(nullptr, 0);
+    } catch (const std::exception& e) {
+      HOLOSCAN_LOG_ERROR("Failed to drain packetized decoder at end of stream: {}", e.what());
+      return;
+    }
+    collect_decoded_frames(flushed_frame_count);
+  }
+
+  if (locked_frames.frames.empty()) {
     if (verbose_.get()) {
       HOLOSCAN_LOG_INFO(
           "No frames decoded - this is normal for initialization/header packets");
@@ -249,38 +303,16 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
     return;
   }
 
-  if (is_packetized_stream &&
-      (decoder_->GetOutputFormat() != cudaVideoSurfaceFormat_NV12 ||
-       decoder_->GetBitDepth() != 8 ||
-       decoder_->GetOutputChromaFormat() != cudaVideoChromaFormat_420)) {
-    throw std::runtime_error(
-        "Unsupported packetized decoder output format; only 8-bit 4:2:0 NV12 is supported");
-  }
-
-  if (nFrameReturned > 1 && verbose_.get()) {
-    HOLOSCAN_LOG_INFO("Decoder returned {} frames. Processing all frames.", nFrameReturned);
-  }
-
-  for (int frame_index = 0; frame_index < nFrameReturned; ++frame_index) {
-    // GetLockedFrame() advances the decoder's output queue. Call it exactly once
-    // per emitted frame.
-    uint8_t* pFrame = decoder_->GetLockedFrame();
-    if (!pFrame) {
-      HOLOSCAN_LOG_ERROR("Failed to get decoded frame {} of {} from decoder",
-                         frame_index + 1,
-                         nFrameReturned);
-      return;
-    }
+  for (std::size_t frame_index = 0; frame_index < locked_frames.frames.size(); ++frame_index) {
+    uint8_t* pFrame = locked_frames.frames[frame_index];
 
     auto output = nvidia::gxf::Entity::New(context.context());
     if (!output) {
-      decoder_->UnlockFrame(&pFrame);
       throw std::runtime_error("Failed to allocate message for output");
     }
 
     auto maybe_video_buffer = output.value().add<nvidia::gxf::VideoBuffer>();
     if (!maybe_video_buffer) {
-      decoder_->UnlockFrame(&pFrame);
       throw std::runtime_error("Failed to allocate video buffer");
     }
     auto video_buffer = maybe_video_buffer.value();
@@ -308,7 +340,6 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
         true);
 
     if (!result) {
-      decoder_->UnlockFrame(&pFrame);
       throw std::runtime_error("Failed to resize video buffer");
     }
 
@@ -374,11 +405,17 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
     }
 
     decoder_->UnlockFrame(&pFrame);
+    locked_frames.frames[frame_index] = nullptr;
 
     auto emit_timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(
                               std::chrono::steady_clock::now().time_since_epoch())
                               .count();
     auto decode_latency_ms = (emit_timestamp - enter_timestamp) / 1000000.0;
+    // One compute call can emit several decoded frames. Replace metrics from the
+    // previous emission without changing the policy for unrelated metadata keys.
+    meta->erase("video_decoder_decode_latency_ms"s);
+    meta->erase("jitter_time"s);
+    meta->erase("fps"s);
     meta->set("video_decoder_decode_latency_ms"s, decode_latency_ms);
     meta->set("jitter_time"s, (emit_timestamp - last_emit_timestamp_) / 1000000.0);
     meta->set("fps"s,
