@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,6 +29,8 @@ Decode compressed video using the NVIDIA Video Codec SDK.
 When ``codec`` is set to ``"H264"`` or ``"HEVC"``, input tensors are fed
 straight to the CUVID parser. ``packetized_input_mode`` describes whether those
 inputs are arbitrary byte-stream chunks or complete encoded access units.
+``packetized_low_latency`` independently controls CUVID's display/reordering
+policy.
 )doc")
 
 // PyNvVideoDecoderOp Constructor
@@ -60,6 +62,12 @@ packetized_input_mode : str, optional
     Only use ``"access_unit"`` when the producer guarantees one complete access
     unit per input tensor. Using it with fragmented input can create incorrect
     parser boundaries or decode failures.
+packetized_low_latency : bool, optional
+    Decoder display policy for direct packetized input. The default, ``False``,
+    preserves normal CUVID display reordering and supports streams containing
+    B-frames. Set to ``True`` only for low-latency bitstreams without B-frames,
+    such as All-Intra or IPPP streams. This option is independent of
+    ``packetized_input_mode`` and does not change end-of-picture signaling.
 )doc")
 
 PYDOC(initialize, R"doc(

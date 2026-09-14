@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -123,6 +123,12 @@ class StreamDataProvider : public FFmpegDemuxer::DataProvider {
  * complete access unit per tensor. Using it with fragmented input can cause incorrect
  * parser boundaries or decode failures.
  *
+ * `packetized_low_latency` independently controls the decoder display policy. Its
+ * default value, `false`, preserves normal CUVID display reordering and supports
+ * streams containing B-frames. Setting it to `true` reduces display delay and is
+ * intended only for low-latency bitstreams without B-frames, such as All-Intra or
+ * IPPP streams. It does not change input framing or end-of-picture signaling.
+ *
  * Decoded NV12 frames are emitted in device memory.
  */
 class NvVideoDecoderOp : public Operator {
@@ -149,6 +155,7 @@ class NvVideoDecoderOp : public Operator {
   Parameter<bool> verbose_;
   Parameter<std::string> codec_;
   Parameter<std::string> packetized_input_mode_;
+  Parameter<bool> packetized_low_latency_;
 
   CudaStreamHandler cuda_stream_handler_;
 

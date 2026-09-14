@@ -156,7 +156,10 @@ class PacketizedFramingApp : public Application {
         Arg("cuda_device_ordinal", 0),
         Arg("allocator", make_resource<UnboundedAllocator>("decoder_allocator")),
         Arg("codec", std::string("HEVC")),
-        Arg("packetized_input_mode", input_mode_));
+        Arg("packetized_input_mode", input_mode_),
+        // This fixture has no B-frames; keep low latency explicit so these tests
+        // isolate packetized framing and retain their no-EOS/no-flush contract.
+        Arg("packetized_low_latency", true));
     sink_ = make_operator<FrameCountSinkOp>("sink");
 
     add_flow(source, decoder, {{"output", "input"}});

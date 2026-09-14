@@ -63,6 +63,13 @@ void NvVideoDecoderOp::setup(OperatorSpec& spec) {
              "or 'access_unit' when every input tensor contains exactly one complete encoded "
              "access unit. 'access_unit' enables CUVID_PKT_ENDOFPICTURE.",
              std::string("stream"));
+  spec.param(packetized_low_latency_,
+             "packetized_low_latency",
+             "PacketizedLowLatency",
+             "Decoder display policy for packetized input. False preserves normal display "
+             "reordering, including B-frames. True reduces display delay and requires a "
+             "bitstream without B-frames.",
+             false);
 
   cuda_stream_handler_.define_params(spec);
 }
@@ -433,6 +440,7 @@ void NvVideoDecoderOp::init_decoder_for_packetized_stream() {
   try {
     const std::string codec_name = codec_.get();
     const std::string input_mode = packetized_input_mode_.get();
+    const bool low_latency = packetized_low_latency_.get();
     cudaVideoCodec codec;
     if (codec_name == "H264" || codec_name == "h264") {
       codec = cudaVideoCodec_H264;
@@ -443,12 +451,12 @@ void NvVideoDecoderOp::init_decoder_for_packetized_stream() {
       throw std::runtime_error("Unsupported packetized codec: " + codec_name);
     }
 
-    // Keep CUVID's normal display callback active. Picture-boundary signaling is
-    // controlled independently by packetized_input_mode at each Decode() submission.
+    // Framing and display latency are independent: packetized_input_mode controls
+    // per-submission flags, while packetized_low_latency controls CUVID reordering.
     decoder_ = std::make_unique<NvDecoder>(cu_context_,
                                            true,   // bUseDeviceFrame
                                            codec,  // eCodec
-                                           true,   // bLowLatency
+                                           low_latency,
                                            false,  // bDeviceFramePitched
                                            nullptr,
                                            nullptr,
@@ -459,9 +467,10 @@ void NvVideoDecoderOp::init_decoder_for_packetized_stream() {
                                            false);  // force_zero_latency
 
     if (verbose_.get()) {
-      HOLOSCAN_LOG_INFO("Initialized packetized {} decoder (input mode: {})",
+      HOLOSCAN_LOG_INFO("Initialized packetized {} decoder (input mode: {}, low latency: {})",
                         codec_name,
-                        input_mode);
+                        input_mode,
+                        low_latency);
     }
   } catch (const std::exception& e) {
     HOLOSCAN_LOG_ERROR("Failed to initialize packetized decoder: {}", e.what());
