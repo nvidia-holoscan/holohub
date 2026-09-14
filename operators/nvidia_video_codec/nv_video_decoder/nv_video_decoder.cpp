@@ -21,6 +21,7 @@
 #include <fstream>
 #include <iomanip>
 #include <sstream>
+#include <stdexcept>
 
 #include <cuda.h>
 #include "holoscan/core/execution_context.hpp"
@@ -49,12 +50,31 @@ void NvVideoDecoderOp::setup(OperatorSpec& spec) {
              ParameterFlag::kOptional);
   spec.param(allocator_, "allocator", "Allocator", "Allocator for output buffers.");
   spec.param(verbose_, "verbose", "Verbose", "Print detailed decoder information", false);
+  spec.param(codec_,
+             "codec",
+             "Codec",
+             "Optional codec for packetized Annex-B input. Set H264 or HEVC to bypass "
+             "the FFmpeg demuxer and feed each input tensor directly to NVDEC.",
+             std::string(""));
+  spec.param(packetized_input_mode_,
+             "packetized_input_mode",
+             "PacketizedInputMode",
+             "Framing of packetized codec input: 'stream' for arbitrary byte-stream chunks, "
+             "or 'access_unit' when every input tensor contains exactly one complete encoded "
+             "access unit. 'access_unit' enables CUVID_PKT_ENDOFPICTURE.",
+             std::string("stream"));
 
   cuda_stream_handler_.define_params(spec);
 }
 
 void NvVideoDecoderOp::initialize() {
   Operator::initialize();
+
+  const std::string& packetized_input_mode = packetized_input_mode_.get();
+  if (packetized_input_mode != "stream" && packetized_input_mode != "access_unit") {
+    throw std::invalid_argument("Unsupported packetized_input_mode: " + packetized_input_mode +
+                                ". Expected 'stream' or 'access_unit'.");
+  }
 
   // Initialize CUDA
   CudaCheck(cuInit(0));
@@ -98,23 +118,33 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
 
   auto meta = metadata();
   bool is_from_reader = (meta->get<std::string>("source", "") == "nv_video_reader");
+  bool is_packetized_stream = !codec_.get().empty();
+  bool direct_packet_decode = is_from_reader || is_packetized_stream;
 
-  // Handle stream reset signal for looping videos
+  // Handle stream reset signal for looping videos or a discontinuity in a
+  // packetized stream. Packetized input recreates NVDEC so a codec/stream
+  // change cannot retain references to the previous GOP.
   bool stream_reset = meta->get<bool>("stream_reset", false);
-  if (is_from_reader && stream_reset && decoder_ != nullptr) {
+  if (direct_packet_decode && stream_reset && decoder_ != nullptr) {
     if (verbose_.get()) {
-      HOLOSCAN_LOG_INFO("Stream reset detected - flushing decoder to prevent frame repetition");
+      HOLOSCAN_LOG_INFO("Stream reset detected - flushing decoder");
     }
     try {
-      // Send an empty packet to flush the decoder
       decoder_->Decode(nullptr, 0);
     } catch (const std::exception& e) {
       HOLOSCAN_LOG_WARN("Failed to flush decoder on stream reset: {}", e.what());
     }
+    if (is_packetized_stream) {
+      decoder_.reset();
+    }
   }
 
-  // Initialize decoder for streaming or file
-  if (is_from_reader) {
+  // When codec is set, the FFmpeg demuxer is intentionally bypassed and each
+  // input tensor is fed directly to CUVID. packetized_input_mode determines
+  // whether those tensors are arbitrary byte-stream chunks or complete access units.
+  if (is_packetized_stream) {
+    init_decoder_for_packetized_stream();
+  } else if (is_from_reader) {
     init_decoder_for_file(meta);
   } else {
     init_decoder_for_streaming(data_ptr, data_size);
@@ -143,21 +173,31 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
   uint8_t* pFrame;
   int nFrameReturned = 0;
 
-  if (is_from_reader) {
-    // Direct packet from nv_video_reader - decode once
+  if (direct_packet_decode) {
+    // The input tensor is already encoded data ready for direct parser submission.
     pVideo = static_cast<uint8_t*>(data_ptr);
     nVideoBytes = data_size;
 
     try {
-      nFrameReturned = decoder_->Decode(pVideo, nVideoBytes);
+      // CUVID_PKT_ENDOFPICTURE is only correct when the caller guarantees that
+      // each packetized input tensor contains exactly one complete access unit.
+      // In stream mode, leave picture-boundary detection entirely to CUVID.
+      const bool complete_access_unit =
+          is_packetized_stream && packetized_input_mode_.get() == "access_unit";
+      const uint32_t decode_flags = complete_access_unit ? CUVID_PKT_ENDOFPICTURE : 0;
+      if (is_packetized_stream) {
+        nFrameReturned = decoder_->Decode(pVideo, nVideoBytes, decode_flags);
+      } else {
+        nFrameReturned = decoder_->Decode(pVideo, nVideoBytes);
+      }
     } catch (const std::exception& e) {
-      HOLOSCAN_LOG_ERROR("Failed to decode frame from nv_video_reader: {}", e.what());
+      HOLOSCAN_LOG_ERROR("Failed to decode packetized frame: {}", e.what());
       return;
     }
 
     nFrame += nFrameReturned;
   } else {
-    // Stream data - use demuxer and loop until we get frames
+    // Generic byte-stream data - use FFmpeg demuxer and loop until we get frames.
     do {
       demuxer_->Demux(&pVideo, &nVideoBytes);
 
@@ -178,12 +218,11 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
     } while (nVideoBytes);
   }
 
-  // Check if we can get a frame from the decoder (either newly decoded or buffered)
-  if (nFrameReturned == 0 && decoder_ != nullptr) {
-    // Try to get a buffered frame even if no new frames were decoded
+  // A zero return simply means the current parser submission produced no displayable
+  // frame. Retain the legacy buffered-frame probe only for file/generic streaming.
+  if (nFrameReturned == 0 && decoder_ != nullptr && !is_packetized_stream) {
     uint8_t* test_frame = decoder_->GetLockedFrame();
     if (test_frame != nullptr) {
-      // Put the frame back and set nFrameReturned to 1 so we process it
       decoder_->UnlockFrame(&test_frame);
       nFrameReturned = 1;
       if (verbose_.get()) {
@@ -196,7 +235,7 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
   if (nFrameReturned == 0) {
     if (verbose_.get()) {
       HOLOSCAN_LOG_INFO(
-          "No frames decoded - this is normal for initialization frames (SPS/PPS headers)");
+          "No frames decoded - this is normal for initialization/header packets");
     }
     return;
   }
@@ -207,16 +246,12 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
         nFrameReturned);
   }
 
+  // GetLockedFrame() advances the decoder's output queue. Call it exactly once
+  // per emitted frame.
   pFrame = decoder_->GetLockedFrame();
   if (!pFrame) {
     HOLOSCAN_LOG_ERROR("Failed to get decoded frame from decoder");
     return;
-  }
-
-  int64_t frame_timestamp = 0;
-  uint8_t* frame_with_timestamp = decoder_->GetLockedFrame(&frame_timestamp);
-  if (frame_with_timestamp) {
-    decoder_->UnlockFrame(&frame_with_timestamp);
   }
 
   auto width = decoder_->GetWidth();
@@ -242,6 +277,7 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
       true);
 
   if (!result) {
+    decoder_->UnlockFrame(&pFrame);
     throw std::runtime_error("Failed to resize video buffer");
   }
 
@@ -366,7 +402,6 @@ void NvVideoDecoderOp::init_decoder_for_file(std::shared_ptr<MetadataDictionary>
     CudaCheck(cuCtxPushCurrent(cu_context_));
     try {
       cudaVideoCodec codec = FFmpeg2NvCodecId(meta->get<AVCodecID>("codec", AV_CODEC_ID_H264));
-      // Create decoder without demuxer - assume H.264 for now
       decoder_ =
           std::make_unique<NvDecoder>(cu_context_,
                                       true,     // bUseDeviceFrame
@@ -379,7 +414,7 @@ void NvVideoDecoderOp::init_decoder_for_file(std::shared_ptr<MetadataDictionary>
                                       0,        // maxWidth
                                       0,        // maxHeight
                                       1000,     // clkRate
-                                      false);   // force_zero_latency - DISABLE to allow reordering
+                                      false);   // force_zero_latency - allow reordering
     } catch (const std::exception& e) {
       HOLOSCAN_LOG_ERROR("Failed to initialize decoder for nv_video_reader: {}", e.what());
       decoder_.reset();
@@ -389,7 +424,59 @@ void NvVideoDecoderOp::init_decoder_for_file(std::shared_ptr<MetadataDictionary>
   }
 }
 
+void NvVideoDecoderOp::init_decoder_for_packetized_stream() {
+  if (decoder_ != nullptr) {
+    return;
+  }
+
+  CudaCheck(cuCtxPushCurrent(cu_context_));
+  try {
+    const std::string codec_name = codec_.get();
+    const std::string input_mode = packetized_input_mode_.get();
+    cudaVideoCodec codec;
+    if (codec_name == "H264" || codec_name == "h264") {
+      codec = cudaVideoCodec_H264;
+    } else if (codec_name == "HEVC" || codec_name == "hevc" || codec_name == "H265" ||
+               codec_name == "h265") {
+      codec = cudaVideoCodec_HEVC;
+    } else {
+      throw std::runtime_error("Unsupported packetized codec: " + codec_name);
+    }
+
+    // Keep CUVID's normal display callback active. Picture-boundary signaling is
+    // controlled independently by packetized_input_mode at each Decode() submission.
+    decoder_ = std::make_unique<NvDecoder>(cu_context_,
+                                           true,   // bUseDeviceFrame
+                                           codec,  // eCodec
+                                           true,   // bLowLatency
+                                           false,  // bDeviceFramePitched
+                                           nullptr,
+                                           nullptr,
+                                           false,
+                                           0,
+                                           0,
+                                           1000,
+                                           false);  // force_zero_latency
+
+    if (verbose_.get()) {
+      HOLOSCAN_LOG_INFO("Initialized packetized {} decoder (input mode: {})",
+                        codec_name,
+                        input_mode);
+    }
+  } catch (const std::exception& e) {
+    HOLOSCAN_LOG_ERROR("Failed to initialize packetized decoder: {}", e.what());
+    decoder_.reset();
+    CudaCheck(cuCtxPopCurrent(nullptr));
+    throw;
+  }
+}
+
 void NvVideoDecoderOp::stop() {
+  // Destroy codec objects while the retained CUDA primary context is still valid.
+  decoder_.reset();
+  demuxer_.reset();
+  file_data_provider_.reset();
+
   // Cleanup resources in reverse order of creation
   // Release the primary context for the device if it was created by this operator
   if (cu_context_) {

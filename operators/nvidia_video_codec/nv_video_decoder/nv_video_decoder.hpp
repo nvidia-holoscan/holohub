@@ -104,10 +104,26 @@ class StreamDataProvider : public FFmpegDemuxer::DataProvider {
 };
 
 /**
- * @brief Operator to decode video frames using NVIDIA Video Codec SDK
+ * @brief Operator to decode compressed video using the NVIDIA Video Codec SDK.
  *
- * This operator takes video frames as input and decodes them to H264 format.
- * The input and output data remain on the GPU for maximum performance.
+ * By default the operator uses the existing demuxed/file streaming path. Setting
+ * `codec` to `"H264"` or `"HEVC"` enables packetized input and feeds each input
+ * tensor directly to the CUVID parser, bypassing the FFmpeg demuxer.
+ *
+ * `packetized_input_mode` describes the framing of that packetized input:
+ *
+ * - `"stream"` (default): input tensors are arbitrary byte-stream chunks. A picture
+ *   may span multiple input tensors and CUVID determines picture boundaries.
+ * - `"access_unit"`: every input tensor contains exactly one complete encoded access
+ *   unit. The operator marks each submitted packet with `CUVID_PKT_ENDOFPICTURE`,
+ *   allowing CUVID to complete the current picture without waiting for data from the
+ *   next input tensor.
+ *
+ * `"access_unit"` must only be selected when the input contract guarantees one
+ * complete access unit per tensor. Using it with fragmented input can cause incorrect
+ * parser boundaries or decode failures.
+ *
+ * Decoded NV12 frames are emitted in device memory.
  */
 class NvVideoDecoderOp : public Operator {
  public:
@@ -124,12 +140,15 @@ class NvVideoDecoderOp : public Operator {
  private:
   void init_decoder_for_streaming(void* data, size_t size);
   void init_decoder_for_file(std::shared_ptr<MetadataDictionary> meta);
+  void init_decoder_for_packetized_stream();
 
   Parameter<int> cuda_device_ordinal_;
   Parameter<int> width_;
   Parameter<int> height_;
   Parameter<std::shared_ptr<holoscan::Allocator>> allocator_;
   Parameter<bool> verbose_;
+  Parameter<std::string> codec_;
+  Parameter<std::string> packetized_input_mode_;
 
   CudaStreamHandler cuda_stream_handler_;
 

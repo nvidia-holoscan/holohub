@@ -57,12 +57,17 @@ class PyNvVideoDecoderOp : public NvVideoDecoderOp {
   using NvVideoDecoderOp::NvVideoDecoderOp;
 
   // Define a constructor that fully initializes the object.
+  // Keep `name` in its historical positional slot and append the new framing option
+  // afterwards so existing positional Python calls remain source compatible.
   PyNvVideoDecoderOp(Fragment* fragment, const py::args& args, int cuda_device_ordinal,
                      std::shared_ptr<::holoscan::Allocator> allocator, bool verbose,
-                     const std::string& name = "nv_video_decoder")
+                     const std::string& codec, const std::string& name = "nv_video_decoder",
+                     const std::string& packetized_input_mode = "stream")
       : NvVideoDecoderOp(ArgList{Arg{"cuda_device_ordinal", cuda_device_ordinal},
                                  Arg{"allocator", allocator},
-                                 Arg{"verbose", verbose}}) {
+                                 Arg{"verbose", verbose},
+                                 Arg{"codec", codec},
+                                 Arg{"packetized_input_mode", packetized_input_mode}}) {
     add_positional_condition_and_resource_args(this, args);
     name_ = name;
     fragment_ = fragment;
@@ -95,13 +100,17 @@ PYBIND11_MODULE(_nv_video_decoder, m) {
                     int,
                     std::shared_ptr<::holoscan::Allocator>,
                     bool,
+                    const std::string&,
+                    const std::string&,
                     const std::string&>(),
            "fragment"_a,
            "cuda_device_ordinal"_a,
            "allocator"_a,
            "verbose"_a = false,
+           "codec"_a = ""s,
            "name"_a = "nv_video_decoder"s,
-           doc::NvVideoDecoderOp::doc_NvVideoDecoderOp)
+           "packetized_input_mode"_a = "stream"s,
+           doc::NvVideoDecoderOp::doc_NvVideoDecoderOp_python)
       .def("initialize", &NvVideoDecoderOp::initialize, doc::NvVideoDecoderOp::doc_initialize)
       .def("setup", &NvVideoDecoderOp::setup, "spec"_a, doc::NvVideoDecoderOp::doc_setup);
 }  // PYBIND11_MODULE NOLINT

@@ -1,7 +1,7 @@
 {
 	"operator": {
 		"name": "NVIDIA Video Codec SDK: Decoder",
-		"description": "This operator decodes a video stream from a compressed format using the NVIDIA Video Codec SDK.",
+		"description": "This operator decodes compressed video using the NVIDIA Video Codec SDK. Direct H.264/HEVC packetized input can be configured as arbitrary stream chunks or as complete access units.",
 		"authors": [
 			{
                 "name": "Holoscan Team",
@@ -9,8 +9,9 @@
 			}
 		],
 		"language": ["C++", "Python"],
-		"version": "1.0.0",
+		"version": "1.1.0",
 		"changelog": {
+			"1.1": "Add configurable stream/access-unit framing for direct packetized input",
 			"1.0": "Initial Release"
 		},
 		"holoscan_sdk": {
