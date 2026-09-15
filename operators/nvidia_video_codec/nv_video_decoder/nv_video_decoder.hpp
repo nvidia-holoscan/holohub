@@ -25,6 +25,7 @@
 #include <deque>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <cuda.h>
@@ -164,6 +165,11 @@ class NvVideoDecoderOp : public Operator {
     int64_t decode_start_timestamp = 0;
   };
 
+  struct PendingAccessUnitMetadata {
+    MetadataDictionary metadata;
+    int64_t decode_start_timestamp = 0;
+  };
+
   void emit_pending_frame(OutputContext& op_output, ExecutionContext& context);
   void release_pending_frames();
   void init_decoder_for_streaming(void* data, size_t size);
@@ -189,9 +195,11 @@ class NvVideoDecoderOp : public Operator {
   std::unique_ptr<FFmpegDemuxer> demuxer_;
   std::unique_ptr<StreamDataProvider> file_data_provider_;
   std::deque<PendingFrame> pending_frames_;
+  std::unordered_map<int64_t, PendingAccessUnitMetadata> pending_access_unit_metadata_;
   std::atomic<std::size_t> pending_frame_count_{0};
   std::shared_ptr<Condition> input_or_pending_condition_;
 
+  int64_t next_access_unit_timestamp_ = 1;
   uint64_t last_emit_timestamp_ = 0;
 };
 

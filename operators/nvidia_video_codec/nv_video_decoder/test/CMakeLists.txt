@@ -21,6 +21,12 @@ add_test(NAME nv_video_decoder_access_unit_framing_test
          COMMAND nv_video_decoder_packetized_framing_test
                  ${NV_VIDEO_DECODER_TEST_FIXTURE} access_unit 3 separate no_eos uint8)
 
+# With normal display latency, a decoded frame can be returned by a later access-unit
+# submission. Verify that it retains the metadata of its originating access unit.
+add_test(NAME nv_video_decoder_access_unit_metadata_test
+         COMMAND nv_video_decoder_packetized_framing_test
+                 ${NV_VIDEO_DECODER_TEST_FIXTURE} access_unit 3 separate eos uint8)
+
 # Characterize the current CUVID parser lookahead for arbitrary stream chunks:
 # without EOP, the final picture remains pending because the test sends no EOS,
 # flush, or fourth access unit.
@@ -48,6 +54,7 @@ add_test(NAME nv_video_decoder_wide_element_tensor_test
 
 set_tests_properties(
   nv_video_decoder_access_unit_framing_test
+  nv_video_decoder_access_unit_metadata_test
   nv_video_decoder_stream_lookahead_test
   nv_video_decoder_stream_multi_picture_chunk_test
   nv_video_decoder_stream_eos_drain_test

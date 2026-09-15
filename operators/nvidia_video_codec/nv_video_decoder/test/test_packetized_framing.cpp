@@ -107,6 +107,7 @@ class AccessUnitSourceOp : public Operator {
 
   void compute([[maybe_unused]] InputContext& op_input, OutputContext& op_output,
                ExecutionContext& context) override {
+    const auto access_unit_index = next_access_unit_;
     const std::size_t access_unit_size = combine_access_units_.get()
                                              ? bitstream_.size()
                                              : kAccessUnitSizes.at(next_access_unit_++);
@@ -132,6 +133,7 @@ class AccessUnitSourceOp : public Operator {
       metadata()->set("end_of_stream", next_offset_ == bitstream_.size());
     }
     metadata()->set("packet_batch_id", kPacketBatchId);
+    metadata()->set("access_unit_index", static_cast<int64_t>(access_unit_index));
 
     op_output.emit(entity, "output");
   }
@@ -152,7 +154,14 @@ class FrameValidationSinkOp : public Operator {
   HOLOSCAN_OPERATOR_FORWARD_ARGS(FrameValidationSinkOp)
   FrameValidationSinkOp() = default;
 
-  void setup(OperatorSpec& spec) override { spec.input<gxf::Entity>("input"); }
+  void setup(OperatorSpec& spec) override {
+    spec.param(validate_access_unit_metadata_,
+               "validate_access_unit_metadata",
+               "ValidateAccessUnitMetadata",
+               "Validate metadata correlation for separate access units.",
+               false);
+    spec.input<gxf::Entity>("input");
+  }
 
   void compute(InputContext& op_input, [[maybe_unused]] OutputContext& op_output,
                [[maybe_unused]] ExecutionContext& context) override {
@@ -162,6 +171,15 @@ class FrameValidationSinkOp : public Operator {
     }
     if (metadata()->get<int>("packet_batch_id", -1) != kPacketBatchId) {
       throw std::runtime_error("Decoded frame did not preserve its input metadata");
+    }
+    if (validate_access_unit_metadata_.get()) {
+      const auto expected_index = static_cast<int64_t>(frame_count_);
+      const auto actual_index = metadata()->get<int64_t>("access_unit_index", -1);
+      if (actual_index != expected_index) {
+        throw std::runtime_error("Decoded frame metadata has access-unit index " +
+                                 std::to_string(actual_index) + ", expected " +
+                                 std::to_string(expected_index));
+      }
     }
 
     auto maybe_video_buffer = static_cast<nvidia::gxf::Entity&>(maybe_entity.value())
@@ -221,6 +239,7 @@ class FrameValidationSinkOp : public Operator {
   std::size_t frame_count() const { return frame_count_; }
 
  private:
+  Parameter<bool> validate_access_unit_metadata_;
   std::size_t frame_count_ = 0;
 };
 
@@ -252,7 +271,10 @@ class PacketizedFramingApp : public Application {
         // Preserve the no-EOS framing tests in low-latency mode. The EOS regression
         // instead exercises the default display/reordering policy and its final drain.
         Arg("packetized_low_latency", !signal_end_of_stream_));
-    sink_ = make_operator<FrameValidationSinkOp>("sink");
+    sink_ = make_operator<FrameValidationSinkOp>(
+        "sink",
+        Arg("validate_access_unit_metadata",
+            input_mode_ == "access_unit" && signal_end_of_stream_));
 
     // Keep the default connector capacity of one. Combined-input tests verify
     // that multi-frame decoder returns are queued and emitted across ticks.

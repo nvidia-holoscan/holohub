@@ -249,6 +249,7 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
     }
     if (is_packetized_stream) {
       decoder_.reset();
+      pending_access_unit_metadata_.clear();
       // Balance the context pushed when this decoder was initialized before
       // init_decoder_for_packetized_stream() pushes it again.
       CudaCheck(cuCtxPopCurrent(nullptr));
@@ -269,6 +270,9 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
   uint8_t* pVideo = NULL;
   int nVideoBytes = 0;
   int nFrameReturned = 0;
+  const bool complete_access_unit =
+      is_packetized_stream && packetized_input_mode_.get() == "access_unit";
+  int64_t access_unit_timestamp = 0;
 
   if (direct_packet_decode) {
     // The input tensor is already encoded data ready for direct parser submission.
@@ -279,15 +283,25 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
       // CUVID_PKT_ENDOFPICTURE is only correct when the caller guarantees that
       // each packetized input tensor contains exactly one complete access unit.
       // In stream mode, leave picture-boundary detection entirely to CUVID.
-      const bool complete_access_unit =
-          is_packetized_stream && packetized_input_mode_.get() == "access_unit";
       const uint32_t decode_flags = complete_access_unit ? CUVID_PKT_ENDOFPICTURE : 0;
       if (is_packetized_stream) {
-        nFrameReturned = decoder_->Decode(pVideo, nVideoBytes, decode_flags);
+        if (complete_access_unit) {
+          if (next_access_unit_timestamp_ == std::numeric_limits<int64_t>::max()) {
+            throw std::runtime_error("Packetized access-unit timestamp space exhausted");
+          }
+          access_unit_timestamp = next_access_unit_timestamp_++;
+          pending_access_unit_metadata_.emplace(
+              access_unit_timestamp, PendingAccessUnitMetadata{*meta, enter_timestamp});
+        }
+        nFrameReturned =
+            decoder_->Decode(pVideo, nVideoBytes, decode_flags, access_unit_timestamp);
       } else {
         nFrameReturned = decoder_->Decode(pVideo, nVideoBytes);
       }
     } catch (const std::exception& e) {
+      if (access_unit_timestamp != 0) {
+        pending_access_unit_metadata_.erase(access_unit_timestamp);
+      }
       HOLOSCAN_LOG_ERROR("Failed to decode packetized frame: {}", e.what());
       return;
     }
@@ -328,14 +342,14 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
     explicit LockedFrames(NvDecoder* decoder) : decoder(decoder) {}
     ~LockedFrames() {
       for (auto& frame : frames) {
-        if (frame != nullptr) {
-          decoder->UnlockFrame(&frame);
+        if (frame.data != nullptr) {
+          decoder->UnlockFrame(&frame.data);
         }
       }
     }
 
     NvDecoder* decoder;
-    std::vector<uint8_t*> frames;
+    std::vector<PendingFrame> frames;
   } locked_frames(decoder_.get());
 
   auto collect_decoded_frames = [&](int frame_count) {
@@ -352,11 +366,23 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
     }
 
     for (int frame_index = 0; frame_index < frame_count; ++frame_index) {
-      uint8_t* frame = decoder_->GetLockedFrame();
+      int64_t frame_timestamp = 0;
+      uint8_t* frame = decoder_->GetLockedFrame(complete_access_unit ? &frame_timestamp : nullptr);
       if (frame == nullptr) {
         throw std::runtime_error("Failed to get a decoded frame reported by NvDecoder");
       }
-      locked_frames.frames.push_back(frame);
+      locked_frames.frames.push_back(PendingFrame{frame, *meta, enter_timestamp});
+
+      if (complete_access_unit) {
+        const auto metadata_it = pending_access_unit_metadata_.find(frame_timestamp);
+        if (metadata_it == pending_access_unit_metadata_.end()) {
+          throw std::runtime_error("Decoded access-unit frame has an unknown timestamp");
+        }
+        auto& pending_frame = locked_frames.frames.back();
+        pending_frame.metadata = std::move(metadata_it->second.metadata);
+        pending_frame.decode_start_timestamp = metadata_it->second.decode_start_timestamp;
+        pending_access_unit_metadata_.erase(metadata_it);
+      }
     }
   };
 
@@ -374,6 +400,9 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
       return;
     }
     collect_decoded_frames(flushed_frame_count);
+    if (complete_access_unit) {
+      pending_access_unit_metadata_.clear();
+    }
   }
 
   if (locked_frames.frames.empty()) {
@@ -385,8 +414,8 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
   }
 
   for (auto& frame : locked_frames.frames) {
-    pending_frames_.push_back(PendingFrame{frame, *meta, enter_timestamp});
-    frame = nullptr;
+    pending_frames_.push_back(std::move(frame));
+    frame.data = nullptr;
   }
   pending_frame_count_.store(pending_frames_.size(), std::memory_order_release);
 
@@ -544,6 +573,7 @@ void NvVideoDecoderOp::release_pending_frames() {
     }
   }
   pending_frames_.clear();
+  pending_access_unit_metadata_.clear();
   pending_frame_count_.store(0, std::memory_order_release);
 }
 
