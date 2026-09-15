@@ -120,7 +120,7 @@ class AccessUnitSourceOp : public Operator {
       tensor->reshape<uint16_t>(nvidia::gxf::Shape({static_cast<int32_t>(element_count)}),
                                 nvidia::gxf::MemoryStorageType::kHost,
                                 gxf_allocator.value());
-      std::memset(tensor->pointer(), 0, tensor->nbytes());
+      std::memset(tensor->pointer(), 0, element_count * sizeof(uint16_t));
     } else {
       tensor->reshape<uint8_t>(nvidia::gxf::Shape({static_cast<int32_t>(access_unit_size)}),
                                nvidia::gxf::MemoryStorageType::kHost,

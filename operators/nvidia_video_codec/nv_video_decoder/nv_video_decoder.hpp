@@ -162,11 +162,6 @@ class NvVideoDecoderOp : public Operator {
     uint8_t* data = nullptr;
     MetadataDictionary metadata;
     int64_t decode_start_timestamp = 0;
-    int width = 0;
-    int height = 0;
-    int chroma_height = 0;
-    int device_pitch = 0;
-    int luma_plane_size = 0;
   };
 
   void emit_pending_frame(OutputContext& op_output, ExecutionContext& context);
