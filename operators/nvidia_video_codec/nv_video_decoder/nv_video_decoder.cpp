@@ -21,6 +21,7 @@
 #include <ctime>
 #include <fstream>
 #include <iomanip>
+#include <limits>
 #include <sstream>
 #include <stdexcept>
 
@@ -200,7 +201,7 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
     throw std::runtime_error("Failed to get tensor from input message");
   }
 
-  auto data_size = tensor->size();
+  const auto data_size = tensor->nbytes();
   auto data_ptr = tensor->data();
 
   if (verbose_.get()) {
@@ -213,6 +214,11 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
   bool direct_packet_decode = is_from_reader || is_packetized_stream;
   const bool packetized_end_of_stream =
       is_packetized_stream && meta->get<bool>("end_of_stream", false);
+
+  if (direct_packet_decode &&
+      data_size > static_cast<std::size_t>(std::numeric_limits<int>::max())) {
+    throw std::runtime_error("Encoded input tensor exceeds NVDEC's maximum packet size");
+  }
 
   if (is_packetized_stream) {
     auto gxf_tensor = static_cast<nvidia::gxf::Entity&>(maybe_entity.value())
@@ -267,7 +273,7 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
   if (direct_packet_decode) {
     // The input tensor is already encoded data ready for direct parser submission.
     pVideo = static_cast<uint8_t*>(data_ptr);
-    nVideoBytes = data_size;
+    nVideoBytes = static_cast<int>(data_size);
 
     try {
       // CUVID_PKT_ENDOFPICTURE is only correct when the caller guarantees that
@@ -322,14 +328,14 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
     explicit LockedFrames(NvDecoder* decoder) : decoder(decoder) {}
     ~LockedFrames() {
       for (auto& frame : frames) {
-        if (frame != nullptr) {
-          decoder->UnlockFrame(&frame);
+        if (frame.data != nullptr) {
+          decoder->UnlockFrame(&frame.data);
         }
       }
     }
 
     NvDecoder* decoder;
-    std::vector<uint8_t*> frames;
+    std::vector<PendingFrame> frames;
   } locked_frames(decoder_.get());
 
   auto collect_decoded_frames = [&](int frame_count) {
@@ -345,12 +351,46 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
       HOLOSCAN_LOG_INFO("Decoder returned {} frames. Queueing all frames.", frame_count);
     }
 
+    const int width = decoder_->GetWidth();
+    const int height = decoder_->GetHeight();
+    const int chroma_height = decoder_->GetChromaHeight();
+    const int device_pitch = decoder_->GetDeviceFramePitch();
+    const int luma_plane_size = decoder_->GetLumaPlaneSize();
+
     for (int frame_index = 0; frame_index < frame_count; ++frame_index) {
       uint8_t* frame = decoder_->GetLockedFrame();
       if (frame == nullptr) {
         throw std::runtime_error("Failed to get a decoded frame reported by NvDecoder");
       }
-      locked_frames.frames.push_back(frame);
+
+      // NvDecoder stores frame layout only as global decoder state. Verify that
+      // each locked allocation matches that state so a packet crossing an in-band
+      // resolution change is rejected instead of copying a frame with the wrong
+      // geometry. A discontinuity that changes geometry must use stream_reset.
+      if (is_packetized_stream) {
+        CUdeviceptr allocation_base = 0;
+        std::size_t allocation_size = 0;
+        CudaCheck(cuMemGetAddressRange(
+            &allocation_base, &allocation_size, reinterpret_cast<CUdeviceptr>(frame)));
+        const auto expected_frame_size =
+            static_cast<std::size_t>(luma_plane_size) +
+            static_cast<std::size_t>(device_pitch) * static_cast<std::size_t>(chroma_height);
+        if (allocation_base != reinterpret_cast<CUdeviceptr>(frame) ||
+            allocation_size != expected_frame_size) {
+          decoder_->UnlockFrame(&frame);
+          throw std::runtime_error(
+              "Packetized in-band resolution changes require stream_reset");
+        }
+      }
+
+      PendingFrame pending_frame;
+      pending_frame.data = frame;
+      pending_frame.width = width;
+      pending_frame.height = height;
+      pending_frame.chroma_height = chroma_height;
+      pending_frame.device_pitch = device_pitch;
+      pending_frame.luma_plane_size = luma_plane_size;
+      locked_frames.frames.push_back(std::move(pending_frame));
     }
   };
 
@@ -379,8 +419,10 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
   }
 
   for (auto& frame : locked_frames.frames) {
-    pending_frames_.push_back(PendingFrame{frame, *meta, enter_timestamp});
-    frame = nullptr;
+    frame.metadata = *meta;
+    frame.decode_start_timestamp = enter_timestamp;
+    pending_frames_.push_back(std::move(frame));
+    frame.data = nullptr;
   }
   pending_frame_count_.store(pending_frames_.size(), std::memory_order_release);
 
@@ -414,8 +456,11 @@ void NvVideoDecoderOp::emit_pending_frame(OutputContext& op_output, ExecutionCon
   }
   auto video_buffer = maybe_video_buffer.value();
 
-  auto width = decoder_->GetWidth();
-  auto height = decoder_->GetHeight();
+  const int width = pending_frame.width;
+  const int height = pending_frame.height;
+  const int chroma_height = pending_frame.chroma_height;
+  const int device_pitch = pending_frame.device_pitch;
+  const int luma_plane_size = pending_frame.luma_plane_size;
   auto color_planes = color_format.getDefaultColorPlanes(width, height, true);
   nvidia::gxf::VideoBufferInfo video_buffer_info{
       static_cast<uint32_t>(width),
@@ -452,27 +497,25 @@ void NvVideoDecoderOp::emit_pending_frame(OutputContext& op_output, ExecutionCon
                       video_buffer_info.color_planes[1].stride);
     HOLOSCAN_LOG_INFO("video_buffer_info.color_planes[1].offset (UV): {}",
                       video_buffer_info.color_planes[1].offset);
-    HOLOSCAN_LOG_INFO("decoder_->GetDeviceFramePitch(): {}",
-                      static_cast<int>(decoder_->GetDeviceFramePitch()));
-    HOLOSCAN_LOG_INFO("decoder_->GetLumaPlaneSize(): {}",
-                      static_cast<int>(decoder_->GetLumaPlaneSize()));
+    HOLOSCAN_LOG_INFO("Queued frame device pitch: {}", device_pitch);
+    HOLOSCAN_LOG_INFO("Queued frame luma plane size: {}", luma_plane_size);
     HOLOSCAN_LOG_INFO("------------------------------------------");
   }
 
   CUDA_TRY(cudaMemcpy2D(video_buffer->pointer() + video_buffer_info.color_planes[0].offset,
                         video_buffer_info.color_planes[0].stride,
                         pFrame,
-                        decoder_->GetDeviceFramePitch(),
+                        device_pitch,
                         width,  // width in bytes for Y plane
                         height,
                         cudaMemcpyDeviceToDevice));
 
   CUDA_TRY(cudaMemcpy2D(video_buffer->pointer() + video_buffer_info.color_planes[1].offset,
                         video_buffer_info.color_planes[1].stride,
-                        pFrame + decoder_->GetLumaPlaneSize(),
-                        decoder_->GetDeviceFramePitch(),
+                        pFrame + luma_plane_size,
+                        device_pitch,
                         width,
-                        height / 2,
+                        chroma_height,
                         cudaMemcpyDeviceToDevice));
 
   // After copying Y plane
@@ -494,7 +537,7 @@ void NvVideoDecoderOp::emit_pending_frame(OutputContext& op_output, ExecutionCon
     if (verbose_.get()) {
       HOLOSCAN_LOG_INFO("Padding UV plane with {} bytes", pad);
     }
-    for (int y = 0; y < height / 2; ++y) {
+    for (int y = 0; y < chroma_height; ++y) {
       uint8_t* row_start = video_buffer->pointer() + video_buffer_info.color_planes[1].offset +
                            y * video_buffer_info.color_planes[1].stride;
       CUDA_TRY(cudaMemset(row_start + width, 0, pad));

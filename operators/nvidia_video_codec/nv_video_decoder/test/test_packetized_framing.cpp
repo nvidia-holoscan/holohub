@@ -85,6 +85,11 @@ class AccessUnitSourceOp : public Operator {
                "SignalEndOfStream",
                "Mark the final tensor as the end of the packetized stream.",
                false);
+    spec.param(wide_elements_,
+               "wide_elements",
+               "WideElements",
+               "Store encoded bytes in a uint16 tensor.",
+               false);
     spec.output<nvidia::gxf::Entity>("output");
   }
 
@@ -110,9 +115,17 @@ class AccessUnitSourceOp : public Operator {
         static_cast<nvidia::gxf::Entity&>(entity).add<nvidia::gxf::Tensor>().value();
     auto gxf_allocator = nvidia::gxf::Handle<nvidia::gxf::Allocator>::Create(
         context.context(), allocator_.get()->gxf_cid());
-    tensor->reshape<uint8_t>(nvidia::gxf::Shape({static_cast<int32_t>(access_unit_size)}),
-                             nvidia::gxf::MemoryStorageType::kHost,
-                             gxf_allocator.value());
+    if (wide_elements_.get()) {
+      const auto element_count = (access_unit_size + sizeof(uint16_t) - 1) / sizeof(uint16_t);
+      tensor->reshape<uint16_t>(nvidia::gxf::Shape({static_cast<int32_t>(element_count)}),
+                                nvidia::gxf::MemoryStorageType::kHost,
+                                gxf_allocator.value());
+      std::memset(tensor->pointer(), 0, tensor->nbytes());
+    } else {
+      tensor->reshape<uint8_t>(nvidia::gxf::Shape({static_cast<int32_t>(access_unit_size)}),
+                               nvidia::gxf::MemoryStorageType::kHost,
+                               gxf_allocator.value());
+    }
     std::memcpy(tensor->pointer(), bitstream_.data() + next_offset_, access_unit_size);
     next_offset_ += access_unit_size;
     if (signal_end_of_stream_.get()) {
@@ -128,6 +141,7 @@ class AccessUnitSourceOp : public Operator {
   Parameter<std::string> fixture_path_;
   Parameter<bool> combine_access_units_;
   Parameter<bool> signal_end_of_stream_;
+  Parameter<bool> wide_elements_;
   std::vector<uint8_t> bitstream_;
   std::size_t next_access_unit_ = 0;
   std::size_t next_offset_ = 0;
@@ -213,11 +227,12 @@ class FrameValidationSinkOp : public Operator {
 class PacketizedFramingApp : public Application {
  public:
   PacketizedFramingApp(std::string fixture_path, std::string input_mode, bool combine_access_units,
-                       bool signal_end_of_stream)
+                       bool signal_end_of_stream, bool wide_elements)
       : fixture_path_(std::move(fixture_path)),
         input_mode_(std::move(input_mode)),
         combine_access_units_(combine_access_units),
-        signal_end_of_stream_(signal_end_of_stream) {}
+        signal_end_of_stream_(signal_end_of_stream),
+        wide_elements_(wide_elements) {}
 
   void compose() override {
     auto source = make_operator<AccessUnitSourceOp>(
@@ -225,6 +240,7 @@ class PacketizedFramingApp : public Application {
         Arg("fixture_path", fixture_path_),
         Arg("combine_access_units", combine_access_units_),
         Arg("signal_end_of_stream", signal_end_of_stream_),
+        Arg("wide_elements", wide_elements_),
         make_condition<CountCondition>(
             "source_count", combine_access_units_ ? 1 : kAccessUnitSizes.size()));
     auto decoder = make_operator<NvVideoDecoderOp>(
@@ -251,6 +267,7 @@ class PacketizedFramingApp : public Application {
   std::string input_mode_;
   bool combine_access_units_;
   bool signal_end_of_stream_;
+  bool wide_elements_;
 };
 
 }  // namespace holoscan::ops::nv_video_decoder_test
@@ -258,10 +275,10 @@ class PacketizedFramingApp : public Application {
 int main(int argc, char** argv) {
   using holoscan::ops::nv_video_decoder_test::PacketizedFramingApp;
 
-  if (argc != 6) {
+  if (argc != 7) {
     std::cerr << "Usage: nv_video_decoder_packetized_framing_test "
                  "<fixture.h265> <stream|access_unit> <expected_frames> "
-                 "<separate|combined> <no_eos|eos>\n";
+                 "<separate|combined> <no_eos|eos> <uint8|uint16>\n";
     return 2;
   }
 
@@ -283,10 +300,20 @@ int main(int argc, char** argv) {
     return 2;
   }
 
+  const std::string element_type = argv[6];
+  if (element_type != "uint8" && element_type != "uint16") {
+    std::cerr << "Unsupported tensor element type: " << element_type << '\n';
+    return 2;
+  }
+
   try {
     const std::size_t expected_frames = std::stoul(argv[3]);
     auto app = holoscan::make_application<PacketizedFramingApp>(
-        argv[1], input_mode, tensor_mode == "combined", eos_mode == "eos");
+        argv[1],
+        input_mode,
+        tensor_mode == "combined",
+        eos_mode == "eos",
+        element_type == "uint16");
     app->run();
 
     const std::size_t actual_frames = app->sink_->frame_count();
