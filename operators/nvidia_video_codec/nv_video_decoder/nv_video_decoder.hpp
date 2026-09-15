@@ -18,7 +18,11 @@
 #ifndef NV_VIDEO_DECODER_NV_VIDEO_DECODER_HPP
 #define NV_VIDEO_DECODER_NV_VIDEO_DECODER_HPP
 
+#include <atomic>
+#include <cstddef>
+#include <cstdint>
 #include <cstring>
+#include <deque>
 #include <memory>
 #include <string>
 #include <vector>
@@ -129,8 +133,9 @@ class StreamDataProvider : public FFmpegDemuxer::DataProvider {
  *
  * For a finite packetized stream, set the `end_of_stream` metadata field to `true`
  * on the final input tensor. The operator decodes that tensor, submits a distinct
- * end-of-stream packet to CUVID, and emits frames delayed by parser lookahead or
- * display reordering before returning from `compute()`.
+ * end-of-stream packet to CUVID, and queues frames delayed by parser lookahead or
+ * display reordering. Decoded frames are emitted one per operator execution so the
+ * default output connector capacity is respected.
  *
  * `packetized_low_latency` independently controls the decoder display policy. Its
  * default value, `false`, preserves normal CUVID display reordering and supports
@@ -153,6 +158,14 @@ class NvVideoDecoderOp : public Operator {
   void stop() override;
 
  private:
+  struct PendingFrame {
+    uint8_t* data = nullptr;
+    MetadataDictionary metadata;
+    int64_t decode_start_timestamp = 0;
+  };
+
+  void emit_pending_frame(OutputContext& op_output, ExecutionContext& context);
+  void release_pending_frames();
   void init_decoder_for_streaming(void* data, size_t size);
   void init_decoder_for_file(std::shared_ptr<MetadataDictionary> meta);
   void init_decoder_for_packetized_stream();
@@ -175,6 +188,9 @@ class NvVideoDecoderOp : public Operator {
   std::unique_ptr<NvDecoder> decoder_;
   std::unique_ptr<FFmpegDemuxer> demuxer_;
   std::unique_ptr<StreamDataProvider> file_data_provider_;
+  std::deque<PendingFrame> pending_frames_;
+  std::atomic<std::size_t> pending_frame_count_{0};
+  std::shared_ptr<Condition> input_or_pending_condition_;
 
   uint64_t last_emit_timestamp_ = 0;
 };

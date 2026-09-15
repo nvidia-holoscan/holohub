@@ -34,7 +34,9 @@ policy. Packetized input tensors must use host-accessible host or system
 storage; device-backed encoded payloads are not supported. Packetized
 bitstreams must decode to 8-bit 4:2:0 NV12. For finite packetized streams, set
 the ``end_of_stream`` metadata field to ``True`` on the final input tensor to
-drain frames delayed by parser lookahead or display reordering.
+drain frames delayed by parser lookahead or display reordering. Frames returned
+by one parser submission are queued and emitted one per operator execution so
+the default output connector capacity is respected.
 )doc")
 
 // PyNvVideoDecoderOp Constructor

@@ -30,6 +30,7 @@ constexpr std::array<std::size_t, 3> kAccessUnitSizes = {635, 383, 507};
 constexpr std::array<uint8_t, 3> kExpectedLumaValues = {16, 96, 200};
 constexpr uint32_t kFrameWidth = 256;
 constexpr uint32_t kFrameHeight = 256;
+constexpr int kPacketBatchId = 73;
 
 // data/three_access_units.h265 is a frozen Annex-B HEVC fixture generated from three
 // lossless 256x256 YUV420p frames with Y={16,96,200}, U=V=128 using libx265 with:
@@ -117,6 +118,7 @@ class AccessUnitSourceOp : public Operator {
     if (signal_end_of_stream_.get()) {
       metadata()->set("end_of_stream", next_offset_ == bitstream_.size());
     }
+    metadata()->set("packet_batch_id", kPacketBatchId);
 
     op_output.emit(entity, "output");
   }
@@ -143,6 +145,9 @@ class FrameValidationSinkOp : public Operator {
     auto maybe_entity = op_input.receive<gxf::Entity>("input");
     if (!maybe_entity) {
       throw std::runtime_error("Failed to receive decoded frame");
+    }
+    if (metadata()->get<int>("packet_batch_id", -1) != kPacketBatchId) {
+      throw std::runtime_error("Decoded frame did not preserve its input metadata");
     }
 
     auto maybe_video_buffer = static_cast<nvidia::gxf::Entity&>(maybe_entity.value())
@@ -231,12 +236,10 @@ class PacketizedFramingApp : public Application {
         // Preserve the no-EOS framing tests in low-latency mode. The EOS regression
         // instead exercises the default display/reordering policy and its final drain.
         Arg("packetized_low_latency", !signal_end_of_stream_));
-    decoder->spec()->outputs()["output"]->connector(
-        IOSpec::ConnectorType::kDoubleBuffer, Arg("capacity", static_cast<uint64_t>(4)));
     sink_ = make_operator<FrameValidationSinkOp>("sink");
-    sink_->spec()->inputs()["input"]->connector(
-        IOSpec::ConnectorType::kDoubleBuffer, Arg("capacity", static_cast<uint64_t>(4)));
 
+    // Keep the default connector capacity of one. Combined-input tests verify
+    // that multi-frame decoder returns are queued and emitted across ticks.
     add_flow(source, decoder, {{"output", "input"}});
     add_flow(decoder, sink_, {{"output", "input"}});
   }
