@@ -14,5 +14,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-export NVCC_CCBIN="${HOLOSCAN_CROSS_CUDA_HOST_COMPILER:-aarch64-linux-gnu-g++}"
-exec "${HOLOSCAN_CROSS_CUDA_ROOT:-/usr/local/cuda-13.0}/bin/nvcc" -target-dir sbsa-linux "$@"
+export NVCC_CCBIN=aarch64-linux-gnu-g++
+exec /usr/local/cuda-13.0/bin/nvcc -target-dir sbsa-linux "$@"

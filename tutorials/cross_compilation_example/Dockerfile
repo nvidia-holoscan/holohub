@@ -14,28 +14,45 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ARG BASE_IMAGE=ubuntu:24.04
-FROM ${BASE_IMAGE}
+ARG CROSS_BASE_IMAGE=ubuntu:24.04
+
+# Reject unsupported build hosts before installing the cross-compilation dependencies.
+FROM ${CROSS_BASE_IMAGE} AS build-host
+
+ARG BUILDARCH
+
+RUN if [ "${BUILDARCH}" != "amd64" ]; then \
+    echo "Cross compilation requires an x86_64/amd64 build host." >&2; \
+    exit 1; \
+  fi
+
+# Install the pinned native build tools and CMake release.
+FROM build-host AS build-tools
 
 ARG DEBIAN_FRONTEND=noninteractive
-ARG CMAKE_VERSION=4.0.3
-ARG HOLOSCAN_DEB_VERSION=4.6.0.0-1
 
 RUN test "$(dpkg --print-architecture)" = amd64 \
   && apt-get update \
   && apt-get install --yes --no-install-recommends \
-  ca-certificates \
-  cmake \
-  curl \
-  file \
-  g++-aarch64-linux-gnu \
-  gnupg \
-  ninja-build \
-  python3-pip \
-  && PIP_BREAK_SYSTEM_PACKAGES=1 python3 -m pip install --no-cache-dir \
+  ca-certificates=20260601~24.04.1 \
+  curl=8.5.0-2ubuntu10.13 \
+  file=1:5.45-3build1 \
+  g++-aarch64-linux-gnu=4:13.2.0-7ubuntu1 \
+  gnupg=2.4.4-2ubuntu17.6 \
+  ninja-build=1.11.1-2 \
+  python3-pip=24.0+dfsg-1ubuntu1.3 \
+  && rm -rf /var/lib/apt/lists/*
+
+ARG CMAKE_VERSION=4.0.3
+
+RUN PIP_BREAK_SYSTEM_PACKAGES=1 python3 -m pip install --no-cache-dir \
   "cmake==${CMAKE_VERSION}" \
-  && cmake --version | grep -q "cmake version ${CMAKE_VERSION}" \
-  && curl -fsSL \
+  && cmake --version | grep -q "cmake version ${CMAKE_VERSION}"
+
+# Configure the NVIDIA x86_64, Cross-SBSA, and SBSA package repositories.
+FROM build-tools AS cuda-repositories
+
+RUN curl -fsSL \
   https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/3bf863cc.pub \
   | gpg --dearmor --yes --output /usr/share/keyrings/cuda-archive-keyring.gpg \
   && printf 'deb [signed-by=%s] %s/ /\n' \
@@ -49,12 +66,25 @@ RUN test "$(dpkg --print-architecture)" = amd64 \
   && printf 'deb [arch=arm64 signed-by=%s] %s/ /\n' \
   /usr/share/keyrings/cuda-archive-keyring.gpg \
   https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/sbsa \
-  > /etc/apt/sources.list.d/nvidia-holoscan-sbsa.list \
-  && apt-get update \
+  > /etc/apt/sources.list.d/nvidia-holoscan-sbsa.list
+
+# Install native NVCC and the AArch64 CUDA cross-compilation packages.
+FROM cuda-repositories AS cuda-cross
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update \
   && apt-get install --yes --no-install-recommends \
-  cuda-cross-sbsa-13-0 \
-  cuda-nvcc-13-0 \
-  && apt-get update \
+  cuda-cross-sbsa-13-0=13.0.3-1 \
+  cuda-nvcc-13-0=13.0.88-1 \
+  && rm -rf /var/lib/apt/lists/*
+
+# Download, validate, and extract the AArch64 Holoscan SDK package.
+FROM cuda-cross AS holoscan-sdk
+
+ARG HOLOSCAN_DEB_VERSION=4.6.0.0-1
+
+RUN apt-get update \
   -o Dir::Etc::sourcelist=sources.list.d/nvidia-holoscan-sbsa.list \
   -o Dir::Etc::sourceparts=- \
   -o APT::Architecture=arm64 \
@@ -73,6 +103,16 @@ RUN test "$(dpkg --print-architecture)" = amd64 \
   && rm -f holoscan-cuda-13_${HOLOSCAN_DEB_VERSION}_arm64.deb \
   && rm -rf /var/lib/apt/lists/*
 
-COPY --chmod=755 cmake/ /opt/holoscan-cross/
+# Install and verify the HoloHub CLI used by the wrapper build flow.
+FROM holoscan-sdk AS holohub-cli
+
+COPY --chmod=755 holohub /tmp/scripts/
+RUN /tmp/scripts/holohub env-info
+
+# Add the cross toolchain files and define the final workspace.
+FROM holohub-cli AS cross-builder
+
+COPY tutorials/cross_compilation_example/cmake/aarch64-cross-sbsa.cmake /opt/holoscan-cross/
+COPY --chmod=755 tutorials/cross_compilation_example/cmake/nvcc-cross-sbsa /opt/holoscan-cross/
 
 WORKDIR /workspace

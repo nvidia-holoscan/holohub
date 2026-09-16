@@ -1,5 +1,5 @@
 {
-  "application": {
+  "tutorial": {
     "name": "Cross Compilation Example",
     "description": "Minimal Holoscan C++ application and Cross-SBSA compilation example",
     "authors": [
@@ -20,20 +20,15 @@
       ]
     },
     "platforms": [
-      "x86_64",
-      "aarch64"
+      "x86_64"
     ],
     "tags": [
       "Hello World",
       "Cross Compilation"
     ],
-    "ranking": 1,
+    "ranking": 4,
     "requirements": {
       "gxf_extensions": []
-    },
-    "run": {
-      "command": "<holohub_app_bin>/cross_compilation_example",
-      "workdir": "holohub_app_bin"
     }
   }
 }
