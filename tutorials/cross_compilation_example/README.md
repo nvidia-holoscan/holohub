@@ -14,6 +14,9 @@ This pinned workflow targets CUDA 13 SBSA systems using NVIDIA's generic SBSA pa
 that use a board-specific BSP, such as Jetson or IGX Orin, need matching CUDA and JetPack packages
 plus a sysroot from the target OS; supporting those variants is future work.
 
+A sysroot is a directory tree that mirrors the target system's filesystem and supplies the target
+headers and libraries used during cross-compilation instead of the host's.
+
 This separates the build environment from the deployment environment. The x86_64 builder contains
 the compiler, CMake, headers, and CUDA cross-compilation packages, while the embedded target needs
 only the application and its matching runtime dependencies. Developers can use workstation or CI
@@ -287,12 +290,7 @@ the project's `.gitignore`. The target needs the matching runtime package from t
 ### Add the CMake toolchain
 
 Copy [`aarch64-cross-sbsa.cmake`](cmake/aarch64-cross-sbsa.cmake) and
-[`nvcc-cross-sbsa`](cmake/nvcc-cross-sbsa) into the existing project's `cmake/` directory, then
-make the wrapper executable:
-
-```bash
-chmod +x cmake/nvcc-cross-sbsa
-```
+[`nvcc-cross-sbsa`](cmake/nvcc-cross-sbsa) into the existing project's `cmake/` directory.
 
 The toolchain accepts the project-specific roots below and sets the remaining CMake
 cross-compilation variables. It uses the standard compiler and CUDA locations installed above:
