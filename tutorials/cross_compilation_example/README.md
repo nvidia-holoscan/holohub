@@ -1,21 +1,28 @@
 # Cross Compilation Example
 
-This example cross-compiles a small Holoscan SDK 4.6 application on an x86_64 host for an
-AArch64/SBSA target. The builder consumes the released AArch64 Holoscan Debian package; it does not
-build the SDK from source or execute AArch64 programs through QEMU.
+This tutorial shows how to cross-compile a small Holoscan Software Development Kit (SDK) 4.6
+application on an x86_64 host for a 64-bit Arm architecture (AArch64) target compliant with the
+Server Base System Architecture (SBSA). Follow along to build against the released AArch64 Holoscan
+Debian package without rebuilding the SDK from source or emulating the target environment with QEMU.
 
 ## Background
 
 This tutorial is intended for Jetson and IGX embedded developers who want to build Holoscan C++
-applications on an x86_64 Linux workstation or CI system and deploy them to an AArch64 target.
-Cross-compilation runs the compiler on one architecture while producing binaries for another.
+applications on an x86_64 Linux workstation or continuous integration (CI) system and deploy them
+to an AArch64 target system. Cross-compilation runs the compiler on one architecture while producing
+binaries for another.
 
-This pinned workflow targets CUDA 13 SBSA systems using NVIDIA's generic SBSA packages. Platforms
-that use a board-specific BSP, such as Jetson or IGX Orin, need matching CUDA and JetPack packages
-plus a sysroot from the target OS; supporting those variants is future work.
+This pinned workflow targets CUDA 13 SBSA-compatible systems using NVIDIA's generic SBSA packages.
+Platforms that use a board-specific Board Support Package (BSP), such as Jetson or IGX Orin, need
+matching CUDA and JetPack packages plus a sysroot from the target operating system (OS); supporting
+those variants is future work.
+
+SBSA provides a standardized AArch64 platform, allowing this example to use NVIDIA's published
+generic CUDA and Holoscan packages without requiring a board-specific target filesystem. This keeps
+the example reproducible and independent of a particular BSP.
 
 A sysroot is a directory tree that mirrors the target system's filesystem and supplies the target
-headers and libraries used during cross-compilation instead of the host's.
+headers and libraries used during cross-compilation instead of the host's filesystem.
 
 This separates the build environment from the deployment environment. The x86_64 builder contains
 the compiler, CMake, headers, and CUDA cross-compilation packages, while the embedded target needs
@@ -24,19 +31,20 @@ resources, create repeatable container builds, avoid installing a complete build
 target, and build without keeping the target connected. The resulting application must still be
 tested on the target hardware.
 
-QEMU is an emulator and virtualizer that can run AArch64 programs on an x86_64 host by translating
-their instructions. It is useful when a build needs to execute target binaries, but emulation adds
-runtime overhead and configuration. This tutorial instead runs the build tools natively on x86_64,
-uses a cross-compiler to emit AArch64 code, and extracts the target Holoscan package without running
-its programs. Avoiding emulation makes the build faster and simpler, but the produced executable
-cannot be run on the build host.
+One alternative to cross-compilation is to fully emulate the target build environment. QEMU is an
+emulator and virtualizer that can run AArch64 programs on an x86_64 host by translating their
+instructions. It is useful when a build needs to execute target binaries, but emulation adds runtime
+overhead and configuration. This tutorial instead runs the build tools natively on x86_64, uses a
+cross-compiler to emit AArch64 code, and extracts the target Holoscan package without running its
+programs. Avoiding emulation makes the build faster and simpler, but the produced executable cannot
+be run on the build host.
 
 ## What you will learn
 
 This tutorial covers two workflows:
 
-1. **Build the example:** Create the cross-compilation container with Docker, build and stage the
-   example, and verify that the result is an AArch64 executable linked to Holoscan.
+1. **Build the containerized example:** Create the cross-compilation container with Docker, build
+   and stage the example, and verify that the result is an AArch64 executable linked to Holoscan.
 2. **Add Holoscan to an existing project:** Install the host and CUDA cross-compilation tools,
    acquire and extract the AArch64 Holoscan SDK package, configure the CMake toolchain, discover and
    link Holoscan targets, build the project, and understand the deployment boundary.
@@ -48,9 +56,15 @@ This tutorial covers two workflows:
 - An x86_64 Linux host with Docker Engine and BuildKit.
 - Internet access while building the image.
 - `file` and `readelf` (`binutils`) on the host for the final artifact checks.
+- Optional: A compatible NVIDIA AArch64 target platform for deployment and runtime validation.
 
-A GPU and target hardware are not required to cross-compile. This C++ example does not compile
-CUDA source, so it does not set `CMAKE_CUDA_ARCHITECTURES`.
+A graphics processing unit (GPU) and target hardware are not required to cross-compile. This C++
+example does not compile CUDA source, so it does not set `CMAKE_CUDA_ARCHITECTURES`. For projects
+that compile CUDA source, this tutorial uses `75-virtual` as a portable starting point. It embeds
+NVIDIA Parallel Thread Execution (PTX) code that a compatible CUDA driver compiles for the target
+GPU using just-in-time (JIT) compilation. When the deployment GPU is known, replace it with the
+appropriate hardware-specific architecture, as described in
+[Choose a CUDA target architecture](#choose-a-cuda-target-architecture).
 
 ### Build the cross-compilation image
 
@@ -114,8 +128,9 @@ file build-cross/install/bin/cross_compilation_example
 readelf --dynamic build-cross/install/bin/cross_compilation_example | grep libholoscan_core
 ```
 
-`file` must report an AArch64 ELF executable. `readelf` must report a dependency on
-`libholoscan_core.so.4`. Do not use host `ldd`: the host cannot load the AArch64 executable.
+`file` must report an AArch64 Executable and Linkable Format (ELF) binary. `readelf` must report a
+dependency on `libholoscan_core.so.4`. Do not use host `ldd`: the host cannot load the AArch64
+executable.
 
 To run it, copy the executable to a compatible AArch64 target with the matching Holoscan 4.6.0
 CUDA 13 runtime installed. This example stages only the application executable; it does not bundle
@@ -128,7 +143,8 @@ under the existing project's `.cross/` directory. The build machine does not nee
 
 ### Install the build tools
 
-Confirm that the build machine is x86_64, then install the native tools and GNU AArch64 compiler:
+Confirm that the build machine is x86_64, then install the native tools and GNU Compiler Collection
+(GCC) AArch64 cross-compiler:
 
 ```bash
 test "$(dpkg --print-architecture)" = amd64
@@ -317,9 +333,9 @@ Set `CMAKE_CUDA_ARCHITECTURES` only when the project enables CUDA. It is not har
 toolchain because it is a property of the deployment GPU, not the compiler container.
 
 In `75-virtual`, `75` means CUDA compute capability 7.5 and `virtual` tells CMake to embed PTX
-instead of machine code for a particular GPU. At runtime, the CUDA driver just-in-time (JIT)
-compiles that PTX for the installed GPU. This is more portable across compatible GPUs, at the cost
-of JIT work when the application first loads its CUDA code.
+instead of machine code for a particular GPU. At runtime, the CUDA driver JIT-compiles that PTX for
+the installed GPU. This is more portable across compatible GPUs, at the cost of JIT work when the
+application first loads its CUDA code.
 
 For a hardware-specific build:
 
@@ -403,7 +419,7 @@ library from the build machine.
 ### Deployment boundary
 
 Cross-compilation proves that the application configures and links for AArch64. It does not prove
-runtime behavior. The target must provide a compatible Linux ABI, CUDA runtime/driver, matching
-Holoscan 4.6 libraries, and every application-specific shared library. Jetson multimedia or other
-BSP-specific dependencies may require a sysroot from the exact target OS rather than the generic
-SBSA roots used here.
+runtime behavior. The target must provide a compatible Linux application binary interface (ABI),
+CUDA runtime/driver, matching Holoscan 4.6 libraries, and every application-specific shared library.
+Jetson multimedia or other BSP-specific dependencies may require a sysroot from the exact target OS
+rather than the generic SBSA roots used here.
