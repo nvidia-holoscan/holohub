@@ -1,0 +1,11 @@
+# Copyright check exclude patterns
+# One regular-expression pattern per line; comments start with #.
+build
+build-.*
+install
+.cache
+.local
+_CPack_Packages
+ci-artifacts
+# These helpers are copied in from HoloHub and retain upstream copyrights.
+cmake

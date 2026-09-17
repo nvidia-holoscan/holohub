@@ -1,0 +1,29 @@
+{
+    "$schema": "urn:holohub:operator:v1",
+    "operator": {
+        "name": "v4l2_capture_op",
+        "authors": [
+            {
+                "name": "Holoscan Team",
+                "affiliation": "NVIDIA"
+            }
+        ],
+        "description": "V4L2 capture source publishing typed, clock-disciplined holoscan::schema::Image samples",
+        "language": ["C++"],
+        "version": "0.2.0",
+        "changelog": {
+            "0.1.0": "Initial SDK 5.x C++ interface stub",
+            "0.2.0": "Real MMAP capture: notification-driven trigger, per-stage lifecycle, CLOCK_MONOTONIC projection, sequence-gap accounting, and a typed Image output via holoscan::sensor_io"
+        },
+        "holoscan_sdk": {
+            "minimum_required_version": "5.0.0",
+            "tested_versions": ["5.0.0"]
+        },
+        "platforms": ["x86_64", "aarch64"],
+        "tags": ["Camera", "V4L2", "Sensor IO"],
+        "ranking": 3,
+        "requirements": {
+            "linux": "V4L2 capture device exposing a YUYV 4:2:2 mode over the MMAP streaming interface"
+        }
+    }
+}

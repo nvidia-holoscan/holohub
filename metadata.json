@@ -1,0 +1,37 @@
+{
+  "$schema": "urn:holohub:module:v2",
+  "module": {
+    "name": "holoscan-camera",
+    "version": "0.2.0",
+    "description": "Concrete camera implementations for Holoscan SDK 5.0 EA",
+    "authors": [
+      {
+        "name": "Holoscan Team",
+        "affiliation": "NVIDIA"
+      }
+    ],
+    "license": "Apache-2.0",
+    "language": ["C++"],
+    "namespace": {
+      "cpp": "holoscan::holoscan_camera"
+    },
+    "holoscan_sdk": {
+      "minimum_required_version": "5.0.0",
+      "tested_versions": ["5.0.0"]
+    },
+    "platforms": ["x86_64", "aarch64"],
+    "tags": ["Camera", "V4L2", "Early Access"],
+    "source_repository": "https://github.com/TODO/holoscan-camera",
+    "operator_names": ["v4l2_capture_op"],
+    "dockerfile": "Dockerfile",
+    "binary_packages": {
+      "debian": "holoscan-camera"
+    },
+    "documentation": {
+      "readme": "README.md"
+    },
+    "testing": {
+      "cpp": "ctest"
+    }
+  }
+}

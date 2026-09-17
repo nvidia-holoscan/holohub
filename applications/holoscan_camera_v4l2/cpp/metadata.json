@@ -1,0 +1,44 @@
+{
+    "$schema": "urn:holohub:application:v1",
+    "application": {
+        "name": "holoscan_camera_v4l2",
+        "authors": [
+            {
+                "name": "Holoscan Team",
+                "affiliation": "NVIDIA"
+            }
+        ],
+        "description": "Reference graph for the Holoscan Camera V4L2 source, reporting how much of the acquisition contract survives to the far end of the pipeline",
+        "language": "C++",
+        "version": "0.2.0",
+        "changelog": {
+            "0.1.0": "Initial SDK 5.x C++ graph-validation stub",
+            "0.2.0": "Streams from a real device in the capture mode and surveys capture-time coverage, sample flags, and end-to-end latency"
+        },
+        "holoscan_sdk": {
+            "minimum_required_version": "5.0.0",
+            "tested_versions": ["5.0.0"]
+        },
+        "platforms": ["x86_64", "aarch64"],
+        "tags": ["Camera", "V4L2", "Sensor IO", "Diagnostics"],
+        "ranking": 3,
+        "requirements": {},
+        "default_mode": "validate",
+        "modes": {
+            "validate": {
+                "description": "Compile the V4L2 graph without opening a camera",
+                "run": {
+                    "command": "\"<holohub_app_bin>/holoscan_camera_v4l2\" --validate",
+                    "workdir": "holohub_app_bin"
+                }
+            },
+            "capture": {
+                "description": "Stream 60 frames from /dev/video0 and report what survived; requires a YUYV capture device",
+                "run": {
+                    "command": "\"<holohub_app_bin>/holoscan_camera_v4l2\" --capture --frames 60",
+                    "workdir": "holohub_app_bin"
+                }
+            }
+        }
+    }
+}

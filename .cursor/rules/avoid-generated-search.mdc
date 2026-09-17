@@ -1,0 +1,20 @@
+---
+description: Avoid generated build output during repository search
+alwaysApply: true
+---
+
+<!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
+
+When searching, grepping, reading, or selecting repository context, treat generated output as out of scope unless the user explicitly asks about those paths.
+
+Avoid these paths and artifacts:
+- `build/`
+- `build-*/`
+- `.cmake/`
+- `_CPack_Packages/`
+- `ci-artifacts/`
+- generated package files such as `*.deb`
+
+Prefer source directories such as `applications/`, `operators/`, `pkg/`, `cmake/`, `ci/`, and `tests/`.

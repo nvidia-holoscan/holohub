@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+# Generated build and packaging output. Do not recurse into these by default.
+build/
+build-*/
+.cmake/
+_CPack_Packages/
+ci-artifacts/
+ci-container-build.log
+ci-container-build.exit-code
+ci-sdk-details.txt
+*.deb
+
+# Tool caches and downloaded helpers.
+.holohub/
+.ruff_cache/
