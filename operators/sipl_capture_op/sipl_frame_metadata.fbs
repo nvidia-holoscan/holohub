@@ -1,0 +1,106 @@
+// SPDX-FileCopyrightText: Copyright (c) 2026 Holoscan Team / NVIDIA. All rights reserved.
+// SPDX-License-Identifier: Apache-2.0
+//
+// FlatBuffers schema for SIPL sensor frame metadata.
+// Emitted by SIPLCaptureOp on the 'sensor_data' port in lock-step with 'frame'.
+// Correlation with the 'frame' port is via EmitOptions (frame_id / capture_time),
+// not via a duplicated Header field.
+//
+// Native table: holoscan::holoscan_camera::SIPLFrameMetadataT
+// Compatible changes retain the root name, compatibility epoch, file identifier, and existing
+// field IDs. An intentional wire break increments COMPATIBILITY_EPOCH in
+// sipl_frame_metadata_flatbuffers.cmake and allocates a new file identifier below.
+
+namespace holoscan.holoscan_camera;
+
+// Per-exposure white-balance gains (R, Gr, Gb, B order).
+// Kept as a FlatBuffers struct (fixed-size, no heap allocation per element).
+struct SIPLWbGain {
+  r:  float;
+  gr: float;
+  gb: float;
+  b:  float;
+}
+
+// Sensor frame metadata output for AE/AWB control loops.
+// Source: nvsipl::INvSIPLClient::ImageMetaData from SIPLCaptureService::AcquiredFrame.
+table SIPLFrameMetadata {
+  // ARM Generic Timer tick at the START of frame capture
+  // (ImageMetaData.frameCaptureStartTSC). This is the same instant as the 'frame' port's
+  // header.capture_timestamp_ns (converted to ns and clock-disciplined), not a paired
+  // end-of-frame value -- ImageMetaData.frameCaptureTSC (true end-of-frame) is not
+  // forwarded anywhere in this schema.
+  frame_capture_start_tsc: uint64 (id: 0);
+
+  // Number of valid exposures.  Only [0, num_exposures) entries in
+  // exposure_time, sensor_gain, and wb_gain are valid.
+  num_exposures: uint8 (id: 1);
+
+  // Exposure (ImageMetaData.sensorExpInfo) --------------------
+  exp_time_valid: bool (id: 2);
+  // Integration time per exposure in seconds.  Length == num_exposures.
+  exposure_time: [float] (id: 3);
+
+  gain_valid: bool (id: 4);
+  // Analog × digital gain per exposure.  Length == num_exposures.
+  sensor_gain: [float] (id: 5);
+
+  // White balance (ImageMetaData.sensorWBInfo) ----------------
+  wb_valid: bool (id: 6);
+  // Per-exposure R/Gr/Gb/B gains.  Length == num_exposures.
+  wb_gain: [SIPLWbGain] (id: 7);
+
+  // Temperature (ImageMetaData.sensorTempInfo) ----------------
+  temp_valid: bool (id: 8);
+  // Sensor temperatures in degrees Celsius.
+  sensor_temp_celsius: [float] (id: 9);
+
+  // Embedded-data error flag (ImageMetaData.errorFlag).
+  // 0 = no error; non-zero values are sensor-driver-specific.
+  error_flag: int8 (id: 10);
+
+  // Sensor-embedded timestamp (ImageMetaData.frameTimestampInfo).
+  // Distinct from the VI TSC used for capture_timestamp_ns in the 'frame' port header.
+  frame_timestamp_valid: bool (id: 11);
+  frame_timestamp: uint64 (id: 12);
+
+  // ISP statistics blob (NV12 / ISP-output mode only; null in RAW10 mode).
+  // Contains a verbatim memcpy of nvsipl::IspStatsInfo (~397 KB).
+  // Consumers cast the bytes back to IspStatsInfo. A typed FlatBuffers schema
+  // can replace this field later without changing the port structure.
+  isp_stats_blob: [uint8] (id: 13);
+
+  // HSB board metadata (STM32 firmware fields embedded in the raw image buffer).
+  // Populated only when the camera module carries an HSB board and the raw buffer's
+  // CPU pointer is accessible -- in RAW10 mode that's the capture buffer itself; in
+  // NV12/ISP mode it's the underlying ICP (pre-ISP) buffer, reached via
+  // INvSIPLNvMBuffer::GetNvSciBufImage() on buffer_raw. Zero / false otherwise.
+  // Source: parse_hsb_metadata() in hsb_frame_metadata.hpp.
+  hsb_valid:         bool   (id: 14);
+  hsb_flags:         uint32 (id: 15);
+  hsb_psn:           uint32 (id: 16);
+  hsb_crc:           uint32 (id: 17);
+  hsb_frame_number:  uint16 (id: 18);
+  hsb_timestamp_s:   uint64 (id: 19);
+  hsb_timestamp_ns:  uint32 (id: 20);
+  hsb_bytes_written: uint64 (id: 21);
+  hsb_metadata_s:    uint64 (id: 22);
+  hsb_metadata_ns:   uint32 (id: 23);
+
+  // NV12 plane geometry (NV12 / ISP-output mode only; zero in RAW10 mode).
+  // plane_pitch[1] from NvSci buffer attributes: bytes per row of the UV (CbCr) plane.
+  // plane_offset[1]: byte offset from the CUDA base pointer to the first UV byte.
+  // Standard NV12 layout satisfies uv_offset == y_stride * height and uv_stride == y_stride,
+  // but hardware alignment can produce different values — consumers should use these fields
+  // rather than assuming contiguous layout.
+  nv12_uv_stride: uint32 (id: 24);
+  nv12_uv_offset: uint64 (id: 25);
+
+  // Pixel dimensions of the captured frame (from SIPL buffer plane attributes).
+  // Constant per camera session; useful for consumers that don't wire the sensor_data port.
+  width:  int32 (id: 26);
+  height: int32 (id: 27);
+}
+
+root_type SIPLFrameMetadata;
+file_identifier "HCSM";

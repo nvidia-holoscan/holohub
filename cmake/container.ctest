@@ -39,7 +39,11 @@ if(NOT PLATFORM_NAME)
   set(PLATFORM_NAME "linux")
 endif()
 
-set(CTEST_BUILD_NAME "holoscan-camera-${PLATFORM_NAME}-${PROJ_NAME}-${TAG}")
+if(CDASH_BUILD_NAME)
+  set(CTEST_BUILD_NAME "${CDASH_BUILD_NAME}")
+else()
+  set(CTEST_BUILD_NAME "holoscan-camera-${PLATFORM_NAME}-${PROJ_NAME}-${TAG}")
+endif()
 set(CTEST_CMAKE_GENERATOR "Ninja")
 set(CTEST_NIGHTLY_START_TIME "06:00:00 UTC")
 

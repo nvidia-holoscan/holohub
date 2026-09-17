@@ -1,0 +1,28 @@
+{
+    "$schema": "urn:holohub:operator:v1",
+    "operator": {
+        "name": "sipl_capture_op",
+        "authors": [
+            {
+                "name": "Gil Shapira",
+                "affiliation": "NVIDIA"
+            }
+        ],
+        "description": "SIPL camera capture operator for Holoscan SDK 5.x — acquires frames from NvSIPL-managed cameras on Jetson/IGX platforms",
+        "language": ["C++"],
+        "version": "0.1.0",
+        "changelog": {
+            "0.1.0": "Full NvSIPL pipeline port from hololink SIPLCaptureService; HSDK5 lifecycle hooks; DLManagedTensor emission; no HSB/hololink header dependency"
+        },
+        "holoscan_sdk": {
+            "minimum_required_version": "5.0.0",
+            "tested_versions": ["5.0.0"]
+        },
+        "platforms": ["aarch64"],
+        "tags": ["Camera", "CUDA", "SIPL", "Jetson", "IGX", "Early Access"],
+        "ranking": 3,
+        "requirements": {
+            "required": ["NvSIPL dev packages (NvSIPLCamera.hpp) from JetPack / Isaac OS"]
+        }
+    }
+}

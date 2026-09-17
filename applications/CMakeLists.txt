@@ -7,3 +7,9 @@
 add_holohub_application(holoscan_camera_v4l2
     DEPENDS OPERATORS v4l2_capture_op
 )
+add_holohub_application(sipl_frame_saver
+    DEPENDS OPERATORS sipl_capture_op
+)
+add_holohub_application(sipl_stereo_monitor
+    DEPENDS OPERATORS sipl_capture_op
+)

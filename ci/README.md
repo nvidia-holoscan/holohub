@@ -27,7 +27,7 @@ Create these credentials in the Jenkins project:
 | Jenkins ID | Type | Minimum access |
 | --- | --- | --- |
 | `HOLOSCAN_CAMERA_GITLAB_READ_TOKEN` | Username with password/token | `read_repository` for this repository and supported internal forks |
-| `HOLOSCAN_SDK_GITLAB_READ_TOKEN` | Username with password/token | `read_repository` for `holoscan/holoscan-sdk` |
+| `HOLOSCAN_SDK_GITLAB_READ_TOKEN` | Username with password/token | `read_repository` and `read_registry` for `holoscan/holoscan-sdk` |
 | `holoscan-camera-gitlab-api` | GitLab API token | Commit status updates and merge-request comments |
 
 Configure a Jenkins GitLab connection named `holoscan-module-connection` with
@@ -47,7 +47,9 @@ The pipeline uses:
 
 Use the existing `clara-holoscan-sdk-read-registry` image-pull secret in the
 `clara` namespace. It must contain credentials with `read_registry` access to
-the Holoscan SDK registry.
+the Holoscan SDK registry. This Kubernetes secret authenticates pod image pulls;
+the Docker daemon inside the DinD container authenticates separately with
+`HOLOSCAN_SDK_GITLAB_READ_TOKEN` before importing the SDK build-image cache.
 
 ### Pipeline Job
 
@@ -115,11 +117,14 @@ Each GPU architecture flow:
 1. verifies native architecture and an R580-or-newer NVIDIA driver;
 2. checks out either the SDK SHA from [`holoscan-sdk.version`](holoscan-sdk.version) or the latest
    `main-5x` branch tip;
-3. builds the CUDA 13 SDK with Python disabled and benchmarks disabled;
-4. resolves and validates `HOLOSCAN_SDK_INSTALL_DIR`;
-5. builds `holoscan_camera_v4l2` through Holoscan CLI;
-6. tests `holoscan_camera_v4l2` through `cmake/container.ctest`; and
-7. packages `holoscan-camera` as a Debian package.
+3. authenticates to the Holoscan SDK registry and attempts to reuse the build-container cache for
+   the checked-out SDK revision, falling back to a local container build if authentication or the
+   cache-enabled build fails;
+4. builds the CUDA 13 SDK with Python, benchmarks, examples, and tests explicitly disabled;
+5. resolves and validates `HOLOSCAN_SDK_INSTALL_DIR`;
+6. builds `holoscan_camera_v4l2` through Holoscan CLI;
+7. tests `holoscan_camera_v4l2` through `cmake/container.ctest`; and
+8. packages `holoscan-camera` as a Debian package.
 
 The pinned x86_64 and SBSA flows and the moving `x86_64-main-5x-cuda13` and
 `sbsa-main-5x-cuda13` flows run in parallel. The `main-5x` flows resolve the branch again for every
@@ -135,6 +140,12 @@ CTest cannot start. The pipeline submits a synthetic failed test named
 `holoscan_camera_v4l2.container_build` with the tail of the build log, then
 preserves the original build failure.
 
+CDash build names identify the architecture, SDK coverage role, and source branch:
+`holoscan-camera_<arch>_sdk-<pinned|latest>_<branch>`. `latest` is the moving
+`main-5x` SDK flow; `pinned` is the reviewed SDK revision. The default C++ test
+submission covers the module's enabled tests, including SIPL unit tests on SBSA;
+SIPL hardware tests remain individually reported as not run when no camera is configured.
+
 ## Updating The SDK Pin
 
 `ci/holoscan-sdk.version` must contain one lowercase, full-length Git commit
@@ -147,7 +158,7 @@ SHA. To advance the baseline:
 3. run the pre-merge job; and
 4. require both x86_64 and SBSA results to pass before merging.
 
-The pin currently names `04c65492b`, a reviewed `main-5x` tip. A release cut is
+The pin currently names `16cfacb2`, a reviewed `main-5x` tip. A release cut is
 preferred over a tip that happens to be newer: the two are the same input to this
 repo whenever they do not differ in `public/include` or `public/src`, and the tag
 additionally says which SDK release this repo was qualified against. Verify that

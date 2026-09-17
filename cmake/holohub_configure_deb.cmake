@@ -17,7 +17,7 @@ function(holohub_configure_deb)
   # parse args
   set(options)
   set(requiredArgs NAME DESCRIPTION VERSION VENDOR CONTACT DEPENDS)
-  list(APPEND oneValueArgs ${requiredArgs} SECTION PRIORITY RECOMMENDS SUGGESTS)
+  set(oneValueArgs ${requiredArgs} SECTION PRIORITY RECOMMENDS SUGGESTS)
   set(multiValueArgs COMPONENTS EXPORT_NAME)
   cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGV})
 

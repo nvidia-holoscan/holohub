@@ -3,13 +3,13 @@
 
 cmake_minimum_required(VERSION 4.0)
 
-# 0.2.0 because the operator's published payload changed from holoscan::Tensor to
-# holoscan::schema::ImageT, its tensor rank from three to two, and its default placement from CUDA
-# device to host. This version reaches the Debian package through PROJECT_VERSION, so leaving it at
-# 0.1.0 would ship that break under the identity of the interface it breaks. Keep it equal to
-# metadata.json:module.version and to the operator and application metadata versions.
+# 0.4.0 for the breaking SIPLCaptureOp constructor API and post-EA2 SDK requirement.
+# This version reaches the Debian package through PROJECT_VERSION, so it tracks
+# the module-level release, not any single operator or
+# application -- those keep their own versions in their own metadata.json, independent of this
+# one. Keep this equal to metadata.json:module.version at the repository root.
 project(holoscan_camera
-    VERSION 0.2.0
+    VERSION 0.4.0
     DESCRIPTION "Concrete camera implementations for Holoscan SDK 5.0 EA"
     LANGUAGES CXX
 )

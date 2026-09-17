@@ -111,6 +111,13 @@ assert schedulingUtils.get_excluded_nodes([exclude_nodes: 'bad-b, bad-c']) ==
 assert schedulingUtils.get_excluded_nodes([exclude_nodes: ['bad-c', 'bad-d']]) ==
     ['bad-a', 'bad-b', flowExcludedNode, 'bad-c', 'bad-d']
 assert load_utils([:]).get_excluded_nodes([:]) == [flowExcludedNode]
+def sdkUtils = load_utils([:])
+def sdkRevision = '0123456789abcdef0123456789abcdef01234567'
+assert sdkUtils.get_sdk_registry() == 'gitlab-master.nvidia.com:5005'
+assert sdkUtils.get_sdk_build_cache_image('x86_64', sdkRevision) ==
+    'gitlab-master.nvidia.com:5005/holoscan/holoscan-sdk/build-x86_64:012345678'
+assert sdkUtils.get_sdk_build_cache_image('aarch64', sdkRevision) ==
+    'gitlab-master.nvidia.com:5005/holoscan/holoscan-sdk/build-aarch64:012345678'
 def schedulingYaml = schedulingUtils.get_pod_yaml([
     kubernetes_arch: 'amd64',
     container_name: 'tester',

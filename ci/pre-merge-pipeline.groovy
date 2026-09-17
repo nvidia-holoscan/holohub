@@ -65,6 +65,8 @@ def lintSettings = [
 def buildAndTestSettings = [
     [
         name: 'x86_64-cuda13',
+        cdash_arch: 'x86_64',
+        cdash_sdk: 'pinned',
         container_name: 'x86-tester-dind',
         kubernetes_arch: 'amd64',
         host_architecture: 'x86_64',
@@ -78,6 +80,8 @@ def buildAndTestSettings = [
     ],
     [
         name: 'sbsa-cuda13',
+        cdash_arch: 'sbsa',
+        cdash_sdk: 'pinned',
         container_name: 'sbsa-tester-dind',
         kubernetes_arch: 'arm64',
         host_architecture: 'aarch64',
@@ -91,6 +95,8 @@ def buildAndTestSettings = [
     ],
     [
         name: 'x86_64-main-5x-cuda13',
+        cdash_arch: 'x86_64',
+        cdash_sdk: 'latest',
         container_name: 'x86-tester-dind',
         kubernetes_arch: 'amd64',
         host_architecture: 'x86_64',
@@ -107,6 +113,8 @@ def buildAndTestSettings = [
     ],
     [
         name: 'sbsa-main-5x-cuda13',
+        cdash_arch: 'sbsa',
+        cdash_sdk: 'latest',
         container_name: 'sbsa-tester-dind',
         kubernetes_arch: 'arm64',
         host_architecture: 'aarch64',
@@ -149,15 +157,15 @@ buildAndTestSettings.each { flowSettings ->
                 'GPU=dgpu',
                 'CUDA_MAJOR=13',
             ]) {
-                Stage.build_sdk()
+                Stage.build_sdk(sdkRevision, settings.sdk_architecture)
                 def sdkInstall = Stage.resolve_sdk_install(
                     sdkRevision,
                     settings.host_architecture,
                     sdkBranch ?: 'pinned',
                 )
                 withEnv(["HOLOSCAN_SDK_INSTALL_DIR=${sdkInstall}"]) {
-                    Stage.build_module(settings.name, submitToCdash, nightlyBuild)
-                    Stage.test_module(settings.name, submitToCdash, nightlyBuild)
+                    Stage.build_module(settings, submitToCdash, nightlyBuild)
+                    Stage.test_module(settings, submitToCdash, nightlyBuild)
                     Stage.package_module()
                 }
             }

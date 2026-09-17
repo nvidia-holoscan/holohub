@@ -8,9 +8,15 @@ operators under the `holoscan::holoscan_camera` namespace.
 
 ## Holoscan SDK 5.0 Early Access Setup
 
-Holoscan SDK 5.0 Early Access is a source-only release. Before building Holoscan
-Camera, build the SDK from the revision in
-[`ci/holoscan-sdk.version`](ci/holoscan-sdk.version).
+Before building Holoscan Camera, build Holoscan SDK 5.0 RC5 from source.
+See the [SDK 5.0 RC5 release notes](https://github.com/nvidia-holoscan/holoscan-sdk/blob/v5.0.0-rc5/RELEASE_NOTES.md)
+for release details.
+
+Holoscan Camera 0.4.0 requires a post-EA2 SDK revision. The released SDK 5.0 EA2 sources
+(`v5.0.0.3` internally or `v5.0.0-ea2` publicly) do not support the SIPL schema
+generation and shared-pointer constructor captures used here. The SDK package
+version remains `5.0.0`, so a successful package-version check alone does not
+establish compatibility. See the [0.4.0 migration notes](RELEASE_NOTES.md#040).
 
 Set `HOLOSCAN_SDK_INSTALL_DIR` explicitly to the resulting SDK installation
 directory. The installation must include `holoscan::sensor_io`, which this
@@ -46,9 +52,11 @@ cd -
 | Operator | Purpose | Documentation |
 | --- | --- | --- |
 | `V4l2CaptureOp` | Capture packed YUYV frames from Linux V4L2 devices into host, pinned-host, or CUDA device memory | [Usage and interface](operators/v4l2_capture_op/README.md) |
+| `SIPLCaptureOp` | Capture RAW10/NV12 frames from NvSIPL-managed cameras on Jetson/IGX platforms (aarch64 only) | [Usage and interface](operators/sipl_capture_op/README.md) |
 
 - [Release Notes and Known Issues](RELEASE_NOTES.md)
 - [V4L2 benchmarks and qualification results](docs/v4l2_capture_op_benchmarks.md)
+- [SIPL benchmarks and qualification results](docs/sipl_capture_op_benchmarks.md)
 - [CI and developer checks](ci/README.md)
 
 ## Quick Start
@@ -68,6 +76,12 @@ Run these commands from the repository root after completing SDK setup:
 
 For device access, capture options, C++ integration, and frame placement, see the
 [V4L2 operator guide](operators/v4l2_capture_op/README.md).
+
+`SIPLCaptureOp` targets Jetson/IGX (aarch64) and needs a mapped NvSIPL-managed
+camera; see [sipl_frame_saver](applications/sipl_frame_saver) and
+[sipl_stereo_monitor](applications/sipl_stereo_monitor) for reference
+applications, and the [SIPL operator guide](operators/sipl_capture_op/README.md)
+for supported JetPack/L4T versions and usage.
 
 ## Building Without HoloHub CLI
 
@@ -114,14 +128,13 @@ that check does not verify whether it includes `holoscan::sensor_io`. Set
 If CMake finds the SDK package but reports `holoscan_FOUND` as `FALSE`, the
 installation may be missing the required `sensor_io` component. Check for
 `holoscan-sensor-io-targets.cmake` in the SDK installation. If it is missing,
-rebuild and install the SDK revision in
-[`ci/holoscan-sdk.version`](ci/holoscan-sdk.version), then update
+rebuild and install Holoscan SDK 5.0 RC5, then update
 `HOLOSCAN_SDK_INSTALL_DIR` and configure Holoscan Camera again.
 
 ### Build Failure: `[holoscan_camera] Invalid Holoscan SDK installation: holoscan-sdk/install-cu12-x86_64`
 
 Holoscan Camera depends on Holoscan SDK 5.0 and its CUDA 13 dependency. Earlier Holoscan installations are not
-compatible. Please clear any existing build and installation folders, check out the latest Holoscan SDK 5.0 development,
+compatible. Please clear any existing build and installation folders, check out the Holoscan SDK 5.0 RC5 source,
 and try again.
 
 ## License

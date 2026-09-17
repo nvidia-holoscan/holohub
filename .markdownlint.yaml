@@ -5,5 +5,7 @@ MD013:
   line_length: 800
   code_block_line_length: 800
   heading_line_length: 800
+MD024:
+  siblings_only: true
 MD046:
   style: fenced

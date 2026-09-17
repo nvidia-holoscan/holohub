@@ -4,3 +4,4 @@
 # Each operator is gated on its own OP_<name> option, defaulting to ${BUILD_ALL}.
 # Add one add_holohub_operator() call per operator.
 add_holohub_operator(v4l2_capture_op)
+add_holohub_operator(sipl_capture_op)

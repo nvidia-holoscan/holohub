@@ -275,6 +275,42 @@ case "${1:-}" in
         ;;
 esac
 
+# For container-image builds: auto-detect the L4T version (same logic as
+# hololink build.sh) and pass it as --build-arg L4T_VERSION so the Dockerfile
+# knows which JetPack release to download SIPL API headers from.
+# Detection reads /etc/nv_tegra_release (authoritative BSP release file on
+# Jetson/IGX); silently skipped on x86_64 or other non-L4T hosts.
+# Matches the same subcommand list as the --cuda default above: build/run/test
+# all trigger their own implicit container build and need this too, not just
+# the explicit build-container/package commands.
+case "${1:-}" in
+    build|build-container|package|run|run-container|test)
+        _l4t_version=""
+        if [[ -f /etc/nv_tegra_release ]]; then
+            _l4t_rel=$(head -n1 /etc/nv_tegra_release)
+            _l4t_major=$(echo "$_l4t_rel" | sed -nE 's/^# R([0-9]+).*/\1/p')
+            _l4t_rev=$(echo "$_l4t_rel" | sed -nE 's/.*REVISION:[[:space:]]*([0-9]+\.[0-9]+).*/\1/p')
+            if [[ -n "${_l4t_major}" && -n "${_l4t_rev}" ]]; then
+                _l4t_version="${_l4t_major}.${_l4t_rev}"
+                echo "[holoscan_camera] L4T version: ${_l4t_version}" >&2
+            fi
+            unset _l4t_rel _l4t_major _l4t_rev
+        fi
+        # --build-args is a single-value (non-append) flag in holoscan-cli's argparse: passing
+        # it twice silently keeps only the last occurrence. So defer entirely to the caller if
+        # they already used --build-args for anything, rather than risk clobbering an unrelated
+        # value of theirs (e.g. --build-args "--network=host") with our own L4T_VERSION-only one.
+        _has_build_args=false
+        for _arg in "${CLI_ARGS[@]}"; do
+            [[ "${_arg}" == "--build-args" || "${_arg}" == --build-args=* ]] && _has_build_args=true
+        done
+        if [[ "${_has_build_args}" == false && -n "${_l4t_version}" ]]; then
+            CLI_ARGS+=(--build-args "--build-arg L4T_VERSION=${_l4t_version}")
+        fi
+        unset _arg _has_build_args _l4t_version
+        ;;
+esac
+
 # Keep subprocesses launched by the CLI (including system-language pre-commit
 # hooks) on the interpreter that bootstrapped Holoscan CLI.
 PYTHON_BIN="$(command -v "${PYTHON_BIN}")"

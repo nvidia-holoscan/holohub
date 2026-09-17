@@ -13,6 +13,9 @@ import groovy.transform.Field
     'jenkins/inbound-agent:3345.v03dee9b_f88fc-1-jdk21'
 @Field private final String SDK_REPOSITORY =
     'https://gitlab-master.nvidia.com/holoscan/holoscan-sdk.git'
+@Field private final String SDK_REGISTRY = 'gitlab-master.nvidia.com:5005'
+@Field private final String SDK_REGISTRY_REPOSITORY =
+    "${SDK_REGISTRY}/holoscan/holoscan-sdk"
 @Field private final String CAMERA_CREDENTIAL =
     'HOLOSCAN_CAMERA_GITLAB_READ_TOKEN'
 @Field private final String SDK_CREDENTIAL = 'HOLOSCAN_SDK_GITLAB_READ_TOKEN'
@@ -45,6 +48,20 @@ def get_sdk_repository() {
 
 def get_sdk_credential() {
     return SDK_CREDENTIAL
+}
+
+def get_sdk_registry() {
+    return SDK_REGISTRY
+}
+
+def get_sdk_build_cache_image(String architecture, String sdkRevision) {
+    if (!(architecture in ['x86_64', 'aarch64'])) {
+        throw new IllegalArgumentException("Unsupported SDK architecture: ${architecture}")
+    }
+    if (!(sdkRevision ==~ /[0-9a-f]{40}/)) {
+        throw new IllegalArgumentException('SDK revision must be a full lowercase SHA')
+    }
+    return "${SDK_REGISTRY_REPOSITORY}/build-${architecture}:${sdkRevision.take(9)}"
 }
 
 def is_merge_request_build() {

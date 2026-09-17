@@ -197,15 +197,76 @@ def checkout_sdk_branch(String sdkBranch) {
     return sdkRevision
 }
 
-def build_sdk() {
+def authenticate_sdk_build_cache() {
+    def authenticated = false
+    stage('Authenticate SDK build cache') {
+        catchError(
+            buildResult: 'SUCCESS',
+            stageResult: 'UNSTABLE',
+            catchInterruptions: false,
+            message: 'SDK registry authentication failed; using a local container build.',
+        ) {
+            withEnv(["SDK_REGISTRY=${Utils.get_sdk_registry()}"]) {
+                withCredentials([usernamePassword(
+                    credentialsId: Utils.get_sdk_credential(),
+                    usernameVariable: 'SDK_REGISTRY_USERNAME',
+                    passwordVariable: 'SDK_REGISTRY_TOKEN',
+                )]) {
+                    def loginStatus = sh(
+                        returnStatus: true,
+                        script: '''
+                            set +x
+                            printf '%s' "$SDK_REGISTRY_TOKEN" |
+                                docker login "$SDK_REGISTRY" \
+                                    --username "$SDK_REGISTRY_USERNAME" \
+                                    --password-stdin
+                        ''',
+                    )
+                    if (loginStatus != 0) {
+                        error("Docker login to ${Utils.get_sdk_registry()} failed")
+                    }
+                    authenticated = true
+                }
+            }
+        }
+        if (!authenticated) {
+            echo('WARNING: Holoscan SDK registry cache unavailable; building the container locally.')
+        }
+    }
+    return authenticated
+}
+
+def build_sdk(String sdkRevision, String sdkArchitecture) {
+    def cacheImage = Utils.get_sdk_build_cache_image(sdkArchitecture, sdkRevision)
+    def useRemoteCache = authenticate_sdk_build_cache()
     stage('Build Holoscan SDK') {
         dir('holoscan-sdk/public') {
-            sh '''
+            withEnv([
+                "SDK_BUILD_CACHE_IMAGE=${cacheImage}",
+                "USE_SDK_REMOTE_CACHE=${useRemoteCache}",
+            ]) {
+                sh '''
                 set -eu
+
+                if [ "$USE_SDK_REMOTE_CACHE" = true ]; then
+                    echo "Attempting SDK build-container cache: $SDK_BUILD_CACHE_IMAGE"
+                    if ! ./run build_image \
+                        --cache-from "$SDK_BUILD_CACHE_IMAGE"; then
+                        echo 'WARNING: Remote SDK cache build failed; retrying locally.' >&2
+                        ./run build_image
+                    fi
+                else
+                    ./run build_image
+                fi
+
                 ./run build \
+                    --standalone \
                     --build-python false \
-                    --build-benchmarks false
+                    --build-benchmarks false \
+                    --config "-DHOLOSCAN_BUILD_EXAMPLES:BOOL=OFF" \
+                    --config "-DHOLOSCAN_BUILD_TESTS:BOOL=OFF"
             '''
+            }
         }
     }
 }
@@ -240,19 +301,27 @@ def resolve_sdk_install(
     return sdkInstall
 }
 
-def cdash_platform_name(String flowName) {
-    return flowName.replaceFirst(/-cuda[0-9]+$/, '')
+def cdash_build_name(Map flowSettings, String sourceBranch) {
+    def architecture = flowSettings.cdash_arch?.trim()
+    def sdkTrack = flowSettings.cdash_sdk?.trim()
+    def branch = sourceBranch?.trim()
+    if (!architecture || !sdkTrack || !branch) {
+        throw new IllegalArgumentException(
+            'CDash build names require cdash_arch, cdash_sdk, and source branch',
+        )
+    }
+    return "holoscan-camera_${architecture}_sdk-${sdkTrack}_${branch}"
 }
 
-def build_module(String flowName, boolean submitToCdash, boolean nightlyBuild) {
+def build_module(Map flowSettings, boolean submitToCdash, boolean nightlyBuild) {
     stage('Build module') {
         def buildNameSuffix = env.gitlabSourceBranch?.trim() ?: 'main'
-        def cdashPlatformName = cdash_platform_name(flowName)
+        def cdashBuildName = cdash_build_name(flowSettings, buildNameSuffix)
         withEnv([
             'CONTAINER_BUILD_LOG=ci-container-build.log',
             'CONTAINER_BUILD_EXIT_CODE_FILE=ci-container-build.exit-code',
             "HOLOSCAN_CAMERA_WRAPPER=${module_cli_wrapper()}",
-            "CDASH_BUILD_NAME=holoscan-camera-${cdashPlatformName}-holoscan_camera_v4l2-${buildNameSuffix}",
+            "CDASH_BUILD_NAME=${cdashBuildName}",
             "CDASH_MODEL=${nightlyBuild ? 'Nightly' : 'Experimental'}",
         ]) {
             try {
@@ -303,16 +372,15 @@ def build_module(String flowName, boolean submitToCdash, boolean nightlyBuild) {
     }
 }
 
-def test_module(String flowName, boolean submitToCdash, boolean nightlyBuild) {
+def test_module(Map flowSettings, boolean submitToCdash, boolean nightlyBuild) {
     stage('Test module') {
         def buildNameSuffix = env.gitlabSourceBranch?.trim() ?: 'main'
-        def cdashPlatformName = cdash_platform_name(flowName)
+        def cdashBuildName = cdash_build_name(flowSettings, buildNameSuffix)
         withEnv([
             "HOLOSCAN_CAMERA_WRAPPER=${module_cli_wrapper()}",
             "CDASH_SUBMIT=${submitToCdash}",
             "CDASH_MODEL=${nightlyBuild ? 'Nightly' : 'Experimental'}",
-            "CDASH_PLATFORM_NAME=${cdashPlatformName}",
-            "CDASH_BUILD_NAME_SUFFIX=${buildNameSuffix}",
+            "CDASH_BUILD_NAME=${cdashBuildName}",
         ]) {
             sh '''
                 set -eu
@@ -320,9 +388,8 @@ def test_module(String flowName, boolean submitToCdash, boolean nightlyBuild) {
                     set -- \
                         '--cdash-url=http://cdash.nvidia.com/submit.php?project=Holoscan-Modules' \
                         "--site-name=Blossom-$(uname -m)" \
-                        "--platform-name=$CDASH_PLATFORM_NAME" \
-                        "--build-name-suffix=$CDASH_BUILD_NAME_SUFFIX" \
-                        "--ctest-options=-DDASHBOARD_MODEL=$CDASH_MODEL"
+                        "--ctest-options=-DDASHBOARD_MODEL=$CDASH_MODEL" \
+                        "--ctest-options=-DCDASH_BUILD_NAME=$CDASH_BUILD_NAME"
                 else
                     set --
                 fi
