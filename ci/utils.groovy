@@ -8,7 +8,7 @@ import groovy.transform.Field
 @Field private final String BLOSSOM_CLOUD = 'sc-ipp-blossom-prod'
 @Field private final String BLOSSOM_NAMESPACE = 'clara'
 @Field private final String DIND_IMAGE =
-    'gitlab-master.nvidia.com:5005/holoscan/holoscan-sdk/ci-dind:26.02.20'
+    'gitlab-master.nvidia.com:5005/holoscan/holoscan-sdk/ci-dind:26.09.10.post1'
 @Field private final String JNLP_IMAGE =
     'jenkins/inbound-agent:3345.v03dee9b_f88fc-1-jdk21'
 @Field private final String SDK_REPOSITORY =
