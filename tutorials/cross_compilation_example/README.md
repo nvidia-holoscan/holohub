@@ -1,25 +1,43 @@
 # Cross Compilation Example
 
 This tutorial shows how to cross-compile a small Holoscan Software Development Kit (SDK) 4.6
-application on an x86_64 host for a 64-bit Arm architecture (AArch64) target compliant with the
-Server Base System Architecture (SBSA). Follow along to build against the released AArch64 Holoscan
-Debian package without rebuilding the SDK from source or emulating the target environment with QEMU.
+application on an x86_64 host machine for NVIDIA Jetson AGX Thor and NVIDIA IGX Thor target
+systems. Follow along to cross-compile with the Holoscan SDK arm64 Debian package without rebuilding
+the SDK from source or emulating the target environment with QEMU.
 
 ## Background
 
 This tutorial is intended for Jetson and IGX embedded developers who want to build Holoscan C++
-applications on an x86_64 Linux workstation or continuous integration (CI) system and deploy them
+applications on an x86_64 Linux workstation or Continuous Integration (CI) system and deploy them
 to an AArch64 target system. Cross-compilation runs the compiler on one architecture while producing
 binaries for another.
 
-This pinned workflow targets CUDA 13 SBSA-compatible systems using NVIDIA's generic SBSA packages.
-Platforms that use a board-specific Board Support Package (BSP), such as Jetson or IGX Orin, need
-matching CUDA and JetPack packages plus a sysroot from the target operating system (OS); supporting
-those variants is future work.
+The pinned workflow targets CUDA 13 Server Base System Architecture (SBSA) systems using NVIDIA's
+generic AArch64 packages. Jetson Linux 38 aligned Jetson AGX Thor with SBSA, and NVIDIA's CUDA
+Cross-SBSA packages support cross-platform development for arm64 Jetson Thor and SBSA targets. The
+same build is therefore suitable for the core Holoscan API on these target baselines:
 
-SBSA provides a standardized AArch64 platform, allowing this example to use NVIDIA's published
-generic CUDA and Holoscan packages without requiring a board-specific target filesystem. This keeps
-the example reproducible and independent of a particular BSP.
+| Target | Supported software baseline |
+| --- | --- |
+| NVIDIA Jetson AGX Thor Developer Kit | JetPack 7.0, Jetson Linux 38.2, Ubuntu 24.04, and CUDA 13 |
+| NVIDIA IGX Thor Developer Kit and Developer Kit Mini | IGX Software (IGX-SW) 2.0 Production Release, Board Support Package (BSP) 38.5.0, Ubuntu 24.04, and CUDA 13 |
+
+See the [Jetson Linux 38.2 release notes](https://docs.nvidia.com/jetson/archives/r38.2/ReleaseNotes/Jetson_Linux_Release_Notes_r38.2.pdf),
+[IGX-SW 2.0 release notes](https://docs.nvidia.com/igx/user-guide/2.0/software-releases/software-release-2-0-thor-notes-pr.html),
+and [CUDA cross-platform installation guide](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/#cuda-cross-platform-installation)
+for the platform details.
+
+SBSA standardizes the AArch64 platform interfaces used by this example, so the core Holoscan
+application can use NVIDIA's published generic CUDA and Holoscan packages without a board-specific
+target filesystem. The example intentionally uses Ubuntu 24.04's AArch64 GNU Compiler Collection
+(GCC) cross-compiler and target libraries, matching the Ubuntu 24.04 Holoscan package. It does not use
+the standalone Jetson Linux 38.2 cross-toolchain because that toolchain includes a GNU C Library
+(glibc) 2.28 sysroot, which is older than the glibc required by the released Ubuntu 24.04 Holoscan
+package.
+
+This supported path is limited to the core Holoscan C++ API demonstrated here. Applications that use
+board-specific camera, multimedia, networking, or other BSP libraries need matching target packages
+and a sysroot captured from the target OS. Those dependencies are outside this tutorial's scope.
 
 A sysroot is a directory tree that mirrors the target system's filesystem and supplies the target
 headers and libraries used during cross-compilation instead of the host's filesystem.
@@ -44,7 +62,8 @@ be run on the build host.
 This tutorial covers two workflows:
 
 1. **Build the containerized example:** Create the cross-compilation container with Docker, build
-   and stage the example, and verify that the result is an AArch64 executable linked to Holoscan.
+   and stage the example, verify that the result is an AArch64 executable linked to Holoscan, and
+   validate it on a supported Thor target.
 2. **Add Holoscan to an existing project:** Install the host and CUDA cross-compilation tools,
    acquire and extract the AArch64 Holoscan SDK package, configure the CMake toolchain, discover and
    link Holoscan targets, build the project, and understand the deployment boundary.
@@ -56,7 +75,8 @@ This tutorial covers two workflows:
 - An x86_64 Linux host with Docker Engine and BuildKit.
 - Internet access while building the image.
 - `file` and `readelf` (`binutils`) on the host for the final artifact checks.
-- Optional: A compatible NVIDIA AArch64 target platform for deployment and runtime validation.
+- Optional: A Jetson AGX Thor Developer Kit with JetPack 7.0, or an IGX Thor Developer Kit or
+  Developer Kit Mini with IGX-SW 2.0, for deployment and runtime validation.
 
 A graphics processing unit (GPU) and target hardware are not required to cross-compile. This C++
 example does not compile CUDA source, so it does not set `CMAKE_CUDA_ARCHITECTURES`. For projects
@@ -76,11 +96,11 @@ docker build --platform linux/amd64 \
   -t holoscan-4-cross-sbsa:4.6.0 .
 ```
 
-The image installs the native x86_64 build tools and CUDA Cross-SBSA packages, then uses NVIDIA's
-signed SBSA apt repository to download and extract `holoscan-cuda-13_4.6.0.0-1_arm64.deb` into
-`/opt/nvidia/holoscan`. Extracting the target package makes its headers, CMake exports, and AArch64
-libraries available without trying to execute its AArch64 package dependencies in the x86_64
-builder.
+The image installs the native x86_64 build tools, Ubuntu 24.04's AArch64 compiler and target
+libraries, and CUDA Cross-SBSA packages. It then uses NVIDIA's signed SBSA apt repository to download
+and extract `holoscan-cuda-13_4.6.0.0-1_arm64.deb` into `/opt/nvidia/holoscan`. Extracting the target
+package makes its headers, CMake exports, and AArch64 libraries available without trying to execute
+its AArch64 package dependencies in the x86_64 builder.
 
 ### Configure, build, and stage
 
@@ -132,9 +152,57 @@ readelf --dynamic build-cross/install/bin/cross_compilation_example | grep libho
 dependency on `libholoscan_core.so.4`. Do not use host `ldd`: the host cannot load the AArch64
 executable.
 
-To run it, copy the executable to a compatible AArch64 target with the matching Holoscan 4.6.0
-CUDA 13 runtime installed. This example stages only the application executable; it does not bundle
-the SDK or other shared libraries.
+### Deploy and validate on a Thor target
+
+Prepare either supported target baseline listed in [Background](#background), then install the
+Holoscan 4.6 CUDA 13 Debian package by following the
+[Holoscan SDK installation guide](https://docs.nvidia.com/holoscan/sdk-user-guide/setup/sdk-installation).
+If the NVIDIA SBSA repository is already configured on the target, the package used by this build
+can be installed directly:
+
+```bash
+sudo apt-get update
+sudo apt-get install --yes holoscan-cuda-13=4.6.0.0-1
+```
+
+On the target, confirm the platform and runtime versions:
+
+```bash
+test "$(uname -m)" = aarch64
+. /etc/os-release
+test "${VERSION_ID}" = 24.04
+dpkg-query -W -f='${Package} ${Version}\n' holoscan-cuda-13
+dpkg-query -W -f='${Package} ${Version}\n' cuda-cudart-13-0
+head -n 1 /etc/nv_tegra_release
+```
+
+The Holoscan package must report `4.6.0.0-1`, the CUDA runtime must report a 13.0 release, and the
+Jetson or IGX release information must match the selected baseline. Copy the staged executable from
+the x86_64 host, replacing the target login and address:
+
+```bash
+scp build-cross/install/bin/cross_compilation_example \
+  <user>@<target>:/tmp/cross_compilation_example
+```
+
+Run the remaining checks on the target:
+
+```bash
+chmod +x /tmp/cross_compilation_example
+
+# Validate that all shared libraries resolve on the target
+ldd /tmp/cross_compilation_example | tee /tmp/cross_compilation_example.ldd
+! grep -q 'not found' /tmp/cross_compilation_example.ldd
+
+# Validate the application runs successfully
+/tmp/cross_compilation_example 2>&1 | tee /tmp/cross_compilation_example.log
+grep -F 'Hello Holoscan!' /tmp/cross_compilation_example.log
+```
+
+The host-side `file` and `readelf` checks validate the cross-build and linkage. This target-side run
+validates the runtime ABI, Holoscan and CUDA dependencies, and application behavior on Jetson AGX
+Thor or IGX Thor. This example stages only the application executable; it does not bundle the SDK or
+other shared libraries.
 
 ## Part 2: Add Holoscan to an existing project
 
@@ -143,8 +211,8 @@ under the existing project's `.cross/` directory. The build machine does not nee
 
 ### Install the build tools
 
-Confirm that the build machine is x86_64, then install the native tools and GNU Compiler Collection
-(GCC) AArch64 cross-compiler:
+Confirm that the build machine is x86_64, then install the native tools and Ubuntu 24.04 GNU
+Compiler Collection (GCC) AArch64 cross-compiler and target libraries:
 
 ```bash
 test "$(dpkg --print-architecture)" = amd64
@@ -197,7 +265,9 @@ sudo apt-get install --yes --no-install-recommends \
 ```
 
 `cuda-nvcc-13-0` supplies the native x86_64 compiler. `cuda-cross-sbsa-13-0` supplies the AArch64
-CUDA headers and libraries under `/usr/local/cuda-13.0/targets/sbsa-linux`.
+CUDA headers and libraries under `/usr/local/cuda-13.0/targets/sbsa-linux`. NVIDIA documents this
+Cross-SBSA package as the supported CUDA cross-platform toolkit for arm64 Jetson Thor and SBSA
+targets.
 
 ### Extract the AArch64 Holoscan package
 
@@ -302,6 +372,8 @@ The final command must report an ARM AArch64 library. The apt options verify the
 signature and package hash; the curl option relies on the explicit SHA-256 check. Add `.cross/` to
 the project's `.gitignore`. The target needs the matching runtime package from the
 [Holoscan SDK installation guide](https://docs.nvidia.com/holoscan/sdk-user-guide/setup/sdk-installation).
+Using the same `holoscan-cuda-13` version in the extracted build dependency and on the target avoids
+an SDK application binary interface (ABI) mismatch.
 
 ### Add the CMake toolchain
 
@@ -421,5 +493,7 @@ library from the build machine.
 Cross-compilation proves that the application configures and links for AArch64. It does not prove
 runtime behavior. The target must provide a compatible Linux application binary interface (ABI),
 CUDA runtime/driver, matching Holoscan 4.6 libraries, and every application-specific shared library.
-Jetson multimedia or other BSP-specific dependencies may require a sysroot from the exact target OS
-rather than the generic SBSA roots used here.
+Complete [Deploy and validate on a Thor target](#deploy-and-validate-on-a-thor-target) to validate
+the executable on Jetson AGX Thor or IGX Thor hardware. Jetson or IGX camera, multimedia, networking,
+and other BSP-specific dependencies require matching packages and may require a sysroot from the
+exact target OS rather than the generic SBSA roots used here.

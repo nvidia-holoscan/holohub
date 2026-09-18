@@ -26,7 +26,7 @@ RUN if [ "${BUILDARCH}" != "amd64" ]; then \
     exit 1; \
   fi
 
-# Install the pinned native build tools and CMake release.
+# Install the pinned native build tools, Ubuntu AArch64 compiler/sysroot, and CMake release.
 FROM build-host AS build-tools
 
 ARG DEBIAN_FRONTEND=noninteractive

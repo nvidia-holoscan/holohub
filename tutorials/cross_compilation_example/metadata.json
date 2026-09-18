@@ -1,7 +1,7 @@
 {
   "tutorial": {
     "name": "Cross Compilation Example",
-    "description": "Minimal Holoscan C++ application and Cross-SBSA compilation example",
+    "description": "Cross-compile a minimal Holoscan C++ application for Jetson AGX Thor and IGX Thor",
     "authors": [
       {
         "name": "Zachary Crandall",
@@ -24,7 +24,9 @@
     ],
     "tags": [
       "Hello World",
-      "Cross Compilation"
+      "Cross Compilation",
+      "IGX Thor",
+      "Jetson AGX Thor"
     ],
     "ranking": 4,
     "requirements": {
