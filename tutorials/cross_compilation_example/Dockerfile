@@ -103,14 +103,18 @@ RUN apt-get update \
   && rm -f holoscan-cuda-13_${HOLOSCAN_DEB_VERSION}_arm64.deb \
   && rm -rf /var/lib/apt/lists/*
 
-# Install and verify the HoloHub CLI used by the wrapper build flow.
-FROM holoscan-sdk AS holohub-cli
+# Install and verify the standalone Holoscan CLI used by the containerized build flow.
+FROM holoscan-sdk AS holoscan-cli
 
-COPY --chmod=755 holohub /tmp/scripts/
-RUN /tmp/scripts/holohub env-info
+ARG HOLOSCAN_CLI_VERSION=4.6.0
+
+RUN PIP_BREAK_SYSTEM_PACKAGES=1 python3 -m pip install --no-cache-dir \
+  --extra-index-url https://pypi.nvidia.com \
+  "holoscan-cli==${HOLOSCAN_CLI_VERSION}" \
+  && holoscan version --json | grep -q '"version": "'"${HOLOSCAN_CLI_VERSION}"'"'
 
 # Add the cross toolchain files and define the final workspace.
-FROM holohub-cli AS cross-builder
+FROM holoscan-cli AS cross-builder
 
 COPY tutorials/cross_compilation_example/cmake/aarch64-cross-sbsa.cmake /opt/holoscan-cross/
 COPY --chmod=755 tutorials/cross_compilation_example/cmake/nvcc-cross-sbsa /opt/holoscan-cross/

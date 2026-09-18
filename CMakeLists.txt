@@ -126,6 +126,12 @@ add_subdirectory(modules)
 # Build the applications
 add_subdirectory(applications)
 
+# This tutorial is a standalone CMake project for the manual workflow. Include it only when the
+# Holoscan CLI explicitly requests its target.
+if(APP_cross_compilation_example)
+  add_subdirectory(tutorials/cross_compilation_example)
+endif()
+
 # Build the benchmarks
 add_subdirectory(benchmarks)
 

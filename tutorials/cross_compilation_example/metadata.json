@@ -31,6 +31,32 @@
     "ranking": 4,
     "requirements": {
       "gxf_extensions": []
+    },
+    "dockerfile": "tutorials/cross_compilation_example/Dockerfile",
+    "default_mode": "cross_compile",
+    "modes": {
+      "cross_compile": {
+        "description": "Build the AArch64 example in the x86_64 cross-compilation container",
+        "build": {
+          "docker_build_args": [
+            "--platform",
+            "linux/amd64"
+          ],
+          "cmake_options": [
+            "-DCMAKE_TOOLCHAIN_FILE=/opt/holoscan-cross/aarch64-cross-sbsa.cmake"
+          ]
+        },
+        "run": {
+          "command": "file <build_dir>/tutorials/cross_compilation_example/cross_compilation_example",
+          "workdir": "<holohub_root>",
+          "docker_run_args": [
+            "--runtime",
+            "runc",
+            "--platform",
+            "linux/amd64"
+          ]
+        }
+      }
     }
   }
 }

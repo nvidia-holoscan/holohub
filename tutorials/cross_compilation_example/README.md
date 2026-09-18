@@ -74,6 +74,7 @@ This tutorial covers two workflows:
 
 - An x86_64 Linux host with Docker Engine and BuildKit.
 - Internet access while building the image.
+- Python 3 with virtual-environment support for the direct Holoscan CLI workflow.
 - `file` and `readelf` (`binutils`) on the host for the final artifact checks.
 - Optional: A Jetson AGX Thor Developer Kit with JetPack 7.0, or an IGX Thor Developer Kit or
   Developer Kit Mini with IGX-SW 2.0, for deployment and runtime validation.
@@ -86,9 +87,56 @@ GPU using just-in-time (JIT) compilation. When the deployment GPU is known, repl
 appropriate hardware-specific architecture, as described in
 [Choose a CUDA target architecture](#choose-a-cuda-target-architecture).
 
-### Build the cross-compilation image
+### Using the Holoscan CLI directly
 
-From the HoloHub checkout:
+Create a Python virtual environment and install the Holoscan CLI version pinned by this tutorial:
+
+```bash
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install --extra-index-url https://pypi.nvidia.com \
+  "holoscan-cli==4.6.0"
+```
+
+From the repository root, build and install the example with one command:
+
+```bash
+HOLOSCAN_CLI_BASE_SDK_VERSION=4.6.0 \
+  holoscan install cross_compilation_example
+```
+
+`HOLOSCAN_CLI_BASE_SDK_VERSION` supplies the SDK image version that the standalone CLI does not
+assume.
+
+### Using the HoloHub CLI
+
+As an alternative, run the HoloHub wrapper from the repository root:
+
+```bash
+./holohub install cross_compilation_example
+```
+
+The wrapper manages the compatible Holoscan CLI environment and SDK version, so this option does
+not require a separate Python virtual environment or `HOLOSCAN_CLI_BASE_SDK_VERSION`.
+
+The default `cross_compile` mode builds the x86_64 cross-compilation container, configures the
+project with `aarch64-cross-sbsa.cmake`, compiles an AArch64 executable, and installs it to
+`install/bin/cross_compilation_example`. The mode uses Docker's standard `runc` runtime because a
+GPU is not required for this build.
+
+Continue with [Verify the result](#verify-the-result), using the CLI artifact path:
+
+```bash
+CROSS_COMPILED_APP=install/bin/cross_compilation_example
+```
+
+### Manual Docker and CMake workflow
+
+The following steps show each Docker and CMake command performed by the CLI workflow.
+
+#### Build the cross-compilation image
+
+From the repository root:
 
 ```bash
 docker build --platform linux/amd64 \
@@ -102,7 +150,7 @@ and extract `holoscan-cuda-13_4.6.0.0-1_arm64.deb` into `/opt/nvidia/holoscan`. 
 package makes its headers, CMake exports, and AArch64 libraries available without trying to execute
 its AArch64 package dependencies in the x86_64 builder.
 
-### Configure, build, and stage
+#### Configure, build, and stage
 
 Create an ignored output directory and run each CMake step in the same image. Mounting the source
 for all three steps allows CMake to regenerate the Ninja files when necessary.
@@ -139,13 +187,18 @@ docker run --rm --platform linux/amd64 \
   cmake --install /workspace/build
 ```
 
-The staged executable is `build-cross/install/bin/cross_compilation_example`.
+The staged executable is `build-cross/install/bin/cross_compilation_example`. Set the artifact path
+for the remaining steps:
+
+```bash
+CROSS_COMPILED_APP=build-cross/install/bin/cross_compilation_example
+```
 
 ### Verify the result
 
 ```bash
-file build-cross/install/bin/cross_compilation_example
-readelf --dynamic build-cross/install/bin/cross_compilation_example | grep libholoscan_core
+file "${CROSS_COMPILED_APP}"
+readelf --dynamic "${CROSS_COMPILED_APP}" | grep libholoscan_core
 ```
 
 `file` must report an AArch64 Executable and Linkable Format (ELF) binary. `readelf` must report a
@@ -181,7 +234,7 @@ Jetson or IGX release information must match the selected baseline. Copy the sta
 the x86_64 host, replacing the target login and address:
 
 ```bash
-scp build-cross/install/bin/cross_compilation_example \
+scp "${CROSS_COMPILED_APP}" \
   <user>@<target>:/tmp/cross_compilation_example
 ```
 
