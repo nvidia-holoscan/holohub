@@ -72,7 +72,9 @@ Before configuring or running this application, prepare the host:
 
   These apply to the current boot only; add them to `/etc/sysctl.conf` to persist.
 
-- **USRP FPGA image:** load an FPGA image that supports your streaming rate with `uhd_image_loader`. See the [USRP X4xx manual](https://files.ettus.com/manual/page_usrp_x4xx.html) for the loading procedure, and [Limitations](#limitations) for the images used during testing.
+- **USRP embedded software:** the supplied application container builds UHD 4.11.0.0. Before running it with an X410 or X440, update the radio's embedded filesystem, including its MPM service, to the matching UHD release. Follow [Updating the Filesystem](https://files.ettus.com/manual/page_usrp_x4xx.html#x4xx_updating_filesystems) in the X4xx manual. [UHD 4.11 replaces msgpack-RPC with gRPC](https://github.com/EttusResearch/uhd/releases/tag/v4.11.0.0), so the new host cannot control a radio still running UHD 4.10 MPM. Loading only an FPGA image does not update MPM.
+
+- **USRP FPGA image:** after updating the embedded filesystem, load an FPGA image from the matching UHD release that supports your streaming rate with `uhd_image_loader`. See the [USRP X4xx manual](https://files.ettus.com/manual/page_usrp_x4xx.html) for the loading procedure, and [Limitations](#limitations) for the images used during testing.
 
 ## Configuration
 
