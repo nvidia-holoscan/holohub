@@ -329,7 +329,7 @@ editing config and launching the app, but not for watching the live spectrum.
 
 ## Limitations
 
-- **Hardware tested:** USRP X410 and X440 with UHD 4.10 over a Mellanox ConnectX-6 Dx NIC. Other radios, NICs, or UHD versions may work but are unverified.
+- **Hardware tested:** USRP X410 and X440 with UHD >= 4.10 over a Mellanox ConnectX-6 Dx NIC. Other radios, NICs, or UHD versions may work but are unverified.
 The FPGA images used during testing were:
 
   | USRP | FPGA image |
