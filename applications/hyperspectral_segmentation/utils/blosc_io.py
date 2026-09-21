@@ -49,8 +49,14 @@ def _decompress_array(data, shape, dtype):
         or dtype.kind not in "buifc"
     ):
         raise ValueError("Only scalar numeric array dtypes are supported")
+    expected_size = math.prod(shape) * dtype.itemsize
+    if not blosc.cbuffer_validate(data):
+        raise ValueError("Invalid compressed Blosc buffer")
+    uncompressed_size, compressed_size, _ = blosc.get_cbuffer_sizes(data)
+    if uncompressed_size != expected_size or compressed_size != len(data):
+        raise ValueError("Compressed buffer sizes do not match array metadata")
     data = blosc.decompress(data)
-    if len(data) != math.prod(shape) * dtype.itemsize:
+    if len(data) != expected_size:
         raise ValueError("Decompressed data size does not match array metadata")
     return np.frombuffer(data, dtype=dtype).reshape(shape).copy()
 

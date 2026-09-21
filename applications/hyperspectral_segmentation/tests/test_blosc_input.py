@@ -77,6 +77,18 @@ def test_decompressed_size_must_match_shape(load_cube, tmp_path):
         load_cube(path)
 
 
+def test_size_mismatch_is_rejected_before_decompression(load_cube, tmp_path, monkeypatch):
+    path = tmp_path / "oversized.blosc"
+    write_cube(path, np.zeros(1024, dtype=np.float32), metadata=((1,), np.dtype("f4")))
+
+    def unexpected_decompression(data):
+        pytest.fail("Mismatched buffer reached decompression")
+
+    monkeypatch.setattr(blosc, "decompress", unexpected_decompression)
+    with pytest.raises(ValueError):
+        load_cube(path)
+
+
 @pytest.mark.parametrize("code", [123, 12345, 23456789])
 def test_cached_pickle_extension_cannot_bypass_global_restrictions(load_cube, tmp_path, code):
     marker = tmp_path / "executed"
