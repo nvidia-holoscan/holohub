@@ -6,6 +6,7 @@
 import asyncio
 import datetime
 import importlib
+import importlib.util
 import ipaddress
 import shutil
 import socket
@@ -222,7 +223,7 @@ def test_remote_bind_requires_mtls(rpc, host):
     ],
 )
 def test_client_rejects_remote_plaintext(rpc, target):
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=r"--tls-cert.*--tls-key.*--tls-ca"):
         rpc.client(target, False, None, None, None)
 
 

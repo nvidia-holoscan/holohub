@@ -43,10 +43,18 @@ class EntityClientService:
             host, _, port = server_address.rpartition(":")
             if host.startswith("[") and host.endswith("]"):
                 host = host[1:-1]
-            # Pin this alias to a literal address; never trust DNS for plaintext destinations.
-            address = ipaddress.ip_address("127.0.0.1" if host == "localhost" else host)
+            tls_guidance = (
+                "Plaintext gRPC clients require a loopback IP address or localhost; "
+                "other targets require TLS credentials "
+                "(--tls-cert, --tls-key, and --tls-ca in the Python demo)"
+            )
+            try:
+                # Pin this alias to a literal address; never trust DNS for plaintext destinations.
+                address = ipaddress.ip_address("127.0.0.1" if host == "localhost" else host)
+            except ValueError as exc:
+                raise ValueError(tls_guidance) from exc
             if not address.is_loopback:
-                raise ValueError("A non-loopback gRPC client requires TLS credentials")
+                raise ValueError(tls_guidance)
             port = int(port)
             if not 1 <= port <= 65535:
                 raise ValueError("The gRPC port must be between 1 and 65535")

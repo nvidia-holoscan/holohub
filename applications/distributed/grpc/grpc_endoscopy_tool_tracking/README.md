@@ -35,6 +35,9 @@ The data is automatically downloaded when building the application.
 
 ### C++
 
+The C++ server uses unauthenticated plaintext gRPC and listens on
+`0.0.0.0:50051`. The transport protections in the Python section apply to Python.
+
 ```bash
 # Start the gRPC Server
 ./holohub run grpc_endoscopy_tool_tracking --run-args="cloud" [--language=cpp]
@@ -62,23 +65,28 @@ loopback IP addresses or `localhost`, which is pinned to `127.0.0.1`.
 Remote Python connections require mutual TLS. Obtain a server certificate and
 private key, a client certificate and private key, and their issuing CA
 certificates. The server certificate's subject alternative name must match
-`grpc_client.server_address`; certificates must support their respective server
-or client authentication usage. The server's client CA should issue certificates
-only to clients authorized to use the pipeline. Keep private keys out of source
-control.
+the host portion of `grpc_client.server_address`, excluding the port (for example,
+`cloud.example.com` for `cloud.example.com:50051`). Certificates must support their
+respective server or client authentication usage. The server's client CA should
+issue certificates only to clients authorized to use the pipeline. Keep private
+keys out of source control.
 
 Set `grpc_client.server_address` in the
 [Python configuration](./python/endoscopy_tool_tracking.yaml) to the server's
 hostname or IP address, for example `cloud.example.com:50051`. Supply PEM files
-using paths available inside the HoloHub container:
+by mounting their host directory read-only at `/certs` inside the HoloHub container.
+Replace each `/absolute/path/to/*-certs` placeholder below with the absolute path
+to that host's certificate directory:
 
 ```bash
 # Server: --tls-ca identifies the CA trusted to authenticate clients.
 ./holohub run grpc_endoscopy_tool_tracking --language python \
+  --docker-opts="--volume /absolute/path/to/server-certs:/certs:ro" \
   --run-args="cloud --host 0.0.0.0 --tls-cert /certs/server.pem --tls-key /certs/server.key --tls-ca /certs/client-ca.pem"
 
 # Client: --tls-ca identifies the CA trusted to authenticate the server.
 ./holohub run grpc_endoscopy_tool_tracking --language python \
+  --docker-opts="--volume /absolute/path/to/client-certs:/certs:ro" \
   --run-args="edge --tls-cert /certs/client.pem --tls-key /certs/client.key --tls-ca /certs/server-ca.pem"
 ```
 

@@ -11,6 +11,14 @@ on:
       - 'conftest.py'
       - 'pyproject.toml'
       - '.github/workflows/check_grpc_transport.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'operators/grpc_operators/**'
+      - 'applications/distributed/grpc/grpc_endoscopy_tool_tracking/python/**'
+      - 'conftest.py'
+      - 'pyproject.toml'
+      - '.github/workflows/check_grpc_transport.yml'
   workflow_dispatch:
 
 permissions:
