@@ -4,6 +4,14 @@
 name: Check MONAI disk I/O security
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'operators/medical_imaging/**'
+      - 'utilities/testing/test_monai_bundle_disk_io.py'
+      - 'conftest.py'
+      - 'pyproject.toml'
+      - '.github/workflows/check_monai_disk_io.yml'
   pull_request:
     paths:
       - 'operators/medical_imaging/**'
@@ -27,6 +35,8 @@ jobs:
           python-version: '3.12'
       - name: Install CPU test dependencies
         run: |
+          # Exercise the real SDK operator and MONAI compute path with CPU PyTorch.
+          # The SDK wheel still needs CUDA runtime libraries to import on this runner.
           python -m pip install torch==2.10.0+cpu --index-url https://download.pytorch.org/whl/cpu
           python -m pip install pytest==9.1.1 numpy==2.5.3 holoscan==4.6.0 \
             cupy-cuda12x==13.6.0 nvidia-cuda-runtime-cu12==12.9.79 \
