@@ -79,7 +79,9 @@ RUN apt-get update \
   cuda-nvcc-13-0=13.0.88-1 \
   && rm -rf /var/lib/apt/lists/*
 
-# Download, validate, and extract the AArch64 Holoscan SDK package.
+# Download, validate, and extract only the AArch64 Holoscan SDK package needed by this example.
+# Do not install arm64 packages into the amd64 builder's package database or run their maintainer
+# scripts; applications that use optional SDK backends must add their target dependencies explicitly.
 FROM cuda-cross AS holoscan-sdk
 
 ARG HOLOSCAN_DEB_VERSION=4.6.0.0-1
