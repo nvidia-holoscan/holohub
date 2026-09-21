@@ -8,37 +8,37 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="The focus of this repo is to walkthrough the process of doing Self-Supervised Learning using Contrastive Pre-training on Surgical Video data.">
+        <meta name="description" content="Cross-compile a minimal Holoscan C++ application for Jetson AGX Thor and IGX Thor">
       
       
         <meta name="author" content="NVIDIA">
       
       
-        <link rel="canonical" href="https://nvidia-holoscan.github.io/holohub/tutorials/pretrained_foundational_models/self_supervised_training/">
+        <link rel="canonical" href="https://nvidia-holoscan.github.io/holohub/tutorials/cross_compilation_example/">
       
       
-        <link rel="prev" href="../../holoscan-bootcamp/">
+        <link rel="prev" href="../creating-multi-node-applications/">
       
       
-        <link rel="next" href="../../dicom_to_usd_with_monai_and_holoscan/">
+        <link rel="next" href="../cuda_mps/">
       
       
         
       
       
-      <link rel="icon" href="../../../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
-        <title>Self-Supervised Learning for Surgical videos (latest) - HoloHub – Explore The Holoscan Ecosystem</title>
+        <title>Cross Compilation Example (latest) - HoloHub – Explore The Holoscan Ecosystem</title>
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
-        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -57,17 +57,17 @@
       
     
     
-      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
     
-      <link rel="stylesheet" href="../../../assets/css/color-schemes.css">
+      <link rel="stylesheet" href="../../assets/css/color-schemes.css">
     
-      <link rel="stylesheet" href="../../../assets/css/fonts.css">
+      <link rel="stylesheet" href="../../assets/css/fonts.css">
     
-      <link rel="stylesheet" href="../../../assets/css/custom-material.css">
+      <link rel="stylesheet" href="../../assets/css/custom-material.css">
     
-      <link rel="stylesheet" href="../../../assets/css/jupyter-themes.css">
+      <link rel="stylesheet" href="../../assets/css/jupyter-themes.css">
     
-    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
   
@@ -85,17 +85,17 @@
     
   
   
-  <meta property="og:description" content="The focus of this repo is to walkthrough the process of doing Self-Supervised Learning using Contrastive Pre-training on Surgical Video data." />
-  <meta name="twitter:description" content="The focus of this repo is to walkthrough the process of doing Self-Supervised Learning using Contrastive Pre-training on Surgical Video data." />
+  <meta property="og:description" content="Cross-compile a minimal Holoscan C++ application for Jetson AGX Thor and IGX Thor" />
+  <meta name="twitter:description" content="Cross-compile a minimal Holoscan C++ application for Jetson AGX Thor and IGX Thor" />
   
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="Self-Supervised Learning for Surgical videos (latest) - HoloHub – Explore The Holoscan Ecosystem" />
+  <meta property="og:title" content="Cross Compilation Example (latest) - HoloHub – Explore The Holoscan Ecosystem" />
   <meta property="og:site_name" content="HoloHub – Explore The Holoscan Ecosystem" />
-  <meta property="og:url" content="https://nvidia-holoscan.github.io/holohub/tutorials/pretrained_foundational_models/self_supervised_training/" />
+  <meta property="og:url" content="https://nvidia-holoscan.github.io/holohub/tutorials/cross_compilation_example/" />
   <meta property="og:image" content="https://nvidia-holoscan.github.io/holohub/assets/images/jetson-for-dev-ai-labs-icon-2974266-r3_ai-lab-text-generation-28.png" />
   <meta property="og:locale" content="en_US" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Self-Supervised Learning for Surgical videos (latest) - HoloHub – Explore The Holoscan Ecosystem" />
+  <meta name="twitter:title" content="Cross Compilation Example (latest) - HoloHub – Explore The Holoscan Ecosystem" />
   <meta name="twitter:image" content="https://nvidia-holoscan.github.io/holohub/assets/images/jetson-for-dev-ai-labs-icon-2974266-r3_ai-lab-text-generation-28.png" />
   <script type="application/ld+json">
   {
@@ -112,7 +112,7 @@
           "Holoscan Applications"
         ],
         "url": "https://nvidia-holoscan.github.io/holohub/",
-        "description": "The focus of this repo is to walkthrough the process of doing Self-Supervised Learning using Contrastive Pre-training on Surgical Video data.",
+        "description": "Cross-compile a minimal Holoscan C++ application for Jetson AGX Thor and IGX Thor",
         "publisher": { "@id": "https://nvidia-holoscan.github.io/holohub/#organization" },
         "potentialAction": {
           "@type": "SearchAction",
@@ -135,7 +135,7 @@
         "@id": "https://nvidia-holoscan.github.io/holohub/#holohub",
         "name": "HoloHub",
         "alternateName": "The Holoscan Ecosystem",
-        "description": "The focus of this repo is to walkthrough the process of doing Self-Supervised Learning using Contrastive Pre-training on Surgical Video data.",
+        "description": "Cross-compile a minimal Holoscan C++ application for Jetson AGX Thor and IGX Thor",
         "url": "https://nvidia-holoscan.github.io/holohub/",
         "codeRepository": "https://github.com/nvidia-holoscan/holohub",
         "programmingLanguage": ["Python", "C++"],
@@ -171,7 +171,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#self-supervised-contrastive-learning-for-surgical-videos" class="md-skip">
+        <a href="#cross-compilation-example" class="md-skip">
           Skip to content
         </a>
       
@@ -189,7 +189,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../../.." title="HoloHub – Explore The Holoscan Ecosystem" class="md-header__button md-logo" aria-label="HoloHub – Explore The Holoscan Ecosystem" data-md-component="logo">
+    <a href="../.." title="HoloHub – Explore The Holoscan Ecosystem" class="md-header__button md-logo" aria-label="HoloHub – Explore The Holoscan Ecosystem" data-md-component="logo">
       
   
   <?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -217,7 +217,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Self-Supervised Learning for Surgical videos (latest)
+              Cross Compilation Example (latest)
             
           </span>
         </div>
@@ -562,7 +562,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../../.." title="HoloHub – Explore The Holoscan Ecosystem" class="md-nav__button md-logo" aria-label="HoloHub – Explore The Holoscan Ecosystem" data-md-component="logo">
+    <a href="../.." title="HoloHub – Explore The Holoscan Ecosystem" class="md-nav__button md-logo" aria-label="HoloHub – Explore The Holoscan Ecosystem" data-md-component="logo">
       
   
   <?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -785,7 +785,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../.." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -1005,7 +1005,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/" class="md-nav__link ">
+            <a href="../../applications/" class="md-nav__link ">
               
   
   
@@ -1070,7 +1070,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/aja_video_capture/" class="md-nav__link ">
+            <a href="../../applications/aja_video_capture/" class="md-nav__link ">
               
   
   
@@ -1138,7 +1138,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/async_buffer_deadline/" class="md-nav__link ">
+            <a href="../../applications/async_buffer_deadline/" class="md-nav__link ">
               
   
   
@@ -1206,7 +1206,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/atracsys_visualizer/" class="md-nav__link ">
+            <a href="../../applications/atracsys_visualizer/" class="md-nav__link ">
               
   
   
@@ -1274,7 +1274,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/simple_pdw_pipeline/" class="md-nav__link ">
+            <a href="../../applications/simple_pdw_pipeline/" class="md-nav__link ">
               
   
   
@@ -1342,7 +1342,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/body_pose_estimation/" class="md-nav__link ">
+            <a href="../../applications/body_pose_estimation/" class="md-nav__link ">
               
   
   
@@ -1410,7 +1410,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/colonoscopy_segmentation/" class="md-nav__link ">
+            <a href="../../applications/colonoscopy_segmentation/" class="md-nav__link ">
               
   
   
@@ -1478,7 +1478,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/cuda_quantum/" class="md-nav__link ">
+            <a href="../../applications/cuda_quantum/" class="md-nav__link ">
               
   
   
@@ -1546,7 +1546,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/daqiri_raw_ethernet_bench/" class="md-nav__link ">
+            <a href="../../applications/daqiri_raw_ethernet_bench/" class="md-nav__link ">
               
   
   
@@ -1614,7 +1614,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/daqiri_socket_ping/" class="md-nav__link ">
+            <a href="../../applications/daqiri_socket_ping/" class="md-nav__link ">
               
   
   
@@ -1736,7 +1736,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/dds/dds_video/" class="md-nav__link ">
+            <a href="../../applications/dds/dds_video/" class="md-nav__link ">
               
   
   
@@ -1812,7 +1812,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/depth_anything_v2/" class="md-nav__link ">
+            <a href="../../applications/depth_anything_v2/" class="md-nav__link ">
               
   
   
@@ -1994,7 +1994,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/distributed/grpc/grpc_endoscopy_tool_tracking/" class="md-nav__link ">
+            <a href="../../applications/distributed/grpc/grpc_endoscopy_tool_tracking/" class="md-nav__link ">
               
   
   
@@ -2062,7 +2062,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/distributed/grpc/grpc_h264_endoscopy_tool_tracking/" class="md-nav__link ">
+            <a href="../../applications/distributed/grpc/grpc_h264_endoscopy_tool_tracking/" class="md-nav__link ">
               
   
   
@@ -2138,7 +2138,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/distributed/ucxx_endoscopy_tool_tracking/" class="md-nav__link ">
+            <a href="../../applications/distributed/ucxx_endoscopy_tool_tracking/" class="md-nav__link ">
               
   
   
@@ -2262,7 +2262,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/distributed/ucx/ucx_h264_endoscopy_tool_tracking/" class="md-nav__link ">
+            <a href="../../applications/distributed/ucx/ucx_h264_endoscopy_tool_tracking/" class="md-nav__link ">
               
   
   
@@ -2334,7 +2334,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/distributed/ucx/ucx_endoscopy_tool_tracking/" class="md-nav__link ">
+            <a href="../../applications/distributed/ucx/ucx_endoscopy_tool_tracking/" class="md-nav__link ">
               
   
   
@@ -2399,7 +2399,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/distributed/ucx/ucx_endoscopy_tool_tracking/cpp/" class="md-nav__link ">
+            <a href="../../applications/distributed/ucx/ucx_endoscopy_tool_tracking/cpp/" class="md-nav__link ">
               
   
   
@@ -2467,7 +2467,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/distributed/ucx/ucx_endoscopy_tool_tracking/python/" class="md-nav__link ">
+            <a href="../../applications/distributed/ucx/ucx_endoscopy_tool_tracking/python/" class="md-nav__link ">
               
   
   
@@ -2615,7 +2615,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/ehr_query_llm/lmm/" class="md-nav__link ">
+            <a href="../../applications/ehr_query_llm/lmm/" class="md-nav__link ">
               
   
   
@@ -2683,7 +2683,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/ehr_query_llm/fhir/" class="md-nav__link ">
+            <a href="../../applications/ehr_query_llm/fhir/" class="md-nav__link ">
               
   
   
@@ -2759,7 +2759,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/endoscopy_depth_estimation/" class="md-nav__link ">
+            <a href="../../applications/endoscopy_depth_estimation/" class="md-nav__link ">
               
   
   
@@ -2831,7 +2831,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/endoscopy_out_of_body_detection/" class="md-nav__link ">
+            <a href="../../applications/endoscopy_out_of_body_detection/" class="md-nav__link ">
               
   
   
@@ -2896,7 +2896,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/endoscopy_out_of_body_detection/cpp/" class="md-nav__link ">
+            <a href="../../applications/endoscopy_out_of_body_detection/cpp/" class="md-nav__link ">
               
   
   
@@ -2964,7 +2964,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/endoscopy_out_of_body_detection/python/" class="md-nav__link ">
+            <a href="../../applications/endoscopy_out_of_body_detection/python/" class="md-nav__link ">
               
   
   
@@ -3040,7 +3040,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/monai_endoscopic_tool_seg/" class="md-nav__link ">
+            <a href="../../applications/monai_endoscopic_tool_seg/" class="md-nav__link ">
               
   
   
@@ -3112,7 +3112,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/endoscopy_tool_tracking/" class="md-nav__link ">
+            <a href="../../applications/endoscopy_tool_tracking/" class="md-nav__link ">
               
   
   
@@ -3177,7 +3177,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/endoscopy_tool_tracking/cpp/" class="md-nav__link ">
+            <a href="../../applications/endoscopy_tool_tracking/cpp/" class="md-nav__link ">
               
   
   
@@ -3245,7 +3245,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/endoscopy_tool_tracking/python/" class="md-nav__link ">
+            <a href="../../applications/endoscopy_tool_tracking/python/" class="md-nav__link ">
               
   
   
@@ -3321,7 +3321,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/florence-2-vision/" class="md-nav__link ">
+            <a href="../../applications/florence-2-vision/" class="md-nav__link ">
               
   
   
@@ -3389,7 +3389,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/fm_asr/" class="md-nav__link ">
+            <a href="../../applications/fm_asr/" class="md-nav__link ">
               
   
   
@@ -3457,7 +3457,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/foxglove_endoscopy_tool_tracking/" class="md-nav__link ">
+            <a href="../../applications/foxglove_endoscopy_tool_tracking/" class="md-nav__link ">
               
   
   
@@ -3525,7 +3525,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/surgical_scene_recon/" class="md-nav__link ">
+            <a href="../../applications/surgical_scene_recon/" class="md-nav__link ">
               
   
   
@@ -3593,7 +3593,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/orthorectification_with_optix/" class="md-nav__link ">
+            <a href="../../applications/orthorectification_with_optix/" class="md-nav__link ">
               
   
   
@@ -3719,7 +3719,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/gstreamer/gst_to_holo/" class="md-nav__link ">
+            <a href="../../applications/gstreamer/gst_to_holo/" class="md-nav__link ">
               
   
   
@@ -3787,7 +3787,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/gstreamer/gst_video_recorder/" class="md-nav__link ">
+            <a href="../../applications/gstreamer/gst_video_recorder/" class="md-nav__link ">
               
   
   
@@ -3855,7 +3855,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/gstreamer/holo_to_gst/" class="md-nav__link ">
+            <a href="../../applications/gstreamer/holo_to_gst/" class="md-nav__link ">
               
   
   
@@ -3987,7 +3987,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/h264/h264_endoscopy_tool_tracking/" class="md-nav__link ">
+            <a href="../../applications/h264/h264_endoscopy_tool_tracking/" class="md-nav__link ">
               
   
   
@@ -4055,7 +4055,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/h264/h264_video_decode/" class="md-nav__link ">
+            <a href="../../applications/h264/h264_video_decode/" class="md-nav__link ">
               
   
   
@@ -4135,7 +4135,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/high_speed_endoscopy/" class="md-nav__link ">
+            <a href="../../applications/high_speed_endoscopy/" class="md-nav__link ">
               
   
   
@@ -4200,7 +4200,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/high_speed_endoscopy/cpp/" class="md-nav__link ">
+            <a href="../../applications/high_speed_endoscopy/cpp/" class="md-nav__link ">
               
   
   
@@ -4268,7 +4268,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/high_speed_endoscopy/python/" class="md-nav__link ">
+            <a href="../../applications/high_speed_endoscopy/python/" class="md-nav__link ">
               
   
   
@@ -4344,7 +4344,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/holocat/" class="md-nav__link ">
+            <a href="../../applications/holocat/" class="md-nav__link ">
               
   
   
@@ -4412,7 +4412,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/holochat/" class="md-nav__link ">
+            <a href="../../applications/holochat/" class="md-nav__link ">
               
   
   
@@ -4540,7 +4540,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/holoscan_ros2/imx274/" class="md-nav__link ">
+            <a href="../../applications/holoscan_ros2/imx274/" class="md-nav__link ">
               
   
   
@@ -4608,7 +4608,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/holoscan_ros2/pubsub/" class="md-nav__link ">
+            <a href="../../applications/holoscan_ros2/pubsub/" class="md-nav__link ">
               
   
   
@@ -4676,7 +4676,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/holoscan_ros2/vb1940/" class="md-nav__link ">
+            <a href="../../applications/holoscan_ros2/vb1940/" class="md-nav__link ">
               
   
   
@@ -4744,7 +4744,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/holoscan_ros2/thor_vb1940/" class="md-nav__link ">
+            <a href="../../applications/holoscan_ros2/thor_vb1940/" class="md-nav__link ">
               
   
   
@@ -4882,7 +4882,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/holoviz/holoviz_hdr/" class="md-nav__link ">
+            <a href="../../applications/holoviz/holoviz_hdr/" class="md-nav__link ">
               
   
   
@@ -4950,7 +4950,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/holoviz/holoviz_srgb/" class="md-nav__link ">
+            <a href="../../applications/holoviz/holoviz_srgb/" class="md-nav__link ">
               
   
   
@@ -5018,7 +5018,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/holoviz/holoviz_ui/" class="md-nav__link ">
+            <a href="../../applications/holoviz/holoviz_ui/" class="md-nav__link ">
               
   
   
@@ -5086,7 +5086,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/holoviz/holoviz_vsync/" class="md-nav__link ">
+            <a href="../../applications/holoviz/holoviz_vsync/" class="md-nav__link ">
               
   
   
@@ -5154,7 +5154,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/holoviz/holoviz_yuv/" class="md-nav__link ">
+            <a href="../../applications/holoviz/holoviz_yuv/" class="md-nav__link ">
               
   
   
@@ -5230,7 +5230,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/hyperspectral_segmentation/" class="md-nav__link ">
+            <a href="../../applications/hyperspectral_segmentation/" class="md-nav__link ">
               
   
   
@@ -5298,7 +5298,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/imx274_gpu_resident/" class="md-nav__link ">
+            <a href="../../applications/imx274_gpu_resident/" class="md-nav__link ">
               
   
   
@@ -5366,7 +5366,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/imaging_ai_segmentator/" class="md-nav__link ">
+            <a href="../../applications/imaging_ai_segmentator/" class="md-nav__link ">
               
   
   
@@ -5434,7 +5434,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/iio/" class="md-nav__link ">
+            <a href="../../applications/iio/" class="md-nav__link ">
               
   
   
@@ -5502,7 +5502,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/realsense_visualizer/" class="md-nav__link ">
+            <a href="../../applications/realsense_visualizer/" class="md-nav__link ">
               
   
   
@@ -5570,7 +5570,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/isaac_sim_holoscan_bridge/" class="md-nav__link ">
+            <a href="../../applications/isaac_sim_holoscan_bridge/" class="md-nav__link ">
               
   
   
@@ -5638,7 +5638,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/bci_visualization/" class="md-nav__link ">
+            <a href="../../applications/bci_visualization/" class="md-nav__link ">
               
   
   
@@ -5764,7 +5764,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/laser_detection_latency/evt_cam_calibration/" class="md-nav__link ">
+            <a href="../../applications/laser_detection_latency/evt_cam_calibration/" class="md-nav__link ">
               
   
   
@@ -5832,7 +5832,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/laser_detection_latency/laser_detection/" class="md-nav__link ">
+            <a href="../../applications/laser_detection_latency/laser_detection/" class="md-nav__link ">
               
   
   
@@ -5900,7 +5900,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/laser_detection_latency/usb_cam_calibration/" class="md-nav__link ">
+            <a href="../../applications/laser_detection_latency/usb_cam_calibration/" class="md-nav__link ">
               
   
   
@@ -5976,7 +5976,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/pipeline_visualization/" class="md-nav__link ">
+            <a href="../../applications/pipeline_visualization/" class="md-nav__link ">
               
   
   
@@ -6100,7 +6100,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/matlab_gpu_coder/matlab_image_processing/" class="md-nav__link ">
+            <a href="../../applications/matlab_gpu_coder/matlab_image_processing/" class="md-nav__link ">
               
   
   
@@ -6168,7 +6168,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/matlab_gpu_coder/matlab_beamform/" class="md-nav__link ">
+            <a href="../../applications/matlab_gpu_coder/matlab_beamform/" class="md-nav__link ">
               
   
   
@@ -6248,7 +6248,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/volume_rendering_xr/" class="md-nav__link ">
+            <a href="../../applications/volume_rendering_xr/" class="md-nav__link ">
               
   
   
@@ -6373,7 +6373,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/volume_rendering_xr/operators/XrTransformOp/" class="md-nav__link ">
+            <a href="../../applications/volume_rendering_xr/operators/XrTransformOp/" class="md-nav__link ">
               
   
   
@@ -6438,7 +6438,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/volume_rendering_xr/operators/XrTransformOp/XrTransformControlOp/" class="md-nav__link ">
+            <a href="../../applications/volume_rendering_xr/operators/XrTransformOp/XrTransformControlOp/" class="md-nav__link ">
               
   
   
@@ -6506,7 +6506,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/volume_rendering_xr/operators/XrTransformOp/XrTransformRenderOp/" class="md-nav__link ">
+            <a href="../../applications/volume_rendering_xr/operators/XrTransformOp/XrTransformRenderOp/" class="md-nav__link ">
               
   
   
@@ -6588,7 +6588,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/volume_rendering_xr/operators/XrFrameOp/" class="md-nav__link ">
+            <a href="../../applications/volume_rendering_xr/operators/XrFrameOp/" class="md-nav__link ">
               
   
   
@@ -6653,7 +6653,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/volume_rendering_xr/operators/XrFrameOp/convert_depth/" class="md-nav__link ">
+            <a href="../../applications/volume_rendering_xr/operators/XrFrameOp/convert_depth/" class="md-nav__link ">
               
   
   
@@ -6721,7 +6721,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/volume_rendering_xr/operators/XrFrameOp/begin_frame/" class="md-nav__link ">
+            <a href="../../applications/volume_rendering_xr/operators/XrFrameOp/begin_frame/" class="md-nav__link ">
               
   
   
@@ -6789,7 +6789,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/volume_rendering_xr/operators/XrFrameOp/end_frame/" class="md-nav__link ">
+            <a href="../../applications/volume_rendering_xr/operators/XrFrameOp/end_frame/" class="md-nav__link ">
               
   
   
@@ -6929,7 +6929,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/volume_rendering_xr/utils/xr_hello_holoscan/" class="md-nav__link ">
+            <a href="../../applications/volume_rendering_xr/utils/xr_hello_holoscan/" class="md-nav__link ">
               
   
   
@@ -6994,7 +6994,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/volume_rendering_xr/utils/xr_hello_holoscan/xr_basic_render/" class="md-nav__link ">
+            <a href="../../applications/volume_rendering_xr/utils/xr_hello_holoscan/xr_basic_render/" class="md-nav__link ">
               
   
   
@@ -7086,7 +7086,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/multiai_endoscopy/" class="md-nav__link ">
+            <a href="../../applications/multiai_endoscopy/" class="md-nav__link ">
               
   
   
@@ -7160,7 +7160,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/multiai_ultrasound/" class="md-nav__link ">
+            <a href="../../applications/multiai_ultrasound/" class="md-nav__link ">
               
   
   
@@ -7225,7 +7225,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/multiai_ultrasound/cpp/" class="md-nav__link ">
+            <a href="../../applications/multiai_ultrasound/cpp/" class="md-nav__link ">
               
   
   
@@ -7293,7 +7293,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/multiai_ultrasound/python/" class="md-nav__link ">
+            <a href="../../applications/multiai_ultrasound/python/" class="md-nav__link ">
               
   
   
@@ -7415,7 +7415,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/multiai_ultrasound/operators/visualizer_icardio/" class="md-nav__link ">
+            <a href="../../applications/multiai_ultrasound/operators/visualizer_icardio/" class="md-nav__link ">
               
   
   
@@ -7499,7 +7499,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/tak/" class="md-nav__link ">
+            <a href="../../applications/tak/" class="md-nav__link ">
               
   
   
@@ -7625,7 +7625,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/nvidia_nim/nvidia_nim_chat/" class="md-nav__link ">
+            <a href="../../applications/nvidia_nim/nvidia_nim_chat/" class="md-nav__link ">
               
   
   
@@ -7693,7 +7693,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/nvidia_nim/nvidia_nim_imaging/" class="md-nav__link ">
+            <a href="../../applications/nvidia_nim/nvidia_nim_imaging/" class="md-nav__link ">
               
   
   
@@ -7761,7 +7761,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/nvidia_nim/nvidia_nim_nvclip/" class="md-nav__link ">
+            <a href="../../applications/nvidia_nim/nvidia_nim_nvclip/" class="md-nav__link ">
               
   
   
@@ -7897,7 +7897,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/nvidia_video_codec/nvc_encode_decode/" class="md-nav__link ">
+            <a href="../../applications/nvidia_video_codec/nvc_encode_decode/" class="md-nav__link ">
               
   
   
@@ -7965,7 +7965,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/nvidia_video_codec/nvc_endoscopy_tool_tracking/" class="md-nav__link ">
+            <a href="../../applications/nvidia_video_codec/nvc_endoscopy_tool_tracking/" class="md-nav__link ">
               
   
   
@@ -8033,7 +8033,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/nvidia_video_codec/nvc_decode/" class="md-nav__link ">
+            <a href="../../applications/nvidia_video_codec/nvc_decode/" class="md-nav__link ">
               
   
   
@@ -8101,7 +8101,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/nvidia_video_codec/nvc_encode_writer/" class="md-nav__link ">
+            <a href="../../applications/nvidia_video_codec/nvc_encode_writer/" class="md-nav__link ">
               
   
   
@@ -8177,7 +8177,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/object_detection_torch/" class="md-nav__link ">
+            <a href="../../applications/object_detection_torch/" class="md-nav__link ">
               
   
   
@@ -8245,7 +8245,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/openigtlink_3dslicer/" class="md-nav__link ">
+            <a href="../../applications/openigtlink_3dslicer/" class="md-nav__link ">
               
   
   
@@ -8371,7 +8371,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/orsi/orsi_in_out_body/" class="md-nav__link ">
+            <a href="../../applications/orsi/orsi_in_out_body/" class="md-nav__link ">
               
   
   
@@ -8439,7 +8439,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/orsi/orsi_multi_ai_ar/" class="md-nav__link ">
+            <a href="../../applications/orsi/orsi_multi_ai_ar/" class="md-nav__link ">
               
   
   
@@ -8507,7 +8507,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/orsi/orsi_segmentation_ar/" class="md-nav__link ">
+            <a href="../../applications/orsi/orsi_segmentation_ar/" class="md-nav__link ">
               
   
   
@@ -8583,7 +8583,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/polyp_detection/" class="md-nav__link ">
+            <a href="../../applications/polyp_detection/" class="md-nav__link ">
               
   
   
@@ -8651,7 +8651,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/cunumeric_integration/" class="md-nav__link ">
+            <a href="../../applications/cunumeric_integration/" class="md-nav__link ">
               
   
   
@@ -8719,7 +8719,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/procedural_narrator/" class="md-nav__link ">
+            <a href="../../applications/procedural_narrator/" class="md-nav__link ">
               
   
   
@@ -8787,7 +8787,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/prohawk_video_replayer/" class="md-nav__link ">
+            <a href="../../applications/prohawk_video_replayer/" class="md-nav__link ">
               
   
   
@@ -8855,7 +8855,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/pva_video_filter/" class="md-nav__link ">
+            <a href="../../applications/pva_video_filter/" class="md-nav__link ">
               
   
   
@@ -8923,7 +8923,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/pva_radar_pipeline/" class="md-nav__link ">
+            <a href="../../applications/pva_radar_pipeline/" class="md-nav__link ">
               
   
   
@@ -8991,7 +8991,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/qt_video_replayer/" class="md-nav__link ">
+            <a href="../../applications/qt_video_replayer/" class="md-nav__link ">
               
   
   
@@ -9059,7 +9059,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/network_radar_pipeline/" class="md-nav__link ">
+            <a href="../../applications/network_radar_pipeline/" class="md-nav__link ">
               
   
   
@@ -9127,7 +9127,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/ai_surgical_video/" class="md-nav__link ">
+            <a href="../../applications/ai_surgical_video/" class="md-nav__link ">
               
   
   
@@ -9195,7 +9195,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/video_deidentification/" class="md-nav__link ">
+            <a href="../../applications/video_deidentification/" class="md-nav__link ">
               
   
   
@@ -9263,7 +9263,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/asr_to_llm/" class="md-nav__link ">
+            <a href="../../applications/asr_to_llm/" class="md-nav__link ">
               
   
   
@@ -9331,7 +9331,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/sam2/" class="md-nav__link ">
+            <a href="../../applications/sam2/" class="md-nav__link ">
               
   
   
@@ -9399,7 +9399,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/cvcuda_basic/" class="md-nav__link ">
+            <a href="../../applications/cvcuda_basic/" class="md-nav__link ">
               
   
   
@@ -9523,7 +9523,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/simple_radar_pipeline/cpp/" class="md-nav__link ">
+            <a href="../../applications/simple_radar_pipeline/cpp/" class="md-nav__link ">
               
   
   
@@ -9591,7 +9591,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/simple_radar_pipeline/python/" class="md-nav__link ">
+            <a href="../../applications/simple_radar_pipeline/python/" class="md-nav__link ">
               
   
   
@@ -9723,7 +9723,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/slang/slang_gamma_correction/" class="md-nav__link ">
+            <a href="../../applications/slang/slang_gamma_correction/" class="md-nav__link ">
               
   
   
@@ -9791,7 +9791,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/slang/slang_simple/" class="md-nav__link ">
+            <a href="../../applications/slang/slang_simple/" class="md-nav__link ">
               
   
   
@@ -9867,7 +9867,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/sdr_fm_demodulation/" class="md-nav__link ">
+            <a href="../../applications/sdr_fm_demodulation/" class="md-nav__link ">
               
   
   
@@ -9935,7 +9935,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/speech_to_text_llm/" class="md-nav__link ">
+            <a href="../../applications/speech_to_text_llm/" class="md-nav__link ">
               
   
   
@@ -10003,7 +10003,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/ssd_detection_endoscopy_tools/" class="md-nav__link ">
+            <a href="../../applications/ssd_detection_endoscopy_tools/" class="md-nav__link ">
               
   
   
@@ -10071,7 +10071,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/st2110_demo/" class="md-nav__link ">
+            <a href="../../applications/st2110_demo/" class="md-nav__link ">
               
   
   
@@ -10139,7 +10139,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/stereo_vision/" class="md-nav__link ">
+            <a href="../../applications/stereo_vision/" class="md-nav__link ">
               
   
   
@@ -10207,7 +10207,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/synthetic_aperture_radar/" class="md-nav__link ">
+            <a href="../../applications/synthetic_aperture_radar/" class="md-nav__link ">
               
   
   
@@ -10275,7 +10275,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/tao_peoplenet/" class="md-nav__link ">
+            <a href="../../applications/tao_peoplenet/" class="md-nav__link ">
               
   
   
@@ -10343,7 +10343,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/tracks2endo4d/" class="md-nav__link ">
+            <a href="../../applications/tracks2endo4d/" class="md-nav__link ">
               
   
   
@@ -10415,7 +10415,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/ultrasound_segmentation/" class="md-nav__link ">
+            <a href="../../applications/ultrasound_segmentation/" class="md-nav__link ">
               
   
   
@@ -10480,7 +10480,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/ultrasound_segmentation/cpp/" class="md-nav__link ">
+            <a href="../../applications/ultrasound_segmentation/cpp/" class="md-nav__link ">
               
   
   
@@ -10548,7 +10548,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/ultrasound_segmentation/python/" class="md-nav__link ">
+            <a href="../../applications/ultrasound_segmentation/python/" class="md-nav__link ">
               
   
   
@@ -10624,7 +10624,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/ultrasound_postprocessing/" class="md-nav__link ">
+            <a href="../../applications/ultrasound_postprocessing/" class="md-nav__link ">
               
   
   
@@ -10692,7 +10692,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/usrp_spectrum_viewer/" class="md-nav__link ">
+            <a href="../../applications/usrp_spectrum_viewer/" class="md-nav__link ">
               
   
   
@@ -10760,7 +10760,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/velodyne_lidar_app/" class="md-nav__link ">
+            <a href="../../applications/velodyne_lidar_app/" class="md-nav__link ">
               
   
   
@@ -10828,7 +10828,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/vila_live/" class="md-nav__link ">
+            <a href="../../applications/vila_live/" class="md-nav__link ">
               
   
   
@@ -10896,7 +10896,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/psd_pipeline/" class="md-nav__link ">
+            <a href="../../applications/psd_pipeline/" class="md-nav__link ">
               
   
   
@@ -10968,7 +10968,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/video_streaming/" class="md-nav__link ">
+            <a href="../../applications/video_streaming/" class="md-nav__link ">
               
   
   
@@ -11033,7 +11033,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/video_streaming/video_streaming_client/" class="md-nav__link ">
+            <a href="../../applications/video_streaming/video_streaming_client/" class="md-nav__link ">
               
   
   
@@ -11101,7 +11101,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/video_streaming/video_streaming_server/" class="md-nav__link ">
+            <a href="../../applications/video_streaming/video_streaming_server/" class="md-nav__link ">
               
   
   
@@ -11177,7 +11177,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/volume_rendering/" class="md-nav__link ">
+            <a href="../../applications/volume_rendering/" class="md-nav__link ">
               
   
   
@@ -11245,7 +11245,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/vpi_stereo/" class="md-nav__link ">
+            <a href="../../applications/vpi_stereo/" class="md-nav__link ">
               
   
   
@@ -11313,7 +11313,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/webrtc_holoviz_server/" class="md-nav__link ">
+            <a href="../../applications/webrtc_holoviz_server/" class="md-nav__link ">
               
   
   
@@ -11381,7 +11381,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/webrtc_video_client/" class="md-nav__link ">
+            <a href="../../applications/webrtc_video_client/" class="md-nav__link ">
               
   
   
@@ -11449,7 +11449,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/webrtc_video_server/" class="md-nav__link ">
+            <a href="../../applications/webrtc_video_server/" class="md-nav__link ">
               
   
   
@@ -11517,7 +11517,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/xr_gsplat/" class="md-nav__link ">
+            <a href="../../applications/xr_gsplat/" class="md-nav__link ">
               
   
   
@@ -11585,7 +11585,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/xr_holoviz/" class="md-nav__link ">
+            <a href="../../applications/xr_holoviz/" class="md-nav__link ">
               
   
   
@@ -11653,7 +11653,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../applications/yolo_model_deployment/" class="md-nav__link ">
+            <a href="../../applications/yolo_model_deployment/" class="md-nav__link ">
               
   
   
@@ -11840,7 +11840,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/" class="md-nav__link ">
+            <a href="../../operators/" class="md-nav__link ">
               
   
   
@@ -11905,7 +11905,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/aja_source/" class="md-nav__link ">
+            <a href="../../operators/aja_source/" class="md-nav__link ">
               
   
   
@@ -11973,7 +11973,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/apriltag_detector/" class="md-nav__link ">
+            <a href="../../operators/apriltag_detector/" class="md-nav__link ">
               
   
   
@@ -12041,7 +12041,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/atracsys_camera/" class="md-nav__link ">
+            <a href="../../operators/atracsys_camera/" class="md-nav__link ">
               
   
   
@@ -12109,7 +12109,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/atracsys_mode_switcher/" class="md-nav__link ">
+            <a href="../../operators/atracsys_mode_switcher/" class="md-nav__link ">
               
   
   
@@ -12177,7 +12177,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/lstm_tensor_rt_inference/" class="md-nav__link ">
+            <a href="../../operators/lstm_tensor_rt_inference/" class="md-nav__link ">
               
   
   
@@ -12245,7 +12245,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/cvcuda_holoscan_interop/" class="md-nav__link ">
+            <a href="../../operators/cvcuda_holoscan_interop/" class="md-nav__link ">
               
   
   
@@ -12319,7 +12319,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/dds/" class="md-nav__link ">
+            <a href="../../operators/dds/" class="md-nav__link ">
               
   
   
@@ -12384,7 +12384,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/dds/base/" class="md-nav__link ">
+            <a href="../../operators/dds/base/" class="md-nav__link ">
               
   
   
@@ -12452,7 +12452,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/dds/dds_shapes_subscriber/" class="md-nav__link ">
+            <a href="../../operators/dds/dds_shapes_subscriber/" class="md-nav__link ">
               
   
   
@@ -12520,7 +12520,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/dds/video/" class="md-nav__link ">
+            <a href="../../operators/dds/video/" class="md-nav__link ">
               
   
   
@@ -12650,7 +12650,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/deidentification/pixelator/" class="md-nav__link ">
+            <a href="../../operators/deidentification/pixelator/" class="md-nav__link ">
               
   
   
@@ -12734,7 +12734,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/ehr_query_llm/" class="md-nav__link ">
+            <a href="../../operators/ehr_query_llm/" class="md-nav__link ">
               
   
   
@@ -12799,7 +12799,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/ehr_query_llm/fhir_client_op/" class="md-nav__link ">
+            <a href="../../operators/ehr_query_llm/fhir_client_op/" class="md-nav__link ">
               
   
   
@@ -12867,7 +12867,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/ehr_query_llm/fhir_resource_sanitizer_op/" class="md-nav__link ">
+            <a href="../../operators/ehr_query_llm/fhir_resource_sanitizer_op/" class="md-nav__link ">
               
   
   
@@ -12935,7 +12935,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/ehr_query_llm/zero_mq_publisher_op/" class="md-nav__link ">
+            <a href="../../operators/ehr_query_llm/zero_mq_publisher_op/" class="md-nav__link ">
               
   
   
@@ -13003,7 +13003,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/ehr_query_llm/zero_mq_subscriber_op/" class="md-nav__link ">
+            <a href="../../operators/ehr_query_llm/zero_mq_subscriber_op/" class="md-nav__link ">
               
   
   
@@ -13079,7 +13079,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/emergent_source/" class="md-nav__link ">
+            <a href="../../operators/emergent_source/" class="md-nav__link ">
               
   
   
@@ -13147,7 +13147,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/fft/" class="md-nav__link ">
+            <a href="../../operators/fft/" class="md-nav__link ">
               
   
   
@@ -13215,7 +13215,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/foxglove/" class="md-nav__link ">
+            <a href="../../operators/foxglove/" class="md-nav__link ">
               
   
   
@@ -13283,7 +13283,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/gamma_correction/" class="md-nav__link ">
+            <a href="../../operators/gamma_correction/" class="md-nav__link ">
               
   
   
@@ -13351,7 +13351,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/display_gpu_resident/" class="md-nav__link ">
+            <a href="../../operators/display_gpu_resident/" class="md-nav__link ">
               
   
   
@@ -13419,7 +13419,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/gstreamer/" class="md-nav__link ">
+            <a href="../../operators/gstreamer/" class="md-nav__link ">
               
   
   
@@ -13487,7 +13487,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/tensor_to_video_buffer/" class="md-nav__link ">
+            <a href="../../operators/tensor_to_video_buffer/" class="md-nav__link ">
               
   
   
@@ -13555,7 +13555,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/high_rate_psd/" class="md-nav__link ">
+            <a href="../../operators/high_rate_psd/" class="md-nav__link ">
               
   
   
@@ -13623,7 +13623,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/grpc_operators/" class="md-nav__link ">
+            <a href="../../operators/grpc_operators/" class="md-nav__link ">
               
   
   
@@ -13691,7 +13691,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/csi_to_bayer_gpu_resident/" class="md-nav__link ">
+            <a href="../../operators/csi_to_bayer_gpu_resident/" class="md-nav__link ">
               
   
   
@@ -13759,7 +13759,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/image_processor_gpu_resident/" class="md-nav__link ">
+            <a href="../../operators/image_processor_gpu_resident/" class="md-nav__link ">
               
   
   
@@ -13827,7 +13827,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/holoscan_ros2/" class="md-nav__link ">
+            <a href="../../operators/holoscan_ros2/" class="md-nav__link ">
               
   
   
@@ -13895,7 +13895,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/hsb_roce_receiver_doca_gpunetio/" class="md-nav__link ">
+            <a href="../../operators/hsb_roce_receiver_doca_gpunetio/" class="md-nav__link ">
               
   
   
@@ -13963,7 +13963,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/hsb_roce_receiver_nmd/" class="md-nav__link ">
+            <a href="../../operators/hsb_roce_receiver_nmd/" class="md-nav__link ">
               
   
   
@@ -14031,7 +14031,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/iio_controller/" class="md-nav__link ">
+            <a href="../../operators/iio_controller/" class="md-nav__link ">
               
   
   
@@ -14099,7 +14099,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/realsense_camera/" class="md-nav__link ">
+            <a href="../../operators/realsense_camera/" class="md-nav__link ">
               
   
   
@@ -14167,7 +14167,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/low_rate_psd/" class="md-nav__link ">
+            <a href="../../operators/low_rate_psd/" class="md-nav__link ">
               
   
   
@@ -14263,7 +14263,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/medical_imaging/" class="md-nav__link ">
+            <a href="../../operators/medical_imaging/" class="md-nav__link ">
               
   
   
@@ -14328,7 +14328,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/medical_imaging/clara_viz_operator/" class="md-nav__link ">
+            <a href="../../operators/medical_imaging/clara_viz_operator/" class="md-nav__link ">
               
   
   
@@ -14396,7 +14396,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/medical_imaging/dicom_data_loader_operator/" class="md-nav__link ">
+            <a href="../../operators/medical_imaging/dicom_data_loader_operator/" class="md-nav__link ">
               
   
   
@@ -14464,7 +14464,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/medical_imaging/dicom_encapsulated_pdf_writer_operator/" class="md-nav__link ">
+            <a href="../../operators/medical_imaging/dicom_encapsulated_pdf_writer_operator/" class="md-nav__link ">
               
   
   
@@ -14532,7 +14532,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/medical_imaging/dicom_seg_writer_operator/" class="md-nav__link ">
+            <a href="../../operators/medical_imaging/dicom_seg_writer_operator/" class="md-nav__link ">
               
   
   
@@ -14600,7 +14600,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/medical_imaging/dicom_series_selector_operator/" class="md-nav__link ">
+            <a href="../../operators/medical_imaging/dicom_series_selector_operator/" class="md-nav__link ">
               
   
   
@@ -14668,7 +14668,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/medical_imaging/dicom_series_to_volume_operator/" class="md-nav__link ">
+            <a href="../../operators/medical_imaging/dicom_series_to_volume_operator/" class="md-nav__link ">
               
   
   
@@ -14736,7 +14736,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/medical_imaging/dicom_text_sr_writer_operator/" class="md-nav__link ">
+            <a href="../../operators/medical_imaging/dicom_text_sr_writer_operator/" class="md-nav__link ">
               
   
   
@@ -14804,7 +14804,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/medical_imaging/inference_operator/" class="md-nav__link ">
+            <a href="../../operators/medical_imaging/inference_operator/" class="md-nav__link ">
               
   
   
@@ -14872,7 +14872,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/medical_imaging/monai_bundle_inference_operator/" class="md-nav__link ">
+            <a href="../../operators/medical_imaging/monai_bundle_inference_operator/" class="md-nav__link ">
               
   
   
@@ -14940,7 +14940,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/medical_imaging/monai_seg_inference_operator/" class="md-nav__link ">
+            <a href="../../operators/medical_imaging/monai_seg_inference_operator/" class="md-nav__link ">
               
   
   
@@ -15008,7 +15008,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/medical_imaging/nii_data_loader_operator/" class="md-nav__link ">
+            <a href="../../operators/medical_imaging/nii_data_loader_operator/" class="md-nav__link ">
               
   
   
@@ -15076,7 +15076,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/medical_imaging/png_converter_operator/" class="md-nav__link ">
+            <a href="../../operators/medical_imaging/png_converter_operator/" class="md-nav__link ">
               
   
   
@@ -15144,7 +15144,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/medical_imaging/publisher_operator/" class="md-nav__link ">
+            <a href="../../operators/medical_imaging/publisher_operator/" class="md-nav__link ">
               
   
   
@@ -15212,7 +15212,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/medical_imaging/stl_conversion_operator/" class="md-nav__link ">
+            <a href="../../operators/medical_imaging/stl_conversion_operator/" class="md-nav__link ">
               
   
   
@@ -15288,7 +15288,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/mesh_to_usd/" class="md-nav__link ">
+            <a href="../../operators/mesh_to_usd/" class="md-nav__link ">
               
   
   
@@ -15356,7 +15356,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/npp_filter/" class="md-nav__link ">
+            <a href="../../operators/npp_filter/" class="md-nav__link ">
               
   
   
@@ -15424,7 +15424,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/nvidia_video_codec/" class="md-nav__link ">
+            <a href="../../operators/nvidia_video_codec/" class="md-nav__link ">
               
   
   
@@ -15492,7 +15492,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/online_video_reasoner/" class="md-nav__link ">
+            <a href="../../operators/online_video_reasoner/" class="md-nav__link ">
               
   
   
@@ -15560,7 +15560,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/openigtlink/" class="md-nav__link ">
+            <a href="../../operators/openigtlink/" class="md-nav__link ">
               
   
   
@@ -15628,7 +15628,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/xr/" class="md-nav__link ">
+            <a href="../../operators/xr/" class="md-nav__link ">
               
   
   
@@ -15696,7 +15696,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/orsi/" class="md-nav__link ">
+            <a href="../../operators/orsi/" class="md-nav__link ">
               
   
   
@@ -15764,7 +15764,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/prohawk_video_processing/" class="md-nav__link ">
+            <a href="../../operators/prohawk_video_processing/" class="md-nav__link ">
               
   
   
@@ -15832,7 +15832,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/qt_video/" class="md-nav__link ">
+            <a href="../../operators/qt_video/" class="md-nav__link ">
               
   
   
@@ -15900,7 +15900,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/pva_radar/" class="md-nav__link ">
+            <a href="../../operators/pva_radar/" class="md-nav__link ">
               
   
   
@@ -15968,7 +15968,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/slang_shader/" class="md-nav__link ">
+            <a href="../../operators/slang_shader/" class="md-nav__link ">
               
   
   
@@ -16036,7 +16036,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/st2110_source/" class="md-nav__link ">
+            <a href="../../operators/st2110_source/" class="md-nav__link ">
               
   
   
@@ -16104,7 +16104,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/streaming_server/" class="md-nav__link ">
+            <a href="../../operators/streaming_server/" class="md-nav__link ">
               
   
   
@@ -16172,7 +16172,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/streaming_client/" class="md-nav__link ">
+            <a href="../../operators/streaming_client/" class="md-nav__link ">
               
   
   
@@ -16240,7 +16240,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/tapnext_inference/" class="md-nav__link ">
+            <a href="../../operators/tapnext_inference/" class="md-nav__link ">
               
   
   
@@ -16308,7 +16308,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/tensor_to_file/" class="md-nav__link ">
+            <a href="../../operators/tensor_to_file/" class="md-nav__link ">
               
   
   
@@ -16376,7 +16376,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/tool_tracking_postprocessor/" class="md-nav__link ">
+            <a href="../../operators/tool_tracking_postprocessor/" class="md-nav__link ">
               
   
   
@@ -16444,7 +16444,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/ucxx_send_receive/" class="md-nav__link ">
+            <a href="../../operators/ucxx_send_receive/" class="md-nav__link ">
               
   
   
@@ -16512,7 +16512,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/unzip/" class="md-nav__link ">
+            <a href="../../operators/unzip/" class="md-nav__link ">
               
   
   
@@ -16634,7 +16634,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/velodyne_lidar/cpp/" class="md-nav__link ">
+            <a href="../../operators/velodyne_lidar/cpp/" class="md-nav__link ">
               
   
   
@@ -16710,7 +16710,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/vita49_psd_packetizer/" class="md-nav__link ">
+            <a href="../../operators/vita49_psd_packetizer/" class="md-nav__link ">
               
   
   
@@ -16832,7 +16832,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/video_encoder/video_encoder_request/" class="md-nav__link ">
+            <a href="../../operators/video_encoder/video_encoder_request/" class="md-nav__link ">
               
   
   
@@ -16912,7 +16912,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/video_streaming/" class="md-nav__link ">
+            <a href="../../operators/video_streaming/" class="md-nav__link ">
               
   
   
@@ -16977,7 +16977,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/video_streaming/video_streaming_server/" class="md-nav__link ">
+            <a href="../../operators/video_streaming/video_streaming_server/" class="md-nav__link ">
               
   
   
@@ -17045,7 +17045,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/video_streaming/video_streaming_client/" class="md-nav__link ">
+            <a href="../../operators/video_streaming/video_streaming_client/" class="md-nav__link ">
               
   
   
@@ -17121,7 +17121,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/volume_loader/" class="md-nav__link ">
+            <a href="../../operators/volume_loader/" class="md-nav__link ">
               
   
   
@@ -17189,7 +17189,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/volume_renderer/" class="md-nav__link ">
+            <a href="../../operators/volume_renderer/" class="md-nav__link ">
               
   
   
@@ -17257,7 +17257,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/vtk_renderer/" class="md-nav__link ">
+            <a href="../../operators/vtk_renderer/" class="md-nav__link ">
               
   
   
@@ -17325,7 +17325,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/webrtc_client/" class="md-nav__link ">
+            <a href="../../operators/webrtc_client/" class="md-nav__link ">
               
   
   
@@ -17393,7 +17393,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/webrtc_server/" class="md-nav__link ">
+            <a href="../../operators/webrtc_server/" class="md-nav__link ">
               
   
   
@@ -17461,7 +17461,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../operators/yuan_qcap/" class="md-nav__link ">
+            <a href="../../operators/yuan_qcap/" class="md-nav__link ">
               
   
   
@@ -17579,7 +17579,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../" class="md-nav__link ">
+            <a href="../" class="md-nav__link ">
               
   
   
@@ -17644,7 +17644,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../async_buffer_deadline_tutorial/" class="md-nav__link ">
+            <a href="../async_buffer_deadline_tutorial/" class="md-nav__link ">
               
   
   
@@ -17712,7 +17712,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../gui_for_python_applications/" class="md-nav__link ">
+            <a href="../gui_for_python_applications/" class="md-nav__link ">
               
   
   
@@ -17780,7 +17780,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../integrate_external_libs_into_pipeline/" class="md-nav__link ">
+            <a href="../integrate_external_libs_into_pipeline/" class="md-nav__link ">
               
   
   
@@ -17848,7 +17848,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../creating-multi-node-applications/" class="md-nav__link ">
+            <a href="../creating-multi-node-applications/" class="md-nav__link ">
               
   
   
@@ -17892,6 +17892,8 @@
                 
   
   
+    
+  
   
   
     
@@ -17908,15 +17910,15 @@
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_6" checked>
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../cross_compilation_example/" class="md-nav__link ">
+            <a href="./" class="md-nav__link md-nav__link--active">
               
   
   
@@ -17935,7 +17937,7 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_6_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_6_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4_6">
             <span class="md-nav__icon md-icon"></span>
             
@@ -17984,7 +17986,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../cuda_mps/" class="md-nav__link ">
+            <a href="../cuda_mps/" class="md-nav__link ">
               
   
   
@@ -18108,7 +18110,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../debugging/holoscan_container_vscode/" class="md-nav__link ">
+            <a href="../debugging/holoscan_container_vscode/" class="md-nav__link ">
               
   
   
@@ -18176,7 +18178,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../debugging/cli_debugging/" class="md-nav__link ">
+            <a href="../debugging/cli_debugging/" class="md-nav__link ">
               
   
   
@@ -18252,7 +18254,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../local-llama/" class="md-nav__link ">
+            <a href="../local-llama/" class="md-nav__link ">
               
   
   
@@ -18322,7 +18324,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../high_performance_networking/" class="md-nav__link ">
+            <a href="../high_performance_networking/" class="md-nav__link ">
               
   
   
@@ -18366,7 +18368,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../high_performance_networking/0.1/" class="md-nav__link">
+      <a href="../high_performance_networking/0.1/" class="md-nav__link">
         
   
   
@@ -18427,7 +18429,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../holoscan-modules/" class="md-nav__link ">
+            <a href="../holoscan-modules/" class="md-nav__link ">
               
   
   
@@ -18492,7 +18494,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../holoscan-modules/create-a-module/" class="md-nav__link ">
+            <a href="../holoscan-modules/create-a-module/" class="md-nav__link ">
               
   
   
@@ -18560,7 +18562,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../holoscan-modules/use-a-module/" class="md-nav__link ">
+            <a href="../holoscan-modules/use-a-module/" class="md-nav__link ">
               
   
   
@@ -18636,7 +18638,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../holoscan-playground-on-aws/" class="md-nav__link ">
+            <a href="../holoscan-playground-on-aws/" class="md-nav__link ">
               
   
   
@@ -18704,7 +18706,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../holoscan_response_time_analysis/" class="md-nav__link ">
+            <a href="../holoscan_response_time_analysis/" class="md-nav__link ">
               
   
   
@@ -18772,7 +18774,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../windows_vm/" class="md-nav__link ">
+            <a href="../windows_vm/" class="md-nav__link ">
               
   
   
@@ -18840,7 +18842,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../holoscan-bootcamp/" class="md-nav__link ">
+            <a href="../holoscan-bootcamp/" class="md-nav__link ">
               
   
   
@@ -18884,8 +18886,6 @@
                 
   
   
-    
-  
   
   
     
@@ -18900,11 +18900,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_16" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_16" >
         
           
           <label class="md-nav__link" for="__nav_4_16" id="__nav_4_16_label" tabindex="0">
@@ -18925,7 +18925,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_16_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_16_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4_16">
             <span class="md-nav__icon md-icon"></span>
             
@@ -18940,8 +18940,6 @@
                 
   
   
-    
-  
   
   
     
@@ -18958,15 +18956,15 @@
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_16_1" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_16_1" >
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="./" class="md-nav__link md-nav__link--active">
+            <a href="../pretrained_foundational_models/self_supervised_training/" class="md-nav__link ">
               
   
   
@@ -18985,7 +18983,7 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_16_1_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_16_1_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4_16_1">
             <span class="md-nav__icon md-icon"></span>
             
@@ -19042,7 +19040,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../dicom_to_usd_with_monai_and_holoscan/" class="md-nav__link ">
+            <a href="../dicom_to_usd_with_monai_and_holoscan/" class="md-nav__link ">
               
   
   
@@ -19110,7 +19108,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../cloudxr_runtime_for_xr_applications/" class="md-nav__link ">
+            <a href="../cloudxr_runtime_for_xr_applications/" class="md-nav__link ">
               
   
   
@@ -19178,7 +19176,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../gpu_direct_storage_on_holoscan/" class="md-nav__link ">
+            <a href="../gpu_direct_storage_on_holoscan/" class="md-nav__link ">
               
   
   
@@ -19246,7 +19244,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../holohub_operators_external_applications/" class="md-nav__link ">
+            <a href="../holohub_operators_external_applications/" class="md-nav__link ">
               
   
   
@@ -19333,7 +19331,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../benchmarks/" class="md-nav__link ">
+            <a href="../../benchmarks/" class="md-nav__link ">
               
   
   
@@ -19398,7 +19396,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../benchmarks/model_benchmarking/" class="md-nav__link ">
+            <a href="../../benchmarks/model_benchmarking/" class="md-nav__link ">
               
   
   
@@ -19466,7 +19464,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../benchmarks/exclusive_display/" class="md-nav__link ">
+            <a href="../../benchmarks/exclusive_display/" class="md-nav__link ">
               
   
   
@@ -19534,7 +19532,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../benchmarks/green_context_benchmarking/" class="md-nav__link ">
+            <a href="../../benchmarks/green_context_benchmarking/" class="md-nav__link ">
               
   
   
@@ -19602,7 +19600,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../benchmarks/holoscan_flow_benchmarking/" class="md-nav__link ">
+            <a href="../../benchmarks/holoscan_flow_benchmarking/" class="md-nav__link ">
               
   
   
@@ -19670,7 +19668,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../benchmarks/realtime_threads_benchmarking/" class="md-nav__link ">
+            <a href="../../benchmarks/realtime_threads_benchmarking/" class="md-nav__link ">
               
   
   
@@ -19738,7 +19736,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../benchmarks/release_benchmarking/" class="md-nav__link ">
+            <a href="../../benchmarks/release_benchmarking/" class="md-nav__link ">
               
   
   
@@ -19819,7 +19817,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../modules/" class="md-nav__link ">
+            <a href="../../modules/" class="md-nav__link ">
               
   
   
@@ -19863,7 +19861,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../modules/holoscan-deltacast/" class="md-nav__link">
+      <a href="../../modules/holoscan-deltacast/" class="md-nav__link">
         
   
   
@@ -19891,7 +19889,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../modules/holoscan-gstreamer/" class="md-nav__link">
+      <a href="../../modules/holoscan-gstreamer/" class="md-nav__link">
         
   
   
@@ -19919,7 +19917,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../modules/holoscan-sensor-bridge/" class="md-nav__link">
+      <a href="../../modules/holoscan-sensor-bridge/" class="md-nav__link">
         
   
   
@@ -19977,22 +19975,127 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#dataset" class="md-nav__link">
+  <a href="#background" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Dataset
+        Background
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Dataset">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-you-will-learn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What you will learn
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#part-1-build-the-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Part 1: Build the example
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Part 1: Build the example">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#adapt-to-your-own-dataset" class="md-nav__link">
+  <a href="#requirements" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Adapt to your own dataset
+        Requirements
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-the-holoscan-cli-directly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using the Holoscan CLI directly
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-the-holohub-cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using the HoloHub CLI
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manual-docker-and-cmake-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Manual Docker and CMake workflow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Manual Docker and CMake workflow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#build-the-cross-compilation-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Build the cross-compilation image
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configure-build-and-stage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configure, build, and stage
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verify-the-result" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verify the result
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deploy-and-validate-on-a-thor-target" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deploy and validate on a Thor target
       
     </span>
   </a>
@@ -20005,22 +20108,89 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#environment" class="md-nav__link">
+  <a href="#part-2-add-holoscan-to-an-existing-project" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Environment
+        Part 2: Add Holoscan to an existing project
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Environment">
+    <nav class="md-nav" aria-label="Part 2: Add Holoscan to an existing project">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#create-docker-imagecontainer" class="md-nav__link">
+  <a href="#install-the-build-tools" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Create Docker Image/Container
+        Install the build tools
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install-the-cuda-cross-compilation-packages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install the CUDA cross-compilation packages
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extract-the-aarch64-holoscan-package" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Extract the AArch64 Holoscan package
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Extract the AArch64 Holoscan package">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#option-1-use-temporary-apt-architecture-overrides" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option 1: Use temporary apt architecture overrides
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-2-register-arm64-with-dpkg" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option 2: Register arm64 with dpkg
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-3-download-the-package-directly-with-curl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option 3: Download the package directly with curl
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validate-and-extract-the-package" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validate and extract the package
       
     </span>
   </a>
@@ -20031,35 +20201,68 @@
     </nav>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#launch-training" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#add-the-cmake-toolchain" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Launch Training
+        Add the CMake toolchain
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#modelcheckpoints-information" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#choose-a-cuda-target-architecture" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Model/Checkpoints information
+        Choose a CUDA target architecture
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Model/Checkpoints information">
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#find-and-link-holoscan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Find and link Holoscan
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configure-and-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configure and build
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extend-the-target-sysroot-for-optional-sdk-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Extend the target sysroot for optional SDK components
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Extend the target sysroot for optional SDK components">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#pre-trained-backbones" class="md-nav__link">
+  <a href="#add-tensorrt-development-files" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Pre-Trained Backbones
+        Add TensorRT development files
       
     </span>
   </a>
@@ -20067,10 +20270,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#tool-segmentation-model" class="md-nav__link">
+  <a href="#add-pytorch-development-files" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Tool Segmentation Model
+        Add PyTorch development files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#add-the-package-root-to-cmake-and-validate-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Add the package root to CMake and validate it
       
     </span>
   </a>
@@ -20081,26 +20295,20 @@
     </nav>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#holoscan-sdk" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#deployment-boundary" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Holoscan SDK
+        Deployment boundary
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#resources" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Resources
-      
-    </span>
-  </a>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -20129,7 +20337,7 @@
   
   
     <li class="md-path__item">
-      <a href="../../.." class="md-path__link">
+      <a href="../.." class="md-path__link">
         
   <span class="md-ellipsis">
     Home
@@ -20147,7 +20355,7 @@
     
     
       <li class="md-path__item">
-        <a href="../../" class="md-path__link">
+        <a href="../" class="md-path__link">
           
   <span class="md-ellipsis">
     Tutorials
@@ -20164,37 +20372,11 @@
   
     
     
-      
-  
-  
-    
-    
       <li class="md-path__item">
         <a href="./" class="md-path__link">
           
   <span class="md-ellipsis">
-    Pretrained foundational models
-  </span>
-
-        </a>
-      </li>
-    
-  
-
-    
-  
-
-      
-        
-  
-  
-    
-    
-      <li class="md-path__item">
-        <a href="./" class="md-path__link">
-          
-  <span class="md-ellipsis">
-    Self-Supervised Contrastive Learning for Surgical videos
+    Cross Compilation Example
   </span>
 
         </a>
@@ -20217,135 +20399,703 @@
       
       
       
-        <a href="../../../tags/#tag:healthcare-ai" class="md-tag">Healthcare AI</a>
+        <a href="../../tags/#tag:cross-compilation" class="md-tag">Cross Compilation</a>
       
     
       
       
       
       
-        <a href="../../../tags/#tag:interoperability" class="md-tag">Interoperability</a>
+        <a href="../../tags/#tag:hello-world" class="md-tag">Hello World</a>
       
     
       
       
       
       
-        <a href="../../../tags/#tag:learning" class="md-tag">Learning</a>
+        <a href="../../tags/#tag:igx-thor" class="md-tag">IGX Thor</a>
       
     
       
       
       
       
-        <a href="../../../tags/#tag:monai" class="md-tag">MONAI</a>
-      
-    
-      
-      
-      
-      
-        <a href="../../../tags/#tag:surgical-ai" class="md-tag">Surgical AI</a>
-      
-    
-      
-      
-      
-      
-        <a href="../../../tags/#tag:video" class="md-tag">Video</a>
+        <a href="../../tags/#tag:jetson-agx-thor" class="md-tag">Jetson AGX Thor</a>
       
     
   </nav>
 
 
 
-<h1 id="self-supervised-contrastive-learning-for-surgical-videos"><a href="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/pretrained_foundational_models/self_supervised_training">Self-Supervised Contrastive Learning for Surgical videos</a><a class="headerlink" href="#self-supervised-contrastive-learning-for-surgical-videos" title="Permanent link">#</a></h1>
-<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/></svg></span> <strong>Authors:</strong> Holoscan Team (NVIDIA)<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"/></svg></span> <strong>Supported platforms:</strong> x86_64, aarch64<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"/><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"/></svg></span> <strong>Language:</strong> Python<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> <strong>Last modified:</strong> October 9, 2025<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> <strong>Latest version:</strong> 0.1.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"/><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/></svg></span> <strong>Minimum Holoscan SDK version:</strong> 0.6.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"/></svg></span> <strong>Tested Holoscan SDK versions:</strong> 0.6.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"/></svg></span> <strong>Contribution metric:</strong> Level 1 - Highly Reliable<br><br></p>
-<p>The focus of this tutorial is to walkthrough the process of doing Self-Supervised Learning using Contrastive Pre-training on Surgical Video data.
-As part of the walk-through we will guide through the steps needed to pre-process and extract the frames from the public <em>Cholec80 Dataset</em>. This will be required to run the tutorial.</p>
-<p>The repository is organized as follows -</p>
+<h1 id="cross-compilation-example"><a href="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/cross_compilation_example">Cross Compilation Example</a><a class="headerlink" href="#cross-compilation-example" title="Permanent link">#</a></h1>
+<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 .75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0"/></svg></span> <strong>Authors:</strong> Zachary Crandall (NVIDIA)<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.954 17H2.75A1.75 1.75 0 0 1 1 15.25V3.75C1 2.784 1.784 2 2.75 2h18.5c.966 0 1.75.784 1.75 1.75v11.5A1.75 1.75 0 0 1 21.25 17h-6.204c.171 1.375.805 2.652 1.769 3.757A.752.752 0 0 1 16.25 22h-8.5a.75.75 0 0 1-.565-1.243c.964-1.105 1.598-2.382 1.769-3.757M21.5 3.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25v11.5c0 .138.112.25.25.25h18.5a.25.25 0 0 0 .25-.25ZM13.537 17h-3.074c-.126 1.266-.564 2.445-1.223 3.5h5.52c-.659-1.055-1.098-2.234-1.223-3.5"/></svg></span> <strong>Supported platforms:</strong> x86_64<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04m3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7z"/><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"/></svg></span> <strong>Language:</strong> C++<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> <strong>Last modified:</strong> September 21, 2026<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.75 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5"/><path d="M2.5 1h8.44a1.5 1.5 0 0 1 1.06.44l10.25 10.25a1.5 1.5 0 0 1 0 2.12l-8.44 8.44a1.5 1.5 0 0 1-2.12 0L1.44 12A1.5 1.5 0 0 1 1 10.94V2.5A1.5 1.5 0 0 1 2.5 1m0 1.5v8.44l10.25 10.25 8.44-8.44L10.94 2.5Z"/></svg></span> <strong>Latest version:</strong> 1.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.063 1.456a1.75 1.75 0 0 1 1.874 0l8.383 5.316a1.75 1.75 0 0 1 0 2.956l-8.383 5.316a1.75 1.75 0 0 1-1.874 0L2.68 9.728a1.75 1.75 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"/><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.75 1.75 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035"/></svg></span> <strong>Minimum Holoscan SDK version:</strong> 4.6.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 8.807V3.5h-.563a.75.75 0 0 1 0-1.5h9.125a.75.75 0 0 1 0 1.5H16v5.307l5.125 9.301c.964 1.75-.302 3.892-2.299 3.892H5.174c-1.998 0-3.263-2.142-2.3-3.892ZM4.189 18.832a1.123 1.123 0 0 0 .985 1.668h13.652a1.123 1.123 0 0 0 .985-1.668L17.7 15H6.3ZM14.5 3.5h-5V9a.75.75 0 0 1-.093.362L7.127 13.5h9.746l-2.28-4.138A.75.75 0 0 1 14.5 9Z"/></svg></span> <strong>Tested Holoscan SDK versions:</strong> 4.6.0<br><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.296 1.924c.24-.656 1.168-.656 1.408 0l.717 1.958a11.25 11.25 0 0 0 6.697 6.697l1.958.717c.657.24.657 1.168 0 1.408l-1.958.717a11.25 11.25 0 0 0-6.697 6.697l-.717 1.958c-.24.657-1.168.657-1.408 0l-.717-1.958a11.25 11.25 0 0 0-6.697-6.697l-1.958-.717c-.656-.24-.656-1.168 0-1.408l1.958-.717a11.25 11.25 0 0 0 6.697-6.697z"/></svg></span> <strong>Contribution metric:</strong> Level 4 - Experimental<br><br></p>
+<p>This tutorial shows how to cross-compile a small Holoscan Software Development Kit (SDK) 4.6
+application on an x86_64 host machine for NVIDIA Jetson AGX Thor and NVIDIA IGX Thor target
+systems. Follow along to cross-compile with the Holoscan SDK arm64 Debian package without rebuilding
+the SDK from source or emulating the target environment with QEMU.</p>
+<h2 id="background">Background<a class="headerlink" href="#background" title="Permanent link">#</a></h2>
+<p>This tutorial is intended for Jetson and IGX embedded developers who want to build Holoscan C++
+applications on an x86_64 Linux workstation or Continuous Integration (CI) system and deploy them
+to an AArch64 target system. Cross-compilation runs the compiler on one architecture while producing
+binaries for another.</p>
+<p>The pinned workflow targets CUDA 13 Server Base System Architecture (SBSA) systems using NVIDIA's
+generic AArch64 packages. Jetson Linux 39.2.1 aligned Jetson AGX Thor with SBSA, and NVIDIA's CUDA
+Cross-SBSA packages support cross-platform development for arm64 Jetson Thor and SBSA targets. The
+same build is therefore suitable for the core Holoscan API on these target baselines:</p>
+<table>
+<thead>
+<tr>
+<th>Target</th>
+<th>Supported software baseline</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NVIDIA Jetson AGX Thor Developer Kit</td>
+<td>JetPack 7.2.1, Jetson Linux 39.2.1, Ubuntu 24.04, and CUDA 13</td>
+</tr>
+<tr>
+<td>NVIDIA IGX Thor Developer Kit and Developer Kit Mini</td>
+<td>IGX Software (IGX-SW) 2.0 Production Release, Board Support Package (BSP) 38.5.0, Ubuntu 24.04, and CUDA 13</td>
+</tr>
+</tbody>
+</table>
+<p>See the <a href="https://docs.nvidia.com/jetson/archives/r39.2.1/ReleaseNotes/Jetson_Linux_Release_Notes_r39.2.1.pdf">Jetson Linux 39.2.1 release notes</a>,
+<a href="https://docs.nvidia.com/igx/user-guide/2.0/software-releases/software-release-2-0-thor-notes-pr.html">IGX-SW 2.0 release notes</a>,
+and <a href="https://docs.nvidia.com/cuda/cuda-installation-guide-linux/#cuda-cross-platform-installation">CUDA cross-platform installation guide</a>
+for the platform details.</p>
+<p>This example uses Ubuntu 24.04's AArch64 GNU Compiler Collection (GCC) cross-compiler and target
+libraries to match the released Ubuntu 24.04 Holoscan package. It does not use the standalone Jetson
+Linux 39.2.1 cross-toolchain: that toolchain provides a GNU C Library (glibc) 2.28 sysroot, while
+Holoscan 4.6 requires glibc 2.35 or newer. Because Thor implements the Server Base System
+Architecture (SBSA), the core application can instead use NVIDIA's generic AArch64 CUDA and Holoscan
+packages without a board-specific target filesystem.</p>
+<p>This supported path is limited to the core Holoscan C++ API demonstrated here. Applications that use
+board-specific camera, multimedia, networking, or other BSP libraries need matching target packages
+and a sysroot captured from the target OS. Those dependencies are outside this tutorial's scope.</p>
+<p>A sysroot is a directory tree that mirrors the target system's filesystem and supplies the target
+headers and libraries used during cross-compilation instead of the host's filesystem.</p>
+<p>This separates the build environment from the deployment environment. The x86_64 builder contains
+the compiler, CMake, headers, and CUDA cross-compilation packages, while the embedded target needs
+only the application and its matching runtime dependencies. Developers can use workstation or CI
+resources, create repeatable container builds, avoid installing a complete build toolchain on the
+target, and build without keeping the target connected. The resulting application must still be
+tested on the target hardware.</p>
+<p>One alternative to cross-compilation is to fully emulate the target build environment. QEMU is an
+emulator and virtualizer that can run AArch64 programs on an x86_64 host by translating their
+instructions. It is useful when a build needs to execute target binaries, but emulation adds runtime
+overhead and configuration. This tutorial instead runs the build tools natively on x86_64, uses a
+cross-compiler to emit AArch64 code, and extracts the target Holoscan package without running its
+programs. Avoiding emulation makes the build faster and simpler, but the produced executable cannot
+be run on the build host.</p>
+<h2 id="what-you-will-learn">What you will learn<a class="headerlink" href="#what-you-will-learn" title="Permanent link">#</a></h2>
+<p>This tutorial covers two workflows:</p>
+<ol>
+<li><strong>Build the containerized example:</strong> Create the cross-compilation container with Docker, build
+   and stage the example, verify that the result is an AArch64 executable linked to Holoscan, and
+   validate it on a supported Thor target.</li>
+<li><strong>Add Holoscan to an existing project:</strong> Install the host and CUDA cross-compilation tools,
+   acquire and extract the AArch64 Holoscan SDK package, configure the CMake toolchain, discover and
+   link Holoscan targets, build the project, and understand the deployment boundary.</li>
+</ol>
+<h2 id="part-1-build-the-example">Part 1: Build the example<a class="headerlink" href="#part-1-build-the-example" title="Permanent link">#</a></h2>
+<h3 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h3>
 <ul>
-<li><code>Contrastive_learning_Notebook.ipynb</code> walks through the process of SSL in a tutorial style</li>
-<li><code>train_simclr_multiGPU.py</code> enables running of "pre-training" on surgical data across multiple GPUs through the CLI</li>
-<li><code>downstream_task_tool_segmentation.py</code> shows the process of "fine-tuning" for a downstream task starting from a pretrained checkpoint using <a href="https://github.com/Project-MONAI/MONAI">MONAI</a></li>
+<li>An x86_64 Linux host with Docker Engine and BuildKit.</li>
+<li>Internet access while building the image.</li>
+<li>Python 3 with virtual-environment support for the direct Holoscan CLI workflow.</li>
+<li><code>file</code> and <code>readelf</code> (<code>binutils</code>) on the host for the final artifact checks.</li>
+<li>Optional: A Jetson AGX Thor Developer Kit with JetPack 7.2.1, or an IGX Thor Developer Kit or
+  Developer Kit Mini with IGX-SW 2.0, for deployment and runtime validation.</li>
 </ul>
-<h2 id="dataset">Dataset<a class="headerlink" href="#dataset" title="Permanent link">#</a></h2>
-<p>To run through the full tutorial, it is required that the user downloads <a href="http://camma.u-strasbg.fr/datasets">Cholec80</a> dataset. Additional preprocessing of the videos to extract individual frames can be performed using the python helper file as follows:</p>
-<p><code>python extract_frames.py --datadir &lt;path_to_cholec80_dataset&gt;</code></p>
-<h3 id="adapt-to-your-own-dataset">Adapt to your own dataset<a class="headerlink" href="#adapt-to-your-own-dataset" title="Permanent link">#</a></h3>
-<p>To run this with your own dataset, you will need to extract the frames and modify the <code>Pytorch Dataset/Dataloader</code> accordingly. For SSL pre-training, a really simple CSV file formatted as follows can be used.</p>
-<div class="highlight"><pre><span></span><code>&lt;path_to_frame&gt;,&lt;label&gt;
+<p>A graphics processing unit (GPU) and target hardware are not required to cross-compile. This C++
+example does not compile CUDA source, so it does not set <code>CMAKE_CUDA_ARCHITECTURES</code>. For projects
+that compile CUDA source, this tutorial uses <code>75-virtual</code> as a portable starting point. It embeds
+NVIDIA Parallel Thread Execution (PTX) code that a compatible CUDA driver compiles for the target
+GPU using just-in-time (JIT) compilation. When the deployment GPU is known, replace it with the
+appropriate hardware-specific architecture, as described in
+<a href="#choose-a-cuda-target-architecture">Choose a CUDA target architecture</a>.</p>
+<h3 id="using-the-holoscan-cli-directly">Using the Holoscan CLI directly<a class="headerlink" href="#using-the-holoscan-cli-directly" title="Permanent link">#</a></h3>
+<p>Create a Python virtual environment and install the Holoscan CLI version pinned by this tutorial:</p>
+<div class="highlight"><pre><span></span><code>python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
+.<span class="w"> </span>.venv/bin/activate
+python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--extra-index-url<span class="w"> </span>https://pypi.nvidia.com<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="s2">"holoscan-cli==4.6.0"</span>
 </code></pre></div>
-<p>where <code>&lt;label&gt;</code> can be a class/score for a downstream task, and is NOT used during pre-training.</p>
-<div class="highlight"><pre><span></span><code># Snippet of csv file
-/workspace/data/cholec80/frames/train/video01/1.jpg,0
-/workspace/data/cholec80/frames/train/video01/2.jpg,0
-/workspace/data/cholec80/frames/train/video01/3.jpg,0
-/workspace/data/cholec80/frames/train/video01/4.jpg,0
-/workspace/data/cholec80/frames/train/video01/5.jpg,0
-....
+<p>From the repository root, build and install the example with one command:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">HOLOSCAN_CLI_BASE_SDK_VERSION</span><span class="o">=</span><span class="m">4</span>.6.0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>holoscan<span class="w"> </span>install<span class="w"> </span>cross_compilation_example
 </code></pre></div>
-<h2 id="environment">Environment<a class="headerlink" href="#environment" title="Permanent link">#</a></h2>
-<p>All environment/dependencies are captured in the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/pretrained_foundational_models/self_supervised_training/Docker/Dockerfile">Dockerfile</a>. The exact software within the base container are <a href="https://docs.nvidia.com/deeplearning/frameworks/support-matrix/index.html">described here</a>.</p>
-<h3 id="create-docker-imagecontainer">Create Docker Image/Container<a class="headerlink" href="#create-docker-imagecontainer" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="nv">DATA_DIR</span><span class="o">=</span><span class="s2">"/mnt/sdb/data"</span><span class="w">  </span><span class="c1"># location of Cholec80 dataset</span>
-docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>surg_video_ssl_2202:latest<span class="w"> </span>Docker/
+<p><code>HOLOSCAN_CLI_BASE_SDK_VERSION</code> supplies the SDK image version that the standalone CLI does not
+assume.</p>
+<h3 id="using-the-holohub-cli">Using the HoloHub CLI<a class="headerlink" href="#using-the-holohub-cli" title="Permanent link">#</a></h3>
+<p>As an alternative, run the HoloHub wrapper from the repository root:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>install<span class="w"> </span>cross_compilation_example
+</code></pre></div>
+<p>The wrapper manages the compatible Holoscan CLI environment and SDK version, so this option does
+not require a separate Python virtual environment or <code>HOLOSCAN_CLI_BASE_SDK_VERSION</code>.</p>
+<p>The default <code>cross_compile</code> mode builds the x86_64 cross-compilation container, configures the
+project with <code>aarch64-cross-sbsa.cmake</code>, compiles an AArch64 executable, and installs it to
+<code>install/bin/cross_compilation_example</code>. The mode uses Docker's standard <code>runc</code> runtime because a
+GPU is not required for this build.</p>
+<p>Continue with <a href="#verify-the-result">Verify the result</a>, using the CLI artifact path:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">CROSS_COMPILED_APP</span><span class="o">=</span>install/bin/cross_compilation_example
+</code></pre></div>
+<h3 id="manual-docker-and-cmake-workflow">Manual Docker and CMake workflow<a class="headerlink" href="#manual-docker-and-cmake-workflow" title="Permanent link">#</a></h3>
+<p>The following steps show each Docker and CMake command performed by the CLI workflow.</p>
+<h4 id="build-the-cross-compilation-image">Build the cross-compilation image<a class="headerlink" href="#build-the-cross-compilation-image" title="Permanent link">#</a></h4>
+<p>From the repository root:</p>
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span>build<span class="w"> </span>--platform<span class="w"> </span>linux/amd64<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-f<span class="w"> </span>tutorials/cross_compilation_example/Dockerfile<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-t<span class="w"> </span>holoscan-4-cross-sbsa:4.6.0<span class="w"> </span>.
+</code></pre></div>
+<p>The image installs the native x86_64 build tools, Ubuntu 24.04's AArch64 compiler and target
+libraries, and CUDA Cross-SBSA packages. It then uses NVIDIA's signed SBSA apt repository to download
+and extract <code>holoscan-cuda-13_4.6.0.0-1_arm64.deb</code> into <code>/opt/nvidia/holoscan</code>. Extracting the target
+package makes its headers, CMake exports, and AArch64 libraries available without trying to execute
+its AArch64 package dependencies in the x86_64 builder.</p>
+<h4 id="configure-build-and-stage">Configure, build, and stage<a class="headerlink" href="#configure-build-and-stage" title="Permanent link">#</a></h4>
+<p>Create an ignored output directory and run each CMake step in the same image. Mounting the source
+for all three steps allows CMake to regenerate the Ninja files when necessary.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>tutorials/cross_compilation_example
+mkdir<span class="w"> </span>-p<span class="w"> </span>build-cross
 
-<span class="c1"># sample Docker command (may need to update based on local setup)</span>
-docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </span>--gpus<span class="o">=</span><span class="s2">"device=1"</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--name<span class="o">=</span>SURGSSL_EXPS<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>-v<span class="w"> </span><span class="nv">$DATA_DIR</span>:/workspace/data<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>-v<span class="w"> </span><span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span>:/workspace/codes<span class="w"> </span>-w<span class="o">=</span>/workspace/codes/<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>-p<span class="w"> </span><span class="m">8888</span>:8888<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--shm-size<span class="o">=</span>1g<span class="w"> </span>--ulimit<span class="w"> </span><span class="nv">memlock</span><span class="o">=</span>-1<span class="w"> </span>--ulimit<span class="w"> </span><span class="nv">stack</span><span class="o">=</span><span class="m">67108864</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>surg_video_ssl_2202<span class="w"> </span>jupyter<span class="w"> </span>lab
-</code></pre></div>
-<p>For environment dependencies refer to the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/pretrained_foundational_models/self_supervised_training/Docker/Dockerfile">Dockerfile</a></p>
-<h2 id="launch-training">Launch Training<a class="headerlink" href="#launch-training" title="Permanent link">#</a></h2>
-<p>PRE-TRAINING</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Training on single GPU with `efficientnet_b0` backbone</span>
-python3<span class="w"> </span>train_simclr_multigpu.py<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--backbone<span class="w"> </span>efficientnet_b0<span class="w"> </span>--batch_size<span class="w"> </span><span class="m">64</span>
+<span class="c1"># Configure</span>
+docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>--platform<span class="w"> </span>linux/amd64<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--user<span class="w"> </span><span class="s2">"</span><span class="k">$(</span>id<span class="w"> </span>-u<span class="k">)</span><span class="s2">:</span><span class="k">$(</span>id<span class="w"> </span>-g<span class="k">)</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--mount<span class="w"> </span><span class="nv">type</span><span class="o">=</span>bind,src<span class="o">=</span><span class="s2">"</span><span class="nv">$PWD</span><span class="s2">"</span>,dst<span class="o">=</span>/workspace/source,readonly<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--mount<span class="w"> </span><span class="nv">type</span><span class="o">=</span>bind,src<span class="o">=</span><span class="s2">"</span><span class="nv">$PWD</span><span class="s2">/build-cross"</span>,dst<span class="o">=</span>/workspace/build<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>holoscan-4-cross-sbsa:4.6.0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>cmake<span class="w"> </span>-S<span class="w"> </span>/workspace/source<span class="w"> </span>-B<span class="w"> </span>/workspace/build<span class="w"> </span>-G<span class="w"> </span>Ninja<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-DCMAKE_TOOLCHAIN_FILE<span class="o">=</span>/opt/holoscan-cross/aarch64-cross-sbsa.cmake<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-DCMAKE_BUILD_TYPE<span class="o">=</span>Release<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-DCMAKE_INSTALL_PREFIX<span class="o">=</span>/workspace/build/install
 
-<span class="c1"># Training on single GPU with `resnet50` backbone</span>
-python3<span class="w"> </span>train_simclr_multigpu.py<span class="w"> </span>--gpus<span class="w"> </span><span class="m">4</span><span class="w"> </span>--backbone<span class="w"> </span>resnet50<span class="w"> </span>--batch_size<span class="w"> </span><span class="m">128</span>
+<span class="c1"># Build</span>
+docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>--platform<span class="w"> </span>linux/amd64<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--user<span class="w"> </span><span class="s2">"</span><span class="k">$(</span>id<span class="w"> </span>-u<span class="k">)</span><span class="s2">:</span><span class="k">$(</span>id<span class="w"> </span>-g<span class="k">)</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--mount<span class="w"> </span><span class="nv">type</span><span class="o">=</span>bind,src<span class="o">=</span><span class="s2">"</span><span class="nv">$PWD</span><span class="s2">"</span>,dst<span class="o">=</span>/workspace/source,readonly<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--mount<span class="w"> </span><span class="nv">type</span><span class="o">=</span>bind,src<span class="o">=</span><span class="s2">"</span><span class="nv">$PWD</span><span class="s2">/build-cross"</span>,dst<span class="o">=</span>/workspace/build<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>holoscan-4-cross-sbsa:4.6.0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>cmake<span class="w"> </span>--build<span class="w"> </span>/workspace/build
+
+<span class="c1"># Install</span>
+docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>--platform<span class="w"> </span>linux/amd64<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--user<span class="w"> </span><span class="s2">"</span><span class="k">$(</span>id<span class="w"> </span>-u<span class="k">)</span><span class="s2">:</span><span class="k">$(</span>id<span class="w"> </span>-g<span class="k">)</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--mount<span class="w"> </span><span class="nv">type</span><span class="o">=</span>bind,src<span class="o">=</span><span class="s2">"</span><span class="nv">$PWD</span><span class="s2">"</span>,dst<span class="o">=</span>/workspace/source,readonly<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--mount<span class="w"> </span><span class="nv">type</span><span class="o">=</span>bind,src<span class="o">=</span><span class="s2">"</span><span class="nv">$PWD</span><span class="s2">/build-cross"</span>,dst<span class="o">=</span>/workspace/build<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>holoscan-4-cross-sbsa:4.6.0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>cmake<span class="w"> </span>--install<span class="w"> </span>/workspace/build
 </code></pre></div>
-<p>DOWNSTREAM TASK - Segmentation
-This script shows an example of taking the checkpoint above and integrating it into <a href="https://project-monai.github.io">MONAI</a>.</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Fine-Tuning on "GPU 1" with 10% of the dataset, while freezing the encoder</span>
-python3<span class="w"> </span>downstream_task_tool_segmentation.py<span class="w"> </span>--gpu<span class="w"> </span><span class="m">1</span><span class="w"> </span>--perc<span class="w"> </span><span class="m">10</span><span class="w"> </span>--exp<span class="w"> </span>simclr<span class="w"> </span>--freeze
+<p>The staged executable is <code>build-cross/install/bin/cross_compilation_example</code>. Set the artifact path
+for the remaining steps:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">CROSS_COMPILED_APP</span><span class="o">=</span>build-cross/install/bin/cross_compilation_example
 </code></pre></div>
-<h2 id="modelcheckpoints-information">Model/Checkpoints information<a class="headerlink" href="#modelcheckpoints-information" title="Permanent link">#</a></h2>
-<p>As part of this tutorial, we are also releasing a few different checkpoints for users. These are detailed below.</p>
-<blockquote>
-<p><strong>NOTE</strong> : These checkpoints were trained using an internal dataset of Chelecystectomy videos provided by <a href="https://www.activsurgical.com/">Activ Surgical</a> and NOT the Cholec80 dataset.</p>
-</blockquote>
-<h3 id="pre-trained-backbones"><a href="https://drive.google.com/drive/folders/1NIfjydQ-o6Jl-DSAvTy5obw5XQ89Xje0?usp=share_link">Pre-Trained Backbones</a><a class="headerlink" href="#pre-trained-backbones" title="Permanent link">#</a></h3>
+<h3 id="verify-the-result">Verify the result<a class="headerlink" href="#verify-the-result" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code>file<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">CROSS_COMPILED_APP</span><span class="si">}</span><span class="s2">"</span>
+readelf<span class="w"> </span>--dynamic<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">CROSS_COMPILED_APP</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>libholoscan_core
+</code></pre></div>
+<p><code>file</code> must report an AArch64 Executable and Linkable Format (ELF) binary. <code>readelf</code> must report a
+dependency on <code>libholoscan_core.so.4</code>. Do not use host <code>ldd</code>: the host cannot load the AArch64
+executable.</p>
+<h3 id="deploy-and-validate-on-a-thor-target">Deploy and validate on a Thor target<a class="headerlink" href="#deploy-and-validate-on-a-thor-target" title="Permanent link">#</a></h3>
+<p>Prepare either supported target baseline listed in <a href="#background">Background</a>, then install the
+Holoscan 4.6 CUDA 13 Debian package by following the
+<a href="https://docs.nvidia.com/holoscan/sdk-user-guide/setup/sdk-installation">Holoscan SDK installation guide</a>.
+If the NVIDIA SBSA repository is already configured on the target, the package used by this build
+can be installed directly:</p>
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt-get<span class="w"> </span>update
+sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>--yes<span class="w"> </span>holoscan-cuda-13<span class="o">=</span><span class="m">4</span>.6.0.0-1
+</code></pre></div>
+<p>On the target, confirm the platform and runtime versions:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">test</span><span class="w"> </span><span class="s2">"</span><span class="k">$(</span>uname<span class="w"> </span>-m<span class="k">)</span><span class="s2">"</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>aarch64
+.<span class="w"> </span>/etc/os-release
+<span class="nb">test</span><span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">VERSION_ID</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">24</span>.04
+dpkg-query<span class="w"> </span>-W<span class="w"> </span>-f<span class="o">=</span><span class="s1">'${Package} ${Version}\n'</span><span class="w"> </span>holoscan-cuda-13
+dpkg-query<span class="w"> </span>-W<span class="w"> </span>-f<span class="o">=</span><span class="s1">'${Package} ${Version}\n'</span><span class="w"> </span>cuda-cudart-13-0
+head<span class="w"> </span>-n<span class="w"> </span><span class="m">1</span><span class="w"> </span>/etc/nv_tegra_release
+</code></pre></div>
+<p>The Holoscan package must report <code>4.6.0.0-1</code>, the CUDA runtime must report a 13.0 release, and the
+Jetson or IGX release information must match the selected baseline. Copy the staged executable from
+the x86_64 host, replacing the target login and address:</p>
+<div class="highlight"><pre><span></span><code>scp<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">CROSS_COMPILED_APP</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>&lt;user&gt;@&lt;target&gt;:/tmp/cross_compilation_example
+</code></pre></div>
+<p>Run the remaining checks on the target:</p>
+<div class="highlight"><pre><span></span><code>chmod<span class="w"> </span>+x<span class="w"> </span>/tmp/cross_compilation_example
+
+<span class="c1"># Validate that all shared libraries resolve on the target</span>
+ldd<span class="w"> </span>/tmp/cross_compilation_example<span class="w"> </span><span class="p">|</span><span class="w"> </span>tee<span class="w"> </span>/tmp/cross_compilation_example.ldd
+!<span class="w"> </span>grep<span class="w"> </span>-q<span class="w"> </span><span class="s1">'not found'</span><span class="w"> </span>/tmp/cross_compilation_example.ldd
+
+<span class="c1"># Validate the application runs successfully</span>
+/tmp/cross_compilation_example<span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tee<span class="w"> </span>/tmp/cross_compilation_example.log
+grep<span class="w"> </span>-F<span class="w"> </span><span class="s1">'Hello Holoscan!'</span><span class="w"> </span>/tmp/cross_compilation_example.log
+</code></pre></div>
+<p>The host-side <code>file</code> and <code>readelf</code> checks validate the cross-build and linkage. This target-side run
+validates the runtime ABI, Holoscan and CUDA dependencies, and application behavior on Jetson AGX
+Thor or IGX Thor. This example stages only the application executable; it does not bundle the SDK or
+other shared libraries.</p>
+<h2 id="part-2-add-holoscan-to-an-existing-project">Part 2: Add Holoscan to an existing project<a class="headerlink" href="#part-2-add-holoscan-to-an-existing-project" title="Permanent link">#</a></h2>
+<p>This section starts with a plain Ubuntu 24.04 x86_64 build environment and keeps the target SDK
+under the existing project's <code>.cross/</code> directory. The build machine does not need an NVIDIA GPU.</p>
+<h3 id="install-the-build-tools">Install the build tools<a class="headerlink" href="#install-the-build-tools" title="Permanent link">#</a></h3>
+<p>Confirm that the build machine is x86_64, then install the native tools and Ubuntu 24.04 GNU
+Compiler Collection (GCC) AArch64 cross-compiler and target libraries:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">test</span><span class="w"> </span><span class="s2">"</span><span class="k">$(</span>dpkg<span class="w"> </span>--print-architecture<span class="k">)</span><span class="s2">"</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>amd64
+
+sudo<span class="w"> </span>apt-get<span class="w"> </span>update
+sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>--yes<span class="w"> </span>--no-install-recommends<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>binutils-aarch64-linux-gnu<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>ca-certificates<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>curl<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>file<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>g++-aarch64-linux-gnu<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>gnupg<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>ninja-build<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>python3-venv
+</code></pre></div>
+<p>The Holoscan 4.6 package declares CMake 3.20 as its minimum. This cross-compilation workflow is
+tested with CMake 3.30.4 or newer, so install a compatible version in a project-local Python
+environment:</p>
+<div class="highlight"><pre><span></span><code>python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.cross/cmake-venv
+.<span class="w"> </span>.cross/cmake-venv/bin/activate
+python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s1">'cmake&gt;=3.30.4'</span>
+cmake<span class="w"> </span>--version
+</code></pre></div>
+<h3 id="install-the-cuda-cross-compilation-packages">Install the CUDA cross-compilation packages<a class="headerlink" href="#install-the-cuda-cross-compilation-packages" title="Permanent link">#</a></h3>
+<p>Add the NVIDIA x86_64 and Cross-SBSA repositories:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">CUDA_KEYRING</span><span class="o">=</span>/usr/share/keyrings/cuda-archive-keyring.gpg
+
+curl<span class="w"> </span>-fsSL<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/3bf863cc.pub<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>gpg<span class="w"> </span>--dearmor<span class="w"> </span>--yes<span class="w"> </span>--output<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">CUDA_KEYRING</span><span class="si">}</span><span class="s2">"</span>
+
+<span class="nb">echo</span><span class="w"> </span><span class="s2">"deb [signed-by=</span><span class="si">${</span><span class="nv">CUDA_KEYRING</span><span class="si">}</span><span class="s2">] https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/ /"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>/etc/apt/sources.list.d/nvidia-cuda-x86_64.list<span class="w"> </span>&gt;/dev/null
+<span class="nb">echo</span><span class="w"> </span><span class="s2">"deb [signed-by=</span><span class="si">${</span><span class="nv">CUDA_KEYRING</span><span class="si">}</span><span class="s2">] https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/cross-linux-sbsa/ /"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>/etc/apt/sources.list.d/nvidia-cuda-cross-sbsa.list<span class="w"> </span>&gt;/dev/null
+<span class="nb">echo</span><span class="w"> </span><span class="s2">"deb [arch=arm64 signed-by=</span><span class="si">${</span><span class="nv">CUDA_KEYRING</span><span class="si">}</span><span class="s2">] https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/sbsa/ /"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>/etc/apt/sources.list.d/nvidia-holoscan-sbsa.list<span class="w"> </span>&gt;/dev/null
+
+sudo<span class="w"> </span>apt-get<span class="w"> </span>update
+sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>--yes<span class="w"> </span>--no-install-recommends<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>cuda-cross-sbsa-13-0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>cuda-nvcc-13-0
+</code></pre></div>
+<p><code>cuda-nvcc-13-0</code> supplies the native x86_64 compiler. <code>cuda-cross-sbsa-13-0</code> supplies the AArch64
+CUDA headers and libraries under <code>/usr/local/cuda-13.0/targets/sbsa-linux</code>. NVIDIA documents this
+Cross-SBSA package as the supported CUDA cross-platform toolkit for arm64 Jetson Thor and SBSA
+targets.</p>
+<h3 id="extract-the-aarch64-holoscan-package">Extract the AArch64 Holoscan package<a class="headerlink" href="#extract-the-aarch64-holoscan-package" title="Permanent link">#</a></h3>
+<p>Choose one of the following methods to download the released target package. Each method writes the
+same file, which is validated and extracted afterward:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">HOLOSCAN_DEB_VERSION</span><span class="o">=</span><span class="m">4</span>.6.0.0-1
+<span class="nv">HOLOSCAN_DEB_NAME</span><span class="o">=</span><span class="s2">"holoscan-cuda-13_</span><span class="si">${</span><span class="nv">HOLOSCAN_DEB_VERSION</span><span class="si">}</span><span class="s2">_arm64.deb"</span>
+<span class="nv">HOLOSCAN_DEB</span><span class="o">=</span><span class="s2">"</span><span class="nv">$PWD</span><span class="s2">/.cross/</span><span class="si">${</span><span class="nv">HOLOSCAN_DEB_NAME</span><span class="si">}</span><span class="s2">"</span>
+mkdir<span class="w"> </span>-p<span class="w"> </span>.cross/holoscan-root
+</code></pre></div>
+<h4 id="option-1-use-temporary-apt-architecture-overrides">Option 1: Use temporary apt architecture overrides<a class="headerlink" href="#option-1-use-temporary-apt-architecture-overrides" title="Permanent link">#</a></h4>
+<p>This is the least invasive option. The architecture settings apply only to these commands and do
+not register arm64 as a foreign architecture for the build machine:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Update the target repository metadata</span>
+sudo<span class="w"> </span>apt-get<span class="w"> </span>update<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-o<span class="w"> </span>Dir::Etc::sourcelist<span class="o">=</span>sources.list.d/nvidia-holoscan-sbsa.list<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-o<span class="w"> </span>Dir::Etc::sourceparts<span class="o">=</span>-<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-o<span class="w"> </span>APT::Architecture<span class="o">=</span>arm64<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-o<span class="w"> </span>APT::Architectures<span class="o">=</span>arm64
+
+<span class="c1"># Download the package</span>
+<span class="o">(</span>
+<span class="w">  </span><span class="nb">cd</span><span class="w"> </span>.cross
+<span class="w">  </span>apt-get<span class="w"> </span>download<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-o<span class="w"> </span>APT::Architecture<span class="o">=</span>arm64<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-o<span class="w"> </span>APT::Architectures<span class="o">=</span>arm64<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span><span class="s2">"holoscan-cuda-13:arm64=</span><span class="si">${</span><span class="nv">HOLOSCAN_DEB_VERSION</span><span class="si">}</span><span class="s2">"</span>
+<span class="o">)</span>
+</code></pre></div>
+<h4 id="option-2-register-arm64-with-dpkg">Option 2: Register arm64 with dpkg<a class="headerlink" href="#option-2-register-arm64-with-dpkg" title="Permanent link">#</a></h4>
+<p>Use this option when standard Debian multiarch configuration is preferred. Registering the
+architecture is system-wide, but the isolated update still prevents apt from querying arm64
+packages from every configured Ubuntu repository:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Register arm64 as a foreign architecture</span>
+sudo<span class="w"> </span>dpkg<span class="w"> </span>--add-architecture<span class="w"> </span>arm64
+
+<span class="c1"># Update the target repository metadata</span>
+sudo<span class="w"> </span>apt-get<span class="w"> </span>update<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-o<span class="w"> </span>Dir::Etc::sourcelist<span class="o">=</span>sources.list.d/nvidia-holoscan-sbsa.list<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-o<span class="w"> </span>Dir::Etc::sourceparts<span class="o">=</span>-
+
+<span class="c1"># Download the package</span>
+<span class="o">(</span>
+<span class="w">  </span><span class="nb">cd</span><span class="w"> </span>.cross
+<span class="w">  </span>apt-get<span class="w"> </span>download<span class="w"> </span><span class="s2">"holoscan-cuda-13:arm64=</span><span class="si">${</span><span class="nv">HOLOSCAN_DEB_VERSION</span><span class="si">}</span><span class="s2">"</span>
+<span class="o">)</span>
+
+<span class="c1"># Optional if arm64 was not already configured:</span>
+sudo<span class="w"> </span>dpkg<span class="w"> </span>--remove-architecture<span class="w"> </span>arm64
+</code></pre></div>
+<p>The removal command will fail if arm64 packages are installed. Omit it if arm64 was already
+registered or other workflows need it.</p>
+<h4 id="option-3-download-the-package-directly-with-curl">Option 3: Download the package directly with curl<a class="headerlink" href="#option-3-download-the-package-directly-with-curl" title="Permanent link">#</a></h4>
+<p>This avoids apt architecture configuration, but the package URL and checksum must be updated
+together whenever the version changes:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">HOLOSCAN_DEB_URL</span><span class="o">=</span><span class="s2">"https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/sbsa/</span><span class="si">${</span><span class="nv">HOLOSCAN_DEB_NAME</span><span class="si">}</span><span class="s2">"</span>
+<span class="nv">HOLOSCAN_DEB_SHA256</span><span class="o">=</span>de5da74f095c36f64ba446a04f98e8f3e30c04be96845b604333098f95e6e5e9
+
+<span class="c1"># Download the package</span>
+curl<span class="w"> </span>-fsSL<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">HOLOSCAN_DEB_URL</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span>-o<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">HOLOSCAN_DEB</span><span class="si">}</span><span class="s2">"</span>
+
+<span class="c1"># Validate the checksum</span>
+<span class="nb">printf</span><span class="w"> </span><span class="s1">'%s  %s\n'</span><span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">HOLOSCAN_DEB_SHA256</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">HOLOSCAN_DEB</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sha256sum<span class="w"> </span>--check<span class="w"> </span>-
+</code></pre></div>
+<h4 id="validate-and-extract-the-package">Validate and extract the package<a class="headerlink" href="#validate-and-extract-the-package" title="Permanent link">#</a></h4>
+<p>After completing one download option, validate and extract the package:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Validate the package</span>
+<span class="nb">test</span><span class="w"> </span>-f<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">HOLOSCAN_DEB</span><span class="si">}</span><span class="s2">"</span>
+<span class="nb">test</span><span class="w"> </span><span class="s2">"</span><span class="k">$(</span>dpkg-deb<span class="w"> </span>-f<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">HOLOSCAN_DEB</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span>Architecture<span class="k">)</span><span class="s2">"</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>arm64
+<span class="nb">test</span><span class="w"> </span><span class="s2">"</span><span class="k">$(</span>dpkg-deb<span class="w"> </span>-f<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">HOLOSCAN_DEB</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span>Version<span class="k">)</span><span class="s2">"</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">HOLOSCAN_DEB_VERSION</span><span class="si">}</span><span class="s2">"</span>
+
+<span class="c1"># Extract to disk</span>
+dpkg-deb<span class="w"> </span>--extract<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">HOLOSCAN_DEB</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span>.cross/holoscan-root
+
+<span class="c1"># Validate the extraction succeeded</span>
+<span class="nv">HOLOSCAN_TARGET_SDK_ROOT</span><span class="o">=</span><span class="s2">"</span><span class="nv">$PWD</span><span class="s2">/.cross/holoscan-root/opt/nvidia/holoscan"</span>
+<span class="nb">test</span><span class="w"> </span>-f<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">HOLOSCAN_TARGET_SDK_ROOT</span><span class="si">}</span><span class="s2">/include/holoscan/holoscan.hpp"</span>
+<span class="nb">test</span><span class="w"> </span>-f<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">HOLOSCAN_TARGET_SDK_ROOT</span><span class="si">}</span><span class="s2">/lib/cmake/holoscan/holoscan-config.cmake"</span>
+file<span class="w"> </span>-L<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">HOLOSCAN_TARGET_SDK_ROOT</span><span class="si">}</span><span class="s2">/lib/libholoscan_core.so"</span>
+</code></pre></div>
+<p>The final command must report an ARM AArch64 library. The apt options verify the repository
+signature and package hash; the curl option relies on the explicit SHA-256 check. Add <code>.cross/</code> to
+the project's <code>.gitignore</code>. The target needs the matching runtime package from the
+<a href="https://docs.nvidia.com/holoscan/sdk-user-guide/setup/sdk-installation">Holoscan SDK installation guide</a>.
+Using the same <code>holoscan-cuda-13</code> version in the extracted build dependency and on the target avoids
+an SDK application binary interface (ABI) mismatch.</p>
+<p>Extracting this package is sufficient for the core <code>holoscan::core</code> API used by this tutorial. It
+is not equivalent to installing every optional Holoscan backend and its development dependencies.
+Installing <code>holoscan-cuda-13:arm64</code> into the x86_64 builder would mix target packages into the host
+package database and could run AArch64 package-maintainer scripts. Keep downloading and extracting
+target packages for the cross-build instead. On the AArch64 target system, use <code>apt-get install</code> so
+apt can install and configure the matching runtime dependency closure normally.</p>
+<h3 id="add-the-cmake-toolchain">Add the CMake toolchain<a class="headerlink" href="#add-the-cmake-toolchain" title="Permanent link">#</a></h3>
+<p>Copy <a href="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/cross_compilation_example/cmake/aarch64-cross-sbsa.cmake"><code>aarch64-cross-sbsa.cmake</code></a> and
+<a href="https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/cross_compilation_example/cmake/nvcc-cross-sbsa"><code>nvcc-cross-sbsa</code></a> into the existing project's <code>cmake/</code> directory.</p>
+<p>The toolchain accepts the project-specific roots below and sets the remaining CMake
+cross-compilation variables. It uses the standard compiler and CUDA locations installed above:</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Value or role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CMAKE_SYSTEM_NAME</code>, <code>CMAKE_SYSTEM_PROCESSOR</code></td>
+<td>Select Linux and AArch64 as the target</td>
+</tr>
+<tr>
+<td><code>HOLOSCAN_CROSS_SYSROOT</code></td>
+<td>GNU cross-tool root, <code>/usr/aarch64-linux-gnu</code> by default</td>
+</tr>
+<tr>
+<td><code>HOLOSCAN_TARGET_SDK_ROOT</code></td>
+<td>Extracted AArch64 SDK prefix, <code>/opt/nvidia/holoscan</code> by default</td>
+</tr>
+<tr>
+<td><code>CMAKE_C_COMPILER</code>, <code>CMAKE_CXX_COMPILER</code></td>
+<td>Standard <code>aarch64-linux-gnu</code> cross compilers</td>
+</tr>
+<tr>
+<td><code>CMAKE_CUDA_COMPILER</code></td>
+<td>The included wrapper around <code>/usr/local/cuda-13.0/bin/nvcc</code> that selects CUDA's <code>sbsa-linux</code> target</td>
+</tr>
+<tr>
+<td><code>CMAKE_CUDA_HOST_COMPILER</code></td>
+<td><code>aarch64-linux-gnu-g++</code></td>
+</tr>
+<tr>
+<td><code>CUDAToolkit_ROOT</code>, <code>CUDAToolkit_NVCC_EXECUTABLE</code></td>
+<td>Keep CUDA discovery on the native NVIDIA CUDA Compiler (NVCC) and SBSA target toolkit</td>
+</tr>
+<tr>
+<td><code>CMAKE_FIND_ROOT_PATH</code></td>
+<td>Restricts target lookup to Holoscan, GNU AArch64, and CUDA SBSA roots</td>
+</tr>
+<tr>
+<td><code>CMAKE_FIND_ROOT_PATH_MODE_*</code></td>
+<td>Finds host programs but target packages, headers, and libraries</td>
+</tr>
+</tbody>
+</table>
+<p><code>CMAKE_SYSROOT</code> is deliberately not set. Ubuntu's GNU cross compiler already has its target
+sysroot, while Holoscan and CUDA are separate prefixes. Forcing one global sysroot would incorrectly
+rewrite those absolute package paths.</p>
+<h3 id="choose-a-cuda-target-architecture">Choose a CUDA target architecture<a class="headerlink" href="#choose-a-cuda-target-architecture" title="Permanent link">#</a></h3>
+<p>Set <code>CMAKE_CUDA_ARCHITECTURES</code> only when the project enables CUDA. It is not hard-coded in the
+toolchain because it is a property of the deployment GPU, not the compiler container.</p>
+<p>In <code>75-virtual</code>, <code>75</code> means CUDA compute capability 7.5 and <code>virtual</code> tells CMake to embed PTX
+instead of machine code for a particular GPU. At runtime, the CUDA driver JIT-compiles that PTX for
+the installed GPU. This is more portable across compatible GPUs, at the cost of JIT work when the
+application first loads its CUDA code.</p>
+<p>For a hardware-specific build:</p>
+<ol>
+<li>Find the deployment GPU's compute capability in NVIDIA's
+   <a href="https://docs.nvidia.com/cuda/cuda-programming-guide/05-appendices/compute-capabilities.html">compute capability documentation</a>.
+   When <code>nvidia-smi</code> is available on the target, query it directly:</li>
+</ol>
+<div class="highlight"><pre><span></span><code>nvidia-smi<span class="w"> </span>--query-gpu<span class="o">=</span>name,compute_cap<span class="w"> </span>--format<span class="o">=</span>csv,noheader
+</code></pre></div>
+<ol>
+<li>Remove the decimal point and append <code>-real</code>. For example, compute capability 8.7 becomes
+   <code>-DCMAKE_CUDA_ARCHITECTURES="87-real"</code>.</li>
+</ol>
+<p>The <code>-real</code> suffix generates GPU machine code and avoids PTX JIT for that architecture, but the
+result is less portable. Omitting the suffix, such as <code>87</code>, makes CMake generate both real and
+virtual code. See CMake's
+<a href="https://cmake.org/cmake/help/latest/prop_tgt/CUDA_ARCHITECTURES.html"><code>CUDA_ARCHITECTURES</code> documentation</a>
+for the complete syntax.</p>
+<h3 id="find-and-link-holoscan">Find and link Holoscan<a class="headerlink" href="#find-and-link-holoscan" title="Permanent link">#</a></h3>
+<p>A C++-only project needs this minimum:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">cmake_minimum_required</span><span class="p">(</span><span class="s">VERSION</span><span class="w"> </span><span class="s">3.20</span><span class="p">)</span>
+<span class="nb">project</span><span class="p">(</span><span class="s">my_holoscan_app</span><span class="w"> </span><span class="s">LANGUAGES</span><span class="w"> </span><span class="s">CXX</span><span class="p">)</span>
+
+<span class="nb">find_package</span><span class="p">(</span><span class="s">holoscan</span><span class="w"> </span><span class="s">4.6</span><span class="w"> </span><span class="s">REQUIRED</span><span class="w"> </span><span class="s">CONFIG</span><span class="p">)</span>
+
+<span class="nb">add_executable</span><span class="p">(</span><span class="s">my_holoscan_app</span><span class="w"> </span><span class="s">main.cpp</span><span class="p">)</span>
+<span class="nb">target_link_libraries</span><span class="p">(</span><span class="s">my_holoscan_app</span><span class="w"> </span><span class="s">PRIVATE</span><span class="w"> </span><span class="s">holoscan::core</span><span class="p">)</span>
+
+<span class="nb">install</span><span class="p">(</span><span class="s">TARGETS</span><span class="w"> </span><span class="s">my_holoscan_app</span><span class="w"> </span><span class="s">RUNTIME</span><span class="w"> </span><span class="s">DESTINATION</span><span class="w"> </span><span class="s">bin</span><span class="p">)</span>
+</code></pre></div>
+<p>If the project contains <code>.cu</code> files, enable CUDA and pass the target architecture while configuring:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">project</span><span class="p">(</span><span class="s">my_holoscan_app</span><span class="w"> </span><span class="s">LANGUAGES</span><span class="w"> </span><span class="s">CXX</span><span class="w"> </span><span class="s">CUDA</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>cmake<span class="w"> </span>...<span class="w"> </span>-DCMAKE_CUDA_ARCHITECTURES<span class="o">=</span><span class="s2">"75-virtual"</span>
+</code></pre></div>
+<p>Link additional exported targets only when the code uses them. For example, an application using
+the packaged ping operators would add <code>holoscan::ops::ping_tx</code> and <code>holoscan::ops::ping_rx</code> to
+<code>target_link_libraries</code>.</p>
+<h3 id="configure-and-build">Configure and build<a class="headerlink" href="#configure-and-build" title="Permanent link">#</a></h3>
+<p>Activate the CMake environment, point the toolchain at the project-local SDK, and build:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Activate the project-local CMake environment</span>
+.<span class="w"> </span>.cross/cmake-venv/bin/activate
+
+<span class="c1"># Configure</span>
+cmake<span class="w"> </span>-S<span class="w"> </span>.<span class="w"> </span>-B<span class="w"> </span>build-cross<span class="w"> </span>-G<span class="w"> </span>Ninja<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DCMAKE_TOOLCHAIN_FILE<span class="o">=</span><span class="s2">"</span><span class="nv">$PWD</span><span class="s2">/cmake/aarch64-cross-sbsa.cmake"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DHOLOSCAN_TARGET_SDK_ROOT<span class="o">=</span><span class="s2">"</span><span class="nv">$PWD</span><span class="s2">/.cross/holoscan-root/opt/nvidia/holoscan"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DHOLOSCAN_CROSS_SYSROOT<span class="o">=</span>/usr/aarch64-linux-gnu<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DCMAKE_BUILD_TYPE<span class="o">=</span>Release<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DCMAKE_INSTALL_PREFIX<span class="o">=</span><span class="s2">"</span><span class="nv">$PWD</span><span class="s2">/build-cross/install"</span>
+
+<span class="c1"># Build</span>
+cmake<span class="w"> </span>--build<span class="w"> </span>build-cross
+
+<span class="c1"># Install</span>
+cmake<span class="w"> </span>--install<span class="w"> </span>build-cross
+</code></pre></div>
+<p>For a CUDA project, also configure with the CUDA architecture selected in
+<a href="#choose-a-cuda-target-architecture">Choose a CUDA target architecture</a>.</p>
+<p>Every additional native library used by the project also needs AArch64 headers and libraries.
+Check CMake's configure output to ensure it never satisfies a target dependency with an x86_64
+library from the build machine.</p>
+<h3 id="extend-the-target-sysroot-for-optional-sdk-components">Extend the target sysroot for optional SDK components<a class="headerlink" href="#extend-the-target-sysroot-for-optional-sdk-components" title="Permanent link">#</a></h3>
+<p>The hello-world application does not exercise Holoscan inference backends such as TensorRT,
+PyTorch, or Open Neural Network Exchange (ONNX) Runtime. Applications that use these components
+must add their AArch64 development headers and libraries to the cross-build and install their
+matching runtime libraries on the target.</p>
+<p>Use the following rules when extending the cross-build environment:</p>
 <ul>
-<li>ResNet18        - <a href="https://drive.google.com/file/d/17w_LEI36JrHcUf5fGEufpyZaIk3Fp1Co/view?usp=sharing">ResNet18 checkpoint</a></li>
-<li>ResNet50        - <a href="https://drive.google.com/file/d/1fK87Nxit5bokYuMCbMG1cEHmEZUGBDlA/view?usp=share_link">ResNet50 checkpoint</a></li>
-<li>efficientnet_b0 - <a href="https://drive.google.com/file/d/1rgolweQ5HU6Kvf93jqLkaLVKE8DD_Aco/view?usp=sharing">efficientnet_b0 checkpoint</a></li>
+<li>Keep the Holoscan SDK Debian package in its separate extracted root. Installing its arm64 package
+  directly would collide with an amd64 Holoscan installation under <code>/opt/nvidia/holoscan</code>.</li>
+<li>Install native x86_64 NVIDIA CUDA Compiler (NVCC) tools and NVIDIA's Cross-SBSA packages normally.
+  Together they provide the compiler that runs on the builder and the CUDA headers and libraries for
+  the target.</li>
+<li>By default, resolve and extract other AArch64 development packages into a separate target package
+  root. This keeps target packages out of the builder's package database and works for packages that
+  are not declared multiarch-compatible, including the TensorRT packages used below.</li>
+<li>Install an AArch64 package directly with apt only after confirming that it is marked
+  <code>Multi-Arch: same</code>, uses architecture-qualified paths, does not conflict with an installed amd64
+  package, and does not require target maintainer scripts during installation. Many Ubuntu runtime
+  libraries meet these requirements, but NVIDIA packages must be checked individually.</li>
 </ul>
-<h3 id="tool-segmentation-model">Tool Segmentation Model<a class="headerlink" href="#tool-segmentation-model" title="Permanent link">#</a></h3>
-<ul>
-<li>MONAI - FlexibleUNet (efficientnet_b0) - <a href="https://drive.google.com/file/d/1HLyccYY0AtZy8Sr1ty-gid-Fee4DVjWM/view?usp=share_link">Tool segmentation model checkpoint</a></li>
-</ul>
-<h2 id="holoscan-sdk">Holoscan SDK<a class="headerlink" href="#holoscan-sdk" title="Permanent link">#</a></h2>
-<p>This tool Segmentation Model can be used to build a Holoscan App, using the process under section "Bring your own Model" within the <a href="https://developer.download.nvidia.com/assets/Clara/ClaraHoloscan-1.pdf?t=eyJscyI6InJlZiIsImxzZCI6IlJFRi1jb3Vyc2VzLm52aWRpYS5jb20vIiwibmNpZCI6InNvLW52c2gtODA1ODY2LXZ0MTIifQ==">Holoscan SDK User guide</a>.</p>
-<h2 id="resources">Resources<a class="headerlink" href="#resources" title="Permanent link">#</a></h2>
-<p>[1] Chen, T., Kornblith, S., Norouzi, M., and Hinton, G. (2020).
-A simple framework for contrastive learning of visual representations.
-In International conference on machine learning (pp.
-1597-1607).
-PMLR.
-(<a href="https://arxiv.org/abs/2002.05709">paper</a>)</p>
-<p>[2] Chen, T., Kornblith, S., Swersky, K., Norouzi, M., and Hinton, G. (2020).
-Big self-supervised models are strong semi-supervised learners.
-NeurIPS 2021 (<a href="https://arxiv.org/abs/2006.10029">paper</a>).</p>
-<p>[3][Pytorch Lightning SSL Tutorial](https://pytorch-lightning.readthedocs.io/en/latest/notebooks/course_UvA-DL/13-contrastive-learning.html) | <a href="https://www.github.com/PytorchLightning/pytorch-lightning/">Github</a></p>
-<p>[4] Ramesh, S., Srivastav, V., Alapatt, D., Yu, T., Muarli, A., et. al. (2023).
-Dissecting Self-Supervised Learning Methods for Surgical Computer Vision.
-arXiv preprint arXiv:2207.00449.
-(<a href="https://arxiv.org/abs/2207.00449">paper</a>)</p>
+<p>The dependencies listed as <code>Recommends</code> by the Holoscan package are optional. Do not copy the full
+list into the sysroot automatically. Add the development packages required by the operators and
+backends that the application uses, and install their matching runtime packages on the target
+system.</p>
+<p>The safe default workflow for additional AArch64 packages is:</p>
+<ol>
+<li>Declare the required AArch64 packages and exact versions in a project-owned manifest.</li>
+<li>Give apt isolated package status, repository metadata, and package-cache directories for arm64.</li>
+<li>Use <code>apt-get --download-only</code> so apt resolves and downloads the dependency closure without
+   installing it. This command does not populate the target package root.</li>
+<li>Extract every downloaded Debian package into one target package root with <code>dpkg-deb --extract</code>.</li>
+<li>Add that root to <code>CMAKE_FIND_ROOT_PATH</code>, then provide any package-specific CMake configuration.</li>
+<li>Check every linked library's architecture and validate the result on the target system.</li>
+</ol>
+<p>The isolated apt directories prevent the target dependency resolver from using the builder's amd64
+package state. The source list must describe the same Ubuntu and NVIDIA repositories used by the
+target. For the supported Ubuntu 24.04 SBSA baseline, the setup has this form:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">TARGET_APT_ROOT</span><span class="o">=</span><span class="s2">"</span><span class="nv">$PWD</span><span class="s2">/.cross/apt-arm64"</span>
+<span class="nv">TARGET_PACKAGE_ROOT</span><span class="o">=</span><span class="s2">"</span><span class="nv">$PWD</span><span class="s2">/.cross/target-root"</span>
+<span class="nv">CUDA_KEYRING</span><span class="o">=</span>/usr/share/keyrings/cuda-archive-keyring.gpg
+
+mkdir<span class="w"> </span>-p<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="s2">"</span><span class="si">${</span><span class="nv">TARGET_APT_ROOT</span><span class="si">}</span><span class="s2">/lists/partial"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="s2">"</span><span class="si">${</span><span class="nv">TARGET_APT_ROOT</span><span class="si">}</span><span class="s2">/archives/partial"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="s2">"</span><span class="si">${</span><span class="nv">TARGET_PACKAGE_ROOT</span><span class="si">}</span><span class="s2">"</span>
+:<span class="w"> </span>&gt;<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">TARGET_APT_ROOT</span><span class="si">}</span><span class="s2">/status"</span>
+
+cat<span class="w"> </span>&gt;<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">TARGET_APT_ROOT</span><span class="si">}</span><span class="s2">/sources.list"</span><span class="w"> </span><span class="s">&lt;&lt;EOF</span>
+<span class="s">deb [arch=arm64 signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] http://ports.ubuntu.com/ubuntu-ports noble main restricted universe multiverse</span>
+<span class="s">deb [arch=arm64 signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] http://ports.ubuntu.com/ubuntu-ports noble-updates main restricted universe multiverse</span>
+<span class="s">deb [arch=arm64 signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] http://ports.ubuntu.com/ubuntu-ports noble-security main restricted universe multiverse</span>
+<span class="s">deb [arch=arm64 signed-by=${CUDA_KEYRING}] https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/sbsa/ /</span>
+<span class="s">EOF</span>
+
+<span class="nv">APT_TARGET_OPTIONS</span><span class="o">=(</span>
+<span class="w">  </span>-o<span class="w"> </span>APT::Architecture<span class="o">=</span>arm64
+<span class="w">  </span>-o<span class="w"> </span>APT::Architectures<span class="o">=</span>arm64
+<span class="w">  </span>-o<span class="w"> </span><span class="s2">"Dir::Etc::sourcelist=</span><span class="si">${</span><span class="nv">TARGET_APT_ROOT</span><span class="si">}</span><span class="s2">/sources.list"</span>
+<span class="w">  </span>-o<span class="w"> </span>Dir::Etc::sourceparts<span class="o">=</span>-
+<span class="w">  </span>-o<span class="w"> </span><span class="s2">"Dir::State::status=</span><span class="si">${</span><span class="nv">TARGET_APT_ROOT</span><span class="si">}</span><span class="s2">/status"</span>
+<span class="w">  </span>-o<span class="w"> </span><span class="s2">"Dir::State::lists=</span><span class="si">${</span><span class="nv">TARGET_APT_ROOT</span><span class="si">}</span><span class="s2">/lists"</span>
+<span class="w">  </span>-o<span class="w"> </span><span class="s2">"Dir::Cache::archives=</span><span class="si">${</span><span class="nv">TARGET_APT_ROOT</span><span class="si">}</span><span class="s2">/archives"</span>
+<span class="w">  </span>-o<span class="w"> </span>Debug::NoLocking<span class="o">=</span><span class="m">1</span>
+<span class="o">)</span>
+</code></pre></div>
+<p>Define <code>TARGET_PACKAGES</code> before running the resolver, as shown in the TensorRT example below. Keep
+every entry version-pinned, and review the simulated package transaction before downloading.
+Packages that rely on maintainer scripts, alternatives, or triggers to construct their installed
+layout might not work through extraction alone. For those packages, reproduce the required links
+explicitly or use a sysroot captured from the exact target root filesystem.</p>
+<h4 id="add-tensorrt-development-files">Add TensorRT development files<a class="headerlink" href="#add-tensorrt-development-files" title="Permanent link">#</a></h4>
+<p>The Holoscan package recommends a TensorRT runtime, but its package metadata does not require the
+TensorRT development headers. An application that links the Holoscan inference operator needs the
+matching AArch64 development packages. For the CUDA 13.0 workflow pinned by this tutorial, extend
+the package manifest with an explicitly compatible TensorRT release. See NVIDIA's
+<a href="https://docs.nvidia.com/deeplearning/tensorrt/latest/installing-tensorrt/install-debian.html">TensorRT Debian installation guide</a>
+for the complete package set:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">TENSORRT_DEB_VERSION</span><span class="o">=</span><span class="m">10</span>.13.3.9-1+cuda13.0
+
+<span class="nv">TARGET_PACKAGES</span><span class="o">=(</span>
+<span class="w">  </span><span class="s2">"libnvinfer-dev:arm64=</span><span class="si">${</span><span class="nv">TENSORRT_DEB_VERSION</span><span class="si">}</span><span class="s2">"</span>
+<span class="w">  </span><span class="s2">"libnvinfer-headers-dev:arm64=</span><span class="si">${</span><span class="nv">TENSORRT_DEB_VERSION</span><span class="si">}</span><span class="s2">"</span>
+<span class="w">  </span><span class="s2">"libnvinfer10:arm64=</span><span class="si">${</span><span class="nv">TENSORRT_DEB_VERSION</span><span class="si">}</span><span class="s2">"</span>
+<span class="w">  </span><span class="s2">"libnvinfer-plugin-dev:arm64=</span><span class="si">${</span><span class="nv">TENSORRT_DEB_VERSION</span><span class="si">}</span><span class="s2">"</span>
+<span class="w">  </span><span class="s2">"libnvinfer-headers-plugin-dev:arm64=</span><span class="si">${</span><span class="nv">TENSORRT_DEB_VERSION</span><span class="si">}</span><span class="s2">"</span>
+<span class="w">  </span><span class="s2">"libnvinfer-plugin10:arm64=</span><span class="si">${</span><span class="nv">TENSORRT_DEB_VERSION</span><span class="si">}</span><span class="s2">"</span>
+<span class="w">  </span><span class="s2">"libnvonnxparsers-dev:arm64=</span><span class="si">${</span><span class="nv">TENSORRT_DEB_VERSION</span><span class="si">}</span><span class="s2">"</span>
+<span class="w">  </span><span class="s2">"libnvonnxparsers10:arm64=</span><span class="si">${</span><span class="nv">TENSORRT_DEB_VERSION</span><span class="si">}</span><span class="s2">"</span>
+<span class="o">)</span>
+
+<span class="c1"># Review the dependency closure without changing the builder</span>
+apt-get<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">APT_TARGET_OPTIONS</span><span class="p">[@]</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span>update
+apt-get<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">APT_TARGET_OPTIONS</span><span class="p">[@]</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--simulate<span class="w"> </span>--no-install-recommends<span class="w"> </span>install<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="s2">"</span><span class="si">${</span><span class="nv">TARGET_PACKAGES</span><span class="p">[@]</span><span class="si">}</span><span class="s2">"</span>
+
+<span class="c1"># Download the reviewed dependency closure</span>
+apt-get<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">APT_TARGET_OPTIONS</span><span class="p">[@]</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--download-only<span class="w"> </span>--no-install-recommends<span class="w"> </span>--yes<span class="w"> </span>install<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="s2">"</span><span class="si">${</span><span class="nv">TARGET_PACKAGES</span><span class="p">[@]</span><span class="si">}</span><span class="s2">"</span>
+
+<span class="c1"># Extract the packages without running AArch64 maintainer scripts</span>
+<span class="k">while</span><span class="w"> </span><span class="nv">IFS</span><span class="o">=</span><span class="w"> </span><span class="nb">read</span><span class="w"> </span>-r<span class="w"> </span>-d<span class="w"> </span><span class="s1">''</span><span class="w"> </span>package<span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<span class="w">  </span>dpkg-deb<span class="w"> </span>--extract<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">package</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">TARGET_PACKAGE_ROOT</span><span class="si">}</span><span class="s2">"</span>
+<span class="k">done</span><span class="w"> </span>&lt;<span class="w"> </span>&lt;<span class="o">(</span>find<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">TARGET_APT_ROOT</span><span class="si">}</span><span class="s2">/archives"</span><span class="w"> </span>-maxdepth<span class="w"> </span><span class="m">1</span><span class="w"> </span>-name<span class="w"> </span><span class="s1">'*.deb'</span><span class="w"> </span>-print0<span class="o">)</span>
+</code></pre></div>
+<p>The manifest pins TensorRT's development, header, and runtime package closure because apt can
+otherwise select transitive packages built for a newer CUDA or TensorRT release. TensorRT 10.13.3
+packages are not declared <code>Multi-Arch: same</code>, so keep them in the extracted target root instead of
+installing them alongside any amd64 TensorRT packages.</p>
+<p>The previously extracted Holoscan package remains in <code>.cross/holoscan-root</code>; do not add it to this
+manifest. Its package metadata requires an AArch64 CUDA compiler package, while this cross-build
+already uses native x86_64 NVCC with the Cross-SBSA target packages. Use the same TensorRT release
+on the target system.</p>
+<p>TensorRT's Debian packages provide the headers and libraries, but a consuming project must also
+provide CMake package discovery that defines the imported targets expected by Holoscan. If the
+project has a <code>FindTensorRT.cmake</code> module that defines <code>TensorRT::nvinfer_plugin</code> and
+<code>TensorRT::nvonnxparser</code>, configure it before Holoscan and link the inference operator:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">list</span><span class="p">(</span><span class="s">PREPEND</span><span class="w"> </span><span class="s">CMAKE_MODULE_PATH</span><span class="w"> </span><span class="s2">"${CMAKE_CURRENT_SOURCE_DIR}/cmake"</span><span class="p">)</span>
+<span class="nb">find_package</span><span class="p">(</span><span class="s">TensorRT</span><span class="w"> </span><span class="s">REQUIRED</span><span class="w"> </span><span class="s">MODULE</span><span class="p">)</span>
+<span class="nb">find_package</span><span class="p">(</span><span class="s">holoscan</span><span class="w"> </span><span class="s">4.6</span><span class="w"> </span><span class="s">REQUIRED</span><span class="w"> </span><span class="s">CONFIG</span><span class="p">)</span>
+
+<span class="nb">target_link_libraries</span><span class="p">(</span><span class="s">my_holoscan_app</span><span class="w"> </span><span class="s">PRIVATE</span><span class="w"> </span><span class="s">holoscan::ops::inference</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="add-pytorch-development-files">Add PyTorch development files<a class="headerlink" href="#add-pytorch-development-files" title="Permanent link">#</a></h4>
+<p>PyTorch is not supplied by the generic SBSA apt package set used above. Obtain an AArch64 PyTorch
+wheel that matches the target's JetPack or IGX-SW release, CUDA version, Python application binary
+interface, and the version supported by the selected Holoscan release. Check the
+<a href="https://docs.nvidia.com/holoscan/sdk-user-guide/setup/sdk-installation">Holoscan SDK installation guide</a>
+for the tested LibTorch version. Do not install or import the AArch64 wheel on the x86_64 builder. A
+wheel is a ZIP archive, so extract it into a separate target prefix:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">PYTORCH_WHEEL</span><span class="o">=</span>/path/to/the/matching-aarch64-pytorch.whl
+<span class="nv">PYTORCH_TARGET_ROOT</span><span class="o">=</span><span class="s2">"</span><span class="nv">$PWD</span><span class="s2">/.cross/pytorch-root"</span>
+
+python3<span class="w"> </span>-m<span class="w"> </span>zipfile<span class="w"> </span>-e<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">PYTORCH_WHEEL</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">PYTORCH_TARGET_ROOT</span><span class="si">}</span><span class="s2">"</span>
+<span class="nb">test</span><span class="w"> </span>-f<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">PYTORCH_TARGET_ROOT</span><span class="si">}</span><span class="s2">/torch/share/cmake/Torch/TorchConfig.cmake"</span>
+file<span class="w"> </span>-L<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">PYTORCH_TARGET_ROOT</span><span class="si">}</span><span class="s2">/torch/lib/libtorch.so"</span>
+</code></pre></div>
+<p>The final command must report an ARM AArch64 library. Point CMake at the extracted configuration,
+discover Torch before Holoscan, and explicitly link the Holoscan Torch backend:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">find_package</span><span class="p">(</span><span class="s">Torch</span><span class="w"> </span><span class="s">REQUIRED</span><span class="w"> </span><span class="s">CONFIG</span><span class="p">)</span>
+<span class="nb">find_package</span><span class="p">(</span><span class="s">holoscan</span><span class="w"> </span><span class="s">4.6</span><span class="w"> </span><span class="s">REQUIRED</span><span class="w"> </span><span class="s">CONFIG</span><span class="p">)</span>
+
+<span class="nb">target_link_libraries</span><span class="p">(</span><span class="s">my_holoscan_app</span><span class="w"> </span><span class="s">PRIVATE</span>
+<span class="w">  </span><span class="s">holoscan::ops::inference</span>
+<span class="w">  </span><span class="s">holoscan::infer::torch</span><span class="p">)</span>
+</code></pre></div>
+<p>Pass the path while configuring because the shell variable is not automatically visible in CMake:</p>
+<div class="highlight"><pre><span></span><code>cmake<span class="w"> </span>...<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DTorch_DIR<span class="o">=</span><span class="s2">"</span><span class="nv">$PWD</span><span class="s2">/.cross/pytorch-root/torch/share/cmake/Torch"</span>
+</code></pre></div>
+<p>ONNX Runtime follows the same pattern: provide a compatible AArch64 SDK, make its CMake package
+define <code>ONNXRuntime::ONNXRuntime</code>, and link <code>holoscan::infer::onnx_runtime</code> when that backend is used.</p>
+<h4 id="add-the-package-root-to-cmake-and-validate-it">Add the package root to CMake and validate it<a class="headerlink" href="#add-the-package-root-to-cmake-and-validate-it" title="Permanent link">#</a></h4>
+<p>In the project's copy of <code>aarch64-cross-sbsa.cmake</code>, add the optional package root before setting
+the <code>CMAKE_FIND_ROOT_PATH_MODE_*</code> variables:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">set</span><span class="p">(</span><span class="s">HOLOSCAN_TARGET_PACKAGE_ROOT</span><span class="w"> </span><span class="s2">""</span><span class="w"> </span><span class="s">CACHE</span><span class="w"> </span><span class="s">PATH</span>
+<span class="w">  </span><span class="s2">"Root containing additional extracted AArch64 packages"</span><span class="p">)</span>
+<span class="nb">list</span><span class="p">(</span><span class="s">APPEND</span><span class="w"> </span><span class="s">CMAKE_TRY_COMPILE_PLATFORM_VARIABLES</span>
+<span class="w">  </span><span class="s">HOLOSCAN_TARGET_PACKAGE_ROOT</span><span class="p">)</span>
+
+<span class="nb">if</span><span class="p">(</span><span class="s">HOLOSCAN_TARGET_PACKAGE_ROOT</span><span class="p">)</span>
+<span class="w">  </span><span class="nb">list</span><span class="p">(</span><span class="s">PREPEND</span><span class="w"> </span><span class="s">CMAKE_FIND_ROOT_PATH</span><span class="w"> </span><span class="s2">"${HOLOSCAN_TARGET_PACKAGE_ROOT}"</span><span class="p">)</span>
+<span class="nb">endif</span><span class="p">()</span>
+</code></pre></div>
+<p>Pass the package root when configuring:</p>
+<div class="highlight"><pre><span></span><code>cmake<span class="w"> </span>...<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DHOLOSCAN_TARGET_PACKAGE_ROOT<span class="o">=</span><span class="s2">"</span><span class="nv">$PWD</span><span class="s2">/.cross/target-root"</span>
+</code></pre></div>
+<p>Build an application that actually links the selected backend; the hello-world executable cannot
+validate these dependencies. Check representative inputs and the completed executable without
+using host <code>ldd</code>:</p>
+<div class="highlight"><pre><span></span><code>file<span class="w"> </span>-L<span class="w"> </span>.cross/target-root/usr/lib/aarch64-linux-gnu/libnvinfer.so
+<span class="c1"># Run this check only when the PyTorch target prefix was created.</span>
+file<span class="w"> </span>-L<span class="w"> </span>.cross/pytorch-root/torch/lib/libtorch.so
+file<span class="w"> </span>build-cross/install/bin/my_holoscan_app
+readelf<span class="w"> </span>--dynamic<span class="w"> </span>build-cross/install/bin/my_holoscan_app<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s1">'libholoscan_infer|libnvinfer|libtorch|libonnxruntime'</span>
+
+<span class="k">if</span><span class="w"> </span>find<span class="w"> </span>.cross/target-root<span class="w"> </span>-type<span class="w"> </span>f<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span><span class="se">\(</span><span class="w"> </span>-name<span class="w"> </span><span class="s1">'*.so'</span><span class="w"> </span>-o<span class="w"> </span>-name<span class="w"> </span><span class="s1">'*.so.*'</span><span class="w"> </span><span class="se">\)</span><span class="w"> </span>-print0<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span><span class="p">|</span><span class="w"> </span>xargs<span class="w"> </span>-0<span class="w"> </span>file<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-q<span class="w"> </span><span class="s1">'ELF .*x86-64'</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s1">'Found an x86_64 library in an AArch64 target root.'</span><span class="w"> </span>&gt;<span class="p">&amp;</span><span class="m">2</span>
+<span class="w">  </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span>
+<span class="k">fi</span>
+</code></pre></div>
+<p>Run the resulting application on the supported Thor target to validate the target driver, ABI,
+backend plugins, and runtime package versions. Architecture and link checks on the builder do not
+replace that target-side test.</p>
+<h3 id="deployment-boundary">Deployment boundary<a class="headerlink" href="#deployment-boundary" title="Permanent link">#</a></h3>
+<p>Cross-compilation proves that the application configures and links for AArch64. It does not prove
+runtime behavior. The target must provide a compatible Linux application binary interface (ABI),
+CUDA runtime/driver, matching Holoscan 4.6 libraries, and every application-specific shared library.
+Complete <a href="#deploy-and-validate-on-a-thor-target">Deploy and validate on a Thor target</a> to validate
+the executable on Jetson AGX Thor or IGX Thor hardware. Jetson or IGX camera, multimedia, networking,
+and other BSP-specific dependencies require matching packages and may require a sysroot from the
+exact target OS rather than the generic SBSA roots used here.</p>
 
 
 
@@ -20386,7 +21136,7 @@ arXiv preprint arXiv:2207.00449.
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../../holoscan-bootcamp/" class="md-footer__link md-footer__link--prev" aria-label="Previous: NVIDIA Holoscan Bootcamp lab materials (latest)">
+          <a href="../creating-multi-node-applications/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Creating Multi-Node Holoscan Applications (latest)">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -20396,20 +21146,20 @@ arXiv preprint arXiv:2207.00449.
                 Previous
               </span>
               <div class="md-ellipsis">
-                NVIDIA Holoscan Bootcamp lab materials (latest)
+                Creating Multi-Node Holoscan Applications (latest)
               </div>
             </div>
           </a>
         
         
           
-          <a href="../../dicom_to_usd_with_monai_and_holoscan/" class="md-footer__link md-footer__link--next" aria-label="Next: DICOM to OpenUSD mesh segmentation (latest)">
+          <a href="../cuda_mps/" class="md-footer__link md-footer__link--next" aria-label="Next: CUDA MPS Tutorial (latest)">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                DICOM to OpenUSD mesh segmentation (latest)
+                CUDA MPS Tutorial (latest)
               </div>
             </div>
             <div class="md-footer__button md-icon">
@@ -20462,12 +21212,12 @@ arXiv preprint arXiv:2207.00449.
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["content.code.annotate", "navigation.tabs", "navigation.indexes", "navigation.path", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.annotate", "navigation.tabs", "navigation.indexes", "navigation.path", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
-        <script src="../../../assets/js/run-locally.js"></script>
+        <script src="../../assets/js/run-locally.js"></script>
       
     
   </body>

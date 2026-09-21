@@ -941,6 +941,10 @@
          <lastmod>2026-09-21</lastmod>
     </url>
     <url>
+         <loc>https://nvidia-holoscan.github.io/holohub/tutorials/cross_compilation_example/</loc>
+         <lastmod>2026-09-21</lastmod>
+    </url>
+    <url>
          <loc>https://nvidia-holoscan.github.io/holohub/tutorials/cuda_mps/</loc>
          <lastmod>2026-09-21</lastmod>
     </url>
