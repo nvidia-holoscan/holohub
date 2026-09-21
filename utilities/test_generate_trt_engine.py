@@ -78,3 +78,8 @@ def test_nonexecutable_converter_returns_failure(trtexec, monkeypatch):
     trtexec.with_name("trtexec").chmod(0o600)
     monkeypatch.setenv("PATH", str(trtexec.parent))
     assert convert_onnx("input.onnx", "output.engine", False) == 126
+
+
+def test_invalid_executable_format_returns_failure(trtexec):
+    trtexec.with_name("trtexec").write_bytes(b"\x00not an executable")
+    assert convert_onnx("input.onnx", "output.engine", False) == 126

@@ -73,7 +73,7 @@ def convert_onnx(input_file, output_file, fp16_enabled):
     except FileNotFoundError as error:
         print(error, file=sys.stderr)
         return 127
-    except PermissionError as error:
+    except OSError as error:
         print(error, file=sys.stderr)
         return 126
 
