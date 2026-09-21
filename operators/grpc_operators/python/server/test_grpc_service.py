@@ -318,6 +318,11 @@ def command(request, rpc, monkeypatch):
         "endoscopy_tool_tracking",
         SimpleNamespace(EndoscopyToolTrackingPipeline=object),
     )
+    monkeypatch.setitem(
+        sys.modules,
+        "app_edge_single_fragment",
+        SimpleNamespace(AppEdgeSingleFragment=object),
+    )
     spec = importlib.util.spec_from_file_location(
         f"grpc_{request.param}_command", app_dir / request.param / f"app_{request.param}_main.py"
     )
