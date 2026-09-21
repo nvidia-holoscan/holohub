@@ -7,6 +7,7 @@ import importlib.util
 import queue
 import sys
 from pathlib import Path
+from types import ModuleType
 from urllib.error import HTTPError
 from urllib.request import urlopen
 
@@ -18,6 +19,16 @@ import werkzeug.serving
 @pytest.mark.parametrize("flask_debug", ["0", "1"])
 def test_http_errors_do_not_expose_debugger(application, flask_debug, monkeypatch):
     monkeypatch.setenv("FLASK_DEBUG", flask_debug)
+    if application == "ehr_query_llm/lmm":
+        # Only the unused WebServerOp wrapper needs these SDK types. Keep the
+        # HTTP and WebSocket servers real without importing the GPU runtime.
+        core = ModuleType("holoscan.core")
+        core.Operator = object
+        core.OperatorSpec = object
+        holoscan = ModuleType("holoscan")
+        holoscan.core = core
+        monkeypatch.setitem(sys.modules, "holoscan", holoscan)
+        monkeypatch.setitem(sys.modules, "holoscan.core", core)
     path = Path(__file__).resolve().parents[2] / "applications" / application / "webserver.py"
     module_name = "test_webserver_" + application.replace("/", "_")
     spec = importlib.util.spec_from_file_location(module_name, path)
