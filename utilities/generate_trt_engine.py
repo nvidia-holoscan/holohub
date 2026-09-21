@@ -21,8 +21,6 @@ import os
 import subprocess
 import sys
 
-import cupy as cp
-
 
 def get_gpu_info():
     """
@@ -31,6 +29,8 @@ def get_gpu_info():
     Returns:
         list: A list of formatted GPU information strings.
     """
+    import cupy as cp
+
     gpu_info_list = []
     device_count = cp.cuda.runtime.getDeviceCount()
 
