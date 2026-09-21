@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,11 +15,9 @@
 
 import glob
 import os
-import pickle
 from argparse import ArgumentParser
 from pathlib import Path
 
-import blosc
 import matplotlib.pyplot as plt
 import numpy as np
 import onnx
@@ -28,6 +26,7 @@ import torch
 from holoscan.conditions import CountCondition
 from holoscan.core import Application, Operator, OperatorSpec
 from PIL import Image
+from utils.blosc_io import decompress_file
 
 LABEL_COLORMAP = torch.tensor(
     [
@@ -91,18 +90,7 @@ class LoadDataOp(Operator):
 
         Returns: Decompressed array data.
         """
-        res = {}
-
-        with path.open("rb") as f:
-            meta = pickle.load(f)
-            shape, dtype = meta
-            data = f.read()
-            array = np.empty(shape=shape, dtype=dtype)
-            blosc.decompress_ptr(data, array.__array_interface__["data"][0])
-
-            res = array
-
-        return res
+        return decompress_file(path)
 
 
 class HyperspectralInferenceOp(Operator):

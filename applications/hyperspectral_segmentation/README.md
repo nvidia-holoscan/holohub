@@ -10,6 +10,10 @@ The data is a subset of the [HeiPorSPECTRAL](https://www.heiporspectral.org/) da
 
 [📦️ (NGC) App Data and Model for Hyperspectral Segmentation](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/hyperspectral_segmentation).  This resource is automatically downloaded when building the application.
 
+The Blosc reader supports the existing dataset's numeric array headers. It rejects
+metadata that requires arbitrary Python objects and checks the decompressed size
+against the array shape and dtype before constructing an array.
+
 ## Run Instructions
 
 This application requires some python modules to be installed. You can simply use Holohub CLI to build and run the application.
