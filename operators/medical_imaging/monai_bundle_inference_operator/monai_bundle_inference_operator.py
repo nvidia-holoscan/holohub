@@ -16,7 +16,6 @@
 import json
 import logging
 import os
-import pickle
 import tempfile
 import time
 import zipfile
@@ -559,7 +558,7 @@ class MonaiBundleInferenceOperator(InferenceOperator):
         Gets the input/output type of the given input or output metadata dictionary. The known Python types for input
         or output types are given in the dictionary `BundleOperator.known_io_data_types` which relate type names to
         the actual type. if `conf["type"]` is an actual object that's not a string then this is assumed to be the
-        type specifier and is returned. The fallback type is `bytes` which indicates the value is a pickled object.
+        type specifier and is returned. The fallback type is `object`, for in-memory values only.
 
         Args:
             conf: configuration dictionary for an input or output from the "network_data_format" metadata section
@@ -776,12 +775,15 @@ class MonaiBundleInferenceOperator(InferenceOperator):
 
                 file_path = files[0]
 
-            # Only Python pickle file and or numpy file are supported as of now.
+            if itype != np.ndarray:
+                raise ValueError(
+                    "Disk inputs require NumPy arrays; use in-memory input for other types."
+                )
             with open(file_path, "rb") as f:
-                if itype == np.ndarray:
-                    value = np.load(file_path, allow_pickle=True)
-                else:
-                    value = pickle.load(f)
+                value = np.load(f, allow_pickle=False)
+            if not isinstance(value, np.ndarray):
+                value.close()  # NpzFile archives are not a single array input.
+                raise TypeError("Disk inputs must be a single pickle-free NPY array.")
 
         # Once extracted, the input data may be further processed depending on its actual type.
         if isinstance(value, Image):
@@ -840,17 +842,6 @@ class MonaiBundleInferenceOperator(InferenceOperator):
         # and for leaf node if the storage type is IN_MEMORY.
         try:
             op_output_config = op_output.get(name)
-            if isinstance(op_output_config, Path):
-                output_file = op_output_config / name
-                output_file.parent.mkdir(exist_ok=True)
-                # Save pickle file
-                with open(output_file, "wb") as wf:
-                    pickle.dump(result, wf)
-
-                # Cannot (re)set/modify the op_output path to the actual file like below
-                # op_output.set(str(output_file), name)
-            else:
-                op_output.emit(result, name)
         except (
             ArithmeticError,
             AssertionError,
@@ -865,6 +856,19 @@ class MonaiBundleInferenceOperator(InferenceOperator):
         ):
             # The following throws if the output storage type is DISK, but The OutputContext
             # currently does not expose the storage type. Try and let it throw if need be.
+            op_output_config = None
+
+        if isinstance(op_output_config, Path):
+            if otype != np.ndarray or result.dtype.hasobject:
+                raise ValueError(
+                    "Disk outputs require pickle-free NumPy arrays; use in-memory output for other types."
+                )
+            output_file = op_output_config / name
+            output_file.parent.mkdir(exist_ok=True)
+            # A file handle preserves the configured output name without appending .npy.
+            with open(output_file, "wb") as wf:
+                np.save(wf, result, allow_pickle=False)
+        else:
             op_output.emit(result, name)
 
     def _convert_from_image(self, img: Image) -> tuple[np.ndarray, dict]:

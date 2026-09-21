@@ -12,6 +12,17 @@ The `MonaiBundleInferenceOperator` loads a MONAI Bundle model and applies it to 
 - MONAI
 - torch
 
+## Disk I/O
+
+Disk inputs and outputs support NumPy arrays in pickle-free NPY format. The
+configured file name is preserved, so a `.npy` extension is optional. Pickle files,
+object arrays, and NPZ archives are rejected. Use in-memory ports for `Image`,
+dictionaries, and other Python objects.
+
+Existing numeric pickle files must be converted to NPY in a trusted environment
+before use. Only convert files whose source and contents you trust; this operator
+does not unpickle legacy data.
+
 ## Example Usage
 
 ```python
