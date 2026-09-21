@@ -1,4 +1,4 @@
-anyio==4.12.*
+anyio==4.15.*
 chromadb==1.5.*
 GitPython==3.1.*
 gradio==6.9.*
