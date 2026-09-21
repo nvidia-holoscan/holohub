@@ -132,7 +132,7 @@ def certificates(remote_address):
 @asynccontextmanager
 async def running_service(rpc, host="127.0.0.1", reinitialize=False, **tls):
     with socket.socket(socket.AF_INET6 if ":" in host else socket.AF_INET) as reserve:
-        reserve.bind((host, 0))
+        reserve.bind(("::1" if ":" in host else "127.0.0.1", 0))
         port = reserve.getsockname()[1]
     factory = SimpleNamespace(created=[])
 
