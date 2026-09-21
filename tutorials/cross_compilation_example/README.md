@@ -554,12 +554,32 @@ PyTorch, or Open Neural Network Exchange (ONNX) Runtime. Applications that use t
 must add their AArch64 development headers and libraries to the cross-build and install their
 matching runtime libraries on the target.
 
-Keep these additions in a separate target package root rather than installing them into the x86_64
-builder. A general workflow is:
+Use the following rules when extending the cross-build environment:
+
+- Keep the Holoscan SDK Debian package in its separate extracted root. Installing its arm64 package
+  directly would collide with an amd64 Holoscan installation under `/opt/nvidia/holoscan`.
+- Install native x86_64 NVIDIA CUDA Compiler (NVCC) tools and NVIDIA's Cross-SBSA packages normally.
+  Together they provide the compiler that runs on the builder and the CUDA headers and libraries for
+  the target.
+- By default, resolve and extract other AArch64 development packages into a separate target package
+  root. This keeps target packages out of the builder's package database and works for packages that
+  are not declared multiarch-compatible, including the TensorRT packages used below.
+- Install an AArch64 package directly with apt only after confirming that it is marked
+  `Multi-Arch: same`, uses architecture-qualified paths, does not conflict with an installed amd64
+  package, and does not require target maintainer scripts during installation. Many Ubuntu runtime
+  libraries meet these requirements, but NVIDIA packages must be checked individually.
+
+The dependencies listed as `Recommends` by the Holoscan package are optional. Do not copy the full
+list into the sysroot automatically. Add the development packages required by the operators and
+backends that the application uses, and install their matching runtime packages on the target
+system.
+
+The safe default workflow for additional AArch64 packages is:
 
 1. Declare the required AArch64 packages and exact versions in a project-owned manifest.
 2. Give apt isolated package status, repository metadata, and package-cache directories for arm64.
-3. Use `apt-get --download-only` so apt resolves the dependency closure without installing it.
+3. Use `apt-get --download-only` so apt resolves and downloads the dependency closure without
+   installing it. This command does not populate the target package root.
 4. Extract every downloaded Debian package into one target package root with `dpkg-deb --extract`.
 5. Add that root to `CMAKE_FIND_ROOT_PATH`, then provide any package-specific CMake configuration.
 6. Check every linked library's architecture and validate the result on the target system.
@@ -618,8 +638,13 @@ TENSORRT_DEB_VERSION=10.13.3.9-1+cuda13.0
 
 TARGET_PACKAGES=(
   "libnvinfer-dev:arm64=${TENSORRT_DEB_VERSION}"
+  "libnvinfer-headers-dev:arm64=${TENSORRT_DEB_VERSION}"
+  "libnvinfer10:arm64=${TENSORRT_DEB_VERSION}"
   "libnvinfer-plugin-dev:arm64=${TENSORRT_DEB_VERSION}"
+  "libnvinfer-headers-plugin-dev:arm64=${TENSORRT_DEB_VERSION}"
+  "libnvinfer-plugin10:arm64=${TENSORRT_DEB_VERSION}"
   "libnvonnxparsers-dev:arm64=${TENSORRT_DEB_VERSION}"
+  "libnvonnxparsers10:arm64=${TENSORRT_DEB_VERSION}"
 )
 
 # Review the dependency closure without changing the builder
@@ -639,11 +664,15 @@ while IFS= read -r -d '' package; do
 done < <(find "${TARGET_APT_ROOT}/archives" -maxdepth 1 -name '*.deb' -print0)
 ```
 
+The manifest pins TensorRT's development, header, and runtime package closure because apt can
+otherwise select transitive packages built for a newer CUDA or TensorRT release. TensorRT 10.13.3
+packages are not declared `Multi-Arch: same`, so keep them in the extracted target root instead of
+installing them alongside any amd64 TensorRT packages.
+
 The previously extracted Holoscan package remains in `.cross/holoscan-root`; do not add it to this
-manifest. Resolving its package-level dependencies would download an AArch64 CUDA compiler even
-though the cross-build intentionally uses native x86_64 NVCC. Use the same TensorRT release on the
-target. Do not accept the repository's unpinned latest version: the SBSA repository can contain
-TensorRT builds for newer CUDA releases.
+manifest. Its package metadata requires an AArch64 CUDA compiler package, while this cross-build
+already uses native x86_64 NVCC with the Cross-SBSA target packages. Use the same TensorRT release
+on the target system.
 
 TensorRT's Debian packages provide the headers and libraries, but a consuming project must also
 provide CMake package discovery that defines the imported targets expected by Holoscan. If the
