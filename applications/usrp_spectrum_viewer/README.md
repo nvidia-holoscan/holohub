@@ -72,9 +72,11 @@ Before configuring or running this application, prepare the host:
 
   These apply to the current boot only; add them to `/etc/sysctl.conf` to persist.
 
-- **USRP embedded software:** the supplied application container builds UHD 4.11.0.0. Before running it with an X410 or X440, update the radio's embedded filesystem, including its MPM service, to the matching UHD release. Follow [Updating the Filesystem](https://files.ettus.com/manual/page_usrp_x4xx.html#x4xx_updating_filesystems) in the X4xx manual. [UHD 4.11 replaces msgpack-RPC with gRPC](https://github.com/EttusResearch/uhd/releases/tag/v4.11.0.0), so the new host cannot control a radio still running UHD 4.10 MPM. Loading only an FPGA image does not update MPM.
+- **USRP embedded software:** when `usrp_rx.enabled` is `true`, the supplied application container controls the radio using UHD 4.11.0.0. Before using this mode with an X410 or X440, ensure the radio's embedded filesystem, including its MPM service, matches that UHD release. If an upgrade is needed, follow [Updating the Filesystem](https://files.ettus.com/manual/page_usrp_x4xx.html#x4xx_updating_filesystems) in the X4xx manual. [UHD 4.11 replaces msgpack-RPC with gRPC](https://github.com/EttusResearch/uhd/releases/tag/v4.11.0.0), so the new host cannot control a radio still running UHD 4.10 MPM. Loading only an FPGA image does not update MPM.
 
-- **USRP FPGA image:** after updating the embedded filesystem, load an FPGA image from the matching UHD release that supports your streaming rate with `uhd_image_loader`. See the [USRP X4xx manual](https://files.ettus.com/manual/page_usrp_x4xx.html) for the loading procedure, and [Limitations](#limitations) for the images used during testing.
+  With `usrp_rx.enabled` set to `false`, the application receives from an external streamer without controlling the radio. Match the radio's embedded software and FPGA image to the external streamer's UHD version instead.
+
+- **USRP FPGA image:** use `uhd_image_loader` to load an FPGA image from the same release as the UHD instance controlling the radio. Select an image that supports your streaming rate. See the [USRP X4xx manual](https://files.ettus.com/manual/page_usrp_x4xx.html) for the loading procedure, and [Limitations](#limitations) for the images used during testing.
 
 ## Configuration
 
