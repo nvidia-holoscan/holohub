@@ -18,6 +18,7 @@ limitations under the License.
 
 import argparse
 import os
+import subprocess
 import sys
 
 import cupy as cp
@@ -61,13 +62,20 @@ def convert_onnx(input_file, output_file, fp16_enabled):
         fp16_enabled (bool): Flag indicating whether to enable FP16 mode.
 
     Returns:
-        None
+        int: Converter exit status, using shell-style statuses for signals and launch failures.
     """
-    trtexec_cmd = f"trtexec --onnx='{input_file}' --saveEngine='{output_file}'"
+    trtexec_cmd = ["trtexec", f"--onnx={input_file}", f"--saveEngine={output_file}"]
     if fp16_enabled:
-        trtexec_cmd += " --fp16"
-    status = os.system(trtexec_cmd)
-    return os.WEXITSTATUS(status)
+        trtexec_cmd.append("--fp16")
+    try:
+        returncode = subprocess.run(trtexec_cmd, check=False).returncode
+        return 128 - returncode if returncode < 0 else returncode
+    except FileNotFoundError as error:
+        print(error, file=sys.stderr)
+        return 127
+    except PermissionError as error:
+        print(error, file=sys.stderr)
+        return 126
 
 
 def main():
