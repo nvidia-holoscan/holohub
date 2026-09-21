@@ -13,27 +13,26 @@ to an AArch64 target system. Cross-compilation runs the compiler on one architec
 binaries for another.
 
 The pinned workflow targets CUDA 13 Server Base System Architecture (SBSA) systems using NVIDIA's
-generic AArch64 packages. Jetson Linux 38 aligned Jetson AGX Thor with SBSA, and NVIDIA's CUDA
+generic AArch64 packages. Jetson Linux 39.2.1 aligned Jetson AGX Thor with SBSA, and NVIDIA's CUDA
 Cross-SBSA packages support cross-platform development for arm64 Jetson Thor and SBSA targets. The
 same build is therefore suitable for the core Holoscan API on these target baselines:
 
 | Target | Supported software baseline |
 | --- | --- |
-| NVIDIA Jetson AGX Thor Developer Kit | JetPack 7.0, Jetson Linux 38.2, Ubuntu 24.04, and CUDA 13 |
+| NVIDIA Jetson AGX Thor Developer Kit | JetPack 7.2.1, Jetson Linux 39.2.1, Ubuntu 24.04, and CUDA 13 |
 | NVIDIA IGX Thor Developer Kit and Developer Kit Mini | IGX Software (IGX-SW) 2.0 Production Release, Board Support Package (BSP) 38.5.0, Ubuntu 24.04, and CUDA 13 |
 
-See the [Jetson Linux 38.2 release notes](https://docs.nvidia.com/jetson/archives/r38.2/ReleaseNotes/Jetson_Linux_Release_Notes_r38.2.pdf),
+See the [Jetson Linux 39.2.1 release notes](https://docs.nvidia.com/jetson/archives/r39.2.1/ReleaseNotes/Jetson_Linux_Release_Notes_r39.2.1.pdf),
 [IGX-SW 2.0 release notes](https://docs.nvidia.com/igx/user-guide/2.0/software-releases/software-release-2-0-thor-notes-pr.html),
 and [CUDA cross-platform installation guide](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/#cuda-cross-platform-installation)
 for the platform details.
 
-SBSA standardizes the AArch64 platform interfaces used by this example, so the core Holoscan
-application can use NVIDIA's published generic CUDA and Holoscan packages without a board-specific
-target filesystem. The example intentionally uses Ubuntu 24.04's AArch64 GNU Compiler Collection
-(GCC) cross-compiler and target libraries, matching the Ubuntu 24.04 Holoscan package. It does not use
-the standalone Jetson Linux 38.2 cross-toolchain because that toolchain includes a GNU C Library
-(glibc) 2.28 sysroot, which is older than the glibc required by the released Ubuntu 24.04 Holoscan
-package.
+This example uses Ubuntu 24.04's AArch64 GNU Compiler Collection (GCC) cross-compiler and target
+libraries to match the released Ubuntu 24.04 Holoscan package. It does not use the standalone Jetson
+Linux 39.2.1 cross-toolchain: that toolchain provides a GNU C Library (glibc) 2.28 sysroot, while
+Holoscan 4.6 requires glibc 2.35 or newer. Because Thor implements the Server Base System
+Architecture (SBSA), the core application can instead use NVIDIA's generic AArch64 CUDA and Holoscan
+packages without a board-specific target filesystem.
 
 This supported path is limited to the core Holoscan C++ API demonstrated here. Applications that use
 board-specific camera, multimedia, networking, or other BSP libraries need matching target packages
@@ -76,7 +75,7 @@ This tutorial covers two workflows:
 - Internet access while building the image.
 - Python 3 with virtual-environment support for the direct Holoscan CLI workflow.
 - `file` and `readelf` (`binutils`) on the host for the final artifact checks.
-- Optional: A Jetson AGX Thor Developer Kit with JetPack 7.0, or an IGX Thor Developer Kit or
+- Optional: A Jetson AGX Thor Developer Kit with JetPack 7.2.1, or an IGX Thor Developer Kit or
   Developer Kit Mini with IGX-SW 2.0, for deployment and runtime validation.
 
 A graphics processing unit (GPU) and target hardware are not required to cross-compile. This C++
