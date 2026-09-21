@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         python3-numpy \
         python3-requests \
         python3-ruamel.yaml \
-        libusb-dev \
+        libusb-1.0-0-dev \
         libgrpc++-dev \
         libprotobuf-dev \
         protobuf-compiler-grpc \
