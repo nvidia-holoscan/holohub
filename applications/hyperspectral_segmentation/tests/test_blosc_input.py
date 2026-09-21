@@ -4,18 +4,44 @@
 import copyreg
 import importlib
 import pickle
+import runpy
+import sys
 from pathlib import Path
+from types import ModuleType
 
 import blosc
 import numpy as np
 import pytest
 
 
-@pytest.fixture
-def load_cube(monkeypatch):
-    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1]))
-    module = importlib.import_module("hyperspectral_segmentation")
-    return lambda path: module.LoadDataOp.decompress_file(None, path)
+@pytest.fixture(params=["reader", "application"])
+def load_cube(request, monkeypatch):
+    app_dir = Path(__file__).resolve().parents[1]
+    monkeypatch.syspath_prepend(str(app_dir))
+    if request.param == "reader":
+        return importlib.import_module("utils.blosc_io").decompress_file
+
+    # Only the application imports and colormap need these optional dependencies.
+    # Execute its real LoadDataOp method and the real reader for every input case.
+    for name, attributes in {
+        "matplotlib": {},
+        "matplotlib.pyplot": {},
+        "onnx": {},
+        "onnxruntime": {},
+        "torch": {"tensor": np.asarray},
+        "holoscan": {},
+        "holoscan.conditions": {"CountCondition": object},
+        "holoscan.core": {"Application": object, "Operator": object, "OperatorSpec": object},
+        "PIL": {"Image": object},
+    }.items():
+        module = ModuleType(name)
+        vars(module).update(attributes)
+        monkeypatch.setitem(sys.modules, name, module)
+        if "." in name:
+            parent, attribute = name.rsplit(".", 1)
+            monkeypatch.setattr(sys.modules[parent], attribute, module, raising=False)
+    module = runpy.run_path(str(app_dir / "hyperspectral_segmentation.py"))
+    return lambda path: module["LoadDataOp"].decompress_file(None, path)
 
 
 def write_cube(path, array, metadata=None, protocol=4):
@@ -147,3 +173,23 @@ def test_malformed_headers_are_rejected(load_cube, tmp_path, payload):
     path.write_bytes(payload)
     with pytest.raises(ValueError):
         load_cube(path)
+
+
+@pytest.mark.parametrize(
+    "descriptor, cause",
+    [
+        ({-1: ["field"], "field": ()}, IndexError),
+        ({-1: ["missing"]}, KeyError),
+        (",", SyntaxError),
+    ],
+)
+def test_malformed_dtype_errors_are_normalized(load_cube, tmp_path, descriptor, cause):
+    class InvalidDtype:
+        def __reduce__(self):
+            return np.dtype, (descriptor,)
+
+    path = tmp_path / "invalid-dtype.blosc"
+    path.write_bytes(pickle.dumps(((1,), InvalidDtype())))
+    with pytest.raises(ValueError, match="Invalid Blosc array metadata") as error:
+        load_cube(path)
+    assert isinstance(error.value.__cause__, cause)

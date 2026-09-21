@@ -13,6 +13,10 @@ The data is a subset of the [HeiPorSPECTRAL](https://www.heiporspectral.org/) da
 The Blosc reader supports the existing dataset's numeric array headers. It rejects
 metadata that requires arbitrary Python objects and checks the decompressed size
 against the array shape and dtype before constructing an array.
+Shape dimensions and named-array lengths must be built-in Python integers, as in
+the upstream writer's `array.shape` and `len(compressed_data)` values. Custom
+writers should normalize dimensions with `tuple(int(size) for size in shape)`
+before serializing them; NumPy scalar metadata is not supported.
 
 ## Run Instructions
 

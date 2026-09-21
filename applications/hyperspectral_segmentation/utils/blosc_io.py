@@ -33,7 +33,9 @@ def _read_metadata(payload):
                 header_end = position + 1
                 metadata = _MetadataUnpickler(io.BytesIO(payload[:header_end])).load()
                 return metadata, header_end
-    except (pickle.UnpicklingError, EOFError, TypeError, ValueError, OverflowError) as exc:
+    except Exception as exc:
+        # Malformed dtype arguments can raise exceptions beyond pickle's own
+        # errors. Normalize failures only within this metadata decoding boundary.
         raise ValueError("Invalid Blosc array metadata") from exc
     raise ValueError("Missing Blosc array metadata")
 

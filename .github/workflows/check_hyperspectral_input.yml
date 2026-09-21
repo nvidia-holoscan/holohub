@@ -4,6 +4,13 @@
 name: Check hyperspectral input security
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'applications/hyperspectral_segmentation/**'
+      - 'conftest.py'
+      - 'pyproject.toml'
+      - '.github/workflows/check_hyperspectral_input.yml'
   pull_request:
     paths:
       - 'applications/hyperspectral_segmentation/**'
@@ -24,16 +31,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - name: Install CPU test dependencies
-        run: |
-          python -m pip install torch==2.10.0+cpu --index-url https://download.pytorch.org/whl/cpu
-          python -m pip install pytest==9.1.1 numpy==2.5.3 holoscan==4.6.0 \
-            cupy-cuda12x==13.6.0 nvidia-cuda-runtime-cu12==12.9.79 \
-            blosc==1.11.4 matplotlib==3.11.2 onnx==1.23.0 \
-            onnxruntime==1.30.0 Pillow==12.3.0
-      - name: Test numeric Blosc inputs
-        run: |
-          ulimit -s 32768
-          export LD_LIBRARY_PATH="$(python -c 'import site; print(site.getsitepackages()[0])')/nvidia/cuda_runtime/lib"
-          python -c "import holoscan.core, numpy, torch; assert torch.version.cuda is None"
-          python -m pytest -v applications/hyperspectral_segmentation/tests/test_blosc_input.py
+      - name: Install test dependencies
+        run: python -m pip install pytest==9.1.1 numpy==2.5.3 blosc==1.11.4
+      - name: Test numeric Blosc inputs and application wiring
+        run: python -m pytest -v applications/hyperspectral_segmentation/tests/test_blosc_input.py

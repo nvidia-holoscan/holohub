@@ -27,7 +27,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 # Install required python modules
 RUN pip3 install \
     numpy>=1.24.4 \
-    blosc>=1.11.1 \
+    "blosc>=1.11.4" \
     torch>=2.1.0 \
     onnx>=1.15.0 \
     onnxruntime>=1.16.1 \
