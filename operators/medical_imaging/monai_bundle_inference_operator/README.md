@@ -12,12 +12,17 @@ The `MonaiBundleInferenceOperator` loads a MONAI Bundle model and applies it to 
 - MONAI
 - torch
 
-## Disk I/O
+## Path-based I/O
 
-Disk inputs and outputs support NumPy arrays in pickle-free NPY format. The
-configured file name is preserved, so a `.npy` extension is optional. Pickle files,
-object arrays, and NPZ archives are rejected. Use in-memory ports for `Image`,
-dictionaries, and other Python objects.
+Input `Path` values must refer to pickle-free NPY arrays with dtypes supported by
+`torch.from_numpy`. A `.npy` extension is optional. Pickle files, object arrays,
+and NPZ archives are rejected. Pass `Image`, dictionaries, and other Python
+objects through in-memory ports.
+
+Holoscan graphs use in-memory output ports; save emitted arrays with a downstream
+writer. The legacy path-based output helper writes NPY only when its output
+context provides a directory through `get(name)`, preserving the configured file
+name. It does not add support for `IOType.DISK` output-port registration.
 
 Existing numeric pickle files must be converted to NPY in a trusted environment
 before use. Only convert files whose source and contents you trust; this operator

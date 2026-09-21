@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+name: Check MONAI disk I/O security
+
+on:
+  pull_request:
+    paths:
+      - 'operators/medical_imaging/**'
+      - 'utilities/testing/test_monai_bundle_disk_io.py'
+      - 'conftest.py'
+      - 'pyproject.toml'
+      - '.github/workflows/check_monai_disk_io.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install CPU test dependencies
+        run: |
+          python -m pip install torch==2.10.0+cpu --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install pytest==9.1.1 numpy==2.5.3 holoscan==4.6.0 \
+            cupy-cuda12x==13.6.0 nvidia-cuda-runtime-cu12==12.9.79 \
+            monai==1.5.2 nibabel==5.4.2 setuptools==80.10.2
+      - name: Test disk array I/O
+        run: |
+          ulimit -s 32768
+          export LD_LIBRARY_PATH="$(python -c 'import site; print(site.getsitepackages()[0])')/nvidia/cuda_runtime/lib"
+          python -c "import holoscan.core, numpy, torch, monai; assert torch.version.cuda is None"
+          python -m pytest -v utilities/testing/test_monai_bundle_disk_io.py

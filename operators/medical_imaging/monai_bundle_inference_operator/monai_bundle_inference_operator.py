@@ -758,7 +758,7 @@ class MonaiBundleInferenceOperator(InferenceOperator):
         itype = self._get_io_data_type(in_conf)
         value = op_input.receive(name)
 
-        metadata = None
+        metadata = {}
         if isinstance(value, Path):
             if not value.exists():
                 raise ValueError(f"Input path, {value}, does not exist.")
@@ -828,7 +828,11 @@ class MonaiBundleInferenceOperator(InferenceOperator):
             )
             logger.debug(f"Converted Image shape: {result.asnumpy().shape}")
         elif otype == np.ndarray:
-            result = np.asarray(value)
+            result = (
+                value.detach().cpu().numpy()
+                if isinstance(value, torch.Tensor)
+                else np.asarray(value)
+            )
         elif out_conf["type"] == "probabilities":
             _, _value_class = value.max(dim=0)
             prediction = [out_conf["channel_def"][str(int(v))] for v in value.flatten()]

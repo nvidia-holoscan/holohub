@@ -85,7 +85,7 @@ def test_numeric_disk_output_round_trip(operator, tmp_path, location):
     value, metadata = receive(operator, path if location == "file" else tmp_path)
 
     torch.testing.assert_close(value, torch.tensor([[1.5, 2.5], [3.5, 4.5]]))
-    assert metadata is None
+    assert metadata == {}
     assert not (tmp_path / "data.npy").exists()
 
 
@@ -107,10 +107,10 @@ def test_unsupported_disk_output_is_rejected(operator, tmp_path):
 def test_in_memory_inputs_remain_supported(operator):
     value, metadata = receive(operator, np.array([1, 2, 3], dtype=np.int32))
     torch.testing.assert_close(value, torch.tensor([1, 2, 3], dtype=torch.int32))
-    assert metadata is None
+    assert metadata == {}
     original = {"labels": ["spleen"], "probabilities": [0.75]}
     operator._inputs["data"]["type"] = "probabilities"
-    assert receive(operator, original) == (original, None)
+    assert receive(operator, original) == (original, {})
 
 
 def test_in_memory_image_preserves_pixels_and_metadata(operator):
@@ -156,3 +156,35 @@ def test_disk_write_failure_is_not_swallowed(operator, tmp_path):
     )
     with pytest.raises(IsADirectoryError):
         operator._send_output(np.array([1]), "data", {}, output, None)
+
+
+def test_npy_input_runs_through_compute(operator, tmp_path):
+    from monai.inferers import SimpleInferer
+    from monai.transforms import Compose
+
+    expected = np.arange(6, dtype=np.float32).reshape(2, 3)
+    path = tmp_path / "data.npy"
+    np.save(path, expected, allow_pickle=False)
+    operator.app_context = SimpleNamespace(models={operator._model_name: torch.nn.Identity()})
+    operator._init_completed = True
+    operator._preproc = Compose([])
+    operator._postproc = Compose([])
+    operator._inferer = SimpleInferer()
+    emitted = []
+    operator.compute(
+        SimpleNamespace(receive=lambda name: path),
+        SimpleNamespace(emit=lambda value, name: emitted.append((value, name))),
+        None,
+    )
+    assert len(emitted) == 1 and emitted[0][1] == "data"
+    np.testing.assert_array_equal(emitted[0][0], expected)
+
+
+@pytest.mark.parametrize("device", ["cpu", "cuda"])
+def test_tensor_output_is_saved_as_numpy(operator, tmp_path, device):
+    if device == "cuda" and not torch.cuda.is_available():
+        pytest.skip("CUDA is not available")
+    value = torch.tensor([1.5, 2.5], device=device, requires_grad=True)
+    output = SimpleNamespace(get=lambda name: tmp_path)
+    operator._send_output(value, "data", {}, output, None)
+    np.testing.assert_array_equal(np.load(tmp_path / "data", allow_pickle=False), [1.5, 2.5])
