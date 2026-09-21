@@ -23,6 +23,6 @@ opencv-python==4.13.0.92
 pikepdf==10.5.1
 pypdf==6.14.*
 poppler-utils==0.1.0
-markdown==3.5.2
+markdown==3.8.1
 fhir.resources~=7.1.0
-accelerate==0.27.2
+accelerate==1.15.0
