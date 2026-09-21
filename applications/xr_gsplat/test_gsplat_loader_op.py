@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-torch = pytest.importorskip("torch", minversion="2.6.0")
+torch = pytest.importorskip("torch", minversion="2.10.0")
 pytest.importorskip("holoscan.core")
 
 GsplatLoaderOp = importlib.import_module("applications.xr_gsplat.gsplat_loader_op").GsplatLoaderOp

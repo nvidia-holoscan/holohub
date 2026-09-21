@@ -23,7 +23,7 @@ _Fig. 2: A slice of the segmentation saved in a DICOM segmentation instance (wit
 ## Requirements
 
 - On a [Holohub supported platform](../../README.md#supported-platforms)
-- Python 3.8+
+- Python 3.10+
 - Python packages from [PyPI](https://pypi.org), including:
   - torch
   - monai

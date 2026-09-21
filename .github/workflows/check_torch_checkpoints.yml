@@ -4,6 +4,15 @@
 name: Check PyTorch checkpoint security
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'applications/imaging_ai_segmentator/**'
+      - 'applications/xr_gsplat/**'
+      - 'conftest.py'
+      - 'pyproject.toml'
+      - '.github/workflows/check_torch_checkpoints.yml'
   pull_request:
     paths:
       - 'applications/imaging_ai_segmentator/**'
@@ -25,7 +34,10 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - name: Install CPU test dependencies
+      - name: Install checkpoint test dependencies
+        # PyTorch 2.10.0 is the application dependency floor; Holoscan 4.6.0
+        # selects the SDK used in CI. CuPy is an SDK package dependency, and
+        # the CUDA runtime enables SDK imports while checkpoints stay on CPU.
         run: |
           python -m pip install torch==2.10.0+cpu --index-url https://download.pytorch.org/whl/cpu
           python -m pip install pytest==9.1.1 numpy==2.5.3 holoscan==4.6.0 \

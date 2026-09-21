@@ -9,7 +9,7 @@ from types import ModuleType, SimpleNamespace
 
 import pytest
 
-torch = pytest.importorskip("torch", minversion="2.6.0")
+torch = pytest.importorskip("torch", minversion="2.10.0")
 monai = pytest.importorskip("monai")
 pytest.importorskip("holoscan.core")
 
