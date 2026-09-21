@@ -50,7 +50,7 @@ class GsplatLoaderOp(Operator):
             [],
         )
         for ckpt_path in ckpt_paths:
-            ckpt = torch.load(ckpt_path, map_location="cuda")["splats"]
+            ckpt = torch.load(ckpt_path, map_location="cuda", weights_only=True)["splats"]
             self.means.append(ckpt["means"])
             self.quats.append(F.normalize(ckpt["quats"], p=2, dim=-1))
             self.scales.append(torch.exp(ckpt["scales"]))

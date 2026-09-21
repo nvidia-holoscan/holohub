@@ -60,7 +60,7 @@ RUN pip install --upgrade pip
 RUN pip install build
 
 # Gsplat dependencies
-RUN pip install torch
+RUN pip install "torch>=2.6.0"
 RUN pip install ninja numpy jaxtyping rich
 RUN pip install scipy
 

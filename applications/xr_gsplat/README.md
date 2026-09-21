@@ -25,7 +25,7 @@ git clone https://github.com/nerfstudio-project/gsplat.git
 ```bash
 cd gsplat/examples
 # Install torch
-pip install torch
+pip install "torch>=2.6.0"
 # Install gsplat
 pip install git+https://github.com/nerfstudio-project/gsplat.git
 # Install dependencies
