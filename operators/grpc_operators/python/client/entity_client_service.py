@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import asyncio
+import ipaddress
 import logging
 from queue import Queue
 from threading import Thread
@@ -33,11 +34,27 @@ class EntityClientService:
         request_queue: Queue,
         response_queue: Queue,
         source_operator: Operator,
+        *,
+        credentials: grpc.ChannelCredentials | None = None,
     ):
         self.logger: logging.Logger = logging.getLogger(__name__)
 
+        if credentials is None:
+            host, _, port = server_address.rpartition(":")
+            if host.startswith("[") and host.endswith("]"):
+                host = host[1:-1]
+            # Pin this alias to a literal address; never trust DNS for plaintext destinations.
+            address = ipaddress.ip_address("127.0.0.1" if host == "localhost" else host)
+            if not address.is_loopback:
+                raise ValueError("A non-loopback gRPC client requires TLS credentials")
+            port = int(port)
+            if not 1 <= port <= 65535:
+                raise ValueError("The gRPC port must be between 1 and 65535")
+            server_address = f"[{address}]:{port}" if address.version == 6 else f"{address}:{port}"
+
         self.logger.info(f"Initializing Entity Client Service - address: {server_address}")
         self.server_address: str = server_address
+        self.credentials = credentials
         self.interrupt: bool = interrupt
         self.request_queue: Queue = request_queue
         self.response_queue: Queue = response_queue
@@ -51,7 +68,18 @@ class EntityClientService:
         try:
             self.logger.debug("grpc: Starting streaming client")
 
-            async with grpc.aio.insecure_channel(self.server_address) as self.channel:
+            channel = (
+                grpc.aio.insecure_channel(
+                    self.server_address,
+                    options=[
+                        ("grpc.enable_http_proxy", 0),
+                        ("grpc.address_http_proxy_enabled_addresses", ""),
+                    ],
+                )
+                if self.credentials is None
+                else grpc.aio.secure_channel(self.server_address, self.credentials)
+            )
+            async with channel as self.channel:
                 await self.check_channel_availability()
                 stub = holoscan_pb2_grpc.EntityStub(self.channel)
                 stream: grpc.aio.StreamStreamCall = stub.EntityStream()

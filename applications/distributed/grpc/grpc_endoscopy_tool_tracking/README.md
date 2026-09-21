@@ -53,6 +53,54 @@ The data is automatically downloaded when building the application.
 ./holohub run grpc_endoscopy_tool_tracking --language python --run-args="edge"
 ```
 
+The Python server defaults to `127.0.0.1:50051`. These commands use plaintext
+within the same host/network namespace. Plaintext clients accept only literal
+loopback IP addresses or `localhost`, which is pinned to `127.0.0.1`.
+
+#### Python connections between hosts
+
+Remote Python connections require mutual TLS. Obtain a server certificate and
+private key, a client certificate and private key, and their issuing CA
+certificates. The server certificate's subject alternative name must match
+`grpc_client.server_address`; certificates must support their respective server
+or client authentication usage. The server's client CA should issue certificates
+only to clients authorized to use the pipeline. Keep private keys out of source
+control.
+
+Set `grpc_client.server_address` in the
+[Python configuration](./python/endoscopy_tool_tracking.yaml) to the server's
+hostname or IP address, for example `cloud.example.com:50051`. Supply PEM files
+using paths available inside the HoloHub container:
+
+```bash
+# Server: --tls-ca identifies the CA trusted to authenticate clients.
+./holohub run grpc_endoscopy_tool_tracking --language python \
+  --run-args="cloud --host 0.0.0.0 --tls-cert /certs/server.pem --tls-key /certs/server.key --tls-ca /certs/client-ca.pem"
+
+# Client: --tls-ca identifies the CA trusted to authenticate the server.
+./holohub run grpc_endoscopy_tool_tracking --language python \
+  --run-args="edge --tls-cert /certs/client.pem --tls-key /certs/client.key --tls-ca /certs/server-ca.pem"
+```
+
+All three TLS arguments must be provided together. The server accepts a literal
+IPv4 or IPv6 `--host` address and refuses non-loopback binds without mutual TLS.
+Configured TLS also protects the health-check service; its callers need client
+certificates. TLS failures never fall back to plaintext. Local plaintext mode
+trusts other processes in the same network namespace; use mutual TLS there when
+that trust is inappropriate. These settings apply to the Python implementation.
+
+#### Python transport tests
+
+In an environment with the Python application's dependencies, install `pytest`
+and `cryptography`, then run from the repository root:
+
+```bash
+python3 -m pytest operators/grpc_operators/python/server/test_grpc_service.py
+```
+
+The tests generate temporary protocol bindings and certificates and exercise real
+loopback and non-loopback sockets without running the GPU inference pipeline.
+
 ### Configurations
 
 The Edge application runs in a single-fragment mode by default. However, it can be configured to run in a multi-fragment mode, as in the picture above.
