@@ -34,6 +34,18 @@ To build and run the container without building the application, you can use the
 ./holohub run-container hyperspectral_segmentation
 ```
 
+## Tests
+
+`./holohub test hyperspectral_segmentation` runs the input regression suite and
+the existing application smoke test through CTest. To run only the input tests
+without downloading the dataset or model:
+
+```bash
+./holohub test hyperspectral_segmentation \
+  --cmake-options="-DHOLOHUB_DOWNLOAD_DATASETS=OFF" \
+  --ctest-options="-DCTEST_TEST_INCLUDE=^hyperspectral_segmentation_input_test$"
+```
+
 ## Viewing Results
 
 With the default settings, the results of this application are saved to `result.png` file in the hyperspectral segmentation app directory. Each time a new image is processed, it overwrites `result.png`.  By opening this image while the application is running, you can see the results as the updates are made (may depend on your image viewer).

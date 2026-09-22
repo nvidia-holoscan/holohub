@@ -34,6 +34,9 @@ RUN pip3 install \
     Pillow>=10.1.0 \
     matplotlib>=3.7.4
 
+# Test tooling for the application's CTest input regression suite.
+RUN python3 -m pip install "pytest>=8,<10"
+
 # --------------------------------------------------------------------------
 #
 # Holohub run setup
