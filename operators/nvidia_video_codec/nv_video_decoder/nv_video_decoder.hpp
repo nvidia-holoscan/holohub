@@ -196,7 +196,8 @@ class NvVideoDecoderOp : public Operator {
   CUcontext cu_context_ = nullptr;
   CUdevice cu_device_;
 
-  std::unique_ptr<NvDecoder> decoder_;
+  using NvDecoderPtr = std::unique_ptr<NvDecoder, void (*)(NvDecoder*)>;
+  NvDecoderPtr decoder_{nullptr, nullptr};
   std::unique_ptr<FFmpegDemuxer> demuxer_;
   std::unique_ptr<StreamDataProvider> file_data_provider_;
   std::deque<PendingFrame> pending_frames_;

@@ -24,6 +24,7 @@
 #include <limits>
 #include <sstream>
 #include <stdexcept>
+#include <utility>
 
 #include <cuda.h>
 #include "holoscan/core/component_spec.hpp"
@@ -50,11 +51,76 @@ constexpr int64_t kNanosecondsPerSecond = 1'000'000'000;
 static_assert(kNanosecondsPerSecond % kPacketizedNvDecoderClockRate == 0);
 constexpr int64_t kNanosecondsPerPacketizedDecoderTick =
     kNanosecondsPerSecond / kPacketizedNvDecoderClockRate;
+constexpr char kDisplayAreaChangeRequiresStreamReset[] =
+    "Packetized display-area change requires stream_reset";
 
 int64_t presentation_timestamp_to_decoder_timestamp(int64_t presentation_timestamp_ns) {
   // Divide instead of multiplying by the decoder clock rate so the full signed
   // nanosecond range, including negative timestamps, cannot overflow.
   return presentation_timestamp_ns / kNanosecondsPerPacketizedDecoderTick;
+}
+
+class PacketizedNvDecoder final : public NvDecoder {
+ public:
+  using NvDecoder::NvDecoder;
+
+  bool display_area_change_requires_stream_reset() const noexcept {
+    return display_area_change_requires_stream_reset_;
+  }
+
+ protected:
+  int HandleVideoSequence(CUVIDEOFORMAT* video_format) override {
+    if (display_area_change_requires_stream_reset_) {
+      return 0;
+    }
+
+    const bool coded_dimensions_unchanged =
+        sequence_initialized_ && video_format->coded_width == last_coded_width_ &&
+        video_format->coded_height == last_coded_height_;
+    if (coded_dimensions_unchanged) {
+      const int display_width =
+          video_format->display_area.right - video_format->display_area.left;
+      const int display_height =
+          video_format->display_area.bottom - video_format->display_area.top;
+      const auto output_format = GetOutputFormat();
+      const bool output_width_is_two_byte_aligned =
+          output_format == cudaVideoSurfaceFormat_NV12 ||
+          output_format == cudaVideoSurfaceFormat_P016 ||
+          output_format == cudaVideoSurfaceFormat_NV16 ||
+          output_format == cudaVideoSurfaceFormat_P216;
+      const int output_width =
+          output_width_is_two_byte_aligned ? (display_width + 1) & ~1 : display_width;
+
+      if (output_width != GetWidth() || display_height != GetHeight()) {
+        display_area_change_requires_stream_reset_ = true;
+        return 0;
+      }
+    }
+
+    const int result = NvDecoder::HandleVideoSequence(video_format);
+    if (result != 0) {
+      sequence_initialized_ = true;
+      last_coded_width_ = video_format->coded_width;
+      last_coded_height_ = video_format->coded_height;
+    }
+    return result;
+  }
+
+ private:
+  bool sequence_initialized_ = false;
+  bool display_area_change_requires_stream_reset_ = false;
+  unsigned int last_coded_width_ = 0;
+  unsigned int last_coded_height_ = 0;
+};
+
+template <typename Decoder, typename... Args>
+std::unique_ptr<NvDecoder, void (*)(NvDecoder*)> make_nv_decoder(Args&&... args) {
+  return {new Decoder(std::forward<Args>(args)...),
+          [](NvDecoder* decoder) { delete static_cast<Decoder*>(decoder); }};
+}
+
+PacketizedNvDecoder* packetized_decoder(NvDecoder* decoder) {
+  return static_cast<PacketizedNvDecoder*>(decoder);
 }
 
 class InputOrPendingCondition : public Condition {
@@ -251,13 +317,20 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
   // change cannot retain references to the previous GOP.
   bool stream_reset = meta->get<bool>("stream_reset", false);
   if (direct_packet_decode && stream_reset && decoder_ != nullptr) {
-    if (verbose_.get()) {
-      HOLOSCAN_LOG_INFO("Stream reset detected - flushing decoder");
-    }
-    try {
-      decoder_->Decode(nullptr, 0);
-    } catch (const std::exception& e) {
-      HOLOSCAN_LOG_WARN("Failed to flush decoder on stream reset: {}", e.what());
+    const bool rejected_display_area_change =
+        is_packetized_stream &&
+        packetized_decoder(decoder_.get())->display_area_change_requires_stream_reset();
+    if (!rejected_display_area_change) {
+      if (verbose_.get()) {
+        HOLOSCAN_LOG_INFO("Stream reset detected - flushing decoder");
+      }
+      try {
+        decoder_->Decode(nullptr, 0);
+      } catch (const std::exception& e) {
+        HOLOSCAN_LOG_WARN("Failed to flush decoder on stream reset: {}", e.what());
+      }
+    } else if (verbose_.get()) {
+      HOLOSCAN_LOG_INFO("Stream reset detected - replacing rejected packetized decoder");
     }
     if (is_packetized_stream) {
       decoder_.reset();
@@ -277,6 +350,11 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
     init_decoder_for_file(meta);
   } else {
     init_decoder_for_streaming(data_ptr, data_size);
+  }
+
+  if (is_packetized_stream &&
+      packetized_decoder(decoder_.get())->display_area_change_requires_stream_reset()) {
+    throw std::runtime_error(kDisplayAreaChangeRequiresStreamReset);
   }
 
   uint8_t* pVideo = NULL;
@@ -336,8 +414,19 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
       if (access_unit_metadata_inserted) {
         pending_access_unit_metadata_.erase(access_unit_timestamp);
       }
+      if (is_packetized_stream &&
+          packetized_decoder(decoder_.get())->display_area_change_requires_stream_reset()) {
+        throw std::runtime_error(kDisplayAreaChangeRequiresStreamReset);
+      }
       HOLOSCAN_LOG_ERROR("Failed to decode packetized frame: {}", e.what());
       return;
+    }
+    if (is_packetized_stream &&
+        packetized_decoder(decoder_.get())->display_area_change_requires_stream_reset()) {
+      if (access_unit_metadata_inserted) {
+        pending_access_unit_metadata_.erase(access_unit_timestamp);
+      }
+      throw std::runtime_error(kDisplayAreaChangeRequiresStreamReset);
     }
   } else {
     // Generic byte-stream data - use FFmpeg demuxer and loop until we get frames.
@@ -430,6 +519,9 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
     try {
       flushed_frame_count = decoder_->Decode(nullptr, 0);
     } catch (const std::exception& e) {
+      if (packetized_decoder(decoder_.get())->display_area_change_requires_stream_reset()) {
+        throw std::runtime_error(kDisplayAreaChangeRequiresStreamReset);
+      }
       HOLOSCAN_LOG_ERROR("Failed to drain packetized decoder at end of stream: {}", e.what());
       return;
     }
@@ -626,18 +718,18 @@ void NvVideoDecoderOp::init_decoder_for_streaming(void* data, size_t size) {
 
     try {
       demuxer_ = std::make_unique<FFmpegDemuxer>(file_data_provider_.get());
-      decoder_ = std::make_unique<NvDecoder>(cu_context_,
-                                             true,
-                                             FFmpeg2NvCodecId(demuxer_->GetVideoCodec()),
-                                             true,
-                                             false,
-                                             nullptr,
-                                             nullptr,
-                                             false,
-                                             0,
-                                             0,
-                                             1000,
-                                             true);
+      decoder_ = make_nv_decoder<NvDecoder>(cu_context_,
+                                            true,
+                                            FFmpeg2NvCodecId(demuxer_->GetVideoCodec()),
+                                            true,
+                                            false,
+                                            nullptr,
+                                            nullptr,
+                                            false,
+                                            0,
+                                            0,
+                                            1000,
+                                            true);
     } catch (const std::exception& e) {
       HOLOSCAN_LOG_ERROR("Failed to initialize decoder: {}", e.what());
       // Reset the demuxer and decoder for potential retry
@@ -656,19 +748,19 @@ void NvVideoDecoderOp::init_decoder_for_file(std::shared_ptr<MetadataDictionary>
     CudaCheck(cuCtxPushCurrent(cu_context_));
     try {
       cudaVideoCodec codec = FFmpeg2NvCodecId(meta->get<AVCodecID>("codec", AV_CODEC_ID_H264));
-      decoder_ =
-          std::make_unique<NvDecoder>(cu_context_,
-                                      true,     // bUseDeviceFrame
-                                      codec,    // eCodec
-                                      false,    // bLowLatency - disable for proper frame order
-                                      false,    // bDeviceFramePitched
-                                      nullptr,  // pCropRect
-                                      nullptr,  // pResizeDim
-                                      false,    // extract_user_SEI_Message
-                                      0,        // maxWidth
-                                      0,        // maxHeight
-                                      1000,     // clkRate
-                                      false);   // force_zero_latency - allow reordering
+      decoder_ = make_nv_decoder<NvDecoder>(
+          cu_context_,
+          true,     // bUseDeviceFrame
+          codec,    // eCodec
+          false,    // bLowLatency - disable for proper frame order
+          false,    // bDeviceFramePitched
+          nullptr,  // pCropRect
+          nullptr,  // pResizeDim
+          false,    // extract_user_SEI_Message
+          0,        // maxWidth
+          0,        // maxHeight
+          1000,     // clkRate
+          false);   // force_zero_latency - allow reordering
     } catch (const std::exception& e) {
       HOLOSCAN_LOG_ERROR("Failed to initialize decoder for nv_video_reader: {}", e.what());
       decoder_.reset();
@@ -700,18 +792,18 @@ void NvVideoDecoderOp::init_decoder_for_packetized_stream() {
 
     // Framing and display latency are independent: packetized_input_mode controls
     // per-submission flags, while packetized_low_latency controls CUVID reordering.
-    decoder_ = std::make_unique<NvDecoder>(cu_context_,
-                                           true,   // bUseDeviceFrame
-                                           codec,  // eCodec
-                                           low_latency,
-                                           false,  // bDeviceFramePitched
-                                           nullptr,
-                                           nullptr,
-                                           false,
-                                           0,
-                                           0,
-                                           kPacketizedNvDecoderClockRate,
-                                           false);  // force_zero_latency
+    decoder_ = make_nv_decoder<PacketizedNvDecoder>(cu_context_,
+                                                    true,   // bUseDeviceFrame
+                                                    codec,  // eCodec
+                                                    low_latency,
+                                                    false,  // bDeviceFramePitched
+                                                    nullptr,
+                                                    nullptr,
+                                                    false,
+                                                    0,
+                                                    0,
+                                                    kPacketizedNvDecoderClockRate,
+                                                    false);  // force_zero_latency
 
     if (verbose_.get()) {
       HOLOSCAN_LOG_INFO("Initialized packetized {} decoder (input mode: {}, low latency: {})",
