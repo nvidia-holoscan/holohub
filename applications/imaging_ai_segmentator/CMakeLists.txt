@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +18,17 @@ project(imaging_ai_segmentator CXX)
 
 find_package(holoscan 2.0 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+
+if(BUILD_TESTING)
+  find_package(Python3 REQUIRED COMPONENTS Interpreter)
+  add_test(NAME imaging_ai_segmentator_disk_io_test
+           COMMAND "${Python3_EXECUTABLE}" -m pytest -q
+                   "${CMAKE_CURRENT_SOURCE_DIR}/test_monai_bundle_disk_io.py"
+           WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+  set_tests_properties(imaging_ai_segmentator_disk_io_test PROPERTIES
+                       LABELS "application;python;unit"
+                       TIMEOUT 120)
+endif()
 
 # Install application and dependencies into the install/ directory for packaging
 install(

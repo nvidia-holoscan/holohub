@@ -12,6 +12,28 @@ The `MonaiBundleInferenceOperator` loads a MONAI Bundle model and applies it to 
 - MONAI
 - torch
 
+## Tests
+
+The disk I/O regression suite runs in the consuming `imaging_ai_segmentator`
+application's CTest suite. Run the focused test from the repository root without
+sample dataset downloads:
+
+```bash
+./holohub test imaging_ai_segmentator --language python \
+  --cmake-options="-DHOLOHUB_DOWNLOAD_DATASETS=OFF" \
+  --ctest-options="-DCTEST_TEST_INCLUDE=^imaging_ai_segmentator_disk_io_test$"
+```
+
+With the operator's runtime dependencies and pytest installed, it can also run
+directly from the repository root:
+
+```bash
+python -m pytest -v applications/imaging_ai_segmentator/test_monai_bundle_disk_io.py
+```
+
+The suite exercises the real MONAI compute path with CPU tensors. The CUDA output
+case also runs when a CUDA-enabled PyTorch installation and GPU are available.
+
 ## Path-based I/O
 
 Input `Path` values must refer to pickle-free NPY arrays with dtypes supported by
