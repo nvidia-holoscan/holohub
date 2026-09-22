@@ -15,22 +15,20 @@ import pytest
 import werkzeug.serving
 
 
-@pytest.mark.parametrize("application", ["vila_live", "ehr_query_llm/lmm"])
 @pytest.mark.parametrize("flask_debug", ["0", "1"])
-def test_http_errors_do_not_expose_debugger(application, flask_debug, monkeypatch):
+def test_http_errors_do_not_expose_debugger(flask_debug, monkeypatch):
     monkeypatch.setenv("FLASK_DEBUG", flask_debug)
-    if application == "ehr_query_llm/lmm":
-        # Only the unused WebServerOp wrapper needs these SDK types. Keep the
-        # HTTP and WebSocket servers real without importing the GPU runtime.
-        core = ModuleType("holoscan.core")
-        core.Operator = object
-        core.OperatorSpec = object
-        holoscan = ModuleType("holoscan")
-        holoscan.core = core
-        monkeypatch.setitem(sys.modules, "holoscan", holoscan)
-        monkeypatch.setitem(sys.modules, "holoscan.core", core)
-    path = Path(__file__).resolve().parents[2] / "applications" / application / "webserver.py"
-    module_name = "test_webserver_" + application.replace("/", "_")
+    # Only the unused WebServerOp wrapper needs these SDK types. Keep the
+    # HTTP and WebSocket servers real without importing the GPU runtime.
+    core = ModuleType("holoscan.core")
+    core.Operator = object
+    core.OperatorSpec = object
+    holoscan = ModuleType("holoscan")
+    holoscan.core = core
+    monkeypatch.setitem(sys.modules, "holoscan", holoscan)
+    monkeypatch.setitem(sys.modules, "holoscan.core", core)
+    path = Path(__file__).resolve().parents[1] / "webserver.py"
+    module_name = "test_ehr_query_llm_lmm_webserver_module"
     spec = importlib.util.spec_from_file_location(module_name, path)
     module = importlib.util.module_from_spec(spec)
     monkeypatch.setitem(sys.modules, module_name, module)
