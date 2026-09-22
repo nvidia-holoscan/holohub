@@ -4,7 +4,6 @@
 """Run the conversion launcher against a small executable instead of TensorRT."""
 
 import json
-import os
 import signal
 import sys
 
@@ -25,7 +24,7 @@ def trtexec(tmp_path, monkeypatch):
     )
     executable.chmod(0o700)
     arguments = tmp_path / "arguments.json"
-    monkeypatch.setenv("PATH", f"{tmp_path}{os.pathsep}{os.environ['PATH']}")
+    monkeypatch.setenv("PATH", str(tmp_path))
     monkeypatch.setenv("TRTEXEC_ARGUMENTS", str(arguments))
     monkeypatch.chdir(tmp_path)
     return arguments

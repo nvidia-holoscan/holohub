@@ -174,4 +174,14 @@ if(BUILD_TESTING AND BUILD_HOLOHUB_TESTING)
   # CLI-side CTest entries live under utilities/cli/tests/CMakeLists.txt
   # (black-box `./holohub` assertions + pytest smoke tests).
   add_subdirectory(utilities/cli/tests)
+
+  # Shared utility tests run with the existing repository CTest suite.
+  find_package(Python3 REQUIRED COMPONENTS Interpreter)
+  add_test(NAME test_generate_trt_engine
+           COMMAND "${Python3_EXECUTABLE}" -m pytest -q --noconftest
+                   "${CMAKE_SOURCE_DIR}/utilities/test_generate_trt_engine.py"
+           WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+  set_tests_properties(test_generate_trt_engine PROPERTIES
+                       LABELS "utility;python;unit"
+                       TIMEOUT 60)
 endif()
