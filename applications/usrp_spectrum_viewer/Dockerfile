@@ -4,7 +4,7 @@
 ARG NETWORKING_BASE_IMAGE=holohub-networking:4.6.0
 FROM ${NETWORKING_BASE_IMAGE}
 
-ARG UHD_GIT_REF=v4.10.0.0
+ARG UHD_GIT_REF=v4.11.0.0
 
 # UHD and its build prerequisites.
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -15,6 +15,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         python3-numpy \
         python3-requests \
         python3-ruamel.yaml \
+        libusb-1.0-0-dev \
+        libgrpc++-dev \
+        libprotobuf-dev \
+        protobuf-compiler-grpc \
     && git clone --branch "${UHD_GIT_REF}" --depth 1 \
         https://github.com/EttusResearch/uhd.git /tmp/uhd \
     && cmake -S /tmp/uhd/host -B /tmp/uhd/host/build \
