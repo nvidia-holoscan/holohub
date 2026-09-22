@@ -61,7 +61,7 @@ RUN pip install build
 
 # Gsplat dependencies
 RUN pip install "torch>=2.10.0"
-RUN pip install ninja numpy jaxtyping rich
+RUN pip install ninja numpy jaxtyping rich pytest
 RUN pip install scipy
 
 # Set the working directory
