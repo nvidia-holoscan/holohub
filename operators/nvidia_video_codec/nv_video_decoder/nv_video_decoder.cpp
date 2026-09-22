@@ -45,6 +45,18 @@ namespace holoscan::ops {
 
 namespace {
 
+constexpr unsigned int kPacketizedNvDecoderClockRate = 1000;
+constexpr int64_t kNanosecondsPerSecond = 1'000'000'000;
+static_assert(kNanosecondsPerSecond % kPacketizedNvDecoderClockRate == 0);
+constexpr int64_t kNanosecondsPerPacketizedDecoderTick =
+    kNanosecondsPerSecond / kPacketizedNvDecoderClockRate;
+
+int64_t presentation_timestamp_to_decoder_timestamp(int64_t presentation_timestamp_ns) {
+  // Divide instead of multiplying by the decoder clock rate so the full signed
+  // nanosecond range, including negative timestamps, cannot overflow.
+  return presentation_timestamp_ns / kNanosecondsPerPacketizedDecoderTick;
+}
+
 class InputOrPendingCondition : public Condition {
  public:
   HOLOSCAN_CONDITION_FORWARD_ARGS(InputOrPendingCondition)
@@ -273,11 +285,41 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
   const bool complete_access_unit =
       is_packetized_stream && packetized_input_mode_.get() == "access_unit";
   int64_t access_unit_timestamp = 0;
+  bool access_unit_metadata_inserted = false;
 
   if (direct_packet_decode) {
     // The input tensor is already encoded data ready for direct parser submission.
     pVideo = static_cast<uint8_t*>(data_ptr);
     nVideoBytes = static_cast<int>(data_size);
+
+    if (complete_access_unit) {
+      const bool has_presentation_timestamp = meta->has_key("presentation_timestamp_ns");
+      if (!packetized_low_latency_.get() || has_presentation_timestamp) {
+        if (!has_presentation_timestamp) {
+          throw std::runtime_error(
+              "Packetized access-unit input with normal display latency requires "
+              "presentation_timestamp_ns metadata");
+        }
+        access_unit_timestamp = presentation_timestamp_to_decoder_timestamp(
+            meta->get<int64_t>("presentation_timestamp_ns"));
+      } else {
+        if (next_access_unit_timestamp_ == std::numeric_limits<int64_t>::max()) {
+          throw std::runtime_error("Packetized access-unit timestamp space exhausted");
+        }
+        access_unit_timestamp = next_access_unit_timestamp_++;
+      }
+
+      access_unit_metadata_inserted =
+          pending_access_unit_metadata_
+              .emplace(access_unit_timestamp,
+                       PendingAccessUnitMetadata{*meta, enter_timestamp})
+              .second;
+      if (!access_unit_metadata_inserted) {
+        throw std::runtime_error(
+            "presentation_timestamp_ns collides with a pending access-unit timestamp after "
+            "conversion to the decoder timebase");
+      }
+    }
 
     try {
       // CUVID_PKT_ENDOFPICTURE is only correct when the caller guarantees that
@@ -285,21 +327,13 @@ void NvVideoDecoderOp::compute(InputContext& op_input, OutputContext& op_output,
       // In stream mode, leave picture-boundary detection entirely to CUVID.
       const uint32_t decode_flags = complete_access_unit ? CUVID_PKT_ENDOFPICTURE : 0;
       if (is_packetized_stream) {
-        if (complete_access_unit) {
-          if (next_access_unit_timestamp_ == std::numeric_limits<int64_t>::max()) {
-            throw std::runtime_error("Packetized access-unit timestamp space exhausted");
-          }
-          access_unit_timestamp = next_access_unit_timestamp_++;
-          pending_access_unit_metadata_.emplace(
-              access_unit_timestamp, PendingAccessUnitMetadata{*meta, enter_timestamp});
-        }
         nFrameReturned =
             decoder_->Decode(pVideo, nVideoBytes, decode_flags, access_unit_timestamp);
       } else {
         nFrameReturned = decoder_->Decode(pVideo, nVideoBytes);
       }
     } catch (const std::exception& e) {
-      if (access_unit_timestamp != 0) {
+      if (access_unit_metadata_inserted) {
         pending_access_unit_metadata_.erase(access_unit_timestamp);
       }
       HOLOSCAN_LOG_ERROR("Failed to decode packetized frame: {}", e.what());
@@ -676,7 +710,7 @@ void NvVideoDecoderOp::init_decoder_for_packetized_stream() {
                                            false,
                                            0,
                                            0,
-                                           1000,
+                                           kPacketizedNvDecoderClockRate,
                                            false);  // force_zero_latency
 
     if (verbose_.get()) {

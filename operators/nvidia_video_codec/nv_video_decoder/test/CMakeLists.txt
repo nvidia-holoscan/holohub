@@ -16,6 +16,8 @@ target_include_directories(nv_video_decoder_packetized_framing_test PRIVATE
 
 set(NV_VIDEO_DECODER_TEST_FIXTURE
     ${CMAKE_CURRENT_SOURCE_DIR}/data/three_access_units.h265)
+set(NV_VIDEO_DECODER_BFRAME_TEST_FIXTURE
+    ${CMAKE_CURRENT_SOURCE_DIR}/data/bframes.h264)
 
 add_test(NAME nv_video_decoder_access_unit_framing_test
          COMMAND nv_video_decoder_packetized_framing_test
@@ -26,6 +28,13 @@ add_test(NAME nv_video_decoder_access_unit_framing_test
 add_test(NAME nv_video_decoder_access_unit_metadata_test
          COMMAND nv_video_decoder_packetized_framing_test
                  ${NV_VIDEO_DECODER_TEST_FIXTURE} access_unit 3 separate eos uint8)
+
+# B-frame input is submitted in decode order with the real presentation timestamp
+# of each picture. Verify that display-order pixels retain their originating AU metadata.
+add_test(NAME nv_video_decoder_bframe_metadata_test
+         COMMAND nv_video_decoder_packetized_framing_test
+                 ${NV_VIDEO_DECODER_BFRAME_TEST_FIXTURE}
+                 access_unit 12 separate eos uint8 bframes)
 
 # Characterize the current CUVID parser lookahead for arbitrary stream chunks:
 # without EOP, the final picture remains pending because the test sends no EOS,
@@ -55,6 +64,7 @@ add_test(NAME nv_video_decoder_wide_element_tensor_test
 set_tests_properties(
   nv_video_decoder_access_unit_framing_test
   nv_video_decoder_access_unit_metadata_test
+  nv_video_decoder_bframe_metadata_test
   nv_video_decoder_stream_lookahead_test
   nv_video_decoder_stream_multi_picture_chunk_test
   nv_video_decoder_stream_eos_drain_test

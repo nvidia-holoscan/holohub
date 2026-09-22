@@ -72,7 +72,11 @@ packetized_input_mode : str, optional
 
     Only use ``"access_unit"`` when the producer guarantees one complete access
     unit per input tensor. Using it with fragmented input can create incorrect
-    parser boundaries or decode failures.
+    parser boundaries or decode failures. With normal display latency, each
+    access-unit tensor must include ``presentation_timestamp_ns`` metadata with
+    the picture's presentation timestamp in nanoseconds. The operator converts
+    it internally to the decoder timebase. Low-latency mode can use a synthetic
+    timestamp when this field is absent.
 packetized_low_latency : bool, optional
     Decoder display policy for direct packetized input. The default, ``False``,
     preserves normal CUVID display reordering and supports streams containing

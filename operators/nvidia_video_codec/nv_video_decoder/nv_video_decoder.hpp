@@ -131,6 +131,11 @@ class StreamDataProvider : public FFmpegDemuxer::DataProvider {
  * `"access_unit"` must only be selected when the input contract guarantees one
  * complete access unit per tensor. Using it with fragmented input can cause incorrect
  * parser boundaries or decode failures.
+ * With normal display latency, every access-unit tensor must also provide the picture's
+ * presentation timestamp in the `presentation_timestamp_ns` metadata field. The value is
+ * expressed in nanoseconds and is converted internally to the decoder timebase so metadata
+ * remains associated with the correct picture when B-frames are reordered. Low-latency mode
+ * can use a synthetic timestamp when this metadata field is absent.
  *
  * For a finite packetized stream, set the `end_of_stream` metadata field to `true`
  * on the final input tensor. The operator decodes that tensor, submits a distinct
