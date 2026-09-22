@@ -37,8 +37,19 @@
         "requirements": {
           "$ref": "urn:holohub:project:v1#/$defs/requirements"
         },
+        "dockerfile": {
+          "type": "string"
+        },
         "run": {
           "$ref": "urn:holohub:project:v1#/$defs/run_command"
+        },
+        "modes": {
+          "$ref": "urn:holohub:project:v1#/$defs/modes"
+        },
+        "default_mode": {
+          "type": "string",
+          "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$",
+          "description": "Name of the default mode to use when none is specified. Only needed when there are multiple modes."
         }
       },
       "required": [
@@ -49,7 +60,43 @@
         "tags",
         "holoscan_sdk",
         "requirements"
-      ]
+      ],
+      "allOf": [
+        {
+          "not": {
+            "allOf": [
+              {
+                "required": [
+                  "run"
+                ]
+              },
+              {
+                "required": [
+                  "modes"
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "if": {
+        "required": [
+          "modes"
+        ],
+        "properties": {
+          "modes": {
+            "minProperties": 2
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "default_mode"
+        ]
+      },
+      "dependentRequired": {
+        "default_mode": ["modes"]
+      }
     }
   },
   "required": [
