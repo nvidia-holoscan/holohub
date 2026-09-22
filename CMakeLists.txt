@@ -126,6 +126,9 @@ add_subdirectory(modules)
 # Build the applications
 add_subdirectory(applications)
 
+# Build the tutorials
+add_subdirectory(tutorials)
+
 # Build the benchmarks
 add_subdirectory(benchmarks)
 
