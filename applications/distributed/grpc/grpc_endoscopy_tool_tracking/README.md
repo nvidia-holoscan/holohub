@@ -179,6 +179,18 @@ incoming_responses->output: 683
 replayer->output: 683
 ```
 
+## Tests
+
+The Python application's CTest entry runs the gRPC transport regression suite,
+including real-socket mutual TLS and the cloud/edge command-line options. These
+tests do not run an inference pipeline or require the dataset and model:
+
+```bash
+./holohub test grpc_endoscopy_tool_tracking --language python \
+  --cmake-options="-DHOLOHUB_DOWNLOAD_DATASETS=OFF" \
+  --ctest-options="-DCTEST_TEST_INCLUDE=^grpc_endoscopy_tool_tracking_transport_test$"
+```
+
 ## Limitations & Known Issues
 
 ### C++ (limitations)
