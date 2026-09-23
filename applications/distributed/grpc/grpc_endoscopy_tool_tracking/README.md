@@ -99,10 +99,12 @@ that trust is inappropriate. These settings apply to the Python implementation.
 
 #### Python transport tests
 
-In an environment with the Python application's dependencies, install `pytest`
-and `cryptography`, then run from the repository root:
+In an environment with the Holoscan SDK, install the
+[Python application's dependencies](./python/requirements.txt), including
+`pytest`, `cryptography`, and `grpcio-tools`, then run from the repository root:
 
 ```bash
+python3 -m pip install -r applications/distributed/grpc/grpc_endoscopy_tool_tracking/python/requirements.txt
 python3 -m pytest operators/grpc_operators/python/server/test_grpc_service.py
 ```
 
