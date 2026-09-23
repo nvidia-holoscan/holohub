@@ -23,7 +23,7 @@ _Fig. 2: A slice of the segmentation saved in a DICOM segmentation instance (wit
 ## Requirements
 
 - On a [Holohub supported platform](../../README.md#supported-platforms)
-- Python 3.8+
+- Python 3.10+
 - Python packages from [PyPI](https://pypi.org), including:
   - torch
   - monai
@@ -164,4 +164,25 @@ Then, run the following command to see and use the specific packaging commands.
 
 ```bash
 source applications/imaging_ai_segmentator/packageHAP.sh
+```
+
+## Checkpoint tests
+
+Run the application's checkpoint regression suite through CTest:
+
+```bash
+./holohub test imaging_ai_segmentator --language python \
+  --cmake-options=-DHOLOHUB_DOWNLOAD_DATASETS=OFF
+```
+
+The suite loads real MONAI SegResNet state dictionaries and rejects executable pickle
+payloads in both ZIP and legacy checkpoint formats. It uses generated inputs and
+does not require downloaded models or DICOM data. These tests exercise checkpoint
+loading, not full inference.
+
+To run pytest directly from the repository root in an environment with the
+application dependencies and pytest installed:
+
+```bash
+python -m pytest applications/imaging_ai_segmentator/test_monai_totalseg_operator.py
 ```
