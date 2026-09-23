@@ -68,4 +68,7 @@ RUN if [[ $TARGETARCH == x86_64 ]] || [[ $(uname -m) == x86_64 ]]; then \
         exit 1; \
     fi
 
+# Install the application test runner.
+RUN python3 -m pip install "pytest>=8,<10"
+
 WORKDIR /workspace/holohub
