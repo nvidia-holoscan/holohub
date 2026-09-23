@@ -676,7 +676,7 @@ Confirm that the SDK is installed, then pass its install prefix to a native buil
 ```
 
 Alternatively, use `--configure-args='-Dholoscan_DIR=/path/to/holoscan/lib/cmake/holoscan'`
-to point directly at the directory containing `holoscanConfig.cmake`.
+to point directly at the directory containing `holoscan-config.cmake`.
 Use a new build parent if CMake cached a different SDK location.
 
 ### **`pytest` exits with status 5.**
