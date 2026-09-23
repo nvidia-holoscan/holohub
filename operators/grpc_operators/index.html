@@ -20303,6 +20303,14 @@
 <li><code>common</code>: Tensor &lt;-&gt; protobuf converters and Holoscan Resources to handle incoming and outgoing data.</li>
 </ul>
 <p>Please refer to the <a href="../../applications/distributed/grpc/grpc_h264_endoscopy_tool_tracking/">gRPC h.264 Endoscopy Tool Tracking</a> application for additional details.</p>
+<p>The Python <code>GrpcService</code> permits plaintext only on loopback addresses and defaults
+to <code>127.0.0.1</code>. Remote listeners require PEM <code>private_key</code>, <code>certificate_chain</code>,
+and <code>root_certificates</code> (the trusted client CA) arguments to <code>initialize</code>, along
+with a literal <code>host</code> IP address. Configured TLS always requires a trusted client
+certificate. Python <code>EntityClientService</code> accepts a <code>credentials</code> argument from
+<code>grpc.ssl_channel_credentials</code> for authenticated TLS connections and rejects
+remote plaintext targets. See the <a href="../../applications/distributed/grpc/grpc_endoscopy_tool_tracking/#python-connections-between-hosts">Python demo's mutual TLS setup</a>
+for configuration and testing instructions.</p>
 <h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h2>
 <h3 id="c">C++<a class="headerlink" href="#c" title="Permanent link">#</a></h3>
 <h4 id="holoscanopsapplicationfactory"><code>holoscan::ops::ApplicationFactory</code><a class="headerlink" href="#holoscanopsapplicationfactory" title="Permanent link">#</a></h4>

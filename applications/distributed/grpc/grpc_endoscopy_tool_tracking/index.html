@@ -20049,6 +20049,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Python">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python-connections-between-hosts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python connections between hosts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#python-transport-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python transport tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -20064,6 +20092,17 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tests
+      
+    </span>
+  </a>
   
 </li>
       
@@ -20352,6 +20391,8 @@
 <p>The data is automatically downloaded when building the application.</p>
 <h2 id="building-and-running-grpc-endoscopy-tool-tracking-application">Building and Running gRPC Endoscopy Tool Tracking Application<a class="headerlink" href="#building-and-running-grpc-endoscopy-tool-tracking-application" title="Permanent link">#</a></h2>
 <h3 id="c">C++<a class="headerlink" href="#c" title="Permanent link">#</a></h3>
+<p>The C++ server uses unauthenticated plaintext gRPC and listens on
+<code>0.0.0.0:50051</code>. The transport protections in the Python section apply to Python.</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Start the gRPC Server</span>
 ./holohub<span class="w"> </span>run<span class="w"> </span>grpc_endoscopy_tool_tracking<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"cloud"</span><span class="w"> </span><span class="o">[</span>--language<span class="o">=</span>cpp<span class="o">]</span>
 
@@ -20365,6 +20406,50 @@
 <span class="c1"># Start the gRPC Client</span>
 ./holohub<span class="w"> </span>run<span class="w"> </span>grpc_endoscopy_tool_tracking<span class="w"> </span>--language<span class="w"> </span>python<span class="w"> </span>--run-args<span class="o">=</span><span class="s2">"edge"</span>
 </code></pre></div>
+<p>The Python server defaults to <code>127.0.0.1:50051</code>. These commands use plaintext
+within the same host/network namespace. Plaintext clients accept only literal
+loopback IP addresses or <code>localhost</code>, which is pinned to <code>127.0.0.1</code>.</p>
+<h4 id="python-connections-between-hosts">Python connections between hosts<a class="headerlink" href="#python-connections-between-hosts" title="Permanent link">#</a></h4>
+<p>Remote Python connections require mutual TLS. Obtain a server certificate and
+private key, a client certificate and private key, and their issuing CA
+certificates. The server certificate's subject alternative name must match
+the host portion of <code>grpc_client.server_address</code>, excluding the port (for example,
+<code>cloud.example.com</code> for <code>cloud.example.com:50051</code>). Certificates must support their
+respective server or client authentication usage. The server's client CA should
+issue certificates only to clients authorized to use the pipeline. Keep private
+keys out of source control.</p>
+<p>Set <code>grpc_client.server_address</code> in the
+<a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/distributed/grpc/grpc_endoscopy_tool_tracking/python/endoscopy_tool_tracking.yaml">Python configuration</a> to the server's
+hostname or IP address, for example <code>cloud.example.com:50051</code>. Supply PEM files
+by mounting their host directory read-only at <code>/certs</code> inside the HoloHub container.
+Replace each <code>/absolute/path/to/*-certs</code> placeholder below with the absolute path
+to that host's certificate directory:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Server: --tls-ca identifies the CA trusted to authenticate clients.</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>grpc_endoscopy_tool_tracking<span class="w"> </span>--language<span class="w"> </span>python<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--docker-opts<span class="o">=</span><span class="s2">"--volume /absolute/path/to/server-certs:/certs:ro"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--run-args<span class="o">=</span><span class="s2">"cloud --host 0.0.0.0 --tls-cert /certs/server.pem --tls-key /certs/server.key --tls-ca /certs/client-ca.pem"</span>
+
+<span class="c1"># Client: --tls-ca identifies the CA trusted to authenticate the server.</span>
+./holohub<span class="w"> </span>run<span class="w"> </span>grpc_endoscopy_tool_tracking<span class="w"> </span>--language<span class="w"> </span>python<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--docker-opts<span class="o">=</span><span class="s2">"--volume /absolute/path/to/client-certs:/certs:ro"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--run-args<span class="o">=</span><span class="s2">"edge --tls-cert /certs/client.pem --tls-key /certs/client.key --tls-ca /certs/server-ca.pem"</span>
+</code></pre></div>
+<p>All three TLS arguments must be provided together. The server's <code>--host</code> accepts
+literal IPv4 or IPv6 addresses and <code>localhost</code> (pinned to <code>127.0.0.1</code>).
+Non-loopback binds require mutual TLS.
+Configured TLS also protects the health-check service; its callers need client
+certificates. TLS failures never fall back to plaintext. Local plaintext mode
+trusts other processes in the same network namespace; use mutual TLS there when
+that trust is inappropriate. These settings apply to the Python implementation.</p>
+<h4 id="python-transport-tests">Python transport tests<a class="headerlink" href="#python-transport-tests" title="Permanent link">#</a></h4>
+<p>In an environment with the Holoscan SDK, install the
+<a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/distributed/grpc/grpc_endoscopy_tool_tracking/python/requirements.txt">Python application's dependencies</a>, including
+<code>pytest</code>, <code>cryptography</code>, and <code>grpcio-tools</code>, then run from the repository root:</p>
+<div class="highlight"><pre><span></span><code>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>applications/distributed/grpc/grpc_endoscopy_tool_tracking/python/requirements.txt
+python3<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>operators/grpc_operators/python/server/test_grpc_service.py
+</code></pre></div>
+<p>The tests generate temporary protocol bindings and certificates and exercise real
+loopback and non-loopback sockets without running the GPU inference pipeline.</p>
 <h3 id="configurations">Configurations<a class="headerlink" href="#configurations" title="Permanent link">#</a></h3>
 <p>The Edge application runs in a single-fragment mode by default. However, it can be configured to run in a multi-fragment mode, as in the picture above.</p>
 <p>To switch to multi-fragment mode, edit the <a href="https://github.com/nvidia-holoscan/holohub/blob/main/applications/distributed/grpc/grpc_endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml">endoscopy_tool_tracking.yaml</a> YAML file and change <code>multifragment</code> to <code>true</code>:</p>
@@ -20423,6 +20508,14 @@ Max<span class="w"> </span>end-to-end<span class="w"> </span>Latency<span class=
 Number<span class="w"> </span>of<span class="w"> </span><span class="nb">source</span><span class="w"> </span>messages<span class="w"> </span><span class="o">[</span>format:<span class="w"> </span><span class="nb">source</span><span class="w"> </span>operator-&gt;transmitter<span class="w"> </span>name:<span class="w"> </span>number<span class="w"> </span>of<span class="w"> </span>messages<span class="o">]</span>:
 incoming_responses-&gt;output:<span class="w"> </span><span class="m">683</span>
 replayer-&gt;output:<span class="w"> </span><span class="m">683</span>
+</code></pre></div>
+<h2 id="tests">Tests<a class="headerlink" href="#tests" title="Permanent link">#</a></h2>
+<p>The Python application's CTest entry runs the gRPC transport regression suite,
+including real-socket mutual TLS and the cloud/edge command-line options. These
+tests do not run an inference pipeline or require the dataset and model:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span><span class="nb">test</span><span class="w"> </span>grpc_endoscopy_tool_tracking<span class="w"> </span>--language<span class="w"> </span>python<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--cmake-options<span class="o">=</span><span class="s2">"-DHOLOHUB_DOWNLOAD_DATASETS=OFF"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--ctest-options<span class="o">=</span><span class="s2">"-DCTEST_TEST_INCLUDE=^grpc_endoscopy_tool_tracking_transport_test</span>$<span class="s2">"</span>
 </code></pre></div>
 <h2 id="limitations-known-issues">Limitations &amp; Known Issues<a class="headerlink" href="#limitations-known-issues" title="Permanent link">#</a></h2>
 <h3 id="c-limitations">C++ (limitations)<a class="headerlink" href="#c-limitations" title="Permanent link">#</a></h3>

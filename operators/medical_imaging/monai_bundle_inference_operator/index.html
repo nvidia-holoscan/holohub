@@ -19999,6 +19999,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tests
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#path-based-io" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path-based I/O
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#example-usage" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -20198,6 +20220,32 @@
 <li>MONAI</li>
 <li>torch</li>
 </ul>
+<h2 id="tests">Tests<a class="headerlink" href="#tests" title="Permanent link">#</a></h2>
+<p>The disk I/O regression suite runs in the consuming <code>imaging_ai_segmentator</code>
+application's CTest suite. Run the focused test from the repository root without
+sample dataset downloads:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span><span class="nb">test</span><span class="w"> </span>imaging_ai_segmentator<span class="w"> </span>--language<span class="w"> </span>python<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--cmake-options<span class="o">=</span><span class="s2">"-DHOLOHUB_DOWNLOAD_DATASETS=OFF"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--ctest-options<span class="o">=</span><span class="s2">"-DCTEST_TEST_INCLUDE=^imaging_ai_segmentator_disk_io_test</span>$<span class="s2">"</span>
+</code></pre></div>
+<p>With the operator's runtime dependencies and pytest installed, it can also run
+directly from the repository root:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>-v<span class="w"> </span>applications/imaging_ai_segmentator/test_monai_bundle_disk_io.py
+</code></pre></div>
+<p>The suite exercises the real MONAI compute path with CPU tensors. The CUDA output
+case also runs when a CUDA-enabled PyTorch installation and GPU are available.</p>
+<h2 id="path-based-io">Path-based I/O<a class="headerlink" href="#path-based-io" title="Permanent link">#</a></h2>
+<p>Input <code>Path</code> values must refer to pickle-free NPY arrays with dtypes supported by
+<code>torch.from_numpy</code>. A <code>.npy</code> extension is optional. Pickle files, object arrays,
+and NPZ archives are rejected. Pass <code>Image</code>, dictionaries, and other Python
+objects through in-memory ports.</p>
+<p>Holoscan graphs use in-memory output ports; save emitted arrays with a downstream
+writer. The legacy path-based output helper writes NPY only when its output
+context provides a directory through <code>get(name)</code>, preserving the configured file
+name. It does not add support for <code>IOType.DISK</code> output-port registration.</p>
+<p>Existing numeric pickle files must be converted to NPY in a trusted environment
+before use. Only convert files whose source and contents you trust; this operator
+does not unpickle legacy data.</p>
 <h2 id="example-usage">Example Usage<a class="headerlink" href="#example-usage" title="Permanent link">#</a></h2>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">holoscan.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Fragment</span>
