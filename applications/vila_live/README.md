@@ -105,3 +105,21 @@ This application downloads a pre-recorded video from [Pexels](https://www.pexels
 - [Jetson-Containers](https://github.com/dusty-nv/jetson-containers/tree/master/packages/llm/llamaspeak) repo: For the Flask web-app with WebSockets
 - [LLM-AWQ](https://github.com/mit-han-lab/llm-awq) repo: For the example code to create AWQ-powered LLM servers
 - [flash-attention-prebuild](https://github.com/mjun0812/flash-attention-prebuild-wheels) for CUDA13 x86 prebuilt wheels
+
+## Webserver regression tests
+
+The application CTest suite checks real HTTP error responses with `FLASK_DEBUG=0`
+and `FLASK_DEBUG=1`, including a generic 500 response and an unavailable debugger
+console. Run the focused test from the repository root:
+
+```bash
+./holohub test vila_live --language python \
+  --ctest-options="-DCTEST_TEST_INCLUDE=^vila_live_webserver_test$"
+```
+
+The test itself needs no model or GPU inference. With pytest, NumPy, Flask, and
+websockets installed, it can also run directly without building the application:
+
+```bash
+python3 -m pytest applications/vila_live/tests/test_webserver.py
+```

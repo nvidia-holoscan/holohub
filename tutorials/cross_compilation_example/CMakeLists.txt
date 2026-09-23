@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,11 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.20)
-project(ehr_query_llm LANGUAGES NONE)
+project(cross_compilation_example LANGUAGES CXX)
 
-add_holohub_application(fhir)
-add_holohub_application(lmm)
+find_package(holoscan 4.6 REQUIRED CONFIG)
+
+add_executable(cross_compilation_example main.cpp)
+target_link_libraries(cross_compilation_example PRIVATE holoscan::core)
+
+install(TARGETS cross_compilation_example RUNTIME DESTINATION bin)

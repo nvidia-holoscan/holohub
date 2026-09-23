@@ -126,6 +126,9 @@ add_subdirectory(modules)
 # Build the applications
 add_subdirectory(applications)
 
+# Build the tutorials
+add_subdirectory(tutorials)
+
 # Build the benchmarks
 add_subdirectory(benchmarks)
 
@@ -171,4 +174,28 @@ if(BUILD_TESTING AND BUILD_HOLOHUB_TESTING)
   # CLI-side CTest entries live under utilities/cli/tests/CMakeLists.txt
   # (black-box `./holohub` assertions + pytest smoke tests).
   add_subdirectory(utilities/cli/tests)
+
+  # Shared utility tests run with the existing repository CTest suite.
+  find_package(Python3 COMPONENTS Interpreter)
+  if(Python3_Interpreter_FOUND)
+    execute_process(
+      COMMAND "${Python3_EXECUTABLE}" -c "import pytest"
+      RESULT_VARIABLE _pytest_probe
+      OUTPUT_QUIET ERROR_QUIET
+    )
+    if(_pytest_probe EQUAL 0)
+      add_test(NAME test_generate_trt_engine
+               COMMAND "${Python3_EXECUTABLE}" -m pytest -q --noconftest
+                       "${CMAKE_SOURCE_DIR}/utilities/test_generate_trt_engine.py"
+               WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+      set_tests_properties(test_generate_trt_engine PROPERTIES
+                           LABELS "utility;python;unit"
+                           TIMEOUT 60)
+    else()
+      message(STATUS
+        "BUILD_HOLOHUB_TESTING is ON but Python pytest is not importable; "
+        "skipping shared utility tests. Install pytest into the Python "
+        "interpreter at ${Python3_EXECUTABLE} to enable them.")
+    endif()
+  endif()
 endif()
