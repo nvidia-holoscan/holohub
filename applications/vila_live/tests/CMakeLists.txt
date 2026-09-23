@@ -36,3 +36,13 @@ set_tests_properties(vila_live_tinychat_test
   FAIL_REGULAR_EXPRESSION "Traceback")
 
 set_tests_properties(vila_live_tinychat_test PROPERTIES TIMEOUT 600)
+
+# Exercise HTTP error handling without loading the VLM or TinyChat models.
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+add_test(NAME vila_live_webserver_test
+         COMMAND "${Python3_EXECUTABLE}" -m pytest -q
+                 "${CMAKE_CURRENT_SOURCE_DIR}/test_webserver.py"
+         WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
+set_tests_properties(vila_live_webserver_test PROPERTIES
+                     LABELS "application;python;unit"
+                     TIMEOUT 60)
