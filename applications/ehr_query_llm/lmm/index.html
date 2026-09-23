@@ -20309,6 +20309,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#webserver-regression-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Webserver regression tests
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -20697,6 +20708,17 @@ This will start the current Vector database in <code>./rag/ehr/db</code> and all
 </code></pre></div>
 <p>Once you know the PID's of the responsible process, kill them :)</p>
 <div class="highlight"><pre><span></span><code><span class="nb">kill</span><span class="w"> </span>&lt;PID&gt;
+</code></pre></div>
+<h2 id="webserver-regression-tests">Webserver regression tests<a class="headerlink" href="#webserver-regression-tests" title="Permanent link">#</a></h2>
+<p>The application CTest suite checks real HTTP error responses with <code>FLASK_DEBUG=0</code>
+and <code>FLASK_DEBUG=1</code>, including a generic 500 response and an unavailable debugger
+console. Run the focused test from the repository root:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span><span class="nb">test</span><span class="w"> </span>lmm<span class="w"> </span>--language<span class="w"> </span>python<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--ctest-options<span class="o">=</span><span class="s2">"-DCTEST_TEST_INCLUDE=^ehr_query_llm_webserver_test</span>$<span class="s2">"</span>
+</code></pre></div>
+<p>The test itself needs no model or GPU inference. With pytest, NumPy, Flask, and
+websockets installed, it can also run directly without building the application:</p>
+<div class="highlight"><pre><span></span><code>python3<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>applications/ehr_query_llm/lmm/tests/test_ehr_webserver.py
 </code></pre></div>
 
 
