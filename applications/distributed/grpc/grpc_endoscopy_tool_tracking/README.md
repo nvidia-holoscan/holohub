@@ -90,8 +90,9 @@ to that host's certificate directory:
   --run-args="edge --tls-cert /certs/client.pem --tls-key /certs/client.key --tls-ca /certs/server-ca.pem"
 ```
 
-All three TLS arguments must be provided together. The server accepts a literal
-IPv4 or IPv6 `--host` address and refuses non-loopback binds without mutual TLS.
+All three TLS arguments must be provided together. The server's `--host` accepts
+literal IPv4 or IPv6 addresses and `localhost` (pinned to `127.0.0.1`).
+Non-loopback binds require mutual TLS.
 Configured TLS also protects the health-check service; its callers need client
 certificates. TLS failures never fall back to plaintext. Local plaintext mode
 trusts other processes in the same network namespace; use mutual TLS there when

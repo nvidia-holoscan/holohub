@@ -192,9 +192,11 @@ async def entity_probe(rpc, channel):
     assert len(responses) == 1 and responses[0].end_of_stream
 
 
-def test_default_service_rejects_non_loopback_client(rpc, remote_address):
+@pytest.mark.parametrize("host", ["127.0.0.1", "localhost"])
+def test_plaintext_service_rejects_non_loopback_client(rpc, remote_address, host):
     async def run():
-        async with running_service(rpc) as (port, factory):
+        async with running_service(rpc, host=host) as (port, factory):
+            assert rpc.service().server_address == f"127.0.0.1:{port}"
             async with grpc.aio.insecure_channel(f"127.0.0.1:{port}") as channel:
                 await entity_probe(rpc, channel)
             assert len(factory.created) == 1
@@ -206,9 +208,15 @@ def test_default_service_rejects_non_loopback_client(rpc, remote_address):
     asyncio.run(run())
 
 
-@pytest.mark.parametrize("host", ["0.0.0.0", "::", "192.0.2.1", "localhost.example"])
+@pytest.mark.parametrize("host", ["0.0.0.0", "::", "192.0.2.1"])
 def test_remote_bind_requires_mtls(rpc, host):
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="non-loopback.*mutual TLS"):
+        rpc.service().initialize(50051, None, host=host)
+
+
+@pytest.mark.parametrize("host", ["localhost.example", "cloud.example.com"])
+def test_server_rejects_other_hostnames(rpc, host):
+    with pytest.raises(ValueError, match="IP address.*localhost"):
         rpc.service().initialize(50051, None, host=host)
 
 

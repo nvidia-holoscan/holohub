@@ -60,7 +60,11 @@ class GrpcService:
         TLS inputs are PEM bytes. ``root_certificates`` must contain the CA
         certificates trusted to issue client certificates.
         """
-        address = ipaddress.ip_address(host)
+        try:
+            # Pin this alias to loopback; never resolve hostnames for a listener.
+            address = ipaddress.ip_address("127.0.0.1" if host == "localhost" else host)
+        except ValueError as exc:
+            raise ValueError("The gRPC bind host must be an IP address or localhost") from exc
         port = int(port)
         if not 0 <= port <= 65535:
             raise ValueError("The gRPC port must be between 0 and 65535")

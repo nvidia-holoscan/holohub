@@ -75,7 +75,9 @@ def parse_arguments():
         help=("Set the gRPC Server listening port  (default: %(default)s)."),
     )
     parser.add_argument(
-        "--host", default="127.0.0.1", help="Bind IP address; non-loopback requires mutual TLS"
+        "--host",
+        default="127.0.0.1",
+        help="Bind IP address or localhost; non-loopback requires mutual TLS",
     )
     parser.add_argument("--tls-cert", type=Path, help="PEM server certificate chain")
     parser.add_argument("--tls-key", type=Path, help="PEM server private key")
