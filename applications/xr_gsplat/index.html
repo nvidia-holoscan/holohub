@@ -20119,6 +20119,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#checkpoint-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checkpoint tests
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -20259,7 +20270,7 @@
 <h4 id="02-install-dependencies-and-download-the-data">0.2. Install dependencies and download the data<a class="headerlink" href="#02-install-dependencies-and-download-the-data" title="Permanent link">#</a></h4>
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>gsplat/examples
 <span class="c1"># Install torch</span>
-pip<span class="w"> </span>install<span class="w"> </span>torch
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"torch&gt;=2.10.0"</span>
 <span class="c1"># Install gsplat</span>
 pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/nerfstudio-project/gsplat.git
 <span class="c1"># Install dependencies</span>
@@ -20293,6 +20304,18 @@ docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </spa
 
 <span class="c1"># Build and run the application</span>
 ./holohub<span class="w"> </span>run<span class="w"> </span>xr_gsplat
+</code></pre></div>
+<h2 id="checkpoint-tests">Checkpoint tests<a class="headerlink" href="#checkpoint-tests" title="Permanent link">#</a></h2>
+<p>Run the application's checkpoint regression suite through CTest:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span><span class="nb">test</span><span class="w"> </span>xr_gsplat<span class="w"> </span>--language<span class="w"> </span>python
+</code></pre></div>
+<p>The suite loads real gsplat training state dictionaries and rejects executable pickle
+payloads in both ZIP and legacy checkpoint formats. It uses generated inputs and
+does not require downloaded models or an XR runtime. These tests exercise
+checkpoint loading, not full rendering.</p>
+<p>To run pytest directly from the repository root in an environment with the
+application dependencies and pytest installed:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>applications/xr_gsplat/test_gsplat_loader_op.py
 </code></pre></div>
 
 
