@@ -1,0 +1,16 @@
+%YAML 1.2
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+---
+source:
+  rows: 2048
+  cols: 4096
+  tensor_name: input
+
+inference:
+  # One path == a single offline-sharded plan deserialized on every rank.
+  # N paths  == per-rank weight-shard plans (tensor parallelism), index == rank.
+  engine_paths:
+    - data/multi_device_inference/model.plan.rank0
+    - data/multi_device_inference/model.plan.rank1
+  device_ids: [0, 1]
