@@ -20332,10 +20332,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#cmake-cannot-find-holoscancore" class="md-nav__link">
+  <a href="#cmake-cannot-find-holoscan" class="md-nav__link">
     <span class="md-ellipsis">
       
-        CMake cannot find holoscan::core.
+        CMake cannot find Holoscan.
       
     </span>
   </a>
@@ -20795,7 +20795,7 @@ Possible next steps:
 <li><code>pyproject.toml</code> uses scikit-build-core. Its <code>cmake.args</code> are pre-set to
   <code>-DMY_MODULE_BUILD_TESTING=OFF -DBUILD_ALL=OFF -DOP_my_module_op=ON</code> so the wheel
   builds only what the module ships.</li>
-<li><code>CMakeLists.txt</code> calls <code>find_package(holoscan REQUIRED)</code>. The
+<li>For C++ modules, <code>CMakeLists.txt</code> looks up Holoscan with <code>find_package</code>. The
   <code>BUILD_ALL</code> option defaults to <code>ON</code> when the project is the top-level build and <code>OFF</code>
   when nested inside a parent build. <code>MY_MODULE_BUILD_TESTING</code> is a module-scoped
   toggle, independent of CMake's global <code>BUILD_TESTING</code>.</li>
@@ -20884,17 +20884,18 @@ uses the same project configuration as the container workflow but runs the build
 tests directly on the host. Use a separate build parent so native artifacts never mix
 with the container workflow's <code>build/</code> tree:</p>
 <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">HOLOSCAN_CLI_BUILD_PARENT_DIR</span><span class="o">=</span><span class="s2">"</span><span class="nv">$PWD</span><span class="s2">/build-native"</span>
-./holohub<span class="w"> </span>build<span class="w"> </span>my_module_pipeline<span class="w"> </span>--local<span class="w"> </span>--dryrun<span class="w"> </span>--verbose
+./holohub<span class="w"> </span>build<span class="w"> </span>my_module_pipeline<span class="w"> </span>--local<span class="w"> </span>--dryrun<span class="w"> </span>--verbose<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--configure-args<span class="o">=</span><span class="s1">'-DCMAKE_PREFIX_PATH=/opt/nvidia/holoscan'</span>
 ./holohub<span class="w"> </span><span class="nb">test</span><span class="w"> </span>--local<span class="w"> </span>--dryrun<span class="w"> </span>--verbose
-./holohub<span class="w"> </span>build<span class="w"> </span>my_module_pipeline<span class="w"> </span>--local
+./holohub<span class="w"> </span>build<span class="w"> </span>my_module_pipeline<span class="w"> </span>--local<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--configure-args<span class="o">=</span><span class="s1">'-DCMAKE_PREFIX_PATH=/opt/nvidia/holoscan'</span>
 ./holohub<span class="w"> </span><span class="nb">test</span><span class="w"> </span>--local
 </code></pre></div>
 <p>The dry runs preview the host commands without executing them. The expected result is
 a configured <code>build-native/</code> tree, built module and demo artifacts, and the enabled
-CTest suite.</p>
-<p>If the local build cannot find Holoscan, verify the installation first and then set
-either <code>CMAKE_PREFIX_PATH=/opt/nvidia/holoscan</code> or
-<code>holoscan_DIR=/opt/nvidia/holoscan/lib/cmake/holoscan</code> before rerunning the command.</p>
+CTest suite. Replace <code>/opt/nvidia/holoscan</code> in both build commands with the
+prefix of your installed Holoscan SDK 4.x if it is elsewhere. The SDK must
+meet the minimum version entered during scaffolding.</p>
 <h3 id="37-use-the-live-build-tree-from-any-shell">3.7 Use the Live Build Tree from Any Shell<a class="headerlink" href="#37-use-the-live-build-tree-from-any-shell" title="Permanent link">#</a></h3>
 <p>To use the module from a Python shell or notebook outside of the build directory,
 install a development hook:</p>
@@ -21122,7 +21123,7 @@ for a working example.</p>
 </tr>
 <tr>
 <td>Native build</td>
-<td><code>HOLOSCAN_CLI_BUILD_PARENT_DIR=$PWD/build-native ./holohub build &lt;app&gt; --local</code></td>
+<td><code>HOLOSCAN_CLI_BUILD_PARENT_DIR=$PWD/build-native ./holohub build &lt;app&gt; --local --configure-args='-DCMAKE_PREFIX_PATH=/opt/nvidia/holoscan'</code></td>
 <td><code>build-native/&lt;app&gt;/</code></td>
 </tr>
 <tr>
@@ -21164,12 +21165,16 @@ Python wheel installation directory</li>
 at your module build location and also patch the Holoscan SDK import search paths.</p>
 <div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>install<span class="w"> </span>--dev
 </code></pre></div>
-<h3 id="cmake-cannot-find-holoscancore"><strong>CMake cannot find <code>holoscan::core</code>.</strong><a class="headerlink" href="#cmake-cannot-find-holoscancore" title="Permanent link">#</a></h3>
-<p>Use the container workflow, or point native CMake at the installed SDK:</p>
-<div class="highlight"><pre><span></span><code>cmake<span class="w"> </span>-S<span class="w"> </span>.<span class="w"> </span>-B<span class="w"> </span>build<span class="w"> </span>-DCMAKE_PREFIX_PATH<span class="o">=</span>/opt/nvidia/holoscan
-<span class="c1"># Equivalent explicit configuration:</span>
-cmake<span class="w"> </span>-S<span class="w"> </span>.<span class="w"> </span>-B<span class="w"> </span>build<span class="w"> </span>-Dholoscan_DIR<span class="o">=</span>/opt/nvidia/holoscan/lib/cmake/holoscan
+<h3 id="cmake-cannot-find-holoscan"><strong>CMake cannot find Holoscan.</strong><a class="headerlink" href="#cmake-cannot-find-holoscan" title="Permanent link">#</a></h3>
+<p>Confirm that the SDK is installed, then pass its install prefix to a native build:</p>
+<div class="highlight"><pre><span></span><code>./holohub<span class="w"> </span>build<span class="w"> </span>my_module_pipeline<span class="w"> </span>--local<span class="w"> </span>--dryrun<span class="w"> </span>--verbose<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--configure-args<span class="o">=</span><span class="s1">'-DCMAKE_PREFIX_PATH=/path/to/holoscan'</span>
+./holohub<span class="w"> </span>build<span class="w"> </span>my_module_pipeline<span class="w"> </span>--local<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--configure-args<span class="o">=</span><span class="s1">'-DCMAKE_PREFIX_PATH=/path/to/holoscan'</span>
 </code></pre></div>
+<p>Alternatively, use <code>--configure-args='-Dholoscan_DIR=/path/to/holoscan/lib/cmake/holoscan'</code>
+to point directly at the directory containing <code>holoscan-config.cmake</code>.
+Use a new build parent if CMake cached a different SDK location.</p>
 <h3 id="pytest-exits-with-status-5"><strong><code>pytest</code> exits with status 5.</strong><a class="headerlink" href="#pytest-exits-with-status-5" title="Permanent link">#</a></h3>
 <p>Zero tests were collected because <code>holoscan</code> is not importable in the current environment.
 CTest treats this as <em>Skipped</em> via <code>SKIP_RETURN_CODE 5</code>.</p>
