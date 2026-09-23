@@ -25,7 +25,7 @@ git clone https://github.com/nerfstudio-project/gsplat.git
 ```bash
 cd gsplat/examples
 # Install torch
-pip install torch
+pip install "torch>=2.10.0"
 # Install gsplat
 pip install git+https://github.com/nerfstudio-project/gsplat.git
 # Install dependencies
@@ -76,4 +76,24 @@ docker exec -it <container_id> bash
 
 # Build and run the application
 ./holohub run xr_gsplat
+```
+
+## Checkpoint tests
+
+Run the application's checkpoint regression suite through CTest:
+
+```bash
+./holohub test xr_gsplat --language python
+```
+
+The suite loads real gsplat training state dictionaries and rejects executable pickle
+payloads in both ZIP and legacy checkpoint formats. It uses generated inputs and
+does not require downloaded models or an XR runtime. These tests exercise
+checkpoint loading, not full rendering.
+
+To run pytest directly from the repository root in an environment with the
+application dependencies and pytest installed:
+
+```bash
+python -m pytest applications/xr_gsplat/test_gsplat_loader_op.py
 ```

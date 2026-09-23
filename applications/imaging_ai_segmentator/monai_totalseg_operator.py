@@ -181,7 +181,7 @@ class MonaiTotalSegOperator(Operator):
             dropout_prob=0.2,
         ).to(_device)
 
-        model.load_state_dict(torch.load(self.model_path))
+        model.load_state_dict(torch.load(self.model_path, weights_only=True))
         model.eval()
 
         loaded_model = Model(self.model_path, name="monai_total_seg")
