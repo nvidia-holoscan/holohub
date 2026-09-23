@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import ipaddress
 import logging
 from concurrent import futures
 from queue import Queue
@@ -44,8 +45,49 @@ class GrpcService:
         self.logger: logging.Logger = logging.getLogger(__name__)
         self.__initialized: bool = True
 
-    def initialize(self, port: int, application_factory: ApplicationFactory):
-        self.server_address: str = f"0.0.0.0:{port}"
+    def initialize(
+        self,
+        port: int,
+        application_factory: ApplicationFactory,
+        *,
+        host: str = "127.0.0.1",
+        private_key: bytes | None = None,
+        certificate_chain: bytes | None = None,
+        root_certificates: bytes | None = None,
+    ):
+        """Allow plaintext on loopback only; remote listeners require mutual TLS.
+
+        TLS inputs are PEM bytes. ``root_certificates`` must contain the CA
+        certificates trusted to issue client certificates.
+        """
+        try:
+            # Pin this alias to loopback; never resolve hostnames for a listener.
+            address = ipaddress.ip_address("127.0.0.1" if host == "localhost" else host)
+        except ValueError as exc:
+            raise ValueError("The gRPC bind host must be an IP address or localhost") from exc
+        port = int(port)
+        if not 0 <= port <= 65535:
+            raise ValueError("The gRPC port must be between 0 and 65535")
+
+        tls = (private_key, certificate_chain, root_certificates)
+        credentials = None
+        if any(value is not None for value in tls):
+            if not all(tls):
+                raise ValueError(
+                    "Mutual TLS requires a private key, certificate chain, and client CA"
+                )
+            credentials = grpc.ssl_server_credentials(
+                [(private_key, certificate_chain)],
+                root_certificates=root_certificates,
+                require_client_auth=True,
+            )
+        elif not address.is_loopback:
+            raise ValueError("A non-loopback gRPC listener requires mutual TLS credentials")
+
+        self.server_address: str = (
+            f"[{address}]:{port}" if address.version == 6 else f"{address}:{port}"
+        )
+        self.credentials = credentials
         self.application_factory: ApplicationFactory = application_factory
 
     async def start(
@@ -66,7 +108,12 @@ class GrpcService:
         if enable_health_check_service:
             health_pb2_grpc.add_HealthServicer_to_server(health.HealthServicer(), self.server)
 
-        self.server.add_insecure_port(self.server_address)
+        if self.credentials is None:
+            bound_port = self.server.add_insecure_port(self.server_address)
+        else:
+            bound_port = self.server.add_secure_port(self.server_address, self.credentials)
+        if not bound_port:
+            raise RuntimeError(f"Failed to bind gRPC server to {self.server_address}")
         await self.server.start()
         self.logger.info(f"grpc: Server listening on {self.server_address}")
         await self.server.wait_for_termination()
