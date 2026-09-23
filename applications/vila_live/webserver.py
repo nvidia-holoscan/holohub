@@ -273,6 +273,6 @@ class Webserver(threading.Thread):
             host=self.host,
             port=self.port,
             ssl_context=self.ssl_context,
-            debug=True,
+            debug=False,
             use_reloader=False,
         )
