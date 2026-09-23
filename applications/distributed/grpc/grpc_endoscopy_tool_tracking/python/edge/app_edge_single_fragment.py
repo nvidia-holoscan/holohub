@@ -32,10 +32,11 @@ from operators.grpc_operators.python.common.asyncio_queue import AsyncIoQueue
 
 
 class AppEdgeSingleFragment(Application):
-    def __init__(self, data_path: str):
+    def __init__(self, data_path: str, *, credentials=None):
         self.logger = logging.getLogger(__name__)
         self.datapath = data_path
         self.entity_client_service = None
+        self.credentials = credentials
 
         super().__init__()
 
@@ -131,6 +132,7 @@ class AppEdgeSingleFragment(Application):
             self.request_queue,
             self.response_queue,
             replayer,
+            credentials=self.credentials,
         )
 
     async def start_streaming_client(self):

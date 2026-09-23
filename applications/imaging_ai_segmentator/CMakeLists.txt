@@ -71,3 +71,14 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
   add_custom_target(run ALL
       DEPENDS imaging_ai_segmentator_model imaging_ai_segmentator_data)
 endif()
+
+if(BUILD_TESTING)
+  find_package(Python3 REQUIRED COMPONENTS Interpreter)
+  add_test(NAME imaging_ai_segmentator_checkpoint_test
+           COMMAND "${Python3_EXECUTABLE}" -m pytest -q
+                   "${CMAKE_CURRENT_SOURCE_DIR}/test_monai_totalseg_operator.py"
+           WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+  set_tests_properties(imaging_ai_segmentator_checkpoint_test PROPERTIES
+                       LABELS "application;python;unit"
+                       TIMEOUT 120)
+endif()
