@@ -1,0 +1,45 @@
+{
+  "$schema": "urn:holohub:application:v1",
+  "application": {
+    "name": "V4L2 Inference Holoviz",
+    "description": "A Holoscan 5.x camera, tensor preprocessing, TensorRT inference, and visualization pipeline.",
+    "authors": [{"name": "HoloHub Contributors", "affiliation": "HoloHub"}],
+    "language": "C++",
+    "version": "0.1.0",
+    "changelog": {"0.1.0": "Initial camera-to-inference-to-visualization application"},
+    "holoscan_sdk": {"minimum_required_version": "5.0.0", "tested_versions": []},
+    "platforms": ["x86_64", "aarch64"],
+    "tags": ["Camera", "V4L2", "Inference", "Holoviz"],
+    "ranking": 4,
+    "requirements": {
+      "hardware": [
+        {"name": "camera", "description": "Linux V4L2 device supporting packed YUYV capture", "required": true},
+        {"name": "GPU", "description": "NVIDIA GPU with CUDA 13 and Vulkan support", "required": true}
+      ],
+      "data": [{"description": "Use the inference module example identity_model.onnx: FP32 NCHW RGB input/output [1, 3, 256, 256]."}],
+      "software": [
+        "Holoscan SDK 5.x with sensor_io, inference (including TensorPreprocessorOp ImageT input), and visualization components",
+        "Installed holoscan-camera >= 0.3.0 built against the same SDK",
+        "Python onnx package for optional identity model verification"
+      ]
+    },
+    "default_mode": "capture",
+    "modes": {
+      "capture": {
+        "description": "Capture and infer 120 frames, then exit; requires a camera, GPU, display, and model",
+        "run": {
+          "command": "<holohub_app_bin>/v4l2_inference_holoviz --model <holohub_data_dir>/v4l2_inference_holoviz/identity_model.onnx --frames 120 --timeout 120",
+          "workdir": "holohub_app_source",
+          "docker_run_args": "--device=/dev/video0"
+        }
+      },
+      "validate": {
+        "description": "Compile the operator graph without starting capture, inference, or visualization",
+        "run": {
+          "command": "<holohub_app_bin>/v4l2_inference_holoviz --validate",
+          "workdir": "holohub_app_source"
+        }
+      }
+    }
+  }
+}

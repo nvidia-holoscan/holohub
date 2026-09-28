@@ -172,6 +172,8 @@ add_holohub_application(ultrasound_segmentation DEPENDS
 add_holohub_application(usrp_spectrum_viewer DEPENDS
                         OPERATORS fft)
 
+add_holohub_application(v4l2_inference_holoviz)
+
 add_holohub_application(velodyne_lidar_app DEPENDS
                         OPERATORS velodyne_lidar)
 
