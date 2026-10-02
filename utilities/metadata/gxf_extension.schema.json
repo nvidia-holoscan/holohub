@@ -1,43 +1,43 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:holohub:gxf_extension:v1",
+  "$id": "urn:holoscan:gxf_extension:v1",
   "type": "object",
   "properties": {
     "gxf_extension": {
       "type": "object",
       "properties": {
         "name": {
-          "$ref": "urn:holohub:project:v1#/$defs/name"
+          "$ref": "urn:holoscan:project:v1#/$defs/name"
         },
         "description": {
-          "$ref": "urn:holohub:project:v1#/$defs/description"
+          "$ref": "urn:holoscan:project:v1#/$defs/description"
         },
         "authors": {
-          "$ref": "urn:holohub:project:v1#/$defs/authors"
+          "$ref": "urn:holoscan:project:v1#/$defs/authors"
         },
         "version": {
-          "$ref": "urn:holohub:project:v1#/$defs/version"
+          "$ref": "urn:holoscan:project:v1#/$defs/version"
         },
         "changelog": {
-          "$ref": "urn:holohub:project:v1#/$defs/changelog"
+          "$ref": "urn:holoscan:project:v1#/$defs/changelog"
         },
         "language": {
-          "$ref": "urn:holohub:project:v1#/$defs/language"
+          "$ref": "urn:holoscan:project:v1#/$defs/language"
         },
         "platforms": {
-          "$ref": "urn:holohub:project:v1#/$defs/platforms"
+          "$ref": "urn:holoscan:project:v1#/$defs/platforms"
         },
         "tags": {
-          "$ref": "urn:holohub:project:v1#/$defs/tags"
+          "$ref": "urn:holoscan:project:v1#/$defs/tags"
         },
         "gxf_version": {
-          "$ref": "urn:holohub:project:v1#/$defs/sdk_version"
+          "$ref": "urn:holoscan:project:v1#/$defs/sdk_version"
         },
         "ranking": {
-          "$ref": "urn:holohub:project:v1#/$defs/ranking"
+          "$ref": "urn:holoscan:project:v1#/$defs/ranking"
         },
         "requirements": {
-          "$ref": "urn:holohub:project:v1#/$defs/requirements"
+          "$ref": "urn:holoscan:project:v1#/$defs/requirements"
         }
       },
       "required": [

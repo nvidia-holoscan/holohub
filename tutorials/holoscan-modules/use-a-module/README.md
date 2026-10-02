@@ -136,7 +136,7 @@ Edit your subproject's `metadata.json`. For an application:
 
 ```json
 {
-  "$schema": "urn:holohub:application:v2",
+  "$schema": "urn:holoscan:application:v2",
   "application": {
     "name": "my_app",
     "dependencies": {

@@ -1,5 +1,5 @@
 {
-	"$schema": "urn:holohub:tutorial:v1",
+	"$schema": "urn:holoscan:tutorial:v1",
 	"tutorial": {
 		"name": "Use a Holoscan Module",
 		"description": "End-to-end walkthrough for consuming a Holoscan Module from a HoloHub subproject (primary), an external C++ project via find_package, an external Python project via pip, or a non-HoloHub CMake project via source-level embedding. Includes module-to-module transitive dependencies.",
