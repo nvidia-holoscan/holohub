@@ -17,10 +17,9 @@
 
 import json
 import tempfile
-import unittest
+import unittest.mock
 import warnings
 from pathlib import Path
-from unittest import mock
 
 from utilities.metadata import metadata_validator
 
@@ -71,10 +70,14 @@ class SchemaLabelTest(unittest.TestCase):
                 ),
                 encoding="utf-8",
             )
-            with mock.patch.object(metadata_validator, "get_schema_path", return_value=schema):
-                ok, msg = metadata_validator.validate_json({"tags": ["a"]}, "legacy")
+            with unittest.mock.patch.object(
+                metadata_validator, "get_schema_path", return_value=schema
+            ):
+                with self.assertWarnsRegex(FutureWarning, "2027"):
+                    ok, msg = metadata_validator.validate_json({"tags": ["a"]}, "legacy")
                 self.assertTrue(ok, msg)
-                ok, _ = metadata_validator.validate_json({"tags": [1]}, "legacy")
+                with self.assertWarnsRegex(FutureWarning, "2027"):
+                    ok, _ = metadata_validator.validate_json({"tags": [1]}, "legacy")
                 self.assertFalse(ok)
 
 

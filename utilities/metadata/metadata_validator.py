@@ -187,6 +187,17 @@ def check_schema_label(json_data, schema_id):
     return True, "valid $schema label"
 
 
+def legacy_schema_refs(schema):
+    """Return the ``$ref`` values in ``schema`` that use the deprecated ``urn:holohub:`` prefix."""
+    if isinstance(schema, dict):
+        ref = schema.get("$ref")
+        refs = [ref] if isinstance(ref, str) and ref.startswith(LEGACY_SCHEMA_URN_PREFIX) else []
+        return refs + [r for value in schema.values() for r in legacy_schema_refs(value)]
+    if isinstance(schema, list):
+        return [r for item in schema for r in legacy_schema_refs(item)]
+    return []
+
+
 def validate_json(json_data, directory):
     with open(BASE_SCHEMA_PATH) as file:
         base_schema = json.load(file)
@@ -216,6 +227,15 @@ def validate_json(json_data, directory):
     label_ok, label_msg = check_schema_label(json_data, execute_api_schema.get("$id"))
     if not label_ok:
         return False, label_msg
+    legacy_refs = sorted(set(legacy_schema_refs(execute_api_schema)))
+    if legacy_refs:
+        warnings.warn(
+            f"schema {execute_api_schema.get('$id')!r} uses deprecated "
+            f'"{LEGACY_SCHEMA_URN_PREFIX}" $refs {legacy_refs} that will be rejected after '
+            f'their planned removal in 2027; use "{SCHEMA_URN_PREFIX}"',
+            FutureWarning,
+            stacklevel=2,
+        )
     validator = Draft202012Validator(execute_api_schema, registry=registry)
 
     try:

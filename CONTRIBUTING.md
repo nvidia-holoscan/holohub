@@ -188,7 +188,7 @@ Validation runs in pre-commit via two hooks: `check-metaschema` validates each `
 
 A metadata file may set a top-level `"$schema"` such as `"urn:holoscan:application:v1"` to pin a schema version. The field is optional, but when present the validator checks that it has the form `urn:holoscan:<entity>:v<n>`, that `<entity>` matches the envelope key, and that `v<n>` is the version of the shipped schema; anything else fails validation.
 
-The `urn:holohub:` prefix used before the rename to `urn:holoscan:` is deprecated. It is still accepted in `$schema` labels and cross-schema `$ref`s (for example `urn:holohub:project:v1#/$defs/tags`), but the validator emits a deprecation warning. Support for the `urn:holohub:` alias is planned to be removed sometime in 2027, after which it will fail validation; migrate existing files and external schemas to `urn:holoscan:` before then.
+The `urn:holohub:` prefix used before the rename to `urn:holoscan:` is deprecated. It is still accepted in `$schema` labels and in cross-schema `$ref`s (for example `urn:holohub:project:v1#/$defs/tags`), and the validator emits a deprecation warning for either use. Support for the `urn:holohub:` alias is planned to be removed sometime in 2027, after which it will fail validation; migrate existing files and external schemas to `urn:holoscan:` before then.
 
 #### Example metadata.json Structure
 
