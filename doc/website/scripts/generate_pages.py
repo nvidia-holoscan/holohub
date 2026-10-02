@@ -1229,6 +1229,7 @@ sort:
     nav_content = """
 nav:
 - Home: index.md
+- Ecosystem: ecosystem/index.md
 - applications
 - operators
 - tutorials
