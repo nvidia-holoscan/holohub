@@ -16,6 +16,7 @@ import json
 import os
 import re
 import sys
+import warnings
 from pathlib import Path
 
 import jsonschema
@@ -149,11 +150,52 @@ KNOWN_ENVELOPES = (
 )
 
 
+SCHEMA_URN_PREFIX = "urn:holoscan:"
+# Accepted with a FutureWarning until its planned removal in 2027.
+LEGACY_SCHEMA_URN_PREFIX = "urn:holohub:"
+SCHEMA_LABEL_PATTERN = re.compile(
+    r"urn:(?P<namespace>holoscan|holohub):(?P<type>[a-z_-]+):v(?P<version>[1-9][0-9]*)"
+)
+
+
+def legacy_schema_id(schema_id):
+    """Return the deprecated ``urn:holohub:`` alias of a ``urn:holoscan:`` schema ID."""
+    return LEGACY_SCHEMA_URN_PREFIX + schema_id.removeprefix(SCHEMA_URN_PREFIX)
+
+
+def check_schema_label(json_data, schema_id):
+    """Check an optional top-level ``$schema`` label against the selected schema's ``$id``."""
+    if not isinstance(json_data, dict) or "$schema" not in json_data:
+        return True, "no $schema label"
+    label = json_data["$schema"]
+    match = SCHEMA_LABEL_PATTERN.fullmatch(label) if isinstance(label, str) else None
+    if match is None:
+        return (
+            False,
+            f'"$schema" must have the form "{SCHEMA_URN_PREFIX}<type>:v<N>", got {label!r}',
+        )
+    canonical = f"{SCHEMA_URN_PREFIX}{match['type']}:v{match['version']}"
+    if canonical != schema_id:
+        return False, f'"$schema" {label!r} does not match the selected schema {schema_id!r}'
+    if match["namespace"] == "holohub":
+        warnings.warn(
+            f'"$schema" {label!r} uses the deprecated "{LEGACY_SCHEMA_URN_PREFIX}" prefix and '
+            f"will be rejected after its planned removal in 2027; use {schema_id!r}",
+            FutureWarning,
+            stacklevel=3,
+        )
+    return True, "valid $schema label"
+
+
 def validate_json(json_data, directory):
     with open(BASE_SCHEMA_PATH) as file:
         base_schema = json.load(file)
-    registry = Registry().with_resource(
-        base_schema["$id"], DRAFT202012.create_resource(base_schema)
+    base_resource = DRAFT202012.create_resource(base_schema)
+    registry = Registry().with_resources(
+        [
+            (base_schema["$id"], base_resource),
+            (legacy_schema_id(base_schema["$id"]), base_resource),
+        ]
     )
 
     # Pick the schema by envelope key when present (e.g. an operator metadata.json
@@ -171,6 +213,9 @@ def validate_json(json_data, directory):
             execute_api_schema = json.load(file)
         except json.decoder.JSONDecodeError as err:
             return False, err
+    label_ok, label_msg = check_schema_label(json_data, execute_api_schema.get("$id"))
+    if not label_ok:
+        return False, label_msg
     validator = Draft202012Validator(execute_api_schema, registry=registry)
 
     try:
@@ -217,7 +262,11 @@ def validate_json_directory(directory, ignore_patterns=None, metadata_is_require
                 exit_code = 1
                 continue
 
-            is_valid, msg = validate_json(jsonData, directory)
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter("always", FutureWarning)
+                is_valid, msg = validate_json(jsonData, directory)
+            for warning in caught:
+                print("WARNING:" + name + ": " + str(warning.message))
             if is_valid:
                 print(name + ": valid")
 

@@ -182,10 +182,13 @@ Versioning policy for the schemas:
 | Draft bump or semantics-preserving rewrite | Keep `v<n>` | Unchanged |
 | Loosening (new optional fields, widened enums) | Keep `v<n>` | Unchanged |
 | Tightening (new required fields, narrowed enums) | Bump to `v<n+1>`; keep the previous schema file alongside for a deprecation window | Migrated on each file's own cadence |
+| Namespace rename (e.g. `urn:holohub:` → `urn:holoscan:`) | Keep `v<n>`; accept the old prefix as an alias for a deprecation window | Migrated on each file's own cadence |
 
 Validation runs in pre-commit via two hooks: `check-metaschema` validates each `*.schema.json` against the Draft 2020-12 meta-schema, and `holohub-metadata-validate` runs `python3 -m utilities.metadata.metadata_validator` against every `metadata.json` in the corpus. Run them locally with `pre-commit run --all-files`. The validator picks the schema by inspecting the top-level envelope key (`application`, `operator`, etc.) so an operator definition nested under `applications/<app>/operators/<op>/metadata.json` is validated against the operator schema rather than the application schema.
 
-A future-facing option (no consumer changes required yet): a metadata file may set `"$schema": "urn:holoscan:application:v1"` at the top level to pin a specific schema version. The validator does not require this today, but it allows files to opt into a particular `v<n>` when multiple versions coexist.
+A metadata file may set a top-level `"$schema"` such as `"urn:holoscan:application:v1"` to pin a schema version. The field is optional, but when present the validator checks that it has the form `urn:holoscan:<entity>:v<n>`, that `<entity>` matches the envelope key, and that `v<n>` is the version of the shipped schema; anything else fails validation.
+
+The `urn:holohub:` prefix used before the rename to `urn:holoscan:` is deprecated. It is still accepted in `$schema` labels and cross-schema `$ref`s (for example `urn:holohub:project:v1#/$defs/tags`), but the validator emits a deprecation warning. Support for the `urn:holohub:` alias is planned to be removed sometime in 2027, after which it will fail validation; migrate existing files and external schemas to `urn:holoscan:` before then.
 
 #### Example metadata.json Structure
 
