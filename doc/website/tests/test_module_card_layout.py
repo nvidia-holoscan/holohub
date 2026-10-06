@@ -1,13 +1,16 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
+import io
 import sys
 import unittest
 from pathlib import Path
+from unittest import mock
 
 SCRIPTS_DIR = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPTS_DIR))
 
+import generate_module_pages
 from generate_module_pages import build_metadata_header, generate_module_card
 
 ENTRY = {"name": "holoscan-example", "nvidia_quality_score": 3}
@@ -29,6 +32,19 @@ class ModuleCardLayoutTest(unittest.TestCase):
         card = generate_module_card(ENTRY, _module(description=description))
         self.assertIn("-webkit-line-clamp:3", card)
         self.assertIn(f'title="{description}"', card)
+
+    def test_detail_page_shows_full_description(self):
+        description = " ".join(f"word{i}" for i in range(60))
+        page = io.StringIO()
+        gen_files = mock.MagicMock()
+        gen_files.open.return_value.__enter__.return_value = page
+        with mock.patch.object(generate_module_pages, "mkdocs_gen_files", gen_files):
+            generate_module_pages.generate_detail_page(
+                ENTRY, _module(description=description), "# Example\n\nBody.\n", "", None
+            )
+        body = page.getvalue().split("---\n", 2)[2]
+        self.assertIn(f'<p class="module-description">{description}</p>', body)
+        self.assertLess(body.index("module-description"), body.index("Quality score"))
 
 
 if __name__ == "__main__":

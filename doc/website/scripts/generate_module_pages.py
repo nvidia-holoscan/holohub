@@ -358,6 +358,11 @@ def generate_detail_page(
 
     description = metadata_module.get("description") or ""
     description = re.sub(r"\s+", " ", str(description)).strip()
+    lead_html = (
+        f'<p class="module-description">{html.escape(description, quote=False)}</p>\n\n'
+        if description
+        else ""
+    )
     if not description:
         description = f"{name} — a Holoscan module in HoloHub, the Holoscan Ecosystem."
     if len(description) > 160:
@@ -385,12 +390,13 @@ def generate_detail_page(
         readme_body = (
             readme_body[: first_newline + 1]
             + "\n"
+            + lead_html
             + metadata_header
             + "\n"
             + readme_body[first_newline + 1 :]
         )
     else:
-        readme_body = readme_body + "\n\n" + metadata_header
+        readme_body = readme_body + "\n\n" + lead_html + metadata_header
 
     footer = f"\n---\n[View source on GitHub]({source_url})\n" if source_url else ""
 
