@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:holohub:source:v1",
+  "title": "HoloHub source registration",
+  "description": "Where to find an external entity. Entity metadata and its schema belong at the target location.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name", "kind", "source"],
+  "$defs": {
+    "https_url": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://(?:[^/?#@:\\s]+|\\[[0-9A-Fa-f:.]+\\])(?::0*(?:[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]))?(?:[/?#][^\\s]*)?(?![\\s\\S])"
+    }
+  },
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:[-_][a-z0-9]+)*(?![\\s\\S])",
+      "description": "Stable source name, unique within its kind; must match the JSON filename."
+    },
+    "kind": {
+      "enum": ["application", "module", "tutorial", "skill", "benchmark"]
+    },
+    "issues_url": {
+      "$ref": "#/$defs/https_url",
+      "description": "Optional HTTPS destination for reporting issues with this source, such as an issue tracker or support form."
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "url"],
+      "properties": {
+        "type": { "enum": ["git", "url"] },
+        "url": {
+          "$ref": "#/$defs/https_url",
+          "description": "HTTPS clone URL or direct hosted location; no credentials; optional port 1–65535."
+        },
+        "ref": {
+          "type": "string",
+          "pattern": "^(?!-)[^\\s\\u0000-\\u001f\\u007f]+(?![\\s\\S])",
+          "description": "Git branch, tag, or commit. Prefer a full commit SHA for reproducibility."
+        },
+        "path": {
+          "anyOf": [
+            { "const": "." },
+            {
+              "type": "string",
+              "pattern": "^(?!/)(?![A-Za-z]:)(?!.*(?:^|/)\\.{1,2}(?:/|$))[^/\\\\\\u0000-\\u001f\\u007f]+(?:/[^/\\\\\\u0000-\\u001f\\u007f]+)*(?![\\s\\S])"
+            }
+          ],
+          "default": ".",
+          "description": "Entity directory within the Git repository, containing its own metadata. Defaults to the repository root."
+        }
+      },
+      "if": { "properties": { "type": { "const": "git" } }, "required": ["type"] },
+      "then": {
+        "required": ["ref"],
+        "properties": {
+          "url": {
+            "pattern": "^[^?#]+(?![\\s\\S])",
+            "description": "Keep the revision and path in their own fields, not in the clone URL."
+          }
+        }
+      },
+      "else": { "properties": { "ref": false, "path": false } }
+    }
+  }
+}

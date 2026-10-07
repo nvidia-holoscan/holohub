@@ -1,0 +1,10 @@
+{
+  "name": "holoscan-tutorials",
+  "kind": "tutorial",
+  "source": {
+    "type": "git",
+    "url": "https://github.com/nvidia-holoscan/holoscan-tutorials.git",
+    "ref": "main",
+    "path": "tutorials"
+  }
+}

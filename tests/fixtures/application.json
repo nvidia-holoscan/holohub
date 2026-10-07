@@ -1,0 +1,10 @@
+{
+  "name": "example-application",
+  "kind": "application",
+  "source": {
+    "type": "git",
+    "url": "https://github.com/example/holoscan-applications.git",
+    "ref": "v1.0.0",
+    "path": "applications/imaging"
+  }
+}

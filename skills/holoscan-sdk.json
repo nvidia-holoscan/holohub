@@ -1,0 +1,10 @@
+{
+  "name": "holoscan-sdk",
+  "kind": "skill",
+  "source": {
+    "type": "git",
+    "url": "https://github.com/nvidia-holoscan/holoscan-sdk.git",
+    "ref": "main",
+    "path": "skills"
+  }
+}

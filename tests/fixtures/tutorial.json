@@ -1,0 +1,8 @@
+{
+  "name": "example-tutorial",
+  "kind": "tutorial",
+  "source": {
+    "type": "url",
+    "url": "https://example.org/tutorials/getting-started#overview"
+  }
+}

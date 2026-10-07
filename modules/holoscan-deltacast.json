@@ -1,0 +1,10 @@
+{
+  "name": "holoscan-deltacast",
+  "kind": "module",
+  "source": {
+    "type": "git",
+    "url": "https://github.com/deltacasttv/holoscan-modules.git",
+    "ref": "36deda4f925dfb7aaa69df70459246f154f4dcdd",
+    "path": "."
+  }
+}

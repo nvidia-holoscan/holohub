@@ -1,0 +1,49 @@
+name: Registry
+
+on:
+  pull_request:
+  push:
+  merge_group:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: registry-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate registry
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out registry
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirement.txt
+
+      - name: Install registry validation dependencies
+        run: python -m pip install --disable-pip-version-check -r requirement.txt
+
+      - name: Test source schema and registry validation
+        run: python -m unittest discover -s tests -v
+
+      - name: Validate all registrations and generate index
+        run: python utilities/validate_registry.py --index dist/sources.json
+
+      - name: Upload source index
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: source-index
+          path: dist/sources.json
+          if-no-files-found: error
+          retention-days: 14
