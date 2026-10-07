@@ -1,0 +1,18 @@
+{
+    "$schema": "urn:holohub:operator:v1",
+    "operator": {
+        "name": "argus_capture_op",
+        "authors": [{"name": "Holoscan Team", "affiliation": "NVIDIA"}],
+        "description": "Jetson libargus capture with typed Sensor I/O images, metadata, and bounded native buffers",
+        "language": ["C++"],
+        "version": "0.1.0",
+        "changelog": {"0.1.0": "Initial Argus capture implementation"},
+        "holoscan_sdk": {"minimum_required_version": "5.0.0", "tested_versions": ["5.0.0"]},
+        "platforms": ["aarch64"],
+        "tags": ["Camera", "Argus", "Jetson", "Sensor IO"],
+        "ranking": 3,
+        "requirements": {
+            "linux": "Compatible Jetson BSP, libargus socket client, NvBufSurface, EGL and CUDA; camera exposed by nvargus-daemon"
+        }
+    }
+}

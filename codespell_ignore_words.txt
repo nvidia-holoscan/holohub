@@ -1,0 +1,4 @@
+# This file contains the exact words in code that should be ignored by codespell
+NotIn
+# parm: field name of the kernel's v4l2_streamparm struct (VIDIOC_G_PARM/VIDIOC_S_PARM)
+parm

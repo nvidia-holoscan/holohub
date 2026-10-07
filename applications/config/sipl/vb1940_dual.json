@@ -1,0 +1,112 @@
+{
+    "cameraConfigs": [
+        {
+            "name": "VB1940",
+            "type": "CoE",
+            "description": "VB1940 Camera Configuration - 2560x1984 30FPS Mode (Dual Sensor)",
+            "platform": "Vb1940",
+            "platformConfig": "VB1940",
+            "mipiSettings": {
+                "lanes": 4,
+                "lpBypassMode": false,
+                "tClkSettle": 0,
+                "mipiClockRate": 570000,
+                "tHsSettle": 0,
+                "lanePolarity": [0, 0, 0, 0],
+                "laneSwizzle": "LANE_SWIZZLE_A0A1B0B1",
+                "dphyRate": 1140,
+                "cphyRate": 1140,
+                "phyMode": "dphy"
+            },
+            "CoECamera": {
+                "isStereo": false,
+                "hsbSensorIndex": 0,
+                "hsb_id": 0,
+                "sensor": {
+                    "mac_address": "8c:1f:64:6d:70:e9",
+                    "ip_address": "192.168.0.2"
+                }
+            },
+            "sensorInfo": {
+                "name": "VB1940",
+                "id" : 0,
+                "description": "VB1940 Eagle Sensor for CoE (Sensor 1)",
+                "i2cAddress": "0x10",
+                "virtualChannels": [
+                    {
+                        "cfa": "gbrg",
+                        "embeddedTopLines": 1,
+                        "embeddedBottomLines": 2,
+                        "inputFormat": "raw10tp",
+                        "width": 2560,
+                        "height": 1984,
+                        "fps": 30.0,
+                        "isEmbeddedDataTypeEnabled": false
+                    }
+                ]
+            },
+            "isEEPROMSupported": false,
+            "cryptoConfigName": "VB1940_CRYPTO"
+        },
+        {
+            "name": "VB1940",
+            "type": "CoE",
+            "description": "VB1940 Camera Configuration - 2560x1984 30FPS Mode (Dual Sensor)",
+            "platform": "Vb1940",
+            "platformConfig": "VB1940",
+            "mipiSettings": {
+                "lanes": 4,
+                "lpBypassMode": false,
+                "tClkSettle": 0,
+                "mipiClockRate": 570000,
+                "tHsSettle": 0,
+                "lanePolarity": [0, 0, 0, 0],
+                "laneSwizzle": "LANE_SWIZZLE_A0A1B0B1",
+                "dphyRate": 1140,
+                "cphyRate": 1140,
+                "phyMode": "dphy"
+            },
+            "CoECamera": {
+                "isStereo": false,
+                "hsbSensorIndex": 1,
+                "hsb_id": 0,
+                "sensor": {
+                    "mac_address": "8c:1f:64:6d:70:e9",
+                    "ip_address": "192.168.0.2"
+                }
+            },
+            "sensorInfo": {
+                "name": "VB1940",
+                "id" : 1,
+                "description": "VB1940 Eagle Sensor for CoE (Sensor 2)",
+                "i2cAddress": "0x10",
+                "virtualChannels": [
+                    {
+                        "cfa": "gbrg",
+                        "embeddedTopLines": 1,
+                        "embeddedBottomLines": 2,
+                        "inputFormat": "raw10tp",
+                        "width": 2560,
+                        "height": 1984,
+                        "fps": 30.0,
+                        "isEmbeddedDataTypeEnabled": false
+                    }
+                ]
+            },
+            "isEEPROMSupported": false,
+            "cryptoConfigName": "VB1940_CRYPTO"
+            }
+        ],
+        "transportSettings": [
+        {
+            "name": "VB1940",
+            "compatible_name": "HsbTransport",
+            "type": "CoE",
+            "description": "Transport settings for VB1940 camera",
+            "if_name": "mgbe0_0",
+            "ip_address": "192.168.0.2",
+            "vlan_enable": false,
+            "hsb_id": 0
+        }
+    ]
+}

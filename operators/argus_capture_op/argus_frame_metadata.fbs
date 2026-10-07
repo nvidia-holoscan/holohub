@@ -1,0 +1,39 @@
+// SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+// SPDX-License-Identifier: Apache-2.0
+namespace holoscan.holoscan_camera;
+
+enum ArgusTimestampClock : byte { UNKNOWN, TEGRA_TSC_NS }
+
+table ArgusFrameMetadata {
+  camera_index:uint32 (id: 0);
+  sensor_mode:uint32 (id: 1);
+  source_index:uint32 (id: 2);
+  sequence:uint64 (id: 3);
+  // Unmodified ICaptureMetadata::getSensorTimestamp(): first sensor data, BSP-defined clock.
+  sensor_timestamp_ns:uint64 (id: 4);
+  // VI SOF from ISensorTimestampTsc, already in nanoseconds (not timer ticks).
+  sensor_sof_timestamp_ns:uint64 (id: 5);
+  timestamp_clock:ArgusTimestampClock (id: 6);
+  // Only populated with a camera-calibrated integration offset and a settled clock projection.
+  capture_timestamp_ns:int64 (id: 7);
+  capture_time_valid:bool (id: 8);
+  clock_uncertainty_ns:int64 (id: 9);
+  exposure_time_ns:uint64 (id: 10);
+  frame_duration_ns:uint64 (id: 11);
+  analog_gain:float (id: 12);
+  isp_digital_gain:float (id: 13);
+  ae_locked:bool (id: 14);
+  // Argus named states, e.g. AE_STATE_CONVERGED, AWB_STATE_SEARCHING.
+  ae_state:string (id: 15);
+  awb_state:string (id: 16);
+  width:uint32 (id: 17);
+  height:uint32 (id: 18);
+  // Capture IDs are extended across ordinary 32-bit wrap; regressions are reported separately.
+  sequence_gap:uint64 (id: 19);
+  sequence_regressed:bool (id: 20);
+  queue_drops:uint64 (id: 21);
+  publication_drops:uint64 (id: 22);
+  capture_timeouts:uint64 (id: 23);
+}
+root_type ArgusFrameMetadata;
+file_identifier "HCAM";

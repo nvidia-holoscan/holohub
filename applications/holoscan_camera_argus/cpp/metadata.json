@@ -1,0 +1,53 @@
+{
+    "$schema": "urn:holohub:application:v1",
+    "application": {
+        "name": "holoscan_camera_argus",
+        "authors": [
+            {
+                "name": "Holoscan Team",
+                "affiliation": "NVIDIA"
+            }
+        ],
+        "description": "Capture Jetson Argus images and consume frame descriptors and sensor metadata",
+        "language": "C++",
+        "version": "0.1.0",
+        "changelog": {
+            "0.1.0": "Initial capture and graph-validation sample"
+        },
+        "holoscan_sdk": {
+            "minimum_required_version": "5.0.0",
+            "tested_versions": [
+                "5.0.0"
+            ]
+        },
+        "platforms": [
+            "aarch64"
+        ],
+        "tags": [
+            "Camera",
+            "Argus",
+            "Sensor IO"
+        ],
+        "ranking": 3,
+        "requirements": {
+            "linux": "Jetson BSP with libargus, NvBufSurface, EGL, CUDA and an Argus-supported camera for live capture"
+        },
+        "default_mode": "validate",
+        "modes": {
+            "validate": {
+                "description": "Compile the Argus graph without opening a camera or allocating GPU buffers",
+                "run": {
+                    "command": "\"<holohub_app_bin>/holoscan_camera_argus\" --validate --memory host",
+                    "workdir": "holohub_app_bin"
+                }
+            },
+            "capture": {
+                "description": "Capture 120 GPU-accessible frames from Argus camera 0, sensor mode 0",
+                "run": {
+                    "command": "\"<holohub_app_bin>/holoscan_camera_argus\" --frames 120",
+                    "workdir": "holohub_app_bin"
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+# Generated build and packaging output. Keep Cursor context/indexing focused on source.
+build/
+build-*/
+.cmake/
+_CPack_Packages/
+ci-artifacts/
+ci-container-build.log
+ci-container-build.exit-code
+ci-sdk-details.txt
+*.deb
+
+# Tool caches and downloaded helpers.
+.holohub/
+.ruff_cache/
+
+# Container HOME-mapped junk.
+.local/
+.cupy/
+.cache/
+.bash_history
+.python_history
+.ngc/
+.nv/
+
+# Python packaging artifacts.
+dist/
+*.egg-info/
+__pycache__/
+*.py[cod]
