@@ -79,6 +79,20 @@ class RegistryTests(unittest.TestCase):
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertEqual([record], json.loads(index.read_text()))
 
+    def test_readmes_in_all_kinds_are_allowed_and_excluded_from_index(self):
+        for kind in KINDS:
+            self.write_record(kind)
+            (self.root / f"{kind}s" / "README.md").write_text(
+                f"# Register a {kind}\n", encoding="utf-8",
+            )
+        index = self.root / "sources.json"
+        result = self.run_validator("--index", index)
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual(
+            [example(kind) for kind in sorted(KINDS)],
+            json.loads(index.read_text()),
+        )
+
     def test_issues_url_does_not_distinguish_duplicate_sources(self):
         self.write_record()
         record = example("module")
@@ -150,6 +164,26 @@ class RegistryTests(unittest.TestCase):
         (self.root / "modules").rmdir()
         (self.root / "modules").symlink_to(self.root / "applications", target_is_directory=True)
         self.assert_rejected("modules: symlinks are not allowed")
+
+    def test_readme_directories_are_rejected(self):
+        (self.root / "modules" / "README.md").mkdir()
+        self.assert_rejected("modules/README.md: only source record JSON files")
+
+    def test_readme_symlinks_are_rejected(self):
+        path = self.root / "modules" / "README.md"
+        for target in (self.schema_path, self.root / "tutorials", self.root / "missing"):
+            with self.subTest(target=target):
+                path.symlink_to(target)
+                self.assert_rejected("modules/README.md: symlinks are not allowed")
+                path.unlink()
+
+    def test_other_markdown_files_are_rejected(self):
+        for name in ("CONTRIBUTING.md", "readme.md", "README.MD"):
+            with self.subTest(name=name):
+                path = self.root / "modules" / name
+                path.write_text("# Other documentation\n", encoding="utf-8")
+                self.assert_rejected(f"modules/{name}: only source record JSON files")
+                path.unlink()
 
     def test_only_empty_gitkeep_is_allowed(self):
         path = self.root / "modules" / ".gitkeep"

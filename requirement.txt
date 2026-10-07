@@ -2,3 +2,7 @@
 jsonschema==4.26.0
 # Enforces the uri format used by utilities/source.schema.json.
 rfc3986-validator==0.1.1
+# Safe parsing of SKILL.md frontmatter.
+PyYAML==6.0.3
+# Pin CLI discovery and its bundled entity schemas to the same revision.
+holoscan-cli @ git+https://github.com/nvidia-holoscan/holoscan-cli.git@c260fddcd025d9a4f78d4cdc8d2f5745af3c47d9

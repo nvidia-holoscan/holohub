@@ -134,12 +134,14 @@ def validate_registry(root):
             if path.is_symlink():
                 errors.append(f"{label}: symlinks are not allowed")
                 continue
+            if path.is_file() and path.name == "README.md":
+                continue
             if path.is_file() and path.name == ".gitkeep":
                 if path.stat().st_size:
                     errors.append(f"{label}: .gitkeep must be empty")
                 continue
             if not path.is_file() or path.suffix != ".json":
-                errors.append(f"{label}: only source record JSON files and an empty .gitkeep are allowed")
+                errors.append(f"{label}: only source record JSON files, README.md, and an empty .gitkeep are allowed")
                 continue
             try:
                 record = read_json(path)
