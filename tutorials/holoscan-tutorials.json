@@ -1,6 +1,7 @@
 {
   "name": "holoscan-tutorials",
   "kind": "tutorial",
+  "issues_url": "https://github.com/nvidia-holoscan/holoscan-tutorials/issues",
   "source": {
     "type": "git",
     "url": "https://github.com/nvidia-holoscan/holoscan-tutorials.git",

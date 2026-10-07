@@ -1,6 +1,7 @@
 {
   "name": "holoscan-sdk",
   "kind": "skill",
+  "issues_url": "https://github.com/nvidia-holoscan/holoscan-sdk/issues",
   "source": {
     "type": "git",
     "url": "https://github.com/nvidia-holoscan/holoscan-sdk.git",

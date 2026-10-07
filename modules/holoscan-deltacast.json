@@ -1,6 +1,7 @@
 {
   "name": "holoscan-deltacast",
   "kind": "module",
+  "issues_url": "https://github.com/deltacasttv/holoscan-modules/issues",
   "source": {
     "type": "git",
     "url": "https://github.com/deltacasttv/holoscan-modules.git",

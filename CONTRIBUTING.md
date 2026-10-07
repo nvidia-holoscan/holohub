@@ -33,26 +33,6 @@ moves, update its source location in place. Remove its record when retiring the
 registration. Keep an empty `.gitkeep` in each entity directory so removing its
 last registration does not remove the directory from a fresh checkout.
 
-## Migrating module source records
-
-The earlier
-[`module-sites.schema.json`](https://github.com/nvidia-holoscan/holohub/blob/main/utilities/metadata/module-sites.schema.json)
-described a shared `modules` array. Each external entry now becomes a separate
-`modules/<name>.json` record:
-
-| Earlier field | Source registration |
-| --- | --- |
-| `name` | `name`, with `kind: "module"` |
-| `url` | `source.url`, with `source.type: "git"` |
-| `ref` | `source.ref` |
-| `provides_operators` | Keep operator inventories in upstream entity metadata |
-| `nvidia_quality_score` | Keep assessments upstream; there is no registry rating field |
-| `source_url` | Resolve to the authoritative clone URL and optional `source.path`; do not copy an ambiguous alternate URL |
-
-Old entries with no URL represented in-tree modules. Move their implementations
-to an external repository before registering them; the new schema requires an
-explicit external source. Do not fabricate locations during migration.
-
 Entity metadata is validated using its own schema at the target. The
 [`holoscan-cli` metadata schemas](https://github.com/nvidia-holoscan/holoscan-cli/tree/main/src/holoscan_cli/metadata)
 define those contracts independently of HoloHub's source registrations.
@@ -63,7 +43,7 @@ Add new kinds to the enum in `utilities/source.schema.json`, with the correspond
 directory, validator kind mapping, tests, and documentation. Reuse the same
 location fields for every kind. Do not create schemas for upstream entity
 metadata. The schema's `$id` identifies its version. For incompatible changes,
-update the schema and migrate the registry records together.
+update the schema and all registry records together.
 
 Registry CI validates declarations and builds a derived index. Do not add entity
 build, test, container, deployment, GPU, or benchmark-execution jobs here.
