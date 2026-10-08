@@ -4,8 +4,8 @@
 import io
 import sys
 import unittest
+import unittest.mock
 from pathlib import Path
-from unittest import mock
 
 SCRIPTS_DIR = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPTS_DIR))
@@ -36,9 +36,9 @@ class ModuleCardLayoutTest(unittest.TestCase):
     def test_detail_page_shows_full_description(self):
         description = " ".join(f"word{i}" for i in range(60))
         page = io.StringIO()
-        gen_files = mock.MagicMock()
+        gen_files = unittest.mock.MagicMock()
         gen_files.open.return_value.__enter__.return_value = page
-        with mock.patch.object(generate_module_pages, "mkdocs_gen_files", gen_files):
+        with unittest.mock.patch.object(generate_module_pages, "mkdocs_gen_files", gen_files):
             generate_module_pages.generate_detail_page(
                 ENTRY, _module(description=description), "# Example\n\nBody.\n", "", None
             )
