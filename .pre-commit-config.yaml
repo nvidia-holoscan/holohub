@@ -41,7 +41,7 @@ repos:
 
   # Python: ruff
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.9
+    rev: v0.16.10
     hooks:
       - id: ruff
         args: [--fix, --ignore, E712]
@@ -56,7 +56,7 @@ repos:
 
   # Python: black
   - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 26.5.1
+    rev: 26.10.0
     hooks:
       - id: black
         # Mirror pyproject.toml [tool.black] extend-exclude
