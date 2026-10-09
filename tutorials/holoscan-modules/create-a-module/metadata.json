@@ -1,5 +1,5 @@
 {
-	"$schema": "urn:holohub:tutorial:v1",
+	"$schema": "urn:holoscan:tutorial:v1",
 	"tutorial": {
 		"name": "Create a Holoscan Module",
 		"description": "End-to-end walkthrough for scaffolding, building, testing, packaging, and publishing a new Holoscan Module. Covers external (standalone) modules as the primary path and HoloHub-hosted descriptor modules as a secondary path.",

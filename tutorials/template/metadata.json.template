@@ -1,5 +1,5 @@
 {
-	"$schema": "urn:holohub:tutorial:v1",
+	"$schema": "urn:holoscan:tutorial:v1",
 	"tutorial": {
 		"name": "My Tutorial",
 		"description": "Demonstrates how to use Holoscan in a certain fashion.",

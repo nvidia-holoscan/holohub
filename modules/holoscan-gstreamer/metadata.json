@@ -1,5 +1,5 @@
 {
-  "$schema": "holoscan/module/v2",
+  "$schema": "urn:holoscan:module:v2",
   "module": {
     "name": "holoscan-gstreamer",
     "version": "1.0.0",

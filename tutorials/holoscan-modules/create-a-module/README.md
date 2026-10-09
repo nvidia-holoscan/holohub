@@ -227,7 +227,7 @@ Let's take a look at the folder we created in the previous section at `/home/myu
 
 ```text
 holoscan-my-module/
-├── metadata.json              # Schema urn:holohub:module:v2 (identity, operators,
+├── metadata.json              # Schema urn:holoscan:module:v2 (identity, operators,
 │                              #   namespace, binary_packages, platforms, SDK pin)
 ├── pyproject.toml             # scikit-build-core; selectively builds the module
 ├── CMakeLists.txt             # Holoscan discovery, build options, and subprojects
@@ -240,7 +240,7 @@ holoscan-my-module/
 │                              #   (copied in by the cookiecutter post-gen hook)
 ├── operators/
 │   └── my_module_op/
-│       ├── metadata.json      # Schema urn:holohub:operator:v1
+│       ├── metadata.json      # Schema urn:holoscan:operator:v1
 │       ├── CMakeLists.txt
 │       ├── my_module_op.hpp   # C++ stubs (or my_module_op.py for pure-Python modules)
 │       ├── my_module_op.cpp
@@ -273,7 +273,7 @@ holoscan-my-module/
 
 Key things to note:
 
-- `metadata.json` uses schema `urn:holohub:module:v2`. The most important fields for
+- `metadata.json` uses schema `urn:holoscan:module:v2`. The most important fields for
   discovery and packaging are `name`, `namespace.{cpp,python}`, `operators`,
   `binary_packages.{debian,pypi,install_commands}`, `platforms`, and
   `holoscan_sdk.minimum_required_version`. Update `source_repository` and `authors`
@@ -549,7 +549,7 @@ packaged to yield your Holoscan Module.
 mkdir -p modules/holoscan-my-module
 ```
 
-### 4.2 **Add `metadata.json`** using schema `urn:holohub:module:v2`
+### 4.2 **Add `metadata.json`** using schema `urn:holoscan:module:v2`
 
 Refer to the schema at [module.schema.json](/utilities/metadata/module.schema.json) to get started.
 

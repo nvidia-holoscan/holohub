@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:holohub:project:v1",
+  "$id": "urn:holoscan:project:v1",
   "type": "object",
   "$defs": {
     "name": {

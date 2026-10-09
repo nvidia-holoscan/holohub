@@ -1,5 +1,5 @@
 {
-	"$schema": "urn:holohub:application:v1",
+	"$schema": "urn:holoscan:application:v1",
 	"application": {
 		"name": "{{ cookiecutter.project_name }}",
 		"description": "{{ cookiecutter.description }}",
