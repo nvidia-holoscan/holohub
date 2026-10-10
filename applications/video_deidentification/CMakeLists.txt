@@ -27,8 +27,12 @@ add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/video_deidentification/resnet34_p
 # Download the testing video
 add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/video_deidentification/tourist.mp4"
     COMMAND mkdir -p "${HOLOHUB_DATA_DIR}/video_deidentification"
-    COMMAND curl -S -o "${HOLOHUB_DATA_DIR}/video_deidentification/tourist.mp4"
-              -L "https://www.pexels.com/download/video/5271997/?fps=25.0&h=540&w=960"
+    COMMAND curl --fail --show-error --location
+              -o "${HOLOHUB_DATA_DIR}/video_deidentification/tourist.mp4.part"
+              "https://videos.pexels.com/video-files/1191535/1191535-hd_1920_1080_25fps.mp4"
+    COMMAND "${CMAKE_COMMAND}" -E rename
+              "${HOLOHUB_DATA_DIR}/video_deidentification/tourist.mp4.part"
+              "${HOLOHUB_DATA_DIR}/video_deidentification/tourist.mp4"
     VERBATIM
 )
 
@@ -36,7 +40,8 @@ add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/video_deidentification/tourist.mp
 # Convert the video file
 add_custom_command(OUTPUT "${HOLOHUB_DATA_DIR}/video_deidentification/tourist.gxf_index"
                           "${HOLOHUB_DATA_DIR}/video_deidentification/tourist.gxf_entities"
-    COMMAND ffmpeg -i "${HOLOHUB_DATA_DIR}/video_deidentification/tourist.mp4" -pix_fmt rgb24 -f rawvideo pipe:1 |
+    COMMAND ffmpeg -i "${HOLOHUB_DATA_DIR}/video_deidentification/tourist.mp4"
+            -vf "scale=960:540,fps=24" -pix_fmt rgb24 -f rawvideo pipe:1 |
             python3 "${CMAKE_SOURCE_DIR}/utilities/convert_video_to_gxf_entities.py"
             --directory "${HOLOHUB_DATA_DIR}/video_deidentification" --basename tourist --width 960 --height 540 --framerate 24
     DEPENDS "${HOLOHUB_DATA_DIR}/video_deidentification/tourist.mp4"
