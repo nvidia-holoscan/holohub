@@ -396,7 +396,7 @@ class FormatInferenceInputOp(Operator):
 class PointPublisher(Operator):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.start_time = datetime.datetime.now(datetime.timezone.utc)
+        self.start_time = datetime.datetime.now(datetime.UTC)
         point_mover_kwargs = kwargs["point_mover"]
         self.point_mover = PointMover(**point_mover_kwargs[0])
 
@@ -406,7 +406,7 @@ class PointPublisher(Operator):
 
     def compute(self, op_input, op_output, context):
         # Get current time
-        current_time = datetime.datetime.now(datetime.timezone.utc)
+        current_time = datetime.datetime.now(datetime.UTC)
         # Calculate time difference
         time_diff = current_time - self.start_time
         # as seconds and microseconds

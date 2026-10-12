@@ -219,10 +219,10 @@ class AgentFrameworkOp(Operator):
         frame_response = self.image_receiver.receive_json()
         image_b64 = frame_response.get("image_b64", None)
         tool_labels = frame_response.get("tool_labels", {})
-        start_time = datetime.datetime.now(datetime.timezone.utc)
+        start_time = datetime.datetime.now(datetime.UTC)
         while image_b64 is None:
             if (
-                datetime.datetime.now(datetime.timezone.utc) - start_time
+                datetime.datetime.now(datetime.UTC) - start_time
             ).total_seconds() > self.frame_request_timeout:
                 break
             sleep(0.1)

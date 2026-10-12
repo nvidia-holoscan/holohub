@@ -178,7 +178,7 @@ def write_common_modules(
     logger.debug("Writing DICOM common modules...")
 
     # Get and format date and time per DICOM standards.
-    dt_now = datetime.datetime.now(datetime.timezone.utc)
+    dt_now = datetime.datetime.now(datetime.UTC)
     date_now_dcm = dt_now.strftime("%Y%m%d")
     time_now_dcm = dt_now.strftime("%H%M%S")
     offset_from_utc = dt_now.strftime("%z")

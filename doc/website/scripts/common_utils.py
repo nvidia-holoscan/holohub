@@ -20,7 +20,7 @@ import logging
 import os
 import re
 import subprocess
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from urllib.parse import urljoin
 
@@ -160,11 +160,11 @@ def get_metadata_file_commit_date(metadata_path: Path, git_repo_path: Path) -> d
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         timestamps = result.stdout.strip().split("\n")
         if timestamps and timestamps[0]:
-            return datetime.fromtimestamp(int(timestamps[0]), tz=timezone.utc)
+            return datetime.fromtimestamp(int(timestamps[0]), tz=UTC)
     except (subprocess.CalledProcessError, ValueError) as e:
         logger.error(f"Error getting creation date for {metadata_path}: {e}")
     # Fallback to file modification time if git fails
-    return datetime.fromtimestamp(metadata_path.stat().st_mtime, tz=timezone.utc)
+    return datetime.fromtimestamp(metadata_path.stat().st_mtime, tz=UTC)
 
 
 def get_recent_source_code_update_date(metadata_path: Path, git_repo_path: Path):
@@ -202,7 +202,7 @@ def get_recent_source_code_update_date(metadata_path: Path, git_repo_path: Path)
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         timestamp_str = result.stdout.strip()
         if timestamp_str:
-            return datetime.fromtimestamp(int(timestamp_str), tz=timezone.utc)
+            return datetime.fromtimestamp(int(timestamp_str), tz=UTC)
     except (subprocess.CalledProcessError, ValueError) as e:
         logger.debug(f"No recent source code updates found for {component_dir.name}: {e}")
 

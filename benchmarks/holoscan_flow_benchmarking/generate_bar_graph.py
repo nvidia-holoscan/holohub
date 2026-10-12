@@ -140,7 +140,7 @@ def main():
     ax.tick_params(axis="x", labelsize=14)
     ax.tick_params(axis="y", labelsize=14)
     ax.set_ylim([0, max(data) * 1.2])
-    current_time = datetime.datetime.now(datetime.timezone.utc).strftime("%m/%d/%Y %H:%M")
+    current_time = datetime.datetime.now(datetime.UTC).strftime("%m/%d/%Y %H:%M")
     title = args.title.format(current_time=current_time)
     ax.set_title(
         f"{title}",
