@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:holohub:module-sites:v1",
+  "$id": "urn:holoscan:module-sites:v1",
   "type": "object",
   "required": ["modules"],
   "properties": {
