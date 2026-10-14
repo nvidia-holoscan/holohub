@@ -33,7 +33,7 @@ The following directories make up the core of this repo:
 - **Tutorials**: Visit [`tutorials`](./tutorials/) for extended walkthroughs and tips for the Holoscan platform.
 - **Benchmarks**: Visit [`benchmarks`](./benchmarks/) for performance benchmarks, tools, and examples to evaluate the performance of Holoscan applications.
 
-Visit the [Holoscan SDK User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/introduction/overview) to learn more about the NVIDIA Holoscan AI sensor processing platform. You can also chat with the [Holoscan-GPT](https://chatgpt.com/g/g-M6hMJimGa-holochatgpt) Large Language Model to learn about using Holoscan SDK, ask questions, and get code help. Holoscan-GPT requires an OpenAI account.
+Visit the [Holoscan SDK User Guide](https://docs.nvidia.com/holoscan/sdk-user-guide/introduction/overview) to learn more about the NVIDIA Holoscan AI sensor processing platform.
 
 ## Prerequisites
 
@@ -284,5 +284,4 @@ You can find additional information on Holoscan SDK at:
 
 - [Holoscan GitHub organization](https://github.com/nvidia-holoscan)
 - [Holoscan SDK repository](https://github.com/nvidia-holoscan/holoscan-sdk)
-- [Holoscan-GPT](https://chatgpt.com/g/g-M6hMJimGa-holochatgpt) (requires an OpenAI account)
 - [Holoscan Support Forum](https://forums.developer.nvidia.com/c/robotics-edge-computing/holoscan/757)
