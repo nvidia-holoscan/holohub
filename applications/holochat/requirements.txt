@@ -18,7 +18,7 @@ PyYAML==6.0.*
 requests==2.33.*
 safetensors==0.8.*
 scipy==1.16.*
-sentence_transformers==5.2.*
+sentence_transformers==6.1.*
 starlette==0.50.*
 tiktoken==0.12.*
 torch==2.13.*
