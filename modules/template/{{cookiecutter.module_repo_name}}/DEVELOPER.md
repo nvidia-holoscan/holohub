@@ -15,7 +15,7 @@ distributing this Holoscan Module.
 ├── Dockerfile                      # Development container image
 ├── CMakeLists.txt                  # Root CMake — orchestrates operators/applications/tests
 ├── pyproject.toml                  # Python packaging metadata (scikit-build-core)
-├── metadata.json                   # Module-level metadata (schema: urn:holohub:module:v2)
+├── metadata.json                   # Module-level metadata (schema: urn:holoscan:module:v2)
 ├── operators/
 │   └── {{ cookiecutter.operator_slug }}/
 │       ├── {{ cookiecutter.operator_slug }}.{% if cookiecutter.language == 'cpp' %}cpp / .hpp{% else %}py{% endif %}  # Operator implementation

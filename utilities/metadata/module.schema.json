@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:holohub:module:v2",
+  "$id": "urn:holoscan:module:v2",
   "type": "object",
   "$defs": {
     "namespace": {
@@ -178,34 +178,34 @@
       "type": "object",
       "properties": {
         "name": {
-          "$ref": "urn:holohub:project:v1#/$defs/name"
+          "$ref": "urn:holoscan:project:v1#/$defs/name"
         },
         "description": {
-          "$ref": "urn:holohub:project:v1#/$defs/description"
+          "$ref": "urn:holoscan:project:v1#/$defs/description"
         },
         "authors": {
-          "$ref": "urn:holohub:project:v1#/$defs/authors"
+          "$ref": "urn:holoscan:project:v1#/$defs/authors"
         },
         "version": {
-          "$ref": "urn:holohub:project:v1#/$defs/version"
+          "$ref": "urn:holoscan:project:v1#/$defs/version"
         },
         "license": {
           "type": "string"
         },
         "language": {
-          "$ref": "urn:holohub:project:v1#/$defs/multi_language"
+          "$ref": "urn:holoscan:project:v1#/$defs/multi_language"
         },
         "namespace": {
           "$ref": "#/$defs/namespace"
         },
         "platforms": {
-          "$ref": "urn:holohub:project:v1#/$defs/platforms"
+          "$ref": "urn:holoscan:project:v1#/$defs/platforms"
         },
         "tags": {
-          "$ref": "urn:holohub:project:v1#/$defs/tags"
+          "$ref": "urn:holoscan:project:v1#/$defs/tags"
         },
         "holoscan_sdk": {
-          "$ref": "urn:holohub:project:v1#/$defs/sdk_version"
+          "$ref": "urn:holoscan:project:v1#/$defs/sdk_version"
         },
         "sensor_hardware": {
           "type": "array",
@@ -223,10 +223,10 @@
           "type": "string"
         },
         "ranking": {
-          "$ref": "urn:holohub:project:v1#/$defs/ranking"
+          "$ref": "urn:holoscan:project:v1#/$defs/ranking"
         },
         "requirements": {
-          "$ref": "urn:holohub:project:v1#/$defs/requirements"
+          "$ref": "urn:holoscan:project:v1#/$defs/requirements"
         },
         "binary_packages": {
           "$ref": "#/$defs/binary_packages"
