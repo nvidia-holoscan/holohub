@@ -1,5 +1,5 @@
 {
-  "$schema": "urn:holohub:operator:v1",
+  "$schema": "urn:holoscan:operator:v1",
   "operator": {
     "name": "OnlineVideoReasonerOp",
     "description": "Samples live RGB frames, submits either a JPEG or one bounded MP4 clip to an OpenAI-compatible multimodal reasoner, and emits incremental or completed text.",
