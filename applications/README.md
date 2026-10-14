@@ -51,7 +51,7 @@ external repository; add only a source record here.
 The CLI has no HoloHub registration command. `holoscan list` lists local
 projects; it does not publish them. CI checks declarations, retrieves metadata,
 and verifies CLI discovery without building applications. See the
-[source record reference](../README.md#source-records) for all fields and
+[source record reference](../CONTRIBUTING.md#source-records) for all fields and
 hosted-content sources. [`holoscan-applications.json`](holoscan-applications.json)
 shows a registration for an application collection.
 

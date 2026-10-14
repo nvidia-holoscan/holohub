@@ -54,7 +54,7 @@ Registration makes the source discoverable; users still follow the source's
 agent-specific installation instructions. CI fetches and validates the skill
 definitions without executing or evaluating their instructions. Skills require
 neither `metadata.json` nor `holoscan list`. See the
-[source record reference](../README.md#source-records) for all fields and
+[source record reference](../CONTRIBUTING.md#source-records) for all fields and
 hosted-content sources. [`holoscan-sdk.json`](holoscan-sdk.json) is a current
 registration for a skill collection.
 

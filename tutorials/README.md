@@ -59,7 +59,7 @@ metadata with the source owner.
 
 There is no Holoscan CLI command to submit a HoloHub registration. CI checks the
 record, retrieves tutorial metadata, and verifies CLI discovery without
-executing examples. See the [source record reference](../README.md#source-records) for
+executing examples. See the [source record reference](../CONTRIBUTING.md#source-records) for
 the complete format and [`holoscan-tutorials.json`](holoscan-tutorials.json)
 for a registered collection.
 

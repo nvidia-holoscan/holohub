@@ -53,7 +53,7 @@ The Holoscan CLI has no HoloHub registration command. `holoscan list` discovers
 projects in a source checkout; it does not submit a registration. CI validates
 the record and remote module metadata, then checks CLI discovery. It does not
 build the module.
-See the [source record reference](../README.md#source-records) for all fields
+See the [source record reference](../CONTRIBUTING.md#source-records) for all fields
 and the alternative hosted-content source form. A current registration is
 [`holoscan-deltacast.json`](holoscan-deltacast.json).
 
