@@ -1,0 +1,10 @@
+{
+  "name": "holoscan-sensor-bridge",
+  "kind": "module",
+  "issues_url": "https://github.com/nvidia-holoscan/holoscan-sensor-bridge/issues",
+  "source": {
+    "type": "git",
+    "url": "https://github.com/nvidia-holoscan/holoscan-sensor-bridge.git",
+    "ref": "main"
+  }
+}
