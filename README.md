@@ -1,5 +1,20 @@
 # HoloHub
 
+> [!IMPORTANT]
+> **Branches and contributions:** The `main` branch hosts the HoloHub registry
+> of externally maintained projects. The `archive-4x` branch preserves the
+> original code collection and is **closed to new contributions**.
+>
+> Direct new contributions to:
+>
+> - **Applications:** [holoscan-applications](https://github.com/nvidia-holoscan/holoscan-applications)
+> - **Tutorials:** [holoscan-tutorials](https://github.com/nvidia-holoscan/holoscan-tutorials)
+> - **Benchmarks:** [holoscan-benchmarks](https://github.com/nvidia-holoscan/holoscan-benchmarks)
+> - **Reusable operators:** Package them in a [Holoscan module](modules/README.md)
+>   maintained in its own repository.
+>
+> Register these external sources in HoloHub using the [contribution guide](CONTRIBUTING.md).
+
 HoloHub is a registry and index of externally maintained Holoscan applications,
 modules, tutorials, skills, and benchmarks. Each registration tells consumers
 where to find a source. Entity implementations, metadata, dependencies, tests,
