@@ -202,8 +202,11 @@ class SourceTests(unittest.TestCase):
                     with tempfile.TemporaryDirectory() as tmp:
                         content = sources.fetch_source(record, Path(tmp))
                         self.assertEqual([], sources.validate_content(record, content))
-        self.assertEqual("https://example.org/example/metadata.json?v=1", sources.descriptor_url(
+        self.assertEqual("https://example.org/example/metadata.json?v=1", sources.hosted_url(
             "https://example.org/example?v=1#section", "metadata.json",
+        ))
+        self.assertEqual("https://example.org/example/skill-card.md", sources.hosted_url(
+            "https://example.org/example/SKILL.md", "skill-card.md",
         ))
 
     def test_hosted_errors_and_excessive_content_fail(self):

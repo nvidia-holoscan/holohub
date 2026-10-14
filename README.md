@@ -39,6 +39,7 @@ benchmarks/<name>.json
 utilities/source.schema.json
 utilities/validate_registry.py
 utilities/validate_sources.py
+utilities/build_catalog.py
 .github/workflows/validate-registry.yml
 ```
 
@@ -134,6 +135,28 @@ HTTPS port are normalized; paths, queries, and fragments distinguish content.
 The same repository can supply multiple kinds or distinct source directories.
 Names are registration identities, not release numbers. Upstream release
 history and detailed entity inventories stay upstream.
+
+## Catalog
+
+`utilities/build_catalog.py` fetches each registered source's descriptors and
+documentation into a directory that a web catalog can render offline:
+
+```bash
+.venv/bin/python utilities/build_catalog.py --output dist/catalog
+```
+
+Files are mirrored at their upstream paths under `<kind directory>/<name>/`,
+and `catalog.json` indexes every entity found under each source path: a module
+with the operators, applications, benchmarks, and tutorials it contains, every
+member of a collection, and each skill's `SKILL.md` with its `skill-card.md`
+when present. Descriptors are copied verbatim. In READMEs and skill cards,
+relative image and link references are resolved to absolute upstream URLs at
+the fetched revision, so the documents render without fetching images or
+linked files. Only descriptors and Markdown documentation are retrieved, never
+source code or media. The output directory must be new or empty; without
+`--output`, a new temporary directory is created and printed. Sources that
+fail are reported and omitted, and the command exits nonzero. The index format
+is documented in the script.
 
 ## Validation and indexing
 

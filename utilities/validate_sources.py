@@ -9,6 +9,7 @@ import re
 import subprocess
 import sys
 import tempfile
+from urllib.error import HTTPError
 from urllib.parse import urlsplit, urlunsplit
 from urllib.request import urlopen
 
@@ -24,6 +25,13 @@ else:
 MAX_FILE_BYTES = 1024 * 1024  # Match the CLI's metadata discovery limit.
 COMMAND_TIMEOUT = 120
 HTTP_TIMEOUT = 30
+DESCRIPTOR_FILES = ("metadata.json", "SKILL.md")
+# A language subdirectory belongs to its parent project, as in the CLI.
+LANGUAGE_DIRECTORIES = {"cpp": "cpp", "python": "python", "py": "python"}
+
+
+def descriptor_filename(kind):
+    return "SKILL.md" if kind == "skill" else "metadata.json"
 
 
 def run_command(command, *, cwd, env=None):
@@ -39,85 +47,137 @@ def run_command(command, *, cwd, env=None):
     return result.stdout
 
 
-def descriptor_url(url, filename):
-    """Accept a descriptor URL or a hosted directory, preserving its query."""
+def hosted_url(url, filename):
+    """Locate a file beside a hosted descriptor or inside a hosted directory, preserving the query."""
     parts = urlsplit(url)
     path = parts.path
-    if not path.endswith("/" + filename):
-        path = path.rstrip("/") + "/" + filename
+    for descriptor in DESCRIPTOR_FILES:
+        path = path.removesuffix("/" + descriptor)
+    path = path.rstrip("/") + "/" + filename
     return urlunsplit((parts.scheme, parts.netloc, path, parts.query, ""))
 
 
 def read_bounded(stream):
     content = stream.read(MAX_FILE_BYTES + 1)
     if len(content) > MAX_FILE_BYTES:
-        raise ValueError(f"descriptor exceeds {MAX_FILE_BYTES} bytes")
+        raise ValueError(f"content exceeds {MAX_FILE_BYTES} bytes")
     return content
+
+
+class GitSource:
+    """One directory of a repository at one revision, read from Git objects without a checkout."""
+
+    def __init__(self, source, store):
+        # No checkout, hooks, submodules, or credential prompts. A fresh bare store
+        # also keeps source repository configuration out of the validation process.
+        self._store = store
+        self._env = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
+        self._env.update(GIT_TERMINAL_PROMPT="0", GIT_CONFIG_NOSYSTEM="1", GIT_CONFIG_GLOBAL=os.devnull)
+        store.mkdir()
+        # fetch accepts refspecs as well as exact revisions. Do not let a wildcard
+        # or source:destination mapping silently select a different FETCH_HEAD.
+        try:
+            self._run("check-ref-format", "--allow-onelevel", source["ref"])
+        except ValueError as error:
+            raise ValueError(f"source ref {source['ref']!r} must name a branch, tag, or commit, not a refspec") from error
+        self._run("init", "--bare", "--quiet")
+        self._run("remote", "add", "origin", source["url"])
+        self._run("config", "remote.origin.promisor", "true")
+        self._run("config", "remote.origin.partialclonefilter", "blob:none")
+        self._run("fetch", "--quiet", "--depth=1", "--filter=blob:none", "--no-tags",
+                  "--no-recurse-submodules", "origin", source["ref"])
+        path = source.get("path", ".")
+        tree = "FETCH_HEAD^{tree}" if path == "." else f"FETCH_HEAD:{path}"
+        try:
+            is_tree = self._run("cat-file", "-t", tree).strip() == b"tree"
+        except ValueError:
+            is_tree = False
+        if not is_tree:
+            raise ValueError(f"source path {path!r} must be a directory at ref {source['ref']!r}")
+        self.commit = self._run("rev-parse", "FETCH_HEAD").decode("ascii").strip()
+        self.entries = {}
+        for entry in self._run("ls-tree", "-r", "-z", tree).split(b"\0"):
+            if not entry:
+                continue
+            header, raw_path = entry.split(b"\t", 1)
+            relative = PurePosixPath(raw_path.decode("utf-8"))
+            if relative.is_absolute() or ".." in relative.parts:
+                raise ValueError(f"invalid path in source tree: {relative}")
+            self.entries[str(relative)] = header.decode("ascii").split()
+
+    def _run(self, *args):
+        return run_command(["git", "-c", "core.hooksPath=/dev/null", *args], cwd=self._store, env=self._env)
+
+    def find(self, filename):
+        """Sorted paths of every file with this name under the source path."""
+        return sorted(path for path in self.entries if PurePosixPath(path).name == filename)
+
+    def read(self, relative):
+        try:
+            mode, object_type, oid = self.entries[relative]
+        except KeyError:
+            raise ValueError(f"{relative}: not found under source path") from None
+        if mode not in ("100644", "100755") or object_type != "blob":
+            raise ValueError(f"{relative}: must be a regular file, not a symlink or submodule")
+        if int(self._run("cat-file", "-s", oid)) > MAX_FILE_BYTES:
+            raise ValueError(f"{relative}: exceeds {MAX_FILE_BYTES} bytes")
+        return self._run("cat-file", "blob", oid)
+
+    def read_optional(self, relative):
+        return self.read(relative) if relative in self.entries else None
+
+
+class HostedSource:
+    """A single hosted entity whose files sit beside the registered descriptor URL."""
+
+    commit = None
+
+    def __init__(self, source):
+        self.url = source["url"]
+
+    def find(self, filename):
+        return [filename]
+
+    def read(self, relative):
+        with urlopen(hosted_url(self.url, relative), timeout=HTTP_TIMEOUT) as response:
+            return read_bounded(response)
+
+    def read_optional(self, relative):
+        try:
+            return self.read(relative)
+        except HTTPError as error:
+            if error.code in (404, 410):
+                return None
+            raise
+
+
+def open_source(record, destination):
+    """Open a registered source for reading; never check out or execute source code."""
+    source = record["source"]
+    if source["type"] == "url":
+        return HostedSource(source)
+    destination.mkdir(parents=True, exist_ok=True)
+    return GitSource(source, destination / "repository.git")
 
 
 def fetch_source(record, destination):
     """Materialize only descriptors, never check out or execute source code."""
-    destination.mkdir(parents=True, exist_ok=True)
-    source = record["source"]
-    filename = "SKILL.md" if record["kind"] == "skill" else "metadata.json"
-    if source["type"] == "url":
+    source = open_source(record, destination)
+    if isinstance(source, HostedSource):
         content_root = destination / record["name"]
-        content_root.mkdir(exist_ok=True)
-        with urlopen(descriptor_url(source["url"], filename), timeout=HTTP_TIMEOUT) as response:
-            content = read_bounded(response)
-        (content_root / filename).write_bytes(content)
-        return content_root
-
-    store = destination / "repository.git"
-    store.mkdir()
-    # No checkout, hooks, submodules, or credential prompts. A fresh bare store
-    # also keeps source repository configuration out of the validation process.
-    env = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
-    env.update(GIT_TERMINAL_PROMPT="0", GIT_CONFIG_NOSYSTEM="1", GIT_CONFIG_GLOBAL=os.devnull)
-
-    def git(*args):
-        return run_command(["git", "-c", "core.hooksPath=/dev/null", *args], cwd=store, env=env)
-
-    # fetch accepts refspecs as well as exact revisions. Do not let a wildcard
-    # or source:destination mapping silently select a different FETCH_HEAD.
-    try:
-        git("check-ref-format", "--allow-onelevel", source["ref"])
-    except ValueError as error:
-        raise ValueError(f"source ref {source['ref']!r} must name a branch, tag, or commit, not a refspec") from error
-    git("init", "--bare", "--quiet")
-    git("remote", "add", "origin", source["url"])
-    git("config", "remote.origin.promisor", "true")
-    git("config", "remote.origin.partialclonefilter", "blob:none")
-    git("fetch", "--quiet", "--depth=1", "--filter=blob:none", "--no-tags",
-        "--no-recurse-submodules", "origin", source["ref"])
-    path = source.get("path", ".")
-    tree = "FETCH_HEAD^{tree}" if path == "." else f"FETCH_HEAD:{path}"
-    if git("cat-file", "-t", tree).strip() != b"tree":
-        raise ValueError(f"source path {path!r} must be a directory at ref {source['ref']!r}")
-
-    # Preserve actual directory names for CLI selectors. For a repository-root
-    # source, the repository name is the normal clone directory name.
-    repo_name = PurePosixPath(urlsplit(source["url"]).path).name.removesuffix(".git")
-    checkout = destination / "content" / repo_name
-    content_root = checkout if path == "." else checkout / path
-    content_root.mkdir(parents=True)
-    for entry in git("ls-tree", "-r", "-z", tree).split(b"\0"):
-        if not entry:
-            continue
-        header, raw_path = entry.split(b"\t", 1)
-        mode, object_type, oid = header.decode("ascii").split()
-        relative = PurePosixPath(raw_path.decode("utf-8"))
-        if relative.name != filename:
-            continue
-        if relative.is_absolute() or ".." in relative.parts:
-            raise ValueError(f"invalid descriptor path: {relative}")
-        if mode not in ("100644", "100755") or object_type != "blob":
-            raise ValueError(f"{relative}: descriptor must be a regular file, not a symlink")
-        if int(git("cat-file", "-s", oid)) > MAX_FILE_BYTES:
-            raise ValueError(f"{relative}: descriptor exceeds {MAX_FILE_BYTES} bytes")
-        target = content_root.joinpath(*relative.parts)
+    else:
+        # Preserve actual directory names for CLI selectors. For a repository-root
+        # source, the repository name is the normal clone directory name.
+        repo_name = PurePosixPath(urlsplit(record["source"]["url"]).path).name.removesuffix(".git")
+        path = record["source"].get("path", ".")
+        content_root = destination / "content" / repo_name
+        if path != ".":
+            content_root = content_root / path
+    content_root.mkdir(parents=True, exist_ok=True)
+    for relative in source.find(descriptor_filename(record["kind"])):
+        target = content_root.joinpath(*PurePosixPath(relative).parts)
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(git("cat-file", "blob", oid))
+        target.write_bytes(source.read(relative))
     return content_root
 
 
@@ -141,7 +201,23 @@ class UniqueSafeLoader(yaml.SafeLoader):
         return unique_object(pairs)
 
 
+def metadata_kind(data):
+    """The single recognized kind envelope of a metadata object."""
+    envelopes = [key for key in KNOWN_ENVELOPES if isinstance(data, dict) and key in data]
+    if len(envelopes) != 1:
+        raise ValueError("metadata must have exactly one recognized kind envelope")
+    return envelopes[0]
+
+
+def validate_metadata(data, kind):
+    """Check metadata against the schema bundled with the pinned Holoscan CLI."""
+    valid, detail = validate_json(data, kind)
+    if not valid:
+        raise ValueError(f"invalid {kind} metadata: {detail.message}")
+
+
 def validate_skill(path, registration_name=None):
+    """Check SKILL.md frontmatter and instructions; return the skill name."""
     text = read_descriptor(path)
     lines = text.splitlines()
     if not lines or lines[0] != "---" or "---" not in lines[1:]:
@@ -153,10 +229,10 @@ def validate_skill(path, registration_name=None):
     name = frontmatter.get("name")
     if not isinstance(name, str) or len(name) > 64 or not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", name):
         raise ValueError("skill name must use 1-64 lowercase letters, digits, and single hyphens")
-    if name != path.parent.name:
-        raise ValueError(f"skill name {name!r} does not match directory {path.parent.name!r}")
     if registration_name is not None and name != registration_name:
         raise ValueError(f"skill name {name!r} does not match registration name {registration_name!r}")
+    if name != path.parent.name:
+        raise ValueError(f"skill name {name!r} does not match directory {path.parent.name!r}")
     description = frontmatter.get("description")
     if not isinstance(description, str) or not description.strip() or len(description) > 1024:
         raise ValueError("skill description must be a nonempty string of at most 1024 characters")
@@ -176,6 +252,7 @@ def validate_skill(path, registration_name=None):
             raise ValueError("skill metadata name must agree with the frontmatter name")
         if mapping.get("kind", "skill") != "skill":
             raise ValueError("skill metadata kind must be 'skill'")
+    return name
 
 
 def list_projects(root, descriptors):
@@ -188,7 +265,7 @@ def list_projects(root, descriptors):
     env["HOLOSCAN_CLI_SEARCH_PATH"] = ",".join(str(path.resolve()) for path in descriptors)
     # A language directory belongs to its parent application. Selecting the
     # language as a standalone project would rename its selector to 'python'.
-    project_root = root.parent if root.name in ("cpp", "python", "py") else root
+    project_root = root.parent if root.name in LANGUAGE_DIRECTORIES else root
     output = run_command(
         [sys.executable, "-I", "-m", "holoscan_cli", "--project-root", str(project_root), "list", "--json"],
         cwd=root, env=env,
@@ -208,7 +285,7 @@ def validate_content(record, root):
     """Check a direct entity or every matching entity in a source collection."""
     errors = []
     kind = record["kind"]
-    filename = "SKILL.md" if kind == "skill" else "metadata.json"
+    filename = descriptor_filename(kind)
     direct = root / filename
     is_direct = direct.exists() or direct.is_symlink()
     paths = [direct] if is_direct else sorted(root.rglob(filename))
@@ -223,20 +300,15 @@ def validate_content(record, root):
                 validate_skill(path, record["name"] if is_direct else None)
                 continue
             data = parse_json(read_descriptor(path))
-            envelopes = [key for key in KNOWN_ENVELOPES if isinstance(data, dict) and key in data]
-            if len(envelopes) != 1:
-                raise ValueError("metadata must have exactly one recognized kind envelope")
-            actual_kind = envelopes[0]
+            actual_kind = metadata_kind(data)
             if actual_kind != kind:
                 if is_direct:
                     raise ValueError(f"metadata kind {actual_kind!r} does not match registered kind {kind!r}")
                 # A collection may contain operators and other supporting entities.
                 continue
-            valid, detail = validate_json(data, KIND_DIRECTORIES[kind])
-            if not valid:
-                raise ValueError(f"invalid {kind} metadata: {detail.message}")
+            validate_metadata(data, kind)
             name = data[kind]["name"].strip() if kind == "module" else (
-                path.parent.parent.name if path.parent.name in ("cpp", "python", "py") else path.parent.name
+                path.parent.parent.name if path.parent.name in LANGUAGE_DIRECTORIES else path.parent.name
             )
             if is_direct and name != record["name"]:
                 raise ValueError(f"entity name {name!r} does not match registration name {record['name']!r}")
