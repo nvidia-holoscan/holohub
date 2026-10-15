@@ -1,0 +1,30 @@
+{
+	"$schema": "urn:holohub:operator:v1",
+	"operator": {
+		"name": "DepthToPointCloudOp",
+		"authors": [
+			{
+				"name": "Nitheesh Kumar",
+				"affiliation": "Zobot Lab"
+			}
+		],
+		"language": ["C++", "Python"],
+		"version": "0.1.0",
+		"changelog": {
+			"0.1.0": "Initial release: GPU deprojection of organized depth into an organized point cloud (uint16/float32 depth, per-frame intrinsics override, optional colored output)."
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "4.0.0",
+			"tested_versions": [
+				"4.3.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": ["Computer Vision and Perception", "Robotics", "Point Cloud", "Depth", "3D", "Camera"],
+		"ranking": 3,
+		"requirements": {}
+	}
+}
