@@ -1,7 +1,7 @@
-# HoloHub
+# HoloHub: The Central Hub for Holoscan Ecosystem
 
-HoloHub is the registry for the [NVIDIA Holoscan SDK](https://github.com/nvidia-holoscan/holoscan-sdk)
-ecosystem. Use it to find applications, reusable modules, tutorials, benchmarks,
+HoloHub is the central registry and hub for the ecosystem built around the [NVIDIA Holoscan SDK](https://github.com/nvidia-holoscan/holoscan-sdk).
+Use it to find applications, reusable modules, tutorials, benchmarks,
 and agent skills for building accelerated sensor-processing and AI pipelines.
 
 HoloHub connects you to projects maintained in their own repositories.
