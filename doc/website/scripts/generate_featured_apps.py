@@ -23,8 +23,6 @@ from pathlib import Path
 script_dir = Path(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, str(script_dir)) if str(script_dir) not in sys.path else None
 
-from datetime import UTC
-
 from common_utils import (
     COMPONENT_TYPES,
     extract_first_sentences,
@@ -186,14 +184,14 @@ def generate_featured_component_card(
 
     # Check if this is a recent contribution (within 45 days)
     # commit_date is the date when metadata.json was first committed to git
-    from datetime import datetime
+    from datetime import datetime, timezone
 
     is_recent_attr = ""
     badge_html = ""
     is_new = False
 
     if commit_date:
-        days_old = (datetime.now(UTC) - commit_date).days
+        days_old = (datetime.now(timezone.utc) - commit_date).days
         if days_old <= 45:
             is_recent_attr = ' data-recent="true"'
             badge_html = '<span class="new-badge" style="position: absolute; top: 10px; right: 10px; background-color: #76b900; color: white; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 0.65rem; font-weight: 600;">New</span>'
@@ -210,7 +208,7 @@ def generate_featured_component_card(
     if not is_new:
         update_date = get_recent_source_code_update_date(metadata_path, git_repo_path)
         if update_date:
-            days_since_update = (datetime.now(UTC) - update_date).days
+            days_since_update = (datetime.now(timezone.utc) - update_date).days
             if days_since_update <= 30:
                 is_recent_attr = ' data-updated="true"'
                 badge_html = '<span class="updated-badge" style="position: absolute; top: 10px; right: 10px; background-color: #ff9933; color: white; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 0.65rem; font-weight: 600;">Updated</span>'

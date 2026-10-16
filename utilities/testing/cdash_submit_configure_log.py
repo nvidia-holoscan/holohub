@@ -41,7 +41,7 @@ import sys
 import time
 import xml.dom.minidom
 import xml.etree.ElementTree as ET
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from urllib.error import URLError
 from urllib.request import Request, urlopen
 
@@ -55,7 +55,7 @@ def compute_build_stamp(dashboard_model):
     The date rolls back one day if the current UTC time is before the nightly
     start time (06:00 UTC), matching CTest's behavior.
     """
-    now = datetime.now(UTC)
+    now = datetime.now(timezone.utc)
     nightly_start = now.replace(hour=6, minute=0, second=0, microsecond=0)
     if now < nightly_start:
         now -= timedelta(days=1)

@@ -134,8 +134,8 @@ class EntityClientService:
         try:
             self.logger.debug("grpc: Checking channel availability")
             await asyncio.wait_for(self.channel.channel_ready(), timeout=self.timeout_seconds)
-        except TimeoutError as e:
-            raise TimeoutError(
+        except asyncio.TimeoutError as e:
+            raise asyncio.TimeoutError(
                 f"{type(self).__name__}: Timeout waiting for {self.timeout_seconds} seconds for channel to be ready."
             ) from e
 

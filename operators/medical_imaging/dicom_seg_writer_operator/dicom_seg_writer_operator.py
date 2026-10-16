@@ -376,7 +376,7 @@ class DICOMSegmentationWriterOperator(Operator):
 
         # Adding a few tags that are not in the Dataset
         # Also try to set the custom tags that are of string type
-        dt_now = datetime.datetime.now(datetime.UTC)
+        dt_now = datetime.datetime.now(datetime.timezone.utc)
         seg.SeriesDate = dt_now.strftime("%Y%m%d")
         seg.SeriesTime = dt_now.strftime("%H%M%S")
         seg.TimezoneOffsetFromUTC = dt_now.strftime("%z")

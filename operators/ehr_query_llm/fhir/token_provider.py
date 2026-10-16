@@ -14,7 +14,7 @@
 # limitations under the License.
 
 import time
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import requests
 
@@ -49,7 +49,7 @@ class TokenProvider:
         self.verify_cert = verify_cert  # True for verifying server cert
         self.expires_in_seconds_default = TokenProvider.EXPIRES_IN
 
-        self._expires_datetime = datetime.now(UTC)
+        self._expires_datetime = datetime.now(timezone.utc)
         self._token = None
         self._token_type = TokenProvider.TOKEN_TYPE
         self._grant_type = TokenProvider.GRANT_TYPE
@@ -63,7 +63,7 @@ class TokenProvider:
             str: token string
         """
         # If expired, refresh or get new token, otherwise, return existing
-        if (not self._token) or (datetime.now(UTC) > self._expires_datetime):
+        if (not self._token) or (datetime.now(timezone.utc) > self._expires_datetime):
             # Acquire access token again if none or expired.
             # The two legged workflow does not have refresh token.
             self.get_token()
@@ -80,7 +80,7 @@ class TokenProvider:
         return f"{self._token_type} {token_only}"
 
     def get_token(self):
-        request_time = datetime.now(UTC)
+        request_time = datetime.now(timezone.utc)
         post_data = {
             "grant_type": self._grant_type,
             "client_id": self.client_id,

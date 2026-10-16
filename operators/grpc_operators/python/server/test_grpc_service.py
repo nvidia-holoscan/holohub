@@ -84,7 +84,7 @@ def certificates(remote_address):
     def issue(name, issuer=None, ca=False):
         key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
         subject = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, name)])
-        now = datetime.datetime.now(datetime.UTC)
+        now = datetime.datetime.now(datetime.timezone.utc)
         builder = (
             x509.CertificateBuilder()
             .subject_name(subject)
