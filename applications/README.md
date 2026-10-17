@@ -58,8 +58,8 @@ shows a registration for an application collection.
 ## Create a new application
 
 Develop in an external source repository. Install and activate
-[Holoscan CLI 5.x](https://github.com/nvidia-holoscan/holoscan-cli#installation).
-Prepare the application's SDK version, GPU, data, models, and any capture or
+[Holoscan CLI](https://github.com/nvidia-holoscan/holoscan-cli#installation) from PyPI.
+Prepare the application's GPU, data, models, and any capture or
 display devices. Container builds need Docker and NVIDIA Container Toolkit;
 native builds need a compatible Holoscan SDK and build dependencies.
 
@@ -87,8 +87,13 @@ download instructions accurate. Document how to recognize a successful run.
 `holoscan create` defaults to a **module** template. To scaffold a module with
 a demo application, follow the [module guide](../modules/README.md#create-a-new-module).
 For an independent application, supply the files above or use an application
-Cookiecutter template with `holoscan create my_app --template /path/to/template` and
-the name and options documented by that template.
+Cookiecutter template. Install the `create` extra in the active environment,
+then use the name and options documented by that template:
+
+```bash
+python -m pip install 'holoscan-cli[create]==5.0.0'
+holoscan create my_app --template /path/to/template
+```
 
 ## Build, run, and test
 

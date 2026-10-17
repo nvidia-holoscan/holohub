@@ -59,34 +59,51 @@ and the alternative hosted-content source form. A current registration is
 
 ## Create a new module
 
-Work outside this registry. Install [Holoscan CLI 5.x with the `create` extra](https://github.com/nvidia-holoscan/holoscan-cli#installation)
-and activate its Python environment. Use a platform supported by the
-[Holoscan SDK](https://docs.nvidia.com/holoscan/sdk-user-guide/sdk_installation.html#prerequisites).
-For container builds, prepare Docker and NVIDIA Container Toolkit; choose an
-SDK image compatible with your GPU and module. Local builds require the SDK,
-CUDA toolkit, compiler, and dependencies described by the generated project.
+Follow the [Holoscan Modules tutorials](https://github.com/nvidia-holoscan/holoscan-tutorials/tree/main/tutorials/holoscan-modules),
+starting with [Create a Holoscan Module](https://github.com/nvidia-holoscan/holoscan-tutorials/tree/main/tutorials/holoscan-modules/create-a-module).
+It walks through scaffolding a standalone repository, implementing a typed
+C++ operator, composing and compiling a finite graph, testing its output,
+and producing a Debian package. The companion
+[Use a Holoscan Module](https://github.com/nvidia-holoscan/holoscan-tutorials/tree/main/tutorials/holoscan-modules/use-a-module)
+covers dependencies and consuming a module in another project.
+
+The quick start below targets the Holoscan SDK and Holoscan CLI.
+Work outside this registry and install the CLI's `create` extra in a Python
+3.12 environment:
+
+```bash
+python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install 'holoscan-cli[create]==5.0.0'
+```
+
+Use a platform supported by the [Holoscan SDK](https://docs.nvidia.com/holoscan/sdk-user-guide/setup/sdk-installation).
+Container builds require Docker, Docker Buildx, and NVIDIA Container Toolkit.
+Native builds require the SDK, CUDA Toolkit 13.x, CMake 4.0 or later, a
+C++20-capable compiler, and the generated project's test dependencies.
 
 From the directory where you keep source repositories:
 
 ```bash
-holoscan create my-module --language cpp --interactive false --context holoscan_version=4.6.0
+holoscan create my-module --language cpp --interactive false --context holoscan_version=5.0.0
 cd holoscan-my-module
 holoscan list
 holoscan modes my_module_pipeline
 ```
 
-Replace `4.6.0` with the minimum SDK version you intend to support. Use
-`--language python` for a Python-only module. The default template creates a
-standalone `holoscan-my-module/` repository layout with module and operator
-metadata, build and packaging files, tests, and a `my_module_pipeline` demo.
-The CLI version and SDK version are separate choices.
+The template supports `--language cpp` and creates a standalone
+`holoscan-my-module/` repository with module and operator metadata, CMake build
+files, a development container, tests, Debian packaging, and a finite
+`my_module_pipeline` demo. This scaffold does not generate Python operators,
+bindings, or wheels. The CLI and SDK versions are independent;
+`holoscan_version=5.0.0` explicitly sets the module's minimum SDK version.
 
 Implement your operators, connect them in the demo application, and replace
 the template's placeholder descriptions, author details, repository URL, and
 tags. Update the generated `README.md` and `DEVELOPER.md` with requirements,
 inputs, outputs, parameters, and expected results. Record SDK versions as
-tested only after verifying them. Keep the generated `requirements-cli.txt`
-so contributors can use the same CLI version.
+tested only after verifying them. Keep the CLI pins in the generated
+`requirements-cli.txt` and `pyproject.toml` synchronized for contributors and CI.
 
 ## Build, run, test, and package
 
@@ -99,8 +116,8 @@ holoscan run my_module_pipeline
 holoscan test
 ```
 
-Build and run use the project's development container by default. Configure
-its SDK base image as described in the
+Build and run use the project's development container by default. Select an
+SDK CUDA 13 development image as described in the
 [CLI configuration guide](https://github.com/nvidia-holoscan/holoscan-cli/blob/main/CONFIGURATION.md),
 or pass `--base-img` with an appropriate SDK development image. For a native
 build with the SDK and dependencies already installed:
@@ -111,22 +128,21 @@ holoscan run my_module_pipeline --local
 holoscan test --local
 ```
 
-The C++ template also includes a Python demo; select it with
-`holoscan run my_module_pipeline --language python`. Test both interfaces you
-intend to publish, including a finite run that checks the operator's output.
-`holoscan test` uses the project's CTest driver; keep unit tests and meaningful
-pipeline tests in the upstream module.
+`holoscan test` uses the project's CTest driver. The tutorial explains
+compile-plan tests and deterministic graph tests with `SyntheticClock`. Keep
+unit tests and a finite pipeline test that checks the operator's output in the
+upstream module.
 
 To produce installable distributions from the module root:
 
 ```bash
-holoscan package holoscan-my-module --pkg-generator DEB,WHEEL
+holoscan package holoscan-my-module --pkg-generator DEB
 ```
 
-Use `--pkg-generator WHEEL` if you only need a Python wheel. Follow the
-generated developer guide to check the artifacts in a separate consumer
-project before publishing. Keep releases and package hosting upstream, then
-register the source or update its existing `source.ref` here.
+Inspect the Debian package's metadata and contents, then follow the generated
+developer guide and the consumption tutorial to install it in a separate
+consumer project before publishing. Keep releases and package hosting upstream,
+then register the source or update its existing `source.ref` here.
 
 See the [CLI reference](https://github.com/nvidia-holoscan/holoscan-cli/blob/main/CLI_REFERENCE.md)
 and `holoscan <command> --help` for flags. Build, run, test, and package accept

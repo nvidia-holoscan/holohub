@@ -103,7 +103,7 @@ them in the tutorial. Installing the CLI alone does not install the SDK,
 notebook runtime, or sample data.
 
 For an accompanying application that supports the Holoscan CLI, install and
-activate [Holoscan CLI 5.x](https://github.com/nvidia-holoscan/holoscan-cli#installation),
+activate [Holoscan CLI](https://github.com/nvidia-holoscan/holoscan-cli#installation),
 then run these commands from that application's source root:
 
 ```bash
