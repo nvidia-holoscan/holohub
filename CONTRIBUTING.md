@@ -6,60 +6,48 @@ The Python utilities and tests here serve the registry itself.
 
 ## Request a registration change
 
-[Open a registration request](https://github.com/nvidia-holoscan/holohub/issues/new?template=registry.yml)
-to register, update, or remove a source without editing JSON. One form covers
-every kind:
+The easiest way to register, update, or remove a source is to
+[open a registration request](https://github.com/nvidia-holoscan/holohub/issues/new?template=registry.yml).
+You do not need to edit JSON or open a pull request yourself.
 
-- **Register:** choose the kind at the top of the form, then fill in the name
-  and source details.
-- **Update:** choose the source at the top of the form to fill in its current
-  values, then edit what changes. Alternatively, enter only its kind, name, and
-  the fields to change. Blank fields keep their current values, and `none`
-  removes an optional value.
-- **Remove:** choose the source and tick **Remove**. Only the HoloHub record is
-  deleted; the upstream project is not changed.
+- **Register:** enter the kind (`application`, `module`, `tutorial`, `skill`,
+  or `benchmark`), a new name, and the source URL. Add a Git revision and
+  repository path if needed.
+- **Update:** enter the registered kind and name, plus only the fields you want
+  to change. Blank fields keep their current values; enter `none` to clear an
+  optional value.
+- **Remove:** enter the registered kind and name, then tick **Remove**. Only
+  the HoloHub record is removed; your project is not changed.
 
-A Git revision makes the source a Git repository; a clone URL (ending in
-`.git`, or a GitHub repository page) left without one takes the repository's
-default branch. Any other URL without a revision must point to hosted
-`metadata.json` or `SKILL.md` content. A new or moved GitHub or GitLab
-repository left without an issue tracker URL takes the repository's issue
-tracker when it is public. The bot's comment lists every value it filled in. The kind and name
-identify a registration. To rename one, remove it, and after that pull request
-merges, register the new name.
+Tips for the source fields:
 
-A bot validates the request, opens a pull request, and keeps one comment on the
-issue with the result or what to correct. It also names the issue after the
-request, such as `🗂️ [NEW] application: my-application`, using `NEW`,
-`UPDATE`, or `REMOVE`. Edit the issue to revise the request;
-the bot rewrites its pull request branch, so do not push to it. When the
-registry changes, the bot rebuilds open pull requests on the latest default
-branch. Closing the issue withdraws an unmerged pull request, and reopening
-retries. A maintainer reviews and merges the pull request, which closes the
-issue.
+- For a Git repository, use its HTTPS clone URL (or GitHub repository page).
+  A full commit SHA is the most reproducible revision; leave the revision blank
+  to use the repository's default branch.
+- For hosted content, link directly to `metadata.json` (or `SKILL.md` for a
+  skill) and leave the revision blank.
+- If you leave the issue tracker blank, a public GitHub or GitLab repository's
+  issue tracker is used.
+- To rename a registration, remove it first, then register the new name after
+  the removal is merged.
 
-### Repository setup
-
-The form and its workflow take effect from the default branch. In
-**Settings → Actions → General**, enable **Allow GitHub Actions to create and
-approve pull requests**; organization policy must permit it. No other token or
-service is needed. Pull requests created with `GITHUB_TOKEN` do not start
-workflows, so the bot dispatches **Registry / Validate registry** for each
-proposal; keep that job required in branch protection. Enable
-**Automatically delete head branches** to remove merged proposal branches.
-
-The request workflow runs tooling from the default branch and treats issue
-content as data. It validates requests offline and never fetches or executes
-registered sources; the read-only Registry workflow validates upstream
-descriptors before merge.
+After you submit, a bot checks the request, renames the issue (for example,
+`🗂️ [NEW] application: my-application`), and opens a pull request. It posts a
+comment on the issue with the result, including any values it filled in or
+what to correct. To fix or change the request, edit the issue; the pull request
+is updated automatically, so do not push to it. Closing the issue withdraws the
+request, and reopening it tries again. A maintainer reviews and merges the pull
+request, which closes the issue.
 
 ## Register a source
 
 The [module](modules/README.md), [application](applications/README.md),
 [tutorial](tutorials/README.md), and [skill](skills/README.md) guides start with
 registration examples and then cover development with the Holoscan CLI.
-Registration is a JSON change in this repository; the CLI's `list` command
-discovers local source projects and does not register them in HoloHub.
+To edit the JSON yourself instead of
+[using the form](#request-a-registration-change), follow the steps below. The
+CLI's `list` command discovers local source projects and does not register them
+in HoloHub.
 
 1. Choose `application`, `module`, `tutorial`, `skill`, or `benchmark`.
 2. Check that the source is not already registered under that kind. A new Git
@@ -77,8 +65,7 @@ discovers local source projects and does not register them in HoloHub.
    tracker or support form so users know where to report problems.
 5. Keep entity descriptions, tags, operator lists, ratings, and execution details
    in the target's own metadata. All kinds use the same registration fields.
-6. Run the checks below and submit the registration for review. Requests made
-   through the form do this automatically.
+6. Run the checks below and submit the registration for review.
 
 ```bash
 python3 -m venv .venv
