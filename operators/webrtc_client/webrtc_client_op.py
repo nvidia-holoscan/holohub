@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,6 +15,7 @@
 
 import asyncio
 import logging
+import sys
 from threading import Condition, Event
 
 from aiortc import RTCPeerConnection, RTCSessionDescription
@@ -22,6 +23,8 @@ from aiortc.contrib.media import MediaStreamError, MediaStreamTrack
 from holoscan import as_tensor
 from holoscan.core import Operator, OperatorSpec
 from holoscan.gxf import Entity
+
+logger = logging.getLogger(__name__)
 
 
 class VideoStreamReceiverContext:
@@ -85,7 +88,7 @@ class WebRTCClientOp(Operator):
 
         @pc.on("connectionstatechange")
         async def on_connectionstatechange():
-            logging.info(f"Connection state {pc.connectionState}")
+            logger.info(f"Connection state {pc.connectionState}")
             if pc.connectionState == "connected":
                 self._connected = True
                 self._connected_event.set()
@@ -125,7 +128,7 @@ class WebRTCClientOp(Operator):
     def start(self):
         self._connected_event.wait()
         if not self._connected:
-            exit(-1)
+            sys.exit(-1)
 
     def stop(self):
         self._receiver.stop()

@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -70,4 +70,4 @@ ENV HOLOSCAN_OUTPUT_PATH=/workspace/holohub/build/imaging_ai_segmentator/output
 # Python dependencies (remove holoscan from requirements.txt)
 COPY applications/imaging_ai_segmentator/requirements.txt /tmp/requirements.txt
 RUN sed -i '/holoscan/d' /tmp/requirements.txt
-RUN pip install --no-cache-dir -r /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt pytest

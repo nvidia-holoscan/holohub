@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 
 
-class Resize(object):
+class Resize:
     """Resize sample to given size (width, height)."""
 
     def __init__(
@@ -134,7 +134,7 @@ class Resize(object):
         return sample
 
 
-class NormalizeImage(object):
+class NormalizeImage:
     """Normalize image by given mean and std."""
 
     def __init__(self, mean, std):
@@ -147,7 +147,7 @@ class NormalizeImage(object):
         return sample
 
 
-class PrepareForNet(object):
+class PrepareForNet:
     """Prepare sample for usage as network input."""
 
     def __init__(self):

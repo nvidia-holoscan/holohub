@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import os
 from argparse import ArgumentParser
 
@@ -48,9 +49,8 @@ class MultiAIICardio(Application):
         self.source = source
 
         self.record_type = record_type
-        if record_type is not None:
-            if record_type not in ("input", "visualizer"):
-                raise ValueError("record_type must be either ('input' or 'visualizer')")
+        if record_type is not None and record_type not in ("input", "visualizer"):
+            raise ValueError("record_type must be either ('input' or 'visualizer')")
 
         self.sample_data_path = data
 
@@ -73,8 +73,19 @@ class MultiAIICardio(Application):
                 from holoscan.resources import RMMAllocator
 
                 source_kwargs["allocator"] = RMMAllocator(self, name="video_replayer_allocator")
-            except Exception:
-                pass
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ):
+                logging.getLogger(__name__).debug("Expected operation failure", exc_info=True)
         source = SourceClass(self, name=self.source, **source_kwargs)
 
         in_dtype = "rgba8888" if is_aja else "rgb888"
@@ -133,8 +144,8 @@ class MultiAIICardio(Application):
         inference_kwargs = self.kwargs("multiai_inference")
         inference_kwargs["model_path_map"] = model_path_map
 
-        device_map = dict()
-        if "device_map" in inference_kwargs.keys():
+        device_map = {}
+        if "device_map" in inference_kwargs:
             device_map = inference_kwargs["device_map"]
             for k, v in device_map.items():
                 device_map[k] = str(v)
@@ -164,7 +175,18 @@ class MultiAIICardio(Application):
         try:
             major, minor = map(int, holoscan_version.split(".")[:2])
             supports_cuda_processing = (major, minor) >= (2, 6)
-        except Exception:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ):
             supports_cuda_processing = False
         multiai_postprocessor = InferenceProcessorOp(
             self,
@@ -195,11 +217,11 @@ class MultiAIICardio(Application):
             **visualizer_kwargs,
         )
 
-        source_pool_kwargs = dict(
-            storage_type=MemoryStorageType.DEVICE,
-            block_size=block_size,
-            num_blocks=1,
-        )
+        source_pool_kwargs = {
+            "storage_type": MemoryStorageType.DEVICE,
+            "block_size": block_size,
+            "num_blocks": 1,
+        }
 
         if record_type is not None:
             if ((record_type == "input") and (self.source != "replayer")) or (

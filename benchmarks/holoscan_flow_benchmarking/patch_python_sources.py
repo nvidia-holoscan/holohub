@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,6 @@ import argparse
 import os
 import re
 import shutil
-from typing import List
 
 
 def patch_file(file_path: str, script_dir: str) -> str | None:
@@ -50,9 +49,9 @@ def patch_file(file_path: str, script_dir: str) -> str | None:
     return backup
 
 
-def patch_directory(root_dir: str, script_dir: str) -> List[str]:
+def patch_directory(root_dir: str, script_dir: str) -> list[str]:
     """Patch all python files under root_dir. Returns list of backup paths."""
-    backups: List[str] = []
+    backups: list[str] = []
     for dirpath, _, files in os.walk(root_dir):
         for fname in files:
             if fname.endswith(".py"):
@@ -63,7 +62,7 @@ def patch_directory(root_dir: str, script_dir: str) -> List[str]:
     return backups
 
 
-def restore_backups(backups: List[str]):
+def restore_backups(backups: list[str]):
     for bak in backups:
         if bak.endswith(".bak"):
             orig = bak[:-4]

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Tuple, Union
+from typing import Any
 
 from holoscan.core import Fragment, Operator
 
@@ -34,7 +34,7 @@ class InferenceOperator(Operator):
     # @abstractmethod
     def pre_process(
         self, data: Any, *args, **kwargs
-    ) -> Union[Image, Any, Tuple[Any, ...], Dict[Any, Any]]:
+    ) -> Image | Any | tuple[Any, ...] | dict[Any, Any]:
         """Transforms input before being used for predicting on a model.
 
         This method must be overridden by a derived class.
@@ -54,12 +54,9 @@ class InferenceOperator(Operator):
             op_output (OutputContext): An output context for the operator.
             context (ExecutionContext): An execution context for the operator.
         """
-        pass
 
     # @abstractmethod
-    def predict(
-        self, data: Any, *args, **kwargs
-    ) -> Union[Image, Any, Tuple[Any, ...], Dict[Any, Any]]:
+    def predict(self, data: Any, *args, **kwargs) -> Image | Any | tuple[Any, ...] | dict[Any, Any]:
         """Predicts results using the models(s) with input tensors.
 
         This method must be overridden by a derived class.
@@ -72,7 +69,7 @@ class InferenceOperator(Operator):
     # @abstractmethod
     def post_process(
         self, data: Any, *args, **kwargs
-    ) -> Union[Image, Any, Tuple[Any, ...], Dict[Any, Any]]:
+    ) -> Image | Any | tuple[Any, ...] | dict[Any, Any]:
         """Transform the prediction results from the model(s).
 
         This method must be overridden by a derived class.

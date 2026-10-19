@@ -6,7 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
 import logging
-from typing import Any, List, Tuple
+from typing import Any
 
 import cupy as cp
 import numpy as np
@@ -103,7 +103,7 @@ class NormalizeOperator(Operator):
         self._hard_coded_row_normalizers_cache = row_normalizers
         return row_normalizers
 
-    def _normalize_batch(self, batch: BuildRHSOutput) -> Tuple[List[WavelengthSystem], int] | None:
+    def _normalize_batch(self, batch: BuildRHSOutput) -> tuple[list[WavelengthSystem], int] | None:
         num_cols = batch.data_jacobians.shape[-1]
         num_significant = int(batch.idxs_significant_voxels.size)
         num_absorbers, remainder = divmod(num_cols, num_significant)
@@ -134,7 +134,7 @@ class NormalizeOperator(Operator):
         if self._use_hard_coded_normalizers and self._hard_coded_normalized_jacobian_cache is None:
             self._hard_coded_normalized_jacobian_cache = jacobians
 
-        systems: List[WavelengthSystem] = []
+        systems: list[WavelengthSystem] = []
         for idx_wavelength in range(num_wavelengths):
             background_payload = cp.asarray(
                 batch.model_optical_properties[:, idx_wavelength],

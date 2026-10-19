@@ -47,3 +47,7 @@ target_include_directories(nv_video_decoder PUBLIC
 if(HOLOHUB_BUILD_PYTHON)
   add_subdirectory(python)
 endif()
+
+if(BUILD_TESTING)
+  add_subdirectory(test)
+endif()

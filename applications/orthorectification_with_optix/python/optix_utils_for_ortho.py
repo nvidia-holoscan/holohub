@@ -279,12 +279,12 @@ class Logger:
         self.num_mssgs = 0
 
     def __call__(self, level, tag, mssg):
-        print("[{:>2}][{:>12}]: {}".format(level, tag, mssg))
+        print(f"[{level:>2}][{tag:>12}]: {mssg}")
         self.num_mssgs += 1
 
 
 def log_callback(level, tag, mssg):
-    print("[{:>2}][{:>12}]: {}".format(level, tag, mssg))
+    print(f"[{level:>2}][{tag:>12}]: {mssg}")
 
 
 def init_optix():
@@ -311,12 +311,12 @@ def get_aligned_itemsize(formats, alignment):
 def optix_version_gte(version):
     if optix.version()[0] > version[0]:
         return True
-    if optix.version()[0] == version[0] and optix.version()[1] >= version[1]:
-        return True
-    return False
+    return bool(optix.version()[0] == version[0] and optix.version()[1] >= version[1])
 
 
-def array_to_device_memory(numpy_array, stream=cp.cuda.Stream()):
+def array_to_device_memory(numpy_array, stream=None):
+    if stream is None:
+        stream = cp.cuda.Stream()
     byte_size = numpy_array.size * numpy_array.dtype.itemsize
 
     h_ptr = ctypes.c_void_p(numpy_array.ctypes.data)
@@ -411,7 +411,7 @@ def create_module(ctx, pipeline_options, triangle_ptx):
     )
 
     module, log = ctx.moduleCreateFromPTX(module_options, pipeline_options, triangle_ptx)
-    print("\tModule create log: <<<{}>>>".format(log))
+    print(f"\tModule create log: <<<{log}>>>")
     return module
 
 
@@ -422,20 +422,20 @@ def create_program_groups(ctx, module):
     raygen_prog_group_desc.raygenModule = module
     raygen_prog_group_desc.raygenEntryFunctionName = "__raygen__rg"
     raygen_prog_group, log = ctx.programGroupCreate([raygen_prog_group_desc])
-    print("\tProgramGroup raygen create log: <<<{}>>>".format(log))
+    print(f"\tProgramGroup raygen create log: <<<{log}>>>")
 
     miss_prog_group_desc = optix.ProgramGroupDesc()
     miss_prog_group_desc.missModule = module
     miss_prog_group_desc.missEntryFunctionName = "__miss__ms"
     optix.ProgramGroupOptions()
     miss_prog_group, log = ctx.programGroupCreate([miss_prog_group_desc])
-    print("\tProgramGroup miss create log: <<<{}>>>".format(log))
+    print(f"\tProgramGroup miss create log: <<<{log}>>>")
 
     hitgroup_prog_group_desc = optix.ProgramGroupDesc()
     hitgroup_prog_group_desc.hitgroupModuleCH = module
     hitgroup_prog_group_desc.hitgroupEntryFunctionNameCH = "__closesthit__terrain_ch"
     hitgroup_prog_group, log = ctx.programGroupCreate([hitgroup_prog_group_desc])
-    print("\tProgramGroup hitgroup create log: <<<{}>>>".format(log))
+    print(f"\tProgramGroup hitgroup create log: <<<{log}>>>")
 
     return [raygen_prog_group, miss_prog_group, hitgroup_prog_group]
 
@@ -481,7 +481,7 @@ def create_sbt(prog_groups):
     global d_raygen_sbt
     global d_miss_sbt
 
-    header_format = "{}B".format(optix.SBT_RECORD_HEADER_SIZE)
+    header_format = f"{optix.SBT_RECORD_HEADER_SIZE}B"
 
     #
     # raygen record

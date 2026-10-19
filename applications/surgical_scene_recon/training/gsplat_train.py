@@ -35,7 +35,7 @@ import math
 import os
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Literal
 
 import imageio
 import numpy as np
@@ -52,7 +52,6 @@ from torch.utils.tensorboard import SummaryWriter
 from torchmetrics.functional.regression import pearson_corrcoef
 from torchmetrics.image import PeakSignalNoiseRatio, StructuralSimilarityIndexMeasure
 from torchmetrics.image.lpip import LearnedPerceptualImagePatchSimilarity
-from typing_extensions import Literal
 from utils.image_utils import psnr
 
 # Local imports
@@ -151,7 +150,7 @@ class EndoConfig:
 
     # Deformation network architecture
     bounds: float = 1.5
-    kplanes_config: Dict = field(
+    kplanes_config: dict = field(
         default_factory=lambda: {
             "grid_dimensions": 2,
             "input_coordinate_dim": 4,
@@ -159,7 +158,7 @@ class EndoConfig:
             "resolution": [64, 64, 64, 100],
         }
     )
-    multires: List[int] = field(default_factory=lambda: [1, 2, 4, 8])
+    multires: list[int] = field(default_factory=lambda: [1, 2, 4, 8])
     defor_depth: int = 0
     net_width: int = 32
     timebase_pe: int = 6
@@ -175,7 +174,7 @@ class EndoConfig:
     no_do: bool = False
 
     # ========== Densification Strategy ==========
-    strategy: Union[DefaultStrategy, MCMCStrategy] = field(
+    strategy: DefaultStrategy | MCMCStrategy = field(
         default_factory=lambda: DefaultStrategy(verbose=True)
     )
     packed: bool = False
@@ -200,14 +199,14 @@ class EndoConfig:
     # ========== Logging & Saving ==========
     tb_every: int = 100
     tb_save_image: bool = False
-    eval_steps: List[int] = field(
+    eval_steps: list[int] = field(
         default_factory=lambda: [1_200, 1_500]
     )  # Eval at end of fine stage
-    save_steps: List[int] = field(
+    save_steps: list[int] = field(
         default_factory=lambda: [1_200, 1_500]
     )  # Save at end of fine stage
     save_ply: bool = False
-    ply_steps: List[int] = field(default_factory=lambda: [1_200, 1_500])
+    ply_steps: list[int] = field(default_factory=lambda: [1_200, 1_500])
     disable_video: bool = False
 
     # ========== Viewer ==========
@@ -320,7 +319,7 @@ class EndoNeRFParser:
         else:
             # Original: Single/random frame approach
             print(f"[Phase 2] Loading initial point cloud from {dataset_type} dataset...")
-            pts, colors, normals = self.endo_dataset.get_init_pts()
+            pts, colors, _normals = self.endo_dataset.get_init_pts()
             self.points = pts.astype(np.float32)
             self.points_rgb = (colors * 255.0).astype(np.uint8)  # gsplat expects 0-255
 
@@ -579,7 +578,7 @@ class EndoRunner:
         elif isinstance(cfg.strategy, MCMCStrategy):
             self.strategy_state = cfg.strategy.initialize_state()
         else:
-            raise ValueError(f"Unknown strategy: {type(cfg.strategy)}")
+            raise TypeError(f"Unknown strategy: {type(cfg.strategy)}")
 
         # Phase 6: Initialize deformation network
         if cfg.use_deformation:
@@ -706,12 +705,12 @@ class EndoRunner:
         Ks: Tensor,
         width: int,
         height: int,
-        time_idx: Optional[Tensor] = None,
+        time_idx: Tensor | None = None,
         stage: str = "fine",  # Phase 6: Stage determines if deformation is applied
-        rasterize_mode: Optional[Literal["classic", "antialiased"]] = None,
-        camera_model: Optional[Literal["pinhole", "ortho", "fisheye"]] = None,
+        rasterize_mode: Literal["classic", "antialiased"] | None = None,
+        camera_model: Literal["pinhole", "ortho", "fisheye"] | None = None,
         **kwargs,
-    ) -> Tuple[Tensor, Tensor, Dict]:
+    ) -> tuple[Tensor, Tensor, dict]:
         """Rasterize Gaussian splats with stage-dependent deformation
 
         Phase 4: Implemented using gsplat.rasterization()
@@ -1076,7 +1075,7 @@ class EndoRunner:
             sh_degree_to_use = min(step // cfg.sh_degree_interval, cfg.sh_degree)
 
             # Forward pass - render
-            renders, alphas, info = self.rasterize_splats(
+            renders, _alphas, info = self.rasterize_splats(
                 camtoworlds=camtoworld,
                 Ks=K,
                 width=width,
@@ -1232,44 +1231,47 @@ class EndoRunner:
 
             # 6. Deformation regularization (Phase 6)
             deform_reg_loss = torch.tensor(0.0, device=device)
-            if hasattr(self, "deform_net") and self.deform_net is not None:
-                if (
+            if (
+                hasattr(self, "deform_net")
+                and self.deform_net is not None
+                and (
                     cfg.time_smoothness_weight > 0
                     or cfg.l1_time_planes_weight > 0
                     or cfg.plane_tv_weight > 0
-                ):
-                    # Import regulation from gaussian_model
-                    from scene.regulation import compute_plane_smoothness
+                )
+            ):
+                # Import regulation from gaussian_model
+                from scene.regulation import compute_plane_smoothness
 
-                    multi_res_grids = self.deform_net.deformation_net.grid.grids
-                    plane_tv = 0.0
-                    time_smooth = 0.0
-                    l1_time = 0.0
+                multi_res_grids = self.deform_net.deformation_net.grid.grids
+                plane_tv = 0.0
+                time_smooth = 0.0
+                l1_time = 0.0
 
-                    for grids in multi_res_grids:
-                        if len(grids) == 3:
-                            pass  # Spatial grids only
-                        else:
-                            time_grids_smooth = [2, 4, 5]  # Temporal grids
-                            time_grids_spatial = [0, 1, 3]  # Spatial grids
+                for grids in multi_res_grids:
+                    if len(grids) == 3:
+                        pass  # Spatial grids only
+                    else:
+                        time_grids_smooth = [2, 4, 5]  # Temporal grids
+                        time_grids_spatial = [0, 1, 3]  # Spatial grids
 
-                            # Time smoothness
-                            for grid_id in time_grids_smooth:
-                                time_smooth += compute_plane_smoothness(grids[grid_id])
+                        # Time smoothness
+                        for grid_id in time_grids_smooth:
+                            time_smooth += compute_plane_smoothness(grids[grid_id])
 
-                            # Plane TV
-                            for grid_id in time_grids_spatial:
-                                plane_tv += compute_plane_smoothness(grids[grid_id])
+                        # Plane TV
+                        for grid_id in time_grids_spatial:
+                            plane_tv += compute_plane_smoothness(grids[grid_id])
 
-                            # L1 regularization
-                            for grid_id in time_grids_smooth:
-                                l1_time += torch.abs(1 - grids[grid_id]).mean()
+                        # L1 regularization
+                        for grid_id in time_grids_smooth:
+                            l1_time += torch.abs(1 - grids[grid_id]).mean()
 
-                    deform_reg_loss = (
-                        cfg.plane_tv_weight * plane_tv
-                        + cfg.time_smoothness_weight * time_smooth
-                        + cfg.l1_time_planes_weight * l1_time
-                    )
+                deform_reg_loss = (
+                    cfg.plane_tv_weight * plane_tv
+                    + cfg.time_smoothness_weight * time_smooth
+                    + cfg.l1_time_planes_weight * l1_time
+                )
 
             # Total loss (monocular: use pearson_lambda; binocular: use depth_lambda)
             depth_weight = cfg.pearson_lambda if cfg.depth_mode == "monocular" else cfg.depth_lambda
@@ -1799,7 +1801,7 @@ def create_splats_with_optimizers(
     device: str = "cuda",
     world_rank: int = 0,
     world_size: int = 1,
-) -> Tuple[torch.nn.ParameterDict, Dict[str, torch.optim.Optimizer]]:
+) -> tuple[torch.nn.ParameterDict, dict[str, torch.optim.Optimizer]]:
     """Create Gaussian splats and optimizers from point cloud
 
     Adapted from gsplat's create_splats_with_optimizers for EndoNeRF data.
@@ -1922,7 +1924,7 @@ def set_random_seed(seed: int):
 # ============================================================================
 
 
-def create_invisible_mask_from_paths(mask_paths: List[str], device: str = "cuda") -> Tensor:
+def create_invisible_mask_from_paths(mask_paths: list[str], device: str = "cuda") -> Tensor:
     """
     Create invisible mask from list of mask file paths.
 
@@ -1989,7 +1991,7 @@ def dilate_invisible_mask(mask: Tensor, kernel_size: int = 5, iterations: int = 
     return dilated
 
 
-def compute_tv_loss_targeted(image: Tensor, mask: Optional[Tensor] = None) -> Tensor:
+def compute_tv_loss_targeted(image: Tensor, mask: Tensor | None = None) -> Tensor:
     """
     Compute total variation loss, optionally on masked region only.
 
@@ -2039,7 +2041,7 @@ def accumulate_multiframe_pointcloud(
     sample_rate: int = 3,
     use_masks: bool = True,
     device: str = "cuda",
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Accumulate depth and color across ALL frames using SurgicalGaussian approach.
 

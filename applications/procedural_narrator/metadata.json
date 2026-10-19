@@ -1,0 +1,91 @@
+{
+	"application": {
+		"name": "Procedural Narrator",
+		"description": "Displays a replay or V4L2 clinical video with ongoing temporal narration from an OpenAI-compatible multimodal reasoner.",
+		"authors": [
+			{
+				"name": "Chris von Csefalvay",
+				"affiliation": "HCLTech"
+			}
+		],
+		"language": "Python",
+		"version": "1.0.0",
+		"changelog": {
+			"1.0.0": "Initial replay and V4L2 application with HoloViz narration and model status."
+		},
+		"holoscan_sdk": {
+			"minimum_required_version": "4.4.0",
+			"tested_versions": [
+				"4.4.0"
+			]
+		},
+		"platforms": [
+			"x86_64",
+			"aarch64"
+		],
+		"tags": [
+			"Healthcare AI",
+			"Generative AI",
+			"Multimodal Model",
+			"Video",
+			"Visualization"
+		],
+		"ranking": 3,
+		"requirements": {
+			"operators": [
+				{
+					"name": "online_video_reasoner",
+					"version": "0.1.0"
+				}
+			],
+			"reasoner_service": {
+				"type": "software",
+				"name": "Multimodal reasoning service",
+				"description": "An OpenAI-compatible chat-completions endpoint that accepts MP4 video_url inputs."
+			},
+			"sample_video": {
+				"type": "data",
+				"name": "Holoscan endoscopy sample data",
+				"description": "Sample surgical video used by the replay mode.",
+				"url": "https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/holoscan_endoscopy_sample_data"
+			},
+			"camera": {
+				"type": "hardware",
+				"name": "V4L2 camera",
+				"description": "A Video4Linux-compatible camera used by the v4l2 mode."
+			}
+		},
+		"default_mode": "replayer",
+		"modes": {
+			"replayer": {
+				"description": "Replay the downloaded surgical video and narrate temporal change.",
+				"requirements": [
+					"reasoner_service",
+					"sample_video"
+				],
+				"run": {
+					"command": "python3 <holohub_app_source>/procedural_narrator.py --config <holohub_app_source>/procedural_narrator.yaml --data <holohub_data_dir>/endoscopy --source replayer",
+					"workdir": "holohub_bin",
+					"docker_run_args": [
+						"--env=REASONER_API_KEY"
+					]
+				}
+			},
+			"v4l2": {
+				"description": "Narrate a live V4L2-compatible camera feed.",
+				"requirements": [
+					"reasoner_service",
+					"camera"
+				],
+				"run": {
+					"command": "python3 <holohub_app_source>/procedural_narrator.py --config <holohub_app_source>/procedural_narrator.yaml --source v4l2",
+					"workdir": "holohub_bin",
+					"docker_run_args": [
+						"--env=REASONER_API_KEY",
+						"--device=/dev/video0"
+					]
+				}
+			}
+		}
+	}
+}

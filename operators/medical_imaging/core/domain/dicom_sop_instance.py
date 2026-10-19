@@ -1,5 +1,5 @@
 #!/bin/bash
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Union
+from typing import Any
 
 from operators.medical_imaging.utils.importutil import optional_import
 
@@ -44,7 +44,7 @@ class DICOMSOPInstance(Domain):
     def get_native_sop_instance(self):
         return self._sop
 
-    def __getitem__(self, key: Union[int, slice, Tag]) -> Union[Dataset, DataElement]:
+    def __getitem__(self, key: int | slice | Tag) -> Dataset | DataElement:
         return self._sop.__getitem__(key)
 
     def get_pixel_array(self):

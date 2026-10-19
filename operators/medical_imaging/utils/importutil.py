@@ -17,9 +17,10 @@ import inspect
 import runpy
 import sys
 import warnings
+from collections.abc import Callable
 from importlib import import_module
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Type, Union
+from typing import TYPE_CHECKING, Any, Optional
 
 import pkg_resources
 
@@ -27,7 +28,7 @@ if TYPE_CHECKING:
     from holoscan.core import Application
 
 
-def get_docstring(cls: Type) -> str:
+def get_docstring(cls: type) -> str:
     """Get docstring of a class.
 
     Tries to get docstring from class itself, from its __doc__.
@@ -47,7 +48,7 @@ def get_docstring(cls: Type) -> str:
     return "\n".join([line.strip() for line in doc.split("\n")])
 
 
-def is_subclass(cls: Type, class_or_tuple: Union[str, Tuple[str]]) -> bool:
+def is_subclass(cls: type, class_or_tuple: str | tuple[str]) -> bool:
     """Check if the given type is a subclass of a MONAI Deploy App SDK class.
 
     Args:
@@ -61,17 +62,15 @@ def is_subclass(cls: Type, class_or_tuple: Union[str, Tuple[str]]) -> bool:
         class_or_tuple = (class_or_tuple,)
 
     if hasattr(cls, "_class_id") and cls._class_id in class_or_tuple:
-        if (
+        return not (
             inspect.isclass(cls)
             and hasattr(cls, "__abstractmethods__")
             and len(cls.__abstractmethods__) != 0
-        ):
-            return False
-        return True
+        )
     return False
 
 
-def get_application(path: Union[str, Path]) -> Optional["Application"]:
+def get_application(path: str | Path) -> Optional["Application"]:
     """Get application object from path."""
     from holoscan.core import Application
 
@@ -88,9 +87,9 @@ def get_application(path: Union[str, Path]) -> Optional["Application"]:
     vars = runpy.run_path(str(path))
 
     # Get the Application class from the module and return an instance of it
-    for var in vars.keys():
+    for var in vars:
         if not var.startswith("_"):  # skip private variables
-            app_cls: Type[Application] = vars[var]
+            app_cls: type[Application] = vars[var]
 
             if is_subclass(app_cls, Application._class_id):
                 if path.is_file():
@@ -104,7 +103,7 @@ def get_application(path: Union[str, Path]) -> Optional["Application"]:
     return None
 
 
-def get_class_file_path(cls: Type) -> Path:
+def get_class_file_path(cls: type) -> Path:
     """Get the file path of a class.
 
     If the file path is not available, it tries to see each frame information
@@ -179,7 +178,7 @@ def optional_import(
     version_args: Any = None,
     allow_namespace_pkg: bool = False,
     as_type: str = "default",
-) -> Tuple[Any, bool]:
+) -> tuple[Any, bool]:
     """
     Imports an optional module specified by `module` string.
     Any importing related exceptions will be stored, and exceptions raise lazily
@@ -243,7 +242,8 @@ def optional_import(
                 raise AssertionError
         if name:  # user specified to load class/function/... from the module
             the_module = getattr(the_module, name)
-    except Exception as import_exception:  # any exceptions during import
+    except Exception as import_exception:  # noqa: BLE001
+        # Optional imports defer arbitrary import-time failures until the dependency is used.
         tb = import_exception.__traceback__
         exception_str = f"{import_exception}"
     else:  # found the module
@@ -307,7 +307,7 @@ def optional_import(
 
 
 def is_dist_editable(project_name: str) -> bool:
-    distributions: Dict = {v.key: v for v in pkg_resources.working_set}
+    distributions: dict = {v.key: v for v in pkg_resources.working_set}
     dist: Any = distributions.get(project_name)
     if not hasattr(dist, "egg_info"):
         return False
@@ -315,41 +315,43 @@ def is_dist_editable(project_name: str) -> bool:
     if egg_info.is_dir():
         if egg_info.suffix == ".egg-info":
             return True
-        elif egg_info.suffix == ".dist-info":
-            if (egg_info / "direct_url.json").exists():
-                import json
+        elif egg_info.suffix == ".dist-info" and (egg_info / "direct_url.json").exists():
+            import json
 
-                # Check direct_url.json for "editable": true
-                # (https://packaging.python.org/en/latest/specifications/direct-url/)
-                with open(egg_info / "direct_url.json", "r") as f:
-                    data = json.load(f)
-                    try:
-                        if data["dir_info"]["editable"]:
-                            return True
-                    except KeyError:
-                        pass
+            # Check direct_url.json for "editable": true
+            # (https://packaging.python.org/en/latest/specifications/direct-url/)
+            with open(egg_info / "direct_url.json", "r") as f:
+                data = json.load(f)
+                try:
+                    if data["dir_info"]["editable"]:
+                        return True
+                except KeyError:
+                    pass
     return False
 
 
 def dist_module_path(project_name: str) -> str:
-    distributions: Dict = {v.key: v for v in pkg_resources.working_set}
+    distributions: dict = {v.key: v for v in pkg_resources.working_set}
     dist: Any = distributions.get(project_name)
     if hasattr(dist, "egg_info"):
         egg_info = Path(dist.egg_info)
-        if egg_info.is_dir() and egg_info.suffix == ".dist-info":
-            if (egg_info / "direct_url.json").exists():
-                import json
+        if (
+            egg_info.is_dir()
+            and egg_info.suffix == ".dist-info"
+            and (egg_info / "direct_url.json").exists()
+        ):
+            import json
 
-                # Check direct_url.json for "url"
-                # (https://packaging.python.org/en/latest/specifications/direct-url/)
-                with open(egg_info / "direct_url.json", "r") as f:
-                    data = json.load(f)
-                    try:
-                        file_url = data["url"]
-                        if file_url.startswith("file://"):
-                            return str(file_url[7:])
-                    except KeyError:
-                        pass
+            # Check direct_url.json for "url"
+            # (https://packaging.python.org/en/latest/specifications/direct-url/)
+            with open(egg_info / "direct_url.json", "r") as f:
+                data = json.load(f)
+            try:
+                file_url = data["url"]
+                if file_url.startswith("file://"):
+                    return str(file_url[7:])
+            except KeyError:
+                pass
 
     if hasattr(dist, "module_path"):
         return str(dist.module_path)
@@ -357,16 +359,13 @@ def dist_module_path(project_name: str) -> str:
 
 
 def is_module_installed(project_name: str) -> bool:
-    distributions: Dict = {v.key: v for v in pkg_resources.working_set}
+    distributions: dict = {v.key: v for v in pkg_resources.working_set}
     dist: Any = distributions.get(project_name)
-    if dist:
-        return True
-    else:
-        return False
+    return bool(dist)
 
 
-def dist_requires(project_name: str) -> List[str]:
-    distributions: Dict = {v.key: v for v in pkg_resources.working_set}
+def dist_requires(project_name: str) -> list[str]:
+    distributions: dict = {v.key: v for v in pkg_resources.working_set}
     dist: Any = distributions.get(project_name)
     if hasattr(dist, "requires"):
         return [str(req) for req in dist.requires()]
@@ -438,7 +437,18 @@ def fix_holoscan_import():
         with open(str(holoscan_init_path), "w") as f_w:
             f_w.write(holoscan_init_content_txt)
         return str(holoscan_init_path)
-    except Exception as ex:
+    except (
+        ArithmeticError,
+        AssertionError,
+        AttributeError,
+        EOFError,
+        ImportError,
+        LookupError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ) as ex:
         return ex
 
 

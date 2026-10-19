@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -68,6 +68,10 @@ target_compile_definitions(volume_loader PRIVATE HOLOSCAN_MINOR_VERSION=${holosc
 install(TARGETS volume_loader
   COMPONENT holoscan-ops
 )
+
+if(BUILD_TESTING)
+  add_subdirectory(tests)
+endif()
 
 if(HOLOHUB_BUILD_PYTHON)
     add_subdirectory(python)

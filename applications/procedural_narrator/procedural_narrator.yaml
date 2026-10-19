@@ -1,0 +1,53 @@
+%YAML 1.2
+# SPDX-FileCopyrightText: Copyright (c) 2026, Chris von Csefalvay (HCLTech).
+# SPDX-License-Identifier: Apache-2.0
+---
+replayer_source:
+  basename: "surgical_video"
+  # Explicit cadence lets the application validate temporal sampling.
+  frame_rate: 30
+  # A loop boundary is not continuous video and must not enter one clip.
+  repeat: false
+  realtime: true
+  count: 0
+
+v4l2_source:
+  device: "/dev/video0"
+  pixel_format: "YUYV"
+
+format_converter:
+  out_tensor_name: "frame"
+  out_dtype: "rgb888"
+  resize_width: 854
+  resize_height: 480
+
+reasoner:
+  endpoint: "http://127.0.0.1:8000/v1/chat/completions"
+  model: "nvidia/Cosmos3-Edge"
+  prompt: >-
+    Narrate the visible clinical procedure and the changes across this temporal
+    clip in one or two concise sentences. Mention instruments, anatomy, camera
+    motion, and procedural actions only when visible. Do not infer identity,
+    diagnosis, intent, or outcome.
+  mode: "video"
+  # Supported range: > 0 and <= replayer_source.frame_rate, or <= 60 for v4l2.
+  sample_fps: 4
+  clip_duration_s: 4
+  request_interval_s: 4
+  max_tokens: 256
+  max_response_chars: 1048576
+  connect_timeout_s: 10
+  timeout_s: 120
+  api_key_env: "REASONER_API_KEY"
+  stream: true
+  request_options:
+    chat_template_kwargs:
+      enable_thinking: false
+  ffmpeg: "ffmpeg"
+
+holoviz:
+  width: 1280
+  height: 720
+  window_title: "procedural_narrator"
+  fullscreen: false
+  use_exclusive_display: false

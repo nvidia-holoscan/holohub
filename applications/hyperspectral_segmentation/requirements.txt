@@ -1,4 +1,4 @@
-blosc
+blosc>=1.11.4
 torch
 onnx
 onnxruntime

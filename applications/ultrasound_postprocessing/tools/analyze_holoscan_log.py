@@ -61,7 +61,18 @@ def analyze_text_log(filename, discard=0):
                     e2e_ms = (last_end - first_start) / 1000.0
                     e2e_latencies.append(e2e_ms)
 
-    except Exception as e:
+    except (
+        ArithmeticError,
+        AssertionError,
+        AttributeError,
+        EOFError,
+        ImportError,
+        LookupError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ) as e:
         print(f"Error reading file: {e}")
         return
 

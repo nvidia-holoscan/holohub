@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -264,7 +264,7 @@ class OptixOrthoOp(Operator):
         load_sensor_texture(optix_state, sensor_pix)
         build_sensor_geom(optix_state)
 
-        gas_handle, d_gas_output_buffer = create_accel(optix_state, self.ctx, self.stream)
+        gas_handle, _d_gas_output_buffer = create_accel(optix_state, self.ctx, self.stream)
 
         sbt = create_sbt(self.prog_groups)
         ortho_pix = launch(optix_state, self.pipeline, sbt, gas_handle, self.stream)
@@ -327,7 +327,7 @@ class ProcessOrthoOp(Operator):
         op_output.emit(out_message, "outputs")
 
     def on_error(e):
-        print("There was an error: {}".format(e))
+        print(f"There was an error: {e}")
 
 
 # ---------------END HOLOSCAN-------------------------#

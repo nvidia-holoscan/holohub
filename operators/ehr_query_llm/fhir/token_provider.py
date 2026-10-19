@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,7 @@
 # limitations under the License.
 
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import requests
 
@@ -49,7 +49,7 @@ class TokenProvider:
         self.verify_cert = verify_cert  # True for verifying server cert
         self.expires_in_seconds_default = TokenProvider.EXPIRES_IN
 
-        self._expires_datetime = datetime.now()
+        self._expires_datetime = datetime.now(timezone.utc)
         self._token = None
         self._token_type = TokenProvider.TOKEN_TYPE
         self._grant_type = TokenProvider.GRANT_TYPE
@@ -63,7 +63,7 @@ class TokenProvider:
             str: token string
         """
         # If expired, refresh or get new token, otherwise, return existing
-        if (not self._token) or (datetime.now() > self._expires_datetime):
+        if (not self._token) or (datetime.now(timezone.utc) > self._expires_datetime):
             # Acquire access token again if none or expired.
             # The two legged workflow does not have refresh token.
             self.get_token()
@@ -80,7 +80,7 @@ class TokenProvider:
         return f"{self._token_type} {token_only}"
 
     def get_token(self):
-        request_time = datetime.now()
+        request_time = datetime.now(timezone.utc)
         post_data = {
             "grant_type": self._grant_type,
             "client_id": self.client_id,
@@ -106,7 +106,18 @@ class TokenProvider:
                 self._refresh_token = token_json.get("refresh_token", None)
                 self._scope = token_json.get("scope", self._scope)
                 break
-            except Exception as ex:
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ) as ex:
                 if (i + 1) >= max_retry:
-                    raise Exception(f"Failed to get the token due to exception:\n{ex}")
+                    raise RuntimeError(f"Failed to get the token due to exception:\n{ex}")
                 time.sleep(3)

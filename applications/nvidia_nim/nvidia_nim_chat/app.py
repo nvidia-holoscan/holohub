@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,21 +17,20 @@ import json
 import logging
 import os
 import sys
-from typing import Dict
 
 from halo import Halo
 from holoscan.core import Application, Operator, OperatorSpec
-from openai import APIConnectionError, AuthenticationError, OpenAI
+from openai import APIConnectionError, AuthenticationError, OpenAI, OpenAIError
 
-logging.getLogger("httpx").setLevel(logging.WARN)
-logging.getLogger("openai").setLevel(logging.WARN)
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("openai").setLevel(logging.WARNING)
 
 logger = logging.getLogger("NVIDIA_NIM_CHAT")
 logging.basicConfig(level=logging.INFO)
 
 
 class MessageBody:
-    def __init__(self, model_params: Dict, user_input: str):
+    def __init__(self, model_params: dict, user_input: str):
         self.model_params = model_params
         self.user_input = user_input
 
@@ -68,7 +67,7 @@ class OpenAIOperator(Operator):
             logger.warning(
                 "Set 'api-key' in the nvidia_nim.yaml config file or set the environment variable 'API_KEY'."
             )
-            print("")
+            print()
         self.client = OpenAI(base_url=base_url, api_key=self.api_key)
 
         # Need to call the base class constructor last
@@ -87,7 +86,7 @@ class OpenAIOperator(Operator):
             self._reset_chat_history()
             self.spinner.succeed("Chat history cleared.")
         elif message.user_input == "/bye":
-            exit()
+            sys.exit()
         else:
             self._chat_history.append({"role": "user", "content": message.user_input})
             self.spinner.stop()
@@ -116,7 +115,19 @@ class OpenAIOperator(Operator):
                     )
                 else:
                     logger.error(str(e))
-            except Exception as e:
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OpenAIError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ) as e:
                 print(type(e))
                 logger.error("Oops! Wanna try another model? %s", repr(e))
             print(" ")
@@ -125,7 +136,7 @@ class OpenAIOperator(Operator):
 class UserInputOp(Operator):
     def __init__(self, fragment, *args, models, selected_model, spinner, **kwargs):
         self.models = models
-        self.model_names = [k for k in models.keys()]
+        self.model_names = [k for k in models]
         self.spinner = spinner
         self._use_model(selected_model)
 
@@ -172,7 +183,7 @@ class UserInputOp(Operator):
         print(f"{'Option' : ^10} {'Name' : <40}{'Model' : >50}")
         for index, model in enumerate(self.model_names):
             print(f"{index+1 : ^10} {model : <40}{self.models[model]['model'] : >50}")
-        print("")
+        print()
 
     def _print_help(self):
         print("Chat with NVIDIA NIM!")
@@ -213,8 +224,19 @@ def main():
 
     try:
         app.run()
-    except Exception as e:
-        logger.error("Error:", str(e))
+    except (
+        ArithmeticError,
+        AssertionError,
+        AttributeError,
+        EOFError,
+        ImportError,
+        LookupError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ) as e:
+        logger.error("Error: %s", e)
 
 
 if __name__ == "__main__":

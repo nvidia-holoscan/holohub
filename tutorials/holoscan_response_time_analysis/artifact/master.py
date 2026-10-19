@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 UNIVERSITY OF BRITISH COLUMBIA. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, UNIVERSITY OF BRITISH COLUMBIA. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +15,7 @@
 
 import argparse
 import os
-from code import DAGResponseTime, MakeVars, RunExps, simulator, visualize
+from code import dag_response_time, make_vars, run_exps, simulator, visualize
 
 
 def main():
@@ -47,15 +47,15 @@ def main():
 
     if args.build:
 
-        MakeVars.main(args.iterations, False)
+        make_vars.main(args.iterations, False)
 
-        MakeVars.main(args.iterations, True)
+        make_vars.main(args.iterations, True)
 
     if args.main:
 
-        graphinfo = DAGResponseTime.main("rawgraph.txt", numvars)
+        graphinfo = dag_response_time.main("rawgraph.txt", numvars)
 
-        RunExps.main(graphinfo, numvars)
+        run_exps.main(graphinfo, numvars)
 
         simulator.runwithfile("rawgraph.txt", numvars)
 
@@ -70,7 +70,7 @@ def main():
 
     if args.overhead:
 
-        RunExps.overheadmain()
+        run_exps.overheadmain()
 
         visualize.overheadmain()
 
@@ -79,7 +79,7 @@ def main():
 
     if args.scalability:
 
-        graphinfo = DAGResponseTime.main("paperscalability.txt", 10, True)
+        graphinfo = dag_response_time.main("paperscalability.txt", 10, True)
 
         simulator.runwithfile("paperscalability.txt", 10)
 

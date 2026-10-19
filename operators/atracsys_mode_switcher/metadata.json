@@ -4,8 +4,8 @@
     "description": "Replay and visualization operator that switches between visible, infrared, structured-light, and tracking modes while projecting tracked fiducials into Holoviz overlays.",
     "authors": [
       {
-        "name": "Artrit Telaku",
-        "affiliation": "Wayland Technologies"
+        "name": "Wayland Technologies Inc.",
+        "affiliation": "Wayland Technologies Inc."
       }
     ],
     "language": [

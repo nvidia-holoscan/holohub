@@ -106,7 +106,7 @@ def flatten_ehr(ehr_dict):
     the duplicated entry's date to the list of dates for the given summary. (This dramatically reduces the number of documents)
     """
     flattened_ehr = {}
-    for key, resources in ehr_dict.items():
+    for resources in ehr_dict.values():
         for entry in resources:
             resource = entry["resource"]
 
@@ -191,7 +191,18 @@ def generate_qa_embedding_pairs(
                 question_id = str(uuid.uuid4())
                 queries[question_id] = question
                 relevant_docs[question_id] = [node_id]
-        except Exception as e:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as e:
             print(f"Error generating question for node {node_id}: {e}")
 
     # construct dataset
@@ -206,8 +217,7 @@ def create_db_docs(flattened_ehr):
     function uses Llama_Index TextNodes instead of LangChain Documents.
     """
     documents = []
-    i = 0
-    for summary, dates in flattened_ehr.items():
+    for i, (summary, dates) in enumerate(flattened_ehr.items()):
         num_dates = len(dates)
         if num_dates == 1:
             summary += f"\n\tDate: {dates[0]}"
@@ -218,13 +228,11 @@ def create_db_docs(flattened_ehr):
 
         new_doc = TextNode(text=summary, id_=i)
         documents.append(new_doc)
-        i += 1
 
     return documents
 
 
 def main():
-    global ehr_data
     global t_receiver
     global t_sender
     signal.signal(signal.SIGINT, stop)

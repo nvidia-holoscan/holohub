@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -122,7 +122,7 @@ def load_model_and_export(modelname, outname, height, width):
     """
     isopen = os.path.exists(modelname)
     if not isopen:
-        raise Exception("The specified model to load does not exist!")
+        raise RuntimeError("The specified model to load does not exist!")
 
     model = build_predictor(modelname)
 
@@ -209,7 +209,7 @@ if __name__ == "__main__":
     width = args.width
 
     if os.path.exists(outname):
-        raise Exception(
+        raise RuntimeError(
             "The specified outpath already exists! Change the outpath to avoid "
             "overwriting your saved model. "
         )

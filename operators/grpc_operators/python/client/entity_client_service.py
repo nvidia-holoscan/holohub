@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,10 +14,10 @@
 # limitations under the License.
 
 import asyncio
+import ipaddress
 import logging
 from queue import Queue
 from threading import Thread
-from typing import Optional
 
 import grpc
 from holoscan.conditions import BooleanCondition
@@ -34,17 +34,41 @@ class EntityClientService:
         request_queue: Queue,
         response_queue: Queue,
         source_operator: Operator,
+        *,
+        credentials: grpc.ChannelCredentials | None = None,
     ):
         self.logger: logging.Logger = logging.getLogger(__name__)
 
+        if credentials is None:
+            host, _, port = server_address.rpartition(":")
+            if host.startswith("[") and host.endswith("]"):
+                host = host[1:-1]
+            tls_guidance = (
+                "Plaintext gRPC clients require a loopback IP address or localhost; "
+                "other targets require TLS credentials "
+                "(--tls-cert, --tls-key, and --tls-ca in the Python demo)"
+            )
+            try:
+                # Pin this alias to a literal address; never trust DNS for plaintext destinations.
+                address = ipaddress.ip_address("127.0.0.1" if host == "localhost" else host)
+            except ValueError as exc:
+                raise ValueError(tls_guidance) from exc
+            if not address.is_loopback:
+                raise ValueError(tls_guidance)
+            port = int(port)
+            if not 1 <= port <= 65535:
+                raise ValueError("The gRPC port must be between 1 and 65535")
+            server_address = f"[{address}]:{port}" if address.version == 6 else f"{address}:{port}"
+
         self.logger.info(f"Initializing Entity Client Service - address: {server_address}")
         self.server_address: str = server_address
+        self.credentials = credentials
         self.interrupt: bool = interrupt
         self.request_queue: Queue = request_queue
         self.response_queue: Queue = response_queue
         self.source_operator: Operator = source_operator
-        self.streaming_thread: Optional[Thread] = None
-        self.streaming_status_thread: Optional[Thread] = None
+        self.streaming_thread: Thread | None = None
+        self.streaming_status_thread: Thread | None = None
         self.timeout_seconds = 5000
         self.abort_connection = False
 
@@ -52,7 +76,18 @@ class EntityClientService:
         try:
             self.logger.debug("grpc: Starting streaming client")
 
-            async with grpc.aio.insecure_channel(self.server_address) as self.channel:
+            channel = (
+                grpc.aio.insecure_channel(
+                    self.server_address,
+                    options=[
+                        ("grpc.enable_http_proxy", 0),
+                        ("grpc.address_http_proxy_enabled_addresses", ""),
+                    ],
+                )
+                if self.credentials is None
+                else grpc.aio.secure_channel(self.server_address, self.credentials)
+            )
+            async with channel as self.channel:
                 await self.check_channel_availability()
                 stub = holoscan_pb2_grpc.EntityStub(self.channel)
                 stream: grpc.aio.StreamStreamCall = stub.EntityStream()
@@ -63,12 +98,24 @@ class EntityClientService:
                 try:
                     write = asyncio.create_task(self._write_to_stream(self.channel, stream))
                     await write
-                except Exception as e:
+                except Exception:
                     read.cancel()
                     write.cancel()
-                    raise e
+                    raise
                 await read
-        except Exception as e:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            grpc.RpcError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as e:
             self.logger.error(f"grpc: please exit the application with CTRL+C: {e}")
             await self.channel.close()
             asyncio.get_running_loop().stop()
@@ -113,7 +160,18 @@ class EntityClientService:
                     self.logger.error("grpc: Max retries reached. Stopping streaming.")
                     self.abort_connection = True
                     break
-            except Exception as e:
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ) as e:
                 self.logger.error(f"grpc:_read_from_stream: Error reading from stream: {e}")
                 break
 
@@ -140,8 +198,8 @@ class EntityClientService:
             except grpc.aio.AioRpcError as e:
                 self.logger.error(f"grpc: Error writing to stream: {e}")
                 break
-            except Exception as e:
-                raise e
+            except Exception:
+                raise
 
     def _end_of_video_reached(self) -> bool:
         boolean_scheduling_term = next(
@@ -160,5 +218,16 @@ class EntityClientService:
     async def stop_entity_stream(self):
         try:
             await self.channel.close()
-        except Exception as e:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as e:
             self.logger.error(f"grpc: Failed to close gRPC channel {e}")

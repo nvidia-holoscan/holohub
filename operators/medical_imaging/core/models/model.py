@@ -1,5 +1,5 @@
 #!/bin/bash
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,8 +15,9 @@
 # limitations under the License.
 
 import os.path
+from collections.abc import ItemsView
 from pathlib import Path
-from typing import Any, Dict, ItemsView, List, Tuple
+from typing import Any
 
 from operators.medical_imaging.exceptions import ItemNotExistsError, UnknownTypeError
 
@@ -89,7 +90,7 @@ class Model:
         self._predictor = None
 
         # Add self to the list of models
-        self._items: Dict[str, Model] = {self.name: self}
+        self._items: dict[str, Model] = {self.name: self}
 
     @property
     def predictor(self):
@@ -136,7 +137,7 @@ class Model:
         return REGISTERED_MODELS
 
     @classmethod
-    def accept(cls, path: str) -> Tuple[bool, str]:
+    def accept(cls, path: str) -> tuple[bool, str]:
         """Check if the path is a type of this model class.
 
         Args:
@@ -181,7 +182,7 @@ class Model:
             else:
                 return self
 
-    def get_model_list(self) -> List[Dict[str, str]]:
+    def get_model_list(self) -> list[dict[str, str]]:
         """Return a list of models in the repository.
 
         If this model represents a model repository, then a list of model objects (name and path) is returned.

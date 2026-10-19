@@ -73,7 +73,6 @@ def _build_regularized_system(
     NDArray[np.float32]
         Regularized system matrix
     """
-    global _HESSIAN_CACHE
     data_hessian_reg = _HESSIAN_CACHE.get(wavelength_idx)
     if data_hessian_reg is not None:
         logger.debug("Reusing cached Hessian")

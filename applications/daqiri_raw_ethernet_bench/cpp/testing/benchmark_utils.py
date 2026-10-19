@@ -17,7 +17,6 @@
 import logging
 import re
 import sys
-from typing import Dict
 
 # Configure the logger
 logger = logging.getLogger(__name__)
@@ -28,14 +27,14 @@ class BenchmarkResults:
 
     def __init__(
         self,
-        tx_pkts: Dict[str, int],
-        tx_bytes: Dict[str, int],
-        rx_pkts: Dict[str, int],
-        rx_bytes: Dict[str, int],
-        missed_pkts: Dict[str, int],
-        errored_pkts: Dict[str, int],
-        q_rx_pkts: Dict[str, Dict[str, int]],
-        q_tx_pkts: Dict[str, Dict[str, int]],
+        tx_pkts: dict[str, int],
+        tx_bytes: dict[str, int],
+        rx_pkts: dict[str, int],
+        rx_bytes: dict[str, int],
+        missed_pkts: dict[str, int],
+        errored_pkts: dict[str, int],
+        q_rx_pkts: dict[str, dict[str, int]],
+        q_tx_pkts: dict[str, dict[str, int]],
         exec_time: float,
     ):
         """
@@ -157,7 +156,7 @@ class BenchmarkResults:
         return (tx_bytes * 8) / (self.exec_time / 1000) / 1e9
 
     def validate_rx_queue_packets(
-        self, port: int, expected_packets: Dict[int, int], allow_greater: bool = False
+        self, port: int, expected_packets: dict[int, int], allow_greater: bool = False
     ) -> bool:
         """
         Validate that RX queues on a specific port received the expected number of packets.
@@ -206,7 +205,7 @@ class BenchmarkResults:
 
         return success
 
-    def validate_missed_packets(self, port_map: Dict[int, int], threshold: float) -> bool:
+    def validate_missed_packets(self, port_map: dict[int, int], threshold: float) -> bool:
         """
         Validate missed packets are below threshold.
 
@@ -237,7 +236,7 @@ class BenchmarkResults:
 
         return success
 
-    def validate_errored_packets(self, port_map: Dict[int, int], threshold: float) -> bool:
+    def validate_errored_packets(self, port_map: dict[int, int], threshold: float) -> bool:
         """
         Validate errored packets are below threshold.
 
@@ -268,7 +267,7 @@ class BenchmarkResults:
 
         return success
 
-    def validate_throughput(self, port_map: Dict[int, int], threshold: float) -> bool:
+    def validate_throughput(self, port_map: dict[int, int], threshold: float) -> bool:
         """
         Validate throughput is above threshold.
 
@@ -281,7 +280,7 @@ class BenchmarkResults:
         """
         success = True
 
-        for tx_port, rx_port in port_map.items():
+        for rx_port in port_map.values():
             rx_throughput = self.get_rx_throughput(rx_port)
 
             if rx_throughput < threshold:

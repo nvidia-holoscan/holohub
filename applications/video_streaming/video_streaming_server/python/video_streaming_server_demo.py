@@ -181,7 +181,18 @@ def main():
 
     except KeyboardInterrupt:
         print("\nApplication interrupted by user")
-    except Exception as e:
+    except (
+        ArithmeticError,
+        AssertionError,
+        AttributeError,
+        EOFError,
+        ImportError,
+        LookupError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ) as e:
         print(f"Error running application: {e}")
         import traceback
 

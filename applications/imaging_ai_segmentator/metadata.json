@@ -75,7 +75,7 @@
                 },
                 {
                     "name": "torch",
-                    "version": "1.2.0",
+                    "version": "2.10.0",
                     "license-url": "https://github.com/pytorch/pytorch/blob/main/LICENSE"
                 },
                 {

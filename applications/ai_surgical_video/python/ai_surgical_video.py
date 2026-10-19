@@ -37,6 +37,8 @@ from holohub.orsi_format_converter import OrsiFormatConverterOp
 from holohub.orsi_segmentation_preprocessor import OrsiSegmentationPreprocessorOp
 from operators.deidentification.pixelator import PixelatorOp
 
+logger = logging.getLogger(__name__)
+
 cuda_driver = lazy_import("cuda.bindings.driver")
 hololink_module = lazy_import("hololink")
 
@@ -372,10 +374,10 @@ class AISurgicalVideoApp(Application):
         self._recording_frame_interval = recording_frame_interval
 
     def compose(self):
-        logging.info("Setup source and camera")
+        logger.info("Setup source and camera")
         # Memory allocator for some operators
         pool = UnboundedAllocator(self, name="pool")
-        logging.info(f"{self.source=}")
+        logger.info(f"{self.source=}")
         # ------------------------------------------------------------------------------------------
         # Configure AJA capture card
         # ------------------------------------------------------------------------------------------
@@ -559,7 +561,7 @@ class AISurgicalVideoApp(Application):
                 "model_endoscopic_tool_seg_sanitized_nhwc_in_nchw_out.onnx",
             ),
         }
-        for k, v in model_path_map.items():
+        for v in model_path_map.values():
             if not os.path.exists(v):
                 raise RuntimeError(f"Could not find model file: {v}")
         inference_kwargs = self.kwargs("multi_ai_inference")
@@ -588,8 +590,8 @@ class AISurgicalVideoApp(Application):
         # ------------------------------------------------------------------------------------------
         # Holoviz tensors for visualization
         holoviz_tensors = [
-            dict(name="", type="color"),  # source image
-            dict(name="out_tensor", type="color_lut"),  # segmentation output
+            {"name": "", "type": "color"},  # source image
+            {"name": "out_tensor", "type": "color_lut"},  # segmentation output
         ]
         # Add label-specific tensors for each detection label
         label_dict = detection_postprocessor.label_dict
@@ -765,7 +767,7 @@ def main(args):
         # Get a handle to the data source
         print("Looking for a Holoscan Sensor Bridge device...", flush=True)
         channel_metadata = hololink_module.Enumerator.find_channel(channel_ip=args.hololink)
-        logging.info(f"Found Holoscan Sensor Bridge device: {channel_metadata=}")
+        logger.info(f"Found Holoscan Sensor Bridge device: {channel_metadata=}")
         hololink_channel = hololink_module.DataChannel(channel_metadata)
 
         # Now that we can communicate, create the camera controller
@@ -807,13 +809,13 @@ def main(args):
         if args.ptp_sync:
             ptp_sync_timeout_s = 10
             ptp_sync_timeout = hololink_module.Timeout(ptp_sync_timeout_s)
-            logging.debug("Waiting for PTP sync.")
+            logger.debug("Waiting for PTP sync.")
             if not hololink.ptp_synchronize(ptp_sync_timeout):
-                logging.error(
+                logger.error(
                     f"Failed to synchronize PTP after {ptp_sync_timeout_s} seconds; ignoring."
                 )
             else:
-                logging.debug("PTP synchronized.")
+                logger.debug("PTP synchronized.")
 
         # __________________________________________________________________
         # Configure the camera
@@ -826,7 +828,7 @@ def main(args):
 
         # __________________________________________________________________
         # Run our Holoscan pipeline
-        logging.info("Calling run")
+        logger.info("Calling run")
         application.is_metadata_enabled = False  # disable metadata
         application.run()  # we don't usually return from this call.
 

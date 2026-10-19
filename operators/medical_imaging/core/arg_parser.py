@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,14 +17,13 @@ import argparse
 import json
 import logging.config
 from pathlib import Path
-from typing import List, Optional, Union
 
 from operators.medical_imaging.utils import argparse_types
 
 LOG_CONFIG_FILENAME = "logging.json"
 
 
-def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     """Parses the arguments passed to the application.
 
     Args:
@@ -85,7 +84,7 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     return args
 
 
-def set_up_logging(level: Optional[str], config_path: Union[str, Path] = LOG_CONFIG_FILENAME):
+def set_up_logging(level: str | None, config_path: str | Path = LOG_CONFIG_FILENAME):
     """Initializes the logger and sets up logging level.
 
     Args:

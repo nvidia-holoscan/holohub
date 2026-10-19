@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,13 +18,14 @@ import os
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Dict, Optional, Union
 
 import numpy as np
 from holoscan.core import ConditionType, Fragment, Operator, OperatorSpec
 
 from operators.medical_imaging.core import Image
 from operators.medical_imaging.utils.importutil import optional_import
+
+logger = logging.getLogger(__name__)
 
 nib, _ = optional_import("nibabel")
 sitk, _ = optional_import("SimpleITK")
@@ -58,7 +59,7 @@ class STLConversionOperator(Operator):
         self,
         fragment: Fragment,
         *args,
-        output_file: Union[Path, str],
+        output_file: Path | str,
         class_id=None,
         is_smooth=True,
         keep_largest_connected_component=True,
@@ -74,7 +75,7 @@ class STLConversionOperator(Operator):
             keep_largest_connected_component (bool, optional): Defaults to True.
         """
 
-        self._logger = logging.getLogger("{}.{}".format(__name__, type(self).__name__))
+        self._logger = logging.getLogger(f"{__name__}.{type(self).__name__}")
         self._class_id = class_id
         self._is_smooth = is_smooth
         self._keep_largest_connected_component = keep_largest_connected_component
@@ -113,17 +114,16 @@ class STLConversionOperator(Operator):
             raise ValueError("Input image is not received.")
 
         _output_file = op_input.receive(self.input_name_output_file)
-        if not _output_file:
+        if not _output_file and self._output_file and len(str(self._output_file)) > 0:
             # Use the object's attribute to get the STL output path, if any.
-            if self._output_file and len(str(self._output_file)) > 0:
-                _output_file = Path(self._output_file)
-                _output_file.parent.mkdir(parents=True, exist_ok=True)
-                self._logger.info(f"Output will be saved in file {_output_file}.")
+            _output_file = Path(self._output_file)
+            _output_file.parent.mkdir(parents=True, exist_ok=True)
+            self._logger.info(f"Output will be saved in file {_output_file}.")
 
         stl_bytes = self._convert(input_image, _output_file)
         op_output.emit(stl_bytes, self.output_name_stl_bytes)
 
-    def _convert(self, image: Image, output_file: Optional[Path] = None):
+    def _convert(self, image: Image, output_file: Path | None = None):
         """
         Args:
             image (Image): object with the image (ndarray in DHW) and its metadata dictionary.
@@ -151,12 +151,12 @@ class STLConverter:
 
     def __init__(self, *args, **kwargs):
         """Creates an instance to generate a surface mesh in STL with an Image object."""
-        self._logger = logging.getLogger("{}.{}".format(__name__, type(self).__name__))
+        self._logger = logging.getLogger(f"{__name__}.{type(self).__name__}")
 
     def convert(
         self,
         image: Image,
-        output_file: Optional[Path] = None,
+        output_file: Path | None = None,
         class_ids=None,
         is_smooth=True,
         keep_largest_connected_component=True,
@@ -262,7 +262,7 @@ class STLConverter:
     # Helper functions
     @staticmethod
     def get_largest_cc(nda):
-        logging.debug("ndarray shape: {}".format(nda.shape))
+        logger.debug(f"ndarray shape: {nda.shape}")
         labels = label(nda)
 
         # assume at least 1 CC
@@ -308,13 +308,13 @@ class STLConverter:
                 dtype (Numpy type, optional): Defaults to np.float32.
             """
 
-            self._logger = logging.getLogger("{}.{}".format(__name__, type(self).__name__))
+            self._logger = logging.getLogger(f"{__name__}.{type(self).__name__}")
             if not image or not isinstance(image, Image):
                 raise ValueError("Argument is not a Image object.")
             self._image = image
             self._dtype = dtype
 
-            self._props: Dict = {}
+            self._props: dict = {}
             """ Properties may include some or all of the following
                 img_array
                 shape
@@ -442,9 +442,7 @@ class STLConverter:
                 else:
                     self._logger.info("4D image, channel last")
             else:
-                raise NotImplementedError(
-                    "Object does not support image of dims {}".format(num_dims)
-                )
+                raise NotImplementedError(f"Object does not support image of dims {num_dims}")
 
             self._props["original_affine"] = original_affine
             self._props["affine"] = affine

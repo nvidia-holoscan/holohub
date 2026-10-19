@@ -57,7 +57,7 @@ def run_experiment(tx1_period, tx2_period, enable_async_buffer, mechanism_name):
 
     # Run the experiment
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=300, check=False)
         if result.returncode != 0:
             print(f"Experiment failed: {result.stderr}")
             return False
@@ -286,7 +286,7 @@ def create_plots(tx1_fixed_results, tx2_fixed_results, font_size=12, title_font_
     )
 
     # Plot 1: TX1 Max Latency (Fixed TX1 period, varying TX2)
-    fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+    _fig, ax = plt.subplots(figsize=(fig_width, fig_height))
     x = np.arange(len(PERIODS))
     width = 0.35
 
@@ -312,7 +312,7 @@ def create_plots(tx1_fixed_results, tx2_fixed_results, font_size=12, title_font_
     plt.close()
 
     # Plot 2: TX2 Max Latency (Fixed TX2 period, varying TX1)
-    fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+    _fig, ax = plt.subplots(figsize=(fig_width, fig_height))
 
     db_tx2_latency = tx2_fixed_results["default_buffer"]["tx2_max_latency"]
     alfb_tx2_latency = tx2_fixed_results["async_lockfree_buffer"]["tx2_max_latency"]
@@ -336,7 +336,7 @@ def create_plots(tx1_fixed_results, tx2_fixed_results, font_size=12, title_font_
     plt.close()
 
     # Plot 3: IN1 Max Period (Fixed TX1 period, varying TX2)
-    fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+    _fig, ax = plt.subplots(figsize=(fig_width, fig_height))
 
     db_in1_period = tx1_fixed_results["default_buffer"]["in1_max_period"]
     alfb_in1_period = tx1_fixed_results["async_lockfree_buffer"]["in1_max_period"]
@@ -360,7 +360,7 @@ def create_plots(tx1_fixed_results, tx2_fixed_results, font_size=12, title_font_
     plt.close()
 
     # Plot 4: IN2 Max Period (Fixed TX2 period, varying TX1)
-    fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+    _fig, ax = plt.subplots(figsize=(fig_width, fig_height))
 
     db_in2_period = tx2_fixed_results["default_buffer"]["in2_max_period"]
     alfb_in2_period = tx2_fixed_results["async_lockfree_buffer"]["in2_max_period"]

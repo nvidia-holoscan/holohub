@@ -204,7 +204,7 @@ the graph's information will be contained a single line with three newline chara
 
 `rawscalabilitygraph.txt` contains similar raw data for large synthetic graphs used for scalability experiments.
 
-### code/processDAGs.py
+### code/process_dags.py
 
 Code to directly read the contents of a file such as `rawgraph.txt` and construct usable graph data structures with the `networkx` package.
 This file also randomly generates execution times to be used in the experiments. As discussed in the evaluation section of the paper, we consider a
@@ -212,17 +212,17 @@ total number of variations of each graph equal to how many operators it has. Eac
 code also ensures that we are only using unique graphs by removing multiple copies of isomorphic graphs from consideration, along with unconnected
 graphs that violate our assumptions.
 
-### code/DAGResponseTime.py
+### code/dag_response_time.py
 
-Uses the `networkx` graph representations created by `processDAGs.py` to find a worst-case end-to-end response bound for a given graph, using our
+Uses the `networkx` graph representations created by `process_dags.py` to find a worst-case end-to-end response bound for a given graph, using our
  bounds from the paper.
 
 Outputs two files: `generatedexectimes.txt` and `predictedresponsetimes.txt`. The former contains the random execution times generated
-by `processDAGs.py` for  each graph variation. These, alongside the graph structures, are used to compute the response time bounds.
+by `process_dags.py` for each graph variation. These, alongside the graph structures, are used to compute the response time bounds.
 The latter file contains a WCRT bound for each graph variation. Can also perform profiling for timing measurement and output
 `analysistimes.txt`.
 
-### code/MakeVars.py
+### code/make_vars.py
 
 This file builds a Holoscan executable for each graph. The number of times each graph will execute is determined by the `iterations` argument given
 to `master.py`. The file `base.cpp` is a starting point, containing all the different types of operators necessary to build the programs (i.e., an
@@ -231,12 +231,12 @@ of its operators, as well as code defining each of its edges, and then compiled.
 
 The graph structure information in `base.cpp` is hardcoded, as building Holoscan applications with arbitrary DAG structures may require new operators
 to be manually defined in `base.cpp`. Thus, if new graphs are added to `rawgraph.txt`, a matching definition of the structure will need to be added to
-`MakeVars.py`, along with any new operator types to `base.cpp`. Since the synthetic graphs are only simulated and not built and run, new graphs can be
+`make_vars.py`, along with any new operator types to `base.cpp`. Since the synthetic graphs are only simulated and not built and run, new graphs can be
 freely added to `rawscalabilitygraph.txt` without further modifications.
 
-### code/RunExps.py
+### code/run_exps.py
 
-This file runs the main and overhead experiments using the executables built by `MakeVars.py`. It reads `generatedexectimes.txt` in order to modify
+This file runs the main and overhead experiments using the executables built by `make_vars.py`. It reads `generatedexectimes.txt` in order to modify
 `experimentbase.yaml` before each run of an executable. Then, when the application runs, it assigns each operator its execution time from the .yaml
 file. After the application finishes execution, the output log is parsed to find the WCRT, which is written to the file `observedresponsetimes.txt`
 
@@ -247,7 +247,7 @@ Reads the output in the `data` folder in order to produce visualizations: the gr
 ### code/simulator.py
 
 A discrete-event simulator that mimics the behavior of Holoscan applications, used for the main and scalability experiments. Takes the graph
-representations constructed by `processDAGs.py` and the execution times in `generatedexectimes.txt` as input. The simulation works by
+representations constructed by `process_dags.py` and the execution times in `generatedexectimes.txt` as input. The simulation works by
 continuously emptying an event queue, with the possible events being either a new arrival to the system or an operator finishing execution.
 At each event, new events that are activated by the previous completion are enqueued, and the simulation continues until the time limit is
 reached (corresponding to approximately an hour of real execution time). The results are recorded in the file `simulatedresponsetimes.txt`.
@@ -256,7 +256,7 @@ reached (corresponding to approximately an hour of real execution time). The res
 
 The basic code defining each Holoscan application that we build, including code defining the operator classes and scheduler. The operators we
 use do not compute on data, instead busy-waiting for a predefined period of time on every activation. Each operator gets its execution time
-(the amount of ms it busy waits for) from the file `experiment.yaml`, which is generated for it by `RunExps.py` using `experimentbase.yaml`.
+(the amount of ms it busy waits for) from the file `experiment.yaml`, which is generated for it by `run_exps.py` using `experimentbase.yaml`.
 `base.cpp` also defines the scheduler used by all applications. For our experiments, we use Holoscan's multithreaded scheduler running with 12
 cores to ensure no overhead due to contention, as all our apps use less than 12 cores.
 

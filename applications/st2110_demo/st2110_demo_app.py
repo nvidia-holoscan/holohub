@@ -160,8 +160,8 @@ def main():
         app.run()
     except KeyboardInterrupt:
         print("\nApplication interrupted by user")
-    except Exception as e:
-        logger.error(f"Application error: {e}", exc_info=True)
+    except Exception:
+        logger.exception("Application error")
         sys.exit(1)
 
 

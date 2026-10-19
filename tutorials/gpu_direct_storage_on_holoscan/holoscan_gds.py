@@ -124,7 +124,7 @@ class HDF5ProcessingApp(Application):
 
 def main():
     if kvikio.defaults.compat_mode():
-        raise Exception("Enable compat_mode for Kvikio to ensure GDS is working correctly.")
+        raise RuntimeError("Enable compat_mode for Kvikio to ensure GDS is working correctly.")
     app = HDF5ProcessingApp()
     app.config("config.yaml")
     with Tracker(app, filename="logger.log") as tracker:

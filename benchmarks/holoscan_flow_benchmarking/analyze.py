@@ -104,7 +104,7 @@ def complete_cdf_plot(fig, ax, operator_legends=None):
     vals = ax.get_yticks()
     # convert the Y-axis ticks to percentage
     ax.set_yticks(vals)
-    ax.set_yticklabels(["{:,.0%}".format(x) for x in vals])
+    ax.set_yticklabels([f"{x:,.0%}" for x in vals])
     ax.set_ylim([-0.05, 1.05])
     # ax.legend(prop={'size': 12}, loc="best")
     legends = ax.legend(prop={"size": 12}, loc="upper center", ncol=2)
@@ -140,7 +140,7 @@ def get_latency_difference(latencies, percentile_start, percentile_end):
     data = sorted(latencies)
     start_value = latency_percentile(data, percentile_start, is_sorted=True)
     end_value = latency_percentile(data, percentile_end, is_sorted=True)
-    return "{:.2f}".format(end_value - start_value)
+    return f"{end_value - start_value:.2f}"
 
 
 # This function shortens a path by taking first 3 letters of each operator name if
@@ -591,8 +591,8 @@ def main():
                         if len(latency) == 0:
                             print_path_metric(path, "Not enough samples", no_data=True)
                         else:
-                            latency_percentile_str = "{:.2f}".format(
-                                latency_percentile(latency, float(percentile))
+                            latency_percentile_str = (
+                                f"{latency_percentile(latency, float(percentile)):.2f}"
                             )
                             print_path_metric(path, latency_percentile_str)
                             cdash_csv_latency = (
@@ -617,7 +617,7 @@ def main():
         fig, ax = init_cdf_plot()
         for group_name, paths_latencies in grouped_path_latencies.items():
             if paths_latencies:
-                first_path_latency = paths_latencies[list(paths_latencies.keys())[0]]
+                first_path_latency = paths_latencies[next(iter(paths_latencies.keys()))]
                 if len(first_path_latency) > 0:
                     draw_cdf(ax, first_path_latency, group_name)
         complete_cdf_plot(fig, ax)

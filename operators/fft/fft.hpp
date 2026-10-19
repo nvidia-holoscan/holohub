@@ -23,7 +23,6 @@ class FFT : public Operator {
      void compute(InputContext& input, OutputContext& output, ExecutionContext& context) override;
 
  private:
-     tensor_t<complex, 3> outputs;
      Parameter<int> burst_size;
      Parameter<int> num_bursts;
      Parameter<uint16_t> num_channels;

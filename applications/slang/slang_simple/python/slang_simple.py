@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License")
@@ -42,7 +42,7 @@ class SourceOp(Operator):
 
     def compute(self, op_input, op_output, context):
         value = cp.array([self.index], dtype=cp.int32)
-        op_output.emit(dict(output=value), "output")
+        op_output.emit({"output": value}, "output")
         self.index += 1
 
 

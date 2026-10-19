@@ -25,7 +25,8 @@ The `DocaRoceReceiverOp` is a GPU-resident Holoscan operator that:
 
 - Holoscan SDK 4.0.0 or later
 - [NVIDIA DOCA SDK 3.2.1+](https://docs.nvidia.com/doca/sdk/doca-developer-guide/index.html) with GPUNetIO support
-- Holoscan Sensor Bridge (HSB) 2.5.0 or later
+- Holoscan Sensor Bridge (HSB) 2.5.x (2.6.0 and later are not supported yet, see
+  the [known HSB compatibility issue](../../applications/imx274_gpu_resident/README.md#hsb-version-compatibility))
 - CUDA-capable GPU with GPUDirect RDMA support (Ampere or later, e.g. RTX A6000)
 - aarch64 platform (e.g. IGX Orin)
 - RoCE-capable NIC (e.g., ConnectX)
@@ -69,13 +70,13 @@ This operator is built as part of the HoloHub build system when the `doca` mode
 is selected:
 
 ```bash
-./holohub build imx274_gpu_resident doca
+./holohub build imx274_gpu_resident doca --base-img nvcr.io/nvidia/clara-holoscan/holoscan:v4.3.0-cuda12-dgpu
 ```
 
 Or enable the operator explicitly:
 
 ```bash
-./holohub build imx274_gpu_resident --build-with hsb_roce_receiver_doca_gpunetio
+./holohub build imx274_gpu_resident --build-with hsb_roce_receiver_doca_gpunetio --base-img nvcr.io/nvidia/clara-holoscan/holoscan:v4.3.0-cuda12-dgpu
 ```
 
 ## Dependencies

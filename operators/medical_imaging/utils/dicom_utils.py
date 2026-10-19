@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,11 +17,13 @@ import datetime
 import logging
 from pathlib import Path
 from random import randint
-from typing import Any, Optional
+from typing import Any
 
 from operators.medical_imaging.core.domain.dicom_series import DICOMSeries
 from operators.medical_imaging.utils.importutil import optional_import
 from operators.medical_imaging.utils.version import get_sdk_semver
+
+logger = logging.getLogger(__name__)
 
 dcmread, _ = optional_import("pydicom", name="dcmread")
 dcmwrite, _ = optional_import("pydicom.filewriter", name="dcmwrite")
@@ -44,7 +46,7 @@ __all__ = [
 ]
 
 
-class ModelInfo(object):
+class ModelInfo:
     """Class encapsulating AI model information, according to IHE AI Results (AIR) Rev 1.1.
 
     The attributes of the class will be used to populate the Contributing Equipment Sequence in the DICOM IOD
@@ -70,7 +72,7 @@ class ModelInfo(object):
         self.uid = uid if isinstance(uid, str) else ""
 
 
-class EquipmentInfo(object):
+class EquipmentInfo:
     """Class encapsulating attributes required for DICOM Equipment Module."""
 
     def __init__(
@@ -88,7 +90,18 @@ class EquipmentInfo(object):
         else:
             try:
                 version_str = get_sdk_semver()  # SDK Version
-            except Exception:
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ):
                 version_str = ""  # Fall back to the initial version
             self.software_version_number = version_str[0:15]
 
@@ -100,7 +113,7 @@ def random_with_n_digits(n):
     """Random number generator to generate n digit int, where 1 <= n <= 32."""
 
     assert isinstance(n, int) and n <= 32, "Argument n must be an int, n <= 32."
-    n = n if n >= 1 else 1
+    n = max(n, 1)
     range_start = 10 ** (n - 1)
     range_end = (10**n) - 1
     return randint(range_start, range_end)
@@ -109,16 +122,16 @@ def random_with_n_digits(n):
 def save_dcm_file(data_set: Dataset, file_path: Path, validate_readable: bool = True):
     """Save a DICOM data set, in pydicom Dataset, to the provided file path."""
 
-    logging.debug(f"DICOM dataset to be written:{data_set}")
+    logger.debug(f"DICOM dataset to be written:{data_set}")
 
     if not isinstance(data_set, Dataset):
-        raise ValueError("data_set is not the expected Dataset type.")
+        raise TypeError("data_set is not the expected Dataset type.")
 
     if not str(file_path).strip():
         raise ValueError("file_path to save dcm file not provided.")
 
     dcmwrite(str(file_path).strip(), data_set, write_like_original=False)
-    logging.info(f"Finished writing DICOM instance to file {file_path}")
+    logger.info(f"Finished writing DICOM instance to file {file_path}")
 
     if validate_readable:
         # Test reading back
@@ -126,12 +139,12 @@ def save_dcm_file(data_set: Dataset, file_path: Path, validate_readable: bool = 
 
 
 def write_common_modules(
-    dicom_series: Optional[DICOMSeries],
+    dicom_series: DICOMSeries | None,
     copy_tags: bool,
     modality_type: str,
     sop_class_uid: str,
-    model_info: Optional[ModelInfo] = None,
-    equipment_info: Optional[EquipmentInfo] = None,
+    model_info: ModelInfo | None = None,
+    equipment_info: EquipmentInfo | None = None,
 ) -> Dataset:
     """Writes DICOM object common modules with or without a reference DCIOM Series
 
@@ -162,15 +175,13 @@ def write_common_modules(
         # Get one of the SOP instance's native sop instance dataset
         orig_ds = dicom_series.get_sop_instances()[0].get_native_sop_instance()
 
-    logging.debug("Writing DICOM common modules...")
+    logger.debug("Writing DICOM common modules...")
 
     # Get and format date and time per DICOM standards.
-    dt_now = datetime.datetime.now()
+    dt_now = datetime.datetime.now(datetime.timezone.utc)
     date_now_dcm = dt_now.strftime("%Y%m%d")
     time_now_dcm = dt_now.strftime("%H%M%S")
-    offset_from_utc = (
-        dt_now.astimezone().isoformat()[-6:].replace(":", "")
-    )  # '2022-09-27T22:36:20.143857-07:00'
+    offset_from_utc = dt_now.strftime("%z")
 
     # Generate UIDs and descriptions
     my_sop_instance_uid = generate_uid()
@@ -289,6 +300,6 @@ def write_common_modules(
         seq_contributing_equipment.append(ds_contributing_equipment)
         ds.ContributingEquipmentSequence = seq_contributing_equipment
 
-    logging.debug("DICOM common modules written:\n{}".format(ds))
+    logger.debug(f"DICOM common modules written:\n{ds}")
 
     return ds

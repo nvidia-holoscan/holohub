@@ -14,7 +14,7 @@
 #   https://github.com/rwightman/pytorch-image-models/tree/master/timm/layers/mlp.py
 
 
-from typing import Callable, Optional
+from collections.abc import Callable
 
 from torch import Tensor, nn
 
@@ -23,8 +23,8 @@ class Mlp(nn.Module):
     def __init__(
         self,
         in_features: int,
-        hidden_features: Optional[int] = None,
-        out_features: Optional[int] = None,
+        hidden_features: int | None = None,
+        out_features: int | None = None,
         act_layer: Callable[..., nn.Module] = nn.GELU,
         drop: float = 0.0,
         bias: bool = True,

@@ -17,6 +17,7 @@
 profile = "black"
 line_length = 100
 known_first_party = "holohub"
+combine_as_imports = true
 skip_glob = ["build*/*", "install*/*", ".cache/*", ".ruff_cache/*", ".local/*"]
 
 [tool.black]
@@ -42,6 +43,8 @@ skip = "_deps,build*,.cache,html,_build,_static,generated,latex,install*,.git,xm
 ignore-words = "codespell_ignore_words.txt"
 
 [tool.ruff]
+# Keep autofixes compatible with the minimum supported host Python version.
+target-version = "py310"
 line-length = 103  # 103 to avoid E501 warnings from the copyright header
 exclude = [
   "_build",
@@ -67,6 +70,8 @@ exclude = [
 
 [tool.ruff.lint.isort]
 known-first-party = ["holohub"]
+combine-as-imports = true
+detect-same-package = false
 
 [tool.pytest.ini_options]
 minversion = "6.0"

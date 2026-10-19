@@ -10,7 +10,8 @@ permissions:
   contents: read
 
 env:
-  HOLOSCAN_CLI_INSTALL_ARGS: "--pre --extra-index-url https://pypi.nvidia.com holoscan-cli>4.2.0"
+  HOLOSCAN_CLI_INSTALL_ARGS: "--pre --extra-index-url https://pypi.nvidia.com"
+  HOLOSCAN_CLI_TEST_REQUIREMENT: "holoscan-cli==4.6.0"
 
 jobs:
   check-cli-py:
@@ -30,13 +31,14 @@ jobs:
         uses: actions/checkout@v4
 
       # HoloHub-owned check dependencies live in
-      # utilities/requirements.check-cli.txt; holoscan-cli itself is resolved
-      # from NVIDIA PyPI.
+      # utilities/requirements.check-cli.txt; holoscan-cli is resolved from PyPI
+      # with NVIDIA's prerelease index enabled.
       - name: Install holoscan-cli
         run: |
           python -m pip install --upgrade pip
           python -m pip install \
               ${HOLOSCAN_CLI_INSTALL_ARGS} \
+              ${HOLOSCAN_CLI_TEST_REQUIREMENT} \
               -r utilities/requirements.check-cli.txt
 
       # Verify the wrapper + holoscan-cli contract on HoloHub's project tree.
@@ -66,6 +68,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install \
               ${HOLOSCAN_CLI_INSTALL_ARGS} \
+              ${HOLOSCAN_CLI_TEST_REQUIREMENT} \
               -r utilities/requirements.check-cli.txt
 
       - name: Configure CMake with testing enabled
@@ -81,8 +84,8 @@ jobs:
 
   # Exercise the same smoke test against a *source checkout*
   # of holoscan-cli (https://github.com/nvidia-holoscan/holoscan-cli) rather
-  # than the NVIDIA PyPI wheel. This catches breakage when an in-flight
-  # holoscan-cli change lands ahead of a new release candidate.
+  # than the PyPI wheel. This catches breakage when an in-flight
+  # holoscan-cli change lands ahead of a release.
   check-cli-source:
     runs-on: ubuntu-24.04
     steps:

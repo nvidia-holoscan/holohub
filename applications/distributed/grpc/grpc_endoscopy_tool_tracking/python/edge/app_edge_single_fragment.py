@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,10 +32,11 @@ from operators.grpc_operators.python.common.asyncio_queue import AsyncIoQueue
 
 
 class AppEdgeSingleFragment(Application):
-    def __init__(self, data_path: str):
+    def __init__(self, data_path: str, *, credentials=None):
         self.logger = logging.getLogger(__name__)
         self.datapath = data_path
         self.entity_client_service = None
+        self.credentials = credentials
 
         super().__init__()
 
@@ -45,7 +46,18 @@ class AppEdgeSingleFragment(Application):
             try:
                 # Shield the stop operation from cancellation
                 await asyncio.shield(self.entity_client_service.stop_entity_stream())
-            except Exception as e:
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ) as e:
                 self.logger.error(f"Error during cleanup: {e}")
 
     def __del__(self):
@@ -120,6 +132,7 @@ class AppEdgeSingleFragment(Application):
             self.request_queue,
             self.response_queue,
             replayer,
+            credentials=self.credentials,
         )
 
     async def start_streaming_client(self):

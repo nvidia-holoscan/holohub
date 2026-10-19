@@ -42,6 +42,7 @@ def _run(
         text=True,
         cwd=str(cwd),
         env=env or os.environ.copy(),
+        check=False,
     )
 
 

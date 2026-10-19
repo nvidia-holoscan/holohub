@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,7 +47,7 @@ class FhirResourceSanitizerOp(Operator):
         Raises:
             ValueError: if queue_policy is out of range.
         """
-        self._logger = logging.getLogger("{}.{}".format(__name__, type(self).__name__))
+        self._logger = logging.getLogger(f"{__name__}.{type(self).__name__}")
 
         self._fhir_endpoint = fhir_endpoint
         super().__init__(fragment, *args, **kwargs)
@@ -66,7 +66,7 @@ class FhirResourceSanitizerOp(Operator):
         start = pc()
         sanitized_patient_records = {}
         patient_records = op_input.receive("records")
-        for patient in patient_records.patient_resources.keys():
+        for patient in patient_records.patient_resources:
             sanitized_patient_records[patient] = []
             for record in patient_records.patient_resources[patient]:
                 try:

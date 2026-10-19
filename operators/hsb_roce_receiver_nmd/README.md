@@ -18,7 +18,8 @@ The `RoceReceiverOp` is a Holoscan operator that:
 ## Requirements
 
 - Holoscan SDK 4.0.0 or later
-- Holoscan Sensor Bridge ("Hololink") library installed and available
+- Holoscan Sensor Bridge ("Hololink") 2.5.x library installed and available
+  (2.6.0 and later are not supported yet; see the [known HSB compatibility issue](../../applications/imx274_gpu_resident/README.md#hsb-version-compatibility))
 - CUDA-capable GPU with GPUDirect RDMA support
 - libibverbs (InfiniBand Verbs library)
 - RoCE-capable NIC (e.g., ConnectX)

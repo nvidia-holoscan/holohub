@@ -316,3 +316,21 @@ Once you know the PID's of the responsible process, kill them :)
 ```bash
 kill <PID>
 ```
+
+## Webserver regression tests
+
+The application CTest suite checks real HTTP error responses with `FLASK_DEBUG=0`
+and `FLASK_DEBUG=1`, including a generic 500 response and an unavailable debugger
+console. Run the focused test from the repository root:
+
+```bash
+./holohub test lmm --language python \
+  --ctest-options="-DCTEST_TEST_INCLUDE=^ehr_query_llm_webserver_test$"
+```
+
+The test itself needs no model or GPU inference. With pytest, NumPy, Flask, and
+websockets installed, it can also run directly without building the application:
+
+```bash
+python3 -m pytest applications/ehr_query_llm/lmm/tests/test_ehr_webserver.py
+```

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,19 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pickle
 from pathlib import Path
 
-import blosc
 import imageio
 import numpy as np
 import onnx
 import onnxruntime
 import segmentation_models_pytorch as smp
 import torch
-import torch.nn as nn
 import torch.onnx
-import torchvision.transforms as transforms
+from torch import nn
+from torchvision import transforms
+
+if __package__:
+    from .blosc_io import decompress_file
+else:
+    from blosc_io import decompress_file
 
 
 class Model(nn.Module):
@@ -46,47 +49,18 @@ class ModelImage(nn.Module):
 
         channels = 100
 
-        ArchitectureClass = getattr(smp, "Unet")
+        ArchitectureClass = smp.Unet
         self.architecture = ArchitectureClass(
             classes=19,
             in_channels=channels,
-            **{"encoder_name": "efficientnet-b5", "encoder_weights": "imagenet"},
+            encoder_name="efficientnet-b5",
+            encoder_weights="imagenet",
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.architecture(x)
 
         return x
-
-
-def decompress_file(path):
-    """
-    Decompresses a blosc file.
-
-    Args:
-        path: File to the blosc data.
-
-    Returns: Decompressed array data. Depending on the file, this will either be directly the numpy array or a dict with all numpy arrays.
-    """
-    res = {}
-
-    with path.open("rb") as f:
-        meta = pickle.load(f)
-        if isinstance(meta, tuple):
-            shape, dtype = meta
-            data = f.read()
-            array = np.empty(shape=shape, dtype=dtype)
-            blosc.decompress_ptr(data, array.__array_interface__["data"][0])
-
-            res = array
-        else:
-            for name, (shape, dtype, size) in meta.items():
-                data = f.read(size)
-                array = np.empty(shape=shape, dtype=dtype)
-                blosc.decompress_ptr(data, array.__array_interface__["data"][0])
-                res[name] = array
-
-    return res
 
 
 run_folder = "2022-02-03_22-58-44_generated_default_model_comparison"  # HSI model

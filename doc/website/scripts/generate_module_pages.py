@@ -41,7 +41,7 @@ _scripts_dir = str(Path(__file__).resolve().parent)
 if _scripts_dir not in sys.path:
     sys.path.insert(0, _scripts_dir)
 
-from clone_module import clone_external_module  # noqa: E402
+from clone_module import clone_external_module
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -117,7 +117,18 @@ def resolve_module_metadata(entry: dict, holohub_root: Path) -> tuple[dict, Path
             with metadata_path.open() as f:
                 metadata = json.load(f)
             return metadata, module_root, None
-        except Exception as e:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as e:
             logger.warning(f"Failed to read metadata for in-tree module '{name}': {e}")
             return None
     else:
@@ -142,7 +153,18 @@ def resolve_module_metadata(entry: dict, holohub_root: Path) -> tuple[dict, Path
             with metadata_path.open() as f:
                 metadata = json.load(f)
             return metadata, clone_path, tmp_dir
-        except Exception as e:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as e:
             logger.warning(f"Failed to clone external module '{name}' from {url}@{ref}: {e}")
             return None
 
@@ -171,7 +193,18 @@ def resolve_readme(metadata_module: dict, module_root: Path) -> str:
     if readme_path.exists():
         try:
             return readme_path.read_text(encoding="utf-8")
-        except Exception as e:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as e:
             logger.warning(f"Could not read README at {readme_path}: {e}")
 
     logger.warning(f"No README found for module '{metadata_module.get('name')}' at {readme_path}")
@@ -208,7 +241,18 @@ def _rewrite_image_url(raw_url: str, module_root: Path, source_url: str, ref: st
             )
             rel = resolved.relative_to(holohub_root)
             return f"{HOLOHUB_RAW_BASE}/{rel}"
-        except Exception:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ):
             return raw_url
     else:
         # External: rewrite relative to repo root via raw URL
@@ -280,7 +324,7 @@ def build_metadata_header(metadata_module: dict, entry: dict) -> str:
         ("stack", "Minimum Holoscan SDK version", min_sdk),
         ("beaker", "Tested Holoscan SDK versions", tested_sdk_str),
         ("law", "License", license_str),
-        ("sparkle-fill", "NVIDIA quality score", quality_str),
+        ("sparkle-fill", "Quality score", quality_str),
         ("package", "Install", install_str),
         ("tools", "Operators", operators_str),
         ("home", "Homepage", homepage_str),
@@ -312,7 +356,22 @@ def generate_detail_page(
     tags = metadata_module.get("tags", [])
     tags_yaml = "\n".join(f"  - {t}" for t in tags)
 
-    frontmatter = f'---\ntitle: "{name}"\ntags:\n{tags_yaml}\n---\n\n'
+    description = metadata_module.get("description") or ""
+    description = re.sub(r"\s+", " ", str(description)).strip()
+    lead_html = (
+        f'<p class="module-description">{html.escape(description, quote=False)}</p>\n\n'
+        if description
+        else ""
+    )
+    if not description:
+        description = f"{name} — a Holoscan module in HoloHub, the Holoscan Ecosystem."
+    if len(description) > 160:
+        description = description[:157].rstrip() + "..."
+    description_yaml = description.replace("\\", "\\\\").replace('"', '\\"')
+
+    frontmatter = (
+        f'---\ntitle: "{name}"\ndescription: "{description_yaml}"\ntags:\n{tags_yaml}\n---\n\n'
+    )
 
     metadata_header = build_metadata_header(metadata_module, entry)
 
@@ -331,12 +390,13 @@ def generate_detail_page(
         readme_body = (
             readme_body[: first_newline + 1]
             + "\n"
+            + lead_html
             + metadata_header
             + "\n"
             + readme_body[first_newline + 1 :]
         )
     else:
-        readme_body = readme_body + "\n\n" + metadata_header
+        readme_body = readme_body + "\n\n" + lead_html + metadata_header
 
     footer = f"\n---\n[View source on GitHub]({source_url})\n" if source_url else ""
 
@@ -410,7 +470,7 @@ def generate_module_card(entry: dict, metadata_module: dict) -> str:
     quality_badge_html = (
         f'<span style="background:{quality_color};color:white;padding:0.15rem 0.4rem;'
         f'border-radius:0.2rem;font-size:0.6rem;font-weight:600;" '
-        f'title="NVIDIA quality score: {score}/5">{quality_label}</span>'
+        f'title="Quality score: {score}/5">{quality_label}</span>'
     )
 
     return f"""<div class="col-xl-4 col-lg-6 col-sm-12 mb-1 feature-box">
@@ -423,7 +483,7 @@ def generate_module_card(entry: dict, metadata_module: dict) -> str:
         <span style="background:{source_badge_color};color:white;padding:0.15rem 0.4rem;border-radius:0.2rem;font-size:0.6rem;font-weight:600;">{source_badge_label}</span>
       </div>
     </div>
-    <p class="feature-card-desc" style="font-size:0.72rem;color:var(--md-default-fg-color--light);margin-bottom:0.5rem;min-height:60px;">{description}</p>
+    <p class="feature-card-desc" title="{description}" style="font-size:0.72rem;color:var(--md-default-fg-color--light);margin-bottom:0.5rem;min-height:60px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3;overflow:hidden;">{description}</p>
     <div style="margin-bottom:0.4rem;">
       <span style="font-size:0.6rem;font-weight:600;color:var(--md-default-fg-color--light);">Operators: </span>
       {operator_badges if operator_badges else '<span style="font-size:0.6rem;color:var(--md-default-fg-color--lighter);">—</span>'}

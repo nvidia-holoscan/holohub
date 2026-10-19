@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,6 +23,8 @@ from holoscan_ros2.operators.subscriber import SubscriberOp
 from rclpy.node import Node
 from std_msgs.msg import String
 
+logger = logging.getLogger(__name__)
+
 
 class MySubscriberOp(SubscriberOp):
     def __init__(self, fragment, *args, **kwargs):
@@ -34,12 +36,12 @@ class MySubscriberOp(SubscriberOp):
             try:
                 # Wait 1 second for a message
                 message = future.result(timeout=1.0)
-                logging.info(f"I heard: '{message.data}'")
+                logger.info(f"I heard: '{message.data}'")
                 return  # Exit after processing one message
             except concurrent.futures.TimeoutError:
                 # Check if we should terminate
                 if not rclpy.ok():
-                    logging.info("ROS2 shutdown detected, exiting...")
+                    logger.info("ROS2 shutdown detected, exiting...")
                     return
                 # Otherwise, continue waiting for the next message
                 continue

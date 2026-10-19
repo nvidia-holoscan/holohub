@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 UNIVERSITY OF BRITISH COLUMBIA. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, UNIVERSITY OF BRITISH COLUMBIA. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,8 +32,7 @@ def get_response_time(DG, source, sink, overhead):
             paths = nx.all_simple_paths(DG, node, postdominators[node])
             for path in paths:
                 pathcost = nx.path_weight(DG, path, "weight")
-                if maxcost < pathcost:
-                    maxcost = pathcost
+                maxcost = max(maxcost, pathcost)
             waitingtimes[node] = maxcost
         else:
             waitingtimes[node] = DG.nodes[node]["WCET"]
@@ -62,8 +61,7 @@ def get_response_time(DG, source, sink, overhead):
         paths = nx.all_simple_paths(DG, node, sink)
         for path in paths:
             pathcost = nx.path_weight(DG, path, "weight")
-            if maxcost < pathcost:
-                maxcost = pathcost
+            maxcost = max(maxcost, pathcost)
 
         # Add the execution time of the sink operator, since it is encoded as an edge weight
         bottletosink = maxcost + waitingtimes[sink]

@@ -15,6 +15,7 @@
 # limitations under the License.
 """Generate featured content HTML based on the most recent metadata.json files for any component type."""
 
+import logging
 import os
 import sys
 from pathlib import Path
@@ -22,7 +23,7 @@ from pathlib import Path
 script_dir = Path(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, str(script_dir)) if str(script_dir) not in sys.path else None
 
-from common_utils import (  # noqa: E402
+from common_utils import (
     COMPONENT_TYPES,
     extract_first_sentences,
     extract_image_from_readme,
@@ -101,10 +102,17 @@ def find_readme_path(metadata_dir: Path, git_repo_path: Path) -> Path:
 
 def get_component_path(metadata_path: Path, git_repo_path: Path) -> str:
     """Generate the relative path for the component documentation link."""
-    rel_path = metadata_path.parent.relative_to(git_repo_path)
-    if rel_path.name in ["cpp", "python"]:
-        rel_path = rel_path.parent
-    return f"{rel_path}"
+    metadata_dir = metadata_path.parent
+    readme_path = find_readme_path(metadata_dir, git_repo_path)
+    documentation_dir = readme_path.parent if readme_path else metadata_dir
+
+    if metadata_dir.name in ["cpp", "python"]:
+        parent_dir = metadata_dir.parent
+        language_metadata_count = len(list(parent_dir.glob("*/metadata.json")))
+        if (parent_dir / "README.md").exists() and language_metadata_count > 1:
+            documentation_dir = parent_dir
+
+    return str(documentation_dir.relative_to(git_repo_path))
 
 
 def generate_featured_component_card(
@@ -176,14 +184,14 @@ def generate_featured_component_card(
 
     # Check if this is a recent contribution (within 45 days)
     # commit_date is the date when metadata.json was first committed to git
-    from datetime import datetime
+    from datetime import datetime, timezone
 
     is_recent_attr = ""
     badge_html = ""
     is_new = False
 
     if commit_date:
-        days_old = (datetime.now() - commit_date).days
+        days_old = (datetime.now(timezone.utc) - commit_date).days
         if days_old <= 45:
             is_recent_attr = ' data-recent="true"'
             badge_html = '<span class="new-badge" style="position: absolute; top: 10px; right: 10px; background-color: #76b900; color: white; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 0.65rem; font-weight: 600;">New</span>'
@@ -200,7 +208,7 @@ def generate_featured_component_card(
     if not is_new:
         update_date = get_recent_source_code_update_date(metadata_path, git_repo_path)
         if update_date:
-            days_since_update = (datetime.now() - update_date).days
+            days_since_update = (datetime.now(timezone.utc) - update_date).days
             if days_since_update <= 30:
                 is_recent_attr = ' data-updated="true"'
                 badge_html = '<span class="updated-badge" style="position: absolute; top: 10px; right: 10px; background-color: #ff9933; color: white; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 0.65rem; font-weight: 600;">Updated</span>'
@@ -236,10 +244,10 @@ def generate_featured_component_card(
     # Generate card HTML with the found image URL
     card_html = f"""
  <div class="col-xl-4 col-lg-6 col-sm-12 mb-1 feature-box"{is_recent_attr}>
-                <div class="shadow padding-feature-box-item text-center d-block match-height app-card" style="cursor: pointer; position: relative;" onclick="window.location.href='/holohub/{component_path}';">
+                <div class="shadow padding-feature-box-item text-center d-block match-height app-card" style="cursor: pointer; position: relative;" onclick="window.location.href='/holohub/{component_path}/';">
                     {badge_html}
                     <img src="{image_url}" alt="{name}" width="120" height="120">
-                    <h3 class="mb-1 mt-0" style="font-size: 0.8rem;">{name}</h3>
+                    <h3 class="mb-1 mt-0" style="font-size: 0.8rem;"><a href="/holohub/{component_path}/" onclick="event.stopPropagation();">{name}</a></h3>
                     {language_badge_html}
                     <p class="feature-card-desc">{description}</p>
                     {tags_html}
@@ -342,7 +350,18 @@ def get_unique_first_tags(git_repo_path: Path, component_type: str) -> dict:
             tags = metadata.get("tags", [])
             if tags and len(tags) > 0:
                 first_tags.add(tags[0])
-        except Exception as e:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as e:
             logger.warning(f"Error reading {metadata_path}: {e}")
 
     # Helper function to normalize app names for deduplication
@@ -382,8 +401,19 @@ def get_unique_first_tags(git_repo_path: Path, component_type: str) -> dict:
                         # Use normalized name for deduplication
                         normalized_name = normalize_app_name(app_name)
                         unique_app_names.add(normalized_name)
-            except Exception:
-                pass
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ):
+                logging.getLogger(__name__).debug("Expected operation failure", exc_info=True)
 
         tag_counts[category] = len(unique_app_names)
 
@@ -450,7 +480,18 @@ def generate_component_html(component_type: str, output_path: str):
             if app_name:
                 normalized_name = normalize_app_name(app_name)
                 unique_app_names.add(normalized_name)
-        except Exception as e:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as e:
             logger.warning(f"Error parsing {metadata_path}: {e}")
             continue
 

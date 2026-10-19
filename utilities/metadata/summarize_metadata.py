@@ -25,7 +25,7 @@ import semver
 from gather_metadata import gather_metadata
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
-logger = logging.getLogger(__file__)
+logger = logging.getLogger(__name__)
 
 DEFAULT_DETAIL_COLUMNS = [
     "name",

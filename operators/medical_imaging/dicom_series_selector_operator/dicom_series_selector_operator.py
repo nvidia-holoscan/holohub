@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,6 @@ import logging
 import numbers
 import re
 from json import loads as json_loads
-from typing import List
 
 from holoscan.core import ConditionType, Fragment, Operator, OperatorSpec
 
@@ -27,6 +26,8 @@ from operators.medical_imaging.core.domain.dicom_series_selection import (
     StudySelectedSeries,
 )
 from operators.medical_imaging.core.domain.dicom_study import DICOMStudy
+
+logger = logging.getLogger(__name__)
 
 
 class DICOMSeriesSelectorOperator(Operator):
@@ -117,7 +118,7 @@ class DICOMSeriesSelectorOperator(Operator):
 
     def filter(
         self, selection_rules, dicom_study_list, all_matched: bool = False
-    ) -> List[StudySelectedSeries]:
+    ) -> list[StudySelectedSeries]:
         """Selects the series with the given matching rules.
 
         If rules object is None, all series will be returned with series instance UID as the selection name.
@@ -144,7 +145,7 @@ class DICOMSeriesSelectorOperator(Operator):
 
         if not selection_rules:
             # Return all series if no selection rules are supplied
-            logging.warn("No selection rules given; select all series.")
+            logger.warning("No selection rules given; select all series.")
             return self._select_all_series(dicom_study_list)
 
         selections = selection_rules.get("selections", None)  # TODO type is not json now.
@@ -159,7 +160,7 @@ class DICOMSeriesSelectorOperator(Operator):
             for selection in selections:
                 # Get the selection name. Blank name will be handled by the SelectedSeries
                 selection_name = selection.get("name", "").strip()
-                logging.info(f"Finding series for Selection named: {selection_name}")
+                logger.info(f"Finding series for Selection named: {selection_name}")
 
                 # Skip if no selection conditions are provided.
                 conditions = selection.get("conditions", None)
@@ -183,7 +184,7 @@ class DICOMSeriesSelectorOperator(Operator):
     def _load_rules(self):
         return json_loads(self._rules_json_str) if self._rules_json_str else None
 
-    def _select_all_series(self, dicom_study_list: List[DICOMStudy]) -> List[StudySelectedSeries]:
+    def _select_all_series(self, dicom_study_list: list[DICOMStudy]) -> list[StudySelectedSeries]:
         """Select all series in studies
 
         Returns:
@@ -192,10 +193,10 @@ class DICOMSeriesSelectorOperator(Operator):
 
         study_selected_series_list = []
         for study in dicom_study_list:
-            logging.info(f"Working on study, instance UID: {study.StudyInstanceUID}")
+            logger.info(f"Working on study, instance UID: {study.StudyInstanceUID}")
             study_selected_series = StudySelectedSeries(study)
             for series in study.get_all_series():
-                logging.info(f"Working on series, instance UID: {str(series.SeriesInstanceUID)}")
+                logger.info(f"Working on series, instance UID: {series.SeriesInstanceUID!s}")
                 selected_series = SelectedSeries(
                     "", series, None
                 )  # No selection name or Image obj.
@@ -205,7 +206,7 @@ class DICOMSeriesSelectorOperator(Operator):
 
     def _select_series(
         self, attributes: dict, study: DICOMStudy, all_matched=False
-    ) -> List[DICOMSeries]:
+    ) -> list[DICOMSeries]:
         """Finds series whose attributes match the given attributes.
 
         Args:
@@ -217,14 +218,14 @@ class DICOMSeriesSelectorOperator(Operator):
         """
         assert isinstance(attributes, dict), '"attributes" must be a dict.'
 
-        logging.info(
+        logger.info(
             f"Searching study, : {study.StudyInstanceUID}\n  # of series: {len(study.get_all_series())}"
         )
         study_attr = self._get_instance_properties(study)
 
         found_series = []
         for series in study.get_all_series():
-            logging.info(f"Working on series, instance UID: {series.SeriesInstanceUID}")
+            logger.info(f"Working on series, instance UID: {series.SeriesInstanceUID}")
 
             # Combine Study and current Series properties for matching
             series_attr = self._get_instance_properties(series)
@@ -233,13 +234,13 @@ class DICOMSeriesSelectorOperator(Operator):
             matched = True
             # Simple matching on attribute value
             for key, value_to_match in attributes.items():
-                logging.info(f"On attribute: {key!r} to match value: {value_to_match!r}")
+                logger.info(f"On attribute: {key!r} to match value: {value_to_match!r}")
                 # Ignore None
                 if not value_to_match:
                     continue
                 # Try getting the attribute value from Study and current Series prop dict
                 attr_value = series_attr.get(key, None)
-                logging.info(f"    Series attribute {key} value: {attr_value}")
+                logger.info(f"    Series attribute {key} value: {attr_value}")
 
                 # If not found, try the best at the native instance level for string VR
                 # This is mainly for attributes like ImageType
@@ -255,8 +256,19 @@ class DICOMSeriesSelectorOperator(Operator):
                             attr_value = elem.value  # element's value
 
                         series_attr.update({key: attr_value})
-                    except Exception:
-                        logging.info(f"        Attribute {key} not at instance level either.")
+                    except (
+                        ArithmeticError,
+                        AssertionError,
+                        AttributeError,
+                        EOFError,
+                        ImportError,
+                        LookupError,
+                        OSError,
+                        RuntimeError,
+                        TypeError,
+                        ValueError,
+                    ):
+                        logger.info(f"        Attribute {key} not at instance level either.")
 
                 if not attr_value:
                     matched = False
@@ -267,7 +279,7 @@ class DICOMSeriesSelectorOperator(Operator):
                     if not matched:
                         # For str, also try RegEx search to check for a match anywhere in the string
                         # unless the user constrains it in the expression.
-                        logging.info("Series attribute string value did not match. Try regEx.")
+                        logger.info("Series attribute string value did not match. Try regEx.")
                         if re.search(value_to_match, attr_value, re.IGNORECASE):
                             matched = True
                 elif isinstance(attr_value, list):
@@ -284,11 +296,11 @@ class DICOMSeriesSelectorOperator(Operator):
                     )
 
                 if not matched:
-                    logging.info("This series does not match the selection conditions.")
+                    logger.info("This series does not match the selection conditions.")
                     break
 
             if matched:
-                logging.info(f"Selected Series, UID: {series.SeriesInstanceUID}")
+                logger.info(f"Selected Series, UID: {series.SeriesInstanceUID}")
                 found_series.append(series)
 
                 if not all_matched:

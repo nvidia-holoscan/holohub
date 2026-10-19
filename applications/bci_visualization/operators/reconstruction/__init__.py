@@ -11,11 +11,11 @@ from .types import BuildRHSOutput, NormalizedSolveBatch, SolverResult, VoxelMeta
 
 __all__ = [
     "BuildRHSOperator",
+    "BuildRHSOutput",
     "ConvertToVoxelsOperator",
     "NormalizeOperator",
-    "RegularizedSolverOperator",
-    "BuildRHSOutput",
     "NormalizedSolveBatch",
+    "RegularizedSolverOperator",
     "SolverResult",
     "VoxelMetadata",
 ]

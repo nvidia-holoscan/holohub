@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -73,7 +73,7 @@ class AgentFrameworkOp(Operator):
 
         # create chat history
         self.chat_history = ChatHistory()
-        self._logger = logging.getLogger("{}.{}".format(__name__, type(self).__name__))
+        self._logger = logging.getLogger(f"{__name__}.{type(self).__name__}")
         super().__init__(fragment, *args, **kwargs)
 
     def get_agent_settings_path(self, agent_name):
@@ -114,7 +114,18 @@ class AgentFrameworkOp(Operator):
             else:
                 response = "Invalid agent selection"
                 self._logger.error(response)
-        except Exception as e:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as e:
             self._logger.error(f"Error processing agent request: {e}")
 
     def compute(self, op_input, op_output, context):
@@ -184,7 +195,18 @@ class AgentFrameworkOp(Operator):
                 self._logger.debug(f"Topic published: {topic}\nOutput Message: {output_msg}")
         except json.JSONDecodeError as e:
             self._logger.error(f"JSON decoding error in publish: {e}")
-        except Exception as e:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as e:
             self._logger.error(f"Error in publish: {e}")
 
     def reset_history(self):
@@ -197,9 +219,11 @@ class AgentFrameworkOp(Operator):
         frame_response = self.image_receiver.receive_json()
         image_b64 = frame_response.get("image_b64", None)
         tool_labels = frame_response.get("tool_labels", {})
-        start_time = datetime.datetime.now()
+        start_time = datetime.datetime.now(datetime.timezone.utc)
         while image_b64 is None:
-            if (datetime.datetime.now() - start_time).total_seconds() > self.frame_request_timeout:
+            if (
+                datetime.datetime.now(datetime.timezone.utc) - start_time
+            ).total_seconds() > self.frame_request_timeout:
                 break
             sleep(0.1)
             json_message = self.image_receiver.receive_json()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,6 +31,8 @@ from operators.medical_imaging import (
     DICOMSeriesToVolumeOperator,
     SegmentDescription,
 )
+
+logger = logging.getLogger(__name__)
 
 # Labels for the channels/segments
 CHANNEL_DEF = {
@@ -147,7 +149,7 @@ class AISegApp(Application):
         """Creates an application instance."""
 
         super().__init__(*args, **kwargs)
-        self._logger = logging.getLogger("{}.{}".format(__name__, type(self).__name__))
+        self._logger = logging.getLogger(f"{__name__}.{type(self).__name__}")
 
     def run(self, *args, **kwargs):
         # This method calls the base class to run. Can be omitted if simply calling through.
@@ -273,9 +275,9 @@ if __name__ == "__main__":
     # e.g.
     #     python3 app.py -i input -m model/model.ts
     #
-    logging.info(f"Begin {__name__}")
+    logger.info(f"Begin {__name__}")
 
     app = AISegApp()
     app.run()
 
-    logging.info(f"End {__name__}")
+    logger.info(f"End {__name__}")

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,9 +29,11 @@ from skimage.io import imread
 
 from holohub.apriltag_detector import ApriltagDetectorOp
 
+logger = logging.getLogger(__name__)
+
 
 def perspective_transform_usb(corners, width, height):
-    top_l, top_r, bottom_r, bottom_l = corners
+    _top_l, _top_r, _bottom_r, _bottom_l = corners
     dimensions = np.array(
         [[0, 0], [width - 1, 0], [width - 1, height - 1], [0, height - 1]], dtype="float32"
     )
@@ -53,7 +55,7 @@ class AddBackgroundViewOperator(holoscan.core.Operator):
         self.height = height
 
     def setup(self, spec):
-        logging.info("setup")
+        logger.info("setup")
         spec.input("input")
         spec.output("outputs")
         spec.output("output_specs")
@@ -102,13 +104,13 @@ class UsbCamCalibrationApplication(holoscan.core.Application):
         fullscreen,
         frame_limit,
     ):
-        logging.info("__init__")
+        logger.info("__init__")
         super().__init__()
         self._fullscreen = fullscreen
         self._frame_limit = frame_limit
 
     def compose(self):
-        logging.info("compose")
+        logger.info("compose")
 
         # USB Pipeline
         width = 1920
@@ -156,7 +158,6 @@ class UsbCamCalibrationApplication(holoscan.core.Application):
             fullscreen=True,
             **self.kwargs("holoviz"),
         )
-        #
         self.add_flow(source, preprocessor)
         self.add_flow(preprocessor, apriltag, {("", "input")})
         self.add_flow(apriltag, back_view, {("output", "input")})

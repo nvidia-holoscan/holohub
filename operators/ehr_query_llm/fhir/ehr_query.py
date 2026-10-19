@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +15,6 @@
 
 import json
 import uuid
-from typing import Dict, List, Optional, Union
 
 
 class FHIRQuery:
@@ -32,21 +31,23 @@ class FHIRQuery:
 
     def __init__(
         self,
-        request_id: Optional[str] = str(uuid.uuid4()),
-        identifier: Optional[str] = "",
-        patient_name: Optional[str] = "",
-        patient_dob: Optional[str] = "",
-        resources_to_retrieve: Optional[List[str]] = [
-            "Observation",
-            "ImagingStudy",
-            "FamilyMemberHistory",
-            "Condition",
-            "DiagnosticReport",
-            "DocumentReference",
-        ],
-        start_date: Optional[str] = "",
-        end_date: Optional[str] = "",
+        request_id: str | None = str(uuid.uuid4()),
+        identifier: str | None = "",
+        patient_name: str | None = "",
+        patient_dob: str | None = "",
+        resources_to_retrieve: list[str] | None = None,
+        start_date: str | None = "",
+        end_date: str | None = "",
     ):
+        if resources_to_retrieve is None:
+            resources_to_retrieve = [
+                "Observation",
+                "ImagingStudy",
+                "FamilyMemberHistory",
+                "Condition",
+                "DiagnosticReport",
+                "DocumentReference",
+            ]
         self.request_id = request_id
         self.patient_name = patient_name
         self.patient_dob = patient_dob
@@ -107,7 +108,7 @@ class FHIRQuery:
             query[key] = value
 
     @staticmethod
-    def from_json(json_dct: Union[str, Dict]):
+    def from_json(json_dct: str | dict):
         if isinstance(json_dct, str):
             json_dct = json.loads(json_dct)
 

@@ -55,7 +55,18 @@ def _cmd_validate_preset(args: argparse.Namespace) -> int:
                 pipeline_from_yaml(text, filters=filters)
                 print(f"Preset '{path}' is valid.")
                 exit_code = 0
-            except Exception as exc:  # pragma: no cover - CLI validation path
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ) as exc:  # pragma: no cover - CLI validation path
                 print(f"Preset validation failed: {exc}", file=sys.stderr)
                 exit_code = 2
     return exit_code

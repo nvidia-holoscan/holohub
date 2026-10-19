@@ -17,8 +17,8 @@ from .swiglu_ffn import SwiGLUFFN, SwiGLUFFNFused
 
 __all__ = [
     "MemEffAttention",
-    "NestedTensorBlock",
     "Mlp",
+    "NestedTensorBlock",
     "PatchEmbed",
     "SwiGLUFFN",
     "SwiGLUFFNFused",

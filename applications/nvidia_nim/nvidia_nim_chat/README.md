@@ -38,7 +38,7 @@ To run the sample application with Docker, you must first build and run a Docker
 
 ```bash
 # Build and run the Docker images from the root directory of Holohub
-./holohub run-container nvidia_nim
+./holohub run-container nvidia_nim_chat
 ```
 
 Continue to the [Start the Application](#start-the-application) section once inside the Docker container.
@@ -53,7 +53,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 
 # install the required packages
-pip install -r applications/nvidia_nim/chat/requirements.txt
+pip install -r applications/nvidia_nim/nvidia_nim_chat/requirements.txt
 ```
 
 ### Start the Application

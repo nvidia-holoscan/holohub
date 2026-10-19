@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,7 @@ class GrpcClientRequestOp(Operator):
         self.frame_count: int = 0
 
         if not isinstance(request_queue, AsyncIoQueue):
-            raise ValueError("request_queue must be a AsyncIoQueue")
+            raise TypeError("request_queue must be a AsyncIoQueue")
 
         super().__init__(fragment, *args, **kwargs)
 

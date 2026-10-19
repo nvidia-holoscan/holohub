@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +20,6 @@ import signal
 import sys
 import time
 from threading import Thread
-from typing import Optional
 
 import zmq
 from langchain.schema.document import Document
@@ -30,6 +29,8 @@ from langchain_community.vectorstores import Chroma
 from operators.ehr_query_llm.fhir.ehr_query import FHIRQuery
 from operators.ehr_query_llm.fhir.ehr_response import FHIRQueryResponse
 from operators.ehr_query_llm.message_handling import MessageReceiver
+
+logger = logging.getLogger(__name__)
 
 # FHIR global vars
 TOPIC_REQUEST = "ehr-request"
@@ -53,43 +54,52 @@ PERSISTENT_FOLDER = "/workspace/holohub/applications/ehr_query_llm/lmm/rag/ehr/d
 
 
 def get_ehr_data(
-    allow_requested_only: Optional[bool] = True,
+    allow_requested_only: bool | None = True,
 ):
     global ehr_data
-    global ehr_request_ids
 
     receiver = MessageReceiver(TOPIC_RESPONSE, "tcp://localhost:5601")
     while True:
         response = receiver.receive_json(blocking=True)
         try:
             ehr_response = FHIRQueryResponse.from_json(response)
-            logging.info(f"Got a response for request, id: {ehr_response.request_id}")
+            logger.info(f"Got a response for request, id: {ehr_response.request_id}")
             if ehr_response.request_id.casefold() not in ehr_request_ids:
                 # For now, only support request/response scenario
                 # In the future, may need to support unsolicited messages
-                logging.warning(
+                logger.warning(
                     f"Processing response for a untracked request, id {ehr_response.request_id}"
                 )
                 if allow_requested_only:
                     continue
             else:
                 ehr_request_ids.remove(ehr_response.request_id.strip())
-                logging.info(f"Removed processed tracked request, id {ehr_response.request_id}")
+                logger.info(f"Removed processed tracked request, id {ehr_response.request_id}")
 
             if len(ehr_response.patient_resources) > 0:
                 for key in ehr_response.patient_resources:
-                    logging.info(f"Documents retrieved: {len(ehr_response.patient_resources[key])}")
+                    logger.info(f"Documents retrieved: {len(ehr_response.patient_resources[key])}")
                     ehr_data = ehr_response.patient_resources
                 return
-        except Exception as ex:
-            logging.error(f"Error parsing FHIR response {ex}")
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as ex:
+            logger.error(f"Error parsing FHIR response {ex}")
         time.sleep(1)
 
 
 def send_request(identifier: str, resources_to_retrieve: list = RESOURCES_TO_RETRIEVE):
     """Send request to retrieve the EHR resources with the provided identifier string"""
 
-    global ehr_request_ids
     context = zmq.Context()
     socket = context.socket(zmq.PUB)
     socket.bind("tcp://*:5600")
@@ -98,15 +108,15 @@ def send_request(identifier: str, resources_to_retrieve: list = RESOURCES_TO_RET
     # to the pub socket. If it is published immediately, a message may be lost
     # as ZeroMQ does not guarantee message delivery if the sub is not fully connected.
     time.sleep(1)
-    logging.info("Sending request to FHIR server...")
+    logger.info("Sending request to FHIR server...")
     query = FHIRQuery(identifier=identifier, resources_to_retrieve=RESOURCES_TO_RETRIEVE)
     ehr_request_ids.append(query.request_id.casefold())
-    logging.info(f"Sent request, id: {query.request_id}")
+    logger.info(f"Sent request, id: {query.request_id}")
     socket.send_multipart([TOPIC_REQUEST.encode("utf-8"), query.to_json().encode("utf-8")])
 
 
 def stop(signum=None, frame=None):
-    logging.info("Stopping...")
+    logger.info("Stopping...")
     sys.exit()
 
 
@@ -155,7 +165,7 @@ def flatten_ehr(ehr_dict):
     num_entry_missing_categories = 0
     num_entry_no_date = 0
 
-    for _, resources in ehr_dict.items():
+    for resources in ehr_dict.values():
         for entry in resources:
             resource = entry["resource"]
             # Parse Condition
@@ -166,16 +176,16 @@ def flatten_ehr(ehr_dict):
             elif resource["resourceType"] == "Observation":
 
                 # Collect stats of entries missing key attributes
-                if "categories" not in [x.lower() for x in resource.keys()]:
+                if "categories" not in [x.lower() for x in resource]:
                     num_entry_missing_categories += 1
                     resource["categories"] = ""
-                    logging.warning(
+                    logger.warning(
                         f"Missing 'categories' attribute in resource entry: {entry.get('fullUrl', '')}"
                     )
-                if "date" not in [x.lower() for x in resource.keys()]:
+                if "date" not in [x.lower() for x in resource]:
                     num_entry_no_date += 1
                     resource["date"] = ""
-                    logging.warning(
+                    logger.warning(
                         f"Missing 'date' attribute in resource entry: {entry.get('fullUrl', '')}"
                     )
 
@@ -212,8 +222,7 @@ def create_db_docs(flattened_ehr):
     This function takes entries with multiple date entries and represents them as a range
     """
     documents = []
-    i = 0
-    for summary, dates in flattened_ehr.items():
+    for i, (summary, dates) in enumerate(flattened_ehr.items()):
         num_dates = len(dates)
         if num_dates == 1:
             summary += f"\n\tDate: {dates[0]}"
@@ -224,7 +233,6 @@ def create_db_docs(flattened_ehr):
 
         new_doc = Document(page_content=summary, seq_num=i)
         documents.append(new_doc)
-        i += 1
 
     return documents
 
@@ -235,15 +243,13 @@ def create_ehr_database(identifier: str = ID_DEFAULT):
     A default identifier is provided, by expected to removed once the main user of this module is ready.
     """
     logging.basicConfig(level=logging.INFO)
-    global ehr_data
     global t_receiver
     global t_sender
-    #
 
     t_receiver = Thread(target=get_ehr_data)
     t_receiver.daemon = True
     t_receiver.start()
-    logging.info(f"Requesting EHR resources identified by {identifier}...")
+    logger.info(f"Requesting EHR resources identified by {identifier}...")
     t_sender = Thread(target=send_request, kwargs={"identifier": identifier})
     t_sender.daemon = True
     t_sender.start()
@@ -251,14 +257,14 @@ def create_ehr_database(identifier: str = ID_DEFAULT):
 
     flattened_ehr = flatten_ehr(ehr_data)
     documents = create_db_docs(flattened_ehr)
-    logging.info(f"Total DB documents: {len(flattened_ehr)}")
-    logging.info("Creating EHR vector db...")
+    logger.info(f"Total DB documents: {len(flattened_ehr)}")
+    logger.info("Creating EHR vector db...")
     start_time = time.time()
     create_db(documents)
     end_time = time.time()
     total_time = end_time - start_time
-    logging.info("Done!\n")
-    logging.info(f"Total time to build db sans EHR retrieval and prep: {total_time} seconds.")
+    logger.info("Done!\n")
+    logger.info(f"Total time to build db sans EHR retrieval and prep: {total_time} seconds.")
     return total_time
 
 

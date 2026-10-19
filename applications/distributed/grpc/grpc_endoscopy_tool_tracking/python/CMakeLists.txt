@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,17 @@ cmake_minimum_required(VERSION 3.20)
 
 find_package(holoscan 2.6 REQUIRED CONFIG
              PATHS "/opt/nvidia/holoscan" "/workspace/holoscan-sdk/install")
+
+if(BUILD_TESTING)
+  find_package(Python3 REQUIRED COMPONENTS Interpreter)
+  add_test(NAME grpc_endoscopy_tool_tracking_transport_test
+           COMMAND "${Python3_EXECUTABLE}" -m pytest -q
+                   "${CMAKE_SOURCE_DIR}/operators/grpc_operators/python/server/test_grpc_service.py"
+           WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+  set_tests_properties(grpc_endoscopy_tool_tracking_transport_test PROPERTIES
+                       LABELS "application;python;integration"
+                       TIMEOUT 120)
+endif()
 
 install(
   DIRECTORY cloud edge

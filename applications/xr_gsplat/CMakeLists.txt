@@ -26,3 +26,13 @@ add_custom_command(
     COMMAND ${Python3_EXECUTABLE} -m pip install --no-build-isolation git+https://github.com/nerfstudio-project/gsplat.git
     COMMENT "Installing gsplat..."
 )
+
+if(BUILD_TESTING)
+  add_test(NAME xr_gsplat_checkpoint_test
+           COMMAND "${Python3_EXECUTABLE}" -m pytest -q
+                   "${CMAKE_CURRENT_SOURCE_DIR}/test_gsplat_loader_op.py"
+           WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+  set_tests_properties(xr_gsplat_checkpoint_test PROPERTIES
+                       LABELS "application;python;unit"
+                       TIMEOUT 120)
+endif()

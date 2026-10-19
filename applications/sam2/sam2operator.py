@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -113,7 +113,7 @@ class SamPostprocessorOp(Operator):
         out_tensor,
         save_intermediate=False,
         verbose=False,
-        slice_dim: int = None,
+        slice_dim: int | None = None,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
@@ -386,7 +386,7 @@ class FormatInferenceInputOp(Operator):
             print(f"---------------------------reformatted tensor shape: {tensor.shape}")
 
         # Create output message
-        op_output.emit(dict(encoder_tensor=tensor), "out")
+        op_output.emit({"encoder_tensor": tensor}, "out")
 
     def normalize_image(self, image):
         image = (image - self.mean) / self.std
@@ -396,7 +396,7 @@ class FormatInferenceInputOp(Operator):
 class PointPublisher(Operator):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.start_time = datetime.datetime.now()
+        self.start_time = datetime.datetime.now(datetime.timezone.utc)
         point_mover_kwargs = kwargs["point_mover"]
         self.point_mover = PointMover(**point_mover_kwargs[0])
 
@@ -406,7 +406,7 @@ class PointPublisher(Operator):
 
     def compute(self, op_input, op_output, context):
         # Get current time
-        current_time = datetime.datetime.now()
+        current_time = datetime.datetime.now(datetime.timezone.utc)
         # Calculate time difference
         time_diff = current_time - self.start_time
         # as seconds and microseconds

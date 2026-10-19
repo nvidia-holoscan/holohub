@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,9 +18,14 @@
 #ifndef NV_VIDEO_DECODER_NV_VIDEO_DECODER_HPP
 #define NV_VIDEO_DECODER_NV_VIDEO_DECODER_HPP
 
+#include <atomic>
+#include <cstddef>
+#include <cstdint>
 #include <cstring>
+#include <deque>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <cuda.h>
@@ -104,10 +109,47 @@ class StreamDataProvider : public FFmpegDemuxer::DataProvider {
 };
 
 /**
- * @brief Operator to decode video frames using NVIDIA Video Codec SDK
+ * @brief Operator to decode compressed video using the NVIDIA Video Codec SDK.
  *
- * This operator takes video frames as input and decodes them to H264 format.
- * The input and output data remain on the GPU for maximum performance.
+ * By default the operator uses the existing demuxed/file streaming path. Setting
+ * `codec` to `"H264"` or `"HEVC"` enables packetized input and feeds each input
+ * tensor directly to the CUVID parser, bypassing the FFmpeg demuxer.
+ * Packetized input tensors must use host-accessible `kHost` or `kSystem` storage;
+ * device-backed encoded payloads are not accepted by the CUVID parser path.
+ * Packetized bitstreams must decode to 8-bit 4:2:0 NV12; other decoded surface
+ * formats are rejected instead of being copied into an incompatible NV12 buffer.
+ *
+ * `packetized_input_mode` describes the framing of that packetized input:
+ *
+ * - `"stream"` (default): input tensors are arbitrary byte-stream chunks. A picture
+ *   may span multiple input tensors and CUVID determines picture boundaries.
+ * - `"access_unit"`: every input tensor contains exactly one complete encoded access
+ *   unit. The operator marks each submitted packet with `CUVID_PKT_ENDOFPICTURE`,
+ *   allowing CUVID to complete the current picture without waiting for data from the
+ *   next input tensor.
+ *
+ * `"access_unit"` must only be selected when the input contract guarantees one
+ * complete access unit per tensor. Using it with fragmented input can cause incorrect
+ * parser boundaries or decode failures.
+ * With normal display latency, every access-unit tensor must also provide the picture's
+ * presentation timestamp in the `presentation_timestamp_ns` metadata field. The value is
+ * expressed in nanoseconds and is converted internally to the decoder timebase so metadata
+ * remains associated with the correct picture when B-frames are reordered. Low-latency mode
+ * can use a synthetic timestamp when this metadata field is absent.
+ *
+ * For a finite packetized stream, set the `end_of_stream` metadata field to `true`
+ * on the final input tensor. The operator decodes that tensor, submits a distinct
+ * end-of-stream packet to CUVID, and queues frames delayed by parser lookahead or
+ * display reordering. Decoded frames are emitted one per operator execution so the
+ * default output connector capacity is respected.
+ *
+ * `packetized_low_latency` independently controls the decoder display policy. Its
+ * default value, `false`, preserves normal CUVID display reordering and supports
+ * streams containing B-frames. Setting it to `true` reduces display delay and is
+ * intended only for low-latency bitstreams without B-frames, such as All-Intra or
+ * IPPP streams. It does not change input framing or end-of-picture signaling.
+ *
+ * Decoded NV12 frames are emitted in device memory.
  */
 class NvVideoDecoderOp : public Operator {
  public:
@@ -122,14 +164,31 @@ class NvVideoDecoderOp : public Operator {
   void stop() override;
 
  private:
+  struct PendingFrame {
+    uint8_t* data = nullptr;
+    MetadataDictionary metadata;
+    int64_t decode_start_timestamp = 0;
+  };
+
+  struct PendingAccessUnitMetadata {
+    MetadataDictionary metadata;
+    int64_t decode_start_timestamp = 0;
+  };
+
+  void emit_pending_frame(OutputContext& op_output, ExecutionContext& context);
+  void release_pending_frames();
   void init_decoder_for_streaming(void* data, size_t size);
   void init_decoder_for_file(std::shared_ptr<MetadataDictionary> meta);
+  void init_decoder_for_packetized_stream();
 
   Parameter<int> cuda_device_ordinal_;
   Parameter<int> width_;
   Parameter<int> height_;
   Parameter<std::shared_ptr<holoscan::Allocator>> allocator_;
   Parameter<bool> verbose_;
+  Parameter<std::string> codec_;
+  Parameter<std::string> packetized_input_mode_;
+  Parameter<bool> packetized_low_latency_;
 
   CudaStreamHandler cuda_stream_handler_;
 
@@ -137,10 +196,16 @@ class NvVideoDecoderOp : public Operator {
   CUcontext cu_context_ = nullptr;
   CUdevice cu_device_;
 
-  std::unique_ptr<NvDecoder> decoder_;
+  using NvDecoderPtr = std::unique_ptr<NvDecoder, void (*)(NvDecoder*)>;
+  NvDecoderPtr decoder_{nullptr, nullptr};
   std::unique_ptr<FFmpegDemuxer> demuxer_;
   std::unique_ptr<StreamDataProvider> file_data_provider_;
+  std::deque<PendingFrame> pending_frames_;
+  std::unordered_map<int64_t, PendingAccessUnitMetadata> pending_access_unit_metadata_;
+  std::atomic<std::size_t> pending_frame_count_{0};
+  std::shared_ptr<Condition> input_or_pending_condition_;
 
+  int64_t next_access_unit_timestamp_ = 1;
   uint64_t last_emit_timestamp_ = 0;
 };
 

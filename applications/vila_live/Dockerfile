@@ -121,4 +121,7 @@ RUN mkdir -p /workspace/volumes/models && \
 # ----------------------------------------------------------------------------
 # Set up final working directory to be the holohub directory
 # ----------------------------------------------------------------------------
+# Install the application test runner.
+RUN python3 -m pip install "pytest>=8,<10"
+
 WORKDIR /workspace/holohub

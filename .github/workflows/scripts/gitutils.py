@@ -1,5 +1,5 @@
 """
-SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 SPDX-License-Identifier: Apache-2.0
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -101,7 +101,7 @@ def uncommitted_files():
     ret = []
     for f in files.splitlines():
         f = f.strip(" ")
-        f = re.sub(r"\s+", " ", f)  # noqa: W605
+        f = re.sub(r"\s+", " ", f)
         tmp = f.split(" ", 1)
         # only consider staged files or uncommitted files
         # in other words, ignore untracked files
@@ -118,7 +118,7 @@ def changed_files_between(base_ref, new_ref):
     return files.splitlines()
 
 
-def changes_in_file_between(file, b1, b2, filter=None):  # noqa: A002
+def changes_in_file_between(file, b1, b2, filter=None):
     """Filters the changed lines to a file between the branches b1 and b2"""
     current = branch()
     __git("checkout", "--quiet", b1)
@@ -138,6 +138,6 @@ def modified_files(target=None, absolute_path=False):
 
     if absolute_path:
         git_dir = dir_()
-        return list(map(lambda fn: os.path.join(git_dir, fn), all_files))
+        return [os.path.join(git_dir, fn) for fn in all_files]
     else:
         return all_files

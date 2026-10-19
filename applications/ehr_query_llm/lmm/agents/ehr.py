@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -66,7 +66,7 @@ class EHRAgent(Agent):
         # Get the relevant EHR docs using mmr
         lc_documents = self.db.get_relevant_documents(text)
 
-        documents = "\n\n".join(list(map(lambda doc: doc.page_content, lc_documents)))
+        documents = "\n\n".join([doc.page_content for doc in lc_documents])
         system_prompt = f"{self.bot_rule_prefix}\n{agent_prompt.format(documents=documents)}\n{self.end_token}\n"
         user_prompt = f"{self.user_prefix}\n{text}\n{self.end_token}\n"
         # Calculate the token usage of the system and user prompts

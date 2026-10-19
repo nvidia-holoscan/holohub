@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +15,7 @@
 
 import os
 from abc import ABC
-from typing import Dict, Optional, Tuple
+from typing import ClassVar
 
 
 class RuntimeEnv(ABC):
@@ -25,7 +25,7 @@ class RuntimeEnv(ABC):
     and they can be set to override the defaults.
     """
 
-    ENV_DEFAULT: Dict[str, Tuple[str, ...]] = {
+    ENV_DEFAULT: ClassVar[dict[str, tuple[str, ...]]] = {
         "input": ("HOLOSCAN_INPUT_PATH", "input"),
         "output": ("HOLOSCAN_OUTPUT_PATH", "output"),
         "model": ("HOLOSCAN_MODEL_PATH", "models"),
@@ -37,7 +37,7 @@ class RuntimeEnv(ABC):
     model: str = ""
     workdir: str = ""
 
-    def __init__(self, defaults: Optional[Dict[str, Tuple[str, ...]]] = None):
+    def __init__(self, defaults: dict[str, tuple[str, ...]] | None = None):
         if defaults is None:
             defaults = self.ENV_DEFAULT
         for key, (env, default) in defaults.items():

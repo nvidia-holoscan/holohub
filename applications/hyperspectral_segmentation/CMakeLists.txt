@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,6 +33,15 @@ if(HOLOHUB_DOWNLOAD_DATASETS)
 endif()
 
 if(BUILD_TESTING)
+  find_package(Python3 REQUIRED COMPONENTS Interpreter)
+  add_test(NAME hyperspectral_segmentation_input_test
+           COMMAND "${Python3_EXECUTABLE}" -m pytest -q
+                   "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_blosc_input.py"
+           WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
+  set_tests_properties(hyperspectral_segmentation_input_test PROPERTIES
+                       LABELS "application;python;unit"
+                       TIMEOUT 60)
+
   # Add test
   add_test(NAME hyperspectral_segmentation_test
            COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/hyperspectral_segmentation.py

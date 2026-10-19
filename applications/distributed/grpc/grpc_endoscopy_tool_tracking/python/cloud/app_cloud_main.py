@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -70,10 +70,25 @@ def parse_arguments():
     parser.add_argument(
         "-p",
         "--port",
+        type=int,
         default=50051,
         help=("Set the gRPC Server listening port  (default: %(default)s)."),
     )
-    return parser.parse_args()
+    parser.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="Bind IP address or localhost; non-loopback requires mutual TLS",
+    )
+    parser.add_argument("--tls-cert", type=Path, help="PEM server certificate chain")
+    parser.add_argument("--tls-key", type=Path, help="PEM server private key")
+    parser.add_argument(
+        "--tls-ca", type=Path, help="PEM CA certificates trusted for client authentication"
+    )
+    args = parser.parse_args()
+    tls = (args.tls_cert, args.tls_key, args.tls_ca)
+    if any(tls) and not all(tls):
+        parser.error("--tls-cert, --tls-key, and --tls-ca must be provided together")
+    return args
 
 
 async def main(loop):
@@ -96,7 +111,14 @@ async def main(loop):
 
     # Initialize the gRPC service
     grpc_service = GrpcService()
-    grpc_service.initialize(args.port, application_factory)
+    grpc_service.initialize(
+        args.port,
+        application_factory,
+        host=args.host,
+        private_key=args.tls_key.read_bytes() if args.tls_key else None,
+        certificate_chain=args.tls_cert.read_bytes() if args.tls_cert else None,
+        root_certificates=args.tls_ca.read_bytes() if args.tls_ca else None,
+    )
 
     # Configure the gRPC services
     servicer = HoloscanEntityServicer("EndoscopyToolTracking")

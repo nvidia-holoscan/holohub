@@ -29,6 +29,8 @@ from holoscan.resources import BlockMemoryPool, CudaStreamPool, MemoryStorageTyp
 from holoscan.schedulers import MultiThreadScheduler
 from skimage.io import imread
 
+logger = logging.getLogger(__name__)
+
 
 class CameraSource(Enum):
     EVT = 1
@@ -48,7 +50,7 @@ class CalCoordsOperator(holoscan.core.Operator):
         self.mode = mode
 
     def setup(self, spec):
-        logging.info("setup")
+        logger.info("setup")
         spec.input("input").condition(ConditionType.NONE)
         spec.output("output")
 
@@ -126,7 +128,7 @@ class CalCoordsOperator(holoscan.core.Operator):
 
         # Find the min/max locs
         outs = cvcuda.max_loc(persp, 1)
-        max_val, max_loc, num_max = outs
+        max_val, max_loc, _num_max = outs
 
         # CPU code
         max_val = cp.asnumpy(cp.asarray(max_val.cuda(), cp.float32))
@@ -184,7 +186,7 @@ class AddViewOperator(holoscan.core.Operator):
         self.display_height = 1080
 
     def setup(self, spec):
-        logging.info("setup")
+        logger.info("setup")
         spec.input("input1")
         spec.input("input2")
         spec.output("outputs")
@@ -193,11 +195,11 @@ class AddViewOperator(holoscan.core.Operator):
     def start(self):
         image = imread("left-asset.png")
         self.left = cp.asarray(image)
-        self.left_h, self.left_w, c = self.left.shape
+        self.left_h, self.left_w, _c = self.left.shape
 
         image = imread("right-asset.png")
         self.right = cp.asarray(image)
-        self.right_h, self.right_w, c = self.right.shape
+        self.right_h, self.right_w, _c = self.right.shape
         number_of_components = 3
         self.background = cp.zeros(
             (self.display_height, self.display_width, number_of_components), cp.uint8
@@ -221,9 +223,7 @@ class AddViewOperator(holoscan.core.Operator):
         }
         op_output.emit(out_message, "outputs")
 
-        #
         specs = []
-        #
         spec = HolovizOp.InputSpec("video", HolovizOp.InputType.COLOR)
         view = HolovizOp.InputSpec.View()
         view.offset_x = 0.0
@@ -233,7 +233,6 @@ class AddViewOperator(holoscan.core.Operator):
         spec.views = [view]
         specs.append(spec)
 
-        #
         spec = HolovizOp.InputSpec("image", HolovizOp.InputType.COLOR)
         view = HolovizOp.InputSpec.View()
         view.offset_x = X2 - (self.left_w * 0.4) / self.display_width

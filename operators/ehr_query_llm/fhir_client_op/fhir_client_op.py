@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,6 @@
 
 import logging
 from time import perf_counter as pc
-from typing import Dict, List
 
 import requests
 from holoscan.core import ConditionType, Fragment, Operator, OperatorSpec
@@ -59,7 +58,7 @@ class FhirClientOperator(Operator):
         Raises:
             ValueError: if queue_policy is out of range.
         """
-        self._logger = logging.getLogger("{}.{}".format(__name__, type(self).__name__))
+        self._logger = logging.getLogger(f"{__name__}.{type(self).__name__}")
 
         self._fhir_endpoint = fhir_endpoint
         self._token_provider = token_provider  # If None, assume no auth token required.
@@ -83,7 +82,18 @@ class FhirClientOperator(Operator):
             self._logger.debug("FHIR Client op processing request...")
             request_str = op_input.receive("request")
             query_parameters = FHIRQuery.from_json(request_str)
-        except Exception as ex:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as ex:
             raise InvalidRequestBodyError(request_str, ex)
 
         start = pc()
@@ -103,7 +113,18 @@ class FhirClientOperator(Operator):
                     FHIRQueryResponse(query_parameters.request_id, patient_resources), "out"
                 )
 
-        except Exception as ex:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as ex:
             self._logger.error(
                 f"{query_parameters.request_id}: Error performing FHIR query", str(ex)
             )
@@ -113,7 +134,7 @@ class FhirClientOperator(Operator):
             f"{query_parameters.request_id}: FHIR query elapsed: {end - start} seconds"
         )
 
-    def _find_patients(self, query_parameters: FHIRQuery) -> Dict[str, str]:
+    def _find_patients(self, query_parameters: FHIRQuery) -> dict[str, str]:
         request_url = self._fhir_endpoint + query_parameters.get_patient_query()
 
         self._logger.debug(f"{query_parameters.request_id}: Querying patient from {request_url}")
@@ -140,20 +161,20 @@ class FhirClientOperator(Operator):
                 if id and request_url:
                     patient_urls[id] = request_url
                 elif id:
-                    self._logger.warn(
+                    self._logger.warning(
                         f"{query_parameters.request_id}: Patient entry missing 'fullUrl': {entry}"
                     )
                 else:
-                    self._logger.warn(
+                    self._logger.warning(
                         f"{query_parameters.request_id}: Patient entry missing 'id': {entry}"
                     )
         else:
-            self._logger.warn(f"{query_parameters.request_id}: No matching patient found!")
+            self._logger.warning(f"{query_parameters.request_id}: No matching patient found!")
 
         return patient_urls
 
     def _fetch_patient_resources(
-        self, query_parameters: FHIRQuery, id: str, url: str, entries: List[str]
+        self, query_parameters: FHIRQuery, id: str, url: str, entries: list[str]
     ):
         self._logger.debug(
             f"{query_parameters.request_id}: Fetching resources for patient {id} from {url}"
@@ -168,7 +189,7 @@ class FhirClientOperator(Operator):
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 500 and len(entries) > 0:
                 return
-            raise e
+            raise
 
         data = response.json()
 

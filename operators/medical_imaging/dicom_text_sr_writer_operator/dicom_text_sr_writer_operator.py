@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +15,6 @@
 
 import logging
 from pathlib import Path
-from typing import Dict, Optional, Union
 
 from holoscan.core import ConditionType, Fragment, Operator, OperatorSpec
 
@@ -29,6 +28,8 @@ from operators.medical_imaging.utils.dicom_utils import (
 )
 from operators.medical_imaging.utils.importutil import optional_import
 from operators.medical_imaging.utils.version import get_sdk_semver
+
+logger = logging.getLogger(__name__)
 
 dcmread, _ = optional_import("pydicom", name="dcmread")
 dcmwrite, _ = optional_import("pydicom.filewriter", name="dcmwrite")
@@ -63,11 +64,11 @@ class DICOMTextSRWriterOperator(Operator):
         self,
         fragment: Fragment,
         *args,
-        output_folder: Union[str, Path],
+        output_folder: str | Path,
         model_info: ModelInfo,
         copy_tags: bool = True,
-        equipment_info: Optional[EquipmentInfo] = None,
-        custom_tags: Optional[Dict[str, str]] = None,
+        equipment_info: EquipmentInfo | None = None,
+        custom_tags: dict[str, str] | None = None,
         **kwargs,
     ):
         """Class to write DICOM SR SOP Instance for AI textual result in memory or in a file.
@@ -86,7 +87,7 @@ class DICOMTextSRWriterOperator(Operator):
             ValueError: If copy_tags is true and no DICOMSeries object provided, or
                         if result cannot be found either in memory or from file.
         """
-        self._logger = logging.getLogger("{}.{}".format(__name__, type(self).__name__))
+        self._logger = logging.getLogger(f"{__name__}.{type(self).__name__}")
 
         # Need to init the output folder until the execution context supports dynamic FS path
         # Not trying to create the folder to avoid exception on init
@@ -113,7 +114,18 @@ class DICOMTextSRWriterOperator(Operator):
         # Equipment version may be different from contributing equipment version
         try:
             self.software_version_number = get_sdk_semver()  # SDK Version
-        except Exception:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ):
             self.software_version_number = ""
         self.operators_name = f"AI Algorithm {self.model_info.name}"
 
@@ -150,13 +162,24 @@ class DICOMTextSRWriterOperator(Operator):
         # Gets the input, prepares the output folder, and then delegates the processing.
         result_text = str(op_input.receive(self.input_name_text)).strip()
         if not result_text:
-            raise IOError("Input is read but blank.")
+            raise OSError("Input is read but blank.")
 
         study_selected_series_list = None
         try:
             study_selected_series_list = op_input.receive(self.input_name_dcm_series)
-        except Exception:
-            pass
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ):
+            logging.getLogger(__name__).debug("Expected operation failure", exc_info=True)
 
         dicom_series = None  # It can be None if not to copy_tags.
         if self.copy_tags:
@@ -165,9 +188,7 @@ class DICOMTextSRWriterOperator(Operator):
                 raise ValueError("Missing input, list of 'StudySelectedSeries'.")
             for study_selected_series in study_selected_series_list:
                 if not isinstance(study_selected_series, StudySelectedSeries):
-                    raise ValueError(
-                        "Element in input is not expected type, 'StudySelectedSeries'."
-                    )
+                    raise TypeError("Element in input is not expected type, 'StudySelectedSeries'.")
                 for selected_series in study_selected_series.selected_series:
                     dicom_series = selected_series.series
                     break
@@ -178,7 +199,7 @@ class DICOMTextSRWriterOperator(Operator):
         # Now ready to starting writing the DICOM instance
         self.write(result_text, dicom_series, self.output_folder)
 
-    def write(self, content_text, dicom_series: Optional[DICOMSeries], output_dir: Path):
+    def write(self, content_text, dicom_series: DICOMSeries | None, output_dir: Path):
         """Writes DICOM object
 
         Args:
@@ -194,7 +215,7 @@ class DICOMTextSRWriterOperator(Operator):
         if not content_text or not len(content_text.strip()):
             raise ValueError("Content is empty.")
         if not isinstance(output_dir, Path):
-            raise ValueError("output_dir is not a valid Path.")
+            raise TypeError("output_dir is not a valid Path.")
 
         output_dir.mkdir(parents=True, exist_ok=True)  # Just in case
 
@@ -265,9 +286,20 @@ class DICOMTextSRWriterOperator(Operator):
                 if isinstance(k, str) and isinstance(v, str):
                     try:
                         ds.update({k: v})
-                    except Exception as ex:
+                    except (
+                        ArithmeticError,
+                        AssertionError,
+                        AttributeError,
+                        EOFError,
+                        ImportError,
+                        LookupError,
+                        OSError,
+                        RuntimeError,
+                        TypeError,
+                        ValueError,
+                    ) as ex:
                         # Best effort for now.
-                        logging.warning(f"Tag {k} was not written, due to {ex}")
+                        logger.warning(f"Tag {k} was not written, due to {ex}")
 
         # Instance file name is the same as the new SOP instance UID
         file_path = output_dir.joinpath(

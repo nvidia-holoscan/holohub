@@ -15,8 +15,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List, Optional
-
 import numpy as np
 import pipeline_visualization.flatbuffers.IOType
 import plotly.express as px
@@ -34,9 +32,9 @@ from styles import (
 
 def create_graph(
     name: str,
-    message: Optional[object] = None,
-    data: Optional[np.ndarray] = None,
-    id_type: Optional[str] = None,
+    message: object | None = None,
+    data: np.ndarray | None = None,
+    id_type: str | None = None,
 ):
     """
     Create a graph component with metadata display for a data stream.
@@ -140,7 +138,7 @@ def create_graph(
     )
 
 
-def create_app_layout(unique_ids: Optional[List[str]] = None):
+def create_app_layout(unique_ids: list[str] | None = None):
     """
     Create the application layout for the visualizer.
 

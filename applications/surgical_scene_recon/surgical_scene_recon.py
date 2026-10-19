@@ -147,7 +147,7 @@ class SceneReconInferenceApp(Application):
                 headless=False,
                 width=win_w,
                 height=win_h,
-                tensors=[dict(name="composite", type="color")],
+                tensors=[{"name": "composite", "type": "color"}],
                 window_title="G-SHARP: Source | Depth | Mask",
             )
 

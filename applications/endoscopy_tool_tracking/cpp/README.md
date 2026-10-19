@@ -105,6 +105,11 @@ See the Holoscan Deltacast external module repository for more details: <https:/
 
 - Using the Slang shader operator for post-processing
 
+    > **Note:** This mode is not supported on the IGX Thor iGPU platform. The limitation is in HoloHub's
+    > `SlangShaderOp` (the Slang compiler version it bundles emits PTX the platform's CUDA driver rejects),
+    > not in Slang itself. See
+    > [SlangShaderOp unsupported platforms](../../../operators/slang_shader/README.md#unsupported-platforms).
+
     ```bash
     sed -i -e 's#^postprocessor:.*#postprocessor: slang_shader#' applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking.yaml
     applications/endoscopy_tool_tracking/cpp/endoscopy_tool_tracking

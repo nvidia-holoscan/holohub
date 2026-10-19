@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +15,7 @@
 import logging
 import sys
 from enum import Enum
-from typing import Dict, Union
+from typing import ClassVar
 
 import cupy as cp
 import numpy as np
@@ -54,13 +54,13 @@ class DLDataTypeCode(Enum):
 class TensorProto:
     NULL_KEY_NAME = "__NULL__"
 
-    STORAGE_TYPES = {
+    STORAGE_TYPES: ClassVar = {
         holoscan_proto.Tensor.MemoryStorageType.kHost: DLDeviceType.DLCPU,
         holoscan_proto.Tensor.MemoryStorageType.kDevice: DLDeviceType.DLCUDA,
         holoscan_proto.Tensor.MemoryStorageType.kSystem: DLDeviceType.DLCUDAHOST,
     }
 
-    PRIMITIVE_TYPES = {
+    PRIMITIVE_TYPES: ClassVar = {
         holoscan_proto.Tensor.PrimitiveType.kUnsigned8: np.uint8,
         holoscan_proto.Tensor.PrimitiveType.kUnsigned16: np.uint16,
         holoscan_proto.Tensor.PrimitiveType.kFloat32: np.float32,
@@ -71,14 +71,14 @@ class TensorProto:
         TensorProto._gxf_tensors_to_proto_tensors(gxf_entity, response.tensors)
 
     @staticmethod
-    def tensor_to_proto(gxf_entity: Dict) -> holoscan_proto.EntityRequest:
+    def tensor_to_proto(gxf_entity: dict) -> holoscan_proto.EntityRequest:
         entity_request = holoscan_proto.EntityRequest()
         TensorProto._gxf_tensors_to_proto_tensors(gxf_entity, entity_request.tensors)
         return entity_request
 
     @staticmethod
     def proto_to_tensor(
-        entity_request: Union[holoscan_proto.EntityRequest, holoscan_proto.EntityResponse], context
+        entity_request: holoscan_proto.EntityRequest | holoscan_proto.EntityResponse, context
     ) -> Entity:
         gxf_entity = Entity(context)
         TensorProto._proto_tensors_to_gxf_tensors(entity_request, gxf_entity)
@@ -115,7 +115,7 @@ class TensorProto:
                     tensor.data = cp.asnumpy(cp_array).tobytes()
 
             except Exception as e:
-                logger.error(f"Failed to convert tensor with key {key}: {str(e)}")
+                logger.error(f"Failed to convert tensor with key {key}: {e!s}")
                 raise
 
     @staticmethod
@@ -143,7 +143,7 @@ class TensorProto:
 
                 gxf_entity.add(tensor, key if key != TensorProto.NULL_KEY_NAME else "")
             except Exception as e:
-                logger.error(f"Failed to convert tensor with key {key}: {str(e)}")
+                logger.error(f"Failed to convert tensor with key {key}: {e!s}")
                 raise
 
     @staticmethod

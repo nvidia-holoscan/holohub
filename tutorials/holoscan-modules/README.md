@@ -18,9 +18,9 @@ Browse published modules in the [Modules tab](https://nvidia-holoscan.github.io/
 
 ## Requirements
 
-- Holoscan SDK 0.4.2 or later
-- C++ compiler with C++17 support or Python 3.8+
-- CMake 3.20 or later (for C++ modules)
+- Holoscan SDK 4.2.0 or later
+- Python 3.10 or later
+- C++17-capable compiler and CMake 3.24 or later (for C++ modules)
 
 ## Examples
 

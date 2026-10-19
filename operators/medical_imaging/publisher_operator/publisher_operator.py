@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,6 @@ import logging
 from os import getcwd, makedirs, path
 from pathlib import Path
 from shutil import copy
-from typing import Union
 
 from holoscan.core import Operator
 
@@ -38,8 +37,8 @@ class PublisherOperator(Operator):
     def __init__(
         self,
         *args,
-        input_folder: Union[str, Path],
-        output_folder: Union[str, Path],
+        input_folder: str | Path,
+        output_folder: str | Path,
         **kwargs,
     ):
         """Class to write DICOM Encapsulated PDF Instance with PDF bytes in memory or in a file.
@@ -49,7 +48,7 @@ class PublisherOperator(Operator):
             output_folder (str or Path): The folder to save the published files.
         """
 
-        self._logger = logging.getLogger("{}.{}".format(__name__, type(self).__name__))
+        self._logger = logging.getLogger(f"{__name__}.{type(self).__name__}")
 
         # Need to get the input folder in init until the execution context supports input path.
         self.input_folder = (

@@ -79,7 +79,18 @@ def main():
     try:
         with Tracker(app, filename=log_file) as tracker:  # noqa: F841
             app.run()
-    except Exception as e:
+    except (
+        ArithmeticError,
+        AssertionError,
+        AttributeError,
+        EOFError,
+        ImportError,
+        LookupError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ) as e:
         print(f"Error: {e}")
 
     if os.path.exists(log_file):

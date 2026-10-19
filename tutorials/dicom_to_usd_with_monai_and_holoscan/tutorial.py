@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -75,7 +75,7 @@ class AISpleenSegmentationApp(Application):
     def __init__(self, *args, existing_stage, **kwargs):
         """Creates an application instance."""
         self._existing_stage = existing_stage
-        self._logger = logging.getLogger("{}.{}".format(__name__, type(self).__name__))
+        self._logger = logging.getLogger(f"{__name__}.{type(self).__name__}")
         super().__init__(*args, **kwargs)
 
     def run(self, *args, **kwargs):
@@ -143,7 +143,7 @@ class AISpleenSegmentationApp(Application):
             self, CountCondition(self, 1), g_stage=self._existing_stage, name="nt"
         )
         self.add_flow(stl_conversion_op, nt_op, {("stl_bytes", "stl_bytes")})
-        logging.info(f"End {self.compose.__name__}")
+        logger.info(f"End {self.compose.__name__}")
 
 
 def main():
@@ -180,7 +180,7 @@ def main():
     # Set the default prim as an assembly to support using component references
     Usd.ModelAPI(default_prim).SetKind(Kind.Tokens.assembly)
 
-    logging.debug(f"Stage: {existing_stage}")
+    logger.debug(f"Stage: {existing_stage}")
 
     myapp = AISpleenSegmentationApp(existing_stage=existing_stage)
     myapp.run()

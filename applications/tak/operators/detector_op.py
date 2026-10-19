@@ -21,7 +21,6 @@ import json
 import logging
 import os
 import time
-from typing import List, Optional
 
 import cupy as cp
 import holoscan as hs
@@ -44,10 +43,10 @@ class DetectorOp(Operator):
         *args,
         model_path: str,
         confidence: float = 0.5,
-        label_map: Optional[dict[int, str]] = None,
-        imgsz: Optional[int] = 640,
-        letterbox_meta_path: Optional[str] = None,
-        bytetrack_path: Optional[str] = None,
+        label_map: dict[int, str] | None = None,
+        imgsz: int | None = 640,
+        letterbox_meta_path: str | None = None,
+        bytetrack_path: str | None = None,
         **kwargs,
     ):
         super().__init__(fragment, *args, **kwargs)
@@ -57,9 +56,9 @@ class DetectorOp(Operator):
         self.imgsz = imgsz
         self.letterbox_meta_path = letterbox_meta_path
         self.bytrack_path = bytetrack_path
-        self.letterbox_meta: Optional[dict] = None
+        self.letterbox_meta: dict | None = None
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.model: Optional[YOLO] = None
+        self.model: YOLO | None = None
 
     def setup(self, spec: OperatorSpec):
         spec.input("in")
@@ -166,10 +165,10 @@ class DetectorOp(Operator):
             frame_for_model.shape[0],
         )
 
-        boxes_xyxy: List[List[float]] = []
-        labels: List[int] = []
-        confs: List[float] = []
-        track_ids: Optional[List[int]] = None
+        boxes_xyxy: list[list[float]] = []
+        labels: list[int] = []
+        confs: list[float] = []
+        track_ids: list[int] | None = None
         if results and results[0].boxes is not None:
             b = results[0].boxes
             boxes_xyxy = b.xyxy.cpu().numpy().tolist()

@@ -16,7 +16,7 @@
 """Base layers."""
 
 from collections.abc import Sequence
-from typing import Dict, NamedTuple, Optional
+from typing import NamedTuple
 
 import torch
 from tapnet.tapnext.pscan import pscan
@@ -388,8 +388,8 @@ class RecurrentBlock(nn.Module):
         )
 
     def forward(
-        self, x: torch.Tensor, cache: Optional[Dict] = None, use_linear_scan: bool = True
-    ) -> tuple[torch.Tensor, Dict]:
+        self, x: torch.Tensor, cache: dict | None = None, use_linear_scan: bool = True
+    ) -> tuple[torch.Tensor, dict]:
         y = self.linear_y(x)
         y = gelu(y)
         x = self.linear_x(x)
@@ -420,7 +420,7 @@ class RecurrentBlock(nn.Module):
         dtype: torch.dtype,
         conv1d_temporal_width: int = 4,
         device: str | torch.device | None = None,
-    ) -> Dict:
+    ) -> dict:
         """Initializes an empty RG-LRU and Conv1D cache for the block."""
         rg_lru_state = RGLRU.init_cache(
             batch_size=batch_size,
@@ -526,7 +526,7 @@ class ResidualBlock(nn.Module):
             dtype=dtype,
         )
 
-    def forward(self, x: torch.Tensor, cache: Optional[Dict] = None, use_linear_scan: bool = True):
+    def forward(self, x: torch.Tensor, cache: dict | None = None, use_linear_scan: bool = True):
         raw_x = x
         inputs_normalized = self.temporal_pre_norm(raw_x)
         x, cache = self.recurrent_block(inputs_normalized, cache, use_linear_scan)
@@ -545,7 +545,7 @@ class ResidualBlock(nn.Module):
         lru_width: int | None = None,
         conv1d_temporal_width: int = 4,
         device: str | torch.device | None = None,
-    ) -> Dict:
+    ) -> dict:
         """Initializes an empty cache for the block."""
         return RecurrentBlock.init_cache(
             batch_size=batch_size,

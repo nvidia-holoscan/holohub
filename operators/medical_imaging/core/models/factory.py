@@ -1,5 +1,5 @@
 #!/bin/bash
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +15,6 @@
 # limitations under the License.
 
 from pathlib import Path
-from typing import Optional, Tuple, Type, Union
 
 from .model import Model
 
@@ -24,7 +23,7 @@ class ModelFactory:
     """ModelFactory is a class that provides a way to create a model object."""
 
     @staticmethod
-    def create(path: Union[str, Path], name: str = "", model_type: str = "") -> Optional[Model]:
+    def create(path: str | Path, name: str = "", model_type: str = "") -> Model | None:
         """Creates a model object.
 
         Args:
@@ -44,9 +43,7 @@ class ModelFactory:
             return None
 
     @staticmethod
-    def detect_model_type(
-        path: Union[str, Path], model_type: str = ""
-    ) -> Tuple[str, Optional[Type[Model]]]:
+    def detect_model_type(path: str | Path, model_type: str = "") -> tuple[str, type[Model] | None]:
         """Detects the model type based on a model path.
 
         Args:

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -93,8 +93,7 @@ class RealtimeAsrOp(Operator):
 
     def _req_generator(self):
         yield rasr.StreamingRecognizeRequest(streaming_config=self.streaming_rasr_config)
-        for b in self.batch:
-            yield b
+        yield from self.batch
 
     def _get_audio_length(self):
         pcm_dtype = np.int16

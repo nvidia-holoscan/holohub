@@ -73,15 +73,23 @@ def update_op_edge_latency(
 def parse_log(
     log_file,
     startline=0,
-    operator_avg_latencies={},
-    operator_max_latencies={},
-    edge_avg_latencies={},
-    edge_max_latencies={},
+    operator_avg_latencies=None,
+    operator_max_latencies=None,
+    edge_avg_latencies=None,
+    edge_max_latencies=None,
     num_samples=0,
     skip_begin_messages=10,
     discard_last_messages=10,
     livefile=False,
 ):
+    if edge_max_latencies is None:
+        edge_max_latencies = {}
+    if edge_avg_latencies is None:
+        edge_avg_latencies = {}
+    if operator_max_latencies is None:
+        operator_max_latencies = {}
+    if operator_avg_latencies is None:
+        operator_avg_latencies = {}
     with open(log_file, "r") as f:
         read_lines = 0
         if startline:
@@ -157,14 +165,14 @@ def create_graph(
             op,
             color=color,
             penwidth=penwidth,
-            label="{}\navg: {:.2f}\nmax: {:.2f}".format(op, latency, operator_max_latencies[op]),
+            label=f"{op}\navg: {latency:.2f}\nmax: {operator_max_latencies[op]:.2f}",
         )
         graph.add_node(node)
     for edge, latency in edge_avg_latencies.items():
         edge = pydot.Edge(
             edge[0],
             edge[1],
-            label="avg: {:.2f}\nmax: {:.2f}".format(latency, edge_max_latencies[edge]),
+            label=f"avg: {latency:.2f}\nmax: {edge_max_latencies[edge]:.2f}",
         )
         graph.add_edge(edge)
     return graph
@@ -172,8 +180,8 @@ def create_graph(
 
 # add graph labels
 def add_graph_labels(graph, num_samples):
-    graph.set_label("Application Performance Graph (latency in ms)\n\
-        Number of messages at sink: {}".format(num_samples))
+    graph.set_label(f"Application Performance Graph (latency in ms)\n\
+        Number of messages at sink: {num_samples}")
     graph.set_fontname("Arial")
     graph.set_fontsize(20)
     graph.set_fontcolor("black")
@@ -219,23 +227,23 @@ def parse_arguments():
         # check if the files exist
         for filename in filenames:
             if not os.path.isfile(filename):
-                print("Error: File {} does not exist or is not a file.".format(filename))
+                print(f"Error: File {filename} does not exist or is not a file.")
                 sys.exit()
     else:
         directory = args.filenames[0]
-        print("In live mode. The program will keep updating the graph with new \
-                performance data in the provided folder {}.\
-                Press Ctrl+C to stop.".format(directory))
+        print(f"In live mode. The program will keep updating the graph with new \
+                performance data in the provided folder {directory}.\
+                Press Ctrl+C to stop.")
         if len(args.filenames) > 1:
-            print("\033[91mfilenames arguments has {} values. In live mode,\
+            print(f"\033[91mfilenames arguments has {len(args.filenames)} values. In live mode,\
                     only one folder is acceptable. Provide one folder as filenames\
-                    in live mode. Exiting.\033[0m".format(len(args.filenames)))
+                    in live mode. Exiting.\033[0m")
             parser.print_help()
             sys.exit()
         # check if directory is a folder
         if not os.path.isdir(directory):
-            print("\033[91mThe folder {} does not exist or is not a folder.\
-                    In live mode, a folder needs to be provided. Exiting.\033[0m".format(directory))
+            print(f"\033[91mThe folder {directory} does not exist or is not a folder.\
+                    In live mode, a folder needs to be provided. Exiting.\033[0m")
             parser.print_help()
             sys.exit()
 
@@ -244,7 +252,6 @@ def parse_arguments():
 
 def create_dot_file(filenames, output_filename, live_graph, verbose, highlight):
     if not live_graph:
-        filenames = filenames
         operator_avg_latencies = {}
         operator_max_latencies = {}
         edge_avg_latencies = {}
@@ -278,9 +285,7 @@ def create_dot_file(filenames, output_filename, live_graph, verbose, highlight):
         graph = add_graph_labels(graph, num_samples)
         graph.write(output_filename)
         if verbose:
-            print(
-                "The graph with performance numbers is written to file {}".format(output_filename)
-            )
+            print(f"The graph with performance numbers is written to file {output_filename}")
     else:
         # live mode
         directory = filenames[0]
@@ -295,9 +300,7 @@ def create_dot_file(filenames, output_filename, live_graph, verbose, highlight):
             if len(log_files) == 0:
                 if verbose:
                     print(
-                        "No log files (files ending with .log extension) is found in the folder {}.".format(
-                            directory
-                        )
+                        f"No log files (files ending with .log extension) is found in the folder {directory}."
                     )
                     print("sleeping for 1 seconds")
                 time.sleep(1)
@@ -338,16 +341,12 @@ def create_dot_file(filenames, output_filename, live_graph, verbose, highlight):
                         highlight,
                     )
                     if verbose:
-                        print(
-                            "Read file {} - Line number: {}".format(filename, read_files[filename])
-                        )
+                        print(f"Read file {filename} - Line number: {read_files[filename]}")
                     graph = add_graph_labels(graph, num_samples)
                     graph.write(output_filename)
                     if verbose:
                         print(
-                            "The graph with performance numbers is updated in file {}".format(
-                                output_filename
-                            )
+                            f"The graph with performance numbers is updated in file {output_filename}"
                         )
 
             if verbose:

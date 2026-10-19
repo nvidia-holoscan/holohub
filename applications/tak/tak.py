@@ -137,7 +137,7 @@ class TAKApp(Application):
             self,
             name="holoviz",
             tensors=[
-                dict(name="", type="color"),
+                {"name": "", "type": "color"},
             ],
             window_close_callback=self.on_window_closed,
             **self.kwargs("holoviz"),
@@ -216,7 +216,7 @@ def main():
     tak_host_override = None
     tak_host_raw = os.getenv("TAK_HOST")
     if tak_host_raw is not None:
-        if tak_host_raw.startswith("http://") or tak_host_raw.startswith("https://"):
+        if tak_host_raw.startswith(("http://", "https://")):
             from urllib.parse import urlparse
 
             tak_host_override = urlparse(tak_host_raw).hostname or ""
@@ -235,7 +235,18 @@ def main():
         if effective_host is None:
             effective_host = tak_cot_cfg.get("tak_host", "localhost")
         effective_port = tak_cot_cfg.get("tak_port")
-    except Exception:
+    except (
+        ArithmeticError,
+        AssertionError,
+        AttributeError,
+        EOFError,
+        ImportError,
+        LookupError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ):
         if effective_host is None:
             effective_host = "localhost"
 
@@ -260,13 +271,12 @@ def main():
             os.environ.setdefault("OTS_COT_PORT", str(effective_port))
 
         tak_logger.info("Starting OpenTAKServer services...")
-        ots_log = open("/tmp/ots_start.log", "w")
-        ots_proc = subprocess.Popen(
-            ["bash", "-u", ots_script],
-            stdout=ots_log,
-            stderr=subprocess.STDOUT,
-        )
-        ots_log.close()
+        with open("/tmp/ots_start.log", "w") as ots_log:
+            ots_proc = subprocess.Popen(
+                ["bash", "-u", ots_script],
+                stdout=ots_log,
+                stderr=subprocess.STDOUT,
+            )
         # Tail the log in a background thread so OTS progress is visible
         import threading
 

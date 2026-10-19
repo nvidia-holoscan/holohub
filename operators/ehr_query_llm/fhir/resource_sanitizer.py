@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@ import base64
 import json
 import logging
 import re
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import pydantic
 from fhir.resources.R4B import FHIRAbstractModel, construct_fhir_element
@@ -51,7 +51,7 @@ class FHIRResourceSanitizer:
     """
 
     @staticmethod
-    def sanitize(data: Dict) -> Optional[Dict]:
+    def sanitize(data: dict) -> dict | None:
         """
         The sanitize method extracts wanted data, removes non-compliant entries, and then transforms
         the data structure so the AI model can better understand the details of a given FHIR record.
@@ -121,7 +121,7 @@ class FHIRResourceSanitizer:
         # If using fhir.resources 7.0.0, then the error type is
         #      pydantic.error_wrappers.ValidationError
         except pydantic.v1.error_wrappers.ValidationError:
-            logger.error("Validation error while processing: ", resource)
+            logger.error("Validation error while processing: %s", resource)
             return None
 
         if resource_type in map:
@@ -130,16 +130,16 @@ class FHIRResourceSanitizer:
             raise NotImplementedError(f"{resource_type} type, id={model.id}")
 
     @staticmethod
-    def _no_op(original_data: Dict, model: Any) -> None:
+    def _no_op(original_data: dict, model: Any) -> None:
         """For unsupported FHIR resources
 
         Returns:
             None
         """
-        return None
+        return
 
     @staticmethod
-    def imaging_study(original_data: Dict, model: ImagingStudy) -> Dict:
+    def imaging_study(original_data: dict, model: ImagingStudy) -> dict:
         """Handles FHIR resource type: ImagingStudy"""
         sanitized_data, resource = FHIRResourceSanitizer._new_resource(original_data, model)
         resource["studyInstanceUids"] = [
@@ -154,7 +154,7 @@ class FHIRResourceSanitizer:
         return sanitized_data
 
     @staticmethod
-    def _series(resource: Dict, series: ImagingStudySeries) -> Dict:
+    def _series(resource: dict, series: ImagingStudySeries) -> dict:
         output = []
         for s in series:
             new_series = {}
@@ -176,7 +176,7 @@ class FHIRResourceSanitizer:
         return output
 
     @staticmethod
-    def allergy_intolerance(original_data: Dict, model: AllergyIntolerance) -> Dict:
+    def allergy_intolerance(original_data: dict, model: AllergyIntolerance) -> dict:
         """Handles FHIR resource type: AllergyIntolerance"""
         sanitized_data, resource = FHIRResourceSanitizer._new_resource(original_data, model)
         resource["clinical_status"] = ",".join(
@@ -198,7 +198,7 @@ class FHIRResourceSanitizer:
         return sanitized_data
 
     @staticmethod
-    def immunization(original_data: Dict, model: Immunization) -> Dict:
+    def immunization(original_data: dict, model: Immunization) -> dict:
         """Handles FHIR resource type: Immunization"""
         sanitized_data, resource = FHIRResourceSanitizer._new_resource(original_data, model)
         resource["vaccines"] = model.vaccineCode.text
@@ -207,7 +207,7 @@ class FHIRResourceSanitizer:
         return sanitized_data
 
     @staticmethod
-    def procedure(original_data: Dict, model: Procedure) -> Dict:
+    def procedure(original_data: dict, model: Procedure) -> dict:
         """Handles FHIR resource type: Procedure"""
         sanitized_data, resource = FHIRResourceSanitizer._new_resource(original_data, model)
         resource["procedure"] = [item.display for item in model.code.coding]
@@ -232,7 +232,7 @@ class FHIRResourceSanitizer:
         return sanitized_data
 
     @staticmethod
-    def service_request(original_data: Dict, model: ServiceRequest) -> Dict:
+    def service_request(original_data: dict, model: ServiceRequest) -> dict:
         """Handles FHIR resource type: Procedure"""
         sanitized_data, resource = FHIRResourceSanitizer._new_resource(original_data, model)
 
@@ -250,7 +250,7 @@ class FHIRResourceSanitizer:
         return sanitized_data
 
     @staticmethod
-    def care_plan(original_data: Dict, model: CarePlan) -> Dict:
+    def care_plan(original_data: dict, model: CarePlan) -> dict:
         """Handles FHIR resource type: CarePlan"""
         sanitized_data, resource = FHIRResourceSanitizer._new_resource(original_data, model)
         resource["date"] = model.period.start.isoformat()
@@ -267,7 +267,7 @@ class FHIRResourceSanitizer:
         return sanitized_data
 
     @staticmethod
-    def medication(original_data: Dict, model: Medication) -> Dict:
+    def medication(original_data: dict, model: Medication) -> dict:
         """Handles FHIR resource type: Medication"""
         sanitized_data, resource = FHIRResourceSanitizer._new_resource(original_data, model)
         resource["medication"] = [
@@ -276,7 +276,7 @@ class FHIRResourceSanitizer:
         return sanitized_data
 
     @staticmethod
-    def medication_request(original_data: Dict, model: MedicationRequest) -> Dict:
+    def medication_request(original_data: dict, model: MedicationRequest) -> dict:
         """Handles FHIR resource type: MedicationRequest"""
         sanitized_data, resource = FHIRResourceSanitizer._new_resource(original_data, model)
         resource["intent"] = model.intent
@@ -293,7 +293,7 @@ class FHIRResourceSanitizer:
         return sanitized_data
 
     @staticmethod
-    def medication_statement(original_data: Dict, model: MedicationStatement) -> Dict:
+    def medication_statement(original_data: dict, model: MedicationStatement) -> dict:
         """Handles FHIR resource type: MedicationStatement"""
         sanitized_data, resource = FHIRResourceSanitizer._new_resource(original_data, model)
 
@@ -309,7 +309,7 @@ class FHIRResourceSanitizer:
         return sanitized_data
 
     @staticmethod
-    def document_reference(original_data: Dict, model: DocumentReference) -> Dict:
+    def document_reference(original_data: dict, model: DocumentReference) -> dict:
         """Handles FHIR resource type: DocumentReference"""
         sanitized_data, resource = FHIRResourceSanitizer._new_resource(original_data, model)
 
@@ -331,7 +331,7 @@ class FHIRResourceSanitizer:
         return sanitized_data
 
     @staticmethod
-    def diagnostic_report(original_data: Dict, model: DiagnosticReport) -> Dict:
+    def diagnostic_report(original_data: dict, model: DiagnosticReport) -> dict:
         """Handles FHIR resource type: DiagnosticReport"""
         sanitized_data, resource = FHIRResourceSanitizer._new_resource(original_data, model)
 
@@ -367,7 +367,7 @@ class FHIRResourceSanitizer:
         return sanitized_data
 
     @staticmethod
-    def condition(original_data: Dict, model: Condition) -> Dict:
+    def condition(original_data: dict, model: Condition) -> dict:
         """Handles FHIR resource type: Condition"""
         sanitized_data, resource = FHIRResourceSanitizer._new_resource(original_data, model)
         resource["clinical_status"] = ",".join(
@@ -416,7 +416,7 @@ class FHIRResourceSanitizer:
         return sanitized_data
 
     @staticmethod
-    def encounter(original_data: Dict, model: Encounter) -> Dict:
+    def encounter(original_data: dict, model: Encounter) -> dict:
         """Handles FHIR resource type: Encounter"""
         sanitized_data, resource = FHIRResourceSanitizer._new_resource(original_data, model)
 
@@ -440,7 +440,7 @@ class FHIRResourceSanitizer:
         return sanitized_data
 
     @staticmethod
-    def family_member_history(original_data: Dict, model: FamilyMemberHistory) -> Dict:
+    def family_member_history(original_data: dict, model: FamilyMemberHistory) -> dict:
         """Handles FHIR resource type: FamilyMemberHistory"""
         sanitized_data, resource = FHIRResourceSanitizer._new_resource(original_data, model)
         relationships = []
@@ -460,7 +460,7 @@ class FHIRResourceSanitizer:
         return sanitized_data
 
     @staticmethod
-    def patient(original_data: Dict, model: Patient) -> Dict:
+    def patient(original_data: dict, model: Patient) -> dict:
         """Handles FHIR resource type: Patient"""
         sanitized_data, resource = FHIRResourceSanitizer._new_resource(original_data, model)
         resource["names"] = []
@@ -472,7 +472,7 @@ class FHIRResourceSanitizer:
         return sanitized_data
 
     @staticmethod
-    def observation(original_data: Dict, model: Observation) -> Dict:
+    def observation(original_data: dict, model: Observation) -> dict:
         """Handles FHIR resource type: Observation"""
         sanitized_data, resource = FHIRResourceSanitizer._new_resource(original_data, model)
         resource["status"] = model.status
@@ -525,7 +525,7 @@ class FHIRResourceSanitizer:
                 raise NotImplementedError("value type")
 
     @staticmethod
-    def _parse_document_references(document_references: List[DocumentReferenceContent]) -> List:
+    def _parse_document_references(document_references: list[DocumentReferenceContent]) -> list:
         """Attempts to parse given document references.
 
         Raises:
@@ -546,7 +546,7 @@ class FHIRResourceSanitizer:
         return docs
 
     @staticmethod
-    def _parse_attachments(attachments: List[Attachment]) -> Dict[str, Any]:
+    def _parse_attachments(attachments: list[Attachment]) -> dict[str, Any]:
         """Attempts to parse attachments.
 
         Returns:
@@ -560,7 +560,7 @@ class FHIRResourceSanitizer:
         return docs
 
     @staticmethod
-    def _parse_attachment(attachment: Attachment) -> Tuple[str, Any]:
+    def _parse_attachment(attachment: Attachment) -> tuple[str, Any]:
         """Parses a single attachment.
 
         Returns:
@@ -612,7 +612,7 @@ class FHIRResourceSanitizer:
         return "Unknown"
 
     @staticmethod
-    def _new_resource(original_data: Dict, model: FHIRAbstractModel) -> Dict:
+    def _new_resource(original_data: dict, model: FHIRAbstractModel) -> dict:
         """Creates a sanitized resource dictionary with common/shared attributes"""
         sanitized_data = {}
         resource = {}
@@ -623,7 +623,7 @@ class FHIRResourceSanitizer:
         return sanitized_data, resource
 
     @staticmethod
-    def _allergy_reaction(reactions: AllergyIntoleranceReaction) -> Dict:
+    def _allergy_reaction(reactions: AllergyIntoleranceReaction) -> dict:
         """Parses AllergyIntoleranceReaction"""
         data = {}
         for reaction in reactions:
@@ -662,13 +662,13 @@ if __name__ == "__main__":
         if entry_items:
             print(f"'entry' attribute exists, containing {len(entry_items)} itenms.\n")
 
-        for key in patient_resources.keys():
+        for key in patient_resources:
             for entry_item in patient_resources[key]:
                 if type(entry_item) is dict:
                     try:
                         sanitized_record = FHIRResourceSanitizer.sanitize(entry_item)
                         print(f"{sanitized_record}\n")
                     except NotImplementedError as e:
-                        logging.warning(e)
+                        logger.warning(e)
     else:
         print(f"Test data file is not found as expected at {data_path}.")

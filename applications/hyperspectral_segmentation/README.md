@@ -10,6 +10,14 @@ The data is a subset of the [HeiPorSPECTRAL](https://www.heiporspectral.org/) da
 
 [📦️ (NGC) App Data and Model for Hyperspectral Segmentation](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara-holoscan/resources/hyperspectral_segmentation).  This resource is automatically downloaded when building the application.
 
+The Blosc reader supports the existing dataset's numeric array headers. It rejects
+metadata that requires arbitrary Python objects and checks the decompressed size
+against the array shape and dtype before constructing an array.
+Shape dimensions and named-array lengths must be built-in Python integers, as in
+the upstream writer's `array.shape` and `len(compressed_data)` values. Custom
+writers should normalize dimensions with `tuple(int(size) for size in shape)`
+before serializing them; NumPy scalar metadata is not supported.
+
 ## Run Instructions
 
 This application requires some python modules to be installed. You can simply use Holohub CLI to build and run the application.
@@ -24,6 +32,18 @@ To build and run the container without building the application, you can use the
 
 ```bash
 ./holohub run-container hyperspectral_segmentation
+```
+
+## Tests
+
+`./holohub test hyperspectral_segmentation` runs the input regression suite and
+the existing application smoke test through CTest. To run only the input tests
+without downloading the dataset or model:
+
+```bash
+./holohub test hyperspectral_segmentation \
+  --cmake-options="-DHOLOHUB_DOWNLOAD_DATASETS=OFF" \
+  --ctest-options="-DCTEST_TEST_INCLUDE=^hyperspectral_segmentation_input_test$"
 ```
 
 ## Viewing Results

@@ -5,8 +5,8 @@
 
 import cv2
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
 from torchvision.transforms import Compose
 
 from .dinov2 import DINOv2
@@ -49,7 +49,7 @@ class DPTHead(nn.Module):
         out_channels=None,
         use_clstoken=False,
     ):
-        super(DPTHead, self).__init__()
+        super().__init__()
         if out_channels is None:
             out_channels = [256, 512, 1024, 1024]
 
@@ -186,7 +186,7 @@ class DepthAnythingV2(nn.Module):
         use_clstoken=False,
         max_depth=20.0,
     ):
-        super(DepthAnythingV2, self).__init__()
+        super().__init__()
         if out_channels is None:
             out_channels = [256, 512, 1024, 1024]
 

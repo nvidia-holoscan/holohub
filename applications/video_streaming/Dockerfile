@@ -62,10 +62,10 @@ ENV PKG_CONFIG_PATH="/usr/local/ssl/lib64/pkgconfig:${PKG_CONFIG_PATH}"
 
 # Install NGC CLI following official instructions
 WORKDIR /tmp/ngc-install
-RUN wget --no-check-certificate --content-disposition https://api.ngc.nvidia.com/v2/resources/nvidia/ngc-apps/ngc_cli/versions/3.151.0/files/ngccli_linux.zip -O ngccli_linux.zip && \
+RUN wget --content-disposition https://api.ngc.nvidia.com/v2/resources/nvidia/ngc-apps/ngc_cli/versions/4.34.10/files/ngccli_linux.zip -O ngccli_linux.zip && \
+    # Verify SHA256 before extraction
+    echo "58bc4d7b6901551a095ce5a43a0065b1c22d5eaf1a164d40029ee3fda11ccd47 ngccli_linux.zip" | sha256sum --check && \
     unzip ngccli_linux.zip && \
-    # Verify SHA256
-    echo "834aeebcdfee2f6db61744dbae5f976c4e3a7a4a9aa99d23dd1ed2928a2abd60 ngccli_linux.zip" | sha256sum --check && \
     # Make NGC CLI executable and add to path
     chmod u+x ngc-cli/ngc && \
     # Install to system path

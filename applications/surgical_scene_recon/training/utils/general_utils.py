@@ -25,8 +25,6 @@ General utility functions for EndoGaussian.
 MIT-licensed clean-room implementation.
 """
 
-from typing import Optional, Tuple
-
 import numpy as np
 import torch
 from PIL import Image
@@ -52,9 +50,7 @@ def inverse_sigmoid(x: torch.Tensor, eps: float = 1e-7) -> torch.Tensor:
     return torch.log(x_clamped / (1.0 - x_clamped))
 
 
-def PILtoTorch(
-    pil_image: Image.Image, resolution: Optional[Tuple[int, int]] = None
-) -> torch.Tensor:
+def PILtoTorch(pil_image: Image.Image, resolution: tuple[int, int] | None = None) -> torch.Tensor:
     """
     Convert a PIL image to a PyTorch tensor.
 
@@ -102,7 +98,7 @@ def percentile_torch(t: torch.Tensor, q: float) -> float:
     """
     # Compute the k-th value index (1-based)
     # Note: kthvalue is 1-based, so k=1 gives the minimum value
-    k = 1 + int(round(0.01 * float(q) * (t.numel() - 1)))
+    k = 1 + round(0.01 * float(q) * (t.numel() - 1))
 
     # Get the k-th smallest value
     result = t.view(-1).kthvalue(k).values.item()

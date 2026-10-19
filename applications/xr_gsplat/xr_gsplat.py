@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +23,7 @@ import torch
 from gsplat_loader_op import GsplatLoaderOp
 from scipy.spatial.transform import Rotation
 
-import holohub.xr as xr
+from holohub import xr
 
 
 class XrGsplatOp(holoscan.core.Operator):

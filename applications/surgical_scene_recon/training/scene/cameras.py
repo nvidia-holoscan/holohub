@@ -99,7 +99,7 @@ class Camera(nn.Module):
             Znear: Near clipping plane (optional)
             Zfar: Far clipping plane (optional)
         """
-        super(Camera, self).__init__()
+        super().__init__()
 
         # Initialize default translation if not provided
         if trans is None:
@@ -118,7 +118,18 @@ class Camera(nn.Module):
         # Set up data device
         try:
             self.data_device = torch.device(data_device)
-        except Exception as e:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as e:
             print(e)
             print(f"[Warning] Custom device {data_device} failed, fallback to default cuda device")
             self.data_device = torch.device("cuda")

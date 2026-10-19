@@ -17,7 +17,6 @@
 import argparse
 import os
 import sys
-from typing import Optional
 
 import numpy as np
 import torch
@@ -44,9 +43,9 @@ class TapNextONNXWrapper(torch.nn.Module):
         self,
         video: torch.Tensor,
         query_points: torch.Tensor,
-        step: Optional[torch.Tensor] = None,
-        rg_lru_state: Optional[torch.Tensor] = None,
-        conv1d_state: Optional[torch.Tensor] = None,
+        step: torch.Tensor | None = None,
+        rg_lru_state: torch.Tensor | None = None,
+        conv1d_state: torch.Tensor | None = None,
     ):
         """
         Forward pass for ONNX export.
@@ -138,7 +137,7 @@ def export_to_onnx(
         torch.onnx.export(
             model,
             args=(),
-            kwargs=dict(video=video_tensor, query_points=query_points),
+            kwargs={"video": video_tensor, "query_points": query_points},
             f=os.path.join(output_path, name),
             export_params=True,
             opset_version=20,
@@ -159,13 +158,13 @@ def export_to_onnx(
         torch.onnx.export(
             model,
             args=(),
-            kwargs=dict(
-                video=video_tensor,
-                query_points=query_points,
-                step=step,
-                rg_lru_state=rg_lru_state,
-                conv1d_state=conv1d_state,
-            ),
+            kwargs={
+                "video": video_tensor,
+                "query_points": query_points,
+                "step": step,
+                "rg_lru_state": rg_lru_state,
+                "conv1d_state": conv1d_state,
+            },
             f=os.path.join(output_path, name),
             export_params=True,
             opset_version=20,

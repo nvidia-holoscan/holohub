@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -291,8 +291,8 @@ class FaceDetectApp(Application):
             "face_detect": os.path.join(self.sample_data_path, "resnet34_peoplenet_int8.onnx")
         }
 
-        device_map = dict()
-        if "device_map" in inference_args.keys():
+        device_map = {}
+        if "device_map" in inference_args:
             device_map = inference_args["device_map"]
             for k, v in device_map.items():
                 device_map[k] = str(v)

@@ -6,7 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
 import logging
-from typing import Any, List, Tuple
+from typing import Any
 
 import cupy as cp
 import numpy as np
@@ -74,9 +74,9 @@ class BuildRHSOperator(Operator):
         # NOTE: this is in-place on GPU, async on the current CUDA stream.
         cp.nan_to_num(data_rhs, copy=False, nan=0.0, posinf=0.0, neginf=0.0)
 
-    def _get_channel_indices(self, optode_order: List[Tuple[int, int, int, int]]) -> List[int]:
+    def _get_channel_indices(self, optode_order: list[tuple[int, int, int, int]]) -> list[int]:
         """Map optode tuples to jacobian channel indices (CPU-side dict lookups)."""
-        indices: List[int] = []
+        indices: list[int] = []
         for src_module, src, det_module, det in optode_order:
             try:
                 srcs = self._channel_mapping[str(src_module)]
@@ -115,7 +115,7 @@ class BuildRHSOperator(Operator):
                 logger.info("Skipping RHS build for first frame (baseline capture)")
                 return
 
-        flowaxis_optodes: List[Tuple[int, int, int, int]] = [
+        flowaxis_optodes: list[tuple[int, int, int, int]] = [
             (
                 payload.channels.source_module[channel_idx],
                 payload.channels.source_number[channel_idx],

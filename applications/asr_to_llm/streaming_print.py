@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,7 +50,7 @@ class StreamingPrintOp(Operator):
                 os.system("cls" if os.name == "nt" else "clear")
                 for line in self.transcription:
                     print(line, end="")
-                print("", end="", flush=True)
+                print(end="", flush=True)
                 self.transcription.append("")
                 num_chars_printed = 0
             else:
@@ -62,7 +62,7 @@ class StreamingPrintOp(Operator):
             os.system("cls" if os.name == "nt" else "clear")
             for line in self.temp_transcription:
                 print(line, end="")
-            print("", end="", flush=True)
+            print(end="", flush=True)
             num_chars_printed = len(partial_transcript) + 3
 
     def write_final_transcript(self, transcription):

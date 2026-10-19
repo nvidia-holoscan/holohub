@@ -1,5 +1,5 @@
 #!/bin/bash
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -80,7 +80,7 @@ class NamedModel(Model):
             return False, None
 
         # 2) The folder should contain only sub folders (model folders).
-        if not all((p.is_dir() for p in model_path.iterdir())):
+        if not all(p.is_dir() for p in model_path.iterdir()):
             return False, None
 
         for model_folder in model_path.iterdir():

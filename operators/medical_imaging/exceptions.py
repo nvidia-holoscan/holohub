@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,40 +17,26 @@
 class MedImagingError(Exception):
     """Base class for exceptions in this module."""
 
-    pass
-
 
 class ItemAlreadyExistsError(MedImagingError):
     """Raises when an item already exists in the container."""
-
-    pass
 
 
 class ItemNotExistsError(MedImagingError):
     """Raises when an item does not exist in the container."""
 
-    pass
-
 
 class IOMappingError(MedImagingError):
     """Raises when IO mapping is missing or invalid."""
-
-    pass
 
 
 class UnknownTypeError(MedImagingError):
     """Raises when unknown/wrong type/name is specified."""
 
-    pass
-
 
 class WrongValueError(MedImagingError):
     """Raises when wrong value is specified."""
 
-    pass
-
 
 class UnsupportedOperationError(MedImagingError):
     """Raises when unsupported operation is requested."""
-
-    pass

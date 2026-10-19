@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +36,18 @@ class SelectorAgent(Agent):
             selected_agent = response_data.get("selection")
             input_text = response_data.get("corrected input")
             return selected_agent, input_text
-        except Exception as e:  # Catching a broader range of exceptions
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as e:  # Catching a broader range of exceptions
             self._logger.error(f"Failed to parse response: {e}")
             return None, None
 

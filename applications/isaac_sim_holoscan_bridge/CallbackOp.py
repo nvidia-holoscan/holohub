@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable
+from collections.abc import Callable
 
 from holoscan.core import ConditionType, Operator, OperatorSpec
 
@@ -43,11 +43,13 @@ class CallbackOp(Operator):
         fragment,
         data_ready_callback: Callable,
         inputs: list[str],
-        optional_inputs: list[str] = [],
+        optional_inputs: list[str] | None = None,
         *args,
         **kwargs,
     ):
         # Store the callback function and input port names
+        if optional_inputs is None:
+            optional_inputs = []
         self._data_ready_callback = data_ready_callback
         self._inputs = inputs
         self._optional_inputs = optional_inputs
@@ -86,7 +88,7 @@ class CallbackOp(Operator):
             message = op_input.receive(input)
             # Extract the data from the message, the message is a dictionary, we ignore the key and
             # only get the first value
-            data = list(message.values())[0]
+            data = next(iter(message.values()))
             # Store the data in the dictionary using the input port name as the key
             data_dict[input] = data
 
@@ -94,7 +96,7 @@ class CallbackOp(Operator):
         for input in self._optional_inputs:
             message = op_input.receive(input)
             if message is not None:
-                data = list(message.values())[0]
+                data = next(iter(message.values()))
                 data_dict[input] = data
 
         # Execute the callback function with the collected data

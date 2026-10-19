@@ -16,6 +16,7 @@ limitations under the License.
 """
 
 import argparse
+from typing import ClassVar
 
 import cupy as cp
 import kvikio
@@ -47,8 +48,11 @@ def main():
             distribution, using an expected value given at each pixel by the Gaussian
         """
 
-        params = {"A": 5, "sigx": 12, "sigy": 9}  # 2D gaussian parameters
-        mu_scale = 1  # scaling for Poisson draws
+        params: ClassVar = {
+            "A": 5,
+            "sigx": 12,
+            "sigy": 9,
+        }  # 2D gaussian parameters        mu_scale = 1  # scaling for Poisson draws
 
         def __init__(self, xy0, v0):
             """2-tuples xy0 and v0"""

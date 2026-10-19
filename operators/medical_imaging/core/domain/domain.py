@@ -1,5 +1,5 @@
 ##!/bin/bash
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,13 +15,12 @@
 # limitations under the License.
 
 from abc import ABC
-from typing import Dict, Optional
 
 
 class Domain(ABC):
     """Domain Class."""
 
-    def __init__(self, metadata: Optional[Dict] = None):
+    def __init__(self, metadata: dict | None = None):
         """Initialize a Domain object.
 
         Args:
@@ -34,5 +33,5 @@ class Domain(ABC):
         else:
             self._metadata = {}
 
-    def metadata(self) -> Dict:
+    def metadata(self) -> dict:
         return self._metadata

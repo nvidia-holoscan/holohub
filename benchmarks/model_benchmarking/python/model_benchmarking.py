@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -92,7 +92,7 @@ class App(Application):
         pre_processor_map = {}
         inference_map = {}
 
-        for i in range(0, self.num_inferences):
+        for i in range(self.num_inferences):
             model_path_map[f"own_model_{i}"] = self.model_path
             pre_processor_map[f"own_model_{i}"] = ["source_video"]
             inference_map[f"own_model_{i}"] = [f"output{i}"]
@@ -109,7 +109,7 @@ class App(Application):
 
         holovizs = []
         if not self.only_inference and not self.inference_postprocessing:
-            for i in range(0, self.num_inferences):
+            for i in range(self.num_inferences):
                 viz = HolovizOp(self, name=f"holoviz{i}", **self.kwargs("viz"))
                 holovizs.append(viz)
                 # Passthrough to Visualization
@@ -126,7 +126,7 @@ class App(Application):
             return
 
         postprocessors = []
-        for i in range(0, self.num_inferences):
+        for i in range(self.num_inferences):
             in_tensor_name = f"output{i}"
             postprocessor = SegmentationPostprocessorOp(
                 self,
@@ -140,12 +140,12 @@ class App(Application):
 
         if self.inference_postprocessing:
             print("Inference and post-processing mode is on, no visualization will be done.")
-            for i in range(0, self.num_inferences):
+            for i in range(self.num_inferences):
                 sink = SinkOp(self, name=f"sink{i}")
                 self.add_flow(postprocessors[i], sink)
             return
 
-        for i in range(0, self.num_inferences):
+        for i in range(self.num_inferences):
             self.add_flow(postprocessors[i], holovizs[i], {("out_tensor", "receivers")})
 
 

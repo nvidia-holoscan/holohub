@@ -153,12 +153,10 @@ class LLM:
         # Get the most similar documents from the vector db
         docs = self.db.similarity_search_with_score(query=question, k=self.config.num_docs)
         # Filter out poor matches from vector db
-        docs = list(
-            map(
-                lambda lc_doc: lc_doc[0],
-                filter(lambda lc_doc: lc_doc[1] < self.config.search_threshold, docs),
-            )
-        )
+        docs = [
+            lc_doc[0]
+            for lc_doc in filter(lambda lc_doc: lc_doc[1] < self.config.search_threshold, docs)
+        ]
         # If filter removes documents, add previous documents
         if len(docs) < self.config.num_docs:
             docs += self.prev_docs[: self.config.num_docs - len(docs)]
@@ -308,7 +306,19 @@ class LLM:
                     f.write("ok")
                 os.remove(test_path)
                 return d
-            except Exception:
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ):
+                logging.getLogger(__name__).debug("Expected operation failure", exc_info=True)
                 continue
 
         # As a last resort, use a temp dir (should always be writable)
@@ -340,7 +350,19 @@ class LLM:
                     f.write("ok")
                 os.remove(test_path)
                 return d
-            except Exception:
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ):
+                logging.getLogger(__name__).debug("Expected operation failure", exc_info=True)
                 continue
         # If both fail, use cache root (should be writable by construction)
         os.makedirs(self._cache_root, exist_ok=True)
@@ -359,7 +381,18 @@ class LLM:
                 return chroma_dir
             else:
                 raise PermissionError(f"Chroma directory '{chroma_dir}' is not writable.")
-        except Exception as e:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as e:
             self._logger.debug(
                 f"Failed to prepare Chroma directory '{chroma_dir}'. "
                 "Using cache root for fallback Chroma directory. "
@@ -374,7 +407,18 @@ class LLM:
         if os.path.isdir(chroma_dir):
             try:
                 shutil.copytree(chroma_dir, fallback_dir, dirs_exist_ok=True)
-            except Exception as e:
+            except (
+                ArithmeticError,
+                AssertionError,
+                AttributeError,
+                EOFError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ) as e:
                 self._logger.warning(
                     f"Failed to copy Chroma DB from {chroma_dir} to {fallback_dir}: {e}"
                 )
@@ -401,7 +445,7 @@ class LLM:
                 break
 
         # Combine all the vector db docs into a single string
-        doc_str = "\n\n".join(list(map(lambda lc_doc: lc_doc.page_content, used_docs)))
+        doc_str = "\n\n".join([lc_doc.page_content for lc_doc in used_docs])
 
         # Create the system prompt
         system_prompt = f"{self.config.system_prompt}\n{doc_str}"
@@ -425,9 +469,8 @@ class LLM:
                     break
 
         # Remove the last user prompt if it is the last message (need alternating ChatML roles)
-        if len(messages) > 1:
-            if messages[-1]["role"] == "user":
-                messages.pop()
+        if len(messages) > 1 and messages[-1]["role"] == "user":
+            messages.pop()
 
         # Add the current user prompt to the prompt
         complete_user_prompt = f"{self.config.user_prompt}\n{question}"

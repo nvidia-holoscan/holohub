@@ -17,7 +17,6 @@ import logging
 import os
 from io import BytesIO
 from pathlib import Path
-from typing import Dict, Optional, Union
 
 from holoscan.core import ConditionType, Fragment, Operator, OperatorSpec
 
@@ -31,6 +30,8 @@ from operators.medical_imaging.utils.dicom_utils import (
 )
 from operators.medical_imaging.utils.importutil import optional_import
 from operators.medical_imaging.utils.version import get_sdk_semver
+
+logger = logging.getLogger(__name__)
 
 dcmread, _ = optional_import("pydicom", name="dcmread")
 dcmwrite, _ = optional_import("pydicom.filewriter", name="dcmwrite")
@@ -65,11 +66,11 @@ class DICOMEncapsulatedPDFWriterOperator(Operator):
         self,
         fragment: Fragment,
         *args,
-        output_folder: Union[str, Path],
+        output_folder: str | Path,
         model_info: ModelInfo,
-        equipment_info: Optional[EquipmentInfo] = None,
+        equipment_info: EquipmentInfo | None = None,
         copy_tags: bool = True,
-        custom_tags: Optional[Dict[str, str]] = None,
+        custom_tags: dict[str, str] | None = None,
         **kwargs,
     ):
         """Class to write DICOM Encapsulated PDF Instance with PDF bytes in memory or in a file.
@@ -90,7 +91,7 @@ class DICOMEncapsulatedPDFWriterOperator(Operator):
                         if PDF bytes cannot be found in memory or loaded from the file.
         """
 
-        self._logger = logging.getLogger("{}.{}".format(__name__, type(self).__name__))
+        self._logger = logging.getLogger(f"{__name__}.{type(self).__name__}")
 
         # Need to init the output folder until the execution context supports dynamic FS path
         # Not trying to create the folder to avoid exception on init
@@ -120,7 +121,18 @@ class DICOMEncapsulatedPDFWriterOperator(Operator):
         # Equipment version may be different from contributing equipment version
         try:
             self.software_version_number = get_sdk_semver()  # SDK Version
-        except Exception:
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ):
             self.software_version_number = ""
         self.operators_name = f"AI Algorithm {self.model_info.name}"
         super().__init__(fragment, *args, **kwargs)
@@ -157,13 +169,24 @@ class DICOMEncapsulatedPDFWriterOperator(Operator):
         pdf_bytes: bytes = b""
         pdf_bytes = op_input.receive(self.input_name_bytes)
         if not pdf_bytes or not len(pdf_bytes.strip()):
-            raise IOError("Input is read but blank.")
+            raise OSError("Input is read but blank.")
 
         study_selected_series_list = None
         try:
             study_selected_series_list = op_input.receive(self.input_name_dcm_series)
-        except Exception:
-            pass
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ):
+            logging.getLogger(__name__).debug("Expected operation failure", exc_info=True)
 
         dicom_series = None  # It can be None if not to copy_tags.
         if self.copy_tags:
@@ -172,9 +195,7 @@ class DICOMEncapsulatedPDFWriterOperator(Operator):
                 raise ValueError("Missing input, list of 'StudySelectedSeries'.")
             for study_selected_series in study_selected_series_list:
                 if not isinstance(study_selected_series, StudySelectedSeries):
-                    raise ValueError(
-                        "Element in input is not expected type, 'StudySelectedSeries'."
-                    )
+                    raise TypeError("Element in input is not expected type, 'StudySelectedSeries'.")
                 for selected_series in study_selected_series.selected_series:
                     dicom_series = selected_series.series
                     break
@@ -185,7 +206,7 @@ class DICOMEncapsulatedPDFWriterOperator(Operator):
         # Now ready to starting writing the DICOM instance
         self.write(pdf_bytes, dicom_series, self.output_folder)
 
-    def write(self, content_bytes, dicom_series: Optional[DICOMSeries], output_dir: Path):
+    def write(self, content_bytes, dicom_series: DICOMSeries | None, output_dir: Path):
         """Writes DICOM object
 
         Args:
@@ -196,14 +217,14 @@ class DICOMEncapsulatedPDFWriterOperator(Operator):
         self._logger.debug("Writing DICOM object...\n")
 
         if not isinstance(content_bytes, bytes):
-            raise ValueError("Input must be bytes.")
+            raise TypeError("Input must be bytes.")
         elif not len(content_bytes.strip()):
             raise ValueError("Content is empty.")
         elif not self._is_pdf_bytes(content_bytes):
             raise ValueError("Not PDF bytes.")
 
         if not isinstance(output_dir, Path):
-            raise ValueError("output_dir is not a valid Path.")
+            raise TypeError("output_dir is not a valid Path.")
 
         output_dir.mkdir(parents=True, exist_ok=True)  # Just in case
 
@@ -244,9 +265,20 @@ class DICOMEncapsulatedPDFWriterOperator(Operator):
                 if isinstance(k, str) and isinstance(v, str):
                     try:
                         ds.update({k: v})
-                    except Exception as ex:
+                    except (
+                        ArithmeticError,
+                        AssertionError,
+                        AttributeError,
+                        EOFError,
+                        ImportError,
+                        LookupError,
+                        OSError,
+                        RuntimeError,
+                        TypeError,
+                        ValueError,
+                    ) as ex:
                         # Best effort for now.
-                        logging.warning(f"Tag {k} was not written, due to {ex}")
+                        logger.warning(f"Tag {k} was not written, due to {ex}")
 
         # Instance file name is the same as the new SOP instance UID
         file_path = output_dir.joinpath(
@@ -260,8 +292,8 @@ class DICOMEncapsulatedPDFWriterOperator(Operator):
             bytes_stream = BytesIO(content)
             reader = PdfReader(bytes_stream)
             self._logger.debug(f"The PDF has {reader.pages} page(s).")
-        except Exception as ex:
-            self._logger.exception(f"Cannot read as PDF: {ex}")
+        except Exception:
+            self._logger.exception("Cannot read as PDF")
             return False
         return True
 

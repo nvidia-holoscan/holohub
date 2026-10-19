@@ -4,10 +4,9 @@ SPDX-License-Identifier: Apache-2.0
 """
 
 import logging
+from collections.abc import Iterator
 from queue import Empty, Full, Queue
-from threading import Event as ThreadingEvent
-from threading import Thread
-from typing import Iterator, List
+from threading import Event as ThreadingEvent, Thread
 
 import numpy as np
 from kernel.sdk import MomentNumber, SdkClient, Wavelength
@@ -127,7 +126,7 @@ class KernelSDKStream(BaseNirsStream):
         self._receiver_thread: Thread | None = None
         self._receiver: KernelSDKReceiver | None = None
         self._channels: ChannelInfo | None = None
-        self._good_channels: List[int] = []
+        self._good_channels: list[int] = []
 
     def start(self) -> None:
         if self._receiver_thread is not None and self._receiver_thread.is_alive():

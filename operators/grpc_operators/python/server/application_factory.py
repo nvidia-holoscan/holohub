@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,8 +14,8 @@
 # limitations under the License.
 
 import logging
+from collections.abc import Callable
 from queue import Queue
-from typing import Callable, Dict, Optional
 
 from holoscan.core import Tracker
 
@@ -23,9 +23,9 @@ from operators.grpc_operators.python.server.grpc_application import HoloscanGrpc
 
 
 class ApplicationInstance:
-    def __init__(self, instance: HoloscanGrpcApplication, tracker: Optional[Tracker] = None):
+    def __init__(self, instance: HoloscanGrpcApplication, tracker: Tracker | None = None):
         self.instance: HoloscanGrpcApplication = instance
-        self.tracker: Optional[Tracker] = tracker
+        self.tracker: Tracker | None = tracker
         self.future = None
 
     def start_application(self):
@@ -34,13 +34,13 @@ class ApplicationInstance:
         self.future = self.instance.run_async()
 
 
-class ApplicationFactory(object):
+class ApplicationFactory:
     def __new__(cls):
         """
         Create a singleton instance of the ApplicationFactory class
         """
         if not hasattr(cls, "instance"):
-            cls.instance = super(ApplicationFactory, cls).__new__(cls)
+            cls.instance = super().__new__(cls)
             cls.instance.__initialized = False
         return cls.instance
 
@@ -50,8 +50,8 @@ class ApplicationFactory(object):
         """
         if self.__initialized:
             return
-        self.applications: Dict[str, Callable[[Queue, Queue], HoloscanGrpcApplication]] = {}
-        self.instances: Dict[str, ApplicationInstance] = {}
+        self.applications: dict[str, Callable[[Queue, Queue], HoloscanGrpcApplication]] = {}
+        self.instances: dict[str, ApplicationInstance] = {}
         self.logger = logging.getLogger(__name__)
         self.__initialized = True
 

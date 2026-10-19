@@ -41,7 +41,9 @@ RUN if ! command -v python3 >/dev/null 2>&1; then \
         apt-get update \
         && apt-get install --no-install-recommends -y \
             software-properties-common curl gpg-agent \
-        && add-apt-repository ppa:deadsnakes/ppa \
+        && if [ "${PYTHON_VERSION}" != "python3" ]; then \
+            add-apt-repository ppa:deadsnakes/ppa; \
+            fi \
         && apt-get update \
         && apt-get install --no-install-recommends -y \
             ${PYTHON_VERSION} \

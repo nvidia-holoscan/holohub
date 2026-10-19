@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,7 @@
 import logging
 import os
 from pathlib import Path
-from typing import List
+from typing import ClassVar
 
 from holoscan.core import ConditionType, Fragment, Operator, OperatorSpec
 
@@ -46,7 +46,7 @@ class DICOMDataLoaderOperator(Operator):
 
     DEFAULT_INPUT_FOLDER = Path.cwd() / "input"
     DEFAULT_OUTPUT_NAME = "dicom_study_list"
-    SOP_CLASSES_TO_IGNORE = [
+    SOP_CLASSES_TO_IGNORE: ClassVar = [
         "1.2.840.10008.1.3.10",  # Media Storage Directory Storage, aka DICOMDIR
     ]
 
@@ -74,7 +74,7 @@ class DICOMDataLoaderOperator(Operator):
                               Defaults to True.
         """
 
-        self._logger = logging.getLogger("{}.{}".format(__name__, type(self).__name__))
+        self._logger = logging.getLogger(f"{__name__}.{type(self).__name__}")
         self._must_load = must_load
         self.input_path = input_folder
         self.index = 0
@@ -100,8 +100,19 @@ class DICOMDataLoaderOperator(Operator):
         input_path = None
         try:
             input_path = op_input.receive(self.input_name)
-        except Exception:
-            pass
+        except (
+            ArithmeticError,
+            AssertionError,
+            AttributeError,
+            EOFError,
+            ImportError,
+            LookupError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ):
+            logging.getLogger(__name__).debug("Expected operation failure", exc_info=True)
 
         if not input_path or not Path(input_path).is_dir():
             self._logger.info(
@@ -139,7 +150,7 @@ class DICOMDataLoaderOperator(Operator):
         if not input_path.exists() or not input_path.is_dir():
             raise ValueError("Required input folder does not exist.")
 
-        files: List[str] = []
+        files: list[str] = []
         self._list_files(input_path, files)
         dicom_studies = self._load_data(files)
         if self._must_load and len(dicom_studies) < 1:
@@ -147,7 +158,7 @@ class DICOMDataLoaderOperator(Operator):
 
         return dicom_studies
 
-    def _list_files(self, path, files: List[str]):
+    def _list_files(self, path, files: list[str]):
         """Collects fully qualified names of all files recursively given a directory path.
 
         Args:
@@ -161,7 +172,7 @@ class DICOMDataLoaderOperator(Operator):
             else:
                 files.append(item)
 
-    def _load_data(self, files: List[str]):
+    def _load_data(self, files: list[str]):
         """Provides a list of DICOM Studies given a list of fully qualified file names.
 
         Args:
@@ -178,23 +189,23 @@ class DICOMDataLoaderOperator(Operator):
             try:
                 sop_instances.append(dcmread(file))
             except InvalidDicomError as ex:
-                self._logger.warn(f"Ignored {file}, reason being: {ex}")
+                self._logger.warning(f"Ignored {file}, reason being: {ex}")
 
         for sop_instance in sop_instances:
             study_instance_uid = sop_instance[0x0020, 0x000D].value.name  # name is the UID as str
 
             # First need to eliminate the SOP instances whose SOP Class is to be ignored.
             if "SOPInstanceUID" not in sop_instance:
-                self._logger.warn("Instance ignored due to missing SOP instance UID tag")
+                self._logger.warning("Instance ignored due to missing SOP instance UID tag")
                 continue
             sop_instance_uid = sop_instance["SOPInstanceUID"].value
             if "SOPClassUID" not in sop_instance:
-                self._logger.warn(
+                self._logger.warning(
                     f"Instance ignored due to missing SOP Class UID tag, {sop_instance_uid}"
                 )
                 continue
             if sop_instance["SOPClassUID"].value in DICOMDataLoaderOperator.SOP_CLASSES_TO_IGNORE:
-                self._logger.warn(
+                self._logger.warning(
                     f"Instance ignored for being in the ignored class, {sop_instance_uid}"
                 )
                 continue

@@ -15,8 +15,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field
-from typing import Dict, Optional, Sequence, Tuple
 
 import numpy as np
 
@@ -43,8 +43,8 @@ class RaysimSweepConfig:
     """Configuration controlling the synthetic sweep."""
 
     frames_per_loop: int = 60
-    sweep_range_mm: Tuple[float, float] = (-20.0, 20.0)
-    probe_rotation_deg: Tuple[float, float, float] = (0.0, 180.0, 0.0)
+    sweep_range_mm: tuple[float, float] = (-20.0, 20.0)
+    probe_rotation_deg: tuple[float, float, float] = (0.0, 180.0, 0.0)
     probe_height_mm: float = 0.0
     probe_depth_mm: float = 0.0
     probe_type: str = "curvilinear"
@@ -54,8 +54,8 @@ class RaysimSweepConfig:
     frequency_mhz: float = 5.0
     elevational_height_mm: float = 7.0
     num_elevational_samples: int = 10
-    dynamic_range_db: Tuple[float, float] = (-60.0, 0.0)
-    b_mode_size: Tuple[int, int] = (512, 512)
+    dynamic_range_db: tuple[float, float] = (-60.0, 0.0)
+    b_mode_size: tuple[int, int] = (512, 512)
     conv_psf: bool = True
     buffer_size: int = 4096
     t_far_mm: float = 180.0
@@ -77,7 +77,7 @@ class RaysimSweepConfig:
 class RaysimFrameGenerator:
     """Convenience bridge that emits synthetic B-mode frames from raysim."""
 
-    def __init__(self, config: Optional[RaysimSweepConfig] = None) -> None:
+    def __init__(self, config: RaysimSweepConfig | None = None) -> None:
         self.config = config or RaysimSweepConfig()
         self._materials = rs.Materials()
         self._world = rs.World(self.config.world_name)
@@ -87,7 +87,7 @@ class RaysimFrameGenerator:
         self._sim_params = self._create_sim_params()
         self._positions = self.config.positions_mm()
         self._frame_index = 0
-        self._meta: Dict[str, object] = {}
+        self._meta: dict[str, object] = {}
 
     def _build_default_scene(self) -> None:
         material_idx = self._materials.get_index(self.config.sphere_material)
@@ -153,7 +153,7 @@ class RaysimFrameGenerator:
         return cp.clip(scaled, 0.0, 1.0)
 
     @property
-    def metadata(self) -> Dict[str, object]:
+    def metadata(self) -> dict[str, object]:
         """Metadata for the most recent frame."""
 
         return dict(self._meta)

@@ -39,7 +39,11 @@ class DetectionPostprocessorOp(Operator):
         outputs: "out"
     """
 
-    def __init__(self, *args, label_dict={}, label_text_size=0.05, scores_threshold=0.3, **kwargs):
+    def __init__(
+        self, *args, label_dict=None, label_text_size=0.05, scores_threshold=0.3, **kwargs
+    ):
+        if label_dict is None:
+            label_dict = {}
         self.label_text_size = label_text_size
         self.scores_threshold = scores_threshold
         self.label_dict = label_dict
@@ -194,7 +198,7 @@ class MultiAIDetectionSegmentation(Application):
                 "model_endoscopic_tool_seg_sanitized_nhwc_in_nchw_out.onnx",
             ),
         }
-        for k, v in model_path_map.items():
+        for v in model_path_map.values():
             if not os.path.exists(v):
                 raise RuntimeError(f"Could not find model file: {v}")
         inference_kwargs = self.kwargs("multi_ai_inference")
@@ -222,35 +226,42 @@ class MultiAIDetectionSegmentation(Application):
             **self.kwargs("segmentation_postprocessor"),
         )
 
-        holoviz_tensors = [dict(name="", type="color"), dict(name="out_tensor", type="color_lut")]
+        holoviz_tensors = [
+            {"name": "", "type": "color"},
+            {"name": "out_tensor", "type": "color_lut"},
+        ]
         if len(label_dict) > 0:
             for label in label_dict:
                 color = label_dict[label]["color"]
                 color.append(1.0)
                 text = [label_dict[label]["text"]]
                 holoviz_tensors.append(
-                    dict(
-                        name="rectangles" + str(label),
-                        type="rectangles",
-                        opacity=0.7,
-                        line_width=4,
-                        color=color,
-                    )
+                    {
+                        "name": "rectangles" + str(label),
+                        "type": "rectangles",
+                        "opacity": 0.7,
+                        "line_width": 4,
+                        "color": color,
+                    }
                 )
                 holoviz_tensors.append(
-                    dict(
-                        name="label" + str(label), type="text", opacity=0.7, color=color, text=text
-                    )
+                    {
+                        "name": "label" + str(label),
+                        "type": "text",
+                        "opacity": 0.7,
+                        "color": color,
+                        "text": text,
+                    }
                 )
         else:
             holoviz_tensors.append(
-                dict(
-                    name="rectangles",
-                    type="rectangles",
-                    opacity=0.7,
-                    line_width=4,
-                    color=[1.0, 0.0, 0.0, 1.0],
-                )
+                {
+                    "name": "rectangles",
+                    "type": "rectangles",
+                    "opacity": 0.7,
+                    "line_width": 4,
+                    "color": [1.0, 0.0, 0.0, 1.0],
+                }
             )
 
         holoviz = HolovizOp(

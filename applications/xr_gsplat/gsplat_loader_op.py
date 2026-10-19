@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,7 +50,7 @@ class GsplatLoaderOp(Operator):
             [],
         )
         for ckpt_path in ckpt_paths:
-            ckpt = torch.load(ckpt_path, map_location="cuda")["splats"]
+            ckpt = torch.load(ckpt_path, map_location="cuda", weights_only=True)["splats"]
             self.means.append(ckpt["means"])
             self.quats.append(F.normalize(ckpt["quats"], p=2, dim=-1))
             self.scales.append(torch.exp(ckpt["scales"]))
@@ -73,7 +73,7 @@ class GsplatLoaderOp(Operator):
         pass
 
     def compute(self, op_input: InputContext, op_output: OutputContext, context: ExecutionContext):
-        splats = dict()
+        splats = {}
         splats["means"] = self.means
         splats["quats"] = self.quats
         splats["scales"] = self.scales

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,5 +17,11 @@
 # In each subdirectory, there is a set of related applications.
 # For example, pubsub directory contains applications that publish and subscribe to ROS2 topics.
 # vb1940 directory contains applications that publish and subscribe images from the vb1940 sensor.
+# imx274 directory contains applications that publish and subscribe images from the imx274 sensor
+# using the Linux socket receiver (Jetson Thor MGBE ethernet, no ConnectX NIC required).
+# thor_vb1940 directory is the vb1940 application adapted to the Linux socket receiver
+# (Jetson Thor MGBE ethernet, no ConnectX NIC required).
 add_holohub_application(pubsub DEPENDS OPERATORS holoscan_ros2)
 add_holohub_application(vb1940 DEPENDS OPERATORS holoscan_ros2)
+add_holohub_application(imx274 DEPENDS OPERATORS holoscan_ros2)
+add_holohub_application(thor_vb1940 DEPENDS OPERATORS holoscan_ros2)
