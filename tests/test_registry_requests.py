@@ -67,11 +67,13 @@ class RequestTests(unittest.TestCase):
         path = self.root / f"{kind}s/{name}.json"
         return json.loads(path.read_text()) if path.exists() else None
 
-    def request(self, values, state="open", title="🗂️ Registry request"):
+    def request(self, values, state="open", title="🗂️ Registry request", labels=()):
         """Prepare an issue the way the workflow does and return the outcome."""
         issue = self.root / "issue.json"
         body = render(values) if isinstance(values, dict) else values
-        issue.write_text(json.dumps({"number": 42, "state": state, "title": title, "body": body}))
+        issue.write_text(json.dumps({
+            "number": 42, "state": state, "title": title, "body": body, "labels": [{"name": label} for label in labels],
+        }))
         result = self.root / "result.json"
         process = subprocess.run([
             sys.executable, str(SCRIPT), "prepare", "--root", str(self.root), "--issue", str(issue),
@@ -172,7 +174,7 @@ class RequestTests(unittest.TestCase):
         prefilled = {"kind": "application", "name": "camera", **registry_requests.flatten(self.record)}
         for values in ({"kind": "application", "name": "camera"}, prefilled):
             with self.subTest(values=values):
-                result = self.request({**values, "reason": "Check."}, title="🗂️ [UPDATE] application: camera")
+                result = self.request({**values, "reason": "Check."}, title="🗂️ [UPDATE] application: camera", labels=["application"])
                 self.assertEqual({"status": "noop", "registration": "application/camera"}, result)
                 self.assertEqual(before, self.snapshot())
 
@@ -423,6 +425,17 @@ class RequestTests(unittest.TestCase):
         self.assertNotIn("issue_title", self.request({**new, "kind": "plugin"}))
         self.assertNotIn("issue_title", self.request("", state="closed"))
 
+    def test_issue_is_labeled_with_its_kind(self):
+        new = {"kind": "Modules", "name": "new", "url": "https://example.org/new.git", "ref": "v1", "reason": "x"}
+        self.assertEqual({"add": ["module"], "remove": []}, self.request(new)["issue_labels"])
+        self.assertEqual({"add": ["module"], "remove": []}, self.request({**new, "ref": "-bad"})["issue_labels"])  # Even while it needs a fix.
+        self.assertNotIn("issue_labels", self.request(new, labels=["module", "bug"]))
+        # Changing the kind swaps the kind label and leaves other labels alone.
+        self.assertEqual({"add": ["module"], "remove": ["application"]}, self.request(new, labels=["application", "bug"])["issue_labels"])
+        self.assertNotIn("issue_labels", self.request("Please register my project."))
+        self.assertNotIn("issue_labels", self.request({**new, "kind": "plugin"}))
+        self.assertNotIn("issue_labels", self.request(new, state="closed"))
+
     def test_requester_is_credited_as_co_author(self):
         user = {"login": "octo-cat", "id": 583231, "type": "User"}
         self.assertEqual(
@@ -511,6 +524,11 @@ class ReportTests(unittest.TestCase):
         if method == "PATCH" and endpoint == "repos/owner/repo/issues/42":
             self.title = data["title"]
             return {}
+        if method == "POST" and endpoint == "repos/owner/repo/issues/42/labels":
+            self.labels = data["labels"]
+            return []
+        if method == "DELETE" and endpoint.startswith("repos/owner/repo/issues/42/labels/"):
+            return []
         if method == "DELETE" and endpoint == "repos/owner/repo/git/refs/heads/automation/registry-issue-42":
             return None
         self.fail(f"Unexpected API request: {method} {endpoint} {data}")
@@ -537,6 +555,14 @@ class ReportTests(unittest.TestCase):
         self.calls.clear()
         self.report({"status": "error", "message": "Fix it."})
         self.assertNotIn(("PATCH", "repos/owner/repo/issues/42"), self.calls)
+
+    def test_report_labels_the_issue_only_when_asked(self):
+        self.report({"status": "error", "message": "Fix it.", "issue_labels": {"add": ["module"], "remove": ["application"]}})
+        self.assertEqual(["module"], self.labels)
+        self.assertIn(("DELETE", "repos/owner/repo/issues/42/labels/application"), self.calls)
+        self.calls.clear()
+        self.report({"status": "error", "message": "Fix it."})
+        self.assertFalse([call for call in self.calls if "/labels" in call[1]])
 
     def test_ready_request_lists_the_values_filled_in(self):
         notes = ["Git revision: main (the repository's default branch)", "Issue tracker URL: https://github.com/o/r/issues (the repository's issue tracker)"]

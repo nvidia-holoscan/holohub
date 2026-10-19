@@ -299,6 +299,16 @@ def issue_title(root, body):
     return f"{TITLE_MARK} [{action}] {kind}: {name[:200]}"
 
 
+def label_changes(body, labels):
+    """Label the issue with its kind, such as "module", and drop the label of a kind it no longer requests."""
+    try:
+        kind = parse_issue(body)["kind"]
+    except RequestError:
+        return None
+    changes = {"add": [kind] if kind not in labels else [], "remove": [label for label in labels if label in KIND_DIRECTORIES and label != kind]}
+    return changes if changes["add"] or changes["remove"] else None
+
+
 def commit_message(title, issue):
     """The proposal's commit message, crediting the requester as a co-author.
 
@@ -335,6 +345,11 @@ def report(repository, number, result, branch, pull_url="", run_url="", failed=F
     if result.get("issue_title"):
         # The workflow token's edits start no new run, so this cannot loop.
         api(f"repos/{repository}/issues/{number}", "PATCH", {"title": result["issue_title"]})
+    labels = result.get("issue_labels") or {}
+    if labels.get("add"):
+        api(f"repos/{repository}/issues/{number}/labels", "POST", {"labels": labels["add"]})
+    for label in labels.get("remove", []):
+        api(f"repos/{repository}/issues/{number}/labels/{quote(label, safe='')}", "DELETE")
     failed = failed or (status == "ready" and not pull_url)
     withdrawn = []
     if not failed and status in ("noop", "error", "closed"):
@@ -423,6 +438,8 @@ def main(argv=None):
                 args.pull_request_body.write_text(pull_request_body(result, int(issue["number"])), encoding="utf-8")
             if title and title != issue.get("title"):
                 result["issue_title"] = title
+            if labels := label_changes(issue["body"], [label["name"] for label in issue.get("labels") or []]):
+                result["issue_labels"] = labels
         args.result.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         if output := os.environ.get("GITHUB_OUTPUT"):
             with open(output, "a", encoding="utf-8") as stream:
