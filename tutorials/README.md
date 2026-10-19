@@ -6,6 +6,9 @@ Register a walkthrough, notebook, or tutorial collection by pointing to its
 external source. Keep the tutorial text, images, code, data instructions, and
 metadata with the source owner.
 
+To register without editing JSON, [open a registration request](https://github.com/nvidia-holoscan/holohub/issues/new?template=registry.yml&kind=tutorial);
+a bot opens the pull request. To edit the record yourself:
+
 1. Check this directory's JSON records for the same source. A collection can
    have one registration; a new revision updates that record.
 2. Add `tutorials/my-tutorial.json` in your HoloHub checkout:
@@ -53,9 +56,10 @@ metadata with the source owner.
    .venv/bin/python utilities/validate_sources.py
    ```
 
-5. Submit the JSON change in a pull request to the HoloHub registry branch you
-   are contributing to. Follow [CONTRIBUTING.md](../CONTRIBUTING.md) for full
-   checks. Keep generated indexes and tutorial content outside the change.
+5. Submit the JSON change in a pull
+   request to the HoloHub registry branch you are contributing to. Follow
+   [CONTRIBUTING.md](../CONTRIBUTING.md) for full checks. Keep generated
+   indexes and tutorial content outside the change.
 
 There is no Holoscan CLI command to submit a HoloHub registration. CI checks the
 record, retrieves tutorial metadata, and verifies CLI discovery without

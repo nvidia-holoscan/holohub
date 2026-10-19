@@ -7,6 +7,9 @@ applications. Register its external source here; keep its implementation,
 `metadata.json`, build files, tests, and packages in the module's repository.
 An existing module does not need to be recreated with the CLI to be registered.
 
+To register without editing JSON, [open a registration request](https://github.com/nvidia-holoscan/holohub/issues/new?template=registry.yml&kind=module);
+a bot opens the pull request. To edit the record yourself:
+
 1. Check the JSON records in this directory for the same repository and source
    path. A module containing several operators needs one source registration,
    not one per operator or release. Update an existing record for a new revision.
@@ -45,9 +48,10 @@ An existing module does not need to be recreated with the CLI to be registered.
    .venv/bin/python utilities/validate_sources.py
    ```
 
-5. Submit the JSON change in a pull request to the HoloHub registry branch you
-   are contributing to. Follow [CONTRIBUTING.md](../CONTRIBUTING.md) for the
-   full checks. Do not commit `dist/` or the module implementation here.
+5. Submit the JSON change in a pull
+   request to the HoloHub registry branch you are contributing to. Follow
+   [CONTRIBUTING.md](../CONTRIBUTING.md) for the full checks. Do not commit
+   `dist/` or the module implementation here.
 
 The Holoscan CLI has no HoloHub registration command. `holoscan list` discovers
 projects in a source checkout; it does not submit a registration. CI validates
@@ -74,7 +78,7 @@ Work outside this registry and install the CLI's `create` extra in a Python
 ```bash
 python3.12 -m venv .venv
 source .venv/bin/activate
-python -m pip install 'holoscan-cli[create]==5.0.0'
+python -m pip install --extra-index-url https://pypi.nvidia.com 'holoscan-cli[create]==5.0.0rc3'
 ```
 
 Use a platform supported by the [Holoscan SDK](https://docs.nvidia.com/holoscan/sdk-user-guide/setup/sdk-installation).

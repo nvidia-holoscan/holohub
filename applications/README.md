@@ -6,6 +6,9 @@ Applications combine Holoscan operators into an end-to-end pipeline. Keep the
 code, datasets, models, containers, tests, and application metadata in an
 external repository; add only a source record here.
 
+To register without editing JSON, [open a registration request](https://github.com/nvidia-holoscan/holohub/issues/new?template=registry.yml&kind=application);
+a bot opens the pull request. To edit the record yourself:
+
 1. Check the JSON records in this directory for an existing registration of
    the same repository and path. A source can contain one application or a
    collection of applications. Update its existing record for a new revision.
@@ -44,9 +47,10 @@ external repository; add only a source record here.
    .venv/bin/python utilities/validate_sources.py
    ```
 
-5. Submit the JSON change in a pull request to the HoloHub registry branch you
-   are contributing to. See [CONTRIBUTING.md](../CONTRIBUTING.md) for the full
-   checks. Keep generated indexes and application files out of the change.
+5. Submit the JSON change in a pull
+   request to the HoloHub registry branch you are contributing to. See
+   [CONTRIBUTING.md](../CONTRIBUTING.md) for the full checks. Keep generated
+   indexes and application files out of the change.
 
 The CLI has no HoloHub registration command. `holoscan list` lists local
 projects; it does not publish them. CI checks declarations, retrieves metadata,
@@ -91,7 +95,7 @@ Cookiecutter template. Install the `create` extra in the active environment,
 then use the name and options documented by that template:
 
 ```bash
-python -m pip install 'holoscan-cli[create]==5.0.0'
+python -m pip install --extra-index-url https://pypi.nvidia.com 'holoscan-cli[create]==5.0.0rc3'
 holoscan create my_app --template /path/to/template
 ```
 

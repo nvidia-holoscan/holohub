@@ -4,6 +4,55 @@ HoloHub accepts pointers to external entities. Keep implementations, notebooks,
 skill definitions, build scripts, entity metadata, and entity CI upstream.
 The Python utilities and tests here serve the registry itself.
 
+## Request a registration change
+
+[Open a registration request](https://github.com/nvidia-holoscan/holohub/issues/new?template=registry.yml)
+to register, update, or remove a source without editing JSON. One form covers
+every kind:
+
+- **Register:** choose the kind at the top of the form, then fill in the name
+  and source details.
+- **Update:** choose the source at the top of the form to fill in its current
+  values, then edit what changes. Alternatively, enter only its kind, name, and
+  the fields to change. Blank fields keep their current values, and `none`
+  removes an optional value.
+- **Remove:** choose the source and tick **Remove**. Only the HoloHub record is
+  deleted; the upstream project is not changed.
+
+A Git revision makes the source a Git repository; a clone URL (ending in
+`.git`, or a GitHub repository page) left without one takes the repository's
+default branch. Any other URL without a revision must point to hosted
+`metadata.json` or `SKILL.md` content. A new or moved GitHub or GitLab
+repository left without an issue tracker URL takes the repository's issue
+tracker when it is public. The bot's comment lists every value it filled in. The kind and name
+identify a registration. To rename one, remove it, and after that pull request
+merges, register the new name.
+
+A bot validates the request, opens a pull request, and keeps one comment on the
+issue with the result or what to correct. It also names the issue after the
+request, such as `🗂️ [NEW] application: my-application`, using `NEW`,
+`UPDATE`, or `REMOVE`. Edit the issue to revise the request;
+the bot rewrites its pull request branch, so do not push to it. When the
+registry changes, the bot rebuilds open pull requests on the latest default
+branch. Closing the issue withdraws an unmerged pull request, and reopening
+retries. A maintainer reviews and merges the pull request, which closes the
+issue.
+
+### Repository setup
+
+The form and its workflow take effect from the default branch. In
+**Settings → Actions → General**, enable **Allow GitHub Actions to create and
+approve pull requests**; organization policy must permit it. No other token or
+service is needed. Pull requests created with `GITHUB_TOKEN` do not start
+workflows, so the bot dispatches **Registry / Validate registry** for each
+proposal; keep that job required in branch protection. Enable
+**Automatically delete head branches** to remove merged proposal branches.
+
+The request workflow runs tooling from the default branch and treats issue
+content as data. It validates requests offline and never fetches or executes
+registered sources; the read-only Registry workflow validates upstream
+descriptors before merge.
+
 ## Register a source
 
 The [module](modules/README.md), [application](applications/README.md),
@@ -28,7 +77,8 @@ discovers local source projects and does not register them in HoloHub.
    tracker or support form so users know where to report problems.
 5. Keep entity descriptions, tags, operator lists, ratings, and execution details
    in the target's own metadata. All kinds use the same registration fields.
-6. Run the commands below and submit the registration for review.
+6. Run the checks below and submit the registration for review. Requests made
+   through the form do this automatically.
 
 ```bash
 python3 -m venv .venv
@@ -59,13 +109,15 @@ direct skill, the registration name. See the
 ## Extending the registry
 
 Add new kinds to the enum in `utilities/source.schema.json`, with the corresponding
-directory, validator kind mapping, tests, and documentation. Reuse the same
+directory, validator kind mapping, registration form text, tests, and
+documentation. Reuse the same
 location fields for every kind. Do not create schemas for upstream entity
 metadata. The schema's `$id` identifies its version. For incompatible changes,
 update the schema and all registry records together.
 
 Registry CI validates declarations, source descriptors, and CLI discovery, and
-builds a derived index. The source check requires network access and fails for
+builds a derived index. The source check requires network
+access and fails for
 unavailable repositories, revisions, paths, or hosted descriptors. It retrieves
 descriptors without executing registered source code. Do not add entity
 build, test, container, deployment, GPU, or benchmark-execution jobs here.
@@ -92,6 +144,9 @@ utilities/source.schema.json
 utilities/validate_registry.py
 utilities/validate_sources.py
 utilities/build_catalog.py
+utilities/registry_requests.py
+.github/ISSUE_TEMPLATE/registry.yml
+.github/workflows/registry-request.yml
 .github/workflows/validate-registry.yml
 ```
 
@@ -212,7 +267,11 @@ is documented in the script.
 
 ## Validation and indexing
 
-Use Python 3.12 or later:
+Use Python 3.12 or later. `requirement.txt` pins Holoscan CLI 5.0.0rc3 and its
+bundled metadata schemas. The release candidate comes from NVIDIA's package
+index, `https://pypi.nvidia.com`, which the file adds as an extra index; the
+other dependencies come from PyPI. Registry validation
+does not require the Holoscan SDK or a GPU.
 
 ```bash
 python3 -m venv .venv

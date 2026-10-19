@@ -7,6 +7,9 @@ a Holoscan workflow. Register its external source or a collection of skills;
 keep `SKILL.md`, references, scripts, evaluations, and publication metadata in
 the owner's repository.
 
+To register without editing JSON, [open a registration request](https://github.com/nvidia-holoscan/holohub/issues/new?template=registry.yml&kind=skill);
+a bot opens the pull request. To edit the record yourself:
+
 1. Check this directory's JSON files for the same repository and source path.
    Update an existing registration for a new revision instead of adding one
    per release. A collection may use a single source record.
@@ -45,9 +48,10 @@ the owner's repository.
    .venv/bin/python utilities/validate_sources.py
    ```
 
-5. Submit the JSON change in a pull request to the HoloHub registry branch you
-   are contributing to. Follow [CONTRIBUTING.md](../CONTRIBUTING.md) for the
-   full checks. Do not include generated indexes or the skill implementation.
+5. Submit the JSON change in a pull
+   request to the HoloHub registry branch you are contributing to. Follow
+   [CONTRIBUTING.md](../CONTRIBUTING.md) for the full checks. Do not include
+   generated indexes or the skill implementation.
 
 The Holoscan CLI does not submit registrations or install skills into agents.
 Registration makes the source discoverable; users still follow the source's

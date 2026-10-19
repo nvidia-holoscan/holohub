@@ -1,0 +1,129 @@
+name: Registry request
+
+on:
+  issues:
+    types: [opened, edited, reopened, closed]
+  # Rebuild open proposals after registry changes so they stay current and mergeable.
+  push:
+    branches: [main]
+    paths:
+      - applications/**
+      - modules/**
+      - tutorials/**
+      - skills/**
+      - benchmarks/**
+      - utilities/**
+  workflow_dispatch:
+    inputs:
+      issue:
+        description: Registration issue to process again
+        required: true
+        type: number
+
+permissions:
+  contents: read
+
+jobs:
+  refresh:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+      pull-requests: read
+    steps:
+      - name: Process requests with open pull requests again
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr list --repo "$GITHUB_REPOSITORY" --app github-actions --state open --limit 100 --json headRefName \
+            --jq '.[].headRefName | capture("^automation/registry-issue-(?<issue>[0-9]+)$").issue' |
+            xargs -r -I{} gh workflow run registry-request.yml --repo "$GITHUB_REPOSITORY" --ref "$GITHUB_REF_NAME" -f issue={}
+
+  request:
+    # Issues from the registration form, including edits that remove its headings.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (startsWith(github.event.issue.body, '### Kind') && contains(github.event.issue.body, '### Git revision')) ||
+      (startsWith(github.event.changes.body.from, '### Kind') && contains(github.event.changes.body.from, '### Git revision'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: registry-request-${{ inputs.issue || github.event.issue.number }}
+      cancel-in-progress: false
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      actions: write
+    env:
+      ISSUE_NUMBER: ${{ inputs.issue || github.event.issue.number }}
+      BRANCH: automation/registry-issue-${{ inputs.issue || github.event.issue.number }}
+    steps:
+      - name: Check out trusted registry tooling
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+
+      - name: Install offline registry validation dependencies
+        # Upstream sources are fetched only by the read-only Registry workflow; prepare
+        # asks a Git repository only for its default branch and public issue tracker.
+        run: python -m pip install --disable-pip-version-check -c requirement.txt jsonschema rfc3986-validator
+
+      - name: Read the current issue
+        # Queued runs process the latest issue state, not the event's snapshot.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER" > "$RUNNER_TEMP/issue.json"
+
+      - name: Prepare the registry change
+        id: prepare
+        env:
+          # Read-only use: the GitHub API lookup of a source repository's issue tracker.
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python utilities/registry_requests.py prepare
+          --issue "$RUNNER_TEMP/issue.json"
+          --result "$RUNNER_TEMP/result.json"
+          --pull-request-body "$RUNNER_TEMP/pull-request.md"
+
+      - name: Create or update the pull request
+        id: request
+        if: steps.prepare.outputs.status == 'ready'
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          base: ${{ github.event.repository.default_branch }}
+          branch: ${{ env.BRANCH }}
+          # The DCO check exempts bot-authored commits; a Co-authored-by trailer credits the requester.
+          author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+          title: ${{ steps.prepare.outputs.title }}
+          commit-message: ${{ steps.prepare.outputs.commit_message }}
+          body-path: ${{ runner.temp }}/pull-request.md
+          add-paths: |
+            ${{ steps.prepare.outputs.directory }}
+
+      - name: Run registry CI on the proposal
+        # Pull requests and pushes made with GITHUB_TOKEN do not start workflows; a dispatch does.
+        if: steps.request.outputs.pull-request-number
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run validate-registry.yml --ref "$BRANCH"
+
+      - name: Report the result on the issue
+        if: ${{ !cancelled() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PULL_REQUEST: ${{ steps.request.outputs.pull-request-url }}
+          JOB_STATUS: ${{ job.status }}
+        run: >-
+          python utilities/registry_requests.py report
+          --repository "$GITHUB_REPOSITORY" --issue-number "$ISSUE_NUMBER" --branch "$BRANCH"
+          --result "$RUNNER_TEMP/result.json" --pull-request "$PULL_REQUEST"
+          --run-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          --job-status "$JOB_STATUS"
