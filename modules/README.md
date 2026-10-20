@@ -78,7 +78,7 @@ Work outside this registry and install the CLI's `create` extra in a Python
 ```bash
 python3.12 -m venv .venv
 source .venv/bin/activate
-python -m pip install --extra-index-url https://pypi.nvidia.com 'holoscan-cli[create]==5.0.0rc3'
+python -m pip install 'holoscan-cli[create]==5.0.0'
 ```
 
 Use a platform supported by the [Holoscan SDK](https://docs.nvidia.com/holoscan/sdk-user-guide/setup/sdk-installation).

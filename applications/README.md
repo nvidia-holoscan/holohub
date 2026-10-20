@@ -95,7 +95,7 @@ Cookiecutter template. Install the `create` extra in the active environment,
 then use the name and options documented by that template:
 
 ```bash
-python -m pip install --extra-index-url https://pypi.nvidia.com 'holoscan-cli[create]==5.0.0rc3'
+python -m pip install 'holoscan-cli[create]==5.0.0'
 holoscan create my_app --template /path/to/template
 ```
 

@@ -186,10 +186,9 @@ history and detailed entity inventories stay upstream.
 
 ## Validation
 
-Use Python 3.12 or later. `requirement.txt` installs the Holoscan CLI and its
-metadata schemas from NVIDIA's package index, `https://pypi.nvidia.com`, and
-other dependencies from PyPI. Validation does not require the Holoscan SDK or a
-GPU. Pull requests run the same checks in CI.
+Use Python 3.12 or later. `requirement.txt` installs the Holoscan CLI, its
+bundled metadata schemas, and the other dependencies from PyPI. Validation does
+not require the Holoscan SDK or a GPU. Pull requests run the same checks in CI.
 
 ```bash
 python3 -m venv .venv
