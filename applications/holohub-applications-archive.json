@@ -1,11 +1,11 @@
 {
-  "name": "holohub-archive",
+  "name": "holohub-applications-archive",
   "kind": "application",
   "issues_url": "https://github.com/nvidia-holoscan/holohub/issues",
   "source": {
     "type": "git",
     "url": "https://github.com/nvidia-holoscan/holohub.git",
-    "ref": "archive-4.x",
+    "ref": "archive-4x",
     "path": "applications"
   }
 }
