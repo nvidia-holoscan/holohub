@@ -1,0 +1,11 @@
+{
+  "name": "holohub-tutorials-archive",
+  "kind": "tutorial",
+  "issues_url": "https://github.com/nvidia-holoscan/holohub/issues",
+  "source": {
+    "type": "git",
+    "url": "https://github.com/nvidia-holoscan/holohub.git",
+    "ref": "archive-4x",
+    "path": "tutorials"
+  }
+}
