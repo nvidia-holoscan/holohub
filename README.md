@@ -29,7 +29,7 @@ Alongside the application, tutorial, and benchmark repositories above, module
 sources include [Holoscan SDK core modules](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/modules),
 [Holoscan Sensor Bridge](https://github.com/nvidia-holoscan/holoscan-sensor-bridge),
 [Holoscan Finance](https://github.com/nvidia-holoscan/holoscan-finance), and
-[DELTACAST's Holoscan modules](https://github.com/deltacasttv/holoscan-modules).
+[partner modules](modules/README.md#find-a-module).
 Partners and community members can register their own projects.
 
 | Component | Role |
