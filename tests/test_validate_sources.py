@@ -14,14 +14,18 @@ from unittest.mock import patch
 from utilities import validate_sources as sources
 
 
-def registration(kind="module", name="example", **source):
+def registration(kind="module", name=None, **source):
+    if name is None:
+        name = "holoscan-example" if kind == "module" else "example"
     return {"name": name, "kind": kind, "source": {
         "type": "git", "url": "https://example.org/repo.git", "ref": "main",
         **source,
     }}
 
 
-def metadata(kind="module", name="example"):
+def metadata(kind="module", name=None):
+    if name is None:
+        name = "holoscan-example" if kind == "module" else "example"
     return {kind: {
         "name": name, "description": "Example project", "version": "1.0.0",
         "authors": [{"name": "Example", "affiliation": "Example"}],
@@ -39,7 +43,7 @@ class SourceTests(unittest.TestCase):
         self.project = self.root / "example"
         self.project.mkdir()
 
-    def write_metadata(self, relative="metadata.json", kind="module", name="example"):
+    def write_metadata(self, relative="metadata.json", kind="module", name=None):
         path = self.project / relative
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(metadata(kind, name)), encoding="utf-8")
@@ -63,6 +67,24 @@ class SourceTests(unittest.TestCase):
     def test_collections_use_entity_selectors_not_display_or_registration_names(self):
         self.write_metadata("camera/python/metadata.json", "application", "Camera Display Name")
         self.write_metadata("viewer/metadata.json", "application", "Viewer Display Name")
+        self.assertEqual([], sources.validate_content(
+            registration("application", "collection"), self.project,
+        ))
+
+    def test_collection_skips_templates_but_keeps_names_containing_template(self):
+        self.write_metadata("applications/camera-template/metadata.json", "application")
+        for relative in ("applications/template/{{project}}/metadata.json", "applications/holoviz/template/{{project}}/metadata.json"):
+            self.write_metadata(relative, "application").write_text("{{ unrendered metadata }}")
+        self.assertEqual([], sources.validate_content(
+            registration("application", "collection"), self.project,
+        ))
+        (self.project / "applications/camera-template/metadata.json").unlink()
+        self.assertIn("no metadata.json", "\n".join(sources.validate_content(
+            registration("application", "collection"), self.project,
+        )))
+
+    def test_template_directory_outside_cli_categories_remains_discoverable(self):
+        self.write_metadata("template/viewer/metadata.json", "application")
         self.assertEqual([], sources.validate_content(
             registration("application", "collection"), self.project,
         ))
@@ -106,8 +128,18 @@ class SourceTests(unittest.TestCase):
         path.write_text(json.dumps(data))
         self.assertIn("version", "\n".join(sources.validate_content(registration(), self.project)))
 
+    def test_invalid_schema_label_is_reported_without_crashing(self):
+        path = self.write_metadata(name="holoscan-example")
+        data = metadata(name="holoscan-example")
+        data["$schema"] = "holoscan/module/v2"
+        path.write_text(json.dumps(data))
+        errors = sources.validate_content(registration(name="holoscan-example"), self.project)
+        self.assertEqual(1, len(errors))
+        self.assertIn("metadata.json: invalid module metadata:", errors[0])
+        self.assertIn("$schema", errors[0])
+
     def test_direct_entity_name_must_match_registration(self):
-        self.write_metadata(name="different")
+        self.write_metadata(name="holoscan-different")
         self.assertIn("registration name", "\n".join(sources.validate_content(registration(), self.project)))
 
     def test_absent_malformed_duplicate_and_oversized_metadata_are_rejected(self):
@@ -126,7 +158,7 @@ class SourceTests(unittest.TestCase):
 
     def test_cli_must_report_same_name_kind_and_source_folder(self):
         self.write_metadata()
-        expected = {"name": "example", "project_type": "module", "source_folder": str(self.project)}
+        expected = {"name": "holoscan-example", "project_type": "module", "source_folder": str(self.project)}
         for projects in ([], [{**expected, "name": "other"}],
                          [{**expected, "project_type": "application"}],
                          [{**expected, "source_folder": str(self.root)}]):
@@ -198,7 +230,8 @@ class SourceTests(unittest.TestCase):
         ):
             for url in (f"https://example.org/example/{filename}?v=1#section", "https://example.org/example/?v=1"):
                 with self.subTest(kind=kind, url=url), patch.object(sources, "urlopen", return_value=io.BytesIO(body)):
-                    record = {"name": "example", "kind": kind, "source": {"type": "url", "url": url}}
+                    name = "holoscan-example" if kind == "module" else "example"
+                    record = {"name": name, "kind": kind, "source": {"type": "url", "url": url}}
                     with tempfile.TemporaryDirectory() as tmp:
                         content = sources.fetch_source(record, Path(tmp))
                         self.assertEqual([], sources.validate_content(record, content))
@@ -231,12 +264,12 @@ class SourceTests(unittest.TestCase):
 
     def test_git_uses_exact_revision_and_subdirectory(self):
         revision = self.make_repository()
-        self.write_metadata("modules/example/metadata.json", name="later")
+        self.write_metadata("modules/example/metadata.json", name="holoscan-later")
         self.git("commit", "--quiet", "-am", "Later change")
         record = registration(url=str(self.project), ref=revision, path="modules/example")
         content = sources.fetch_source(record, self.root / "fetched")
         self.assertEqual([], sources.validate_content(record, content))
-        self.assertEqual("example", json.loads((content / "metadata.json").read_text())["module"]["name"])
+        self.assertEqual("holoscan-example", json.loads((content / "metadata.json").read_text())["module"]["name"])
 
     def test_git_branch_tag_and_root_default_are_supported(self):
         self.make_repository()

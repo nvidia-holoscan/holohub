@@ -14,6 +14,7 @@ from urllib.parse import urlsplit, urlunsplit
 from urllib.request import urlopen
 
 from holoscan_cli.metadata.metadata_validator import KNOWN_ENVELOPES, validate_json
+from holoscan_cli.metadata.utils import METADATA_DIRECTORY_CONFIG
 import yaml
 
 if __package__:
@@ -32,6 +33,23 @@ LANGUAGE_DIRECTORIES = {"cpp": "cpp", "python": "python", "py": "python"}
 
 def descriptor_filename(kind):
     return "SKILL.md" if kind == "skill" else "metadata.json"
+
+
+def source_directory(record):
+    """Preserve the repository and registered subdirectory for CLI discovery."""
+    source = record["source"]
+    if source["type"] == "url":
+        return PurePosixPath(record["name"])
+    repository = PurePosixPath(urlsplit(source["url"]).path).name.removesuffix(".git")
+    return PurePosixPath(repository) / source.get("path", ".")
+
+
+def is_ignored_descriptor(path):
+    """Apply the pinned CLI's ignore rules from the first category directory."""
+    path = PurePosixPath(path)
+    config = next((METADATA_DIRECTORY_CONFIG[part] for part in path.parts if part in METADATA_DIRECTORY_CONFIG), {})
+    normalized = "/" + path.as_posix().strip("/") + "/"
+    return any(f"/{pattern.strip('/')}/" in normalized for pattern in config.get("ignore_patterns", []))
 
 
 def run_command(command, *, cwd, env=None):
@@ -168,13 +186,11 @@ def fetch_source(record, destination):
     else:
         # Preserve actual directory names for CLI selectors. For a repository-root
         # source, the repository name is the normal clone directory name.
-        repo_name = PurePosixPath(urlsplit(record["source"]["url"]).path).name.removesuffix(".git")
-        path = record["source"].get("path", ".")
-        content_root = destination / "content" / repo_name
-        if path != ".":
-            content_root = content_root / path
+        content_root = destination / "content" / source_directory(record)
     content_root.mkdir(parents=True, exist_ok=True)
     for relative in source.find(descriptor_filename(record["kind"])):
+        if record["kind"] != "skill" and is_ignored_descriptor(content_root / relative):
+            continue
         target = content_root.joinpath(*PurePosixPath(relative).parts)
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(source.read(relative))
@@ -213,7 +229,8 @@ def validate_metadata(data, kind):
     """Check metadata against the schema bundled with the pinned Holoscan CLI."""
     valid, detail = validate_json(data, kind)
     if not valid:
-        raise ValueError(f"invalid {kind} metadata: {detail.message}")
+        message = getattr(detail, "message", str(detail))
+        raise ValueError(f"invalid {kind} metadata: {message}")
 
 
 def validate_skill(path, registration_name=None):
@@ -289,6 +306,8 @@ def validate_content(record, root):
     direct = root / filename
     is_direct = direct.exists() or direct.is_symlink()
     paths = [direct] if is_direct else sorted(root.rglob(filename))
+    if kind != "skill":
+        paths = [path for path in paths if not is_ignored_descriptor(path)]
     if not paths:
         return [f"no {filename} found under source path"]
     expected = []

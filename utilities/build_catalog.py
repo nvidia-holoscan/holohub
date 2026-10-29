@@ -68,14 +68,14 @@ import yaml
 if __package__:
     from .validate_registry import KIND_DIRECTORIES, validate_registry
     from .validate_sources import (
-        LANGUAGE_DIRECTORIES, descriptor_filename, hosted_url, metadata_kind, open_source, parse_json,
-        validate_metadata, validate_skill,
+        LANGUAGE_DIRECTORIES, descriptor_filename, hosted_url, is_ignored_descriptor, metadata_kind, open_source, parse_json,
+        source_directory, validate_metadata, validate_skill,
     )
 else:
     from validate_registry import KIND_DIRECTORIES, validate_registry
     from validate_sources import (
-        LANGUAGE_DIRECTORIES, descriptor_filename, hosted_url, metadata_kind, open_source, parse_json,
-        validate_metadata, validate_skill,
+        LANGUAGE_DIRECTORIES, descriptor_filename, hosted_url, is_ignored_descriptor, metadata_kind, open_source, parse_json,
+        source_directory, validate_metadata, validate_skill,
     )
 
 
@@ -247,7 +247,8 @@ def collect_source(record, source, root):
     """Mirror one source's descriptors and documents under root and return its index entry."""
     kind = record["kind"]
     filename = descriptor_filename(kind)
-    paths = source.find(filename)
+    paths = [path for path in source.find(filename)
+             if kind == "skill" or not is_ignored_descriptor(source_directory(record) / path)]
     if not paths:
         raise ValueError(f"no {filename} found under source path")
     mirror = Mirror(source, root)
