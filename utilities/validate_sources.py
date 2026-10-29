@@ -189,7 +189,7 @@ def fetch_source(record, destination):
         content_root = destination / "content" / source_directory(record)
     content_root.mkdir(parents=True, exist_ok=True)
     for relative in source.find(descriptor_filename(record["kind"])):
-        if record["kind"] != "skill" and is_ignored_descriptor(content_root / relative):
+        if record["kind"] != "skill" and is_ignored_descriptor(source_directory(record) / relative):
             continue
         target = content_root.joinpath(*PurePosixPath(relative).parts)
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -307,7 +307,8 @@ def validate_content(record, root):
     is_direct = direct.exists() or direct.is_symlink()
     paths = [direct] if is_direct else sorted(root.rglob(filename))
     if kind != "skill":
-        paths = [path for path in paths if not is_ignored_descriptor(path)]
+        paths = [path for path in paths
+                 if not is_ignored_descriptor(source_directory(record) / path.relative_to(root))]
     if not paths:
         return [f"no {filename} found under source path"]
     expected = []

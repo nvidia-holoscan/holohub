@@ -284,6 +284,20 @@ class SourceTests(unittest.TestCase):
                 content = sources.fetch_source(record, Path(tmp))
                 self.assertEqual([], sources.validate_content(record, content))
 
+    def test_temporary_directory_ancestors_cannot_hide_invalid_benchmarks(self):
+        self.make_repository()
+        self.write_metadata("benchmarks/valid/metadata.json", "benchmark")
+        invalid = metadata("benchmark")
+        del invalid["benchmark"]["version"]
+        self.write_metadata("benchmarks/template/metadata.json", "benchmark").write_text(json.dumps(invalid))
+        self.git("add", ".")
+        self.git("commit", "--quiet", "-m", "Benchmark collection")
+        record = registration("benchmark", "collection", url=str(self.project), ref="HEAD", path="benchmarks")
+        content = sources.fetch_source(record, self.root / "applications" / "download")
+        errors = "\n".join(sources.validate_content(record, content))
+        self.assertIn("template/metadata.json", errors)
+        self.assertIn("version", errors)
+
     def test_git_refspecs_cannot_select_or_rewrite_revisions(self):
         self.make_repository()
         self.write_metadata()
