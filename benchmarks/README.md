@@ -11,9 +11,9 @@ workload code, measurement procedures, and results stay with the source owner.
 | [holoscan-benchmarks](https://github.com/nvidia-holoscan/holoscan-benchmarks) | Measurement tools and workload guidance. [Registration](holoscan-benchmarks.json). |
 | [Archived HoloHub benchmarks](https://github.com/nvidia-holoscan/holohub/tree/archive-4x/benchmarks) | Earlier workloads with their original SDK requirements. [Registration](holohub-benchmarks-archive.json). |
 
-The `holoscan-benchmarks` collection covers both `benchmark_tools/` and
-`benchmarks/`. Projects appear in the catalog when they provide valid benchmark
-metadata.
+The `holoscan-benchmarks` registration selects the repository's `benchmarks/`
+directory. Each workload needs valid benchmark metadata to appear in the
+catalog. Shared measurement tools live separately in `benchmark_tools/`.
 
 Clone the dedicated repository with Git:
 
