@@ -48,7 +48,7 @@ You need a GitHub account, but no local tools or JSON editing.
 | **Kind** | `application`, `module`, `tutorial`, `benchmark`, or `skill`. |
 | **Name** | A stable lowercase name using letters, numbers, and single hyphens or underscores between words. For a direct project, use its [discovery name](docs/registry-reference.md#discovery-names); a collection has its own name. |
 | **Source URL** | An HTTPS Git repository URL, or a direct hosted `metadata.json` / `SKILL.md` URL. Required for new registrations. |
-| **Git revision** | Prefer a full commit SHA. A branch or tag also works; a blank field uses the default branch for a new Git source. Leave blank for hosted content. |
+| **Git revision** | Prefer a full commit SHA; a branch or tag also works. A blank field uses the default branch for GitHub repository URLs or URLs ending in `.git`. For other Git URLs, including GitLab URLs without `.git`, enter a revision. Leave blank for hosted content. |
 | **Repository path** | The project or collection directory within the Git repository; `.` means the root. Leave blank for hosted content. |
 | **Issue tracker URL** | An HTTPS issue tracker or support form. If omitted for a new GitHub or GitLab source, automation tries its public issue tracker. |
 | **Reason** | What the source provides or why the registration should change. |
@@ -75,7 +75,8 @@ To submit JSON yourself instead of using the form:
    [fixture](tests/fixtures/) or a record in the relevant directory, replace
    its example values, and follow the [source record reference](docs/registry-reference.md).
 3. Run the [validation checks](#validation) from your HoloHub checkout.
-4. Open a pull request against HoloHub's `main` branch. Include the source's
+4. Sign off your commits with `git commit -s` and open a pull request against
+   HoloHub's `main` branch. Include the source's
    purpose, maintainer, and validation results. Commit the registration only;
    project files stay upstream and generated `dist/` output stays local.
 
@@ -103,13 +104,20 @@ identity rules, and validation details.
 
 ## Validation
 
-Use Python 3.12 or later and Git. From the HoloHub repository root:
+Use Python 3.12–3.14 and Git. From the HoloHub repository root:
 
 ```bash
 python3 -m venv .venv
 .venv/bin/python -m pip install -r requirement.txt
 .venv/bin/python utilities/validate_registry.py
 .venv/bin/python utilities/validate_sources.py
+```
+
+CI also checks formatting. To run those checks locally:
+
+```bash
+.venv/bin/python -m pip install pre-commit
+.venv/bin/pre-commit run --all-files
 ```
 
 The first validator checks record structure and duplicates offline. The second

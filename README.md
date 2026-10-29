@@ -27,11 +27,10 @@ dependencies; each application selects the modules it needs.*
 
 Alongside the application, tutorial, and benchmark repositories above, module
 sources include [Holoscan SDK core modules](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/modules),
-[Holoscan Sensor Bridge](https://github.com/nvidia-holoscan/holoscan-sensor-bridge), and
+[Holoscan Sensor Bridge](https://github.com/nvidia-holoscan/holoscan-sensor-bridge),
+[Holoscan Finance](https://github.com/nvidia-holoscan/holoscan-finance), and
 [DELTACAST's Holoscan modules](https://github.com/deltacasttv/holoscan-modules).
-The registered [Holoscan Finance source](modules/holoscan-finance.json) is
-currently unavailable publicly. Partners and community members can register
-their own projects.
+Partners and community members can register their own projects.
 
 | Component | Role |
 | --- | --- |
@@ -46,9 +45,12 @@ applications combine SDK components and external modules.
 
 1. Choose a project above or browse a category's registered sources. Each JSON
    record identifies the source URL and, for Git, its revision and directory.
-2. Read the project's README at that revision. Check its SDK version,
+2. For Git sources, open the README at the registered revision (`ref`) and
+   directory (`path`). For hosted sources, open the `metadata.json` or
+   `SKILL.md` URL and follow its documentation links. Check the SDK version,
    hardware, dependencies, and data requirements before setting up your system.
-3. Check out the source and follow its setup and run instructions. Projects
+3. Follow the project's setup and run instructions, checking out the registered
+   revision for Git sources. Projects
    that use the CLI document its installation and supported commands. Use the
    [SDK installation guide](https://docs.nvidia.com/holoscan/sdk-user-guide/setup/sdk-installation)
    for the SDK version the project requires.

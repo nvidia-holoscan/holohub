@@ -100,7 +100,7 @@ history and detailed entity inventories stay upstream.
 
 ## Validation
 
-Use Python 3.12 or later. [`requirement.txt`](../requirement.txt) installs the
+Use Python 3.12–3.14. [`requirement.txt`](../requirement.txt) installs the
 Holoscan CLI, its bundled metadata schemas, and the other dependencies from
 PyPI. Validation does not require the Holoscan SDK or a GPU. Pull requests run
 the same checks in CI.
@@ -127,7 +127,9 @@ directories, and implementation files are rejected.
   Display names in application metadata may differ from these selectors.
 - Collections must contain at least one entity of the registered kind. Each
   matching descriptor is validated; accompanying entities of other kinds are
-  ignored. A source with a root descriptor is treated as a direct entity.
+  ignored. Scaffolding directories such as `template/` are skipped according
+  to the pinned CLI's directory rules. A source with a root descriptor is
+  treated as a direct entity.
   `holoscan list --json` must return every validated entity with the expected
   selector, kind, and source directory. The collection's registration name is
   not an entity selector.
