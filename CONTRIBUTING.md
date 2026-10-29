@@ -113,7 +113,8 @@ python3 -m venv .venv
 .venv/bin/python utilities/validate_sources.py
 ```
 
-CI also checks formatting. To run those checks locally:
+The `pre-commit.ci` check runs formatting hooks on pull requests. To run the
+same checks locally:
 
 ```bash
 .venv/bin/python -m pip install pre-commit
