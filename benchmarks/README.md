@@ -8,8 +8,12 @@ workload code, measurement procedures, and results stay with the source owner.
 
 | Source | What you will find |
 | --- | --- |
-| [holoscan-benchmarks](https://github.com/nvidia-holoscan/holoscan-benchmarks) | Benchmark workloads and measurement tools. [Registration](holoscan-benchmarks.json). |
+| [holoscan-benchmarks](https://github.com/nvidia-holoscan/holoscan-benchmarks) | Measurement tools and workload guidance. [Registration](holoscan-benchmarks.json). |
 | [Archived HoloHub benchmarks](https://github.com/nvidia-holoscan/holohub/tree/archive-4x/benchmarks) | Earlier workloads with their original SDK requirements. [Registration](holohub-benchmarks-archive.json). |
+
+The `holoscan-benchmarks` collection covers both `benchmark_tools/` and
+`benchmarks/`. Projects appear in the catalog when they provide valid benchmark
+metadata.
 
 Clone the dedicated repository with Git:
 
@@ -19,10 +23,10 @@ cd holoscan-benchmarks
 ```
 
 Start with its [measurement and analysis tools](https://github.com/nvidia-holoscan/holoscan-benchmarks/blob/main/benchmark_tools/README.md)
-to measure an application, or its [workload overview](https://github.com/nvidia-holoscan/holoscan-benchmarks/blob/main/benchmarks/README.md)
-to choose a benchmark. Follow the selected guide for hardware, SDK, data,
-execution commands, and output locations. Analysis of existing logs may have
-fewer requirements than running a workload.
+to measure an application. See the [workload guide](https://github.com/nvidia-holoscan/holoscan-benchmarks/blob/main/benchmarks/README.md)
+for workload selection and measurement practices. Follow the selected project's
+instructions for hardware, SDK, data, execution commands, and output locations.
+Analysis of existing logs may have fewer requirements than running a workload.
 
 Compare results only when hardware, software, input data, and measurement
 settings are documented and comparable. Report tool or workload problems to

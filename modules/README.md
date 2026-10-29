@@ -25,8 +25,10 @@ supports development in each project's own checkout.*
 
 ## Use a module
 
-1. Open its source at the registration's revision and path. Check supported
-   SDK versions, platforms, hardware, dependencies, and licensing.
+1. For a Git source, open its README at the registered `ref` and `path`
+   (the repository root if `path` is omitted). For a hosted source, open its
+   `metadata.json` and follow its documentation links. Check supported SDK
+   versions, platforms, hardware, dependencies, and licensing.
 2. Follow the module's installation or source-build instructions. Declare it
    as a dependency using the [Use a Holoscan Module tutorial](https://github.com/nvidia-holoscan/holoscan-tutorials/tree/main/tutorials/holoscan-modules/use-a-module).
    Use a published package version or the source revision the project documents.
@@ -87,10 +89,11 @@ and support in the module repository.
 
 ## Register an existing module
 
-Publish the tested source with its README and `metadata.json`, then check this
-directory for an existing registration. A module needs one record, not one per
-operator or release. An existing module does not need to be recreated with the
-CLI to register it.
+Check this directory for an existing registration. A module needs one record,
+not one per operator or release. For a new registration, publish the tested
+module and usage documentation, then register either a Git revision and
+directory containing `metadata.json` or a hosted `metadata.json` URL. An
+existing module does not need to be recreated with the CLI to register it.
 
 [Request registration with kind `module`](https://github.com/nvidia-holoscan/holohub/issues/new?template=registry.yml&kind=module).
 For a single module, use its declared metadata name, such as
