@@ -44,7 +44,7 @@ class CatalogTests(unittest.TestCase):
             (self.registry / directory).mkdir()
 
     def git(self, *args):
-        return subprocess.run(["git", "-C", str(self.repo), *args], check=True, capture_output=True, text=True).stdout.strip()
+        return subprocess.run(["git", "-c", "commit.gpgsign=false", "-C", str(self.repo), *args], check=True, capture_output=True, text=True).stdout.strip()
 
     def commit(self, files):
         """Write files (text, bytes, or JSON objects) into the repository and return the commit."""

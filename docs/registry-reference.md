@@ -52,6 +52,12 @@ Two source forms are supported:
   available. Git fields do not apply to this form. HTML pages and archives alone
   do not satisfy source validation.
 
+For example, a hosted record can use this `source` value:
+
+```json
+{"type": "url", "url": "https://example.org/my-tutorial/metadata.json"}
+```
+
 All URLs must be absolute HTTPS URLs with a hostname, no credentials, and an
 optional port from 1 through 65535. Relative paths use
 POSIX separators and cannot contain `.`/`..` components, empty components,
@@ -72,10 +78,28 @@ used to discover that project:
 | Application, tutorial, benchmark | The project directory name | `my-application` |
 | Skill | The `SKILL.md` frontmatter name and skill directory name | `my-skill` |
 
+Direct module names use the CLI schema's `holoscan-` prefix and hyphen-separated
+lowercase letters and digits; the first character after the prefix is a letter.
+Direct skill names allow 1–64 lowercase letters, digits, and single hyphens.
+Neither permits underscores. Collection names follow the general record rules.
+For a skill at a Git repository root, the repository name must also match its
+frontmatter name.
+
 For applications, tutorials, and benchmarks with descriptors in `cpp`, `python`,
-or `py` language directories, use the parent project directory name. Confirm
-non-skill project names with `holoscan list --json` in the source checkout;
-a metadata display name can differ.
+or `py` language directories, use the parent project directory name. If their
+descriptor is at a Git repository root, use the repository name from the URL,
+without `.git`; keep the same clone-directory name when checking discovery.
+A metadata display name can differ from the discovery name.
+
+Confirm non-skill names from the source repository root with an explicit search path,
+especially for descriptors outside the CLI's default category directories:
+
+```bash
+HOLOSCAN_CLI_SEARCH_PATH=path/to/metadata.json holoscan list --json
+```
+
+Replace the path with the descriptor or directory to scan. Use a comma-separated
+list for multiple paths; use `./metadata.json` for a root descriptor.
 
 A **collection** selects a directory without its own root descriptor and
 contains one or more projects of the registered kind. Give it a stable name,
@@ -126,11 +150,16 @@ directories, and implementation files are rejected.
   name, with `cpp`, `python`, and `py` treated as language subdirectories.
   Display names in application metadata may differ from these selectors.
 - Collections must contain at least one entity of the registered kind. Each
-  matching descriptor is validated; accompanying entities of other kinds are
-  ignored. Scaffolding directories such as `template/` are skipped according
-  to the pinned CLI's directory rules. A source with a root descriptor is
-  treated as a direct entity.
-  `holoscan list --json` must return every validated entity with the expected
+  matching descriptor is schema-validated. Other descriptors must still be
+  regular, well-formed JSON files with no duplicate keys, at most 1 MiB, and
+  exactly one recognized kind envelope; their contents are otherwise ignored.
+  Scaffolding paths are filtered using the pinned CLI's per-category ignore
+  patterns. The first category directory in the source path selects the rules;
+  temporary download directories do not affect this filtering. A source with
+  a root descriptor is treated as a direct entity.
+  The validator runs `holoscan list --json` with explicit descriptor paths in
+  `HOLOSCAN_CLI_SEARCH_PATH`. This separate discovery check applies additional
+  CLI exclusions and must return every validated entity with the expected
   selector, kind, and source directory. The collection's registration name is
   not an entity selector.
 - Skills require `SKILL.md`, without `metadata.json` or CLI discovery. Each

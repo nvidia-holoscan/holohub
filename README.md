@@ -4,7 +4,7 @@ HoloHub is the central registry for the [NVIDIA Holoscan](https://github.com/nvi
 ecosystem. Find applications, reusable modules, tutorials, benchmarks, and agent
 skills for accelerated sensor-processing and AI pipelines.
 
-Browse the [Holoscan catalog](https://holoscan.org) or use the links below.
+Explore the [Holoscan site](https://nvidia-holoscan.github.io/) or use the links below.
 Projects keep their code, documentation, tests, and releases in their own
 repositories. You can use those repositories directly without cloning HoloHub.
 
@@ -22,8 +22,8 @@ repositories. You can use those repositories directly without cloning HoloHub.
 
 ![HoloHub connects the SDK, application, tutorial, benchmark, NVIDIA module, partner module, and archived source repositories.](docs/images/repository-map.svg)
 
-*Arrows connect HoloHub to ecosystem repositories. Each application selects
-the modules it needs.*
+*Selected ecosystem repositories and their roles. Arrows guide visitors to
+project sources; each application selects the modules it needs.*
 
 Alongside the application, tutorial, and benchmark repositories above, module
 sources include [Holoscan SDK core modules](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/modules),

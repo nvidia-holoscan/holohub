@@ -70,6 +70,8 @@ Otherwise, publish the source and metadata, then
 
 Point to the benchmark directory or a collection of benchmark descriptors.
 For a single benchmark, use its directory name as the registration name.
+For metadata at a Git repository root, use the repository name without `.git`;
+see [discovery names](../docs/registry-reference.md#discovery-names).
 Follow [Contributing](../CONTRIBUTING.md) for form fields, manual submissions,
 validation, and maintainer review.
 

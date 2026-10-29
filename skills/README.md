@@ -12,14 +12,17 @@ registered in [holoscan-sdk.json](holoscan-sdk.json).
 Read the selected skill's purpose, prerequisites, supported agents, and
 installation instructions at the registered revision. Install or enable it
 using the method documented by its owner and try the provided example request.
-The Holoscan CLI does not install skills into agents. Report skill problems to
-the source owner's issue tracker.
+The Holoscan CLI does not install skills into agents. Report problems through
+the feedback channel the skill owner documents.
 
 ## Create a new skill
 
-Contribute a project-specific skill in that project's repository, following
-its contribution guide, or maintain a dedicated skill repository. Keep the
-instructions and supporting resources together:
+Check the project's contribution policy before submitting a skill. The SDK's
+[skill contribution policy](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/skills#contributions)
+currently directs feedback to community channels and does not accept external
+skill pull requests. You can maintain a skill in your own repository and
+register it here. Where an owner accepts contributions, follow its documented
+process. Keep the instructions and supporting resources together:
 
 ```text
 skills/my-skill/
@@ -71,8 +74,9 @@ A skill already covered by a registered collection needs no separate record;
 update that record's revision if needed. Otherwise,
 [request registration with kind `skill`](https://github.com/nvidia-holoscan/holohub/issues/new?template=registry.yml&kind=skill).
 
-Point to the skill directory, a collection of skill directories, or a direct
-hosted `SKILL.md`. Skills require no `metadata.json` or CLI discovery. The
+Point to the skill directory, a collection of skill directories, a hosted
+`SKILL.md` URL, or the directory serving it. Skills require no `metadata.json`
+or CLI discovery. The
 frontmatter `name` must match the skill directory and, for a direct skill, the
 registration name. Any declared identity fields must agree. Follow
 [Contributing](../CONTRIBUTING.md) for submission and review, and the

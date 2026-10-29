@@ -251,7 +251,7 @@ class SourceTests(unittest.TestCase):
                     sources.fetch_source(record, self.root / "download")
 
     def git(self, *args):
-        return subprocess.run(["git", "-C", str(self.project), *args], check=True, capture_output=True, text=True).stdout.strip()
+        return subprocess.run(["git", "-c", "commit.gpgsign=false", "-C", str(self.project), *args], check=True, capture_output=True, text=True).stdout.strip()
 
     def make_repository(self):
         self.git("init", "--quiet")
@@ -285,6 +285,7 @@ class SourceTests(unittest.TestCase):
                 self.assertEqual([], sources.validate_content(record, content))
 
     def test_temporary_directory_ancestors_cannot_hide_invalid_benchmarks(self):
+        """An applications ancestor must not hide a descriptor missing its version."""
         self.make_repository()
         self.write_metadata("benchmarks/valid/metadata.json", "benchmark")
         invalid = metadata("benchmark")

@@ -8,9 +8,9 @@ cycle. One module can provide several operators.
 
 | Source | Scope | Registration |
 | --- | --- | --- |
-| [Holoscan SDK modules](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/modules) | SDK components, including inference, vision, and visualization | [Source](holoscan-sdk-modules.json) |
-| [Holoscan Sensor Bridge](https://github.com/nvidia-holoscan/holoscan-sensor-bridge) | Sensor connectivity | [Source](holoscan-sensor-bridge.json) |
-| [DELTACAST Holoscan modules](https://github.com/deltacasttv/holoscan-modules) | Partner-maintained video I/O components | [Source](holoscan-deltacast.json) |
+| [Holoscan SDK modules](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/modules) | SDK components, including inference, vision, and visualization | [Record](holoscan-sdk-modules.json) |
+| [Holoscan Sensor Bridge](https://github.com/nvidia-holoscan/holoscan-sensor-bridge) | Sensor connectivity | [Record](holoscan-sensor-bridge.json) |
+| [DELTACAST Holoscan modules](https://github.com/deltacasttv/holoscan-modules) | Partner-maintained video I/O components | [Record](holoscan-deltacast.json) |
 
 For financial-services components, see
 [Holoscan Finance](https://github.com/nvidia-holoscan/holoscan-finance).
@@ -45,8 +45,9 @@ your operators as a dependency. Keep operators used only by one application
 with that application. For a complete authoring workflow, follow
 [Create a Holoscan Module](https://github.com/nvidia-holoscan/holoscan-tutorials/tree/main/tutorials/holoscan-modules/create-a-module).
 
-To generate a starting project, use Python 3.12 with virtual-environment support.
-Run outside your HoloHub checkout, in the directory where you keep projects:
+To generate a starting project, use Python 3.12–3.14 with virtual-environment
+support; this example uses Python 3.12. Run outside your HoloHub checkout, in
+the directory where you keep projects:
 
 ```bash
 python3.12 -m venv .cli-venv

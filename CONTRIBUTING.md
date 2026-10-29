@@ -46,11 +46,11 @@ You need a GitHub account, but no local tools or JSON editing.
 | Form field | What to enter |
 | --- | --- |
 | **Kind** | `application`, `module`, `tutorial`, `benchmark`, or `skill`. |
-| **Name** | A stable lowercase name using letters, numbers, and single hyphens or underscores between words. For a direct project, use its [discovery name](docs/registry-reference.md#discovery-names); a collection has its own name. |
-| **Source URL** | An HTTPS Git repository URL, or a direct hosted `metadata.json` / `SKILL.md` URL. Required for new registrations. |
+| **Name** | Lowercase letters, numbers, and single hyphens or underscores. Direct modules use their `holoscan-`-prefixed metadata name, with hyphens only; direct skills also allow hyphens only. See [discovery names](docs/registry-reference.md#discovery-names). A collection has its own name. |
+| **Source URL** | An HTTPS Git repository URL, a hosted `metadata.json` / `SKILL.md` URL, or the directory serving that file. Required for new registrations. |
 | **Git revision** | Prefer a full commit SHA; a branch or tag also works. A blank field uses the default branch for GitHub repository URLs or URLs ending in `.git`. For other Git URLs, including GitLab URLs without `.git`, enter a revision. Leave blank for hosted content. |
 | **Repository path** | The project or collection directory within the Git repository; `.` means the root. Leave blank for hosted content. |
-| **Issue tracker URL** | An HTTPS issue tracker or support form. If omitted for a new GitHub or GitLab source, automation tries its public issue tracker. |
+| **Issue tracker URL** | An HTTPS issue tracker or support form. If left blank for a new or moved GitHub/GitLab source with no tracker, automation tries its public issue tracker. |
 | **Reason** | What the source provides or why the registration should change. |
 
 To **update**, enter the existing Kind and Name and only the fields to change.
@@ -78,7 +78,7 @@ To submit JSON yourself instead of using the form:
 4. Sign off your commits with `git commit -s` and open a pull request against
    HoloHub's `main` branch. Include the source's
    purpose, maintainer, and validation results. Commit the registration only;
-   project files stay upstream and generated `dist/` output stays local.
+   project files stay upstream.
 
 The same fork-and-pull-request workflow applies to HoloHub documentation and
 tooling changes. For tooling changes, also run

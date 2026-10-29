@@ -1,9 +1,9 @@
 {
-  "name": "example-module",
+  "name": "holoscan-example",
   "kind": "module",
   "source": {
     "type": "git",
-    "url": "https://github.com/example/holoscan-modules",
+    "url": "https://github.com/example/holoscan-example",
     "ref": "0123456789abcdef0123456789abcdef01234567"
   }
 }

@@ -59,9 +59,11 @@ needed. Otherwise, [request registration with kind `tutorial`](https://github.co
 
 For Git, select the tutorial directory or collection containing `metadata.json`
 descriptors. A direct tutorial's registration name matches its directory name.
-For hosted content, serve `metadata.json` at a direct HTTPS URL; an HTML tutorial
-page alone is insufficient. See [Contributing](../CONTRIBUTING.md) for the
-submission steps and the [source reference](../docs/registry-reference.md)
-for hosted-content records.
+For metadata at a Git repository root, use the repository name without `.git`;
+see [discovery names](../docs/registry-reference.md#discovery-names).
+For hosted content, provide an HTTPS `metadata.json` URL or the directory serving
+it; an HTML tutorial page alone is insufficient. See
+[Contributing](../CONTRIBUTING.md) for submission steps and the
+[source reference](../docs/registry-reference.md) for hosted-content records.
 
 [Back to HoloHub](../README.md)

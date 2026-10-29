@@ -104,7 +104,7 @@ class RegistryTests(unittest.TestCase):
         path = self.write_record("module", directory="applications")
         path.rename(path.with_name("wrong-name.json"))
         result = self.assert_rejected("belongs in modules/")
-        self.assertIn("filename must be example-module.json", result.stderr)
+        self.assertIn("filename must be holoscan-example.json", result.stderr)
 
     def test_invalid_schema_is_rejected_even_for_an_empty_registry(self):
         self.schema_path.write_text('{"type": "not-a-type"}')
