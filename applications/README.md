@@ -1,153 +1,85 @@
 # Holoscan applications
 
-## Register an existing application
+Applications connect Holoscan operators into complete processing pipelines.
+Use an existing application as a runnable example or a starting point for your
+own workflow. This directory registers sources; application code lives upstream.
 
-Applications combine Holoscan operators into an end-to-end pipeline. Keep the
-code, datasets, models, containers, tests, and application metadata in an
-external repository; add only a source record here.
+## Find and run an application
 
-To register without editing JSON, [open a registration request](https://github.com/nvidia-holoscan/holohub/issues/new?template=registry.yml&kind=application);
-a bot opens the pull request. To edit the record yourself:
+| Source | What you will find |
+| --- | --- |
+| [holoscan-applications](https://github.com/nvidia-holoscan/holoscan-applications) | Applications maintained in the dedicated repository. [Registration](holoscan-applications.json). |
+| [Archived HoloHub applications](https://github.com/nvidia-holoscan/holohub/tree/archive-4x/applications) | Earlier examples with their original SDK requirements. [Registration](holohub-applications-archive.json). |
 
-1. Check the JSON records in this directory for an existing registration of
-   the same repository and path. A source can contain one application or a
-   collection of applications. Update its existing record for a new revision.
-2. Add `applications/my-application.json` in your HoloHub checkout:
-
-   ```json
-   {
-     "name": "my-application",
-     "kind": "application",
-     "issues_url": "https://github.com/example/my-application/issues",
-     "source": {
-       "type": "git",
-       "url": "https://github.com/example/my-application.git",
-       "ref": "v0.1.0",
-       "path": "."
-     }
-   }
-   ```
-
-   Replace the example values with your published source, preferably using a
-   full commit SHA for `ref`. Use `path` for an application subdirectory or
-   collection, such as `applications`; keep the clone URL separate from the
-   revision and path. `issues_url` is optional. The lowercase registration
-   name must match the JSON filename.
-3. Verify the upstream application has its own README and metadata describing
-   requirements, SDK compatibility, execution modes, and run commands. Follow
-   the [application metadata schema](https://github.com/nvidia-holoscan/holoscan-cli/blob/main/src/holoscan_cli/metadata/application.schema.json).
-   Application descriptions and execution settings belong upstream, not in
-   this source record.
-4. Validate from the HoloHub root:
-
-   ```bash
-   python3 -m venv .venv
-   .venv/bin/python -m pip install -r requirement.txt
-   .venv/bin/python utilities/validate_registry.py --index dist/sources.json
-   .venv/bin/python utilities/validate_sources.py
-   ```
-
-5. Submit the JSON change in a pull
-   request to the HoloHub registry branch you are contributing to. See
-   [CONTRIBUTING.md](../CONTRIBUTING.md) for the full checks. Keep generated
-   indexes and application files out of the change.
-
-The CLI has no HoloHub registration command. `holoscan list` lists local
-projects; it does not publish them. CI checks declarations, retrieves metadata,
-and verifies CLI discovery without building applications. See the
-[source record reference](../CONTRIBUTING.md#source-records) for all fields and
-hosted-content sources. [`holoscan-applications.json`](holoscan-applications.json)
-shows a registration for an application collection.
-
-## Create a new application
-
-Develop in an external source repository. Install and activate
-[Holoscan CLI](https://github.com/nvidia-holoscan/holoscan-cli#installation) from PyPI.
-Prepare the application's GPU, data, models, and any capture or
-display devices. Container builds need Docker and NVIDIA Container Toolkit;
-native builds need a compatible Holoscan SDK and build dependencies.
-
-Start from an application in
-[Holoscan applications](https://github.com/nvidia-holoscan/holoscan-applications/tree/main/applications)
-or create a standalone project with this layout:
-
-```text
-my_app/
-├── metadata.json       # Top-level application object
-├── CMakeLists.txt      # Configure/build the application and its dependencies
-├── README.md           # Setup, data, build/run steps, and expected output
-├── Dockerfile          # Development environment for container builds
-├── tests/              # Tests and CTest integration
-└── ...                 # Python or C++ pipeline, configuration, and resources
-```
-
-Implement the pipeline, declare its dependencies and build rules, and describe
-its launch command and working directory in `metadata.json`. Use the
-[application schema](https://github.com/nvidia-holoscan/holoscan-cli/blob/main/src/holoscan_cli/metadata/application.schema.json)
-and [shared project definitions](https://github.com/nvidia-holoscan/holoscan-cli/blob/main/src/holoscan_cli/metadata/project.schema.json)
-for the metadata contract. Keep SDK versions, platform requirements, and data
-download instructions accurate. Document how to recognize a successful run.
-
-`holoscan create` defaults to a **module** template. To scaffold a module with
-a demo application, follow the [module guide](../modules/README.md#create-a-new-module).
-For an independent application, supply the files above or use an application
-Cookiecutter template. Install the `create` extra in the active environment,
-then use the name and options documented by that template:
+For the dedicated applications repository, use Python 3.12 and Git:
 
 ```bash
-python -m pip install 'holoscan-cli[create]==5.0.0'
-holoscan create my_app --template /path/to/template
+git clone https://github.com/nvidia-holoscan/holoscan-applications.git
+cd holoscan-applications
+python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+holoscan list
 ```
+
+`holoscan list` prints the available project names. Read the selected
+application's README for its supported SDK, GPU, data, models, and devices.
+Follow the repository's [build and run instructions](https://github.com/nvidia-holoscan/holoscan-applications#build-and-run)
+to prepare Docker, NVIDIA Container Toolkit, and the SDK image, or a native SDK
+environment. Installing the CLI alone does not install those dependencies.
 
 ## Build, run, and test
 
-Run from the application's source repository, not this registry:
+From the application's source repository with its environment active, replace
+`<application>` with a name from `holoscan list`:
 
 ```bash
-holoscan list
-holoscan modes my_app
+holoscan modes <application>
+holoscan run <application> --dryrun --verbose
+holoscan run <application>
 ```
 
-Replace `my_app` with the selector printed by `holoscan list`. For a standalone
-application, the selector is its directory name, which can differ from the
-display name in metadata. A direct registration must use that selector as its
-name; a collection registration can have a separate name. For another
-checkout, use `holoscan --project-root /path/to/my_app list`.
-
-Build and run in the application's development container:
-
-```bash
-holoscan build my_app
-holoscan run my_app
-```
-
-The Dockerfile and CLI configuration must select a suitable SDK development
-image; use `--base-img` for an explicit image override. See
-[SDK image configuration](https://github.com/nvidia-holoscan/holoscan-cli/blob/main/CONFIGURATION.md).
-If the application defines modes, add a mode reported by `holoscan modes`,
-for example `holoscan build my_app replay` and `holoscan run my_app replay`
-only when a `replay` mode exists. A run builds the application before launch.
-
-With the SDK and dependencies installed on the host, use native execution:
-
-```bash
-holoscan build my_app --local
-holoscan run my_app --local
-```
-
-After configuring the project's CTest driver and tests:
-
-```bash
-holoscan test my_app
-```
-
-Use `--local` for native tests. `holoscan test` runs CTest; include a finite
-smoke test with expected output, alongside tests for reusable operators.
-If the upstream repository supplies pre-commit hooks, run `holoscan lint`.
-Keep these checks in the application repository's CI, then publish a revision
-and register it using the steps above.
-
-Use `holoscan <command> --help` and the
+If the README requires a mode, append one reported by `holoscan modes` to
+both run commands. The preview prints the planned commands; the second run
+builds and launches the application. Compare the output with the README's
+expected result. With the SDK and dependencies on the host, add `--local` to
+both commands. Where CTest tests are configured, use `holoscan test <application>`
+(with `--local` for native tests). See the
 [CLI reference](https://github.com/nvidia-holoscan/holoscan-cli/blob/main/CLI_REFERENCE.md)
-for additional flags. Build, run, and test support `--dryrun --verbose` for
-previewing the selected environment and commands.
+for build-only commands and options.
+
+If setup fails, run `holoscan env-check` and consult the application's
+troubleshooting instructions. Report application failures to its issue tracker.
+
+## Create a new application
+
+1. Follow [holoscan-applications' contribution guide](https://github.com/nvidia-holoscan/holoscan-applications/blob/main/CONTRIBUTING.md),
+   or develop in your own repository. For changes to an existing application,
+   submit the pull request to its owner.
+2. Keep the pipeline, configuration, application-specific operators, data
+   preparation, and tests together. Package components intended for reuse in
+   a [module](../modules/README.md).
+3. Add a README with requirements, setup, run commands, and expected output;
+   include ownership and licensing. Supply `metadata.json` using the
+   [application schema](https://github.com/nvidia-holoscan/holoscan-cli/blob/main/src/holoscan_cli/metadata/application.schema.json)
+   and configure any advertised CLI build, run, and test operations.
+4. Test the documented workflow and a finite smoke test on the declared SDK
+   and hardware. Publish the tested source revision and keep CI upstream.
+
+`holoscan create` uses a module template by default. To learn application
+composition, start with [Holoscan Tutorials](https://github.com/nvidia-holoscan/holoscan-tutorials)
+or adapt an application in the source repository.
+
+## Register an existing application
+
+Check this directory's records first. Applications within an already registered
+collection need no separate record; update its revision if necessary.
+Otherwise, [request registration with kind `application`](https://github.com/nvidia-holoscan/holohub/issues/new?template=registry.yml&kind=application)
+after publishing the source and its metadata.
+
+For a single application, use its CLI project name as the registration name
+(usually the application directory, not its metadata display name). A collection
+has its own stable name. Follow [Contributing](../CONTRIBUTING.md) for form fields,
+manual JSON submissions, validation, and maintainer review.
+
+[Back to HoloHub](../README.md)
