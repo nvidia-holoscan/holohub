@@ -10,8 +10,10 @@ cycle. One module can provide several operators.
 | --- | --- | --- |
 | [Holoscan SDK modules](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/modules) | SDK components, including inference, vision, and visualization | [Source](holoscan-sdk-modules.json) |
 | [Holoscan Sensor Bridge](https://github.com/nvidia-holoscan/holoscan-sensor-bridge) | Sensor connectivity | [Source](holoscan-sensor-bridge.json) |
-| [Holoscan Finance](https://github.com/nvidia-holoscan/holoscan-finance) | Financial-services components | [Source](holoscan-finance.json) |
 | [DELTACAST Holoscan modules](https://github.com/deltacasttv/holoscan-modules) | Partner-maintained video I/O components | [Source](holoscan-deltacast.json) |
+
+For financial-services components, see
+[Holoscan Finance](https://github.com/nvidia-holoscan/holoscan-finance).
 
 ## How modules fit
 

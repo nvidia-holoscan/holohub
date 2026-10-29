@@ -22,8 +22,8 @@ repositories. You can use those repositories directly without cloning HoloHub.
 
 ![HoloHub connects the SDK, application, tutorial, benchmark, NVIDIA module, partner module, and archived source repositories.](docs/images/repository-map.svg)
 
-*Arrows show where HoloHub registrations lead. They do not represent build
-dependencies; each application selects the modules it needs.*
+*Arrows connect HoloHub to ecosystem repositories. Each application selects
+the modules it needs.*
 
 Alongside the application, tutorial, and benchmark repositories above, module
 sources include [Holoscan SDK core modules](https://github.com/nvidia-holoscan/holoscan-sdk/tree/main/modules),

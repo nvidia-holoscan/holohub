@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1400" height="790" viewBox="0 0 1400 790" role="img" aria-labelledby="title description">
   <title id="title">HoloHub repository map</title>
-  <desc id="description">HoloHub registers sources in holoscan-sdk, holoscan-applications, holoscan-tutorials, holoscan-benchmarks, holoscan-sensor-bridge, holoscan-finance, deltacasttv/holoscan-modules, and HoloHub's archive-4x branch. Arrows indicate discovery links, not build dependencies. NVIDIA repositories shown here belong to nvidia-holoscan; DELTACAST owns its partner repository.</desc>
+  <desc id="description">HoloHub connects visitors to holoscan-sdk, holoscan-applications, holoscan-tutorials, holoscan-benchmarks, holoscan-sensor-bridge, holoscan-finance, deltacasttv/holoscan-modules, and HoloHub's archive-4x branch. Arrows indicate discovery links. NVIDIA repositories shown here belong to nvidia-holoscan; DELTACAST owns its partner repository.</desc>
   <defs>
     <style>
       text { font-family: Arial, Helvetica, sans-serif; fill: #1d2b22; }
