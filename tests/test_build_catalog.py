@@ -44,7 +44,7 @@ class CatalogTests(unittest.TestCase):
             (self.registry / directory).mkdir()
 
     def git(self, *args):
-        return subprocess.run(["git", "-C", str(self.repo), *args], check=True, capture_output=True, text=True).stdout.strip()
+        return subprocess.run(["git", "-c", "commit.gpgsign=false", "-C", str(self.repo), *args], check=True, capture_output=True, text=True).stdout.strip()
 
     def commit(self, files):
         """Write files (text, bytes, or JSON objects) into the repository and return the commit."""
@@ -268,6 +268,28 @@ class CatalogTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "module 'holoscan-example' conflicts with application 'holoscan-example'"):
             self.collect(self.record("module", "holoscan-example", ref=commit))
 
+    def test_collection_templates_are_neither_validated_nor_mirrored(self):
+        commit = self.commit({
+            "applications/camera-template/metadata.json": metadata("application"),
+            "applications/template/{{project}}/metadata.json": "{{ unrendered metadata }}",
+            "applications/holoviz/template/{{project}}/metadata.json": "{{ unrendered metadata }}",
+        })
+        record = self.record("application", "collection", ref=commit, path="applications")
+        result = self.collect(record)
+        self.assertEqual(["camera-template"], [entity["name"] for entity in result["entities"]])
+        self.assertEqual(["camera-template/metadata.json"], self.mirrored(result["root"]))
+
+    def test_module_keeps_benchmark_named_template_outside_modules_directory(self):
+        commit = self.commit({
+            "metadata.json": metadata(),
+            "benchmarks/template/metadata.json": metadata("benchmark"),
+        })
+        record = self.record("module", "holoscan-example", ref=commit)
+        result = self.collect(record)
+        self.assertEqual([("module", "."), ("benchmark", "benchmarks/template")], [
+            (entity["kind"], entity["path"]) for entity in result["entities"]
+        ])
+
     def test_missing_descriptors_symlinks_and_bad_refs_are_rejected(self):
         commit = self.commit({"docs/README.md": "# No descriptor\n"})
         for message, record in (
@@ -278,13 +300,13 @@ class CatalogTests(unittest.TestCase):
             with self.subTest(message=message), self.assertRaisesRegex(ValueError, message):
                 self.collect(record)
         (self.repo / "README.md").symlink_to("docs/README.md")
-        commit = self.commit({"metadata.json": metadata("module", "linked")})
+        commit = self.commit({"metadata.json": metadata("module", "holoscan-linked")})
         with self.assertRaisesRegex(ValueError, "README.md: must be a regular file, not a symlink"):
-            self.collect(self.record("module", "linked", ref=commit))
+            self.collect(self.record("module", "holoscan-linked", ref=commit))
 
     def test_hosted_sources_fetch_optional_documents_in_sorted_order(self):
         files = {
-            "https://example.org/mod/metadata.json": json.dumps(metadata("module", "hosted-module")).encode(),
+            "https://example.org/mod/metadata.json": json.dumps(metadata("module", "holoscan-hosted-module")).encode(),
             "https://example.org/mod/README.md": b"# Hosted module\n![Flow](images/flow.png) [Shared](../shared/README.md#top)\n",
             "https://example.org/tutorials/basics/metadata.json": json.dumps(metadata("tutorial")).encode(),
             "https://example.org/skills/hosted-skill/SKILL.md": skill("hosted-skill").encode(),
@@ -292,14 +314,14 @@ class CatalogTests(unittest.TestCase):
         }
         self.register("tutorial", "basics", "https://example.org/tutorials/basics/#overview")
         self.register("skill", "hosted-skill", "https://example.org/skills/hosted-skill/SKILL.md")
-        self.register("module", "hosted-module", "https://example.org/mod/metadata.json")
+        self.register("module", "holoscan-hosted-module", "https://example.org/mod/metadata.json")
         with patch.object(sources, "urlopen", side_effect=hosted(files)):
             index, _ = self.build()
         self.assertEqual(catalog.FORMAT, index["format"])
         module, skill_source, tutorial = index["sources"]
         self.assertEqual(["module", "skill", "tutorial"], [source["record"]["kind"] for source in index["sources"]])
         self.assertEqual([None, None, None], [source["commit"] for source in index["sources"]])
-        self.assertEqual(("README.md", "hosted-module", {"readme": "README.md"}), (
+        self.assertEqual(("README.md", "holoscan-hosted-module", {"readme": "README.md"}), (
             module["readme"], module["entities"][0]["name"], module["entities"][0]["documents"],
         ))
         self.assertEqual({"raw": "https://example.org/mod/", "browse": "https://example.org/mod/"}, module["upstream"])
@@ -313,12 +335,12 @@ class CatalogTests(unittest.TestCase):
         self.assertEqual(["SKILL.md", "skill-card.md"], self.mirrored(skill_source["root"]))
 
     def test_hosted_document_errors_other_than_missing_fail_the_source(self):
-        files = {"https://example.org/mod/metadata.json": json.dumps(metadata("module", "hosted-module")).encode()}
-        self.register("module", "hosted-module", "https://example.org/mod/metadata.json")
+        files = {"https://example.org/mod/metadata.json": json.dumps(metadata("module", "holoscan-hosted-module")).encode()}
+        self.register("module", "holoscan-hosted-module", "https://example.org/mod/metadata.json")
         with patch.object(sources, "urlopen", side_effect=hosted(files, missing=500)):
             index, errors = self.build(expected_code=1)
         self.assertEqual([], index["sources"])
-        self.assertIn("modules/hosted-module.json: HTTP Error 500", errors)
+        self.assertIn("modules/holoscan-hosted-module.json: HTTP Error 500", errors)
         self.assertFalse((self.output / "modules").exists())
 
     def test_invalid_descriptor_omits_only_its_source(self):
@@ -335,8 +357,8 @@ class CatalogTests(unittest.TestCase):
                 self.assertTrue((self.output / "applications/good/metadata.json").is_file())
 
     def test_output_must_be_empty_and_defaults_to_a_temporary_directory(self):
-        files = {"https://example.org/mod/metadata.json": json.dumps(metadata("module", "hosted-module")).encode()}
-        self.register("module", "hosted-module", "https://example.org/mod/metadata.json")
+        files = {"https://example.org/mod/metadata.json": json.dumps(metadata("module", "holoscan-hosted-module")).encode()}
+        self.register("module", "holoscan-hosted-module", "https://example.org/mod/metadata.json")
         self.output.mkdir()
         (self.output / "stale").write_text("previous build")
         err = io.StringIO()

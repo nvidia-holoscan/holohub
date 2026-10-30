@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="860" viewBox="0 0 1280 860" role="img" aria-labelledby="title description">
+  <title id="title">How Holoscan modules fit into an application</title>
+  <desc id="description">An application uses the Holoscan SDK and optionally external modules from NVIDIA, partners, or the community. SDK core modules for inference, vision, and visualization, and external modules, build on SDK core libraries for graphs, operators, and HoloMQ. HoloHub provides source discovery and registration. The Holoscan CLI supports creating, building, running, and testing projects.</desc>
+  <defs>
+    <style>
+      text { font-family: Arial, Helvetica, sans-serif; fill: #1d2b22; }
+      .heading { font-size: 32px; font-weight: 700; }
+      .detail { font-size: 25px; fill: #435248; }
+      .box { fill: #fff; stroke: #1d2b22; stroke-width: 2.5; }
+      .link { fill: none; stroke: #1d2b22; stroke-width: 3; marker-end: url(#arrow); }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#1d2b22"/>
+    </marker>
+  </defs>
+  <rect width="1280" height="860" fill="#fff"/>
+  <rect x="24" y="24" width="1232" height="120" rx="16" fill="#f2f4f0" stroke="#1d2b22" stroke-width="2.5"/>
+  <text class="heading" x="640" y="72" text-anchor="middle">Your application</text>
+  <text class="detail" x="640" y="113" text-anchor="middle">Use SDK core libraries and select the modules you need</text>
+  <path class="link" d="M414 144 V240"/>
+  <text class="detail" x="436" y="202">uses</text>
+  <path class="link" d="M1030 144 V326"/>
+  <text class="detail" x="1052" y="240">optional</text>
+
+  <rect x="24" y="242" width="780" height="386" rx="16" fill="#fff" stroke="#76b900" stroke-width="3"/>
+  <text class="heading" x="414" y="294" text-anchor="middle">Holoscan SDK</text>
+  <rect class="box" x="54" y="326" width="720" height="112" rx="12"/>
+  <text class="heading" x="414" y="371" text-anchor="middle">SDK core modules</text>
+  <text class="detail" x="414" y="410" text-anchor="middle">Inference · Vision · Visualization</text>
+  <path class="link" d="M414 438 V496"/>
+  <rect class="box" x="54" y="498" width="720" height="102" rx="12"/>
+  <text class="heading" x="414" y="540" text-anchor="middle">SDK core libraries</text>
+  <text class="detail" x="414" y="578" text-anchor="middle">Graphs · Operators · HoloMQ</text>
+
+  <rect class="box" x="834" y="326" width="422" height="112" rx="12"/>
+  <text class="heading" x="1045" y="369" text-anchor="middle">External modules</text>
+  <text x="1045" y="409" text-anchor="middle" font-size="23" fill="#435248">NVIDIA, partners, and community</text>
+  <path class="link" d="M1030 438 V550 H776"/>
+  <text class="detail" x="1052" y="501">build on</text>
+
+  <text x="640" y="685" text-anchor="middle" font-size="28" font-weight="700">Developer tools and discovery</text>
+  <rect class="box" x="24" y="716" width="596" height="112" rx="12"/>
+  <text class="heading" x="322" y="762" text-anchor="middle">HoloHub</text>
+  <text class="detail" x="322" y="802" text-anchor="middle">Find and register project sources</text>
+  <rect class="box" x="660" y="716" width="596" height="112" rx="12"/>
+  <text class="heading" x="958" y="762" text-anchor="middle">Holoscan CLI</text>
+  <text class="detail" x="958" y="802" text-anchor="middle">Create, build, run, and test projects</text>
+</svg>

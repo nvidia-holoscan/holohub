@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="790" viewBox="0 0 1400 790" role="img" aria-labelledby="title description">
+  <title id="title">HoloHub repository map</title>
+  <desc id="description">HoloHub connects visitors to holoscan-sdk, holoscan-applications, holoscan-tutorials, holoscan-benchmarks, holoscan-sensor-bridge, holoscan-finance, partner module repositories, and HoloHub's archive-4x branch. Arrows indicate discovery links. NVIDIA repositories shown here belong to nvidia-holoscan; partners maintain their own module repositories.</desc>
+  <defs>
+    <style>
+      text { font-family: Arial, Helvetica, sans-serif; fill: #1d2b22; }
+      .name { font-size: 27px; font-weight: 700; }
+      .detail { font-size: 23px; fill: #536158; }
+      .node { fill: #fff; stroke: #d2dbd4; stroke-width: 2; }
+      .link { fill: none; stroke: #76b900; stroke-width: 3; marker-end: url(#arrow); }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#76b900"/>
+    </marker>
+  </defs>
+  <rect width="1400" height="790" fill="#fff"/>
+  <g class="link">
+    <path d="M700 330 V130"/>
+    <path d="M520 375 L434 240"/>
+    <path d="M520 405 H434"/>
+    <path d="M520 435 L434 570"/>
+    <path d="M880 375 L966 240"/>
+    <path d="M880 405 H966"/>
+    <path d="M880 435 L966 570"/>
+    <path d="M700 480 V650"/>
+  </g>
+  <rect class="node" x="500" y="24" width="400" height="104" rx="12"/>
+  <text class="name" x="700" y="67" text-anchor="middle">holoscan-sdk</text>
+  <text class="detail" x="700" y="103" text-anchor="middle">Core modules and agent skills</text>
+
+  <rect class="node" x="24" y="180" width="410" height="112" rx="12"/>
+  <text class="name" x="48" y="224">holoscan-applications</text>
+  <text class="detail" x="48" y="262">Application pipelines</text>
+  <rect class="node" x="24" y="350" width="410" height="112" rx="12"/>
+  <text class="name" x="48" y="394">holoscan-tutorials</text>
+  <text class="detail" x="48" y="432">Development walkthroughs</text>
+  <rect class="node" x="24" y="520" width="410" height="112" rx="12"/>
+  <text class="name" x="48" y="564">holoscan-benchmarks</text>
+  <text class="detail" x="48" y="602">Workloads and measurement tools</text>
+
+  <rect x="520" y="330" width="360" height="150" rx="16" fill="#ecf5da" stroke="#76b900" stroke-width="3"/>
+  <text x="700" y="387" text-anchor="middle" font-size="42" font-weight="700">HoloHub</text>
+  <text class="detail" x="700" y="426" text-anchor="middle">Source registry and discovery</text>
+  <text x="700" y="458" text-anchor="middle" font-size="21" fill="#536158">nvidia-holoscan/holohub</text>
+
+  <rect class="node" x="966" y="180" width="410" height="112" rx="12"/>
+  <text class="name" x="990" y="224">holoscan-sensor-bridge</text>
+  <text class="detail" x="990" y="262">Sensor connectivity module</text>
+  <rect class="node" x="966" y="350" width="410" height="112" rx="12"/>
+  <text class="name" x="990" y="394">holoscan-finance</text>
+  <text class="detail" x="990" y="432">Financial-services module</text>
+  <rect class="node" x="966" y="520" width="410" height="112" rx="12"/>
+  <text class="name" x="990" y="564">Partner modules</text>
+  <text class="detail" x="990" y="602">Modules maintained by partners</text>
+
+  <rect x="500" y="650" width="400" height="108" rx="12" fill="#f5f7f4" stroke="#69786c" stroke-width="2" stroke-dasharray="7 5"/>
+  <text class="name" x="700" y="693" text-anchor="middle">holohub · archive-4x</text>
+  <text class="detail" x="700" y="731" text-anchor="middle">Earlier apps, tutorials, benchmarks</text>
+  <text x="24" y="754" font-size="20" fill="#536158">NVIDIA repositories: nvidia-holoscan</text>
+</svg>

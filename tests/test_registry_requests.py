@@ -484,7 +484,7 @@ class RequestTests(unittest.TestCase):
         self.seed()
 
         def git(*args):
-            return subprocess.run(["git", *args], cwd=self.root, check=True, capture_output=True, text=True)
+            return subprocess.run(["git", "-c", "commit.gpgsign=false", *args], cwd=self.root, check=True, capture_output=True, text=True)
 
         git("init", "--quiet")
         git("add", ".")

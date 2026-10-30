@@ -7,7 +7,7 @@ body:
       value: |
         HoloHub records where each project lives. Its code, descriptions, and tags stay in the project's own repository. After you submit this form, a bot checks your request, renames the issue after it, and opens a pull request for the maintainers to review.
 
-        **Register a new source:** fill in every required field below. To prepare your project first, see the guides for creating an [application](https://github.com/nvidia-holoscan/holohub/blob/main/applications/README.md#create-a-new-application), [module](https://github.com/nvidia-holoscan/holohub/blob/main/modules/README.md#create-a-new-module), [tutorial](https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/README.md#create-a-new-tutorial), or [skill](https://github.com/nvidia-holoscan/holohub/blob/main/skills/README.md#create-a-new-skill).
+        **Register a new source:** fill in every required field below. To prepare your project first, see the guides for creating an [application](https://github.com/nvidia-holoscan/holohub/blob/main/applications/README.md#create-a-new-application), [module](https://github.com/nvidia-holoscan/holohub/blob/main/modules/README.md#create-a-new-module), [tutorial](https://github.com/nvidia-holoscan/holohub/blob/main/tutorials/README.md#create-a-new-tutorial), [benchmark](https://github.com/nvidia-holoscan/holohub/blob/main/benchmarks/README.md#create-a-new-benchmark), or [skill](https://github.com/nvidia-holoscan/holohub/blob/main/skills/README.md#create-a-new-skill). Check for an existing registration first; a project already covered by a registered collection does not need a separate record.
 
         **Update a registered source:** enter its Kind and Name plus only the fields you want to change. Blank fields keep their current values, and `none` clears an optional value.
 
@@ -25,7 +25,7 @@ body:
     id: name
     attributes:
       label: Name
-      description: The registered name, or a new one using lowercase letters, numbers, and single hyphens or underscores between words.
+      description: The registered name, or a new one using lowercase letters, numbers, and single hyphens or underscores. A direct module uses its metadata name starting with `holoscan-`, with hyphens only; a direct skill also allows hyphens only. A collection has its own stable name.
       placeholder: my-application
     validations:
       required: true
@@ -33,13 +33,13 @@ body:
     id: url
     attributes:
       label: Source URL
-      description: HTTPS Git clone URL, or a direct link to a hosted metadata.json or SKILL.md. Required for a new source.
+      description: HTTPS Git clone URL, a hosted metadata.json or SKILL.md URL, or the directory serving that file. Required for a new source.
       placeholder: https://github.com/owner/project.git
   - type: input
     id: ref
     attributes:
       label: Git revision
-      description: A branch, a tag, or (most reproducible) a full commit SHA. Leave blank to use a Git repository's default branch, or for a hosted metadata.json or SKILL.md. When changing a registered Git repository to a hosted file, enter `none` to clear the stored revision.
+      description: Prefer a full commit SHA; a branch or tag also works. For new Git sources, blank selects the default branch only for GitHub repository URLs or URLs ending in .git; enter a revision for other Git URLs. Leave blank for hosted content. When changing a Git registration to hosted content, enter `none` to clear the stored revision.
       placeholder: 0123456789abcdef0123456789abcdef01234567
   - type: input
     id: path
@@ -51,7 +51,7 @@ body:
     id: issues-url
     attributes:
       label: Issue tracker URL
-      description: Optional HTTPS page where users report problems with this source. Leave blank to use the issue tracker of a GitHub or GitLab repository when it has one.
+      description: Optional HTTPS page where users report problems with this source. For a new or moved GitHub/GitLab source with no tracker, leaving this blank lets automation try its public issue tracker.
       placeholder: https://github.com/owner/project/issues
   - type: checkboxes
     id: remove
