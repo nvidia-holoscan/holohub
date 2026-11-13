@@ -113,13 +113,26 @@ python3 -m venv .venv
 .venv/bin/python utilities/validate_sources.py
 ```
 
-The `pre-commit.ci` check runs formatting hooks on pull requests. To run the
+The `pre-commit.ci` check runs local validation hooks on pull requests. To run the
 same checks locally:
 
 ```bash
 .venv/bin/python -m pip install pre-commit
 .venv/bin/pre-commit run --all-files
 ```
+
+Hooks check JSON and YAML syntax, Python correctness and stray debuggers,
+file hygiene, and accidental private keys or files larger than 1 MiB.
+Application code and datasets belong in the registered source repositories.
+The registry hook installs its own pinned dependencies and runs on every commit,
+checking the whole registry offline for invalid records, duplicate sources,
+unexpected files, and symlinks. Unit tests and network-dependent source
+validation run in the Registry CI workflow. To run hooks automatically when
+committing, use `.venv/bin/pre-commit install`.
+
+Python tooling, tests, and YAML configuration use NVIDIA copyright and
+Apache-2.0 SPDX headers. Keep Python shebangs first and place the header below
+them. JSON records and fixtures do not support comment headers.
 
 The first validator checks record structure and duplicates offline. The second
 requires network access: it fetches every registered source, validates its

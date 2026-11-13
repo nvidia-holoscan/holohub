@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 # Registry tooling only; registered entities manage their own dependencies.
 jsonschema==4.26.0
 # Enforces the uri format used by utilities/source.schema.json.
