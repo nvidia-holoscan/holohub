@@ -1,9 +1,47 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+minimum_pre_commit_version: "4.6.2"
+default_stages: [pre-commit]
+exclude: '(^|/)(__pycache__|\.venv|\.pytest_cache|\.ruff_cache)/|^dist/'
+
+# Keep immutable revisions with readable release labels.
+# Refresh with: pre-commit autoupdate --freeze
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c # v6.0.0
+    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c  # frozen: v6.0.0
     hooks:
+      - id: check-added-large-files
+        args: [--maxkb=1024, --enforce-all]
+      - id: check-case-conflict
       - id: check-json
       - id: check-yaml
       - id: check-merge-conflict
-      - id: trailing-whitespace
+      - id: check-symlinks
+      - id: debug-statements
+      - id: detect-private-key
       - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: c0f278f1254ccc8fb09676bcdb8d847e7db493e5  # frozen: v0.17.4
+    hooks:
+      - id: ruff-check
+        # Use Ruff's core correctness rules, independent of parent-directory config.
+        args: [--isolated, --select=E4,E7,E9,F, --target-version=py312]
+
+  - repo: local
+    hooks:
+      - id: validate-registry
+        name: validate offline source registrations
+        entry: python utilities/validate_registry.py
+        language: python
+        additional_dependencies:
+          - jsonschema==4.26.0
+          - rfc3986-validator==0.1.1
+        # A single changed record can introduce a duplicate elsewhere.
+        pass_filenames: false
+        files: '^(applications|benchmarks|modules|skills|tutorials)/[^/]+\.json$|^utilities/(validate_registry\.py|source\.schema\.json)$|^(requirement\.txt|\.pre-commit-config\.yaml)$'

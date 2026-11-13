@@ -121,6 +121,16 @@ same checks locally:
 .venv/bin/pre-commit run --all-files
 ```
 
+Hooks check JSON and YAML syntax, Python correctness, file hygiene, and all
+source registrations offline. The registry hook installs its own pinned
+dependencies and checks the whole registry, including duplicate sources.
+Network-dependent source validation remains a separate CI check. To run hooks
+automatically when committing, use `.venv/bin/pre-commit install`.
+
+Python tooling, tests, and YAML configuration use NVIDIA copyright and
+Apache-2.0 SPDX headers. Keep Python shebangs first and place the header below
+them. JSON records and fixtures do not support comment headers.
+
 The first validator checks record structure and duplicates offline. The second
 requires network access: it fetches every registered source, validates its
 descriptors, and checks CLI discovery (or skill frontmatter). Success means
