@@ -227,6 +227,7 @@ class CatalogTests(unittest.TestCase):
             ("Footnotes.[^1][^tuning]", "Footnotes.[^1][^tuning]"),
             ("[^1]: See the setup guide.", "[^1]: See the setup guide."),
             ("[^tuning]: docs/TUNING.md, then [Guide](docs/GUIDE.md).", f"[^tuning]: docs/TUNING.md, then [Guide]({browse}module/docs/GUIDE.md)."),
+            ("[^path]: docs/TUNING.md", "[^path]: docs/TUNING.md"),
             ('<img src="images/html.png" width="200"> <a href="docs/API.md">API</a>',
              f'<img src="{raw}module/images/html.png" width="200"> <a href="{browse}module/docs/API.md">API</a>'),
             ("<picture><source srcset=\"images/dark.png 1x, images/dark@2x.png 2x\"><img src='images/light.png'></picture>",
