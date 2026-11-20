@@ -88,10 +88,12 @@ README = "README.md"
 SKILL_CARD = "skill-card.md"
 
 # Markdown destinations after "](", which may contain balanced parentheses as
-# in "latency (ms).png"; [label]: definitions; and the ![alt][label] images
-# that make a definition an image rather than a link.
+# in "latency (ms).png"; [label]: definitions, which end after the destination
+# or an optional title, but not [^label]: footnotes, whose text follows the
+# colon; and the ![alt][label] images that make a definition an image rather
+# than a link.
 DESTINATION = re.compile(r"\]\(\s*(<[^>]*>|(?:[^\s()]|\([^\s()]*\))+)")
-DEFINITION = re.compile(r"^ {0,3}\[([^\]]+)\]:\s*(<[^>]*>|\S+)", re.MULTILINE)
+DEFINITION = re.compile(r"^ {0,3}\[(?!\^)([^\]]+)\]:\s*(<[^>]*>|\S+)(?=[ \t]*$|\s+(?:\"[^\"]*\"|'[^']*'|\([^)]*\))[ \t]*$)", re.MULTILINE)
 REFERENCE_IMAGE = re.compile(r"!\[([^\]]*)\]\[([^\]]*)\]")
 # Inline HTML media and anchors, including responsive srcset candidates.
 HTML_TAG = re.compile(r"<(img|source|video|audio|embed|a)\b[^>]*>", re.IGNORECASE)
