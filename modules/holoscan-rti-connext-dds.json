@@ -1,0 +1,11 @@
+{
+  "name": "holoscan-rti-connext-dds",
+  "kind": "module",
+  "issues_url": "https://github.com/rticommunity/rticonnextdds-holoscan-module/issues",
+  "source": {
+    "type": "git",
+    "url": "https://github.com/rticommunity/rticonnextdds-holoscan-module",
+    "ref": "e9f1defb56ff91312667098dcf502cca75b57756",
+    "path": "."
+  }
+}
